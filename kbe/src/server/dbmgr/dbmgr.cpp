@@ -65,7 +65,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	numQueryEntity_(0),
 	numExecuteRawDatabaseCommand_(0),
 	numCreatedAccount_(0),
-	pBillingHandler_(NULL)
+	pBillingAccountHandler_(NULL),
+	pBillingChargeHandler_(NULL)
 {
 }
 
@@ -76,7 +77,8 @@ Dbmgr::~Dbmgr()
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
 
-	SAFE_RELEASE(pBillingHandler_);
+	SAFE_RELEASE(pBillingAccountHandler_);
+	SAFE_RELEASE(pBillingChargeHandler_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -193,11 +195,13 @@ bool Dbmgr::initializeEnd()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initBillingHandler()
 {
-	pBillingHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemType(), threadPool(), dbThreadPool_);
+	pBillingAccountHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemAccountType(), threadPool(), dbThreadPool_);
+	pBillingChargeHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemChargeType(), threadPool(), dbThreadPool_);
 
-	INFO_MSG(boost::format("Dbmgr::initBillingHandler: billing addr(%1%), type:%2%.\n") % 
+	INFO_MSG(boost::format("Dbmgr::initBillingHandler: billing addr(%1%), accountType:(%2%), chargeType:(%3%).\n") % 
 		g_kbeSrvConfig.billingSystemAddr().c_str() %
-		g_kbeSrvConfig.billingSystemType());
+		g_kbeSrvConfig.billingSystemAccountType() %
+		g_kbeSrvConfig.billingSystemChargeType());
 
 	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) > 0)
 	{
@@ -213,7 +217,7 @@ bool Dbmgr::initBillingHandler()
 			g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort());
 	}
 
-	return pBillingHandler_->initialize();
+	return pBillingAccountHandler_->initialize() && pBillingChargeHandler_->initialize();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -473,14 +477,14 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 		return;
 	}
 
-	pBillingHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
+	pBillingAccountHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
 	numCreatedAccount_++;
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onCreateAccountCBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingHandler_->onCreateAccountCB(s);
+	pBillingAccountHandler_->onCreateAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -496,13 +500,13 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 
-	pBillingHandler_->loginAccount(pChannel, loginName, password, datas);
+	pBillingAccountHandler_->loginAccount(pChannel, loginName, password, datas);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onLoginAccountCBBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
-	pBillingHandler_->onLoginAccountCB(s);
+	pBillingAccountHandler_->onLoginAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -619,40 +623,40 @@ void Dbmgr::syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::Memor
 //-------------------------------------------------------------------------------------
 void Dbmgr::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingHandler_->charge(pChannel, s);
+	pBillingChargeHandler_->charge(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingHandler_->onChargeCB(s);
+	pBillingChargeHandler_->onChargeCB(s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
 {
-	pBillingHandler_->eraseClientReq(pChannel, logkey);
+	pBillingAccountHandler_->eraseClientReq(pChannel, logkey);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountActivate(Mercury::Channel* pChannel, std::string& scode)
 {
 	INFO_MSG(boost::format("Dbmgr::accountActivate: code=%1%.\n") % scode);
-	pBillingHandler_->accountActivate(pChannel, scode);
+	pBillingAccountHandler_->accountActivate(pChannel, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
 	INFO_MSG(boost::format("Dbmgr::accountReqResetPassword: accountName=%1%.\n") % accountName);
-	pBillingHandler_->accountReqResetPassword(pChannel, accountName);
+	pBillingAccountHandler_->accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code)
 {
 	INFO_MSG(boost::format("Dbmgr::accountResetPassword: accountName=%1%.\n") % accountName);
-	pBillingHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
+	pBillingAccountHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
 }
 
 //-------------------------------------------------------------------------------------
@@ -660,14 +664,14 @@ void Dbmgr::accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& email)
 {
 	INFO_MSG(boost::format("Dbmgr::accountReqBindMail: accountName=%1%, email=%2%.\n") % accountName % email);
-	pBillingHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
+	pBillingAccountHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
 {
 	INFO_MSG(boost::format("Dbmgr::accountBindMail: username=%1%, scode=%2%.\n") % username % scode);
-	pBillingHandler_->accountBindMail(pChannel, username, scode);
+	pBillingAccountHandler_->accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
@@ -675,7 +679,7 @@ void Dbmgr::accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& newpassword)
 {
 	INFO_MSG(boost::format("Dbmgr::accountNewPassword: accountName=%1%.\n") % accountName);
-	pBillingHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
+	pBillingAccountHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

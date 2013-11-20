@@ -241,8 +241,8 @@ protected:
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
 
-	BillingHandler*										pBillingHandler_;
-	
+	BillingHandler*										pBillingAccountHandler_;
+	BillingHandler*										pBillingChargeHandler_;
 };
 
 }

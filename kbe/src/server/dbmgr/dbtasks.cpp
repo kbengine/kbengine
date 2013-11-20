@@ -1334,7 +1334,7 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate successfully!\n") % 
 				accountName_);
 
-			if(kbe_stricmp(g_kbeSrvConfig.billingSystemType(), "normal") == 0)
+			if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
 			{
 				unsigned char md[16];
 				MD5((unsigned char *)password_.c_str(), password_.length(), md);
@@ -1360,7 +1360,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	if(info.dbid == 0)
 		return false;
 
-	if(kbe_stricmp(g_kbeSrvConfig.billingSystemType(), "normal") == 0)
+	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
 	{
 		unsigned char md[16];
 		MD5((unsigned char *)password_.c_str(), password_.length(), md);

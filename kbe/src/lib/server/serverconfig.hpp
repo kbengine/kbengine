@@ -219,7 +219,8 @@ public:
 
 	inline Mercury::Address billingSystemAddr(void)const { return billingSystemAddr_;}
 	
-	inline const char* billingSystemType()const { return billingSystem_type_.c_str(); }
+	inline const char* billingSystemAccountType()const { return billingSystem_accountType_.c_str(); }
+	inline const char* billingSystemChargeType()const { return billingSystem_chargeType_.c_str(); }
 
 	inline const char* billingSystemThirdpartyAccountServiceAddr()const { return billingSystem_thirdpartyAccountServiceAddr_.c_str(); }
 	inline uint16 billingSystemThirdpartyAccountServicePort()const { return billingSystem_thirdpartyAccountServicePort_; }
@@ -257,7 +258,8 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Mercury::Address billingSystemAddr_;
-	std::string billingSystem_type_;								// 计费系统类别
+	std::string billingSystem_accountType_;							// 计费系统类别
+	std::string billingSystem_chargeType_;							// 计费系统类别
 	std::string billingSystem_thirdpartyAccountServiceAddr_;		// 第三方运营账号服务地址(当type是thirdparty时有效)
 	uint16	billingSystem_thirdpartyAccountServicePort_;			
 	std::string billingSystem_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)

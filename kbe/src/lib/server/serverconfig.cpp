@@ -31,7 +31,8 @@ KBE_SINGLETON_INIT(ServerConfig);
 ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
 billingSystemAddr_(),
-billingSystem_type_(""),
+billingSystem_accountType_(""),
+billingSystem_chargeType_(""),
 billingSystem_thirdpartyAccountServiceAddr_(""),
 billingSystem_thirdpartyAccountServicePort_(80),
 billingSystem_thirdpartyChargeServiceAddr_(""),
@@ -268,12 +269,20 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("billingSystem");
 	if(rootNode != NULL)
 	{
-		TiXmlNode* childnode = xml->enterNode(rootNode, "type");
+		TiXmlNode* childnode = xml->enterNode(rootNode, "accountType");
 		if(childnode)
 		{
-			billingSystem_type_ = xml->getValStr(childnode);
-			if(billingSystem_type_.size() == 0)
-				billingSystem_type_ = "normal";
+			billingSystem_accountType_ = xml->getValStr(childnode);
+			if(billingSystem_accountType_.size() == 0)
+				billingSystem_accountType_ = "normal";
+		}
+
+		childnode = xml->enterNode(rootNode, "chargeType");
+		if(childnode)
+		{
+			billingSystem_chargeType_ = xml->getValStr(childnode);
+			if(billingSystem_chargeType_.size() == 0)
+				billingSystem_chargeType_ = "normal";
 		}
 
 		std::string ip = "";
