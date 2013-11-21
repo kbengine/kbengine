@@ -86,6 +86,16 @@ class Avatar(GameObject,
 			
 		self.fullPower()
 		self.changeState(GlobalDefine.ENTITY_STATE_FREE)
+
+	def jump(self, exposed):
+		"""
+		defined.
+		玩家跳跃 我们广播这个行为
+		"""
+		if exposed != self.id:
+			return
+		
+		self.otherClients.onJump()
 		
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)

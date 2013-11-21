@@ -46,3 +46,16 @@ class Avatar(GameObject,
 		当这个entity被引擎定义为角色时被调用
 		"""
 		DEBUG_MSG("%s[%i]." % (self.__class__.__name__, self.id))
+		
+	def onJump(self):
+		"""
+		defined method.
+		玩家跳跃
+		"""
+		pass
+		
+		
+class PlayerAvatar(Avatar):
+	def __init__(self):
+		Avatar.__init__()
+

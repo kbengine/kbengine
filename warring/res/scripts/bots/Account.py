@@ -14,7 +14,7 @@ class Account(KBEngine.Entity):
 		"""
 		
 		DEBUG_MSG("Account:onReqAvatarList::%s" % (list(infos['values'])))
-		self.base.reqCreateAvatar(1, "kbe")
+		self.base.reqCreateAvatar(1, "kbe_bot_%s" % self.id)
 		
 	def onCreateAvatarResult(self, retcode, info):
 		"""
@@ -24,3 +24,9 @@ class Account(KBEngine.Entity):
 		
 		if retcode == 0:
 			self.base.selectAvatarGame(info["dbid"])
+
+	def onRemoveAvatar(self, dbid):
+		"""
+		define method.
+		"""
+		DEBUG_MSG("Account:onRemoveAvatar:: dbid=%i" % (dbid))

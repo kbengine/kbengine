@@ -101,3 +101,10 @@ class PlayerAvatar(Avatar, EventHandler):
 		当这个entity由玩家变为非玩家时被调用
 		"""
 		DEBUG_MSG("%s::onBecomeNonPlayer: %i." % (self.getScriptName(), self.id))
+
+	def onJump(self):
+		"""
+		defined method.
+		玩家跳跃
+		"""
+		pass

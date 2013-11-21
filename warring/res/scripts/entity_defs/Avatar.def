@@ -42,8 +42,14 @@
 			<Exposed/>
 			<Arg>		UINT8		</Arg>
 		</relive>
+
+		<jump>
+			<Exposed/>
+		</jump>
 	</CellMethods>
 
 	<ClientMethods>
+		<onJump>
+		</onJump>
 	</ClientMethods>
 </root>
