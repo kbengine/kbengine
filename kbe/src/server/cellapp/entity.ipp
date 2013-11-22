@@ -65,13 +65,21 @@ INLINE void Entity::setTopSpeed(float speed)
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setPosition(const Position3D& pos)
 { 
+	Vector3 movement = pos - position_;
+
+	if(KBEVec3Length(&movement) < 0.0004f)
+		return;
+		
 	position_ = pos; 
 	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setDirection(const Direction3D& dir)
-{ 
+{
+	if(almostEqual(direction_.yaw, dir.yaw) && almostEqual(direction_.roll, dir.roll) && almostEqual(direction_.pitch, dir.pitch))
+		return;
+
 	direction_ = dir; 
 	onDirectionChanged();
 }
@@ -178,11 +186,13 @@ INLINE bool Entity::isOnGround()const
 	return isOnGround_;
 }
 
+//-------------------------------------------------------------------------------------
 INLINE int8 Entity::shouldAutoBackup()const
 {
 	return shouldAutoBackup_;
 }
 
+//-------------------------------------------------------------------------------------
 INLINE void Entity::shouldAutoBackup(int8 v)
 {
 	shouldAutoBackup_ = v;

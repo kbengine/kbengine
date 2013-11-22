@@ -782,34 +782,37 @@ PyObject* Entity::pyGetPosition()
 //-------------------------------------------------------------------------------------
 void Entity::setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z)
 {
-	getPosition().x = float(x);
-	getPosition().z = float(z);
-	onPositionChanged();
+	setPosition_XZ_float(pChannel, float(x), float(z));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, int32 z)
 {
-	getPosition().x = float(x);
-	getPosition().y = float(y);
-	getPosition().z = float(z);
-	onPositionChanged();
+	setPosition_XYZ_float(pChannel, float(x), float(y), float(z));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z)
 {
-	getPosition().x = x;
-	getPosition().z = z;
+	Position3D& pos = getPosition();
+	if(almostEqual(x, pos.x) && almostEqual(z, pos.z))
+		return;
+
+	pos.x = x;
+	pos.z = z;
 	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z)
 {
-	getPosition().x = x;
-	getPosition().y = y;
-	getPosition().z = z;
+	Position3D& pos = getPosition();
+	if(almostEqual(x, pos.x) && almostEqual(y, pos.y) && almostEqual(z, pos.z))
+		return;
+
+	pos.x = x;
+	pos.x = y;
+	pos.z = z;
 	onPositionChanged();
 }
 

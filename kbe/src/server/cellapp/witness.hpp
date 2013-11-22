@@ -153,6 +153,8 @@ private:
 
 	AOI_ENTITIES							aoiEntities_;
 
+	Position3D								lastBasePos;
+
 };
 
 }

@@ -73,6 +73,8 @@ void Witness::attach(Entity* pEntity)
 
 	pEntity_ = pEntity;
 
+	lastBasePos.z = -FLT_MAX;
+
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
 		// ³õÊ¼»¯Ä¬ÈÏAOI·¶Î§
@@ -414,11 +416,19 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 {
+	const Position3D& bpos = getBasePos();
+
+	Vector3 movement = bpos - lastBasePos;
+
+	if(KBEVec3Length(&movement) < 0.0004f)
+		return;
+
+	lastBasePos = bpos;
+
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 
 	(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
-	const Position3D& bpos = getBasePos();
 	s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z);
 	(*pForwardBundle).append(*s1);
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
