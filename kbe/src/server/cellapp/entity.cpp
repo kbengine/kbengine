@@ -85,6 +85,8 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
+posChangedTime_(0),
+dirChangedTime_(0),
 isReal_(true),
 isOnGround_(false),
 topSpeed_(-0.1f),
@@ -863,6 +865,7 @@ void Entity::setPositionAndDirection(const Position3D& position, const Direction
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
+	posChangedTime_ = g_kbetime;
 	if(this->pEntityRangeNode())
 		this->pEntityRangeNode()->update();
 }
@@ -870,6 +873,7 @@ void Entity::onPositionChanged()
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
+	dirChangedTime_ = g_kbetime;
 }
 
 //-------------------------------------------------------------------------------------

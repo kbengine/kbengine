@@ -199,4 +199,16 @@ INLINE void Entity::shouldAutoBackup(int8 v)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE GAME_TIME Entity::posChangedTime()const
+{
+	return posChangedTime_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE GAME_TIME Entity::dirChangedTime()const
+{
+	return dirChangedTime_;
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -425,6 +425,12 @@ public:
 	*/
 	void installRangeNodes(RangeList* pRangeList);
 	void uninstallRangeNodes(RangeList* pRangeList);
+
+	/**
+		获取entity位置朝向在某时间是否改变过
+	*/
+	INLINE GAME_TIME posChangedTime()const;
+	INLINE GAME_TIME dirChangedTime()const;
 private:
 	/** 
 		发送teleport结果到base端
@@ -441,7 +447,12 @@ protected:
 	Position3D								position_;							
 
 	// entity的当前方向
-	Direction3D								direction_;							
+	Direction3D								direction_;		
+
+	// entity位置朝向在某时间是否改变过
+	// 此属性可用于如:决定在某期间是否要高度同步该entity
+	GAME_TIME								posChangedTime_;
+	GAME_TIME								dirChangedTime_;
 
 	// 自己是否是一个realEntity
 	bool									isReal_;	
