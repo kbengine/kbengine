@@ -7,6 +7,13 @@
 			<Persistent>		true				</Persistent>
 		</characters>
 
+		<lastSelCharacter>
+			<Type>			DBID				</Type>
+			<Flags>			BASE_AND_CLIENT			</Flags>
+			<Default>		0				</Default>
+			<Persistent>		true				</Persistent>
+		</lastSelCharacter>
+
 		<accountName>
 			<Type>			STRING				</Type>
 			<Flags>			BASE				</Flags>

@@ -147,6 +147,7 @@ class Account(KBEngine.Proxy):
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
 		if self.activeCharacter is None:
 			if dbid in self.characters:
+				self.lastSelCharacter = dbid
 				player = KBEngine.createBaseFromDBID("Avatar", dbid, self.__onAvatarCreated)
 			else:
 				ERROR_MSG("Account[%i]::selectAvatarGame: not found dbid(%i)" % (self.id, dbid))
