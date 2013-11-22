@@ -356,6 +356,7 @@ protected:
 	uint16 port_;
 
 	uint64 lastSentActiveTickTime_;
+	uint64 lastSentUpdateDataTime_;
 
 	bool connectedGateway_;
 	bool canReset_;

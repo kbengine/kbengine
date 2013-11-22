@@ -62,6 +62,7 @@ dbid_(0),
 ip_(),
 port_(),
 lastSentActiveTickTime_(timestamp()),
+lastSentUpdateDataTime_(timestamp()),
 connectedGateway_(false),
 canReset_(false),
 name_(),
@@ -724,9 +725,27 @@ ENTITY_ID ClientObjectBase::readEntityIDFromStream(MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::updatePlayerToServer()
 {
+	if (timestamp() - lastSentUpdateDataTime_ < uint64( stampsPerSecond() * 0.05 ))
+	{
+		return;
+	}
+
+	lastSentUpdateDataTime_ = timestamp();
+
 	client::Entity* pEntity = pEntities_->find(entityID_);
 	if(pEntity == NULL || !connectedGateway_ || 
 		pServerChannel_ == NULL || pEntity->getCellMailbox() == NULL)
+		return;
+
+	Position3D& pos = pEntity->getPosition();
+	Direction3D& dir = pEntity->getDirection();
+
+	bool dirNoChanged = almostEqual(dir.yaw, entityDir_.yaw) && almostEqual(dir.pitch, entityDir_.pitch) && almostEqual(dir.roll, entityDir_.roll);
+	Vector3 movement = pos - entityPos_;
+
+	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
+
+	if(posNoChanged && dirNoChanged)
 		return;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -735,16 +754,15 @@ void ClientObjectBase::updatePlayerToServer()
 	pEntity->setPosition(entityPos_);
 	pEntity->setDirection(entityDir_);
 
-	(*pBundle) << pEntity->getPosition().x;
-	(*pBundle) << pEntity->getPosition().y;
-	(*pBundle) << pEntity->getPosition().z;
+	(*pBundle) << pos.x;
+	(*pBundle) << pos.y;
+	(*pBundle) << pos.z;
 
-	(*pBundle) << pEntity->getDirection().yaw;
-	(*pBundle) << pEntity->getDirection().pitch;
-	(*pBundle) << pEntity->getDirection().roll;
+	(*pBundle) << dir.yaw;
+	(*pBundle) << dir.pitch;
+	(*pBundle) << dir.roll;
 
 	(*pBundle) << pEntity->isOnGound();
-	
 	pServerChannel_->pushBundle(pBundle);
 }
 
