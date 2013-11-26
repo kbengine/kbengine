@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../third_party/g3dlite;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../third_party/g3dlite;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -230,6 +230,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\navmeshex.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Recast.cpp"
 				>
 			</File>
@@ -336,6 +340,10 @@
 			</File>
 			<File
 				RelativePath=".\DetourTileCacheBuilder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\navmeshex.hpp"
 				>
 			</File>
 			<File
