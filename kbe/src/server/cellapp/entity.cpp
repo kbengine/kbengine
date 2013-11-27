@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "proximity_controller.hpp"
 #include "movetopoint_controller.hpp"	
 #include "movetoentity_controller.hpp"	
+#include "navigate_controller.hpp"	
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -54,6 +55,7 @@ SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
@@ -1147,6 +1149,38 @@ PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range
 {
 	Py_INCREF(userData);
 	return PyLong_FromLong(moveToEntity(targetID, velocity, range, userData, faceMovement > 0, moveVertically > 0));
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::navigate(const Position3D& destination, float velocity, PyObject* userData, 
+						 bool faceMovement, bool moveVertically)
+{
+	stopMove();
+
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	NavigateController* p = new NavigateController(this, destination, velocity, 
+		0.0f, faceMovement, moveVertically, userData, pControllers_->freeID());
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+	
+	pMoveController_ = p;
+
+	return p->id();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
+								 int32 faceMovement, int32 moveVertically)
+{
+	Position3D destination;
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+	Py_INCREF(userData);
+
+	return PyLong_FromLong(navigate(destination, velocity, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------

@@ -56,7 +56,7 @@ public:
 	NavMeshEx();
 	virtual ~NavMeshEx();
 	
-	bool loadNavmesh(std::string respath);
+	NavMeshHandle* loadNavmesh(std::string name);
 
 	bool hasNavmesh(std::string name);
 

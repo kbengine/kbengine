@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "witness.hpp"	
 #include "entitydef/entities.hpp"
 #include "client_lib/client_interface.hpp"
+#include "navigation/navmeshex.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -41,7 +42,8 @@ isLoadedGeometry_(false),
 hasGeometry_(false),
 loadGeometryPath_(),
 pCell_(NULL),
-rangeList_()
+rangeList_(),
+pNavMeshHandle_(NULL)
 {
 }
 
@@ -208,6 +210,7 @@ void Space::_addSpaceGeometryMappingToEntityClient(const Entity* pEntity)
 void Space::loadSpaceGeometry()
 {
 	isLoadedGeometry_ = false;
+	pNavMeshHandle_ = NavMeshEx::getSingleton().loadNavmesh(loadGeometryPath_);
 	onLoadedSpaceGeometryMapping();
 }
 

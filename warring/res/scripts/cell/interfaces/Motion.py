@@ -117,6 +117,6 @@ class Motion:
 			return
 
 		self.isMoving = True
-		self.moveToPoint(tuple(position), self.moveSpeed * 0.1, 1, True, True)
+		self.navigate(tuple(position), self.moveSpeed * 0.1, 1, True, True)
 		
 Motion._timermap = {}

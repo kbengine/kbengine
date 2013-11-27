@@ -269,6 +269,14 @@ public:
 	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
 
 	/** 
+		entity移动到某个点 
+	*/
+	uint32 navigate(const Position3D& destination, float velocity, 
+			PyObject* userData, bool faceMovement, bool moveVertically);
+	
+	DECLARE_PY_MOTHOD_ARG5(pyNavigate, PyObject_ptr, float, PyObject_ptr, int32, int32);
+
+	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/
 	float getTopSpeed()const{ return topSpeed_; }

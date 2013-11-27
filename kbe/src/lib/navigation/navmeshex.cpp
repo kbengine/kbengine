@@ -45,40 +45,27 @@ struct NavMeshTileHeader
 int NavMeshHandle::findStraightPath(Position3D start, Position3D end, std::vector<Position3D>& paths)
 {
 	float spos[3];
-	spos[0] = start.y;
-	spos[1] = start.z;
-	spos[2] = start.x;
+	spos[0] = start.x;
+	spos[1] = start.y;
+	spos[2] = start.z;
 
 	float epos[3];
-	epos[0] = end.y;
-	epos[1] = end.z;
-	epos[2] = end.x;
+	epos[0] = end.x;
+	epos[1] = end.y;
+	epos[2] = end.z;
 
 	dtQueryFilter filter;
-	//filter.setIncludeFlags(0xffff) ;
-	//filter.setExcludeFlags(0);
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
 
-	const float polyPickExt[3] = {2.f, 4.f, 2.f};
+	const float extents[3] = {2.f, 4.f, 2.f};
 
 	dtPolyRef startRef = INVALID_POLYREF;
 	dtPolyRef endRef = INVALID_POLYREF;
 
 	float nearestPt[3];
-	dtStatus status = navmeshQuery->findNearestPoly(spos, polyPickExt, &filter, &startRef, nearestPt);
-
-	for(int i=0; i<300; i++)
-	{
-	float epos[3];
-	epos[0] = end.y + 1.f;
-	epos[1] = end.z;
-	epos[2] = end.x;
-		status = navmeshQuery->findNearestPoly(epos, polyPickExt, &filter, &endRef, nearestPt);
-		if(endRef)
-		{
-			int ii = 0;
-			ii++;
-		}
-	}
+	dtStatus status = navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
+	status = navmeshQuery->findNearestPoly(epos, extents, &filter, &endRef, nearestPt);
 
 	if (!startRef || !endRef)
 	{
@@ -100,26 +87,24 @@ int NavMeshHandle::findStraightPath(Position3D start, Position3D end, std::vecto
 
 	if (npolys)
 	{
+		float epos1[3];
+		dtVcopy(epos1, epos);
+				
+		if (polys[npolys-1] != endRef)
+			navmeshQuery->closestPointOnPoly(polys[npolys-1], epos, epos1);
+				
 		status = navmeshQuery->findStraightPath(spos, epos, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
 		for(int i = 0; i < nstraightPath * 3; )
 		{
 			Position3D currpos;
-			currpos.y = -1.0f * straightPath[i++];
+			currpos.x = straightPath[i++];
+			currpos.y = straightPath[i++];
 			currpos.z = straightPath[i++];
-			currpos.x = -1.0f * straightPath[i++];
-
 			paths.push_back(currpos);
-			pos++;
+			pos++; 
+			
+			DEBUG_MSG(boost::format("NavMeshHandle::findStraightPath: %1%->%2%, %3%, %4%\n") % pos % currpos.x % currpos.y % currpos.z);
 		}
-
-		// append the end point
-		Position3D currpos;
-		currpos.x = end.x;
-		currpos.y = end.y;
-		currpos.z = end.z;
-		paths.push_back(currpos);
-
-		pos++;
 	}
 
 	return pos;
@@ -186,31 +171,33 @@ bool NavMeshEx::hasNavmesh(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool NavMeshEx::loadNavmesh(std::string respath)
+NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 {
-	if(respath == "")
-		return false;
+	if(name == "")
+		return NULL;
+
+	name = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
 
 	char drive[_MAX_DRIVE];
 	char dir[_MAX_DIR];
 	char fname[_MAX_FNAME];
 	char ext[_MAX_EXT];
 	
-	_splitpath(respath.c_str(), drive, dir, fname, ext);
+	_splitpath(name.c_str(), drive, dir, fname, ext);
 	
 	if(strlen(fname) == 0)
-		return false;
+		return NULL;
 
 	if(hasNavmesh(fname))
 	{
-		return true;
+		return NULL;
 	}
 
-	FILE* fp = fopen(respath.c_str(), "rb");
+	FILE* fp = fopen(name.c_str(), "rb");
 	if (!fp)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%) is error!\n") % respath);
-		return false;
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%) is error!\n") % name);
+		return NULL;
 	}
 
 	bool safeStorage = true;
@@ -224,24 +211,24 @@ bool NavMeshEx::loadNavmesh(std::string respath)
 	uint8* data = new uint8[flen];
 	if(data == NULL)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % respath % flen);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % name % flen);
 		fclose(fp);
-		return false;
+		return NULL;
 	}
 
 	size_t readsize = fread(data, 1, flen, fp);
 	if(readsize != flen)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % respath % readsize % flen);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % name % readsize % flen);
 		fclose(fp);
-		return false;
+		return NULL;
 	}
 
     if (readsize < sizeof(NavMeshSetHeader))
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % respath);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % name);
 		fclose(fp);
-		return false;
+		return NULL;
 	}
 
     NavMeshSetHeader header;
@@ -253,7 +240,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
     {
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % RCN_NAVMESH_VERSION);
 		fclose(fp);
-        return false;
+        return NULL;
     }
 
     dtNavMesh* mesh = dtAllocNavMesh();
@@ -261,7 +248,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
     {
 		ERROR_MSG("NavMeshEx::loadNavmesh: dtAllocNavMesh is failed!\n");
 		fclose(fp);
-        return false;
+        return NULL;
     }
 
     dtStatus status = mesh->init(&header.params);
@@ -269,7 +256,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
     {
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: mesh init is error(%1%)!\n") % status);
 		fclose(fp);
-	    return false;
+	    return NULL;
     }
 
     // Read tiles.
@@ -320,6 +307,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
     {
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh:  error(%1%)!\n") % status);
         dtFreeNavMesh(mesh);
+		return NULL;
     }
 
 	NavMeshHandle* pNavMeshHandle = new NavMeshHandle();
@@ -352,7 +340,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
         triVertCount += tile->header->detailVertCount;
         dataSize += tile->dataSize;
 
-		DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
+		// DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
     }
 
 	DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: (%1%)\n") % fname);
@@ -361,7 +349,7 @@ bool NavMeshEx::loadNavmesh(std::string respath)
     DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);
     DEBUG_MSG(boost::format("\t==> %1% triangles (%2% vertices)\n") % triCount % triVertCount);
     DEBUG_MSG(boost::format("\t==> %.2f MB of data (not including pointers)\n") % (((float)dataSize / sizeof(unsigned char)) / 1048576));
-	return success;
+	return pNavMeshHandle;
 }
 
 //-------------------------------------------------------------------------------------		

@@ -24,6 +24,7 @@ SRCS =						\
 	witness					\
 	movetoentity_controller			\
 	movetopoint_controller			\
+	navigate_controller			\
 	profile					\
 	proximity_controller			\
 	range_node				\

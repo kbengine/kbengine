@@ -260,6 +260,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\navigate_controller.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.cpp"
 				>
 			</File>
@@ -389,6 +393,10 @@
 			</File>
 			<File
 				RelativePath=".\movetopoint_controller.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\navigate_controller.hpp"
 				>
 			</File>
 			<File

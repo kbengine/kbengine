@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Entity;
+class NavMeshHandle;
 typedef SmartPointer<Entity> EntityPtr;
 typedef std::vector<EntityPtr> SPACE_ENTITIES;
 
@@ -90,7 +91,8 @@ public:
 	const std::string& getGeometryPath(){ return loadGeometryPath_; }
 	void onLoadedSpaceGeometryMapping();
 	void onAllSpaceGeometryLoaded();
-
+	
+	NavMeshHandle* pNavMeshHandle()const{ return pNavMeshHandle_; }
 protected:
 	void _addSpaceGeometryMappingToEntityClient(const Entity* pEntity);
 
@@ -115,6 +117,8 @@ protected:
 	Cell* pCell_;
 
 	RangeList rangeList_;
+
+	NavMeshHandle* pNavMeshHandle_;
 };
 
 
