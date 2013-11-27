@@ -15,6 +15,7 @@ SRCS =						\
 	entity_remotemethod			\
 	entity_range_node			\
 	history_event				\
+	loadnavmesh_threadtasks			\
 	main					\
 	space					\
 	spaces					\

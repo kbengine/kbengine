@@ -89,7 +89,7 @@ public:
 	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer);
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
 	const std::string& getGeometryPath(){ return loadGeometryPath_; }
-	void onLoadedSpaceGeometryMapping();
+	void onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle);
 	void onAllSpaceGeometryLoaded();
 	
 	NavMeshHandle* pNavMeshHandle()const{ return pNavMeshHandle_; }
@@ -107,7 +107,6 @@ protected:
 	SPACE_ENTITIES entities_;							
 
 	// 是否加载过地形数据
-	bool isLoadedGeometry_;
 	bool hasGeometry_;
 
 	// 加载几何的路径

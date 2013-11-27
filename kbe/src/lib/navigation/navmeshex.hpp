@@ -65,6 +65,7 @@ public:
 	NavMeshHandle* findNavmesh(std::string name);
 private:
 	KBEUnordered_map<std::string, NavMeshHandle*> navmeshs_;
+	KBEngine::thread::ThreadMutex mutex_;
 };
 
 }

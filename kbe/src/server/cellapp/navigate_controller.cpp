@@ -49,7 +49,7 @@ pNavMeshHandle_(NULL)
 		if(pSpace == NULL)
 		{
 			ERROR_MSG(boost::format("NavigateController::NavigateController(): not found space(%1%), entityID(%2%)!\n") % 
-				pEntity_->getID() % pEntity_->getSpaceID());
+				pEntity_->getSpaceID() % pEntity_->getID());
 
 			destroyed_ = true;
 		}

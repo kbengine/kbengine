@@ -248,6 +248,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\loadnavmesh_threadtasks.cpp"
+				>
+			</File>
+			<File
 				RelativePath="main.cpp"
 				>
 			</File>
@@ -385,6 +389,10 @@
 			</File>
 			<File
 				RelativePath=".\history_event.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\loadnavmesh_threadtasks.hpp"
 				>
 			</File>
 			<File

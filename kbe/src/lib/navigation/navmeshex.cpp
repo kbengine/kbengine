@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "navmeshex.hpp"
 #include "resmgr/resmgr.hpp"
+#include "thread/threadguard.hpp"
 
 namespace KBEngine{
 
@@ -112,13 +113,15 @@ int NavMeshHandle::findStraightPath(Position3D start, Position3D end, std::vecto
 
 //-------------------------------------------------------------------------------------
 NavMeshEx::NavMeshEx():
-navmeshs_()
+navmeshs_(),
+mutex_()
 {
 }
 
 //-------------------------------------------------------------------------------------
 NavMeshEx::~NavMeshEx()
 {
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.begin();
 	for(; iter != navmeshs_.end(); iter++)
 	{
@@ -136,6 +139,7 @@ NavMeshEx::~NavMeshEx()
 //-------------------------------------------------------------------------------------
 bool NavMeshEx::removeNavmesh(std::string name)
 {
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
 	if(navmeshs_.find(name) != navmeshs_.end())
 	{
@@ -155,6 +159,7 @@ bool NavMeshEx::removeNavmesh(std::string name)
 //-------------------------------------------------------------------------------------
 NavMeshHandle* NavMeshEx::findNavmesh(std::string name)
 {
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
 	if(navmeshs_.find(name) != navmeshs_.end())
 	{
@@ -167,6 +172,7 @@ NavMeshHandle* NavMeshEx::findNavmesh(std::string name)
 //-------------------------------------------------------------------------------------
 bool NavMeshEx::hasNavmesh(std::string name)
 {
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	return navmeshs_.find(name) != navmeshs_.end();
 }
 
@@ -176,6 +182,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	if(name == "")
 		return NULL;
 
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	name = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
 
 	char drive[_MAX_DRIVE];
