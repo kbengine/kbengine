@@ -185,10 +185,10 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	name = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
 
-	char drive[_MAX_DRIVE];
-	char dir[_MAX_DIR];
-	char fname[_MAX_FNAME];
-	char ext[_MAX_EXT];
+	char drive[MAX_PATH];
+	char dir[MAX_PATH];
+	char fname[MAX_PATH];
+	char ext[MAX_PATH];
 	
 	_splitpath(name.c_str(), drive, dir, fname, ext);
 	
