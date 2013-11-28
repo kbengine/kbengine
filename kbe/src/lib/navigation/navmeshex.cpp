@@ -43,7 +43,7 @@ struct NavMeshTileHeader
 };
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findStraightPath(Position3D start, Position3D end, std::vector<Position3D>& paths)
+int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	float spos[3];
 	spos[0] = start.x;
