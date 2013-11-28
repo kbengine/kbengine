@@ -108,7 +108,7 @@ bool NavigateController::update()
 		if (!moveVertically_)
 			currpos.y = y;
 
-		if(destPosIdx_ == paths_.size() - 1)
+		if(destPosIdx_ == ((int)paths_.size()) - 1)
 			ret = false;
 		else
 			destPosIdx_++;
