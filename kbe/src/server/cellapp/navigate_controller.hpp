@@ -21,13 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBE_NAVIGATECONTROLLER_HPP__
 #define __KBE_NAVIGATECONTROLLER_HPP__
 
-#include "controller.hpp"
-#include "updatable.hpp"
-#include "pyscript/scriptobject.hpp"	
+#include "movetopoint_controller.hpp"	
 
 namespace KBEngine{
 
-class NavigateController : public Controller, public Updatable
+class NavigateController : public MoveToPointController
 {
 public:
 	NavigateController(Entity* pEntity, const Position3D& destPos, float velocity, float range, bool faceMovement, 

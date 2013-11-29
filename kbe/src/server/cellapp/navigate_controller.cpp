@@ -30,7 +30,7 @@ namespace KBEngine{
 NavigateController::NavigateController(Entity* pEntity, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
 											bool moveVertically, PyObject* userarg, uint32 id):
-Controller(pEntity, 0, id),
+MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, moveVertically, userarg, id),
 destPosIdx_(0),
 velocity_(velocity),
 faceMovement_(faceMovement),
@@ -41,8 +41,6 @@ destroyed_(false),
 paths_(),
 pNavMeshHandle_(NULL)
 {
-	Cellapp::getSingleton().addUpdatable(this);
-
 	if(pNavMeshHandle_ == NULL)
 	{
 		Space* pSpace = Spaces::findSpace(pEntity_->getSpaceID());
@@ -68,10 +66,6 @@ pNavMeshHandle_(NULL)
 //-------------------------------------------------------------------------------------
 NavigateController::~NavigateController()
 {
-	if(pyuserarg_ != NULL)
-	{
-		Py_DECREF(pyuserarg_);
-	}
 }
 
 //-------------------------------------------------------------------------------------
