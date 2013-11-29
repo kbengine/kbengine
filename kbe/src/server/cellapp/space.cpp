@@ -145,12 +145,17 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
 {
-	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
-		getID() % respath);
+	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%, shouldLoadOnServer=%3%!\n") %
+		getID() % respath % shouldLoadOnServer);
 
 	hasGeometry_ = true;
 	if(loadGeometryPath_ == respath)
+	{
+		WARNING_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2% is exist!\n") %
+			getID() % respath);
+
 		return true;
+	}
 
 	loadGeometryPath_ = respath.c_str();
 
@@ -175,7 +180,12 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 void Space::_addSpaceGeometryMappingToEntityClient(const Entity* pEntity)
 {
 	if(!hasGeometry_)
+	{
+		ERROR_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%, hasGeometry = false!\n") %
+			getID() % loadGeometryPath_);
+
 		return;
+	}
 
 	if(!pEntity)
 	{
@@ -222,6 +232,8 @@ void Space::unLoadSpaceGeometry()
 void Space::onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle)
 {
 	pNavMeshHandle_ = pNavMeshHandle;
+	INFO_MSG(boost::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
+			getID() % loadGeometryPath_);
 }
 
 //-------------------------------------------------------------------------------------
