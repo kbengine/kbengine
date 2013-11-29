@@ -32,12 +32,6 @@ NavigateController::NavigateController(Entity* pEntity, const Position3D& destPo
 											bool moveVertically, PyObject* userarg, uint32 id):
 MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, moveVertically, userarg, id),
 destPosIdx_(0),
-velocity_(velocity),
-faceMovement_(faceMovement),
-moveVertically_(moveVertically),
-pyuserarg_(userarg),
-range_(range),
-destroyed_(false),
 paths_(),
 pNavMeshHandle_(NULL)
 {
@@ -59,6 +53,8 @@ pNavMeshHandle_(NULL)
 
 			if(paths_.size() == 0)
 				destroyed_ = true;
+			else
+				destPos_ = paths_[destPosIdx_++];
 		}
 	}
 }
@@ -77,11 +73,10 @@ bool NavigateController::update()
 		return false;
 	}
 
-	const Position3D& dstPos = paths_[destPosIdx_];
 	Position3D currpos = pEntity_->getPosition();
 	Direction3D direction = pEntity_->getDirection();
 
-	Vector3 movement = dstPos - currpos;
+	Vector3 movement = destPos_ - currpos;
 	if (!moveVertically_) movement.y = 0.f;
 	
 	bool ret = true;
@@ -89,7 +84,7 @@ bool NavigateController::update()
 	if(KBEVec3Length(&movement) < velocity_ + range_)
 	{
 		float y = currpos.y;
-		currpos = dstPos;
+		currpos = destPos_;
 
 		if(range_ > 0.0f)
 		{
@@ -102,10 +97,10 @@ bool NavigateController::update()
 		if (!moveVertically_)
 			currpos.y = y;
 
-		if(destPosIdx_ == ((int)paths_.size()) - 1)
+		if(destPosIdx_ == ((int)paths_.size()))
 			ret = false;
 		else
-			destPosIdx_++;
+			destPos_ = paths_[destPosIdx_++];
 	}
 	else
 	{

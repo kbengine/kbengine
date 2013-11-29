@@ -34,18 +34,9 @@ public:
 	
 	virtual bool update();
 
-	void destroyed(){ destroyed_ = true; }
 protected:
 	int destPosIdx_;
-	float velocity_;			// 速度
-	bool faceMovement_;			// 是否不改变面向移动
-	bool moveVertically_;		// true则可以飞起来移动否则贴地
-	PyObject* pyuserarg_;
-	float range_;
-	bool destroyed_;
-
 	std::vector<Position3D> paths_;
-
 	NavMeshHandle* pNavMeshHandle_;
 };
  
