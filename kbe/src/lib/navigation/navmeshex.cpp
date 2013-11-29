@@ -185,7 +185,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
 
-	if(hasNavmesh(name))
+	if(navmeshs_.find(name) != navmeshs_.end())
 	{
 		return NULL;
 	}
