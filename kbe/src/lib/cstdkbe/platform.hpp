@@ -451,6 +451,10 @@ inline const T & max( const T & a, const T & b )
 // 常规的buf长度
 #define MAX_BUF 256
 
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
+
 // 获得系统产生的最后一次错误描述
 inline char* kbe_strerror(int ierrorno = 0)
 {
