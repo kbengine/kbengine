@@ -183,27 +183,17 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 		return NULL;
 
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	name = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
+	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
 
-	char drive[MAX_PATH];
-	char dir[MAX_PATH];
-	char fname[MAX_PATH];
-	char ext[MAX_PATH];
-	
-	_splitpath(name.c_str(), drive, dir, fname, ext);
-	
-	if(strlen(fname) == 0)
-		return NULL;
-
-	if(hasNavmesh(fname))
+	if(hasNavmesh(name))
 	{
 		return NULL;
 	}
 
-	FILE* fp = fopen(name.c_str(), "rb");
+	FILE* fp = fopen(path.c_str(), "rb");
 	if (!fp)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%) is error!\n") % name);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%) is error!\n") % path);
 		return NULL;
 	}
 
@@ -218,7 +208,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	uint8* data = new uint8[flen];
 	if(data == NULL)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % name % flen);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
 		fclose(fp);
 		return NULL;
 	}
@@ -226,14 +216,14 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	size_t readsize = fread(data, 1, flen, fp);
 	if(readsize != flen)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % name % readsize % flen);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
 		fclose(fp);
 		return NULL;
 	}
 
     if (readsize < sizeof(NavMeshSetHeader))
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % name);
+		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
 		fclose(fp);
 		return NULL;
 	}
@@ -321,8 +311,8 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	pNavMeshHandle->navmesh = mesh;
 	pNavMeshHandle->navmeshQuery = new dtNavMeshQuery();
 	pNavMeshHandle->navmeshQuery->init(mesh, 1024);
-	pNavMeshHandle->name = fname;
-	navmeshs_[fname] = pNavMeshHandle;
+	pNavMeshHandle->name = name;
+	navmeshs_[name] = pNavMeshHandle;
 
     uint32 tileCount = 0;
     uint32 nodeCount = 0;
@@ -350,7 +340,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 		// DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
     }
 
-	DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: (%1%)\n") % fname);
+	DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: (%1%)\n") % name);
 	DEBUG_MSG(boost::format("\t==> tiles loaded: %1%\n") % tileCount);
 	DEBUG_MSG(boost::format("\t==> BVTree nodes: %1%\n") % nodeCount);
     DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);
