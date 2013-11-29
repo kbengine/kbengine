@@ -31,7 +31,7 @@ const long RCN_NAVMESH_VERSION = 1;
 
 struct NavMeshSetHeader
 {
-	long version;
+	int version;
 	int tileCount;
 	dtNavMeshParams params;
 };
