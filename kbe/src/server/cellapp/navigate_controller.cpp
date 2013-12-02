@@ -29,11 +29,15 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 NavigateController::NavigateController(Entity* pEntity, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
-											bool moveVertically, PyObject* userarg, uint32 id):
-MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, moveVertically, userarg, id),
+											 float maxMoveDistance, float maxDistance, float girth,
+											PyObject* userarg, uint32 id):
+MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, true, userarg, id),
 destPosIdx_(0),
 paths_(),
-pNavMeshHandle_(NULL)
+pNavMeshHandle_(NULL),
+maxMoveDistance_(maxMoveDistance),
+maxDistance_(maxDistance),
+girth_(girth)
 {
 	if(pNavMeshHandle_ == NULL)
 	{
@@ -65,74 +69,14 @@ NavigateController::~NavigateController()
 }
 
 //-------------------------------------------------------------------------------------
-bool NavigateController::update()
+bool NavigateController::requestMoveOver()
 {
-	if(destroyed_)
-	{
-		destroy();
-		return false;
-	}
-
-	Position3D currpos = pEntity_->getPosition();
-	Direction3D direction = pEntity_->getDirection();
-
-	Vector3 movement = destPos_ - currpos;
-	if (!moveVertically_) movement.y = 0.f;
-	
-	bool ret = true;
-
-	if(KBEVec3Length(&movement) < velocity_ + range_)
-	{
-		float y = currpos.y;
-		currpos = destPos_;
-
-		if(range_ > 0.0f)
-		{
-			// 单位化向量
-			KBEVec3Normalize(&movement, &movement); 
-			movement *= range_;
-			currpos -= movement;
-		}
-
-		if (!moveVertically_)
-			currpos.y = y;
-
-		if(destPosIdx_ == ((int)paths_.size()))
-			ret = false;
-		else
-			destPos_ = paths_[destPosIdx_++];
-	}
+	if(destPosIdx_ == ((int)paths_.size()))
+		return MoveToPointController::requestMoveOver();
 	else
-	{
-		// 单位化向量
-		KBEVec3Normalize(&movement, &movement); 
+		destPos_ = paths_[destPosIdx_++];
 
-		// 移动位置
-		movement *= velocity_;
-		currpos += movement;
-	}
-	
-	// 是否需要改变面向
-	if (faceMovement_ && (movement.x != 0.f || movement.z != 0.f))
-		direction.yaw = movement.yaw();
-	
-	// 设置entity的新位置和面向
-	pEntity_->setPositionAndDirection(currpos, direction);
-
-	pEntity_->isOnGround(true);
-
-	// 通知脚本
-	pEntity_->onMove(id(), pyuserarg_);
-
-	// 如果达到目的地则返回true
-	if(!ret)
-	{
-		pEntity_->onMoveOver(id(), pyuserarg_);
-		destroy();
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

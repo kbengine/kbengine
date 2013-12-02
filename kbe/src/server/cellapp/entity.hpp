@@ -244,13 +244,20 @@ public:
 	void onWriteToDB();
 
 	/** 
+		射线 
+	*/
+	int raycast(const Position3D& start, const Position3D& end, float* hitPos);
+	DECLARE_PY_MOTHOD_ARG2(pyRaycast, PyObject_ptr, PyObject_ptr);
+
+	/** 
 		entity移动导航 
 	*/
-	bool navigateStep(const Position3D& destination, float velocity, 
+	uint32 navigate(const Position3D& destination, float velocity, float range,
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, float girth, PyObject* userData);
 
-	DECLARE_PY_MOTHOD_ARG7(pyNavigateStep, PyObject_ptr, float, float, float, int8, float, PyObject_ptr);
+
+	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
 
 	/** 
 		entity移动到某个点 
@@ -267,14 +274,6 @@ public:
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
 	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
-
-	/** 
-		entity移动到某个点 
-	*/
-	uint32 navigate(const Position3D& destination, float velocity, 
-			PyObject* userData, bool faceMovement, bool moveVertically);
-	
-	DECLARE_PY_MOTHOD_ARG5(pyNavigate, PyObject_ptr, float, PyObject_ptr, int32, int32);
 
 	/** 
 		脚本获取和设置entity的最高xz移动速度 

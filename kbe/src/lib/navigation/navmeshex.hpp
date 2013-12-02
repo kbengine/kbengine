@@ -37,10 +37,13 @@ namespace KBEngine
 class NavMeshHandle
 {
 public:
+	static const int MAX_POLYS = 256;
+
 	static const int NAV_ERROR = -1;
 	static const int NAV_ERROR_NEARESTPOLY = -2;
 public:
 	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
 
 	dtNavMesh* navmesh;
 	dtNavMeshQuery* navmeshQuery;

@@ -37,8 +37,11 @@ public:
 	virtual bool update();
 
 	virtual const Position3D& destPos(){ return destPos_; }
+	virtual bool requestMoveOver();
 
 	void destroyed(){ destroyed_ = true; }
+
+	virtual bool isOnGround(){ return false; }
 protected:
 	Position3D destPos_;
 	float velocity_;			// ËÙ¶È

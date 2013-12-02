@@ -156,7 +156,7 @@ class AI:
 			runSpeed = self.getDatas()["runSpeed"]
 			if runSpeed != self.moveSpeed:
 				self.moveSpeed = runSpeed
-			self.gotoEntity(self.targetID, 1.8)
+			self.gotoPosition(entity.position, 1.8)
 			return
 		else:
 			self.resetSpeed()

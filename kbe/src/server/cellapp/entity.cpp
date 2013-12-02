@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/fixed_messages.hpp"
 #include "client_lib/client_interface.hpp"
 #include "server/eventhistory_stats.hpp"
+#include "navigation/navmeshex.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
@@ -52,12 +53,12 @@ SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("raycast",					pyRaycast,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
@@ -1062,35 +1063,102 @@ bool Entity::stopMove()
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::navigateStep(const Position3D& destination, float velocity, float maxMoveDistance, float maxDistance, 
-	bool faceMovement, float girth, PyObject* userData)
+int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPos)
 {
-	DEBUG_MSG(boost::format("Entity[%1%:%2%]:destination=(%3%,%4%,%5%), velocity=%6%, maxMoveDistance=%7%, "
-		"maxDistance=%8%, faceMovement=%9%, girth=%10%, userData=%11%.\n") %
-		getScriptName() % id_ % destination.x % destination.y % destination.z % velocity % maxMoveDistance %
-		maxDistance % faceMovement % girth % userData);
+	Space* pSpace = Spaces::findSpace(getSpaceID());
+	if(pSpace == NULL)
+	{
+		ERROR_MSG(boost::format("Entity::raycast: not found space(%1%), entityID(%2%)!\n") % 
+			getSpaceID() % getID());
 
-	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+		return -1;
+	}
+	
+	if(pSpace->pNavMeshHandle() == NULL)
+	{
+		ERROR_MSG(boost::format("Entity::raycast: space(%1%) not addSpaceGeometryMapping!\n") % 
+			getSpaceID() % getID());
 
-	return true;
+		return -1;
+	}
+
+	return pSpace->pNavMeshHandle()->raycast(start, end, hitPos);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyNavigateStep(PyObject_ptr pyDestination, float velocity, float maxMoveDistance, float maxDistance,
+PyObject* Entity::pyRaycast(PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
+{
+	if(!PySequence_Check(pyStartPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PySequence_Check(pyEndPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D startPos;
+	Position3D endPos;
+	float hitPos[3];
+
+	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
+	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
+	if(raycast(startPos, endPos, hitPos) <= 0)
+	{
+		S_Return;
+	}
+
+	PyObject* pyHitpos = PyTuple_New(3);
+	PyTuple_SetItem(pyHitpos, 0, ::PyFloat_FromDouble(hitPos[0]));
+	PyTuple_SetItem(pyHitpos, 1, ::PyFloat_FromDouble(hitPos[1]));
+	PyTuple_SetItem(pyHitpos, 2, ::PyFloat_FromDouble(hitPos[2]));
+	return pyHitpos;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::navigate(const Position3D& destination, float velocity, float range, float maxMoveDistance, float maxDistance, 
+	bool faceMovement, float girth, PyObject* userData)
+{
+	stopMove();
+
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	NavigateController* p = new NavigateController(this, destination, velocity, 
+		range, faceMovement, maxMoveDistance, maxDistance, girth, userData, pControllers_->freeID());
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+	
+	pMoveController_ = p;
+
+	return p->id();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
 								 int8 faceMovement, float girth, PyObject_ptr userData)
 {
+
 	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	// 将坐标信息提取出来
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
-	
 	Py_INCREF(userData);
-	if(navigateStep(destination, velocity, maxMoveDistance, 
-		maxDistance, faceMovement > 0, girth, userData))
-	{
-		Py_RETURN_TRUE;
-	}
-	
-	Py_RETURN_FALSE;
+
+	return PyLong_FromLong(navigate(destination, velocity, range, maxMoveDistance, 
+		maxDistance, faceMovement > 0, girth, userData));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1117,6 +1185,13 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 								 int32 faceMovement, int32 moveVertically)
 {
 	Position3D destination;
+
+	if(!PyTuple_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) not is tuple!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	// 将坐标信息提取出来
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
@@ -1149,38 +1224,6 @@ PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range
 {
 	Py_INCREF(userData);
 	return PyLong_FromLong(moveToEntity(targetID, velocity, range, userData, faceMovement > 0, moveVertically > 0));
-}
-
-//-------------------------------------------------------------------------------------
-uint32 Entity::navigate(const Position3D& destination, float velocity, PyObject* userData, 
-						 bool faceMovement, bool moveVertically)
-{
-	stopMove();
-
-	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
-
-	NavigateController* p = new NavigateController(this, destination, velocity, 
-		0.0f, faceMovement, moveVertically, userData, pControllers_->freeID());
-
-	bool ret = pControllers_->add(p);
-	KBE_ASSERT(ret);
-	
-	pMoveController_ = p;
-
-	return p->id();
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
-								 int32 faceMovement, int32 moveVertically)
-{
-	Position3D destination;
-
-	// 将坐标信息提取出来
-	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
-	Py_INCREF(userData);
-
-	return PyLong_FromLong(navigate(destination, velocity, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------

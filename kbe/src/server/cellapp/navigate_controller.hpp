@@ -29,15 +29,21 @@ class NavigateController : public MoveToPointController
 {
 public:
 	NavigateController(Entity* pEntity, const Position3D& destPos, float velocity, float range, bool faceMovement, 
-		bool moveVertically, PyObject* userarg, uint32 id = 0);
+		float maxMoveDistance, float maxDistance, float girth,
+		PyObject* userarg, uint32 id = 0);
 	virtual ~NavigateController();
 	
-	virtual bool update();
+	virtual bool requestMoveOver();
 
+	virtual bool isOnGround(){ return true; }
 protected:
 	int destPosIdx_;
 	std::vector<Position3D> paths_;
 	NavMeshHandle* pNavMeshHandle_;
+
+	float maxMoveDistance_;
+	float maxDistance_;
+	float girth_;
 };
  
 }

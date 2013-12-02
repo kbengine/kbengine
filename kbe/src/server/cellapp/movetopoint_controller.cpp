@@ -51,6 +51,14 @@ MoveToPointController::~MoveToPointController()
 }
 
 //-------------------------------------------------------------------------------------
+bool MoveToPointController::requestMoveOver()
+{
+	pEntity_->onMoveOver(id(), pyuserarg_);
+	destroy();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool MoveToPointController::update()
 {
 	if(destroyed_)
@@ -104,7 +112,7 @@ bool MoveToPointController::update()
 	pEntity_->setPositionAndDirection(currpos, direction);
 
 	// 非navigate都不能确定其在地面上
-	pEntity_->isOnGround(false);
+	pEntity_->isOnGround(isOnGround());
 
 	// 通知脚本
 	pEntity_->onMove(id(), pyuserarg_);
@@ -112,9 +120,7 @@ bool MoveToPointController::update()
 	// 如果达到目的地则返回true
 	if(!ret)
 	{
-		pEntity_->onMoveOver(id(), pyuserarg_);
-		destroy();
-		return false;
+		return !requestMoveOver();
 	}
 
 	return true;

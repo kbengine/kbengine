@@ -74,7 +74,6 @@ int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& e
 		return NAV_ERROR_NEARESTPOLY;
 	}
 
-	static const int MAX_POLYS = 256;
 	dtPolyRef polys[MAX_POLYS];
 	int npolys;
 	float straightPath[MAX_POLYS * 3];
@@ -109,6 +108,66 @@ int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& e
 	}
 
 	return pos;
+}
+
+//-------------------------------------------------------------------------------------
+int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float* hitPoint)
+{
+	float spos[3];
+	spos[0] = start.x;
+	spos[1] = start.y;
+	spos[2] = start.z;
+
+	float epos[3];
+	epos[0] = end.x;
+	epos[1] = end.y;
+	epos[2] = end.z;
+
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
+
+	const float extents[3] = {2.f, 4.f, 2.f};
+
+	dtPolyRef startRef = INVALID_POLYREF;
+
+	float nearestPt[3];
+	dtStatus status = navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
+
+	if (!startRef)
+	{
+		return NAV_ERROR_NEARESTPOLY;
+	}
+
+	float t = 0;
+	float hitNormal[3];
+	memset(hitNormal, 0, sizeof(hitNormal));
+
+	dtPolyRef polys[MAX_POLYS];
+	int npolys;
+
+	navmeshQuery->raycast(startRef, spos, epos, &filter, &t, hitNormal, polys, &npolys, MAX_POLYS);
+
+	if (t > 1)
+	{
+		// no hit
+		return NAV_ERROR;
+	}
+	else
+	{
+		// Hit
+		hitPoint[0] = spos[0] + (epos[0] - spos[0]) * t;
+		hitPoint[1] = spos[1] + (epos[1] - spos[1]) * t;
+		hitPoint[2] = spos[2] + (epos[2] - spos[2]) * t;
+		if (npolys)
+		{
+			float h = 0;
+			navmeshQuery->getPolyHeight(polys[npolys-1], hitPoint, &h);
+			hitPoint[1] = h;
+		}
+	}
+	
+	return 1;
 }
 
 //-------------------------------------------------------------------------------------
@@ -210,6 +269,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	{
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
 		return NULL;
 	}
 
@@ -218,6 +278,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	{
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
 		return NULL;
 	}
 
@@ -225,6 +286,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	{
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
 		return NULL;
 	}
 
@@ -237,6 +299,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
     {
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % RCN_NAVMESH_VERSION);
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
         return NULL;
     }
 
@@ -245,6 +308,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
     {
 		ERROR_MSG("NavMeshEx::loadNavmesh: dtAllocNavMesh is failed!\n");
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
         return NULL;
     }
 
@@ -253,6 +317,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
     {
 		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: mesh init is error(%1%)!\n") % status);
 		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
 	    return NULL;
     }
 

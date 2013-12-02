@@ -89,9 +89,9 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, True)
+		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, None)
 		
-	def gotoPosition(self, position):
+	def gotoPosition(self, position, dist = 0.0):
 		"""
 		virtual method.
 		移动到位置
@@ -103,6 +103,7 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToPoint(tuple(position), self.moveSpeed * 0.1, 1, True, True)
+		speed = self.moveSpeed * 0.1
+		self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0.5, None)
 		
 Motion._timermap = {}
