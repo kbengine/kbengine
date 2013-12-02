@@ -1102,6 +1102,20 @@ PyObject* Entity::pyRaycast(PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
 		return 0;
 	}
 
+	if(PySequence_Size(pyStartPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyEndPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	Position3D startPos;
 	Position3D endPos;
 	float hitPos[3];
@@ -1153,6 +1167,13 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float r
 		return 0;
 	}
 
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	// 将坐标信息提取出来
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	Py_INCREF(userData);
@@ -1186,9 +1207,16 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 {
 	Position3D destination;
 
-	if(!PyTuple_Check(pyDestination))
+	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) not is tuple!");
+		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) invalid!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
