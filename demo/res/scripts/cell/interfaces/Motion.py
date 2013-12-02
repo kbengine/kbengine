@@ -68,7 +68,7 @@ class Motion:
 		virtual method.
 		"""
 		INFO_MSG("%s::backSpawnPos: %i, pos=%s, speed=%f." % \
-			(self.getScriptName(), self.id, self.spawnPos, self.moveSpeed))
+			(self.getScriptName(), self.id, self.spawnPos, self.moveSpeed * 0.1))
 			
 		self.gotoPosition(self.spawnPos)
 	
@@ -89,7 +89,7 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToEntity(targetID, self.moveSpeed, dist, 1, True, True)
+		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, True)
 		
 	def gotoPosition(self, position):
 		"""
@@ -103,6 +103,6 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToPoint(tuple(position), self.moveSpeed, 1, True, True)
+		self.moveToPoint(tuple(position), self.moveSpeed * 0.1, 1, True, True)
 		
 Motion._timermap = {}

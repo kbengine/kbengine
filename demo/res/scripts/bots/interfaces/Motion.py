@@ -22,5 +22,5 @@ class Motion:
 		DEBUG_MSG("%s::set_moveSpeed: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.moveSpeed))
 
 		# 设置引擎层entity移动速度
-		self.velocity = self.moveSpeed
+		self.velocity = self.moveSpeed * 0.1
 
