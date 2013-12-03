@@ -775,6 +775,20 @@ int Entity::pySetPosition(PyObject *value)
 	Position3D pos;
 	script::ScriptVector3::convertPyObjectToVector3(pos, value);
 	setPosition(pos);
+
+	static ENTITY_PROPERTY_UID posuid = 0;
+	if(posuid == 0)
+	{
+		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		Mercury::FixedMessages::MSGInfo* msgInfo =
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
+	}
+
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	onDefDataChanged(&positionDescription, value);
 	return 0;
 }
 
@@ -849,6 +863,19 @@ int Entity::pySetDirection(PyObject *value)
 	pyItem = PySequence_GetItem(value, 2);
 	dir.yaw		= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
+	static ENTITY_PROPERTY_UID diruid = 0;
+	if(diruid == 0)
+	{
+		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+		Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)	
+			diruid = msgInfo->msgid;
+	}
+
+	static PropertyDescription positionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	onDefDataChanged(&positionDescription, value);
+
 	return 0;
 }
 
@@ -989,10 +1016,6 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 			movment.length() % topSpeed_ %
 			ydist % topSpeedY_);
 		
-		if(movment.length() > 0.1f)
-			movment *= topSpeed_ / 2.0f;
-		
-		currpos += movment;
 		this->setPosition(currpos);
 
 		// Í¨ÖªÖØÖÃ
