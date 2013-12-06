@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import math
+import Math
 import time
 import random
 from KBEDebug import * 
@@ -119,5 +120,22 @@ class Motion:
 		self.isMoving = True
 		speed = self.moveSpeed * 0.1
 		self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0.5, None)
+
+	def getStopPoint(self, yaw = None, rayLength = 100.0):
+		"""
+		"""
+		if yaw is None:yaw = self.yaw
+		yaw = (yaw / 2);
+		vv = Math.Vector3(math.sin(yaw), 0, math.cos(yaw))
+		vv.normalise()
+		vv *= rayLength
+		
+		lastPos = self.position + vv;
+		
+		pos = self.raycast(self.position, vv)
+		if pos == None:
+			pos = lastPos
+			
+		return pos
 		
 Motion._timermap = {}

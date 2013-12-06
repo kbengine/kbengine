@@ -12,6 +12,7 @@ from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.Motion import Motion
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject,
 			Flags,
@@ -26,6 +27,7 @@ class Avatar(GameObject,
 		Flags.__init__(self) 
 		State.__init__(self) 
 		Motion.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Dialog.__init__(self)
@@ -94,6 +96,7 @@ class PlayerAvatar(Avatar, EventHandler):
 		"""
 		DEBUG_MSG("%s::onBecomePlayer: %i." % (self.getScriptName(), self.id))
 		self.__init__()
+		self.pullSkills()
 		
 	def onBecomeNonPlayer( self ):  
 		"""

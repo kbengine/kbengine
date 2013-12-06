@@ -103,7 +103,7 @@ int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& e
 			paths.push_back(currpos);
 			pos++; 
 			
-			DEBUG_MSG(boost::format("NavMeshHandle::findStraightPath: %1%->%2%, %3%, %4%\n") % pos % currpos.x % currpos.y % currpos.z);
+			//DEBUG_MSG(boost::format("NavMeshHandle::findStraightPath: %1%->%2%, %3%, %4%\n") % pos % currpos.x % currpos.y % currpos.z);
 		}
 	}
 

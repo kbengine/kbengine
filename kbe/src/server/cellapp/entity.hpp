@@ -141,7 +141,12 @@ public:
 	INLINE Direction3D& getDirection();
 	INLINE void setDirection(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
+
+	DECLARE_PY_GETSET_MOTHOD(pyGetYaw, pySetYaw);
+	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
+	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
 	
+
 	/**
 		是否在地面上
 	*/

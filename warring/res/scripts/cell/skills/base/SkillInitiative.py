@@ -15,6 +15,8 @@ class SkillInitiative(SObject):
 		virtual method.
 		从字典中创建这个对象
 		"""
+		SObject.loadFromDict(self, dictDatas)
+		
 		# 法术速度
 		self.speed = dictDatas.get('speed', 0)
 		

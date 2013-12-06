@@ -76,6 +76,9 @@ SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
+SCRIPT_GETSET_DECLARE("yaw",						pyGetYaw,						pySetYaw,				0,		0)
+SCRIPT_GETSET_DECLARE("roll",						pyGetRoll,						pySetRoll,				0,		0)
+SCRIPT_GETSET_DECLARE("pitch",						pyGetPitch,						pySetPitch,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
 SCRIPT_GETSET_DECLARE("shouldAutoBackup",			pyGetShouldAutoBackup,			pySetShouldAutoBackup,		0,		0)
@@ -855,12 +858,41 @@ int Entity::pySetDirection(PyObject *value)
 
 	Direction3D& dir = getDirection();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
+
+	if(!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
 	dir.roll	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
 	pyItem = PySequence_GetItem(value, 1);
+
+	if(!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
 	dir.pitch	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
 	pyItem = PySequence_GetItem(value, 2);
+
+	if(!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
 	dir.yaw		= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 
@@ -883,6 +915,84 @@ int Entity::pySetDirection(PyObject *value)
 PyObject* Entity::pyGetDirection()
 {
 	return new script::ScriptVector3(getDirection().asVector3());
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetYaw(PyObject *value)
+{
+	if(!PyFloat_Check(value))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Direction3D& dir = getDirection();
+	dir.yaw = float(PyFloat_AsDouble(value));
+
+	PyObject* pydatas = pyGetDirection();
+	pySetDirection(pydatas);
+	Py_DECREF(pydatas);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetYaw()
+{
+	return PyFloat_FromDouble(getDirection().yaw);
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetRoll(PyObject *value)
+{
+	if(!PyFloat_Check(value))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Direction3D& dir = getDirection();
+	dir.roll = float(PyFloat_AsDouble(value));
+
+	PyObject* pydatas = pyGetDirection();
+	pySetDirection(pydatas);
+	Py_DECREF(pydatas);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetRoll()
+{
+	return PyFloat_FromDouble(getDirection().roll);
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetPitch(PyObject *value)
+{
+	if(!PyFloat_Check(value))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Direction3D& dir = getDirection();
+	dir.pitch = float(PyFloat_AsDouble(value));
+
+	PyObject* pydatas = pyGetDirection();
+	pySetDirection(pydatas);
+	Py_DECREF(pydatas);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetPitch()
+{
+	return PyFloat_FromDouble(getDirection().pitch);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1016,7 +1126,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 			movment.length() % topSpeed_ %
 			ydist % topSpeedY_);
 		
-		this->setPosition(currpos);
+		// this->setPosition(currpos);
 
 		// Í¨ÖªÖØÖÃ
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();

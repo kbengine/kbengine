@@ -10,11 +10,13 @@ from interfaces.Dialog import Dialog
 from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Motion import Motion
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject, 
 			Flags,
 			State,
 			Motion, 
+			SkillBox,
 			Combat, 
 			Spell, 
 			Teleport,
@@ -24,6 +26,7 @@ class Avatar(GameObject,
 		Flags.__init__(self) 
 		State.__init__(self) 
 		Motion.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Teleport.__init__(self) 
@@ -102,6 +105,7 @@ Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Flags._timermap)
 Avatar._timermap.update(State._timermap)
 Avatar._timermap.update(Motion._timermap)
+Avatar._timermap.update(SkillBox._timermap)
 Avatar._timermap.update(Combat._timermap)
 Avatar._timermap.update(Spell._timermap)
 Avatar._timermap.update(Teleport._timermap)

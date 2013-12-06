@@ -9,6 +9,7 @@ from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject,
 			Flags,
@@ -21,6 +22,7 @@ class Avatar(GameObject,
 		GameObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Dialog.__init__(self)
