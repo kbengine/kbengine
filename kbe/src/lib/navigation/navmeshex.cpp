@@ -132,7 +132,7 @@ int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float
 	dtPolyRef startRef = INVALID_POLYREF;
 
 	float nearestPt[3];
-	dtStatus status = navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
 
 	if (!startRef)
 	{
