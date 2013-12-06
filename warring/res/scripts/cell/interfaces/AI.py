@@ -160,7 +160,13 @@ class AI:
 			return
 		else:
 			self.resetSpeed()
-			self.spellTarget(1, entity.id)
+			
+			skilID = 1
+			if self.modelID == 20002001:
+				if random.random() > 0.5:
+					skillID = 7000101
+					
+			self.spellTarget(skilID, entity.id)
 			
 	def onThinkOther(self):
 		"""
