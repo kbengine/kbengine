@@ -199,6 +199,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"`entityDBID` bigint(20) not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
 			"`flags` int unsigned not null DEFAULT 0,"
 			"`deadline` bigint(20) not null DEFAULT 0,"
+			"`regtime` bigint(20) not null DEFAULT 0,"
 			"`lasttime` bigint(20) not null DEFAULT 0,"
 			"`numlogin` int unsigned not null DEFAULT 0)"
 		"ENGINE="MYSQL_ENGINE_TYPE;
@@ -354,7 +355,7 @@ bool KBEAccountTableMysql::updatePassword(DBInterface * dbi, const std::string& 
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline, lasttime) values(";
+	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline, regtime, lasttime) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -398,6 +399,10 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
+	sqlstr += tbuf;
+	sqlstr += ",";
+
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
 	sqlstr += tbuf;
 	sqlstr += ")";
