@@ -14,6 +14,7 @@ from interfaces.SkillBox import SkillBox
 class Avatar(GameObject,
 			Flags,
 			State,
+			SkillBox,
 			Combat, 
 			Spell, 
 			Dialog,

@@ -1052,7 +1052,17 @@ void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine:
 	}
 
 	// 这个方法呼叫如果不是这个proxy自己的方法则必须呼叫的entity和proxy的cellEntity在一个space中。
-	e->onRemoteMethodCall(pChannel, s);
+	try
+	{
+		e->onRemoteMethodCall(pChannel, s);
+	}catch(MemoryStreamException &)
+	{
+		ERROR_MSG(boost::format("Cellapp::onRemoteCallMethodFromClient: message is error! entityID:%1%.\n") % 
+			targetID);
+
+		s.read_skip(s.opsize());
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1094,7 +1104,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 	{	
 		WARNING_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:%1%.\n") %
 			srcEntityID);
-
+		
+		s.read_skip(s.opsize());
 		return;
 	}
 
@@ -1122,8 +1133,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 			ERROR_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID=%1%, msglen=%2%, from %3%.\n") % 
 				currMsgID % s.wpos() % pChannel->c_str());
 
-			pChannel->condemn();
-			break;
+			s.read_skip(s.opsize());
+			return;
 		}
 
 		if(pMsgHandler->type() != Mercury::MERCURY_MESSAGE_TYPE_ENTITY)
@@ -1131,8 +1142,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 			WARNING_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%1% not is entitymsg.\n") %
 				currMsgID);
 
-			pChannel->condemn();
-			break;
+			s.read_skip(s.opsize());
+			return;
 		}
 
 		if((pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE) || Mercury::g_packetAlwaysContainLength)
@@ -1145,8 +1156,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 			ERROR_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%1%, invalide msglen=%2%, from %3%.\n") % 
 				currMsgID % s.wpos() % pChannel->c_str());
 
-			pChannel->condemn();
-			break;
+			s.read_skip(s.opsize());
+			return;
 		}
 
 		// 临时设置有效读取位， 防止接口中溢出操作
@@ -1154,7 +1165,18 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 		// size_t rpos = s.rpos();
 		size_t frpos = s.rpos() + currMsgLen;
 		s.wpos(frpos);
-		pMsgHandler->handle(pChannel, s);
+
+		try
+		{
+			pMsgHandler->handle(pChannel, s);
+		}catch(MemoryStreamException &)
+		{
+			ERROR_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: message is error! entityID:%1%.\n") % 
+				srcEntityID);
+
+			s.read_skip(s.opsize());
+			return;
+		}
 
 		// 防止handle中没有将数据导出获取非法操作
 		if(currMsgLen > 0)
