@@ -17,8 +17,8 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 
 简单的介绍一下引擎的各个主要组件部分:
 	· loginapp:
-	client的登录验证, 验证通过则向客户端发放一个basesrv的地址， 之后客户端通过basesrv与服务端交互。
-	可在多台机器部署多个authsrv进程来负载。 
+	client的登录验证, 验证通过则向客户端发放一个baseapp的地址， 之后客户端通过baseapp与服务端交互。
+	可在多台机器部署多个loginapp进程来负载。 
 
 
 	· dbmgr:
@@ -26,13 +26,13 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 
 
 	· baseappmgr:
-	主要负责协调所有basesrv的工作，包括负载均衡处理等。
+	主要负责协调所有baseapp的工作，包括负载均衡处理等。
 
 
 	· baseapp:
-	客户端与服务端的交互只能通过authsrv分配的basesrv来完成。
-	定时写entity的数据到数据库、 basesrv数据相互备份。
-	可在多台机器部署多个basesrv进程来均衡负载。 
+	客户端与服务端的交互只能通过loginapp分配的baseapp来完成。
+	定时写entity的数据到数据库、 baseapp数据相互备份。
+	可在多台机器部署多个baseapp进程来均衡负载。 
 
 
 	· cellappmgr:
