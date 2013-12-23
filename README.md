@@ -10,28 +10,29 @@ kbengine
 
 ##什么是KBEngine?
 
-kbengine仿照bigworld技术努力成为一款开源mmog引擎。
-bigworld引擎的特点是理论支持无限大世界，多进程分布式负载。
-开发者无需过多接触c++底层，无需重复性的实现网络模块，内存管理，
-线程管理等底层通用性技术，把精力集中到游戏开发层面上来，
-使用python就能够简单高效的打造一款游戏。
+kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5、 ios、 android等作为前端表现。
+
+底层框架由c++编写， 逻辑层使用python脚本， 开发者无需重复实现一些通用的底层服务端技术，
+使开发者能够真正集中精力到游戏开发上来， 快速并且保证效率的打造各种类型的游戏。
 
 简单的介绍一下引擎的各个主要组件部分:
+	· loginapp:
+	client的登录验证, 验证通过则向客户端发放一个basesrv的地址， 之后客户端通过basesrv与服务端交互。
+	可在多台机器部署多个authsrv进程来负载。 
+
 
 	· dbmgr:
-	实现数据的存取，默认使用mysql作为数据库。另外还包括整个游戏的entityID分配、
-	共享数据(globaldata, baseAppData, cellAppData)、与第三方运营接口对接框架。
+	实现数据的存取，默认使用mysql作为数据库。
 
 
 	· baseappmgr:
-	主要负责协调所有的baseapp的工作（base部分的负载平衡）等。
+	主要负责协调所有basesrv的工作，包括负载均衡处理等。
 
 
 	· baseapp:
-	客户端与服务端的通讯只能通过baseapp来完成, 一个帐号登陆到baseapp之后就不会再改变，这个baseapp会一直维护这个帐号，
-	直到与他断开连接, 并不像cellapp一样会迁移entity。另外它还会定义备份entity的cell数据、定时写数据到数据库、
-	定时备份相关数据到其他baseapp、数据包加密解密、逻辑层还可以利用base不迁移的特性在此实现类似全局管理器之类的系统。
-	baseapp部署的数量可自由配置。
+	客户端与服务端的交互只能通过authsrv分配的basesrv来完成。
+	定时写entity的数据到数据库、 basesrv数据相互备份。
+	可在多台机器部署多个basesrv进程来均衡负载。 
 
 
 	· cellappmgr:
@@ -39,24 +40,18 @@ bigworld引擎的特点是理论支持无限大世界，多进程分布式负载
 
 
 	· cellapp:
-	一个cellapp负责处理一个(尽量)或者多个space，每个space包含一个cell, cell可以维护整个space区域或者部分区域，当一个space上消耗过大时
-	cellappmgr将会寻找空闲的cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
-	cellapp部署的数量可自由配置。
-
-
-	· loginapp:
-	它只处理client的登录接入, 账号由dbmgr检查通过就会从baseappmgr得到一个baseapp的地址发给客户端，
-	然后就与客户端断开连接， 客户端需要主动连接获得到的baseapp，可在多台机器部署多个loginapp进程。 
+	主要处理游戏实时逻辑， 如：aoi， navigate， ai, 休闲游戏房间内逻辑等等。
+	可在多台机器部署多个procsrv进程来动态均衡负载。 
 
 
 	· client:
 	客户端我们将提供基础框架，这个框架不包括渲染部分和输入输出部分的具体实现, 
 	我们将提供一个lib文件和一套API接口，开发者可以选择使用自己比较适合的图形渲染引擎与输入输出控制部分， 
-	当然我们也会封装一套默认的相关模块，目前我们准备采用开源的渲染引擎ogre来实现图形表现部分。 
+	(目前支持unity3d、ogre、html5)
 
 
 	· kbmachine:
-	抽象出一个kbe硬件节点(一台硬件服务器只能存在一个这样的进程)。主要用途是接受远程指令处理本机上的组件启动与关闭, 
+	抽象出一个服务端硬件节点(一台硬件服务器只能存在一个这样的进程)。主要用途是接受远程指令处理本机上的组件启动与关闭, 
 	提供本机上运行组件的接入口以及搜集当前机器上的一些信息， 
 	如：CPU， 内存等。 这些信息会提供给一些对此比较感兴趣的组件。 
 
@@ -165,8 +160,8 @@ windows:
 		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
 
-	3: 新建一个数据库， 假设数据库名为"kbe"
-		create database kbe;
+	3: 新建一个数据库， 假设数据库名为"demo"
+		create database demo;
 
 	4: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
 
