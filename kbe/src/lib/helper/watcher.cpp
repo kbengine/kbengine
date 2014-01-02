@@ -115,7 +115,7 @@ bool Watchers::addWatcher(std::string path, WatcherObject* pwo)
 //-------------------------------------------------------------------------------------
 bool Watchers::delWatcher(std::string name)
 {
-	if(hasWatcher(name))
+	if(!hasWatcher(name))
 		return false;
 
 	watcherObjs_.erase(name);
@@ -319,19 +319,62 @@ WatcherObject* WatcherPaths::addWatcherFromStream(std::string path, std::string 
 //-------------------------------------------------------------------------------------
 bool WatcherPaths::delWatcher(std::string fullpath)
 {
-	if(hasWatcher(fullpath))
+	if(hasWatcher(fullpath) == false)
+	{
+		DEBUG_MSG(boost::format("WatcherPaths::delWatcher: not found %1%\n") % fullpath);
 		return false;
+	}
 
-	watcherPaths_.erase(fullpath);
-	DEBUG_MSG(boost::format("WatcherPaths::delWatcher: %1%\n") % fullpath);
-	return true;
+	std::vector<std::string> vec;
+	KBEngine::strutil::kbe_split(fullpath, '/', vec);
+	
+	if(vec.size() == 1)
+		return false;
+	
+	std::string name = (*(vec.end() - 1));
+	vec.erase(vec.end() - 1);
+
+	WatcherPaths* pCurrWatcherPaths = this;
+	for(std::vector<std::string>::iterator iter = vec.begin(); iter != vec.end(); iter++)
+	{
+		WATCHER_PATHS& paths = pCurrWatcherPaths->watcherPaths();
+		KBEUnordered_map<std::string, KBEShared_ptr<WatcherPaths> >::iterator fiter = paths.find((*iter));
+		if(fiter == paths.end())
+			return false;
+
+		pCurrWatcherPaths = fiter->second.get();
+		if(pCurrWatcherPaths == NULL)
+			return false;
+	}
+	
+	return pCurrWatcherPaths->watchers().delWatcher(name);
 }
 
 //-------------------------------------------------------------------------------------
 bool WatcherPaths::hasWatcher(std::string fullpath)
 {
-	WATCHER_PATHS::iterator iter = watcherPaths_.find(fullpath);
-	return iter != watcherPaths_.end();
+	std::vector<std::string> vec;
+	KBEngine::strutil::kbe_split(fullpath, '/', vec);
+	
+	if(vec.size() == 1)
+		return false;
+
+	vec.erase(vec.end() - 1);
+
+	WatcherPaths* pCurrWatcherPaths = this;
+	for(std::vector<std::string>::iterator iter = vec.begin(); iter != vec.end(); iter++)
+	{
+		WATCHER_PATHS& paths = pCurrWatcherPaths->watcherPaths();
+		KBEUnordered_map<std::string, KBEShared_ptr<WatcherPaths> >::iterator fiter = paths.find((*iter));
+		if(fiter == paths.end())
+			return false;
+
+		pCurrWatcherPaths = fiter->second.get();
+		if(pCurrWatcherPaths == NULL)
+			return false;
+	}
+
+	return pCurrWatcherPaths != NULL;
 }
 
 //-------------------------------------------------------------------------------------

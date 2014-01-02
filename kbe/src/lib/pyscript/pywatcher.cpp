@@ -31,6 +31,13 @@ inline WatcherObject* _addWatcher(std::string path, PyObject* pyobj)
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
 };
+
+inline bool _delWatcher(std::string path)
+{
+	path = std::string("root/scripts/") + path;
+	return WatcherPaths::root().delWatcher(path);
+};
+
 //-------------------------------------------------------------------------------------
 static PyObject* addWatcher(PyObject* self, PyObject* args)
 {
@@ -81,7 +88,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	std::string type = pwatchername;
 	PyMem_Free(wstr);	
 	free(pwatchername);
-
+	
 	PyObject* pyObj1 = NULL;
 
 	if(!PyCallable_Check(pyObj))
@@ -106,51 +113,51 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 
 	if(strcmp("UINT8", type.c_str()) == 0)
 	{
-		_addWatcher<uint8>(pwatchername, pyObj);
+		_addWatcher<uint8>(watchername, pyObj);
 	}
 	else if(strcmp("UINT16", type.c_str()) == 0)
 	{
-		_addWatcher<uint16>(pwatchername, pyObj);
+		_addWatcher<uint16>(watchername, pyObj);
 	}
 	else if(strcmp("UINT32", type.c_str()) == 0)
 	{
-		_addWatcher<uint32>(pwatchername, pyObj);
+		_addWatcher<uint32>(watchername, pyObj);
 	}
 	else if(strcmp("UINT64", type.c_str()) == 0)
 	{
-		_addWatcher<uint64>(pwatchername, pyObj);
+		_addWatcher<uint64>(watchername, pyObj);
 	}
 	else if(strcmp("INT8", type.c_str()) == 0)
 	{
-		_addWatcher<int8>(pwatchername, pyObj);
+		_addWatcher<int8>(watchername, pyObj);
 	}
 	else if(strcmp("INT16", type.c_str()) == 0)
 	{
-		_addWatcher<int16>(pwatchername, pyObj);
+		_addWatcher<int16>(watchername, pyObj);
 	}
 	else if(strcmp("INT32", type.c_str()) == 0)
 	{
-		_addWatcher<int32>(pwatchername, pyObj);
+		_addWatcher<int32>(watchername, pyObj);
 	}
 	else if(strcmp("INT64", type.c_str()) == 0)
 	{
-		_addWatcher<int64>(pwatchername, pyObj);
+		_addWatcher<int64>(watchername, pyObj);
 	}
 	else if(strcmp("FLOAT", type.c_str()) == 0)
 	{
-		_addWatcher<float>(pwatchername, pyObj);
+		_addWatcher<float>(watchername, pyObj);
 	}
 	else if(strcmp("DOUBLE", type.c_str()) == 0)
 	{
-		_addWatcher<double>(pwatchername, pyObj);
+		_addWatcher<double>(watchername, pyObj);
 	}
 	else if(strcmp("BOOL", type.c_str()) == 0)
 	{
-		_addWatcher<uint8>(pwatchername, pyObj);
+		_addWatcher<uint8>(watchername, pyObj);
 	}
 	else if(strcmp("STRING", type.c_str()) == 0)
 	{
-		_addWatcher<std::string>(pwatchername, pyObj);
+		_addWatcher<std::string>(watchername, pyObj);
 	}
 
 	Py_DECREF(pyObj1);
@@ -158,10 +165,52 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+static PyObject* delWatcher(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* pyName = NULL;
+	
+	if(PyArg_ParseTuple(args, "O", &pyName) == -1)
+	{
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(!PyUnicode_Check(pyName))
+	{
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	wchar_t* wstr = PyUnicode_AsWideCharString(pyName, NULL);					
+	char* pwatchername = strutil::wchar2char(wstr);	
+	PyMem_Free(wstr);	
+	
+	bool ret = _delWatcher(pwatchername);
+	free(pwatchername);
+	
+	if(!ret)
+	{
+		Py_RETURN_FALSE;
+	}
+
+	Py_RETURN_TRUE;
+}
+
+//-------------------------------------------------------------------------------------
 bool initializePyWatcher(Script* pScript)
 {
 	// 注册产生uuid方法到py
 	APPEND_SCRIPT_MODULE_METHOD(pScript->getModule(),		addWatcher,			addWatcher,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(pScript->getModule(),		delWatcher,			delWatcher,					METH_VARARGS,			0);
 	return true;
 }
 

@@ -426,6 +426,7 @@ public:
 	void updateStream(MemoryStream* s);
 
 	Watchers& watchers(){ return watchers_; }
+	WATCHER_PATHS& watcherPaths(){ return watcherPaths_; }
 protected:
 	WATCHER_PATHS watcherPaths_;
 	Watchers watchers_;
