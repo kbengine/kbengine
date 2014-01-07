@@ -3,7 +3,7 @@ import time
 import sys, os, time, signal, re
 
 
-class Updater:
+class Installer:
 	def __init__(self):
 		pass
 
