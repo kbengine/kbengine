@@ -43,7 +43,7 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 
 	· cellapp:
 	主要处理游戏实时逻辑， 如：aoi， navigate， ai, 休闲游戏房间内逻辑等等。
-	可在多台机器部署多个procsrv进程来动态均衡负载。 
+	可在多台机器部署多个cellapp进程来动态均衡负载。 
 
 
 	· client:
