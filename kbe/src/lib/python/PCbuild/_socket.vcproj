@@ -100,6 +100,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				PreprocessorDefinitions="Py_NO_ENABLE_SHARED"
 				RuntimeLibrary="0"
 			/>
 			<Tool

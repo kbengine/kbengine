@@ -257,20 +257,19 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 
 		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, dbid=%2%, success=%3%\n") % 
 			ordersID % dbid % success);
-
-		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
-
-		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-		(*(*bundle)) << baseappID << ordersID << dbid;
-		(*(*bundle)).appendBlob(iter->second.data);
-		(*(*bundle)) << cbid;
-		(*(*bundle)) << success;
 		
 		if(orderiter != orders.end())
 		{
 			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
 			if(pChannel)
 			{
+				Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+				(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
+				(*(*bundle)) << baseappID << ordersID << dbid;
+				(*(*bundle)).appendBlob(iter->second.data);
+				(*(*bundle)) << cbid;
+				(*(*bundle)) << success;
 				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
 			}
 			else
@@ -290,6 +289,13 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 					Mercury::Channel* pChannel = channeliter->second;
 					if(pChannel)
 					{
+						Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+						(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
+						(*(*bundle)) << baseappID << ordersID << dbid;
+						(*(*bundle)).appendBlob(iter->second.data);
+						(*(*bundle)) << cbid;
+						(*(*bundle)) << success;
 						(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
 					}
 					else
