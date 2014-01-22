@@ -154,12 +154,20 @@ bool AnonymousChannel::process()
 			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 		
-		BACK_ORDERS_DATA orderdata;
-		orderdata.data = getDatas;
-		backOrdersDatas_[orderid] = orderdata;
+		if(orderid.size() > 0)
+		{
+			BACK_ORDERS_DATA orderdata;
+			orderdata.data = getDatas;
+			backOrdersDatas_[orderid] = orderdata;
+			DEBUG_MSG(boost::format("AnonymousChannel::process: getDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
+				getDatas % fi1 % fi2);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("AnonymousChannel::process: not found orderid!\ngetDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
+				getDatas % fi1 % fi2);
+		}	
 
-		DEBUG_MSG(boost::format("AnonymousChannel::process: getDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
-			getDatas % fi1 % fi2);
 	}
 
 	return false;
