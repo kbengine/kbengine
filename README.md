@@ -1,12 +1,9 @@
 kbengine
 ========
 
-##演示截图(点击图片看视频):
-[![kbengine](https://sourceforge.net/p/kbengine/screenshot/323758.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+##官方网站:
+http://www.kbengine.org
 
-##控制台截图:
-[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_debug.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
-[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##什么是KBEngine?
 
@@ -65,6 +62,8 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 
 	· messagelog: 
 	收集和备份各个组件的运行日志，可使用guiconsole来查看和搜索相关信息。
+
+
 ##GO!
 
 
