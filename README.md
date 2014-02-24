@@ -156,13 +156,13 @@ windows:
 		[mysqld]
 		lower_case_table_names=2
 
-	2: 创建一个数据库账户， 假设用户名密码都为"kbe"
+	2: 新建一个数据库， 假设数据库名为"demo"
+		create database demo;
+
+	3: 创建一个数据库账户， 假设用户名密码都为"kbe"
 		grant all privileges on *.* to kbe@'%' identified by 'kbe';
 		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
-
-	3: 新建一个数据库， 假设数据库名为"demo"
-		create database demo;
 
 	4: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
 

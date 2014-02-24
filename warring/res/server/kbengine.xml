@@ -7,7 +7,7 @@
 	
 	<dbmgr>
 		<host> 127.0.0.1 </host>
-		<databaseName> demo </databaseName>
+		<databaseName> kbe </databaseName>
 	</dbmgr>
 	
 	<cellapp>
