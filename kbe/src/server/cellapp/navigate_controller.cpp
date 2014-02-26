@@ -52,13 +52,24 @@ girth_(girth)
 		else
 		{
 			pNavMeshHandle_ = pSpace->pNavMeshHandle();
-			Position3D currpos = pEntity_->getPosition();
-			pNavMeshHandle_->findStraightPath(currpos, destPos, paths_);
 
-			if(paths_.size() == 0)
-				destroyed_ = true;
+			if(pNavMeshHandle_)
+			{
+				Position3D currpos = pEntity_->getPosition();
+				pNavMeshHandle_->findStraightPath(currpos, destPos, paths_);
+
+				if(paths_.size() == 0)
+					destroyed_ = true;
+				else
+					destPos_ = paths_[destPosIdx_++];
+			}
 			else
-				destPos_ = paths_[destPosIdx_++];
+			{
+				destroyed_ = true;
+
+				WARNING_MSG(boost::format("NavigateController::NavigateController(): space(%1%), entityID(%2%), not found navmesh!\n") % 
+					pEntity_->getSpaceID() % pEntity_->getID());
+			}
 		}
 	}
 }
