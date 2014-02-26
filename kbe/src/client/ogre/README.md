@@ -36,7 +36,8 @@ windows:
 
 	3.Microsoft Visual Studio下编译。
 
-##运行：
+##运行:
 
 windows:
-	1.设置环境变量后编译运行exe即可。
+
+	1.设置环境变量后编译运行exe程序即可。
