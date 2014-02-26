@@ -257,11 +257,13 @@ public:
 	/** 
 		entity“∆∂Øµº∫Ω 
 	*/
+	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float range,
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, float girth, PyObject* userData);
 
 
+	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
 	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
 
 	/** 

@@ -53,6 +53,7 @@ SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
@@ -1265,6 +1266,33 @@ PyObject* Entity::pyRaycast(PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
 	PyTuple_SetItem(pyHitpos, 1, ::PyFloat_FromDouble(hitPos[1]));
 	PyTuple_SetItem(pyHitpos, 2, ::PyFloat_FromDouble(hitPos[2]));
 	return pyHitpos;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pycanNavigate()
+{
+	if(canNavigate())
+	{
+		Py_RETURN_TRUE;
+	}
+
+	Py_RETURN_FALSE;
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::canNavigate()
+{
+	if(getSpaceID() <= 0)
+		return false;
+
+	Space* pSpace = Spaces::findSpace(getSpaceID());
+	if(pSpace == NULL)
+		return false;
+
+	if(pSpace->pNavMeshHandle() == NULL)
+		return false;
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
