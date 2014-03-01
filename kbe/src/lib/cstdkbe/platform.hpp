@@ -51,9 +51,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <io.h>
 #include <time.h> 
 //#define FD_SETSIZE 1024
+#ifndef WIN32_LEAN_AND_MEAN 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
 #include <mswsock.h> 
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h> 
 #include <unordered_map>
 #include <functional>
