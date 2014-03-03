@@ -9,10 +9,12 @@ from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject,
 			Flags,
 			State,
+			SkillBox,
 			Combat, 
 			Spell, 
 			Dialog,
@@ -21,6 +23,7 @@ class Avatar(GameObject,
 		GameObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Dialog.__init__(self)
@@ -46,9 +49,16 @@ class Avatar(GameObject,
 		当这个entity被引擎定义为角色时被调用
 		"""
 		DEBUG_MSG("%s[%i]." % (self.__class__.__name__, self.id))
-
-
-
+		
+	def onJump(self):
+		"""
+		defined method.
+		玩家跳跃
+		"""
+		pass
+		
+		
 class PlayerAvatar(Avatar):
 	def __init__(self):
 		Avatar.__init__()
+

@@ -10,11 +10,13 @@ from interfaces.Dialog import Dialog
 from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Motion import Motion
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject, 
 			Flags,
 			State,
 			Motion, 
+			SkillBox,
 			Combat, 
 			Spell, 
 			Teleport,
@@ -24,15 +26,22 @@ class Avatar(GameObject,
 		Flags.__init__(self) 
 		State.__init__(self) 
 		Motion.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Teleport.__init__(self) 
 		Dialog.__init__(self) 
 		
 		# 设置每秒允许的最快速度, 超速会被拉回去
-		self.topSpeed = 10.0
+		self.topSpeed = self.moveSpeed + 5.0
 		# self.topSpeedY = 10.0
 
+	def isPlayer(self):
+		"""
+		virtual method.
+		"""
+		return True
+		
 	def startDestroyTimer(self):
 		"""
 		virtual method.
@@ -64,20 +73,39 @@ class Avatar(GameObject,
 		Teleport.onDestroy(self)
 		Combat.onDestroy(self)
 		
-	def relive(self):
+	def relive(self, exposed, type):
 		"""
 		defined.
 		复活
 		"""
-		DEBUG_MSG("Avatar::relive: %i." % self.id)
+		if exposed != self.id:
+			return
+			
+		DEBUG_MSG("Avatar::relive: %i, type=%i." % (self.id, type))
+		
+		# 回城复活
+		if type == 0:
+			pass
+			
 		self.fullPower()
 		self.changeState(GlobalDefine.ENTITY_STATE_FREE)
+
+	def jump(self, exposed):
+		"""
+		defined.
+		玩家跳跃 我们广播这个行为
+		"""
+		if exposed != self.id:
+			return
+		
+		self.otherClients.onJump()
 		
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Flags._timermap)
 Avatar._timermap.update(State._timermap)
 Avatar._timermap.update(Motion._timermap)
+Avatar._timermap.update(SkillBox._timermap)
 Avatar._timermap.update(Combat._timermap)
 Avatar._timermap.update(Spell._timermap)
 Avatar._timermap.update(Teleport._timermap)

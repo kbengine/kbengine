@@ -2,7 +2,7 @@
 	<Volatile>
 		<position/>
 		<yaw/>
-		<pitch> 20 </pitch>
+		<!--<pitch> 20 </pitch>-->
 	</Volatile>
 
 	<Implements>
@@ -10,6 +10,7 @@
 		<Interface>	State			</Interface>
 		<Interface>	Flags			</Interface>
 		<Interface>	Motion			</Interface>
+		<Interface>	SkillBox		</Interface>
 		<Interface>	Combat			</Interface>
 		<Interface>	Spell			</Interface>
 		<Interface>	Teleport		</Interface>
@@ -38,9 +39,18 @@
 	</BaseMethods>
 
 	<CellMethods>
-		<relive/>
+		<relive>
+			<Exposed/>
+			<Arg>		UINT8		</Arg>
+		</relive>
+
+		<jump>
+			<Exposed/>
+		</jump>
 	</CellMethods>
 
 	<ClientMethods>
+		<onJump>
+		</onJump>
 	</ClientMethods>
 </root>

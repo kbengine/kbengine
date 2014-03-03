@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import math
+import Math
 import time
 import random
 from KBEDebug import * 
@@ -43,7 +44,7 @@ class Motion:
 		使用引擎的任何移动相关接口， 在entity移动结束时均会调用此接口
 		"""
 		self.isMoving = False
-		
+
 	def randomWalk(self, basePos):
 		"""
 		随机移动entity
@@ -53,23 +54,37 @@ class Motion:
 			
 		if time.time() < self.nextMoveTime:
 			return False
+		
+		while True:
+			rnd = random.random()
+			a = 30.0 * rnd				# 移动半径距离在30米内
+			b = 360.0 * rnd				# 随机一个角度
+			x = a * math.cos( b ) 		# 半径 * 正余玄
+			z = a * math.sin( b )
 			
-		rnd = random.random()
-		a = 30.0 * rnd				# 移动半径距离在30米内
-		b = 360.0 * rnd				# 随机一个角度
-		x = a * math.cos( b ) 		# 半径 * 正余玄
-		z = a * math.sin( b )
-		self.gotoPosition((basePos.x + x, basePos.y, basePos.z + z))
-		self.isMoving = True
-		self.nextMoveTime = int(time.time() + random.randint(5, 15))
+			destPos = (basePos.x + x, basePos.y, basePos.z + z)
+			
+			if self.position.distTo(destPos) < 2.0:
+				continue
+				
+			self.gotoPosition(destPos)
+			self.isMoving = True
+			self.nextMoveTime = int(time.time() + random.randint(5, 15))
+			break
 
+	def resetSpeed(self):
+		walkSpeed = self.getDatas()["moveSpeed"]
+		if walkSpeed != self.moveSpeed:
+			self.moveSpeed = walkSpeed
+				
 	def backSpawnPos(self):
 		"""
 		virtual method.
 		"""
 		INFO_MSG("%s::backSpawnPos: %i, pos=%s, speed=%f." % \
 			(self.getScriptName(), self.id, self.spawnPos, self.moveSpeed * 0.1))
-			
+		
+		self.resetSpeed()
 		self.gotoPosition(self.spawnPos)
 	
 	def gotoEntity(self, targetID, dist = 0.0):
@@ -87,7 +102,7 @@ class Motion:
 			
 		if entity.position.distTo(self.position) <= dist:
 			return
-			
+
 		self.isMoving = True
 		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, None)
 		
@@ -107,7 +122,24 @@ class Motion:
 		
 		if self.canNavigate():
 			self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0.5, None)
-		else
+		else:
 			self.moveToPoint(tuple(position), speed, None, 1, 1)
+
+	def getStopPoint(self, yaw = None, rayLength = 100.0):
+		"""
+		"""
+		if yaw is None:yaw = self.yaw
+		yaw = (yaw / 2);
+		vv = Math.Vector3(math.sin(yaw), 0, math.cos(yaw))
+		vv.normalise()
+		vv *= rayLength
+		
+		lastPos = self.position + vv;
+		
+		pos = self.raycast(self.position, vv)
+		if pos == None:
+			pos = lastPos
 			
+		return pos
+		
 Motion._timermap = {}

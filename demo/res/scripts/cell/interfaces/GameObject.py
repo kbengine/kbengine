@@ -5,6 +5,9 @@ import wtimer
 import GlobalDefine
 from KBEDebug import * 
 
+import d_entities
+import d_avatar_inittab
+
 class GameObject(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
@@ -14,6 +17,30 @@ class GameObject(KBEngine.Entity):
 		virtual method.
 		"""
 		pass
+	
+	def isPlayer(self):
+		"""
+		virtual method.
+		"""
+		return False
+
+	def isNPC(self):
+		"""
+		virtual method.
+		"""
+		return False
+		
+	def isMonster(self):
+		"""
+		virtual method.
+		"""
+		return False
+	
+	def getDatas(self):
+		if self.isPlayer():
+			return d_avatar_inittab.datas[self.uid]
+		
+		return d_entities.datas[self.uid]
 		
 	def getScriptName(self):
 		return self.__class__.__name__
