@@ -1,0 +1,16 @@
+pagedgeometry: 1.1.4
+class GrassLayer 
+	void setVisibilityFlags(unsigned int flags) { mVisibilityFlags = flags; }
+
+class GrassLayer
+    /** \brief Sets the enable flag for this layer */
+    void setEnabled(bool value){ enabled = value; };
+
+    /** \brief Gets the enable flag for this layer */
+    bool getEnabled(){ return enabled; };
+
+    /** \brief Sets the ID of the grassLayer */
+    void setId(int value){ id = value; };
+
+    /** \brief Gets the ID of the grassLayer */
+    int getId(){ return id; };
