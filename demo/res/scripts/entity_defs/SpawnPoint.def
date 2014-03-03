@@ -1,8 +1,6 @@
 <root>
 	<Volatile>
 		<position/>
-		<yaw/>
-		<pitch> 20 </pitch>
 	</Volatile>
 
 	<Implements>
