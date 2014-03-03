@@ -67,7 +67,7 @@ class Avatar(GameObject,
 		复活
 		"""
 		DEBUG_MSG("%s::relive: %i." % (self.getScriptName(), self.id))
-		self.cell.relive()
+		self.cell.relive(1)
 		
 	def onJump(self):
 		"""

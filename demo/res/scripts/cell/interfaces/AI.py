@@ -7,6 +7,8 @@ import GlobalDefine
 from KBEDebug import * 
 from skillbases.SCObject import SCObject
 
+import d_entities
+
 __TERRITORY_AREA__ = 30.0
 
 class AI:
@@ -151,10 +153,20 @@ class AI:
 		
 		entity = KBEngine.entities.get(self.targetID)
 		if entity.position.distTo(self.position) > 2.0:
+			runSpeed = self.getDatas()["runSpeed"]
+			if runSpeed != self.moveSpeed:
+				self.moveSpeed = runSpeed
 			self.gotoPosition(entity.position, 1.8)
 			return
 		else:
-			self.spellTarget(1, entity.id)
+			self.resetSpeed()
+			
+			skilID = 1
+			if self.modelID == 20002001:
+				if random.random() > 0.5:
+					skillID = 7000101
+					
+			self.spellTarget(skilID, entity.id)
 			
 	def onThinkOther(self):
 		"""

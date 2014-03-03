@@ -104,6 +104,20 @@ class Account(KBEngine.Proxy):
 		if avatar:
 			avatar.writeToDB(self._onCharacterSaved)
 		
+	def reqRemoveAvatar(self, name):
+		"""
+		exposed.
+		客户端请求删除一个角色
+		"""
+		found = 0
+		for key, info in self.characters.items():
+			if info[0] == name:
+				del self.characters[key]
+				found = key
+				break
+		
+		self.client.onRemoveAvatar(found)
+		
 	def _onCharacterSaved(self, success, avatar):
 		"""
 		新建角色写入数据库回调
@@ -133,6 +147,7 @@ class Account(KBEngine.Proxy):
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
 		if self.activeCharacter is None:
 			if dbid in self.characters:
+				self.lastSelCharacter = dbid
 				player = KBEngine.createBaseFromDBID("Avatar", dbid, self.__onAvatarCreated)
 			else:
 				ERROR_MSG("Account[%i]::selectAvatarGame: not found dbid(%i)" % (self.id, dbid))
@@ -162,6 +177,7 @@ class Account(KBEngine.Proxy):
 			
 		info = self.characters[dbid]
 		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelID"]
+		avatar.cellData["modelScale"] = d_avatar_inittab.datas[info[1]]["modelScale"]
 		avatar.cellData["moveSpeed"] = d_avatar_inittab.datas[info[1]]["moveSpeed"]
 		avatar.accountEntity = self
 		self.activeCharacter = avatar

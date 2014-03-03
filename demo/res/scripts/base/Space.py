@@ -3,11 +3,13 @@ import KBEngine
 import random
 import wtimer
 import copy
+import math
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
 import d_spaces
 import d_spaces_spawns
+import xml.etree.ElementTree as etree 
 
 class Space(GameObject):
 	def __init__(self):
@@ -16,9 +18,31 @@ class Space(GameObject):
 		
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
+		self.spaceResName = d_spaces.datas.get(self.spaceUTypeB)['resPath']
+		
 		# 这个地图上创建的entity总数
 		self.tmpCreateEntityDatas = copy.deepcopy(d_spaces_spawns.datas.get(self.spaceUTypeB, ()))
+		
 		self.avatars = {}
+		self.createSpawnPointDatas()
+		
+	def createSpawnPointDatas(self):
+		"""
+		"""
+		res = KBEngine.getResFullPath(r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName)
+		tree = etree.parse(res) 
+		root = tree.getroot()
+		DEBUG_MSG("Space::createSpawnPointDatas: %s" % (res))
+		for child in root:
+			position = child[0][0]
+			direction = child[0][1]
+			scaleNode = child[0][2]
+			scale = int(((float(scaleNode[0].text) + float(scaleNode[1].text) + float(scaleNode[2].text)) / 3.0) * 10)
+			self.tmpCreateEntityDatas.append([int(child.attrib['name']), \
+			(float(position[0].text), float(position[1].text), float(position[2].text)), \
+			(float(direction[0].text) * ((math.pi * 2) / 360), float(direction[1].text) * ((math.pi * 2) / 360), float(direction[2].text) * ((math.pi * 2) / 360)), \
+			scale, \
+			])
 		
 	def onLoseCell(self):
 		"""
@@ -54,7 +78,8 @@ class Space(GameObject):
 		KBEngine.createBaseAnywhere("SpawnPoint", 
 									{"spawnEntityNO"	: datas[0], 	\
 									"position"			: datas[1], 	\
-									"direction"			: (0, 0, datas[2]),	\
+									"direction"			: datas[2],		\
+									"modelScale"		: datas[3],		\
 									"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox, context):

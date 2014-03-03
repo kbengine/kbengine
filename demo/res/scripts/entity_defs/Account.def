@@ -7,8 +7,15 @@
 			<Persistent>		true				</Persistent>
 		</characters>
 
+		<lastSelCharacter>
+			<Type>			DBID				</Type>
+			<Flags>			BASE_AND_CLIENT			</Flags>
+			<Default>		0				</Default>
+			<Persistent>		true				</Persistent>
+		</lastSelCharacter>
+
 		<accountName>
-			<Type>			STRING				</Type>
+			<Type>			UNICODE				</Type>
 			<Flags>			BASE				</Flags>
 			<Persistent>		true				</Persistent>
 			<DatabaseLength> 	100				</DatabaseLength>
@@ -46,6 +53,10 @@
 			<Arg>	UINT8 		</Arg>
 			<Arg>	AVATAR_INFOS 	</Arg>
 		</onCreateAvatarResult>
+
+		<onRemoveAvatar>
+			<Arg>	DBID		</Arg>
+		</onRemoveAvatar>
 	</ClientMethods>
 
 	<BaseMethods>
@@ -58,7 +69,7 @@
 			<Exposed/>
 			<Utype> 10002 </Utype>
 			<Arg>	UINT8	</Arg>	<!-- roleType -->
-			<Arg>	STRING	</Arg>	<!-- name -->
+			<Arg>	UNICODE	</Arg>	<!-- name -->
 		</reqCreateAvatar>
 
 		<selectAvatarGame>
@@ -66,6 +77,11 @@
 			<Utype> 10004 </Utype>
 			<Arg>	DBID	</Arg>	<!-- dbid -->
 		</selectAvatarGame>
+
+		<reqRemoveAvatar>
+			<Exposed/>
+			<Arg>	UNICODE	</Arg>	<!-- name -->
+		</reqRemoveAvatar>
 	</BaseMethods>
 
 	<CellMethods>

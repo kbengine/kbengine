@@ -37,16 +37,6 @@ class Spell:
 		"""
 		pass
 		
-	def spellTargetFromClient(self, srcEntityID, skillID, targetID):
-		"""
-		exposed.
-		对一个目标entity施放一个技能
-		"""
-		if srcEntityID != self.id:
-			return
-		
-		self.spellTarget(skillID, targetID)
-		
 	def spellTarget(self, skillID, targetID):
 		"""
 		defined.
