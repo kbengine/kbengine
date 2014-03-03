@@ -2,6 +2,16 @@
 import KBEngine
 from KBEDebug import *
 
+def countPlayers():
+	"""
+	"""
+	i = 0
+	for e in KBEngine.entities.values():
+		if e.__class__.__name__ == "Avatar":
+			i += 1
+			
+	return i
+	
 def onBaseAppReady(bootstrapIdx):
 	"""
 	KBEngine method.
@@ -10,6 +20,8 @@ def onBaseAppReady(bootstrapIdx):
 	@type isBootstrap: bool
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
+	KBEngine.addWatcher("scripts/countPlayers", "UINT32", countPlayers)
+	
 	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )

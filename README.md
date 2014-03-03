@@ -154,7 +154,7 @@ windows:
 	1: 安装好mysql
 		如果是windows系统则my.ini中加入如下代码使mysql大小写敏感
 		[mysqld]
-		lower_case_table_names=2
+		lower_case_table_names=0
 
 	2: 新建一个数据库， 假设数据库名为"demo"
 		create database demo;
