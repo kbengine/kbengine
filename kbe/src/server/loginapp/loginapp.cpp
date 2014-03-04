@@ -802,7 +802,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		bundle << componentID << loginName << accountName << password << entityID << dbid << flags << deadline;
+		bundle << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 		return;
 	}
@@ -818,6 +818,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 		bundle << dbid;
 		bundle << flags;
 		bundle << deadline;
+		bundle << infos->ctype;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 	}
 }

@@ -30,7 +30,17 @@ INLINE void Proxy::rndUUID(uint64 uid)
 {
 	rndUUID_ = uid;
 }
-	
+
+INLINE COMPONENT_CLIENT_TYPE Proxy::getClientType() const
+{
+	return clientComponentType_;
+}
+
+INLINE void Proxy::setClientType(COMPONENT_CLIENT_TYPE ctype)
+{
+	clientComponentType_ = ctype;
+}
+
 INLINE void Proxy::addr(const Mercury::Address& address)
 { 
 	addr_ = address; 
