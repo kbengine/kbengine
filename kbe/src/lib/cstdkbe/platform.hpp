@@ -51,9 +51,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <io.h>
 #include <time.h> 
 //#define FD_SETSIZE 1024
+#ifndef WIN32_LEAN_AND_MEAN 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
 #include <mswsock.h> 
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h> 
 #include <unordered_map>
 #include <functional>
@@ -294,12 +296,12 @@ typedef uint32													CELL_ID;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16
-	typedef SOCKET												KBESOCKET;
+	typedef UINT_PTR											KBESOCKET;
 #ifndef socklen_t
 	typedef	int													socklen_t;
 #endif
-	typedef u_short												u_int16_t;
-	typedef u_long												u_int32_t;
+	typedef unsigned short										u_int16_t;
+	typedef unsigned long										u_int32_t;
 	
 #ifndef IFF_UP
 	enum

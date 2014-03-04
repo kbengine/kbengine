@@ -90,7 +90,7 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 	Bundle* pBundle = pPacket->pBundle();
 	
 	uint64 payloadSize = pPacket->totalSize();
-	int8 basicSize = payloadSize;
+	int8 basicSize = (int8)payloadSize;
 
 	//create the flags byte
 	uint8 payloadFlags = BINARY_FRAME;
@@ -298,11 +298,11 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 			{
 				if(pPacket->totalSize() >= payloadSize_)
 				{
-					memcpy(pTCPPacket_->data() + pTCPPacket_->wpos(), pPacket->data() + pPacket->rpos(), payloadSize_);
-					pTCPPacket_->wpos(pTCPPacket_->wpos() + payloadSize_);
+					memcpy(pTCPPacket_->data() + pTCPPacket_->wpos(), pPacket->data() + pPacket->rpos(), (size_t)payloadSize_);
+					pTCPPacket_->wpos((int)pTCPPacket_->wpos() + (int)payloadSize_);
 					web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
 					web_pFragmentDatasRemain_ = 2;
-					pPacket->read_skip(payloadSize_);
+					pPacket->read_skip((size_t)payloadSize_);
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
 					payloadSize_ = 0;
 

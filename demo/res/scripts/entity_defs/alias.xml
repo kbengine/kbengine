@@ -34,7 +34,7 @@
 				<Type>	DBID	</Type>
 			</dbid>
 			<name>
-				<Type>	STRING	</Type>
+				<Type>	UNICODE	</Type>
 			</name>
 			<roleType>
 				<Type>	UINT8	</Type>

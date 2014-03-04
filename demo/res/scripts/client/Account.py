@@ -29,6 +29,13 @@ class Account(KBEngine.Entity):
 			
 		self.avatars[info["dbid"]] = dict(info);
 		KBEngine.fireEvent("update_avatars", self.avatars)
+	
+	def onRemoveAvatar(self, dbid):
+		"""
+		define method.
+		"""
+		DEBUG_MSG("Account:onRemoveAvatar:: dbid=%i" % (dbid))
+		del self.avatars[dbid]
 		
 	def reqCreateAvatar(self, roleType, name):
 		"""

@@ -38,6 +38,7 @@ namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(Proxy)
 SCRIPT_METHOD_DECLARE("giveClientTo",					pyGiveClientTo,					METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("getClientType",					pyGetClientType,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("streamStringToClient",			pyStreamStringToClient,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("streamFileToClient",				pyStreamFileToClient,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE_END()
@@ -63,7 +64,8 @@ dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
 encryptionKey(),
-pProxySender_(NULL)
+pProxySender_(NULL),
+clientComponentType_(UNKNOWN_CLIENT_COMPONENT_TYPE)
 {
 	Baseapp::getSingleton().incProxicesCount();
 
@@ -215,6 +217,12 @@ void Proxy::onClientGetCell(Mercury::Channel* pChannel)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyGetClientType()
+{
+	return PyLong_FromLong((long)getClientType());
 }
 
 //-------------------------------------------------------------------------------------

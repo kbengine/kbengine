@@ -128,6 +128,13 @@ public:
 	void onClientGetCell(Mercury::Channel* pChannel);
 
 	/**
+		获取前端类别
+	*/
+	INLINE COMPONENT_CLIENT_TYPE getClientType()const;
+	INLINE void setClientType(COMPONENT_CLIENT_TYPE ctype);
+	DECLARE_PY_MOTHOD_ARG0(pyGetClientType);
+
+	/**
 		每个proxy创建之后都会由系统产生一个uuid， 提供前端重登陆时用作身份识别
 	*/
 	INLINE uint64 rndUUID()const;
@@ -169,6 +176,8 @@ protected:
 	std::string encryptionKey;
 
 	ProxySender* pProxySender_;
+
+	COMPONENT_CLIENT_TYPE clientComponentType_;
 };
 
 }

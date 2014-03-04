@@ -1873,7 +1873,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 //-------------------------------------------------------------------------------------
 void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
-								   std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline)
+								   std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
+								   COMPONENT_TYPE componentType)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1894,6 +1895,7 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 	ptinfos->entityDBID = entityDBID;
 	ptinfos->flags = flags;
 	ptinfos->deadline = deadline;
+	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
 	pendingLoginMgr_.add(ptinfos);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -2036,6 +2038,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 				
 				base->getClientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
+				base->setClientType(ptinfos->ctype);
 				createClientProxies(base, true);
 			}
 			else
@@ -2046,6 +2049,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 
 				base->setClientMailbox(entityClientMailbox);
 				base->addr(pChannel->addr());
+				base->setClientType(ptinfos->ctype);
 
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 				entityClientMailbox->getChannel()->proxyID(base->getID());
@@ -2169,6 +2173,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
 	base->setDBID(dbid);
+	base->setClientType(ptinfos->ctype);
 
 	PyObject* pyDict = create_celldatadict_from_stream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 

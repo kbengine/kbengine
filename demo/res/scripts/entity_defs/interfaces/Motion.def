@@ -4,9 +4,9 @@
 
 	<Properties>
 		<moveSpeed>
-			<Type>			FLOAT			</Type>
+			<Type>			UINT8			</Type> <!-- 使用时要缩放10倍, 最高25.5米每秒 -->
 			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		5.0			</Default>
+			<Default>		50			</Default>
 		</moveSpeed>
 
 		<isMoving>

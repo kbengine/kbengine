@@ -12,11 +12,13 @@ from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.Motion import Motion
+from interfaces.SkillBox import SkillBox
 
 class Avatar(GameObject,
 			Flags,
 			State,
 			Motion,
+			SkillBox,
 			Combat, 
 			Spell, 
 			Dialog,
@@ -26,6 +28,7 @@ class Avatar(GameObject,
 		Flags.__init__(self) 
 		State.__init__(self) 
 		Motion.__init__(self) 
+		SkillBox.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Dialog.__init__(self)
@@ -64,7 +67,14 @@ class Avatar(GameObject,
 		复活
 		"""
 		DEBUG_MSG("%s::relive: %i." % (self.getScriptName(), self.id))
-		self.cell.relive()
+		self.cell.relive(1)
+		
+	def onJump(self):
+		"""
+		defined method.
+		玩家跳跃
+		"""
+		pass
 		
 class PlayerAvatar(Avatar, EventHandler):
 	def __init__(self): # 这里引擎不会自动调用
@@ -94,6 +104,7 @@ class PlayerAvatar(Avatar, EventHandler):
 		"""
 		DEBUG_MSG("%s::onBecomePlayer: %i." % (self.getScriptName(), self.id))
 		self.__init__()
+		self.pullSkills()
 		
 	def onBecomeNonPlayer( self ):  
 		"""
@@ -101,3 +112,10 @@ class PlayerAvatar(Avatar, EventHandler):
 		当这个entity由玩家变为非玩家时被调用
 		"""
 		DEBUG_MSG("%s::onBecomeNonPlayer: %i." % (self.getScriptName(), self.id))
+
+	def onJump(self):
+		"""
+		defined method.
+		玩家跳跃
+		"""
+		pass

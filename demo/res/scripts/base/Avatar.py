@@ -15,13 +15,12 @@ class Avatar(KBEngine.Proxy,
 		KBEngine.Proxy.__init__(self)
 		GameObject.__init__(self)
 		Teleport.__init__(self)
-		
+
 		# 如果登录是一个副本, 无论如何登录都放置在主场景上
 		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
 		avatar_inittab = d_avatar_inittab.datas[self.roleType]
 
-		if "Copy" in spacedatas["entityType"] and \
-				self.cellData["spaceUType"] != avatar_inittab["spaceUType"]:
+		if "Copy" in spacedatas["entityType"]:
 			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
 			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
 			self.cellData["position"] = avatar_inittab["spawnPos"]
@@ -32,7 +31,7 @@ class Avatar(KBEngine.Proxy,
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
 		self._destroyTimer = 0
-			
+
 	def onEntitiesEnabled(self):
 		"""
 		KBEngine method.

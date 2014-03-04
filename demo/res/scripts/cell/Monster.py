@@ -41,6 +41,12 @@ class Monster(NPCObject,
 		检查自己是否在可活动领地中
 		"""
 		return AI.checkInTerritory(self)
+
+	def isMonster(self):
+		"""
+		virtual method.
+		"""
+		return True
 		
 	# ----------------------------------------------------------------
 	# callback
