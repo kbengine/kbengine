@@ -4,6 +4,9 @@ set KBE_ROOT=%curpath:~0,-15%
 set KBE_RES_PATH=%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/res/
 set KBE_HYBRID_PATH=%KBE_ROOT%kbe/bin/Hybrid/
 
+if defined uid (echo %uid%) else set uid=%random%%%32760+1
+
+
 start kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
 start billingsystem.exe --cid=1129652375332859700 --grouporder=1 --globalorder=2
 start dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=3
