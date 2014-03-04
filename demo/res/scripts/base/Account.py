@@ -90,19 +90,38 @@ class Account(KBEngine.Proxy):
 			DEBUG_MSG("Account[%i].reqCreateAvatar:%s. character=%s.\n" % (self.id, name, self.characters))
 			self.client.onCreateAvatarResult(3, avatarinfo)
 			return
-			
+		
+		""" 根据前端类别给出出生点
+		UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
+		CLIENT_TYPE_MOBILE				= 1,	// 手机类
+		CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
+		CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
+		CLIENT_TYPE_BOTS				= 4,	// bots
+		"""
+		spawnPos = (0,0,0)
+		spaceUType = 1
+		
+		if self.getClientType() == 2:
+			spaceUType = 2
+			spawnPos = (-97.9299, 0, -158.922)
+		else:
+			spaceUType = 1
+			spawnPos = (771.5861, 211.0021, 776.5501)
+		
 		props = {
 			"name"				: name,
 			"roleType"			: roleType,
 			"level"				: 1,
-			"spaceUType"		: d_avatar_inittab.datas[roleType]["spaceUType"],
+			"spaceUType"		: spaceUType,
 			"direction"			: (0, 0, d_avatar_inittab.datas[roleType]["spawnYaw"]),
-			"position"			: d_avatar_inittab.datas[roleType]["spawnPos"]
+			"position"			: spawnPos
 			}
 			
 		avatar = KBEngine.createBaseLocally('Avatar', props)
 		if avatar:
 			avatar.writeToDB(self._onCharacterSaved)
+		
+		DEBUG_MSG("Account[%i].reqCreateAvatar:%s. spaceUType=%i, spawnPos=%s.\n" % (self.id, name, avatar.cellData["spaceUType"], spawnPos))
 		
 	def reqRemoveAvatar(self, name):
 		"""

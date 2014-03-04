@@ -29,10 +29,15 @@ class Space(GameObject):
 	def createSpawnPointDatas(self):
 		"""
 		"""
+		if(len(self.spaceResName) == 0):
+			return
+			
 		res = KBEngine.getResFullPath(r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName)
 		tree = etree.parse(res) 
 		root = tree.getroot()
+		
 		DEBUG_MSG("Space::createSpawnPointDatas: %s" % (res))
+		
 		for child in root:
 			position = child[0][0]
 			direction = child[0][1]

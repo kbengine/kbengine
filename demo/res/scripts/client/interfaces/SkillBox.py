@@ -6,7 +6,7 @@ from KBEDebug import *
 
 class SkillBox:
 	def __init__(self):
-		pass
+		self.skills = []
 	
 	def pullSkills(self):
 		self.cell.requestPull();
