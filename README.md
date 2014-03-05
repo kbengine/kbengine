@@ -156,8 +156,8 @@ windows:
 		[mysqld]
 		lower_case_table_names=0
 
-	2: 新建一个数据库， 假设数据库名为"demo"
-		create database demo;
+	2: 新建一个数据库， 假设数据库名为"kbe"
+		create database kbe;
 
 	3: 创建一个数据库账户， 假设用户名密码都为"kbe"
 		grant all privileges on *.* to kbe@'%' identified by 'kbe';
