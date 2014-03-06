@@ -7,7 +7,7 @@ http://www.kbengine.org
 
 ##什么是KBEngine?
 
-kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5、 ios、 android等作为前端表现。
+kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5等作为前端表现。
 
 底层框架由c++编写， 逻辑层使用python脚本， 开发者无需重复实现一些通用的底层服务端技术，
 使开发者能够真正集中精力到游戏开发上来， 快速并且保证效率的打造各种类型的游戏。
