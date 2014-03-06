@@ -133,7 +133,7 @@ windows:
 
 注意: 
 
-	1: 如使用其他版本编译器最好将python、openssl、log4cxx(kbe\src\libs\*.a)也重新编译。
+	1: 如使用其他版本编译器最好将openssl、log4cxx(kbe\src\libs\*.a)也重新编译。
 
 	2: 某些平台上的mysql路径可能不是/usr/lib64/mysql/mysql_config
 
