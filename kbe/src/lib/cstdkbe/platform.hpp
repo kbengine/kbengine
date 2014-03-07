@@ -60,6 +60,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include <functional>
 #include <memory>
+#define _SCL_SECURE_NO_WARNINGS
 #else
 // linux include
 #include <errno.h>
