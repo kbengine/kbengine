@@ -29,6 +29,7 @@
 #include <string>
 #include <float.h>
 #include <limits>
+#include <algorithm>
 
 /*These defines enable functionality introduced with the 1999 ISO C
 **standard. They must be defined before the inclusion of math.h to

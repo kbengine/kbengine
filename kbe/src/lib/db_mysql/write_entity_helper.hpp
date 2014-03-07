@@ -126,7 +126,7 @@ public:
 					if(iter == childTableDBIDs.end())
 					{
 						std::vector<DBID> v;
-						childTableDBIDs.insert(std::make_pair< std::string, std::vector<DBID> >(wbox.tableName, v));
+						childTableDBIDs.insert(std::pair< std::string, std::vector<DBID> >(wbox.tableName, v));
 					}
 				}
 				

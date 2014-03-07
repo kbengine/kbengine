@@ -519,7 +519,7 @@ void EntityTableMysql::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_
 	opTableItemDataBox1->readresultIdx = 0;
 
 	KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
-	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
+	opTableItemDataBox.optable.push_back( std::pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); iter++)
@@ -545,7 +545,7 @@ void EntityTableMysql::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemData
 	opTableItemDataBox1->readresultIdx = 0;
 
 	KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
-	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
+	opTableItemDataBox.optable.push_back( std::pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); iter++)

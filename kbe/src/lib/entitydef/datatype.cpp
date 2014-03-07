@@ -1516,7 +1516,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			if(strType == "ARRAY")
 			{
 				FixedArrayType* dataType = new FixedArrayType();
-				DictItemDataType* pDictItemDataType = new DictItemDataType();
+				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 				pDictItemDataType->dataType = dataType;
 
 				if(dataType->initialize(xmlplus, typeNode))
@@ -1526,7 +1526,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 					EntityDef::md5().append((void*)strType.c_str(), strType.size());
 					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
 
-					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
+					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 
 					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
@@ -1543,14 +1543,13 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 					ERROR_MSG(boost::format("FixedDictType::initialize: can't found array type[%1%] by key[%2%].\n") % 
 						strType.c_str() % typeName.c_str());
 
-					delete pDictItemDataType;
 					return false;
 				}
 			}
 			else
 			{
 				DataType* dataType = DataTypes::getDataType(strType);
-				DictItemDataType* pDictItemDataType = new DictItemDataType();
+				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 				pDictItemDataType->dataType = dataType;
 
 				if(dataType != NULL)
@@ -1560,7 +1559,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 					EntityDef::md5().append((void*)strType.c_str(), strType.size());
 					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
 
-					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
+					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 					
 					if(dataType->type() == DATA_TYPE_MAILBOX)
@@ -1576,7 +1575,6 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 					ERROR_MSG(boost::format("FixedDictType::initialize: can't found type[%1%] by key[%2%].\n") % 
 						strType.c_str() % typeName.c_str());
 					
-					delete pDictItemDataType;
 					return false;
 				}
 			}

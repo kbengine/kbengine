@@ -59,6 +59,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <windows.h> 
 #include <unordered_map>
 #include <functional>
+#include <memory>
 #else
 // linux include
 #include <errno.h>
