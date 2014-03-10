@@ -94,7 +94,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 		methodDescription->addToStream(mstream, args);
 
-		if(!otherClients_ && pEntity->pWitness() || pEntity->getClientMailbox())
+		if(((!otherClients_ && pEntity->pWitness()) || (pEntity->getClientMailbox())))
 		{
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			pEntity->getClientMailbox()->newMail((*pBundle));

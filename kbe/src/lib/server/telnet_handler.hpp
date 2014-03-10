@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 namespace Mercury{
 	class EndPoint;
-	class Mercury::NetworkInterface;
+	class NetworkInterface;
 }
 
 class TelnetHandler;

@@ -80,7 +80,7 @@ bool PyProfile::start(std::string profile)
 		return false;
 	}
 	
-	PyObject* pyRet1 = PyObject_CallMethod(pyRet, "enable",
+	PyObject* pyRet1 = PyObject_CallMethod(pyRet, const_cast<char*>("enable"),
 		const_cast<char*>(""));
 
 	if(!pyRet1)
@@ -110,7 +110,7 @@ bool PyProfile::stop(std::string profile)
 		return false;
 	}
 
-	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), "disable",
+	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("disable"),
 		const_cast<char*>(""));
 	
 	if(!pyRet)
@@ -162,7 +162,7 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 	std::string retBufferPtr;
 	pScript_->pyStdouterrHook()->setHookBuffer(&retBufferPtr);
 	pScript_->pyStdouterrHook()->setPrint(false);
-	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), "print_stats",
+	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("print_stats"),
 		const_cast<char*>(""));
 	
 	pScript_->pyStdouterrHook()->setPrint(true);
@@ -205,7 +205,7 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 		return false;
 	}
 
-	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), "dump_stats",
+	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("dump_stats"),
 		const_cast<char*>("s"), fileName.c_str());
 
 	SCRIPT_ERROR_CHECK();

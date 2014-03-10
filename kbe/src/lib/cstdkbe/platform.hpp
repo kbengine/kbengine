@@ -544,7 +544,7 @@ inline bool validName(const char* name, int size)
 	for(int i=0; i<size; i++)
 	{
 		char ch = name[i];
-		if(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_')
+		if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_'))
 			continue;
 
 		return false;
@@ -577,12 +577,12 @@ inline bool email_isvalid(const char *address)
 		return false;
 
 	char ch = address[len - 1];
-	if(!(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9'))
+	if(!((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')))
 		return false;
 
 	int        count = 0;
 	const char *c, *domain;
-	static char *rfc822_specials = "()<>@,;:\\\"[]";
+	static const char *rfc822_specials = "()<>@,;:\\\"[]";
 
 	/* first we validate the name portion (name@domain) */
 	for (c = address;  *c;  c++) {
