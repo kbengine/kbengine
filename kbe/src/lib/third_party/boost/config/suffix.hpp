@@ -1,9 +1,10 @@
 //  Boost config.hpp configuration header file  ------------------------------//
+//	boostinspect:ndprecated_macros	-- tell the inspect tool to ignore this file
 
 //  Copyright (c) 2001-2003 John Maddock
 //  Copyright (c) 2001 Darin Adler
 //  Copyright (c) 2001 Peter Dimov
-//  Copyright (c) 2002 Bill Kempf 
+//  Copyright (c) 2002 Bill Kempf
 //  Copyright (c) 2002 Jens Maurer
 //  Copyright (c) 2002-2003 David Abrahams
 //  Copyright (c) 2003 Gennaro Prota
@@ -145,7 +146,7 @@
 #  endif
 
 //
-// Without partial specialization, partial 
+// Without partial specialization, partial
 // specialization with default args won't work either:
 //
 #  if defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) \
@@ -488,71 +489,22 @@ namespace boost{
 #  endif
 }
 #endif
+// same again for __int128:
+#if defined(BOOST_HAS_INT128) && defined(__cplusplus)
+namespace boost{
+#  ifdef __GNUC__
+   __extension__ typedef __int128 int128_type;
+   __extension__ typedef unsigned __int128 uint128_type;
+#  else
+   typedef __int128 int128_type;
+   typedef unsigned __int128 uint128_type;
+#  endif
+}
+#endif
 
 // BOOST_[APPEND_]EXPLICIT_TEMPLATE_[NON_]TYPE macros --------------------------//
-//
-// Some compilers have problems with function templates whose template
-// parameters don't appear in the function parameter list (basically
-// they just link one instantiation of the template in the final
-// executable). These macros provide a uniform way to cope with the
-// problem with no effects on the calling syntax.
 
-// Example:
-//
-//  #include <iostream>
-//  #include <ostream>
-//  #include <typeinfo>
-//
-//  template <int n>
-//  void f() { std::cout << n << ' '; }
-//
-//  template <typename T>
-//  void g() { std::cout << typeid(T).name() << ' '; }
-//
-//  int main() {
-//    f<1>();
-//    f<2>();
-//
-//    g<int>();
-//    g<double>();
-//  }
-//
-// With VC++ 6.0 the output is:
-//
-//   2 2 double double
-//
-// To fix it, write
-//
-//   template <int n>
-//   void f(BOOST_EXPLICIT_TEMPLATE_NON_TYPE(int, n)) { ... }
-//
-//   template <typename T>
-//   void g(BOOST_EXPLICIT_TEMPLATE_TYPE(T)) { ... }
-//
-
-
-#if defined(BOOST_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS) && defined(__cplusplus)
-
-#  include "boost/type.hpp"
-#  include "boost/non_type.hpp"
-
-#  define BOOST_EXPLICIT_TEMPLATE_TYPE(t)              boost::type<t>* = 0
-#  define BOOST_EXPLICIT_TEMPLATE_TYPE_SPEC(t)         boost::type<t>*
-#  define BOOST_EXPLICIT_TEMPLATE_NON_TYPE(t, v)       boost::non_type<t, v>* = 0
-#  define BOOST_EXPLICIT_TEMPLATE_NON_TYPE_SPEC(t, v)  boost::non_type<t, v>*
-
-#  define BOOST_APPEND_EXPLICIT_TEMPLATE_TYPE(t)        \
-             , BOOST_EXPLICIT_TEMPLATE_TYPE(t)
-#  define BOOST_APPEND_EXPLICIT_TEMPLATE_TYPE_SPEC(t)   \
-             , BOOST_EXPLICIT_TEMPLATE_TYPE_SPEC(t)
-#  define BOOST_APPEND_EXPLICIT_TEMPLATE_NON_TYPE(t, v) \
-             , BOOST_EXPLICIT_TEMPLATE_NON_TYPE(t, v)
-#  define BOOST_APPEND_EXPLICIT_TEMPLATE_NON_TYPE_SPEC(t, v)    \
-             , BOOST_EXPLICIT_TEMPLATE_NON_TYPE_SPEC(t, v)
-
-#else
-
-// no workaround needed: expand to nothing
+// These macros are obsolete. Port away and remove.
 
 #  define BOOST_EXPLICIT_TEMPLATE_TYPE(t)
 #  define BOOST_EXPLICIT_TEMPLATE_TYPE_SPEC(t)
@@ -563,9 +515,6 @@ namespace boost{
 #  define BOOST_APPEND_EXPLICIT_TEMPLATE_TYPE_SPEC(t)
 #  define BOOST_APPEND_EXPLICIT_TEMPLATE_NON_TYPE(t, v)
 #  define BOOST_APPEND_EXPLICIT_TEMPLATE_NON_TYPE_SPEC(t, v)
-
-
-#endif // defined BOOST_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS
 
 // When BOOST_NO_STD_TYPEINFO is defined, we can just import
 // the global definition into std namespace:
@@ -619,7 +568,7 @@ namespace std{ using ::type_info; }
 // Set some default values GPU support
 //
 #  ifndef BOOST_GPU_ENABLED
-#  define BOOST_GPU_ENABLED 
+#  define BOOST_GPU_ENABLED
 #  endif
 
 // BOOST_FORCEINLINE ---------------------------------------------//
@@ -628,10 +577,83 @@ namespace std{ using ::type_info; }
 #  if defined(_MSC_VER)
 #    define BOOST_FORCEINLINE __forceinline
 #  elif defined(__GNUC__) && __GNUC__ > 3
-#    define BOOST_FORCEINLINE inline __attribute__ ((always_inline))
+     // Clang also defines __GNUC__ (as 4)
+#    define BOOST_FORCEINLINE inline __attribute__ ((__always_inline__))
 #  else
 #    define BOOST_FORCEINLINE inline
 #  endif
+#endif
+
+// BOOST_NOINLINE ---------------------------------------------//
+// Macro to use in place of 'inline' to prevent a function to be inlined
+#if !defined(BOOST_NOINLINE)
+#  if defined(_MSC_VER)
+#    define BOOST_NOINLINE __declspec(noinline)
+#  elif defined(__GNUC__) && __GNUC__ > 3
+     // Clang also defines __GNUC__ (as 4)
+#    define BOOST_NOINLINE __attribute__ ((__noinline__))
+#  else
+#    define BOOST_NOINLINE
+#  endif
+#endif
+
+// Branch prediction hints
+// These macros are intended to wrap conditional expressions that yield true or false
+//
+//  if (BOOST_LIKELY(var == 10))
+//  {
+//     // the most probable code here
+//  }
+//
+#if !defined(BOOST_LIKELY)
+#  define BOOST_LIKELY(x) x
+#endif
+#if !defined(BOOST_UNLIKELY)
+#  define BOOST_UNLIKELY(x) x
+#endif
+
+// Type and data alignment specification
+//
+#if !defined(BOOST_NO_CXX11_ALIGNAS)
+#  define BOOST_ALIGNMENT(x) alignas(x)
+#elif defined(_MSC_VER)
+#  define BOOST_ALIGNMENT(x) __declspec(align(x))
+#elif defined(__GNUC__)
+#  define BOOST_ALIGNMENT(x) __attribute__ ((__aligned__(x)))
+#else
+#  define BOOST_NO_ALIGNMENT
+#  define BOOST_ALIGNMENT(x)
+#endif
+
+// Defaulted and deleted function declaration helpers
+// These macros are intended to be inside a class definition.
+// BOOST_DEFAULTED_FUNCTION accepts the function declaration and its
+// body, which will be used if the compiler doesn't support defaulted functions.
+// BOOST_DELETED_FUNCTION only accepts the function declaration. It
+// will expand to a private function declaration, if the compiler doesn't support
+// deleted functions. Because of this it is recommended to use BOOST_DELETED_FUNCTION
+// in the end of the class definition.
+//
+//  class my_class
+//  {
+//  public:
+//      // Default-constructible
+//      BOOST_DEFAULTED_FUNCTION(my_class(), {})
+//      // Copying prohibited
+//      BOOST_DELETED_FUNCTION(my_class(my_class const&))
+//      BOOST_DELETED_FUNCTION(my_class& operator= (my_class const&))
+//  };
+//
+#if !(defined(BOOST_NO_CXX11_DEFAULTED_FUNCTIONS) || defined(BOOST_NO_CXX11_NON_PUBLIC_DEFAULTED_FUNCTIONS))
+#   define BOOST_DEFAULTED_FUNCTION(fun, body) fun = default;
+#else
+#   define BOOST_DEFAULTED_FUNCTION(fun, body) fun body
+#endif
+
+#if !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS)
+#   define BOOST_DELETED_FUNCTION(fun) fun = delete;
+#else
+#   define BOOST_DELETED_FUNCTION(fun) private: fun;
 #endif
 
 //
@@ -647,8 +669,8 @@ namespace std{ using ::type_info; }
 //  Use BOOST_NO_CXX11_HDR_UNORDERED_SET or BOOST_NO_CXX11_HDR_UNORDERED_MAP
 //           instead of BOOST_NO_STD_UNORDERED
 #if defined(BOOST_NO_CXX11_HDR_UNORDERED_MAP) || defined (BOOST_NO_CXX11_HDR_UNORDERED_SET)
-# ifndef BOOST_NO_STD_UNORDERED
-#  define BOOST_NO_STD_UNORDERED
+# ifndef BOOST_NO_CXX11_STD_UNORDERED
+#  define BOOST_NO_CXX11_STD_UNORDERED
 # endif
 #endif
 
@@ -658,7 +680,7 @@ namespace std{ using ::type_info; }
 #endif
 
 //  Use BOOST_NO_CXX11_HDR_ARRAY instead of BOOST_NO_0X_HDR_ARRAY
-#if defined(BOOST_NO_CXX11_HDR_ARRAY) && !defined(BOOST_NO_BOOST_NO_0X_HDR_ARRAY)
+#if defined(BOOST_NO_CXX11_HDR_ARRAY) && !defined(BOOST_NO_0X_HDR_ARRAY)
 #  define BOOST_NO_0X_HDR_ARRAY
 #endif
 //  Use BOOST_NO_CXX11_HDR_CHRONO instead of BOOST_NO_0X_HDR_CHRONO
@@ -682,7 +704,7 @@ namespace std{ using ::type_info; }
 #  define BOOST_NO_0X_HDR_FUTURE
 #endif
 
-//  Use BOOST_NO_CXX11_HDR_INITIALIZER_LIST 
+//  Use BOOST_NO_CXX11_HDR_INITIALIZER_LIST
 //  instead of BOOST_NO_0X_HDR_INITIALIZER_LIST or BOOST_NO_INITIALIZER_LISTS
 #ifdef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
 # ifndef BOOST_NO_0X_HDR_INITIALIZER_LIST
@@ -827,9 +849,9 @@ namespace std{ using ::type_info; }
 #if defined(BOOST_NO_CXX11_STATIC_ASSERT) && !defined(BOOST_NO_STATIC_ASSERT)
 #  define BOOST_NO_STATIC_ASSERT
 #endif
-//  Use     BOOST_NO_CXX11_STD_UNORDERD instead of   BOOST_NO_STD_UNORDERD
-#if defined(BOOST_NO_CXX11_STD_UNORDERD) && !defined(BOOST_NO_STD_UNORDERD)
-#  define BOOST_NO_STD_UNORDERD
+//  Use     BOOST_NO_CXX11_STD_UNORDERED instead of   BOOST_NO_STD_UNORDERED
+#if defined(BOOST_NO_CXX11_STD_UNORDERED) && !defined(BOOST_NO_STD_UNORDERED)
+#  define BOOST_NO_STD_UNORDERED
 #endif
 //  Use     BOOST_NO_CXX11_UNICODE_LITERALS instead of   BOOST_NO_UNICODE_LITERALS
 #if defined(BOOST_NO_CXX11_UNICODE_LITERALS) && !defined(BOOST_NO_UNICODE_LITERALS)
@@ -859,27 +881,32 @@ namespace std{ using ::type_info; }
 // Helper macros BOOST_NOEXCEPT, BOOST_NOEXCEPT_IF, BOOST_NOEXCEPT_EXPR
 // These aid the transition to C++11 while still supporting C++03 compilers
 //
-#ifdef BOOST_NO_NOEXCEPT
+#ifdef BOOST_NO_CXX11_NOEXCEPT
 #  define BOOST_NOEXCEPT
+#  define BOOST_NOEXCEPT_OR_NOTHROW throw()
 #  define BOOST_NOEXCEPT_IF(Predicate)
 #  define BOOST_NOEXCEPT_EXPR(Expression) false
 #else
 #  define BOOST_NOEXCEPT noexcept
+#  define BOOST_NOEXCEPT_OR_NOTHROW noexcept
 #  define BOOST_NOEXCEPT_IF(Predicate) noexcept((Predicate))
 #  define BOOST_NOEXCEPT_EXPR(Expression) noexcept((Expression))
 #endif
-
 //
-// Normalize BOOST_NO_STATIC_ASSERT and (depricated) BOOST_HAS_STATIC_ASSERT:
+// Helper macro BOOST_FALLTHROUGH
+// Fallback definition of BOOST_FALLTHROUGH macro used to mark intended
+// fall-through between case labels in a switch statement. We use a definition
+// that requires a semicolon after it to avoid at least one type of misuse even
+// on unsupported compilers.
 //
-#if !defined(BOOST_NO_STATIC_ASSERT) && !defined(BOOST_HAS_STATIC_ASSERT)
-#  define BOOST_HAS_STATIC_ASSERT
+#ifndef BOOST_FALLTHROUGH
+#  define BOOST_FALLTHROUGH ((void)0)
 #endif
 
 //
 // constexpr workarounds
-// 
-#if defined(BOOST_NO_CONSTEXPR)
+//
+#if defined(BOOST_NO_CXX11_CONSTEXPR)
 #define BOOST_CONSTEXPR
 #define BOOST_CONSTEXPR_OR_CONST const
 #else
@@ -890,16 +917,23 @@ namespace std{ using ::type_info; }
 #define BOOST_STATIC_CONSTEXPR  static BOOST_CONSTEXPR_OR_CONST
 
 //
-// Set BOOST_HAS_RVALUE_REFS when BOOST_NO_RVALUE_REFERENCES is not defined
+// Set BOOST_HAS_STATIC_ASSERT when BOOST_NO_CXX11_STATIC_ASSERT is not defined
 //
-#if !defined(BOOST_NO_RVALUE_REFERENCES) && !defined(BOOST_HAS_RVALUE_REFS)
+#if !defined(BOOST_NO_CXX11_STATIC_ASSERT) && !defined(BOOST_HAS_STATIC_ASSERT)
+#  define BOOST_HAS_STATIC_ASSERT
+#endif
+
+//
+// Set BOOST_HAS_RVALUE_REFS when BOOST_NO_CXX11_RVALUE_REFERENCES is not defined
+//
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) && !defined(BOOST_HAS_RVALUE_REFS)
 #define BOOST_HAS_RVALUE_REFS
 #endif
 
 //
-// Set BOOST_HAS_VARIADIC_TMPL when BOOST_NO_VARIADIC_TEMPLATES is not defined
+// Set BOOST_HAS_VARIADIC_TMPL when BOOST_NO_CXX11_VARIADIC_TEMPLATES is not defined
 //
-#if !defined(BOOST_NO_VARIADIC_TEMPLATES) && !defined(BOOST_HAS_VARIADIC_TMPL)
+#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) && !defined(BOOST_HAS_VARIADIC_TMPL)
 #define BOOST_HAS_VARIADIC_TMPL
 #endif
 
