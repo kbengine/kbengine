@@ -1,0 +1,428 @@
+<?xml version="1.0"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<!DOCTYPE project [
+<!ENTITY common SYSTEM 'common.xml'>
+<!ENTITY find-apr SYSTEM 'find-apr.xml'>
+<!ENTITY license '
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+'>
+]>
+
+<!--
+
+This file builds APR using Apache Ant (http://ant.apache.org)
+and the C++ compilation tasks from http://ant-contrib.sourceforge.net.
+
+
+-->
+<project name="aprutil" default="check" basedir=".">
+
+&common;
+&find-apr;
+
+<property name="src.dir" location="${basedir}"/>
+<property name="include.dir" location="${src.dir}/include"/>
+<property name="target.dir" location="${basedir}/target"/>
+
+
+<target name="usage" description="Displays usage notes">
+        <echo>
+        </echo>
+</target>
+
+<target name="init" depends="common-init">
+    <condition property="arch" value="win32">
+        <isset property="is-windows"/>
+    </condition>
+    <property name="arch" value="unix"/>
+</target>
+
+<target name="clean" description="Deletes build products">
+        <delete dir="${target.dir}"/>
+</target>
+
+
+<target name="configure-check" depends="init">
+        <condition property="aprutil-config-available" value="true">
+              <and>
+                    <available file="${include.dir}/apu.h"/>
+                    <available file="${include.dir}/apu_want.h"/>
+                    <available file="${include.dir}/private/apu_config.h"/>
+                    <available file="${include.dir}/private/apu_select_dbm.h"/>
+                    <available file="${src.dir}/xml/expat/lib/expat.h"/>
+                    <available file="${src.dir}/xml/expat/config.h"/>
+               </and>
+        </condition>
+</target>
+
+
+<target name="win-configure" depends="configure-check" if="is-windows" unless="aprutil-config-available">
+    <copy tofile="${include.dir}/apu.h" file="${include.dir}/apu.hw"/>
+    <replaceregexp file="${include.dir}/apu.h" match="#define *APU_HAVE_APR_ICONV.*" replace="#define APU_HAVE_APR_ICONV 0"/>
+    <copy tofile="${include.dir}/apu_want.h" file="${include.dir}/apu_want.hw"/>
+    <copy tofile="${include.dir}/apr_ldap.h" file="${include.dir}/apr_ldap.hw"/>
+    <replaceregexp file="${include.dir}/apr_ldap.h" match="#define APR_HAS_LDAP.*" replace="#define APR_HAS_LDAP 0"/>
+    <copy tofile="${include.dir}/private/apu_config.h" file="${include.dir}/private/apu_config.hw"/>
+    <copy tofile="${include.dir}/private/apu_select_dbm.h" file="${include.dir}/private/apu_select_dbm.hw"/>
+    <copy tofile="${src.dir}/xml/expat/lib/expat.h" file="${src.dir}/xml/expat/lib/expat.h.in"/>
+    <copy tofile="${src.dir}/xml/expat/lib/config.h" file="${src.dir}/xml/expat/lib/winconfig.h"/>
+</target>
+
+<target name="unix-configure" depends="configure-check, find-apr" if="is-unix" unless="aprutil-config-available">
+        <exec executable="sh" dir="${src.dir}">
+           <arg value="./configure"/>
+           <arg value="--with-apr=${apr.dir}"/>
+        </exec>
+        <exec executable="sh" dir="${src.dir}/xml/expat">
+            <arg value="./configure"/>
+        </exec>
+</target>
+
+
+<target name="configure" depends="unix-configure, win-configure">
+    <condition property="has-iconv" value="1">
+        <isfileselected file="${include.dir}/apu.h">
+            <contains text="#define APR_HAVE_ICONV 1" ignorewhitespace="true"/>
+        </isfileselected>
+    </condition>
+    <condition property="has-iconv" value="1">
+        <isfileselected file="${include.dir}/apu.h">
+            <contains text="#define APU_HAVE_ICONV 1" ignorewhitespace="true"/>
+        </isfileselected>
+    </condition>
+    <condition property="has-sqlite3" value="1">
+        <isfileselected file="${include.dir}/apu.h">
+            <contains text="#define APU_HAVE_SQLITE3 1" ignorewhitespace="true"/>
+        </isfileselected>
+    </condition>
+</target>
+
+
+<target name="build-xml" depends="configure" description="Builds Expat">
+    <!--   uses replace instead of preprocessor since
+              the quotes on VERSION cause problems with cpptasks  -->
+    <replace file="${src.dir}/xml/expat/lib/xmlparse.c">
+       <replacefilter token="XML_MAJOR_VERSION" value="1"/>
+       <replacefilter token="XML_MINOR_VERSION" value="95"/>
+       <replacefilter token="XML_MICRO_VERSION" value="1"/>
+       <replacefilter token="VERSION" value='"expat_1.95.1"'/>
+    </replace>
+
+    <mkdir dir="${executable.dir}/apr-util-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    
+    <!--   this only generate a project file necessary to mimic
+              this visual studio project provided with APR -->
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/expat"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"        
+        outtype="static"
+        objdir="${executable.dir}/apr-util-ofiles"
+        warnings="none"
+        debug="${debug}"
+        projectsOnly="true">
+        <fileset dir="${src.dir}/xml/expat/lib"
+            includes="xmlparse.c xmlrole.c xmltok.c"/>
+        <fileset dir="${src.dir}/xml/expat/lib" includes="*.h"/>
+        <fileset dir="${src.dir}/xml/expat" includes="*.h"/>
+        <includepath path="${src.dir}/xml/expat/lib"/>
+        <includepath path="${src.dir}/xml/expat"/>
+        <defineset>
+            <define name="XMLPARSEAPI" value=" "/>
+        </defineset>
+        <defineset define="WIN32" if="is-windows"/>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+
+        <libset libs="cw32mt" if="is-bcc"/>
+        <project type="${project.type}" outfile="${projects.dir}/xml" if="project.if">
+			<comment>&license;</comment>
+        </project>
+    </cc>
+
+</target>
+
+<target name="build" depends="build-xml, find-apr" description="Build library">
+	<property name="apr.lib.prefix" value=""/>
+	<property name="apr.lib.name" value="apr-1"/>
+	<property name="apr.lib.suffix" value=""/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/aprutil-1${lib-suffix}"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"
+        outtype="${lib.type}"
+        objdir="${executable.dir}/apr-util-ofiles"
+        warnings="none"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${src.dir}" includes="**/*.c"
+            excludes="test/*.c *.c ldap/*.c xml/expat/lib/*"/>
+        <fileset dir="${src.dir}/xml/expat/lib"
+            includes="xmlparse.c xmlrole.c xmltok.c"/>
+        <fileset dir="${src.dir}/xml/expat/lib" includes="*.h"/>
+        <fileset dir="${src.dir}/xml/expat" includes="*.h"/>
+        <fileset dir="${include.dir}" includes="*.h"/>
+        <fileset dir="${include.dir}/private" includes="*.h"/>
+        <includepath path="${apr.include.dir}"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${include.dir}/private"/>
+        <includepath path="${src.dir}/xml/expat/lib"/>
+        <includepath path="${src.dir}/xml/expat"/>
+        <defineset define="APU_DECLARE_EXPORT" if="is-shared"/>
+        <defineset define="APU_DECLARE_STATIC" unless="is-shared"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-apr-shared"/>
+        <defineset>
+            <define name="XMLPARSEAPI" value=" "/>
+        </defineset>
+        <defineset define="WIN32" if="is-windows"/>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+
+        <libset dir="${executable.dir}" libs="xml ${apr.lib.prefix}${apr.lib.name}${apr.lib.suffix}"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <libset libs="pthread dl" if="is-unix"/>
+        <libset libs="iconv" if="has-iconv"/>
+        <libset libs="sqlite3" if="has-sqlite3"/>
+        <defineset if="is-bcc">
+            <define name="EILSEQ" value="50"/>
+        </defineset>
+        <project type="${project.type}" outfile="${projects.dir}/aprutil" if="project.if">
+			<comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+        </project>
+    </cc>
+    <property name="apr.lib.dir" location="${executable.dir}"/>
+</target>
+
+<target name="build-test">
+    <mkdir dir="${executable.dir}/apr-util-test-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/${test}"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"
+        outtype="executable"
+        objdir="${executable.dir}/apr-util-test-ofiles"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${src.dir}/test" includes="${include.files}" excludes="${exclude.files}"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${apr.include.dir}"/>
+        <defineset define="APU_DECLARE_STATIC" unless="is-shared"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-apr-shared"/>
+        <defineset if="is-windows">
+            <define name="WIN32" value="1"/>
+        </defineset>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset dir="${apr.lib.dir}" libs="apr-1${lib-suffix}" if="apr.lib.dir"/>
+        <libset libs="apr-1${lib-suffix}" unless="apr.lib.dir"/>
+        <libset dir="${executable.dir}" libs="aprutil-1${lib-suffix}"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <libset libs="pthread dl" if="is-unix"/>
+        <libset libs="iconv" if="has-iconv"/>
+        <libset libs="sqlite3" if="has-sqlite3"/>
+        <project type="${project.type}" outfile="${projects.dir}/${test}" if="project.if">
+			<comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+            <dependency file="${projects.dir}/aprutil" depends="apr"/>
+        </project>
+    </cc>
+</target>
+
+<target name="copy-apr" if="is-windows">
+    <copy todir="${executable.dir}" overwrite="true">
+        <fileset dir="${apr.lib.dir}" includes="apr-1${lib-suffix}.dll"/>
+    </copy>
+</target>
+
+<target name="run-test" depends="copy-apr">
+    <exec executable="${executable.dir}/${test}"
+          dir="${executable.dir}"
+          failonerror="true">
+        <env key="DYLD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${aprutil.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+        <env key="LD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${aprutil.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+        <env key="Path"
+           value="${apr.lib.dir}:${aprutil.lib.dir}:${env.Path}"/>
+    </exec>
+</target>
+
+
+<target name="build-testall" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testall"/>
+        <param name="include.files" value="**/*.c"/>
+        <param name="exclude.files" value="dbd.c testssl.c echod.c sockperf.c nw*.c"/>
+    </antcall>
+</target>
+
+<target name="run-testall" depends="build-testall">
+    <antcall target="run-test">
+        <param name="test" value="testall"/>
+    </antcall>
+</target>
+
+<target name="build-dbd" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="dbd"/>
+        <param name="include.files" value="dbd.c"/>
+        <param name="exclude.files" value="*.y"/>
+    </antcall>
+</target>
+
+<target name="run-dbd" depends="build-dbd">
+    <antcall target="run-test">
+        <param name="test" value="dbd"/>
+    </antcall>
+</target>
+
+<target name="build-testssl" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testssl"/>
+        <param name="include.files" value="testssl.c"/>
+    </antcall>
+</target>
+
+<target name="run-testssl" depends="build-testssl">
+    <antcall target="run-test">
+        <param name="test" value="testssl"/>
+    </antcall>
+</target>
+
+<target name="build-echod" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="echod"/>
+        <param name="include.files" value="echod.c"/>
+    </antcall>
+</target>
+
+<target name="build-sockperf" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="sockperf"/>
+        <param name="include.files" value="sockperf.c"/>
+    </antcall>
+</target>
+
+
+
+<target name="build-check"
+    depends="build-testall, build-dbd, build-testssl, build-echod"
+    description="Builds all tests"/>
+
+<target name="check"
+    depends="build-check"
+     description="Runs all tests"/>
+
+
+    <target name="build-projects">
+            <mkdir dir="${projects.dir}"/>
+            <antcall target="build">
+                    <param name="project.if" value="true"/>
+                    <param name="project.type" value="${project.type}"/>
+                    <param name="project.compiler" value="${project.compiler}"/>
+                    <param name="projects.dir" value="${projects.dir}"/>
+                    <param name="debug" value="${debug}"/>
+                    <param name="projectsOnly" value="true"/>
+            </antcall>
+    </target>
+
+    <target name="build-projects-vc6" depends="init"
+        description="Builds project files for Microsoft Visual C++ 6">
+        <antcall target="build-projects">
+            <param name="projects.dir" value="${projects.dir}"/>
+            <param name="project.type" value="msvc6"/>
+            <param name="project.compiler" value="msvc"/>
+            <param name="os.family" value="windows"/>
+            <param name="projects.dir" value="${projects.dir}"/>
+            <param name="debug" value="${debug}"/>
+        </antcall>
+    </target>
+
+    <target name="build-projects-vc7" depends="init"
+          description="Builds project files for Microsoft Visual Studio .NET">
+      <antcall target="build-projects">
+        <param name="projects.dir" value="${projects.dir}"/>
+        <param name="project.type" value="msvc7"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="projects.dir" value="${projects.dir}"/>
+        <param name="debug" value="${debug}"/>
+      </antcall>
+    </target>
+
+    <target name="build-projects-vc8" depends="init"
+          description="Builds project files for Microsoft Visual C++ 2005">
+      <antcall target="build-projects">
+        <param name="projects.dir" value="${projects.dir}"/>
+        <param name="project.type" value="msvc8"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="projects.dir" value="${projects.dir}"/>
+        <param name="debug" value="${debug}"/>
+      </antcall>
+    </target>
+
+  <target name="build-projects-vc9" depends="init"
+       description="Builds project files for Microsoft Visual C++ 2008">
+    <antcall target="build-projects">
+      <param name="projects.dir" value="${projects.dir}"/>
+      <param name="project.type" value="msvc9"/>
+      <param name="project.compiler" value="msvc"/>
+      <param name="os.family" value="windows"/>
+      <param name="projects.dir" value="${projects.dir}"/>
+      <param name="debug" value="${debug}"/>
+    </antcall>
+  </target>
+
+  <target name="build-projects-xcode" depends="init"
+         description="Builds project files for Apple Xcode">
+        <antcall target="build-projects">
+            <param name="projects.dir" value="${projects.dir}"/>
+            <param name="project.type" value="xcode"/>
+            <param name="project.compiler" value="${compiler}"/>
+            <param name="os.family" value="mac"/>
+            <param name="projects.dir" value="${projects.dir}"/>
+            <param name="debug" value="${debug}"/>
+        </antcall>
+    </target>
+
+
+
+</project>

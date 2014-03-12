@@ -1,0 +1,2043 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+
+
+
+
+
+
+
+
+
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+--><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>log4cxx - </title>
+    <style type="text/css" media="all">
+      @import url("./css/maven-base.css");
+      @import url("./css/maven-theme.css");
+      @import url("./css/site.css");
+    </style>
+    <link rel="stylesheet" href="./css/print.css" type="text/css" media="print" />
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+      </head>
+  <body class="composite">
+    <div id="banner">
+                  <a href="http://logging.apache.org/" id="bannerLeft">
+    
+                                            <img src="images/ls-logo.jpg" alt="" />
+    
+            </a>
+                    <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="breadcrumbs">
+          
+  
+
+  
+    
+  
+  
+    
+            <div class="xleft">
+        Last Published: 2008-03-31
+                          |   
+                <a href="http://www.apache.org/" class="externalLink">Apache</a>
+                &gt;
+      
+                <a href="http://logging.apache.org/" class="externalLink">Logging Services</a>
+                &gt;
+      
+          log4cxx
+                        </div>
+            <div class="xright">      
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="leftColumn">
+      <div id="navcolumn">
+           
+  
+
+  
+    
+  
+  
+    
+                   <h5>Get log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="download.html">Download</a>
+          </li>
+              
+    <li class="none">
+              <strong>Changes</strong>
+        </li>
+              
+    <li class="none">
+                    <a href="license.html">License</a>
+          </li>
+          </ul>
+              <h5>About log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="index.html">What is log4cxx?</a>
+          </li>
+              
+    <li class="none">
+                    <a href="apidocs/index.html">API Documentation</a>
+          </li>
+              
+    <li class="none">
+                    <a href="faq.html">FAQ</a>
+          </li>
+          </ul>
+              <h5>Community</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="mail-lists.html">Mailing Lists</a>
+          </li>
+              
+    <li class="none">
+                    <a href="issue-tracking.html">Issue Tracking</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://wiki.apache.org/logging-log4cxx" class="externalLink">Wiki</a>
+          </li>
+          </ul>
+              <h5>Development</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="source-repository.html">Repository</a>
+          </li>
+              
+          
+              
+      
+            
+      
+            
+      
+            
+      
+            
+      
+              
+        <li class="expanded">
+                    <a href="">Building</a>
+                  <ul>
+                  
+    <li class="none">
+                    <a href="building/autotools.html">autotools</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/ant.html">Apache Ant</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/maven.html">Apache Maven 2</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/vstudio.html">Microsoft Visual Studio</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/xcode.html">Apple Xcode</a>
+          </li>
+              </ul>
+        </li>
+          </ul>
+              <h5>Apache</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="http://www.apache.org" class="externalLink">Home</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/sponsorship.html" class="externalLink">Sponsorship</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/thanks.html" class="externalLink">Thanks</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apachecon.com" class="externalLink">Conferences</a>
+          </li>
+          </ul>
+                                           <a href="http://maven.apache.org/" title="Built by Maven" class="poweredBy">
+            <img alt="Built by Maven" src="./images/logos/maven-feather.png"></img>
+          </a>
+                       
+  
+
+  
+    
+  
+  
+    
+        </div>
+    </div>
+    <div id="bodyColumn">
+      <div id="contentBox">
+        <h2><a name="Changes_Report"></a>
+Changes Report</h2>
+<h3><a name="Release_History"></a>
+Release History</h3>
+<table class="bodyTable"><tr class="a"><th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr>
+<tr class="b"><td><a href="#a0.10.0">0.10.0</a>
+</td>
+<td>2008-04-03</td>
+<td>First Apache release</td>
+</tr>
+<tr class="a"><td><a href="#a0.9.7">0.9.7</a>
+</td>
+<td>2004-05-10</td>
+<td></td>
+</tr>
+<tr class="b"><td><a href="#a0.9.6">0.9.6</a>
+</td>
+<td>2004-04-11</td>
+<td></td>
+</tr>
+<tr class="a"><td><a href="#a0.9.5">0.9.5</a>
+</td>
+<td>2004-02-04</td>
+<td></td>
+</tr>
+<tr class="b"><td><a href="#a0.9.4">0.9.4</a>
+</td>
+<td>2003-10-25</td>
+<td></td>
+</tr>
+<tr class="a"><td><a href="#a0.9.3">0.9.3</a>
+</td>
+<td>2003-09-19</td>
+<td></td>
+</tr>
+<tr class="b"><td><a href="#a0.9.2">0.9.2</a>
+</td>
+<td>2003-08-10</td>
+<td></td>
+</tr>
+<tr class="a"><td><a href="#a0.9.1">0.9.1</a>
+</td>
+<td>2003-08-06</td>
+<td></td>
+</tr>
+<tr class="b"><td><a href="#a0.9.0">0.9.0</a>
+</td>
+<td>2003-08-06</td>
+<td></td>
+</tr>
+<tr class="a"><td><a href="#a0.1.1">0.1.1</a>
+</td>
+<td>2003-07-09</td>
+<td></td>
+</tr>
+<tr class="b"><td><a href="#a0.1.0">0.1.0</a>
+</td>
+<td>2003-07-08</td>
+<td></td>
+</tr>
+<tr class="a"><td><a href="#a0.0.1">0.0.1</a>
+</td>
+<td>2003-05-31</td>
+<td></td>
+</tr>
+</table>
+<br />
+<br />
+<h3><a name="a0.10.0"></a>
+Release 0.10.0 - 2008-04-03</h3>
+<table class="bodyTable"><tr class="b"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>logger.h includes config.h Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-2" class="externalLink">LOGCXX-2</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Missing #else Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-3" class="externalLink">LOGCXX-3</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>initialization not working on many OS's Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-4" class="externalLink">LOGCXX-4</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Preprocessor macro WIN32 used instead of _WIN32 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-5" class="externalLink">LOGCXX-5</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Win32 OutputDebugString Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-6" class="externalLink">LOGCXX-6</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SocketAppender binary format not compatible with Chainsaw Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-7" class="externalLink">LOGCXX-7</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Compilation problems using VC5 or VC6 with later Platform SDKs Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-8" class="externalLink">LOGCXX-8</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Conflicting definitions of tchar.h/simulatenous Unicode+MBCS Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-10" class="externalLink">LOGCXX-10</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Timezone may have side-effects Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-11" class="externalLink">LOGCXX-11</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>the threshold  of ApenderSkeleton can not be set by calling setOption. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-12" class="externalLink">LOGCXX-12</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add branch optimization hint to LOG4CXX_DEBUG macro Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-13" class="externalLink">LOGCXX-13</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>add -Wall to compile log4cxx will get many warning Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-14" class="externalLink">LOGCXX-14</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>PatternLayout don't use locale time zone,it's use GMT tome zone Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-15" class="externalLink">LOGCXX-15</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Misleading statements in Introduction to log4cxx Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-16" class="externalLink">LOGCXX-16</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Use of non reentrant time functions Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-17" class="externalLink">LOGCXX-17</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>LoggerStream Feature Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-18" class="externalLink">LOGCXX-18</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add .cvsignore's to ignore generated files Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-19" class="externalLink">LOGCXX-19</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add check that libxml2 not libxml has been included Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-21" class="externalLink">LOGCXX-21</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Backslashes in filenames in XML config of FileAppender broken Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-22" class="externalLink">LOGCXX-22</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Unit tests have become stale Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-23" class="externalLink">LOGCXX-23</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Class and module name not available in LogEvent Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-24" class="externalLink">LOGCXX-24</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add Ant+cpptasks build file Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-25" class="externalLink">LOGCXX-25</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Default initialization is broken Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-26" class="externalLink">LOGCXX-26</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Appender threshold cannot be set in configuration files Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-27" class="externalLink">LOGCXX-27</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Appender threshold cannot be set in configuration files Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-28" class="externalLink">LOGCXX-28</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Appender attributes are not passed passed to setOption correctly. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-29" class="externalLink">LOGCXX-29</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>StringTokenizer uses evil strtok and wcstok functions Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-30" class="externalLink">LOGCXX-30</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Missing const qualifiers, Exception::getMessage() in particular. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-31" class="externalLink">LOGCXX-31</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Missing copy constructors and assignment operators Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-32" class="externalLink">LOGCXX-32</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>log4cxx::Exception is not derived from std::exception Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-33" class="externalLink">LOGCXX-33</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Visual Studio 6 CVS build broken Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-34" class="externalLink">LOGCXX-34</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Avoid use of MSXML Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-35" class="externalLink">LOGCXX-35</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrate to Apache Portable Runtime threads Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-36" class="externalLink">LOGCXX-36</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Unable to build log4cxx under Borland C++ Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-37" class="externalLink">LOGCXX-37</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Remove DailyRollingFileAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-39" class="externalLink">LOGCXX-39</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>PatternLayout does not support Java date format specifiers Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-40" class="externalLink">LOGCXX-40</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Layout timestamp doesn't seem to adjust for daylight saving Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-41" class="externalLink">LOGCXX-41</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>configure/make help needed Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-43" class="externalLink">LOGCXX-43</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>GUMP integation Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-44" class="externalLink">LOGCXX-44</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>_T causes error : 1048576 cannot be used as a function Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-45" class="externalLink">LOGCXX-45</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Extra semicolon after namespace closing paren Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-46" class="externalLink">LOGCXX-46</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Check headers for missing declarations and Effective C++ violations Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-47" class="externalLink">LOGCXX-47</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Use hex representation for thread identifier Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-48" class="externalLink">LOGCXX-48</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Move timezone specification into pattern, remove locale specification Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-49" class="externalLink">LOGCXX-49</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>variable name clash in macro Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-50" class="externalLink">LOGCXX-50</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrate log4j 1.3 RollingFileAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-52" class="externalLink">LOGCXX-52</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Problems compiling with MsDev 6.0 (space in paths) Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-53" class="externalLink">LOGCXX-53</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Eliminate use of boost-regex in unit tests Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-54" class="externalLink">LOGCXX-54</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>DailyRolling File Appender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-55" class="externalLink">LOGCXX-55</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>BasicConfiguration is unreliable Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-56" class="externalLink">LOGCXX-56</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Port log4j performance test Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-57" class="externalLink">LOGCXX-57</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ImmediateFlush'd FileAppenders extremely slow on Windows Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-58" class="externalLink">LOGCXX-58</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Implement encoding support for Writer appender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-59" class="externalLink">LOGCXX-59</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XML layout can be mismatched with document encoding Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-60" class="externalLink">LOGCXX-60</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>log4cxx 0.10.0 release Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-62" class="externalLink">LOGCXX-62</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Platform appropriate line-feed convention Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-63" class="externalLink">LOGCXX-63</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrate to APR network IO Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-64" class="externalLink">LOGCXX-64</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SyslogAppender append method currently stubbed out Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-66" class="externalLink">LOGCXX-66</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>NTEventLogAppender always uses RPC method for logging and has inadequate error handling. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-67" class="externalLink">LOGCXX-67</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Logic flaws in StringHelper::startsWith and StringHelper::endsWith Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-70" class="externalLink">LOGCXX-70</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Update performance page on web site Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-71" class="externalLink">LOGCXX-71</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>INSTALL out of date Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-72" class="externalLink">LOGCXX-72</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Not loading configuration from log4cxx.properties or log4cxx.xml Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-73" class="externalLink">LOGCXX-73</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>MinGW build Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-74" class="externalLink">LOGCXX-74</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Cygwin build Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-75" class="externalLink">LOGCXX-75</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>user.home, user.dir, java.io.tmpdir available within configuration files Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-76" class="externalLink">LOGCXX-76</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Static builds broken Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-77" class="externalLink">LOGCXX-77</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>configure check for apr-util Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-79" class="externalLink">LOGCXX-79</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrated network appenders to APR network IO Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-80" class="externalLink">LOGCXX-80</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SimpleDateFormat does not compile on Solaris 2.95.2 gcc Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-81" class="externalLink">LOGCXX-81</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Compiling with stream.h in multiple object files errors Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-82" class="externalLink">LOGCXX-82</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>log4cxx::Level::ERROR fails to compile when GDI enabled Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-83" class="externalLink">LOGCXX-83</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Problems with stream logging in UTF8, no WCHAR_T build Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-84" class="externalLink">LOGCXX-84</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Mac OS/X fixes and enhancements Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-85" class="externalLink">LOGCXX-85</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add TRACE level Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-86" class="externalLink">LOGCXX-86</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Remove remaining uses of Category and Priority Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-87" class="externalLink">LOGCXX-87</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Explore use of security-enhanced CRT methods Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-88" class="externalLink">LOGCXX-88</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>simplesocketserver.cpp should use LOG4CXX_STR("...") not L"..." Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-94" class="externalLink">LOGCXX-94</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Gump build fails for log4cxx-ant-no-wchar-t target Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-98" class="externalLink">LOGCXX-98</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixes for ODBCAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-100" class="externalLink">LOGCXX-100</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Much of CVS HEAD seems #if 0 out, especially ResourceBundle stuff Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-103" class="externalLink">LOGCXX-103</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ODBCAppender::close does not check if appender is already closed Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-104" class="externalLink">LOGCXX-104</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Infinite loop in string replacing Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-105" class="externalLink">LOGCXX-105</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>maxFileSize has bad type in SizeBasedTriggeringPolicy file Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-106" class="externalLink">LOGCXX-106</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Can't compile log4cxx in ascii on Windows Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-107" class="externalLink">LOGCXX-107</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>try fix 64bit log4cxx_intptr_t Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-110" class="externalLink">LOGCXX-110</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>make Logger cache a LoggerRepositoryPtr instead of a "blind" pointer Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-111" class="externalLink">LOGCXX-111</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>change "static" to "auto" for Transcoder::decode() decoder and CharsetDecoder::getDefaultDecoder() decoder Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-112" class="externalLink">LOGCXX-112</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>separate apr detection m4 codes from aclocal.m4 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-113" class="externalLink">LOGCXX-113</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Upgrade APR to 1.2.2 from 1.1.0 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-114" class="externalLink">LOGCXX-114</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SVN head does not compile with Borland C++ compiler Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-115" class="externalLink">LOGCXX-115</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SVN head does not compiler with MinGW compiler Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-116" class="externalLink">LOGCXX-116</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Memory leak with ThreadSpecificData on Win32 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-117" class="externalLink">LOGCXX-117</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Hierarchy corrupts with PropertyConfigurator Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-118" class="externalLink">LOGCXX-118</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ndctestcase not working Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-119" class="externalLink">LOGCXX-119</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Wrong parameter description in Patternlayout Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-120" class="externalLink">LOGCXX-120</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>UTF-8 build fails on Linux Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-123" class="externalLink">LOGCXX-123</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>wchar_t constructor missing in class NDC Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-124" class="externalLink">LOGCXX-124</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>L7dTestCase is stubbed out Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-125" class="externalLink">LOGCXX-125</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>std::cout stops working if log4cxx is first to output Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-126" class="externalLink">LOGCXX-126</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Main build.xml not referencing "env" properly. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-127" class="externalLink">LOGCXX-127</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Asyncappender is full of race conditions (improper use of condition variables) Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-129" class="externalLink">LOGCXX-129</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Compile fails on gcc4.1 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-130" class="externalLink">LOGCXX-130</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>TimeBasedRollingPolicy is declared "abstract" Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-131" class="externalLink">LOGCXX-131</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>various segmentation faults in multithreaded application Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-132" class="externalLink">LOGCXX-132</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Missing parenthesis in LOG4CXX_ASSERT Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-133" class="externalLink">LOGCXX-133</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>FileAppender could create missing directories Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-134" class="externalLink">LOGCXX-134</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Use std::string with logstream Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-135" class="externalLink">LOGCXX-135</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>DailyRollingFileAppender not using Property options Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-136" class="externalLink">LOGCXX-136</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLLayoutTestCase output and filtered output gets overwritten Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-138" class="externalLink">LOGCXX-138</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLLayoutTestCase uses inadequate filters for 64 bit platforms Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-139" class="externalLink">LOGCXX-139</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Handle leak with LoggingEvent::getCurrentThreadName Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-140" class="externalLink">LOGCXX-140</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Upgrade to APR 1.2.7 or later Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-141" class="externalLink">LOGCXX-141</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>socketservertestcase.cpp does not compile with Sun Studio 11 on Solaris Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-142" class="externalLink">LOGCXX-142</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>-xarch=v8plus should be removed from Makefile.in Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-143" class="externalLink">LOGCXX-143</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>DailyRollingFileAppender::~DailyRollingFileAppender must call finalize Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-146" class="externalLink">LOGCXX-146</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>make dist does not work Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-149" class="externalLink">LOGCXX-149</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>logstream's operator
+<
+<
+declared in the wrong namespace Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-150" class="externalLink">LOGCXX-150</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Umlauts as literal in patternlayout won't be logged correct Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-151" class="externalLink">LOGCXX-151</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>gcc warning about cast from `const void*' to `log4cxx::helpers::Object*' discards qualifiers from pointer target typ Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-152" class="externalLink">LOGCXX-152</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Automate log4cxx site and doxygen generation and deployment Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-153" class="externalLink">LOGCXX-153</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Update source headers per new ASF header policy Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-155" class="externalLink">LOGCXX-155</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>immediate flush in console appender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-156" class="externalLink">LOGCXX-156</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>make install fails since @manual_dest@ replacement is missing in Makefiles Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-157" class="externalLink">LOGCXX-157</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>tolower not defined in stringhelper.cpp Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-158" class="externalLink">LOGCXX-158</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Initialization of local static objects out of order on Linux Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-159" class="externalLink">LOGCXX-159</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>helpers/object.h: DECLARE_LOG4CXX_OBJECT macro definition is missing virtual destructor declaration Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-160" class="externalLink">LOGCXX-160</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Using RollingFileAppender increases the working set with each rollover Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-161" class="externalLink">LOGCXX-161</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Problem printing string with embedded NULL character Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-162" class="externalLink">LOGCXX-162</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>liblog4cxx (svn 480882) does not link on Mac OS X 10.4 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-163" class="externalLink">LOGCXX-163</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLSocketAppender is disabled Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-164" class="externalLink">LOGCXX-164</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLSocketAppender may generate erroneous output due to mismatched encoding Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-165" class="externalLink">LOGCXX-165</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>system locale charmap is not determined properly on Fedora Core 6 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-167" class="externalLink">LOGCXX-167</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>log4j.dtd does not contain rollingPolicy and other o.a.l.r.RFA elements Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-168" class="externalLink">LOGCXX-168</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLLayoutTestCase fails on compilers that do not provide location info Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-169" class="externalLink">LOGCXX-169</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add project description file for projects.apache.org Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-171" class="externalLink">LOGCXX-171</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>configure fail with ".infig.status: error: cannot find input file:" Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-172" class="externalLink">LOGCXX-172</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>APRCharsetEncoder is not thread safe Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-175" class="externalLink">LOGCXX-175</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SocketImpl::accept uses private APR function: apr_wait_for_io_or_timeout Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-177" class="externalLink">LOGCXX-177</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Link failure if wchar_t cannot be determined as UTF-16 or UTF-32 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-178" class="externalLink">LOGCXX-178</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>example applications do SIGABRT on aix 5.2 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-179" class="externalLink">LOGCXX-179</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Build fails at domconfigurator.h Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-180" class="externalLink">LOGCXX-180</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Level::DEBUG and other non-local statics cause crash on app shutdown on AIX Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-181" class="externalLink">LOGCXX-181</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>missing man page for simplesocketserver Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-182" class="externalLink">LOGCXX-182</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Compiler warning: dereferencing type-punned pointer will break strict-aliasing rules Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-183" class="externalLink">LOGCXX-183</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Crash when log level set to 'inherited' Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-184" class="externalLink">LOGCXX-184</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Garbage characters in log files when log requests from multiple threads with hyperthreading enabled Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-186" class="externalLink">LOGCXX-186</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>LogLog::emit() could potentially interleave messages Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-187" class="externalLink">LOGCXX-187</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Upgrade to apr 1.2.9 and apr-util 1.2.8 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-188" class="externalLink">LOGCXX-188</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrate to Maven 2.0 for documentation and packaging Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-189" class="externalLink">LOGCXX-189</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>The 'logger.h' header includes itself. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-190" class="externalLink">LOGCXX-190</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Application cores when syslog appender is given an unreachable host/ip. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-191" class="externalLink">LOGCXX-191</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Suggested improvements to log4cxx webpages Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-192" class="externalLink">LOGCXX-192</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Please rename or remove new local variable "buf" in Logger.h macros Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-193" class="externalLink">LOGCXX-193</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Garbage in log files when appenders are defined in multiple levels of the logger hierarchy Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-194" class="externalLink">LOGCXX-194</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Syslog appender adds characters to output. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-195" class="externalLink">LOGCXX-195</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Syslog appender destructor can cause core Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-196" class="externalLink">LOGCXX-196</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ant can't generate vc6 project Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-197" class="externalLink">LOGCXX-197</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Implement compression for RollingFileAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-200" class="externalLink">LOGCXX-200</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Visual Studio 6 build Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-201" class="externalLink">LOGCXX-201</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ObjectPtrT has inconsistent const-ness on accessors Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-202" class="externalLink">LOGCXX-202</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>PatternParserTestCase and FileNamePatternTestCase fail only with VC6 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-204" class="externalLink">LOGCXX-204</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>isTraceEnabled implemenation missing in logger.cpp (Revision: 592627) Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-208" class="externalLink">LOGCXX-208</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>A  message of type wchar_t* is not beeing written correctly to the internal message buffer (Revision: 592627) Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-209" class="externalLink">LOGCXX-209</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>HTMLLayout NDC null check Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-210" class="externalLink">LOGCXX-210</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Crash(Segmentation Fault) in DailyRollingFileAppender when file change Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-211" class="externalLink">LOGCXX-211</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>unittest failed Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-212" class="externalLink">LOGCXX-212</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>trace method implementation is missing Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-213" class="externalLink">LOGCXX-213</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Possible memory leak due to fault in build process (via make) Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-214" class="externalLink">LOGCXX-214</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Eliminate sqlext.h from odbcappender.h Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-215" class="externalLink">LOGCXX-215</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>crash on program exit Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-216" class="externalLink">LOGCXX-216</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Not initialized LoggerPtr segfault program. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-217" class="externalLink">LOGCXX-217</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Visual Studio 8 build Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-218" class="externalLink">LOGCXX-218</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>suspicious warnings Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-219" class="externalLink">LOGCXX-219</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Memory leaks when using MFC Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-220" class="externalLink">LOGCXX-220</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ThreadID layout does not match debugger Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-221" class="externalLink">LOGCXX-221</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>trunk compile error. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-222" class="externalLink">LOGCXX-222</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Migrate unit tests from LGPL'd CPPUNIT to an ASL'd testing framework Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-225" class="externalLink">LOGCXX-225</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Default configurator uses *.properties in preference to *.xml Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-226" class="externalLink">LOGCXX-226</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Remove @since tags Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-227" class="externalLink">LOGCXX-227</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Remove @author tags Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-228" class="externalLink">LOGCXX-228</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Align ant build options with automake Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-230" class="externalLink">LOGCXX-230</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Deadlock in AsyncAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-231" class="externalLink">LOGCXX-231</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Drop src/performance Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-232" class="externalLink">LOGCXX-232</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Unnecessary casts in ObjectPtrT Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-233" class="externalLink">LOGCXX-233</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Assignment operator removes const qualifier Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-234" class="externalLink">LOGCXX-234</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add ObjectPtrT::exchange Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-235" class="externalLink">LOGCXX-235</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Re-order constructor initialiser lists to match declaration order Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-236" class="externalLink">LOGCXX-236</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Include missing headers Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-237" class="externalLink">LOGCXX-237</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Inconsistent const qualification on logging methods. Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-239" class="externalLink">LOGCXX-239</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Non-ascii named files have names mangled Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-241" class="externalLink">LOGCXX-241</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Eliminate log4cxx proxies for APR types Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-242" class="externalLink">LOGCXX-242</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Problem Compile in Doxy Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-243" class="externalLink">LOGCXX-243</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Config refresh hangs a client application that uses TelnetAppender Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-246" class="externalLink">LOGCXX-246</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>MSVC project has wrong additional include directories Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-247" class="externalLink">LOGCXX-247</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ODBCAppender has unicode issues Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-248" class="externalLink">LOGCXX-248</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>NDC::cloneStack and NDC::inherit missing in 0.10.0 RC2 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-251" class="externalLink">LOGCXX-251</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add documentation for use of operator
+<
+<
+in logging requests Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-252" class="externalLink">LOGCXX-252</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Transcoder compilation error with utf-8 charset Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-253" class="externalLink">LOGCXX-253</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Add build option for static C RTL Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-254" class="externalLink">LOGCXX-254</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SocketHubAppender fails after accepting connection Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-256" class="externalLink">LOGCXX-256</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>ServerSocket::accept hangs on Unix Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-257" class="externalLink">LOGCXX-257</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>unable to build from make dist package due to missing doxygen file Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-258" class="externalLink">LOGCXX-258</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Several appenders fail to compile in Visual Studio 2008 Fixes <a href="http://issues.apache.org/jira/browse/LOGCXX-259" class="externalLink">LOGCXX-259</a>
+.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.7"></a>
+Release 0.9.7 - 2004-05-10</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed examples source code in the "Short introduction to log4cxx".</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed, in the renaming algorithm of RollingFileAppender and
+  DailyRollingFileAppender, a problem specific to Unicode.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed conflict with Windows macros "min" and "max", by renaming
+  StrictMath::min and StrictMath::max to StrictMath::minimum and
+StrictMath::maximum.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/add.gif" alt="add" /></td>
+<td>Port to HPUX 11.0.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed segmentation fault in PropertyConfigurator.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/add.gif" alt="add" /></td>
+<td>Port to Solaris.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed MutexException thrown while destroying RollingFileAppender.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Logging macros can be used without explicity declaring the use of log4cxx namespace.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/fix.gif" alt="fix" /></td>
+<td>Fixed static library unresolved externals for msvc 6 and 7.1</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.6"></a>
+Release 0.9.6 - 2004-04-11</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Timezone management has been optimized through the class TimeZone</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Inter-thread synchronization and reference counting has been optimized</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Reference counting now uses gcc atomic functions (bug 929078)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Use of StringBuffer has been optimized.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Support of localisation throug resourceBundles</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SyslogAppender now uses the system function 'syslog' to log on the local host.
+ (only for POSIX systems)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added TimeZone configuration to PatternLayout (bug 912563)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Support of the DailyRollingFileAppender (feature request 842765)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.5"></a>
+Release 0.9.5 - 2004-02-04</h3>
+<table class="bodyTable"><tr class="b"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Port of log4j Jnuit tests with Cppunit and Boost Regex.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added explicit exports for MSDEV 6 and MSDEV 7 (no further need of .def files)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Custom levels can be configured through the DOMConfigurator and
+  PropertyConfigurator classes (Level inherites from Object)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added a reference counter to LoggingEvent to avoid useless copies
+  (LoggingEvent inherites from Object)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>The file log4j.xml as well as the file log4j.properties are now search
+  for, in log4cxx initialization.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>The root logger can be assigned the "OFF" level.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added MSVC6 project missing files mutext.cpp and condition.cpp (bug 847397)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>condition.cpp now compiles with MSVC6 (bug 847417)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>fixed pure virtual function call in PropertyConfigurator::configureAndWatch
+  (bug 848521)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>XMLAppender now displays correct timestamp with MSVC 6 (bug 852836)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>SRLPORT 4.6 support.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed an infinite loop in class Properties.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed compilations problems with unicode.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed SocketAppender bug concerning MDC and NDC.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.4"></a>
+Release 0.9.4 - 2003-10-25</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>StringBuffer has been optimized.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed miscellaneous threading problems.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added TimeZone support in PatternLayout (bug 796894)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed threading configuration problems (bug 809125)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed miscellaneous MSVC and cygwin compilation problems.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.3"></a>
+Release 0.9.3 - 2003-09-19</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Changed tstring to log4cxx::String and tostringstream to
+  log4cxx::StringBuffer.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed MSVC 2003 compilation erros and warnings.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added helpers for NDC and MDC.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added TimeZone support in TTCCLayout.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed compilation problems with logger macros (LOG4CXX_...)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed milliseconds formatting problem with MSVC 6.0 and 2003</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed AsyncAppender crash</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added new tests</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added benchmarks</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.2"></a>
+Release 0.9.2 - 2003-08-10</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed FreeBSD compilation problem with pthread mutex (class CriticalSection).</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed milliseconds formatting problem (class DateFormat).</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Long events (
+>
+1024 chars) are now supported in the class XMLSocketAppender.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Carriage returns have been normalized in the class XMLLayout.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.1"></a>
+Release 0.9.1 - 2003-08-06</h3>
+<table class="bodyTable"><tr class="b"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed deadlock problems in classes Logger and AsyncAppender.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed MSVC 6.0 compilation problems.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added MSVC 6.0 static libraty project.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Default configuration for the SMTP options is "no".</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.9.0"></a>
+Release 0.9.0 - 2003-08-06</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added ODBCAppender (matching log4j JDBCAppender)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added SyslogAppender</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added SMTPAppender (only for Linux/FreeBSD)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added BasicConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added a FileWatchDog in PropertyConfigurator and DOMConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Possibility to load a custom LoggerFactory through the DOMConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Changed time precision from seconds to milliseconds</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added MSVC 6.0 'Unicode Debug' and 'Unicode Release' targets</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added Java like System class.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.1.1"></a>
+Release 0.1.1 - 2003-07-09</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed MSVC 6.0 compilation problems concerning the 'Release' target</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added MSVC 6.0 tests projects</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.1.0"></a>
+Release 0.1.0 - 2003-07-08</h3>
+<table class="bodyTable"><tr class="b"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>FreeBSD Autotools/Compilation support</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Fixed TelnetAppender crash when a socket bind exception occured.</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added log4j DTD support to XMLLayout and DOMConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Can now send events in XML format over TCP (class XMLSocketAppender) for the
+  log4j Chainsaw UI</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Now compiles with 'configure --enable-unicode' (UTF16 Unicode support)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added Java like Properties class. It's a helper for the PropertyConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added Java like objects with dynamic cast and instanciation. Custom objects
+  can be configured through the DOMConfigurator and PropertyConfigurator classes</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Port of the PropertyConfigurator class</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Port of the "Map Diagnostic Context" (MDC) class</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/icon_help_sml.gif" alt="?" /></td>
+<td>Added 13 tests (try make check)</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+<h3><a name="a0.0.1"></a>
+Release 0.0.1 - 2003-05-31</h3>
+<table class="bodyTable"><tr class="a"><th>Type</th>
+<th>Changes</th>
+<th>By</th>
+</tr>
+<tr class="b"><td><img src="images/add.gif" alt="add" /></td>
+<td>Loggers, Hierarchy, Filters, Appenders, Layouts, NDC</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/add.gif" alt="add" /></td>
+<td>Appenders:
+  AsyncAppender, ConsoleAppender, FileAppender, NTEventLogAppender,
+RollingFileAppender, SocketAppender, SocketHubAappender,
+TelnetAppender</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/add.gif" alt="add" /></td>
+<td>Layouts:
+  HTMLLayout, PatternLayout, SimpleLayout, TTCCLayout, XMLLayout</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="a"><td><img src="images/add.gif" alt="add" /></td>
+<td>Filters:
+  DenyAllFilter, LevelMatchFilter, LevelRangeFilter, StringMatchFilter</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+<tr class="b"><td><img src="images/add.gif" alt="add" /></td>
+<td>Configurators:
+  DOMConfigurator</td>
+<td><a href="team-list.html#null"></a>
+</td>
+</tr>
+</table>
+
+      </div>
+    </div>
+    <div class="clear">
+      <hr/>
+    </div>
+    <div id="footer">
+      <div class="xright">&#169;  
+          2008
+    
+          Apache Software Foundation
+          
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+  </body>
+</html>

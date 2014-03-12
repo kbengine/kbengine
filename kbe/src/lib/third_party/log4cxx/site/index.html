@@ -1,0 +1,1117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+
+
+
+
+
+
+
+
+
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+--><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>log4cxx - Short introduction to Apache log4cxx</title>
+    <style type="text/css" media="all">
+      @import url("./css/maven-base.css");
+      @import url("./css/maven-theme.css");
+      @import url("./css/site.css");
+    </style>
+    <link rel="stylesheet" href="./css/print.css" type="text/css" media="print" />
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+      </head>
+  <body class="composite">
+    <div id="banner">
+                  <a href="http://logging.apache.org/" id="bannerLeft">
+    
+                                            <img src="images/ls-logo.jpg" alt="" />
+    
+            </a>
+                    <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="breadcrumbs">
+          
+  
+
+  
+    
+  
+  
+    
+            <div class="xleft">
+        Last Published: 2008-03-31
+                          |   
+                <a href="http://www.apache.org/" class="externalLink">Apache</a>
+                &gt;
+      
+                <a href="http://logging.apache.org/" class="externalLink">Logging Services</a>
+                &gt;
+      
+          log4cxx
+                        </div>
+            <div class="xright">      
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="leftColumn">
+      <div id="navcolumn">
+           
+  
+
+  
+    
+  
+  
+    
+                   <h5>Get log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="download.html">Download</a>
+          </li>
+              
+    <li class="none">
+                    <a href="changes-report.html">Changes</a>
+          </li>
+              
+    <li class="none">
+                    <a href="license.html">License</a>
+          </li>
+          </ul>
+              <h5>About log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+              <strong>What is log4cxx?</strong>
+        </li>
+              
+    <li class="none">
+                    <a href="apidocs/index.html">API Documentation</a>
+          </li>
+              
+    <li class="none">
+                    <a href="faq.html">FAQ</a>
+          </li>
+          </ul>
+              <h5>Community</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="mail-lists.html">Mailing Lists</a>
+          </li>
+              
+    <li class="none">
+                    <a href="issue-tracking.html">Issue Tracking</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://wiki.apache.org/logging-log4cxx" class="externalLink">Wiki</a>
+          </li>
+          </ul>
+              <h5>Development</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="source-repository.html">Repository</a>
+          </li>
+              
+          
+              
+      
+            
+      
+            
+      
+            
+      
+            
+      
+              
+        <li class="expanded">
+                    <a href="">Building</a>
+                  <ul>
+                  
+    <li class="none">
+                    <a href="building/autotools.html">autotools</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/ant.html">Apache Ant</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/maven.html">Apache Maven 2</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/vstudio.html">Microsoft Visual Studio</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="building/xcode.html">Apple Xcode</a>
+          </li>
+              </ul>
+        </li>
+          </ul>
+              <h5>Apache</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="http://www.apache.org" class="externalLink">Home</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/sponsorship.html" class="externalLink">Sponsorship</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/thanks.html" class="externalLink">Thanks</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apachecon.com" class="externalLink">Conferences</a>
+          </li>
+          </ul>
+                                           <a href="http://maven.apache.org/" title="Built by Maven" class="poweredBy">
+            <img alt="Built by Maven" src="./images/logos/maven-feather.png"></img>
+          </a>
+                       
+  
+
+  
+    
+  
+  
+    
+        </div>
+    </div>
+    <div id="bodyColumn">
+      <div id="contentBox">
+        <div class="section"><h2><a name="Short_introduction_to_Apache_log4cxx"></a>
+Short introduction to Apache log4cxx</h2>
+<h2>Introduction</h2>
+
+Apache log4cxx is a logging framework for C++ patterned after 
+<a href="http://logging.apache.org/log4j" class="externalLink">Apache log4j</a>
+.
+Apache log4cxx uses <a href="http://apr.apache.org" class="externalLink">Apache Portable Runtime</a>
+
+for most platform-specific code and should be usable on any
+platform supported by APR.  Apache log4cxx is licensed under the 
+<a href="http://www.apache.org/licenses/" class="externalLink">Apache License</a>
+,
+an open source license certified by the 
+<a href="http://www.opensource.org/" class="externalLink">Open Source Initiative</a>
+.
+
+<p>Almost every large application includes its own logging or tracing
+API.   Inserting log statements into code is a low-tech method for
+debugging it. It may also be the only way because debuggers are not
+always available or applicable. This is usually the case for
+multithreaded applications and distributed applications at large.</p>
+<p>Experience indicates that logging is an important component of the
+development cycle. It offeres several advantages. It provides precise
+<em>context</em> about a run of the application. Once inserted into
+the code, the generation of logging output requires no human
+intervention.  Moreover, log output can be saved in persistent medium
+to be studied at a later time. In addition to its use in the
+development cycle, a sufficiently rich logging package can also be
+viewed as an auditing tool.</p>
+<p>Logging does have its drawbacks. It can slow down an
+application. If too verbose, it can cause scrolling blindness. To
+alleviate these concerns, log4cxx is designed to be reliable, fast and
+extensible. Since logging is rarely the main focus of an application,
+the log4cxx API strives to be simple to understand and to use.</p>
+<h2>Loggers, Appenders and Layouts</h2><p>Log4cxx has three main components: <em>loggers</em>,
+<em>appenders</em> and <em>layouts</em>. These three types of
+components work together to enable developers to log messages according
+to message type and level, and to control at runtime how these
+messages are formatted and where they are reported.</p>
+<h3>Logger hierarchy</h3><p>The first and foremost advantage of any logging API over plain
+<code>std::cout</code> resides in its ability to disable
+certain log statements while allowing others to print unhindered. This
+capability assumes that the logging space, that is, the space of all
+possible logging statements, is categorized according to some
+developer-chosen criteria.</p>
+<p>Loggers are named entities. Logger names are case-sensitive and
+they follow the hierarchical naming rule:</p>
+<p><table class="bodyTable"><tr class="a"><td><dl><dt><b>Named Hierarchy</b>
+</dt>
+<dd>A logger is said to be an <em>ancestor</em> of another
+     logger if its name followed by a dot is a prefix of the
+     <em>descendant</em> logger name. A logger is said to be a
+     <em>parent</em> of a <em>child</em> logger if there are no
+     ancestors between itself and the descendant logger.</dd>
+</dl>
+</td>
+</tr>
+</table>
+</p>
+<p>For example, the logger named <code>&quot;com.foo&quot;</code> is a parent
+of the logger named <code>&quot;com.foo.Bar&quot;</code>.  Similarly,
+<code>&quot;java&quot;</code> is a parent of <code>&quot;java.util&quot;</code> and an
+ancestor of <code>&quot;java.util.Vector&quot;</code>.  This naming scheme
+should be familiar to most developers.</p>
+<p>The root logger resides at the top of the logger hierarchy. It
+is exceptional in two ways:
+
+<ol type="1"><li> it always exists,</li>
+<li> it cannot be retrieved by name.</li>
+</ol>
+</p>
+<p>Invoking the class static <a href="apidocs/classlog4cxx_1_1Logger.html#e3">log4cxx::Logger::getRootLogger</a>
+
+method retrieves it. All other loggers are instantiated and
+retrieved with the class static <a href="apidocs/classlog4cxx_1_1Logger.html#e0">log4cxx::Logger::getLogger</a>
+
+method. This method takes the name of the desired logger as a
+parameter. Some of the basic methods in the Logger class are listed
+below.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+  namespace log4cxx {
+
+    class <b>Logger</b>
+ {
+       public:
+       // Creation &amp; retrieval methods:
+       static LoggerPtr getRootLogger();
+       static LoggerPtr getLogger(const std::string&amp; name);
+       static LoggerPtr getLogger(const std::wstring&amp; name);
+
+     }
+   }
+//
+//   Use these macros instead of calling Logger methods directly.
+//   Macros will handle char or wchar_t pointers or strings
+//   or most right-hand side expressions of an 
+//   std::basic_string::operator&lt;&lt;.
+//   
+#define LOG4CXX_TRACE(logger, expression) ...   
+#define LOG4CXX_DEBUG(logger, expression) ...   
+#define LOG4CXX_INFO(logger, expression) ...   
+#define LOG4CXX_WARN(logger, expression) ...   
+#define LOG4CXX_ERROR(logger, expression) ...   
+#define LOG4CXX_FATAL(logger, expression) ...   
+</pre></td>
+</tr>
+</table>
+</p>
+<p>Loggers <em>may</em> be assigned levels. The pre-defined
+levels: TRACE, DEBUG, INFO, WARN, ERROR and FATAL are defined in the <code><a href="apidocs/classlog4cxx_1_1Level.html">log4cxx::Level</a>
+</code>
+class which provides accessor functions.</p>
+<p>If a given logger is not assigned a level, then it inherits
+one from its closest ancestor with an assigned level. More
+formally:</p>
+<p><table class="bodyTable"><tr class="a"><td><dl><dt><b>Level Inheritance</b>
+</dt>
+<dd>The <em>inherited level</em> for a given logger
+<i>C</i>
+, is equal to the first non-null level in the logger
+hierarchy, starting at <i>C</i>
+ and proceeding upwards in the
+hierarchy towards the <code>root</code> logger.</dd>
+</dl>
+</td>
+</tr>
+</table>
+</p>
+<p>To ensure that all loggers can eventually inherit a level,
+the root logger always has an assigned level.</p>
+<p>Below are four tables with various assigned level values and the
+resulting inherited levels according to the above rule.</p>
+<p><table class="bodyTable"><tr class="b"><th>Logger<br />
+name</th>
+<th>Assigned<br />
+level</th>
+<th>Inherited<br />
+level</th>
+</tr>
+<tr class="a"><td>root</td>
+<td>Proot</td>
+<td>Proot</td>
+</tr>
+<tr class="b"><td>X </td>
+<td>none</td>
+<td>Proot</td>
+</tr>
+<tr class="a"><td>X.Y </td>
+<td>none</td>
+<td>Proot</td>
+</tr>
+<tr class="b"><td>X.Y.Z</td>
+<td>none</td>
+<td>Proot</td>
+</tr>
+<caption align="bottom">Example 1</caption></table>
+</p>
+<p>In example 1 above, only the root logger is assigned a
+level. This level value, <code>Proot</code>, is inherited by the
+other loggers <code>X</code>, <code>X.Y</code> and
+<code>X.Y.Z</code>.</p>
+<p><table class="bodyTable"><tr class="a"><th>Logger<br />
+name</th>
+<th>Assigned<br />
+level</th>
+<th>Inherited<br />
+level</th>
+</tr>
+<tr class="b"><td>root</td>
+<td>Proot</td>
+<td>Proot</td>
+</tr>
+<tr class="a"><td>X </td>
+<td>Px</td>
+<td>Px</td>
+</tr>
+<tr class="b"><td>X.Y </td>
+<td>Pxy</td>
+<td>Pxy</td>
+</tr>
+<tr class="a"><td>X.Y.Z</td>
+<td>Pxyz</td>
+<td>Pxyz</td>
+</tr>
+<caption align="bottom">Example 2</caption></table>
+</p>
+<p>In example 2, all loggers have an assigned level value. There
+is no need for level inheritence.</p>
+<p><table class="bodyTable"><tr class="b"><th>Logger<br />
+name</th>
+<th>Assigned<br />
+level</th>
+<th>Inherited<br />
+level</th>
+</tr>
+<tr class="a"><td>root</td>
+<td>Proot</td>
+<td>Proot</td>
+</tr>
+<tr class="b"><td>X </td>
+<td>Px</td>
+<td>Px</td>
+</tr>
+<tr class="a"><td>X.Y </td>
+<td>none</td>
+<td>Px</td>
+</tr>
+<tr class="b"><td>X.Y.Z</td>
+<td>Pxyz</td>
+<td>Pxyz</td>
+</tr>
+<caption align="bottom">Example 3</caption></table>
+</p>
+<p>In example 3, the loggers <code>root</code>, <code>X</code> and
+<code>X.Y.Z</code> are assigned the levels <code>Proot</code>,
+<code>Px</code> and <code>Pxyz</code> respectively. The logger
+<code>X.Y</code> inherits its level value from its parent
+<code>X</code>.</p>
+<table class="bodyTable"><tr class="a"><th>Logger<br />
+name</th>
+<th>Assigned<br />
+level</th>
+<th>Inherited<br />
+level</th>
+</tr>
+<tr class="b"><td>root</td>
+<td>Proot</td>
+<td>Proot</td>
+</tr>
+<tr class="a"><td>X </td>
+<td>Px</td>
+<td>Px</td>
+</tr>
+<tr class="b"><td>X.Y </td>
+<td>none</td>
+<td>Px</td>
+</tr>
+<tr class="a"><td>X.Y.Z</td>
+<td>none</td>
+<td>Px</td>
+</tr>
+<caption align="bottom">Example 4</caption></table>
+<p>In example 4, the loggers <code>root</code> and <code>X</code>
+and are assigned the levels <code>Proot</code> and <code>Px</code>
+respectively. The loggers <code>X.Y</code> and <code>X.Y.Z</code>
+inherits their level value from their nearest parent <code>X</code>
+having an assigned level.</p>
+<p>Logging requests are made by invoking a method of
+a logger instance, preferrably through the use of LOG4CXX_INFO or similar
+macros which support short-circuiting if the threshold is not satisfied
+and use of the insertion operator (&lt;&lt;) in the message parameter.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+   log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger(<strong>&quot;com.foo&quot;</strong>));
+   const char* region = &quot;World&quot;;
+   LOG4CXX_INFO(logger, &quot;Simple message text.&quot;);
+   LOG4CXX_INFO(logger, &quot;Hello, &quot; &lt;&lt; region);
+   LOG4CXX_DEBUG(logger, L&quot;Iteration &quot; &lt;&lt; i);
+   LOG4CXX_DEBUG(logger, &quot;e^10 = &quot; &lt;&lt; std::scientific &lt;&lt; exp(10.0));
+   //
+   //  Use a wchar_t first operand to force use of wchar_t based stream.    
+   //
+   LOG4CXX_WARN(logger, L&quot;&quot; &lt;&lt; i &lt;&lt; L&quot; is the number of the iteration.&quot;);
+</pre></td>
+</tr>
+</table>
+</p>
+<p>A logging request is said to be <em>enabled</em> if its level is
+higher than or equal to the level of its logger. Otherwise, the
+request is said to be <em>disabled</em>. A logger without an
+assigned level will inherit one from the hierarchy. This rule is
+summarized below.</p>
+<p><a name="selectionRule"></a>
+<table class="bodyTable"><tr class="a"><td><dl><dt><b>Basic Selection Rule</b>
+</dt>
+<dd>A log request of level <i>p</i>
+ in a logger with
+	(either assigned or inherited, whichever is appropriate) level <i>q</i>
+, is enabled if <i> p &gt;=
+	q</i>
+.</dd>
+</dl>
+</td>
+</tr>
+</table>
+</p>
+<p>This rule is at the heart of log4cxx. It assumes that levels are
+ordered. For the standard levels, we have <code>TRACE &lt; DEBUG &lt; INFO
+&lt; WARN &lt; ERROR &lt; FATAL</code>.</p>
+<p>Here is an example of this rule.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+
+   // get a logger instance named &quot;com.foo&quot;
+   log4cxx::LoggerPtr  logger(log4cxx::Logger::getLogger(<strong>&quot;com.foo&quot;</strong>));
+
+   // Now set its level. Normally you do not need to set the
+   // level of a logger programmatically. This is usually done
+   // in configuration files.
+   <strong>logger</strong>-&gt;setLevel(<font color="0000AA"><strong>log4cxx::Level::getInfo()</strong></font>);
+
+   log4cxx::LoggerPtr barlogger(log4cxx::Logger::getLogger(<strong>&quot;com.foo.Bar&quot;</strong>);
+
+   // This request is enabled, because <font color="00AA00"><strong>WARN</strong></font> &gt;= <font color="0000AA"><strong>INFO</strong></font>.
+   LOG4CXX_WARN(logger, &quot;Low fuel level.&quot;);
+
+   // This request is disabled, because <font color="00AA00"><strong>DEBUG</strong></font> &lt; <font color="0000AA"><strong>INFO</strong></font>.
+   LOG4CXX_DEBUG(logger, &quot;Starting search for nearest gas station.&quot;);
+
+   // The logger instance barlogger, named &quot;com.foo.Bar&quot;,
+   // will inherit its level from the logger named
+   // &quot;com.foo&quot; Thus, the following request is enabled
+   // because <font color="00AA00"><strong>INFO</strong></font> &gt;= <font color="0000AA"><strong>INFO</strong></font>.
+   LOG4CXX_INFO(barlogger. &quot;Located nearest gas station.&quot;);
+
+   // This request is disabled, because <font color="00AA00"><strong>DEBUG</strong></font> &lt; <font color="0000AA"><strong>INFO</strong></font>.
+   LOG4CXX_DEBUG(barlogger, &quot;Exiting gas station search&quot;);
+</pre></td>
+</tr>
+</table>
+</p>
+<p>Calling the <code>getLogger</code> method with the same name will
+always return a reference to the exact same logger object.</p>
+<p>For example, in
+
+<table class="bodyTable"><tr class="a"><td><pre>
+   log4cxx::LoggerPtr x = log4cxx::Logger::getLogger(&quot;wombat&quot;);
+   log4cxx::LoggerPtr y = log4cxx::Logger::getLogger(&quot;wombat&quot;);</pre></td>
+</tr>
+</table>
+<code>x</code> and <code>y</code> refer to <em>exactly</em> the same
+logger object.</p>
+<p>Thus, it is possible to configure a logger and then to retrieve
+the same instance somewhere else in the code without passing around
+references. In fundamental contradiction to biological parenthood,
+where parents always preceed their children, log4cxx loggers can be
+created and configured in any order. In particular, a &quot;parent&quot;
+logger will find and link to its descendants even if it is
+instantiated after them.</p>
+<p>Configuration of the log4cxx environment is typically done at
+application initialization. The preferred way is by reading a
+configuration file. This approach will be discussed shortly.</p>
+<p>Log4cxx makes it easy to name loggers by <em>software
+component</em>.  This can be accomplished by statically instantiating
+a logger in each class, with the logger name equal to the fully
+qualified name of the class. This is a useful and straightforward
+method of defining loggers. As the log output bears the name of the
+generating logger, this naming strategy makes it easy to identify
+the origin of a log message.  However, this is only one possible,
+albeit common, strategy for naming loggers. Log4cxx does not restrict
+the possible set of loggers. The developer is free to name the
+loggers as desired.</p>
+<p>Nevertheless, naming loggers after the class where they are
+located seems to be the best strategy known so far.</p>
+<h2>Appenders and Layouts</h2><p>The ability to selectively enable or disable logging requests based
+on their logger is only part of the picture. Log4cxx allows logging
+requests to print to multiple destinations. In log4cxx speak, an output
+destination is called an <em>appender</em>. Currently, appenders exist
+for the <a href="apidocs/classlog4cxx_1_1ConsoleAppender.html">console</a>
+, <a href="apidocs/classlog4cxx_1_1FileAppender.html">files</a>
+, GUI
+components, <a href="apidocs/classlog4cxx_1_1net_1_1SocketAppender.html">remote socket</a>
+
+servers,  <a href="apidocs/classlog4cxx_1_1nt_1_1NTEventLogAppender.html"> NT
+Event Loggers</a>
+, and remote UNIX <a href="apidocs/classlog4cxx_1_1net_1_1SyslogAppender.html">Syslog</a>
+
+daemons. It is also possible to log <a href="apidocs/classlog4cxx_1_1AsyncAppender.html">asynchronously</a>
+.</p>
+<p>More than one appender can be attached to a logger.</p>
+<p>The <a href="apidocs/classlog4cxx_1_1Logger.html#a3">addAppender</a>
+
+method adds an appender to a given logger.
+
+<b>Each enabled logging
+request for a given logger will be forwarded to all the appenders in
+that logger as well as the appenders higher in the hierarchy.</b>
+ In
+other words, appenders are inherited additively from the logger
+hierarchy. For example, if a console appender is added to the root
+logger, then all enabled logging requests will at least print on the
+console. If in addition a file appender is added to a logger, say
+<em>C</em>, then enabled logging requests for <em>C</em> and
+<em>C</em>'s children will print on a file <em>and</em> on the
+console. It is possible to override this default behavior so that
+appender accumulation is no longer additive by <a href="apidocs/classlog4cxx_1_1Logger.html#a46">setting
+the additivity flag</a>
+ to <code>false</code>.</p>
+<p>The rules governing appender additivity are summarized below.</p>
+<p><a name="additivity"></a>
+<table class="bodyTable"><tr class="b"><td><dl><dt><b>Appender Additivity</b>
+</dt>
+<dd>The output of a log statement of logger <i>C</i>
+ will
+	go to all the appenders in <i>C</i>
+ and its ancestors. This is
+	the meaning of the term &quot;appender additivity&quot;.<p>However, if an ancestor of logger <i>C</i>
+, say <i>P</i>
+,
+	has the additivity flag set to <code>false</code>, then
+	<i>C</i>
+'s output will be directed to all the appenders in
+	<i>C</i>
+ and it's ancestors upto and including <i>P</i>
+ but
+	not the appenders in any of the ancestors of <i>P</i>
+.</p>
+<p>Loggers have their additivity flag set to
+	<code>true</code> by default.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+</p>
+<p>The table below shows an example:</p>
+<p><table class="bodyTable"><tr class="a"><th>Logger<br />
+Name </th>
+<th>Added<br />
+Appenders</th>
+<th>Additivity<br />
+Flag</th>
+<th>Output Targets</th>
+<th>Comment</th>
+</tr>
+<tr class="b"><td>root    </td>
+<td>A1         </td>
+<td>not applicable </td>
+<td>A1</td>
+<td>The root logger is anonymous but can be accessed with the
+        log4cxx::Logger::getRootLogger() method. There is no default appender
+        attached to root.</td>
+</tr>
+<tr class="a"><td>x       </td>
+<td>A-x1, A-x2 </td>
+<td>true </td>
+<td>A1, A-x1, A-x2</td>
+<td>Appenders of &quot;x&quot; and root.</td>
+</tr>
+<tr class="b"><td>x.y     </td>
+<td>none       </td>
+<td>true </td>
+<td>A1, A-x1, A-x2</td>
+<td>Appenders of &quot;x&quot; and root.</td>
+</tr>
+<tr class="a"><td>x.y.z   </td>
+<td>A-xyz1     </td>
+<td>true </td>
+<td>A1, A-x1, A-x2, A-xyz1</td>
+<td>Appenders in &quot;x.y.z&quot;, &quot;x&quot; and root.</td>
+</tr>
+<tr class="b"><td>security        </td>
+<td>A-sec	   </td>
+<td><font color="blue">false</font></td>
+<td>A-sec</td>
+<td>No appender accumulation since the additivity flag is set to
+        <code>false</code>.</td>
+</tr>
+<tr class="a"><td>security.access </td>
+<td>none </td>
+<td> true </td>
+<td> A-sec </td>
+<td>Only
+    appenders of &quot;security&quot; because the additivity flag in &quot;security&quot; is
+    set to <code>false</code>.</td>
+</tr>
+</table>
+<p>More often than not, users wish to customize not only the output
+destination but also the output format. This is accomplished by
+associating a <em>layout</em> with an appender. The layout is
+responsible for formatting the logging request according to the user's
+wishes, whereas an appender takes care of sending the formatted output
+to its destination.</p>
+
+
+The <a href="apidocs/classlog4cxx_1_1PatternLayout.html">PatternLayout</a>
+, part
+of the standard log4cxx distribution, lets the user specify the output
+format according to conversion patterns similar to the C language
+<code>printf</code> function.</p>
+<p>For example, the PatternLayout with the conversion pattern &quot;%r [%t]
+%-5p %c - %m%n&quot; will output something akin to:<br />
+<pre>
+176 [main] INFO  org.foo.Bar - Located nearest gas station.
+</pre></p>
+<p>The first field is the number of milliseconds elapsed since the
+start of the program.  The second field is the thread making the log
+request.  The third field is the level of the log statement. The
+fourth field is the name of the logger associated with the log
+request. The text after the '-' is the message of the statement.</p>
+<h2>Configuration</h2><p>Inserting log requests into the application code requires a fair
+amount of planning and effort. Observation shows that approximately 4
+percent of code is dedicated to logging. Consequently, even moderately
+sized applications will have thousands of logging statements embedded
+within their code.  Given their number, it becomes imperative to
+manage these log statements without the need to modify them manually.</p>
+<p>The log4cxx environment is fully configurable programmatically.
+However, it is far more flexible to configure log4cxx using
+configuration files.  Currently, configuration files can be written in
+XML or in Java properties (key=value) format.</p>
+<p>Let us give a taste of how this is done with the help of an
+imaginary application <code>MyApp</code> that uses log4cxx.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+#include &quot;com/foo/bar.h&quot;
+using namespace com::foo;
+
+// include log4cxx header files.
+#include &quot;log4cxx/logger.h&quot;
+#include &quot;log4cxx/basicconfigurator.h&quot;
+#include &quot;log4cxx/helpers/exception.h&quot;
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+LoggerPtr logger(Logger::getLogger(&quot;MyApp&quot;));
+
+int main(int argc, char **argv)
+{
+        int result = EXIT_SUCCESS;
+        try
+        {
+                // Set up a simple configuration that logs on the console.
+                BasicConfigurator::configure();
+
+                LOG4CXX_INFO(logger, &quot;Entering application.&quot;);
+                Bar bar;
+                bar.doIt();
+                LOG4CXX_INFO(logger, &quot;Exiting application.&quot;);
+        }
+        catch(Exception&amp;)
+        {
+                result = EXIT_FAILURE;
+        }
+
+        return result;
+}
+</pre></td>
+</tr>
+</table>
+</p>
+<p><code>MyApp</code> begins by including log4cxx headers.  It
+then defines a static logger variable with the name
+<code>MyApp</code> which happens to be the fully qualified name of the
+class.</p>
+<p><code>MyApp</code> uses the <code>Bar</code> class defined in header
+file <code>com/foo/bar.h</code>.</p>
+<p><table class="bodyTable"><tr class="a"><td><pre>
+//  file com/foo/bar.h
+#include &quot;log4cxx/logger.h&quot;
+
+namespace com {
+   namespace foo {
+      class Bar {
+          static log4cxx::LoggerPtr logger;
+          
+      public:
+          void doIt();
+       }
+    }
+}
+</pre><pre>
+// file bar.cpp
+#include &quot;com/foo/bar.h&quot;
+
+using namespace com::foo;
+using namespace log4cxx;
+
+LoggerPtr Bar::logger(Logger::getLogger(&quot;com.foo.bar&quot;));
+
+void Bar::doIt() {
+   LOG4CXX_DEBUG(logger, &quot;Did it again!&quot;);
+}
+</pre></td>
+</tr>
+</table>
+</p>
+<p>The invocation of the <a href="apidocs/classlog4cxx_1_1BasicConfigurator.html#e0">BasicConfigurator::configure</a>
+
+method creates a rather simple log4cxx setup. This method is hardwired
+to add to the root logger a <a href="apidocs/classlog4cxx_1_1ConsoleAppender.html">
+ConsoleAppender</a>
+. The output will be formatted using a <a href="apidocs/classlog4cxx_1_1PatternLayout.html">PatternLayout</a>
+ set
+to the pattern &quot;%-4r [%t] %-5p %c %x - %m%n&quot;.</p>
+<p>Note that by default, the root logger is assigned to
+<code>Level::getDebug()</code>.</p>
+<p>The output of MyApp is:
+<pre>
+0    [12345] INFO  MyApp  - Entering application.
+36   [12345] DEBUG com.foo.Bar  - Did it again!
+51   [12345] INFO  MyApp  - Exiting application.
+</pre></p>
+<p>The previous example always outputs the same log information.
+Fortunately, it is easy to modify <code>MyApp</code> so that the log
+output can be controlled at run-time. Here is a slightly modified
+version.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+// file MyApp2.cpp
+
+#include &quot;com/foo/bar.h&quot;
+using namespace com::foo;
+
+// include log4cxx header files.
+#include &quot;log4cxx/logger.h&quot;
+#include &quot;log4cxx/basicconfigurator.h&quot;
+#include &quot;log4cxx/propertyconfigurator.h&quot;
+#include &quot;log4cxx/helpers/exception.h&quot;
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+// Define a static logger variable so that it references the
+// Logger instance named &quot;MyApp&quot;.
+LoggerPtr logger(Logger::getLogger(&quot;MyApp&quot;));
+
+int main(int argc, char **argv)
+{
+        int result = EXIT_SUCCESS;
+        try
+        {
+                if (argc &gt; 1)
+                {
+                        // BasicConfigurator replaced with PropertyConfigurator.
+                        PropertyConfigurator::configure(argv[1]);
+                }
+                else
+                {
+                        BasicConfigurator::configure();
+                }
+
+                LOG4CXX_INFO(logger, &quot;Entering application.&quot;);
+                Bar bar
+                bar.doIt();
+                LOG4CXX_INFO(logger, &quot;Exiting application.&quot;);
+        }
+        catch(Exception&amp;)
+        {
+                result = EXIT_FAILURE;
+        }
+
+        return result;
+}
+</pre></td>
+</tr>
+</table>
+<p>This version of <code>MyApp</code> instructs
+<code>PropertyConfigurator</code> to parse a configuration file and
+set up logging accordingly.</p>
+<p>Here is a sample configuration file that results in exactly same
+output as the previous <code>BasicConfigurator</code> based example.</p>
+<p><table class="bodyTable"><tr class="a"><td><pre>
+# Set root logger level to DEBUG and its only appender to A1.
+log4j.rootLogger=DEBUG, A1
+
+# A1 is set to be a ConsoleAppender.
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+
+# A1 uses PatternLayout.
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+</pre></td>
+</tr>
+</table>
+</p>
+<p>It can be noticed that the PropertyConfigurator file format is the same as log4j.</p>
+<p>Suppose we are no longer interested in seeing the output of any
+component belonging to the <code>com::foo</code> package. The following
+configuration file shows one possible way of achieving this.</p>
+<p><table class="bodyTable"><tr class="b"><td><pre>
+log4j.rootLogger=DEBUG, A1
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+
+# <strong>Print the date in ISO 8601 format</strong>
+log4j.appender.A1.layout.ConversionPattern=<strong>%d</strong> [%t] %-5p %c - %m%n
+
+# Print only messages of level WARN or above in the package com.foo.
+<strong>log4j.logger.com.foo=WARN</strong></pre></td>
+</tr>
+</table>
+</p>
+<p>The output of <code>MyApp</code> configured with this file is shown below.</p>
+<pre><strong>2000-09-07 14:07:41,508</strong> [12345] INFO  MyApp - Entering application.
+<strong>2000-09-07 14:07:41,529</strong> [12345] INFO  MyApp - Exiting application.
+</pre><p>As the logger <code>com.foo.Bar</code> does not have an assigned
+level, it inherits its level from <code>com.foo</code>, which
+was set to WARN in the configuration file. The log statement from the
+<code>Bar::doIt</code> method has the level DEBUG, lower than the
+logger level WARN. Consequently, <code>doIt()</code> method's log
+request is suppressed.</p>
+<p>Here is another configuration file that uses multiple appenders.</p>
+<p><table class="bodyTable"><tr class="a"><td><pre>
+log4j.rootLogger=debug, <strong>stdout, R</strong>
+
+log4j.appender.<strong>stdout</strong>=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+
+# Pattern to output the caller's file name and line number.
+log4j.appender.stdout.layout.ConversionPattern=%5p [%t] <strong>(%F:%L)</strong> - %m%n
+
+log4j.appender.<strong>R</strong>=org.apache.log4j.RollingFileAppender
+log4j.appender.R.File=example.log
+
+log4j.appender.R.MaxFileSize=<strong>100KB</strong>
+# Keep one backup file
+log4j.appender.R.MaxBackupIndex=1
+
+log4j.appender.R.layout=org.apache.log4j.PatternLayout
+log4j.appender.R.layout.ConversionPattern=%p %t %c - %m%n
+</pre></td>
+</tr>
+</table>
+</p>
+<p>Calling the enhanced MyApp with the this configuration file will
+output the following on the console.</p>
+<pre>
+ INFO [12345] <strong>(MyApp2.cpp:31)</strong> - Entering application.
+DEBUG [12345] (Bar.h:16) - Doing it again!
+ INFO [12345] (MyApp2.cpp:34) - Exiting application.
+</pre></p>
+<p>In addition, as the root logger has been allocated a second
+appender, output will also be directed to the <code>example.log</code>
+file. This file will be rolled over when it reaches 100KB. When
+roll-over occurs, the old version of <code>example.log</code> is
+automatically moved to <code>example.log.1</code>.</p>
+<p>Note that to obtain these different logging behaviors we did not
+need to recompile code. We could just as easily have logged to a UNIX
+Syslog daemon, redirected all <code>com.foo</code> output to an NT
+Event logger, or forwarded logging events to a remote log4cxx server,
+which would log according to local server policy, for example by
+forwarding the log event to a second log4cxx server.</p>
+<a name="defaultInit"></a>
+<h2>Default Initialization Procedure</h2><p>The log4cxx library does not make any assumptions about its
+environment. In particular, there are no default log4cxx
+appenders. Under certain well-defined circumstances however, the
+static inializer of the <code>Logger</code> class will attempt to
+automatically configure log4cxx.</p>
+<p>The exact default initialization algorithm is defined as follows:</p>
+<ol type="1"><li>Set the configurationOptionStr string variable to the value of the 
+  <b>LOG4CXX_CONFIGURATION</b>
+ environment variable if set, otherwise 
+  the value of the <b>log4j.configuration</b>
+ or <b>LOG4CXX_CONFIGURATION</b>
+
+  environment variable if set, 
+  otherwise the first of the following file names which exist in the 
+  current working directory, &quot;log4cxx.xml&quot;, &quot;log4cxx.properties&quot;, 
+  &quot;log4j.xml&quot; and &quot;log4j.properties&quot;. 
+  If configurationOptionStr has not been set, then disable logging.</li>
+<li>Unless a custom configurator is specified using the 
+  <b>LOG4CXX_CONFIGURATOR_CLASS</b>
+ or <b>log4j.configuratorClass</b>
+
+  environment variable, the PropertyConfigurator will be used to configure
+  log4cxx unless the file name ends with the &quot;.xml&quot; extension, 
+  in which case the DOMConfigurator will be used. 
+  If a custom configurator is specified, the environment variable 
+  should contain a fully qualified class name of a class that 
+  implements the Configurator interface.</li>
+</ol>
+<h2> Nested Diagnostic Contexts</h2><p>Most real-world systems have to deal with multiple clients
+simultaneously. In a typical multithreaded implementation of such a
+system, different threads will handle different clients. Logging is
+especially well suited to trace and debug complex distributed
+applications. A common approach to differentiate the logging output of
+one client from another is to instantiate a new separate logger for
+each client. This promotes the proliferation of loggers and
+increases the management overhead of logging.</p>
+<p>A lighter technique is to uniquely stamp each log request initiated
+from the same client interaction. Neil Harrison described this method
+in the book &quot;Patterns for Logging Diagnostic Messages,&quot; in <em>Pattern
+Languages of Program Design 3</em>, edited by R. Martin, D.  Riehle,
+and F. Buschmann (Addison-Wesley, 1997).</p>
+<p> To uniquely stamp each request, the
+user pushes contextual information into the NDC, the abbreviation of
+<em>Nested Diagnostic Context</em>. The NDC class is shown below.
+
+<pre>
+namespace log4cxx {
+  class NDC {
+  public:
+    //  pushes the value on construction and pops on destruction.
+    NDC(const std::string&amp; value);
+    NDC(const std::wstring&amp; value);
+
+    // Remove the top of the context from the NDC.
+    <strong>static</strong> LogString pop();
+
+    // Add diagnostic context for the current thread.
+    <strong>static</strong> void push(const std::string&amp; message);
+    <strong>static</strong> void push(const std::wstring&amp; message);
+  }
+</pre></p>
+<p>The NDC is managed per thread as a <em>stack</em> of contextual
+information. Note that all methods of the <code>log4cxx::NDC</code>
+class are static. Assuming that NDC printing is turned on, every time
+a log request is made, the appropriate log4cxx component will include
+the <em>entire</em> NDC stack for the current thread in the log
+output. This is done without the intervention of the user, who is
+responsible only for placing the correct information in the NDC by
+using the <code>push</code> and <code>pop</code> methods at a few
+well-defined points in the code.  In contrast, the per-client logger
+approach commands extensive changes in the code.</p>
+<p>To illustrate this point, let us take the example of a servlet
+delivering content to numerous clients. The servlet can build the NDC
+at the very beginning of the request before executing other code. The
+contextual information can be the client's host name and other
+information inherent to the request, typically information contained
+in cookies. Hence, even if the servlet is serving multiple clients
+simultaneously, the logs initiated by the same code, i.e. belonging to
+the same logger, can still be distinguished because each client
+request will have a different NDC stack. Contrast this with the
+complexity of passing a freshly instantiated logger to all code
+exercised during the client's request.</p>
+<p>Nevertheless, some sophisticated applications, such as virtual
+hosting web servers, must log differently depending on the virtual
+host context and also depending on the software component issuing the
+request. Recent log4cxx releases support multiple hierarchy trees. This
+enhancement allows each virtual host to possess its own copy of the
+logger hierarchy.</p>
+<a name="performance"></a>
+<h2>Performance</h2><p>One of the often-cited arguments against logging is its
+computational cost. This is a legitimate concern as even moderately
+sized applications can generate thousands of log requests.  Much
+effort was spent measuring and tweaking logging performance. Log4cxx
+claims to be fast and flexible: speed first, flexibility second.</p>
+<p>The user should be aware of the following performance issues.</p>
+<ol type="1"><li><b>Logging performance when logging is turned off.</b>
+<br />
+When logging is turned
+   off entirely or just for a set
+   of levels, the cost of a log request consists of a method
+   invocation plus an integer comparison.  The LOG4CXX_DEBUG and similar
+   macros suppress unnecessary expression evaluation if the
+   request is not enabled.</li>
+<li><b>The performance of deciding whether to log or not to log when
+       logging is turned on.</b>
+<br />
+This is essentially the performance of walking the logger
+   hierarchy. When logging is turned on, log4cxx still needs to compare
+       the level of the log request with the level of the request
+   logger. However, loggers may not have an assigned
+   level; they can inherit them from the logger hierarchy. Thus,
+   before inheriting a level, the logger may need to search its
+   ancestors.<p>There has been a serious effort to make this hierarchy walk to
+be as fast as possible. For example, child loggers link only to
+their existing ancestors. In the <code>BasicConfigurator</code>
+example shown earlier, the logger named <code>com.foo.Bar</code> is
+linked directly to the root logger, thereby circumventing the
+nonexistent <code>com</code> or <code>com.foo</code> loggers. This
+significantly improves the speed of the walk, especially in &quot;sparse&quot;
+hierarchies.</p>
+<p>The cost of walking the hierarchy is typically 3
+       times slower than when logging is turned off entirely.</p>
+</li>
+<li><b>Actually outputting log messages</b>
+<br />
+This is the cost of formatting the log output and sending it to
+   its target destination. Here again, a serious effort was made to
+   make layouts (formatters) perform as quickly as possible. The same
+   is true for appenders.</li>
+</ol>
+<h2>Conclusions</h2><p>Apache Log4cxx is a popular logging package written in C++.  One of its
+distinctive features is the notion of inheritance in loggers. Using
+a logger hierarchy it is possible to control which log statements
+are output at arbitrary granularity. This helps reduce the volume of
+logged output and minimize the cost of logging.</p>
+<p>One of the advantages of the log4cxx API is its manageability. Once
+the log statements have been inserted into the code, they can be
+controlled with configuration files. They can be selectively enabled
+or disabled, and sent to different and multiple output targets in
+user-chosen formats. The log4cxx package is designed so that log
+statements can remain in shipped code without incurring a heavy
+performance cost.</p>
+</div>
+
+      </div>
+    </div>
+    <div class="clear">
+      <hr/>
+    </div>
+    <div id="footer">
+      <div class="xright">&#169;  
+          2008
+    
+          Apache Software Foundation
+          
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+  </body>
+</html>

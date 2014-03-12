@@ -1,0 +1,313 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+<target name="find-apr-src" depends="init">
+    <condition property="apr.dir" value="${with-apr}">
+        <available file="${with-apr}"/>
+    </condition>
+	<condition property="apr.src.dir" value="${apr.dir}">
+		<available file="${apr.dir}/${apr.sample.c}"/>
+	</condition>
+	<condition property="apr.src.dir" value="../apr">
+		<available file="../apr/${apr.sample.c}"/>
+	</condition>
+</target>
+
+
+<target name="find-apr-lib" depends="find-apr-src" unless="force-ant">
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.la">
+	     <available file="${apr.dir}/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.dylib">
+	     <available file="${apr.dir}/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.so">
+	     <available file="${apr.dir}/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.a">
+	     <available file="${apr.dir}/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/${apr.lib.name}.lib">
+	     <available file="${apr.dir}/${apr.lib.name}.lib"/></condition>
+	<condition property="apr.lib.file.dir" value="${apr.dir}">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.la">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.dylib">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.so">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.a">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/${apr.lib.name}.lib">
+	     <available file="${apr.dir}/.libs/${apr.lib.name}.lib"/></condition>
+	<condition property="apr.lib.file.dir" value="${apr.dir}/.libs">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<!--  start looking at candidates  in /usr -->
+	<condition property="apr.lib.file"
+	     value="/usr/lib/lib${apr.lib.name}.la">
+	     <available file="/usr/lib/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/lib/lib${apr.lib.name}.dylib">
+	     <available file="/usr/lib/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/lib/lib${apr.lib.name}.so">
+	     <available file="/usr/lib/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/lib/lib${apr.lib.name}.a">
+	     <available file="/usr/lib/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.dir" value="/usr">
+		<isset property="apr.lib.file"/>
+	</condition>
+	<condition property="apr.lib.file.dir" value="/usr/lib">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<!--  start looking at candidates  in /usr/local -->
+	<condition property="apr.lib.file"
+	     value="/usr/local/lib/lib${apr.lib.name}.la">
+	     <available file="/usr/local/lib/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/local/lib/lib${apr.lib.name}.dylib">
+	     <available file="/usr/local/lib/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/local/lib/lib${apr.lib.name}.so">
+	     <available file="/usr/local/lib/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="/usr/local/lib/lib${apr.lib.name}.a">
+	     <available file="/usr/local/lib/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.dir" value="/usr/local">
+		<isset property="apr.lib.file"/>
+	</condition>
+	<condition property="apr.lib.file.dir" value="/usr/local/lib">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+
+    <property name="relative-apr" location="../apr"/>
+    <condition property="apr.dir" value="${relative-apr}">
+        <available file="${relative-apr}"/>
+    </condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.la">
+	     <available file="${apr.dir}/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.dylib">
+	     <available file="${apr.dir}/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.so">
+	     <available file="${apr.dir}/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/lib${apr.lib.name}.a">
+	     <available file="${apr.dir}/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/${apr.lib.name}.lib">
+	     <available file="${apr.dir}/${apr.lib.name}.lib"/></condition>
+	<condition property="apr.lib.file.dir" value="${apr.dir}">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.la">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.la"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.dylib">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.dylib"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.so">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.so"/></condition>
+	<condition property="apr.lib.file"
+	     value="${apr.dir}/.libs/lib${apr.lib.name}.a">
+	     <available file="${apr.dir}/.libs/lib${apr.lib.name}.a"/></condition>
+	<condition property="apr.lib.file.dir" value="${apr.dir}/.libs">
+		<isset property="apr.lib.file"/>
+	</condition>
+    <fail unless="apr.dir">Unable to locate apr base directory.</fail>
+    
+
+
+
+	<!--   Static debug libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="apr.lib.file"
+		value="${apr.dir}/LibD/${apr.lib.name}.lib">
+		<and>
+			<isset property="is-debug"/>
+			<available file="${apr.dir}/LibD/${apr.lib.name}.lib"/>
+		</and>
+	</condition>
+	<condition property="apr.lib.file.dir"
+		value="${apr.dir}/LibD">
+			<isset property="apr.lib.file"/>
+	</condition>
+
+
+
+
+	<!--   Shared debug libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="apr.lib.file"
+		value="${apr.dir}/Debug/lib${apr.lib.name}.lib">
+		<and>
+			<isset property="is-debug"/>
+			<available file="${apr.dir}/Debug/lib${apr.lib.name}.lib"/>
+		</and>
+	</condition>
+	<condition property="apr.lib.file.dir"
+		value="${apr.dir}/Debug">
+			<isset property="apr.lib.file"/>
+	</condition>
+
+
+
+	<!--   Static release libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="apr.lib.file"
+		value="${apr.dir}/LibR/${apr.lib.name}.lib">
+			<available file="${apr.dir}/LibR/${apr.lib.name}.lib"/>
+	</condition>
+	<condition property="apr.lib.file.dir"
+		value="${apr.dir}/LibR">
+			<isset property="apr.lib.file"/>
+	</condition>
+
+
+
+
+	<!--   Shared release libraries in APR's VC6 projects typical location   -->
+	<condition property="apr.lib.file"
+		value="${apr.dir}/Release/lib${apr.lib.name}.lib">
+			<available file="${apr.dir}/Release/lib${apr.lib.name}.lib"/>
+	</condition>
+	<condition property="apr.lib.file.dir"
+		value="${apr.dir}/Release">
+			<isset property="apr.lib.file"/>
+	</condition>
+
+
+
+	<condition property="apr.lib.dir" value="${apr.lib.file.dir}">
+		<and>
+			<isset property="apr.lib.file.dir"/>
+			<not>
+				<or>
+					<!--  default search path -->
+					<equals arg1="${apr.lib.file.dir}" arg2="/usr"/>
+				</or>
+			</not>
+		</and>
+	</condition>
+
+	<condition property="apr.lib.suffix" value="d">
+		<or>
+			<contains string="${apr.lib.file}" substring="/lib${apr.lib.name}d."/>
+			<contains string="${apr.lib.file}" substring="/${apr.lib.name}d."/>
+		</or>
+	</condition>
+	<condition property="apr.lib.suffix" value="D">
+		<or>
+			<contains string="${apr.lib.file}" substring="/lib${apr.lib.name}D."/>
+			<contains string="${apr.lib.file}" substring="/${apr.lib.name}D."/>
+		</or>
+	</condition>
+	<condition property="apr.lib.suffix" value="">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<condition property="apr.lib.prefix" value="lib">
+		<or>
+			<contains string="[${apr.lib.file}]" substring="/lib${apr.lib.name}.lib]"/>
+		</or>
+	</condition>
+	<condition property="apr.lib.prefix" value="">
+		<isset property="apr.lib.file"/>
+	</condition>
+
+	<condition property="apr.lib.type" value="shared">
+		<or>
+			<contains string="${apr.lib.file}]" 
+				substring=".dylib]" 
+				casesensitive="no"/>
+			<contains string="${apr.lib.file}]" 
+				substring=".so]" 
+				casesensitive="no"/>
+			<contains string="${apr.lib.file}]" 
+				substring=".la]" 
+				casesensitive="no"/>
+			<and>
+				<!--   if we have just a .lib, guess based on file size.
+				      Import libs should be much smaller.  -->
+				<contains string="${apr.lib.file}]" 
+					substring=".lib]" 
+					casesensitive="no"/>
+				<isfileselected file="${apr.lib.file}">
+					<size value="250000" when="less"/>
+				</isfileselected>
+			</and>
+		</or>
+	</condition>
+
+
+	<condition property="apr.lib.type" value="static">
+		<isset property="apr.lib.file"/>
+	</condition>
+</target>
+
+<target name="find-apr" depends="find-apr-lib">
+	<!--   use character ref to prevent directory name from
+	          being changed on global search and replacements -->
+    <condition property="apr.include.dir" value="${apr.dir}/include/ap&#x72;-1.0">
+        <available file="${apr.dir}/include/ap&#x72;-1.0/${apr.sample.h}"/>
+    </condition>
+    <condition property="apr.include.dir" value="${apr.dir}/include/ap&#x72;-1">
+        <available file="${apr.dir}/include/ap&#x72;-1/${apr.sample.h}"/>
+    </condition>
+    <condition property="apr.include.dir" value="${apr.dir}/include">
+        <available file="${apr.dir}/include/${apr.sample.h}"/>
+    </condition>
+    <condition property="apr.include.dir" value="${apr.dir}/../usr/include/ap&#x72;-1">
+        <available file="${apr.dir}/../usr/include/ap&#x72;-1/${apr.sample.h}"/>
+    </condition>
+    <condition property="apr.include.dir" value="${apr.src.dir}/include">
+        <available file="${apr.src.dir}/include/${apr.sample.h}"/>
+    </condition>
+
+	<condition property="apr.dir" value="${apr.src.dir}">
+		<isset property="apr.src.dir"/>
+	</condition>
+
+
+	<echo>apr-find:
+apr.dir=${apr.dir}
+apr.include.dir=${apr.include.dir}
+apr.src.dir=${apr.src.dir}
+apr.lib.file=${apr.lib.file}
+apr.lib.file.dir=${apr.lib.file.dir}
+apr.lib.dir=${apr.lib.dir}
+apr.lib.prefix=${apr.lib.prefix}
+apr.lib.suffix=${apr.lib.suffix}
+apr.lib.type=${apr.lib.type}
+</echo>
+</target>

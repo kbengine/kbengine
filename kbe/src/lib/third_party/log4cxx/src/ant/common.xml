@@ -1,0 +1,184 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+<property file="build.properties"/>
+<property name="debug" value="true"/>
+<property name="rtti" value="false"/>
+<property name="optimize" value="none"/>
+<property name="lib.type" value="shared"/>
+<property name="runtime" value="dynamic"/>
+
+<taskdef resource="cpptasks.tasks"/>
+<typedef resource="cpptasks.types"/>
+
+<target name="os-detect">
+        <condition property="os.family" value="mac">
+            <os family="mac"/>
+        </condition>
+        <condition property="os.family" value="windows">
+            <os family="windows"/>
+        </condition>
+        <property name="os.family" value="unix"/>
+        <condition property="is-mac" value="1">
+            <equals arg1="${os.family}" arg2="mac"/>
+        </condition>
+        <condition property="is-windows" value="1">
+            <equals arg1="${os.family}" arg2="windows"/>
+        </condition>
+        <condition property="is-unix" value="1">
+            <or>
+                <equals arg1="${os.family}" arg2="unix"/>
+                <equals arg1="${os.family}" arg2="mac"/>
+                <equals arg1="${os.family}" arg2="cygwin"/>
+            </or>
+        </condition>
+</target>
+
+
+<target name="win-init" depends="os-detect" if="is-windows">
+    <property name="compiler" value="msvc"/>
+
+    <condition property="is-bcc" value="true">
+        <or>
+           <equals arg1="${compiler}" arg2="bcc"/>
+        </or>
+    </condition>
+
+    <condition property="is-msvc" value="true">
+        <or>
+           <equals arg1="${compiler}" arg2="msvc"/>
+        </or>
+    </condition>
+
+    <condition property="is-mingw" value="true">
+        <or>
+            <equals arg1="${compiler}" arg2="gcc"/>
+            <equals arg1="${compiler}" arg2="g++"/>
+        </or>
+    </condition>
+</target>
+
+<target name="mac-init" depends="os-detect" if="is-mac">
+    <property name="project.type" value="xcode"/>
+</target>
+
+
+<target name="unix-init" depends="mac-init" if="is-unix">
+
+    <property name="compiler" value="gcc"/>
+
+    <condition property="has-expat" value="true">
+         <not><isset property="is-mac"/></not>
+    </condition>
+    <condition property="is-cygwin" value="true">
+        <os family="windows"/>
+    </condition>
+</target>
+
+
+<target name="common-init" depends="win-init, unix-init">
+        <available classname="net.sf.antcontrib.cpptasks.CCTask" property="cctask-available"/>
+        <fail unless="cctask-available">cpptasks required
+
+Use cpptasks 1.0b5 or later from
+http://ant-contrib.sourceforge.net.
+</fail>
+
+        <available classname="net.sf.antcontrib.cpptasks.ide.ProjectDef"
+            property="cctask-project-available"/>
+        <!-- fail unless="cctask-project-available">later version of cpptasks required
+
+Required features not present in cpptasks releases prior to Feb 2005</fail -->
+
+        <mkdir dir="${target.dir}"/>
+        <property name="projects.dir" value="${target.dir}"/>
+        <mkdir dir="${projects.dir}"/>
+
+        <condition property="is-gcc" value="true">
+            <or>
+               <equals arg1="${compiler}" arg2="gcc"/>
+               <equals arg1="${compiler}" arg2="g++"/>
+            </or>
+        </condition>
+
+         <condition property="pic-option" value="-fPIC">
+            <and>
+                     <isset property="is-gcc"/>
+                     <istrue value="${use-pic}"/>
+            </and>
+         </condition>
+
+
+        <condition property="is-debug" value="true">
+                <istrue value="${debug}"/>
+        </condition>
+
+        <condition property="debug.release" value="debug">
+            <isset property="is-debug"/>
+        </condition>
+        <property name="debug.release" value="release"/>
+
+
+        <condition property="D.debug" value="d">
+            <isset property="is-debug"/>
+        </condition>
+        <property name="D.debug" value=""/>
+
+        <condition property="D.R" value="d">
+            <isset property="is-debug"/>
+        </condition>
+        <property name="D.R" value="r"/>
+
+
+		<property name="lib-suffix" value=""/>
+
+        <condition property="is-static" value="1">
+              <equals arg1="${lib.type}" arg2="static"/>
+        </condition>
+        <condition property="is-shared" value="1">
+              <equals arg1="${lib.type}" arg2="shared"/>
+        </condition>
+
+        <property name="executable.dir" value="${target.dir}/${debug.release}/${lib.type}"/>
+
+        <property name="projectsOnly" value="false"/>
+        
+        <property name="apr.lib.name" value="apr-1"/>
+		<property name="apr.sample.h" value="apr_pools.h"/>
+		<property name="apr.sample.c" value="file_io/unix/dir.c"/>
+        <property name="apr-util.lib.name" value="aprutil-1"/>
+		<property name="apr-util.sample.h" value="apr_xml.h"/>
+		<property name="apr-util.sample.c" value="xml/apr_xml.c"/>
+        <property name="esmtp.lib.name" value="esmtp"/>
+		<property name="esmtp.sample.h" value="libesmtp.h"/>
+		<property name="esmtp.sample.c" value="smtp-api.c"/>
+</target>
+
+
+<target name="copy-if-changed-compare" unless="force-copy">
+    <condition property="force-copy" value="2">
+         <not><filesmatch file1="${tofile}" file2="${file}"/></not>
+    </condition>
+</target>
+
+<target name="copy-if-changed" depends="copy-if-changed-compare" if="force-copy">
+    <copy tofile="${tofile}" file="${file}" overwrite="true"/>
+</target>
+
+
+

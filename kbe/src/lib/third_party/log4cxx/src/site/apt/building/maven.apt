@@ -1,0 +1,95 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+ ------
+ Building Apache log4cxx with Apache Maven 2
+ ------
+ ------
+ ------
+
+
+Building Apache log4cxx with Apache Maven 2
+
+   {{{http://maven.apache.org}Apache Maven 2}} is used to generate the release assemblies and generate
+   product documentation.  It delegates to the {{{ant.html}Apache Ant build}} to build
+   and test log4cxx and can be used as an alternate front end to the Ant 
+   build process since it can automatically download and use ant-contrib,
+   cpptasks and log4j.
+   The Maven build, like the Ant build, can build APR and APR-Util from source.
+
+* Quick start:
+  
+  *Install {{{http://maven.apache.org}Apache Maven}} 2.0.8 or later.
+
+  *Install APR and APR-Util or place source in apr and apr-util directories in same parent directory
+      as log4cxx directory.
+
+        
+   Building and testing log4cxx on a Unix platform with packaged APR and APR-Util.  
+
++----+
+ sudo apt-get install libapr1.0-dev libaprutil1.0-dev doxygen
+ cd apache-log4cxx-0.10.0
+ export PATH=/home/myself/maven-2.0.8/bin:$PATH
+ mvn package
++----+  
+
+
+   Building and testing log4cxx on a Microsoft Windows with APR and APR-Util built from source.  
+
++----+
+ set PATH=\maven-2.0.8\bin;%PATH%
+ tar -xvzf apr-1.2.12.tar.gz
+ rename apr-1.2.12 apr
+ tar -xvzf apr-util-1.2.12.tar.gz
+ rename apr-util-1.2.12 apr-util
+ cd apache-log4cxx-0.10.0
+ mvn package
++----+  
+
+
+
+
+
+* Common Maven targets
+
+*--------------------------+---------------------------------------------------------------------------------------------+
+| compile                  | build log4cxx library.                                                                      |
+*--------------------------+---------------------------------------------------------------------------------------------+
+| package                  | build logcxx library and build and run unit tests and examples.                             |
+*--------------------------+---------------------------------------------------------------------------------------------+
+| site                     | Generate documentation and IDE project files, requires doxygen.                             |
+*--------------------------+---------------------------------------------------------------------------------------------+
+| site assembly:assembly   | Generate snapshot tarball and zip file.                                                     |
+*--------------------------+---------------------------------------------------------------------------------------------+
+| site-deploy              | Publish website to staging area on ASF subversion repository (requires credentials).        |
+*--------------------------+---------------------------------------------------------------------------------------------+
+| clean                    | Delete all generated files.                                                                 |
+*--------------------------+---------------------------------------------------------------------------------------------+
+
+   All build products will be placed in the target subdirectory.  
+
+   It is not possible to directly pass options to the Ant build, however the ant build will read
+   any build.properties file in the log4cxx directory.
+        
+   SMTP and ODBC options can depend on libraries that 
+   that have different licenses.
+   You should review the corresponding licenses and understand
+   the implications before redistribution.
+
+* Platform specific notes:
+
+  See the {{{ant.html}Apache Ant build}} for platform specific notes.  
+  
+   

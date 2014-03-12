@@ -1,0 +1,422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+
+
+
+
+
+
+
+
+
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+--><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>log4cxx - Building Apache log4cxx with Apache Ant</title>
+    <style type="text/css" media="all">
+      @import url("../css/maven-base.css");
+      @import url("../css/maven-theme.css");
+      @import url("../css/site.css");
+    </style>
+    <link rel="stylesheet" href="../css/print.css" type="text/css" media="print" />
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+      </head>
+  <body class="composite">
+    <div id="banner">
+                  <a href="http://logging.apache.org/" id="bannerLeft">
+    
+                                            <img src="../images/ls-logo.jpg" alt="" />
+    
+            </a>
+                    <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="breadcrumbs">
+          
+  
+
+  
+    
+  
+  
+    
+            <div class="xleft">
+        Last Published: 2008-03-31
+                          |   
+                <a href="http://www.apache.org/" class="externalLink">Apache</a>
+                &gt;
+      
+                <a href="http://logging.apache.org/" class="externalLink">Logging Services</a>
+                &gt;
+      
+                <a href="../">log4cxx</a>
+                          </div>
+            <div class="xright">      
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="leftColumn">
+      <div id="navcolumn">
+           
+  
+
+  
+    
+  
+  
+    
+                   <h5>Get log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../download.html">Download</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../changes-report.html">Changes</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../license.html">License</a>
+          </li>
+          </ul>
+              <h5>About log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../index.html">What is log4cxx?</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../apidocs/index.html">API Documentation</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../faq.html">FAQ</a>
+          </li>
+          </ul>
+              <h5>Community</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../mail-lists.html">Mailing Lists</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../issue-tracking.html">Issue Tracking</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://wiki.apache.org/logging-log4cxx" class="externalLink">Wiki</a>
+          </li>
+          </ul>
+              <h5>Development</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../source-repository.html">Repository</a>
+          </li>
+              
+          
+              
+      
+            
+            
+            
+      
+            
+      
+            
+      
+              
+            <li class="expanded">
+                    <a href="../">Building</a>
+                  <ul>
+                  
+    <li class="none">
+                    <a href="../building/autotools.html">autotools</a>
+          </li>
+                  
+    <li class="none">
+              <strong>Apache Ant</strong>
+        </li>
+                  
+    <li class="none">
+                    <a href="../building/maven.html">Apache Maven 2</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="../building/vstudio.html">Microsoft Visual Studio</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="../building/xcode.html">Apple Xcode</a>
+          </li>
+              </ul>
+        </li>
+          </ul>
+              <h5>Apache</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="http://www.apache.org" class="externalLink">Home</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/sponsorship.html" class="externalLink">Sponsorship</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/thanks.html" class="externalLink">Thanks</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apachecon.com" class="externalLink">Conferences</a>
+          </li>
+          </ul>
+                                           <a href="http://maven.apache.org/" title="Built by Maven" class="poweredBy">
+            <img alt="Built by Maven" src="../images/logos/maven-feather.png"></img>
+          </a>
+                       
+  
+
+  
+    
+  
+  
+    
+        </div>
+    </div>
+    <div id="bodyColumn">
+      <div id="contentBox">
+        <div class="section"><h2>Building Apache log4cxx with Apache Ant</h2>
+<p><a href="http://ant.apache.org" class="externalLink">Apache Ant</a>
+ with cpptasks from the <a href="http://ant-contrib.sourceforge.net" class="externalLink">Ant-Contrib</a>
+ project can be used to build log4cxx with supported compilers and is also used to generate the IDE project files included in the releases. The Apache Maven build which is used to generate the site documentation and release packaging delegates to this build. The Ant build can build APR and APR-Util if source is available.</p>
+<div class="section"><h3>Quick start:</h3>
+<ul><li>Install <a href="http://ant.apache.org" class="externalLink">Apache Ant</a>
+ 1.6.5 or later.</li>
+<li>Install cpptasks 1.0b5 or later from the <a href="http://ant-contrib.sourceforge.net" class="externalLink">Ant-Contrib Project</a>
+. ant-contribs 1.0b3 or later is needed for some less frequent build targets.</li>
+<li>Install APR and APR-Util or place source in apr and apr-util directories as a sibling to the log4cxx directory.</li>
+<li>Install gzip and zip (used for compression by RollingFileAppender) and sed (used to normalize output files for comparison in unit tests).</li>
+<li>Install log4j 1.2. Used in testing of SocketAppender. <p>Building and testing log4cxx on a Unix platform with packaged APR and APR-Util. </p>
+<div class="source"><pre>$ export CLASSPATH=~/cpptasks/cpptasks-1.0b5.jar
+$ cd apache-log4cxx-0.10.0
+$ ant</pre>
+</div>
+<p>Building and testing log4cxx on a Unix platform with APR and APR-Util built from source. </p>
+<div class="source"><pre>$ export CLASSPATH=~/cpptasks/cpptasks-1.0b5.jar
+$ tar -xvzf apr-1.2.12.tar.gz
+$ mv apr-1.2.12 apr
+$ tar -xvzf apr-util-1.2.12.tar.gz
+$ mv apr-util-1.2.12 apr-util
+$ cd apache-log4cxx-0.10.0
+$ ant</pre>
+</div>
+<p>Building and testing log4cxx on a Microsoft Windows with APR and APR-Util built from source. </p>
+<div class="source"><pre>set PATH=\apache-ant-1.7.0\bin;%PATH%
+set CLASSPATH=\cpptasks\cpptasks-1.0b5.jar
+tar -xvzf apr-1.2.12.tar.gz
+rename apr-1.2.12 apr
+tar -xvzf apr-util-1.2.12.tar.gz
+rename apr-util-1.2.12 apr-util
+cd apache-log4cxx-0.10.0
+ant -Dfind=false</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section"><h3>Common ant targets</h3>
+<table class="bodyTable"><tbody><tr class="a"><td align="left">build</td>
+<td align="left">build log4cxx library.</td>
+</tr>
+<tr class="b"><td align="left">check</td>
+<td align="left">build logcxx library and build and run unit tests and examples.</td>
+</tr>
+<tr class="a"><td align="left">clean</td>
+<td align="left">Delete all generated files.</td>
+</tr>
+<tr class="b"><td align="left">build-unittest</td>
+<td align="left">build log4cxx library and unit test.</td>
+</tr>
+<tr class="a"><td align="left">run-socketserver</td>
+<td align="left">Tests SocketAppender with Java-based receiver.</td>
+</tr>
+<tr class="b"><td align="left">build-projects-vc6</td>
+<td align="left">Build Microsoft Visual Studio 6 project files.</td>
+</tr>
+<tr class="a"><td align="left">build-projects-vc7</td>
+<td align="left">Build Microsoft Visual Studio .NET project files.</td>
+</tr>
+<tr class="b"><td align="left">build-projects-vc8</td>
+<td align="left">Build Microsoft Visual Studio 2005 project files.</td>
+</tr>
+<tr class="a"><td align="left">build-projects-vc9</td>
+<td align="left">Build Microsoft Visual Studio 2008 project files.</td>
+</tr>
+<tr class="b"><td align="left">build-projects-xcode</td>
+<td align="left">Build Apple Xcode project files.</td>
+</tr>
+</tbody>
+</table>
+<p>All build products will be placed in the target subdirectory. </p>
+<p>Project files should be generated after successfully building the library, however it is possible to generate Microsoft Visual Studio project files on other platforms. The project files will typically be missing references to the Platform SDK libraries. The Maven project modifies the generated project files for release preparation. Generation of Xcode projects from Microsoft Windows is not supported.</p>
+</div>
+<div class="section"><h3>ant options</h3>
+<table class="bodyTable"><tbody><tr class="a"><td align="left">-Dcompiler</td>
+<td align="left">Compiler, see cpptasks documentation for full list.</td>
+</tr>
+<tr class="b"><td align="left">-Ddebug</td>
+<td align="left">Build for debugging, yes (default), no.</td>
+</tr>
+<tr class="a"><td align="left">-Dfind</td>
+<td align="left">Attempt to locate compiled APR and APR-Util, yes (default), no.</td>
+</tr>
+<tr class="b"><td align="left">-Dwith-apr</td>
+<td align="left">path to non-default location for APR.</td>
+</tr>
+<tr class="a"><td align="left">-Dwith-apr-util</td>
+<td align="left">path to non-default location for APR-Util.</td>
+</tr>
+<tr class="b"><td align="left">-Denable-wchar_t</td>
+<td align="left">Enable wchar_t API methods, choice of yes (default), no.</td>
+</tr>
+<tr class="a"><td align="left">-Denable-unichar</td>
+<td align="left">Enable UniChar API methods, choice of yes, no (default).</td>
+</tr>
+<tr class="b"><td align="left">-Denable-cfstring</td>
+<td align="left">Enable CFString API methods, requires Mac OS/X CoreFoundation, choice of yes, no (default).</td>
+</tr>
+<tr class="a"><td align="left">-Dwith-logchar</td>
+<td align="left">Interal character representation, choice of utf-8 (default), wchar_t , unichar.</td>
+</tr>
+<tr class="b"><td align="left">-Dwith-charset</td>
+<td align="left">Exteral character encoding, choice of utf-8, iso-8859-1, usascii, ebcdic, auto (default).</td>
+</tr>
+<tr class="a"><td align="left">-Dwith-SMTP</td>
+<td align="left">SMTP implementation for SMTPAppender, choice of libesmtp, no (default).</td>
+</tr>
+<tr class="b"><td align="left">-Dwith-ODBC</td>
+<td align="left">OBDC implementation for ODBCAppender, choice of unixODBC, iODBC, Microsoft, no (default).</td>
+</tr>
+<tr class="a"><td align="left">-Dlog4j.jar</td>
+<td align="left">Path to log4j.jar for run-socketserver.</td>
+</tr>
+<tr class="b"><td align="left">-Dprojects.dir</td>
+<td align="left">Location for generated IDE projects.</td>
+</tr>
+<tr class="a"><td align="left">-Dlib.type</td>
+<td align="left">Library type to create, choice of shared (default), static.</td>
+</tr>
+<tr class="b"><td align="left">-Druntime</td>
+<td align="left">Type of C runtime library to use, choice of dynamic (default), static.</td>
+</tr>
+<tr class="a"><td align="left">-Doptimization</td>
+<td align="left">Optimization: none (default), size, minimal, speed, full, aggressive, extreme, unsafe.</td>
+</tr>
+<tr class="b"><td align="left">-p</td>
+<td align="left">Display available targets and quit.</td>
+</tr>
+</tbody>
+</table>
+<p>SMTP and ODBC options can depend on libraries that that have different licenses. You should review the corresponding licenses and understand the implications before redistribution.</p>
+<p>Combining -Dlib.type=shared and -Druntime=static is unsafe.</p>
+<p>Properties may also be placed in a build.properties file in the log4cxx directory.</p>
+</div>
+<div class="section"><h3>Platform specific notes:</h3>
+<ul><li>Microsoft Windows<p><a href="http://gnuwin32.sourceforge.net" class="externalLink">GnuWin32</a>
+ provides binary versions of sed, gzip and zip. Alternative, the bin directory of <a href="http://www.cygwin.com" class="externalLink">Cygwin</a>
+ may be placed on the path.</p>
+<p>If -Dwith-SMTP=libesmtp is specified, the build will attempt to build libesmtp from source, unfortunately libesmtp depends on poll.h and will not build.</p>
+<p>APR 1.2.12 has a known issue that will prevent compilation with Visual Studio 6 unless a later Platform SDK is installed. See APR bug <a href="http://issues.apache.org/bugzilla/show_bug.cgi?44327" class="externalLink">44327</a>
+. APR 1.2.11 and the corresponding APR-Util 1.2.10 will compile with Visual Studio 6. </p>
+</li>
+<li>Cygwin:<p>gcc 3.x does not provide wchar_t support which needs to be explicitly disabled. The Win32 path to the APR libraries need to be provided (CYGWIN_HOME/lib) if compiling against an installed APR and APR-Util.</p>
+<div class="source"><pre>$ cd apache-log4cxx-0.10.0
+$ ant -Dos.family=cygwin \
+   -Dwith-apr=/cygwin/lib \
+   -Dwith-apr-util=/cygwin/lib \
+   -Denable-wchar_t=0</pre>
+</div>
+</li>
+<li>MinGW:<div class="source"><pre>$ cd apache-log4cxx-0.10.0
+$ path c:\mingw\bin;%PATH%
+$ ant -Dcompiler=gcc -Dfind=false build-all
+$ cd src\test\resources
+$ set TOTO=wonderful
+$ set key1=value1
+$ set key2=value2
+$ ..\..\..\target\debug\shared\testsuite -v 
+$ ..\..\..\target\debug\shared\trivial
+$ ..\..\..\target\debug\shared\stream </pre>
+</div>
+<p>Running &quot;ant check&quot; was observed to fail with unexpected exceptions in streamtestcase and datetimedateformattestcase. See <a href="http://issues.apache.org/jira/browse/LOGCXX-244" class="externalLink">LOGCXX-244</a>
+.</p>
+</li>
+<li>Debian:<p>Apache APR, APR-Util, Ant and log4j and zip may be installed using:</p>
+<div class="source"><pre>$ sudo apt-get install libapr1.0-dev libaprutil1.0-dev \
+      ant ant-optional liblog4j1.2-java zip</pre>
+</div>
+</li>
+<li>Mac OS/X:<p>APR and APR-Util are provided by the platform in Mac OS/X 10.5 and iODBC in 10.4.</p>
+<p>Site generation requires &quot;doxygen&quot; command on path which can be provided by installing Doxygen.app and then setting the path like:</p>
+<div class="source"><pre>$ setenv PATH /Applications/Doxygen.app/Contents/Resources:$PATH</pre>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+      </div>
+    </div>
+    <div class="clear">
+      <hr/>
+    </div>
+    <div id="footer">
+      <div class="xright">&#169;  
+          2008
+    
+          Apache Software Foundation
+          
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+  </body>
+</html>

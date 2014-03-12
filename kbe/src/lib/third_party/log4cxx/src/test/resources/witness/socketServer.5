@@ -1,0 +1,31 @@
+TRACE some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 1
+TRACE some5 T5 MDC-TEST5 [main] root - Message 2
+DEBUG some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 3
+DEBUG some5 T5 MDC-TEST5 [main] root - Message 4
+ INFO some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 5
+ WARN some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 6
+FATAL some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 7
+DEBUG some5 T5 MDC-TEST5 [main] SocketServerTestCase - Message 8
+java.lang.Exception: Just testing
+	at org.apache.log4j.net.SocketServerTestCase.common(SocketServerTestCase.java:XXX)
+	at org.apache.log4j.net.SocketServerTestCase.test5(SocketServerTestCase.java:XXX)
+	at junit.framework.TestCase.runTest(TestCase.java:XXX)
+	at junit.framework.TestCase.runBare(TestCase.java:XXX)
+	at junit.framework.TestResult$1.protect(TestResult.java:XXX)
+	at junit.framework.TestResult.runProtected(TestResult.java:XXX)
+	at junit.framework.TestResult.run(TestResult.java:XXX)
+	at junit.framework.TestCase.run(TestCase.java:XXX)
+	at junit.framework.TestSuite.runTest(TestSuite.java:XXX)
+	at junit.framework.TestSuite.run(TestSuite.java:XXX)
+ERROR some5 T5 MDC-TEST5 [main] root - Message 9
+java.lang.Exception: Just testing
+	at org.apache.log4j.net.SocketServerTestCase.common(SocketServerTestCase.java:XXX)
+	at org.apache.log4j.net.SocketServerTestCase.test5(SocketServerTestCase.java:XXX)
+	at junit.framework.TestCase.runTest(TestCase.java:XXX)
+	at junit.framework.TestCase.runBare(TestCase.java:XXX)
+	at junit.framework.TestResult$1.protect(TestResult.java:XXX)
+	at junit.framework.TestResult.runProtected(TestResult.java:XXX)
+	at junit.framework.TestResult.run(TestResult.java:XXX)
+	at junit.framework.TestCase.run(TestCase.java:XXX)
+	at junit.framework.TestSuite.runTest(TestSuite.java:XXX)
+	at junit.framework.TestSuite.run(TestSuite.java:XXX)

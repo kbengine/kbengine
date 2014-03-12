@@ -1,0 +1,69 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<project name="log4cxx">
+  <bannerLeft>
+    <name>Logging Services</name>
+    <src>images/ls-logo.jpg</src>
+    <href>http://logging.apache.org/</href>
+  </bannerLeft>
+  <body>
+    <breadcrumbs>
+      <item name="Apache" href="http://www.apache.org/"/>
+      <item name="Logging Services" href="http://logging.apache.org/"/>
+      <item name="log4cxx" href="http://logging.apache.org:80/log4cxx/"/>
+    </breadcrumbs>
+  
+        <menu name="Get log4cxx">
+           <item name="Download" href="/download.html"/>
+           <item name="Changes" href="/changes-report.html"/>
+           <item name="License" href="/license.html"/>
+        </menu>
+
+	<menu name="About log4cxx">
+	   <item name="What is log4cxx?" href="/index.html"/>
+		<item name="API Documentation" href="/apidocs/index.html"/>
+	   <item name="FAQ" href="/faq.html"/>
+	</menu>
+
+        <menu name="Community">
+                <item name="Mailing Lists" href="/mail-lists.html"/>
+                <item name="Issue Tracking" href="/issue-tracking.html"/>
+                <item name="Wiki" href="http://wiki.apache.org/logging-log4cxx"/>
+        </menu>
+        
+        <menu name="Development">
+                <item name="Repository" href="/source-repository.html"/>
+        
+    <item name="Building">
+        <item name="autotools" href="/building/autotools.html"/>
+        <item name="Apache Ant" href="/building/ant.html"/>
+        <item name="Apache Maven 2" href="/building/maven.html"/>
+        <item name="Microsoft Visual Studio" href="/building/vstudio.html"/>
+        <item name="Apple Xcode" href="/building/xcode.html"/>
+    </item>
+    </menu>
+
+	<menu name="Apache">
+		<item name="Home" href="http://www.apache.org"/>	
+		<item name="Sponsorship" href="http://www.apache.org/foundation/sponsorship.html"/>
+		<item name="Thanks" href="http://www.apache.org/foundation/thanks.html"/>
+		<item name="Conferences" href="http://www.apachecon.com"/>
+	</menu>
+
+  </body>
+</project>
