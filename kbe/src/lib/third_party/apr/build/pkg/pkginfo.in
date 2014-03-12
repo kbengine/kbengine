@@ -1,0 +1,11 @@
+PKG="ASFapr-1"
+NAME="apr"
+ARCH="@target_cpu@"
+VERSION="@APR_DOTTED_VERSION@"
+CATEGORY="application"
+VENDOR="Apache Software Foundation"
+EMAIL="dev@apr.apache.org"
+PSTAMP="dev@apr.apache.org"
+BASEDIR="@prefix@"
+CLASSES="none"
+

@@ -1,0 +1,20 @@
+The script in this directory will attempt to build a Solaris package
+out of a source tree for APR.
+
+To build a package, make sure you are in the root of the source tree,
+and run:
+
+build/pkg/buildpkg.sh
+
+A Solaris package called apr-<version>-<architecture>-local.gz will be
+created in the root of the source tree.
+
+By default, if you attempt to build packages for apr-util, it will
+search for the sources for apr in:
+
+../apr
+
+You may override the location of apr like so:
+
+build/pkg/buildpkg.sh --with-apr=some/other/path
+

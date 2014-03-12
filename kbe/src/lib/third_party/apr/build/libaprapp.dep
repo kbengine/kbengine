@@ -1,0 +1,63 @@
+# Microsoft Developer Studio Generated Dependency File, included by libaprapp.mak
+
+..\misc\win32\apr_app.c : \
+	"..\include\apr.h"\
+	"..\include\apr_allocator.h"\
+	"..\include\apr_dso.h"\
+	"..\include\apr_errno.h"\
+	"..\include\apr_file_info.h"\
+	"..\include\apr_file_io.h"\
+	"..\include\apr_general.h"\
+	"..\include\apr_getopt.h"\
+	"..\include\apr_global_mutex.h"\
+	"..\include\apr_inherit.h"\
+	"..\include\apr_lib.h"\
+	"..\include\apr_network_io.h"\
+	"..\include\apr_poll.h"\
+	"..\include\apr_pools.h"\
+	"..\include\apr_portable.h"\
+	"..\include\apr_proc_mutex.h"\
+	"..\include\apr_shm.h"\
+	"..\include\apr_tables.h"\
+	"..\include\apr_thread_mutex.h"\
+	"..\include\apr_thread_proc.h"\
+	"..\include\apr_time.h"\
+	"..\include\apr_user.h"\
+	"..\include\apr_want.h"\
+	"..\include\arch\apr_private_common.h"\
+	"..\include\arch\win32\apr_arch_file_io.h"\
+	"..\include\arch\win32\apr_arch_misc.h"\
+	"..\include\arch\win32\apr_arch_utf8.h"\
+	"..\include\arch\win32\apr_private.h"\
+	
+
+..\misc\win32\internal.c : \
+	"..\include\apr.h"\
+	"..\include\apr_allocator.h"\
+	"..\include\apr_dso.h"\
+	"..\include\apr_errno.h"\
+	"..\include\apr_file_info.h"\
+	"..\include\apr_file_io.h"\
+	"..\include\apr_general.h"\
+	"..\include\apr_getopt.h"\
+	"..\include\apr_global_mutex.h"\
+	"..\include\apr_inherit.h"\
+	"..\include\apr_lib.h"\
+	"..\include\apr_network_io.h"\
+	"..\include\apr_poll.h"\
+	"..\include\apr_pools.h"\
+	"..\include\apr_portable.h"\
+	"..\include\apr_proc_mutex.h"\
+	"..\include\apr_shm.h"\
+	"..\include\apr_tables.h"\
+	"..\include\apr_thread_mutex.h"\
+	"..\include\apr_thread_proc.h"\
+	"..\include\apr_time.h"\
+	"..\include\apr_user.h"\
+	"..\include\apr_want.h"\
+	"..\include\arch\apr_private_common.h"\
+	"..\include\arch\win32\apr_arch_file_io.h"\
+	"..\include\arch\win32\apr_arch_misc.h"\
+	"..\include\arch\win32\apr_arch_utf8.h"\
+	"..\include\arch\win32\apr_private.h"\
+	

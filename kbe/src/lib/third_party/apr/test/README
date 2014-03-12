@@ -1,0 +1,332 @@
+Writing APR tests
+
+All APR tests should be executable in 2 ways, as an individual program, or
+as a part of the full test suite.  The full test suite is controlled with
+the testall program.  At the beginning of the testall.c file, there is an
+array of functions called tests.  The testall program loops through this 
+array calling each function.  Each function returns a CuSuite variable, which
+is then added to the SuiteList.  Once all Suites have been added, the SuiteList
+is executed, and the output is printed to the screen.  All functions in the
+array should follow the same basic format:
+
+The Full Suite
+--------------
+
+/* The driver function.  This must return a CuSuite variable, which will
+ * then be used to actually run the tests.  Essentially, all Suites are a
+ * collection of tests.  The driver will take each Suite, and put it in a
+ * SuiteList, which is a collection of Suites.
+ */
+CuSuite *testtime(void)
+{
+    /* The actual suite, this must be created for each test program.  Please
+     * give it a useful name, that will inform the user of the feature being
+     * tested.
+     */
+    CuSuite *suite = CuSuiteNew("Test Time");
+
+    /* Each function must be added to the suite.  Each function represents
+     * a single test.  It is possible to test multiple features in a single
+     * function, although no tests currently do that.
+     */
+    SUITE_ADD_TEST(suite, test_now);
+    SUITE_ADD_TEST(suite, test_gmtstr);
+    SUITE_ADD_TEST(suite, test_localstr);
+    SUITE_ADD_TEST(suite, test_exp_get_gmt);
+    SUITE_ADD_TEST(suite, test_exp_get_lt);
+    SUITE_ADD_TEST(suite, test_imp_gmt);
+    SUITE_ADD_TEST(suite, test_rfcstr);
+    SUITE_ADD_TEST(suite, test_ctime);
+    SUITE_ADD_TEST(suite, test_strftime);
+    SUITE_ADD_TEST(suite, test_strftimesmall);
+    SUITE_ADD_TEST(suite, test_exp_tz);
+    SUITE_ADD_TEST(suite, test_strftimeoffset);
+
+    /* You must return the suite so that the driver knows which suites to
+     * run.
+     */
+    return suite;
+}
+
+Building the full driver
+------------------------
+
+All you need to do to build the full driver is run:
+
+    make
+
+To run it, run:
+
+    ./testall
+
+Running individual tests
+------------------------
+
+It is not possible to build individual tests, however it is possible to
+run individual tests.  When running the test suite, specify the name of the
+tests that you want to run on the command line.  For example:
+
+	./testall teststr testrand
+
+Will run the Strings and Random generator tests.
+
+Reading the test suite output
+-----------------------------
+
+Once you run the test suite, you will get output like:
+
+All APR Tests:
+    Test Strings:       ....
+    Test Time:  ............
+
+16 tests run:  16 passed, 0 failed, 0 not implemented.
+
+Known test failures are documented in ../STATUS.
+
+There are a couple of things to look at with this.  First, if you look at the
+first function in this document, you should notice that the string passed to
+the CuSuiteNew function is in the output.  That is why the string should
+explain the feature you are testing.
+
+Second, this test passed completely.  This is obvious in two ways.  First, and
+most obvious, the summary line tells you that 16 tests were run and 16 tests
+passed.  However, the results can also be found in the lines above.  Every
+'.' in the output represents a passed test.
+
+If a test fails, the output will look like:
+
+All APR Tests:
+    Test Strings:       ....
+    Test Time:  ..F.........
+
+16 tests run:  15 passed, 1 failed, 0 not implemented.
+
+This is not very useful, because you don't know which test failed.  However,
+once you know that a test failed, you can run the suite again, with the
+-v option.  If you do this, you will get something like:
+
+All APR Tests:
+    Test Strings:       ....
+    Test Time:  ..F.........
+
+16 tests run:  15 passed, 1 failed, 0 not implemented.
+Failed tests:
+1) test_localstr: assert failed
+
+In this case, we know the test_localstr function failed, and there is an
+Assert in this that failed (I modified the test to fail for this document).
+Now, you can look at what that test does, and why it would have failed.
+
+There is one other possible output for the test suite (run with -v):
+
+All APR Tests:
+    Test Strings:       ....
+    Test Time:  ..N.........
+
+16 tests run:  15 passed, 0 failed, 1 not implemented.
+
+Not Implemented tests:
+
+Not Implemented tests:
+1) test_localstr: apr_time_exp_lt not implemented on this platform
+
+The 'N' means that a function has returned APR_ENOTIMPL.  This should be 
+treated as an error, and the function should be implemented as soon as
+possible.
+
+Adding New test Suites to the full driver
+-------------------------------------------
+
+To add a new Suite to the full driver, you must make a couple of modifications.
+
+1)  Edit test_apr.h, and add the prototype for the function.
+2)  Edit testall.c, and add the function and name to the tests array.
+3)  Edit Makefile.in, and add the .lo file to the testall target.
+
+Once those four things are done, your tests will automatically be added
+to the suite.
+
+Writting an ABTS unit test
+--------------------------
+
+The aim of this quick and dirty Howto is to give a short introduction
+to APR (Apache Portable Runtime) unit tests, and how to write
+one. During my Google's Summer of Code 2005 project, I discovered a
+small bug in the APR-Util's date parsing routines, and I needed to
+write a unit test for the fixed code. I decided to write this
+documentation because I did not find any. Thanks to Garrett Rooney for
+his help on writing the unit test !
+
+The APR and APR-Util libraries provide a platform independent API for
+software developers. They contain a lot of modules, including network
+programming, threads, string and memory management, etc. All these
+functions need to be heavily tested so that developers can be sure the
+library is reliable.
+
+The ABTS give APR developers the ability to build a complete test
+suite for the bunch of tests they wrote, which can then be ran under
+various platforms. In this Howto, I will try teach you how to write an
+ABTS unit test.
+
+As you may probably know, a unit test is a simple routine which tests
+a very specific feature of the tested software or library. To build a
+unit test, you need three different things :
+
+ * the to-be-tested function,
+ * the input data that will be given to the function,
+ * the expected output data.
+
+The principle of a unit test is very simple : for each entry in your
+set of input data, we pass it to our function, fetch what the function
+returned and compare it to the corresponding expected output data. Of
+course, the more edge cases you can test, the better your input data
+set is.
+
+The ABTS aims to quicken the write of unit test, and make them
+available to the whole test suite by providing a set of preprocessor
+macros. Adding a unit test to a test suite can be easily done by the
+following piece of code :
+
+abts_suite *testdaterfc(abts_suite *suite)
+{
+    suite = ADD_SUITE(suite);
+    abts_run_test(suite, test_date_rfc, NULL);
+
+    return suite;
+}
+
+Where test_date_rfc is the name of the function performing the
+test. Writing such a function is, in the light of the explanation I
+just gave, pretty much easy too. As I said, we need to check every
+entry of our input data set. That gives us a loop. For each loop
+iteration, we call our to-be-tested function, grab its result and
+compare the returned value with the expected one.
+
+Test functions must have the following prototype :
+
+static void my_test_function(abts_case *tc, void *data);
+
+The comparison step is performed by the ABTS, thus giving the
+whole test suite the correct behavior if your unit test fails. Here
+comes a list of the available test methods :
+
+ABTS_INT_EQUAL(tc, a, b)
+ABTS_INT_NEQUAL(tc, a, b)
+ABTS_STR_EQUAL(tc, a, b)
+ABTS_STR_NEQUAL(tc, a, b, c)
+ABTS_PTR_NOTNULL(tc, b)
+ABTS_PTR_EQUAL(tc, a, b)
+ABTS_TRUE(tc, b)
+ABTS_FAIL(tc, b)
+ABTS_NOT_IMPL(tc, b)
+ABTS_ASSERT(tc, a, b)
+
+The first argument, tc is a reference to the unit test currently
+processed by the test suite (passed to your test function). The other
+parameters are the data to be tested. For example, the following line
+will never make your unit test fail :
+
+ABTS_INT_EQUAL(tc, 1, 1);
+
+See, it's easy ! Let's take a look at the complete example :
+testdaterfc. We want to test our date string parser. For this, we will
+use some chosen date strings (from mail headers for example) written
+in various formats but that should all be handled by our function, and
+their equivalents in correct RFC822 format.
+
+The function we want to test returns an apr_time_t}, which will be
+directly given as input to the apr_rfc822_date() function, thus
+producing the corresponding RFC822 date string. All we need to do
+after this is to call the correct test method from the ABTS macros !
+
+You can take a look at the apr-util/test/testdaterfc.c file for the
+complete source code of this unit test.
+
+Although this Howto is very small and mostly dedicated to the
+testdaterfc unit test, I hope you'll find it useful. Good luck !
+
+Writing tests for CuTest (no longer used)
+-----------------------------------------
+
+There are a couple of rules for writing good tests for the test suite.
+
+1)  All tests can determine for themselves if it passed or not.  This means
+that there is no reason for the person running the test suite to interpret
+the results of the tests.
+2)  Never use printf to add to the output of the test suite.  The suite
+library should be able to print all of the information required to debug
+a problem.
+3)  Functions should be tested with both positive and negative tests.  This
+means that you should test things that should both succeed and fail.
+4)  Just checking the return code does _NOT_ make a useful test.  You must
+check to determine that the test actually did what you expected it to do.
+
+An example test
+---------------
+
+Finally, we will look at a quick test:
+
+/* All tests are passed a CuTest variable.  This is how the suite determines
+ * if the test succeeded or failed.
+ */
+static void test_localstr(CuTest *tc)
+{
+    apr_status_t rv;
+    apr_time_exp_t xt;
+    time_t os_now;
+
+    rv = apr_time_exp_lt(&xt, now);
+    os_now = now / APR_USEC_PER_SEC;
+   
+    /* If the function can return APR_ENOTIMPL, then you should check for it.
+     * This allows platform implementors to know if they have to implement
+     * the function.
+     */
+    if (rv == APR_ENOTIMPL) {
+        CuNotImpl(tc, "apr_time_exp_lt");
+    }
+
+    /* It often helps to ensure that the return code was APR_SUCESS.  If it
+     * wasn't, then we know the test failed.
+     */
+    CuAssertTrue(tc, rv == APR_SUCCESS);
+
+    /* Now that we know APR thinks it worked properly, we need to check the
+     * output to ensure that we got what we expected.
+     */
+    CuAssertStrEquals(tc, "2002-08-14 12:05:36.186711 -25200 [257 Sat] DST",
+                      print_time(p, &xt));
+}
+
+Notice, the same test can fail for any of a number of reasons.  The first 
+test to fail ends the test.
+
+CuTest
+------
+
+CuTest is an open source test suite written by Asim Jalis.  It has been 
+released under the zlib/libpng license.  That license can be found in the
+CuTest.c and CuTest.h files.
+
+The version of CuTest that is included in the APR test suite has been modified
+from the original distribution in the following ways:
+
+1)  The original distribution does not have a -v flag, the details are always
+printed.
+2)  The NotImplemented result does not exist.
+3)  SuiteLists do not exist.  In the original distribution, you can add suites
+to suites, but it just adds the tests in the first suite to the list of tests
+in the original suite.  The output wasn't as detailed as I wanted, so I created
+SuiteLists.
+
+The first two modifications have been sent to the original author of CuTest,
+but they have not been integrated into the base distribution.  The SuiteList
+changes will be sent to the original author soon.
+
+The modified version of CuTest is not currently in any CVS or Subversion
+server.  In time, it will be hosted at rkbloom.net.
+
+There are currently no docs for how to write tests, but the teststr and 
+testtime programs should give an idea of how it is done.  In time, a document
+should be written to define how tests are written.
+
