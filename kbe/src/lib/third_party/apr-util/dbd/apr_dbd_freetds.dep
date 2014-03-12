@@ -1,0 +1,13 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_dbd_freetds.mak
+
+.\apr_dbd_freetds.c : \
+	"..\include\apr_dbd.h"\
+	"..\include\apu.h"\
+	"..\include\private\apr_dbd_internal.h"\
+	"..\include\private\apu_config.h"\
+	
+
+..\libaprutil.rc : \
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	
