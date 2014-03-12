@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="LibR\aprutil-1.lib"
+				OutputFile="..\..\..\libs\aprutil-1.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\libs\aprutil-1_d.lib"
+				OutputFile="..\..\..\libs\aprutil-1_d.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
