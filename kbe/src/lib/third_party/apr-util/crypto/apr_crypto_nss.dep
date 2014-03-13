@@ -1,0 +1,15 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_crypto_nss.mak
+
+.\apr_crypto_nss.c : \
+	"..\include\apr_buckets.h"\
+	"..\include\apr_crypto.h"\
+	"..\include\apu.h"\
+	"..\include\apu_errno.h"\
+	"..\include\private\apr_crypto_internal.h"\
+	"..\include\private\apu_config.h"\
+	
+
+..\libaprutil.rc : \
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	

@@ -1,0 +1,37 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+NONPORTABLE = \
+	testregex@EXEEXT@
+
+PROGRAMS = \
+
+TARGETS = $(PROGRAMS) $(NONPORTABLE)
+
+# bring in rules.mk for standard functionality
+@INCLUDE_RULES@
+
+LOCAL_LIBS=../../lib@APR_LIBNAME@.la
+
+CLEAN_TARGETS = testregex@EXEEXT@
+
+INCDIR=../../include
+INCLUDES=-I$(INCDIR)
+
+CFLAGS=$(MY_CFLAGS)
+
+all: $(PROGRAMS) $(NONPORTABLE)
+
+check: $(PROGRAMS) $(NONPORTABLE)
+	for prog in $(PROGRAMS) $(NONPORTABLE); do \
+		./$$prog; \
+		if test $$i = 255; then \
+			echo "$$prog failed"; \
+			break; \
+		fi \
+	done
+
+testregex@EXEEXT@: testregex.lo $(LOCAL_LIBS)
+	$(LINK) testregex.lo $(LOCAL_LIBS) $(ALL_LIBS)
+
+# DO NOT REMOVE

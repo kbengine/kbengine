@@ -1,0 +1,91 @@
+#
+# Declare the sub-directories to be built here
+#
+
+SUBDIRS = \
+	$(EOLIST) 
+
+#
+# Get the 'head' of the build environment.  This includes default targets and
+# paths to tools
+#
+
+include $(APR_WORK)/build/NWGNUhead.inc
+
+#
+# build this level's files
+
+FILES_prebuild_headers = \
+	$(APR)/include/apr.h \
+	$(APU)/include/apu.h \
+	$(APU)/include/apu_want.h \
+	$(APU)/include/apr_ldap.h \
+	$(APU)/include/private/apu_config.h \
+	$(APU)/include/private/apu_select_dbm.h \
+	$(APUXML)/expat/lib/expat_config.h \
+	$(EOLIST) 
+    
+nlms :: $(APR)/aprlib.imp
+
+$(APR)/aprlib.imp : make_nw_export.awk nw_export.i
+	@echo $(DL)GEN  $@$(DL)
+	$(AWK) -v EXPPREFIX=APR$(VERSION_MAJMIN) -f $^ >$@
+    
+nw_export.i : nw_export.inc $(APU)/build/nw_apu_export.inc $(FILES_prebuild_headers) cc.opt
+	@echo $(DL)GEN  $@$(DL)
+	$(CC) $< @cc.opt
+
+cc.opt : NWGNUmakefile $(APR_WORK)/build/NWGNUenvironment.inc $(APR_WORK)/build/NWGNUhead.inc $(APRBUILD)/NWGNUtail.inc $(CUSTOM_INI)
+	@echo $(DL)-P$(DL)> $@
+	@echo $(DL)-EP$(DL)>> $@
+	@echo $(DL)-nosyspath$(DL)>> $@
+	@echo $(DL)-w nocmdline$(DL)>> $@
+	@echo $(DL)$(DEFINES) -DGENEXPORTS$(DL)>> $@
+	@echo $(DL)-I$(APR)/include$(DL)>> $@
+	@echo $(DL)-I$(APR)/include/arch/netware$(DL)>> $@
+	@echo $(DL)-I$(APR)/include/arch/unix$(DL)>> $@
+	@echo $(DL)-I$(APU)/include$(DL)>> $@
+	@echo $(DL)-I$(APU)/include/private$(DL)>> $@
+	@echo $(DL)-I$(APU)/build$(DL)>> $@
+	@echo $(DL)-ir $(NOVELLLIBC)$(DL)>> $@
+ifneq "$(LDAPSDK)" ""
+	@echo $(DL)-ir $(LDAPSDK)$(DL)>> $@
+endif
+
+
+ifndef WITH_LDAP
+WITH_LDAP = $(shell $(AWK) '/^\#define APR_HAS_LDAP /{print $$3}' $(APU)/include/apr_ldap.hnw)
+endif
+
+$(APU)/include/apr_ldap.h: $(APR)/build/nw_make_header.awk $(APU)/include/apr_ldap.hnw
+	@echo $(DL)Creating $@$(DL)
+	$(AWK) -v WITH_LDAP=$(WITH_LDAP) -f $^ >$@
+
+%.h: %.hnw
+	@echo $(DL)Creating $@$(DL)
+	$(call COPY,$<,$@)
+
+%.h: %.hw
+	@echo $(DL)Creating $@$(DL)
+	$(call COPY,$<,$@)
+
+#
+# You can use this target if all that is needed is to copy files to the
+# installation area
+#
+install :: nlms FORCE
+
+clean ::
+	$(call DEL,nw_export.i)
+	$(call DEL,cc.opt)
+	$(call DEL,NWGNUversion.inc)
+	$(call DEL,$(APR)/aprlib.imp)
+	$(foreach file,$(FILES_prebuild_headers),$(call DEL,$(file)))
+
+#
+# Include the 'tail' makefile that has targets that depend on variables defined
+# in this makefile
+#
+
+include $(APRBUILD)/NWGNUtail.inc
+    

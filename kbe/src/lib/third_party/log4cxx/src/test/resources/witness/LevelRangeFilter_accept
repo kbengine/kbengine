@@ -1,0 +1,46 @@
+DEBUG - pass 0; no min or max set
+INFO - pass 0; no min or max set
+WARN - pass 0; no min or max set
+ERROR - pass 0; no min or max set
+FATAL - pass 0; no min or max set
+WARN - pass 1; min set to WARN, max not set
+ERROR - pass 1; min set to WARN, max not set
+FATAL - pass 1; min set to WARN, max not set
+DEBUG - pass 2; min not set, max set to WARN
+INFO - pass 2; min not set, max set to WARN
+WARN - pass 2; min not set, max set to WARN
+DEBUG - pass 3; filter set to accept between DEBUG and FATAL msgs
+INFO - pass 3; filter set to accept between DEBUG and FATAL msgs
+WARN - pass 3; filter set to accept between DEBUG and FATAL msgs
+ERROR - pass 3; filter set to accept between DEBUG and FATAL msgs
+FATAL - pass 3; filter set to accept between DEBUG and FATAL msgs
+DEBUG - pass 4; filter set to accept between DEBUG and ERROR msgs
+INFO - pass 4; filter set to accept between DEBUG and ERROR msgs
+WARN - pass 4; filter set to accept between DEBUG and ERROR msgs
+ERROR - pass 4; filter set to accept between DEBUG and ERROR msgs
+DEBUG - pass 5; filter set to accept between DEBUG and WARN msgs
+INFO - pass 5; filter set to accept between DEBUG and WARN msgs
+WARN - pass 5; filter set to accept between DEBUG and WARN msgs
+DEBUG - pass 6; filter set to accept between DEBUG and INFO msgs
+INFO - pass 6; filter set to accept between DEBUG and INFO msgs
+DEBUG - pass 7; filter set to accept between DEBUG and DEBUG msgs
+INFO - pass 8; filter set to accept between INFO and FATAL msgs
+WARN - pass 8; filter set to accept between INFO and FATAL msgs
+ERROR - pass 8; filter set to accept between INFO and FATAL msgs
+FATAL - pass 8; filter set to accept between INFO and FATAL msgs
+INFO - pass 9; filter set to accept between INFO and ERROR msgs
+WARN - pass 9; filter set to accept between INFO and ERROR msgs
+ERROR - pass 9; filter set to accept between INFO and ERROR msgs
+INFO - pass 10; filter set to accept between INFO and WARN msgs
+WARN - pass 10; filter set to accept between INFO and WARN msgs
+INFO - pass 11; filter set to accept between INFO and INFO msgs
+WARN - pass 13; filter set to accept between WARN and FATAL msgs
+ERROR - pass 13; filter set to accept between WARN and FATAL msgs
+FATAL - pass 13; filter set to accept between WARN and FATAL msgs
+WARN - pass 14; filter set to accept between WARN and ERROR msgs
+ERROR - pass 14; filter set to accept between WARN and ERROR msgs
+WARN - pass 15; filter set to accept between WARN and WARN msgs
+ERROR - pass 18; filter set to accept between ERROR and FATAL msgs
+FATAL - pass 18; filter set to accept between ERROR and FATAL msgs
+ERROR - pass 19; filter set to accept between ERROR and ERROR msgs
+FATAL - pass 23; filter set to accept between FATAL and FATAL msgs

@@ -1,0 +1,15 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_dbm_db.mak
+
+.\apr_dbm_berkeleydb.c : \
+	"..\include\apr_dbm.h"\
+	"..\include\apu.h"\
+	"..\include\apu_want.h"\
+	"..\include\private\apr_dbm_private.h"\
+	"..\include\private\apu_config.h"\
+	"..\include\private\apu_select_dbm.h"\
+	
+
+..\libaprutil.rc : \
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	

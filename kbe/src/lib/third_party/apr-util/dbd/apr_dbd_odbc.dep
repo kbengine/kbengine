@@ -1,0 +1,11 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_dbd_odbc.mak
+
+.\apr_dbd_odbc.c : \
+	"..\include\apr_buckets.h"\
+	"..\include\apr_dbd.h"\
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	"..\include\private\apr_dbd_internal.h"\
+	"..\include\private\apr_dbd_odbc_v2.h"\
+	"..\include\private\apu_config.h"\
+	

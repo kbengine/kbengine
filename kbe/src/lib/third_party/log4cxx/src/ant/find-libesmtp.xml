@@ -1,0 +1,313 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+<target name="find-esmtp-src" depends="init">
+    <condition property="esmtp.dir" value="${with-libesmtp}">
+        <available file="${with-libesmtp}"/>
+    </condition>
+	<condition property="esmtp.src.dir" value="${esmtp.dir}">
+		<available file="${esmtp.dir}/${esmtp.sample.c}"/>
+	</condition>
+	<condition property="esmtp.src.dir" value="../libesmtp">
+		<available file="../libesmtp/${esmtp.sample.c}"/>
+	</condition>
+</target>
+
+
+<target name="find-esmtp-lib" depends="find-esmtp-src" if="has-libesmtp" unless="force-ant">
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.la">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.dylib">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.so">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.a">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/${esmtp.lib.name}.lib">
+	     <available file="${esmtp.dir}/${esmtp.lib.name}.lib"/></condition>
+	<condition property="esmtp.lib.file.dir" value="${esmtp.dir}">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.la">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.dylib">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.so">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.a">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/${esmtp.lib.name}.lib">
+	     <available file="${esmtp.dir}/.libs/${esmtp.lib.name}.lib"/></condition>
+	<condition property="esmtp.lib.file.dir" value="${esmtp.dir}/.libs">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<!--  start looking at candidates  in /usr -->
+	<condition property="esmtp.lib.file" 
+	     value="/usr/lib/lib${esmtp.lib.name}.la">
+	     <available file="/usr/lib/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/lib/lib${esmtp.lib.name}.dylib">
+	     <available file="/usr/lib/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/lib/lib${esmtp.lib.name}.so">
+	     <available file="/usr/lib/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/lib/lib${esmtp.lib.name}.a">
+	     <available file="/usr/lib/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.dir" value="/usr">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+	<condition property="esmtp.lib.file.dir" value="/usr/lib">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<!--  start looking at candidates  in /usr/local -->
+	<condition property="esmtp.lib.file" 
+	     value="/usr/local/lib/lib${esmtp.lib.name}.la">
+	     <available file="/usr/local/lib/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/local/lib/lib${esmtp.lib.name}.dylib">
+	     <available file="/usr/local/lib/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/local/lib/lib${esmtp.lib.name}.so">
+	     <available file="/usr/local/lib/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="/usr/local/lib/lib${esmtp.lib.name}.a">
+	     <available file="/usr/local/lib/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.dir" value="/usr/local">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+	<condition property="esmtp.lib.file.dir" value="/usr/local/lib">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+
+    <property name="relative-esmtp" location="../libesmtp"/>
+    <condition property="esmtp.dir" value="${relative-esmtp}">
+        <available file="${relative-esmtp}"/>
+    </condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.la">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.dylib">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.so">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/lib${esmtp.lib.name}.a">
+	     <available file="${esmtp.dir}/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/${esmtp.lib.name}.lib">
+	     <available file="${esmtp.dir}/${esmtp.lib.name}.lib"/></condition>
+	<condition property="esmtp.lib.file.dir" value="${esmtp.dir}">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.la">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.la"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.dylib">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.dylib"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.so">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.so"/></condition>
+	<condition property="esmtp.lib.file" 
+	     value="${esmtp.dir}/.libs/lib${esmtp.lib.name}.a">
+	     <available file="${esmtp.dir}/.libs/lib${esmtp.lib.name}.a"/></condition>
+	<condition property="esmtp.lib.file.dir" value="${esmtp.dir}/.libs">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+    <fail unless="esmtp.dir">Unable to locate esmtp base directory.</fail>
+    
+
+
+
+	<!--   Static debug libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="esmtp.lib.file"
+		value="${esmtp.dir}/LibD/${esmtp.lib.name}.lib">
+		<and>
+			<isset property="is-debug"/>
+			<available file="${esmtp.dir}/LibD/${esmtp.lib.name}.lib"/>
+		</and>
+	</condition>
+	<condition property="esmtp.lib.file.dir"
+		value="${esmtp.dir}/LibD">
+			<isset property="esmtp.lib.file"/>
+	</condition>
+
+
+
+
+	<!--   Shared debug libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="esmtp.lib.file"
+		value="${esmtp.dir}/Debug/lib${esmtp.lib.name}.lib">
+		<and>
+			<isset property="is-debug"/>
+			<available file="${esmtp.dir}/Debug/lib${esmtp.lib.name}.lib"/>
+		</and>
+	</condition>
+	<condition property="esmtp.lib.file.dir"
+		value="${esmtp.dir}/Debug">
+			<isset property="esmtp.lib.file"/>
+	</condition>
+
+
+
+	<!--   Static release libraries in APR's VC6 projects typical location (ignored unless debug build)   -->
+	<condition property="esmtp.lib.file"
+		value="${esmtp.dir}/LibR/${esmtp.lib.name}.lib">
+			<available file="${esmtp.dir}/LibR/${esmtp.lib.name}.lib"/>
+	</condition>
+	<condition property="esmtp.lib.file.dir"
+		value="${esmtp.dir}/LibR">
+			<isset property="esmtp.lib.file"/>
+	</condition>
+
+
+
+
+	<!--   Shared release libraries in APR's VC6 projects typical location   -->
+	<condition property="esmtp.lib.file"
+		value="${esmtp.dir}/Release/lib${esmtp.lib.name}.lib">
+			<available file="${esmtp.dir}/Release/lib${esmtp.lib.name}.lib"/>
+	</condition>
+	<condition property="esmtp.lib.file.dir"
+		value="${esmtp.dir}/Release">
+			<isset property="esmtp.lib.file"/>
+	</condition>
+
+
+
+	<condition property="esmtp.lib.dir" value="${esmtp.lib.file.dir}">
+		<and>
+			<isset property="esmtp.lib.file.dir"/>
+			<not>
+				<or>
+					<!--  default search path -->
+					<equals arg1="${esmtp.lib.file.dir}" arg2="/usr"/>
+				</or>
+			</not>
+		</and>
+	</condition>
+
+	<condition property="esmtp.lib.suffix" value="d">
+		<or>
+			<contains string="${esmtp.lib.file}" substring="/lib${esmtp.lib.name}d."/>
+			<contains string="${esmtp.lib.file}" substring="/${esmtp.lib.name}d."/>
+		</or>
+	</condition>
+	<condition property="esmtp.lib.suffix" value="D">
+		<or>
+			<contains string="${esmtp.lib.file}" substring="/lib${esmtp.lib.name}D."/>
+			<contains string="${esmtp.lib.file}" substring="/${esmtp.lib.name}D."/>
+		</or>
+	</condition>
+	<condition property="esmtp.lib.suffix" value="">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<condition property="esmtp.lib.prefix" value="lib">
+		<or>
+			<contains string="[${esmtp.lib.file}]" substring="/lib${esmtp.lib.name}.lib]"/>
+		</or>
+	</condition>
+	<condition property="esmtp.lib.prefix" value="">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+
+	<condition property="esmtp.lib.type" value="shared">
+		<or>
+			<contains string="${esmtp.lib.file}]" 
+				substring=".dylib]" 
+				casesensitive="no"/>
+			<contains string="${esmtp.lib.file}]" 
+				substring=".so]" 
+				casesensitive="no"/>
+			<contains string="${esmtp.lib.file}]" 
+				substring=".la]" 
+				casesensitive="no"/>
+			<and>
+				<!--   if we have just a .lib, guess based on file size.
+				      Import libs should be much smaller.  -->
+				<contains string="${esmtp.lib.file}]" 
+					substring=".lib]" 
+					casesensitive="no"/>
+				<isfileselected file="${esmtp.lib.file}">
+					<size value="250000" when="less"/>
+				</isfileselected>
+			</and>
+		</or>
+	</condition>
+
+
+	<condition property="esmtp.lib.type" value="static">
+		<isset property="esmtp.lib.file"/>
+	</condition>
+</target>
+
+<target name="find-esmtp" depends="find-esmtp-lib">
+	<!--   use character ref to prevent directory name from
+	          being changed on global search and replacements -->
+    <condition property="esmtp.include.dir" value="${esmtp.dir}/include">
+        <available file="${esmtp.dir}/include/${esmtp.sample.h}"/>
+    </condition>
+    <condition property="esmtp.include.dir" value="${esmtp.dir}">
+        <available file="${esmtp.dir}/${esmtp.sample.h}"/>
+    </condition>
+    <condition property="esmtp.include.dir" value="${esmtp.dir}/../usr/include">
+        <available file="${esmtp.dir}/../usr/include/${esmtp.sample.h}"/>
+    </condition>
+    <condition property="esmtp.include.dir" value="${esmtp.src.dir}/include">
+        <available file="${esmtp.src.dir}/include/${esmtp.sample.h}"/>
+    </condition>
+    <condition property="esmtp.include.dir" value="${esmtp.src.dir}">
+        <available file="${esmtp.src.dir}/include/${esmtp.sample.h}"/>
+    </condition>
+
+	<condition property="esmtp.dir" value="${esmtp.src.dir}">
+		<isset property="esmtp.src.dir"/>
+	</condition>
+
+
+	<echo>esmtp-find:
+esmtp.dir=${esmtp.dir}
+esmtp.include.dir=${esmtp.include.dir}
+esmtp.src.dir=${esmtp.src.dir}
+esmtp.lib.file=${esmtp.lib.file}
+esmtp.lib.file.dir=${esmtp.lib.file.dir}
+esmtp.lib.dir=${esmtp.lib.dir}
+esmtp.lib.prefix=${esmtp.lib.prefix}
+esmtp.lib.suffix=${esmtp.lib.suffix}
+esmtp.lib.type=${esmtp.lib.type}
+</echo>
+</target>

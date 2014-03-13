@@ -1,0 +1,10 @@
+DEBUG [main] log4j.PatternLayoutTest: Message 0
+DEBUG [main] root: Message 0
+INFO  [main] log4j.PatternLayoutTest: Message 1
+INFO  [main] root: Message 1
+WARN  [main] log4j.PatternLayoutTest: Message 2
+WARN  [main] root: Message 2
+ERROR [main] log4j.PatternLayoutTest: Message 3
+ERROR [main] root: Message 3
+FATAL [main] log4j.PatternLayoutTest: Message 4
+FATAL [main] root: Message 4

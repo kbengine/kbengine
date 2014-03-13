@@ -1,0 +1,498 @@
+<?xml version="1.0"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<!DOCTYPE project [
+<!ENTITY common SYSTEM 'common.xml'>
+<!ENTITY license '
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+'>
+]>
+<!--
+
+This file builds APR using Apache Ant (http://ant.apache.org)
+and the C++ compilation tasks from http://ant-contrib.sourceforge.net.
+
+
+-->
+<project name="apr" default="check">
+
+&common;
+
+<property name="src.dir" location="${basedir}"/>
+<property name="include.dir" location="${src.dir}/include"/>
+<property name="test.dir" location="${src.dir}/test"/>
+<property name="target.dir" location="${basedir}/target"/>
+<property name="lib.name" value="apr-1"/>
+<property name="lib.prefix" value=""/>
+
+<target name="usage" description="Displays usage notes on build">
+        <echo>
+        </echo>
+</target>
+
+<target name="clean" description="Removes build product files">
+        <delete dir="${target.dir}"/>
+</target>
+
+<target name="win-configure" if="is-windows">
+    <copy file="${include.dir}/apr.hw" tofile="${include.dir}/apr.tmp" overwrite="true"/>
+    <replaceregexp file="${include.dir}/apr.tmp"
+         match="typedef *int *uid_t;" replace="/* typedef int uid_t */"/>  
+    <replaceregexp file="${include.dir}/apr.tmp"
+         match="typedef *int *gid_t;" replace="/* typedef int gid_t */"/>  
+    <antcall target="copy-if-changed">
+        <param name="file" value="${include.dir}/apr.tmp"/>
+        <param name="tofile" value="${include.dir}/apr.h"/>
+    </antcall>
+</target>
+
+
+<target name="check-configure" if="is-unix">
+    <condition property="force-configure" value="1">
+        <not><available file="${include.dir}/apr.h"/></not>
+    </condition>
+</target>
+
+<target name="unix-configure" depends="check-configure" if="force-configure">
+         <!--  shelling to configure allows cygwin to work  -->
+        <exec executable="sh" dir="${src.dir}">
+            <arg value="./configure"/>
+        </exec>
+</target>
+
+
+<target name="init" depends="common-init">
+    <condition property="arch" value="win32">
+        <isset property="is-windows"/>
+    </condition>
+    <property name="arch" value="unix"/>
+</target>
+
+<target name="configure" depends="init, unix-configure, win-configure"/>
+
+
+
+<target name="build" depends="configure" description="Build library">
+    <mkdir dir="${executable.dir}/apr-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/${lib.prefix}${lib.name}${lib.suffix}"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"
+        outtype="${lib.type}"
+        objdir="${executable.dir}/apr-ofiles"
+        outputfileproperty="apr-1.dll"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <!--  suppressing misc/win32/rand.c since it needs to include rpc.h  -->
+        <fileset dir="${src.dir}" includes="**/${arch}/*.c" excludes="**/apr_app.c misc/win32/rand.c"/>
+        <fileset dir="${src.dir}" includes="**/${arch}/apr_app.c" if="is-static"/>
+        <fileset dir="${src.dir}/file_io/unix"
+            includes="copy.c fileacc.c filepath_util.c fullrw.c mktemp.c tempdir.c"/>
+        <fileset dir="${src.dir}/memory/unix" includes="*.c"/>
+        <fileset dir="${src.dir}/misc/unix"
+            includes="errorcodes.c getopt.c otherchild.c version.c"/>
+        <fileset dir="${src.dir}/mmap/unix" includes="common.c"/>
+        <fileset dir="${src.dir}/network_io/unix"
+            includes="inet_ntop.c inet_pton.c sockaddr.c"/>
+        <fileset dir="${src.dir}/poll/unix" includes="select.c"/>
+        <fileset dir="${src.dir}/random/unix" includes="*.c"/>
+        <fileset dir="${src.dir}/strings" includes="*.c"/>
+        <fileset dir="${src.dir}/tables" includes="*.c"/>
+        <fileset dir="${include.dir}" includes="*.h"/>
+        <fileset dir="${include.dir}/arch" includes="*.h"/>
+        <fileset dir="${include.dir}/arch/${arch}" includes="*.h"/>
+        <fileset dir="${include.dir}/arch/unix" includes="*.h"/>
+        <fileset dir="${src.dir}/support/unix" includes="waitio.c"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${include.dir}/arch"/>
+        <includepath path="${include.dir}/arch/${arch}"/>
+        <includepath path="${include.dir}/arch/unix"/>
+        <defineset define="APR_DECLARE_EXPORT" if="is-shared"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-shared"/>
+        <defineset if="is-windows">
+            <define name="WIN32" value="1"/>
+        </defineset>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <defineset define="HAVE_CONFIG_H DARWIN SIGPROCMASK_SETS_THREAD_MASK" if="is-mac"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset libs="advapi32 ws2_32 mswsock rpcrt4" if="is-windows"/>
+        <libset libs="pthread dl" if="is-unix"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <project type="${project.type}" outfile="${projects.dir}/apr" if="project.if">
+			<comment>&license;</comment>
+		</project>
+
+    </cc>
+    <property name="apr.lib.dir" location="${executable.dir}"/>
+</target>
+
+<target name="build-test">
+    <mkdir dir="${executable.dir}/apr-test-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/${test}"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"
+        outtype="executable"
+        objdir="${executable.dir}/apr-test-ofiles"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${test.dir}" includes="${testfiles}"/>
+        <includepath path="${include.dir}"/>
+        <defineset if="is-windows">
+            <define name="WIN32" value="1"/>
+        </defineset>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-shared"/>
+        <defineset define="HAVE_CONFIG_H DARWIN SIGPROCMASK_SETS_THREAD_MASK" if="is-mac"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset dir="${apr.lib.dir}" libs="${lib.prefix}${lib.name}${lib.suffix}"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <libset libs="pthread dl" if="is-unix"/>
+        <libset libs="advapi32 ws2_32 mswsock rpcrt4" if="is-windows"/>
+        <project type="${project.type}" outfile="${projects.dir}/${test}" if="project.if">
+			<comment>&license;</comment>
+			<dependency file="${projects.dir}/apr"/>
+		</project>
+    </cc>
+</target>
+
+<target name="run-test">
+    <exec executable="${apr.lib.dir}/${test}"
+          dir="${apr.lib.dir}"
+          failonerror="true">
+        <env key="DYLD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+        <env key="LD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+    </exec>
+</target>
+
+
+<target name="build-testlockperf" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testlockperf"/>
+        <param name="testfiles" value="testlockperf.c"/>
+    </antcall>
+</target>
+
+<target name="run-testlockperf" depends="build-testlockperf">
+    <antcall target="run-test">
+        <param name="test" value="testlockperf"/>
+    </antcall>
+</target>
+
+<target name="build-testshmproducer" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testshmproducer"/>
+        <param name="testfiles" value="testshmproducer.c"/>
+    </antcall>
+</target>
+
+<target name="build-testshmconsumer" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testshmconsumer"/>
+        <param name="testfiles" value="testshmconsumer.c"/>
+    </antcall>
+</target>
+
+
+<target name="build-testmutexscope" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="testmutexscope"/>
+        <param name="testfiles" value="testmutexscope.c"/>
+    </antcall>
+</target>
+
+<target name="run-testmutexscope" depends="build-testmutexscope">
+    <antcall target="run-test">
+        <param name="test" value="testmutexscope"/>
+    </antcall>
+</target>
+
+<target name="build-occhild" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="occhild"/>
+        <param name="testfiles" value="occhild.c"/>
+    </antcall>
+</target>
+
+<target name="build-sockchild" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="sockchild"/>
+        <param name="testfiles" value="sockchild.c"/>
+    </antcall>
+</target>
+
+
+<target name="build-readchild" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="readchild"/>
+        <param name="testfiles" value="readchild.c"/>
+    </antcall>
+</target>
+
+
+<target name="build-globalmutexchild" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="globalmutexchild"/>
+        <param name="testfiles" value="globalmutexchild.c"/>
+    </antcall>
+</target>
+
+<target name="build-tryread" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="tryread"/>
+        <param name="testfiles" value="tryread.c"/>
+    </antcall>
+</target>
+
+<target name="build-proc_child" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="proc_child"/>
+        <param name="testfiles" value="proc_child.c"/>
+    </antcall>
+</target>
+
+
+<target name="build-sendfile" depends="build">
+    <antcall target="build-test">
+        <param name="test" value="sendfile"/>
+        <param name="testfiles" value="sendfile.c"/>
+    </antcall>
+</target>
+
+
+<target name="build-mod_test" depends="build">
+    <mkdir dir="${executable.dir}/test-ofiles"/>
+    <mkdir dir="${executable.dir}/.libs"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/.libs/mod_test"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"
+        outtype="shared"
+        objdir="${executable.dir}/test-ofiles"
+        outputfileproperty="libmod_test.so"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${test.dir}" includes="mod_test.c"/>
+        <includepath path="${include.dir}"/>
+        <defineset if="is-windows">
+            <define name="WIN32" value="1"/>
+        </defineset>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-shared"/>
+        <defineset define="HAVE_CONFIG_H DARWIN SIGPROCMASK_SETS_THREAD_MASK" if="is-mac"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset dir="${apr.lib.dir}" libs="${lib.prefix}${lib.name}${lib.suffix}"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <libset libs="advapi32 ws2_32 mswsock rpcrt4" if="is-windows"/>
+        <project type="${project.type}" outfile="${projects.dir}/mod_test" if="project.if">
+			<comment>&license;</comment>
+			<dependency file="${projects.dir}/apr-1"/>
+		</project>
+
+    </cc>
+    <copy file="${libmod_test.so}" tofile="${executable.dir}/.libs/mod_test.so"/>
+</target>
+
+
+<target name="build-testall" depends="build">
+    <mkdir dir="${executable.dir}/test-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+	<property name="project.type" value="msvc6"/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/testall"
+        subsystem="console"
+        multithreaded="true"
+        runtime="${runtime}"        
+        outtype="executable"
+        objdir="${executable.dir}/test-ofiles"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${test.dir}" includes="*.c">
+            <exclude name="nw_misc.c"/>
+            <exclude name="testlockperf.c"/>
+            <exclude name="occhild.c"/>
+            <exclude name="sockchild.c"/>
+            <exclude name="sockperf.c"/>
+            <exclude name="echod.c"/>
+            <exclude name="mockchild.c"/>
+            <exclude name="readchild.c"/>
+            <exclude name="globalmutexchild.c"/>
+            <exclude name="tryread.c"/>
+            <exclude name="proc_child.c"/>
+            <exclude name="sendfile.c"/>
+            <exclude name="testshmproducer.c"/>
+            <exclude name="testshmconsumer.c"/>
+            <exclude name="testmutexscope.c"/>
+            <exclude name="testapp.c"/>
+        </fileset>
+        <includepath path="${include.dir}"/>
+        <defineset if="is-windows">
+            <define name="WIN32" value="1"/>
+        </defineset>
+        <defineset define="_HAVE_CONFIG_H _REENTRANT _GNU_SOURCE" if="is-gcc"/>
+        <defineset define="APR_DECLARE_STATIC" unless="is-shared"/>
+        <defineset define="HAVE_CONFIG_H DARWIN SIGPROCMASK_SETS_THREAD_MASK" if="is-mac"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset dir="${apr.lib.dir}" libs="${lib.prefix}${lib.name}${lib.suffix}"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <libset libs="pthread dl" if="is-unix"/>
+        <libset libs="advapi32 ws2_32 mswsock rpcrt4" if="is-windows"/>
+        <project type="${project.type}" outfile="${projects.dir}/testall" if="project.if">
+			<comment>&license;</comment>
+			<dependency file="${projects.dir}/apr-1"/>
+		</project>
+    </cc>
+</target>
+
+<target name="run-testall" depends="build-testall, build-mod_test, build-tryread, build-readchild, build-globalmutexchild, build-occhild, build-proc_child, build-testshmconsumer, build-testshmproducer, build-sockchild">
+    <mkdir dir="${executable.dir}/data"/>
+    <copy todir="${executable.dir}/data">
+        <fileset dir="${test.dir}/data" includes="*"/>
+    </copy>
+    <exec executable="${executable.dir}/testall"
+          dir="${executable.dir}"
+          failonerror="true">
+        <env key="DYLD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${executable.dir}/.libs:${env.DYLD_LIBRARY_PATH}"/>
+        <env key="LD_LIBRARY_PATH"
+           value="${apr.lib.dir}:${executable.dir}/.libs:${env.LD_LIBRARY_PATH}"/>
+    </exec>
+</target>
+
+
+
+<target name="build-check"
+     depends="build-testlockperf,
+              build-testshmproducer,
+              build-testshmconsumer,
+              build-testmutexscope,
+              build-testall"
+     description="Builds all test applications"/>
+
+<target name="check"
+      depends="run-testlockperf,
+               run-testall"
+      description="Runs all test applications">
+</target>
+
+<target name="build-projects">
+        <mkdir dir="${projects.dir}"/>
+        <antcall target="build">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="projects.dir" value="${projects.dir}"/>
+                <param name="debug" value="${debug}"/>
+                <param name="projectsOnly" value="true"/>
+                <param name="arch" value="${arch}"/>
+        </antcall>
+        <antcall target="build-check">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="projects.dir" value="${projects.dir}"/>
+                <param name="debug" value="${debug}"/>
+                <param name="projectsOnly" value="true"/>
+                <param name="arch" value="${arch}"/>
+        </antcall>
+</target>
+
+<target name="build-projects-vc6" depends="init"
+     description="Builds project files for Microsoft Visual C++ 6">
+    <antcall target="build-projects">
+        <param name="project.type" value="msvc6"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="debug" value="${debug}"/>
+        <param name="projects.dir" value="${projects.dir}"/>        
+    </antcall>
+</target>
+
+
+<target name="build-projects-vc7" depends="init"
+     description="Builds project files for Microsoft Visual Studio .NET">
+    <antcall target="build-projects">
+        <param name="project.type" value="msvc7"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="debug" value="${debug}"/>
+        <param name="projects.dir" value="${projects.dir}"/>        
+    </antcall>
+</target>
+
+<target name="build-projects-vc8" depends="init"
+     description="Builds project files for Microsoft Visual C++ 2005">
+  <antcall target="build-projects">
+        <param name="project.type" value="msvc8"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="debug" value="${debug}"/>
+        <param name="projects.dir" value="${projects.dir}"/>        
+  </antcall>
+</target>
+
+  <target name="build-projects-vc9" depends="init"
+       description="Builds project files for Microsoft Visual C++ 2008">
+    <antcall target="build-projects">
+      <param name="project.type" value="msvc9"/>
+      <param name="project.compiler" value="msvc"/>
+      <param name="os.family" value="windows"/>
+      <param name="debug" value="${debug}"/>
+      <param name="projects.dir" value="${projects.dir}"/>
+    </antcall>
+  </target>
+
+  <target name="build-projects-xcode" depends="init" 
+      description="Builds project files for Apple Xcode">
+    <antcall target="build-projects">
+        <param name="project.type" value="xcode"/>
+        <param name="project.compiler" value="${compiler}"/>
+        <param name="os.family" value="mac"/>
+        <param name="debug" value="${debug}"/>
+        <param name="projects.dir" value="${projects.dir}"/>
+    </antcall>
+</target>
+
+
+
+</project>

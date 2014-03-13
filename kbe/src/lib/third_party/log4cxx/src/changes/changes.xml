@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+  -->
+<document>
+<properties>
+<title>Apache log4cxx</title>
+</properties>
+<body>
+<release version="0.10.0" date="2008-04-03" description="First Apache release">
+<action issue="LOGCXX-2">logger.h includes config.h</action>
+<action issue="LOGCXX-3">Missing #else</action>
+<action issue="LOGCXX-4">initialization not working on many OS's</action>
+<action issue="LOGCXX-5">Preprocessor macro WIN32 used instead of _WIN32</action>
+<action issue="LOGCXX-6">Win32 OutputDebugString</action>
+<action issue="LOGCXX-7">SocketAppender binary format not compatible with Chainsaw</action>
+<action issue="LOGCXX-8">Compilation problems using VC5 or VC6 with later Platform SDKs</action>
+<action issue="LOGCXX-10">Conflicting definitions of tchar.h/simulatenous Unicode+MBCS</action>
+<action issue="LOGCXX-11">Timezone may have side-effects</action>
+<action issue="LOGCXX-12">the threshold  of ApenderSkeleton can not be set by calling setOption.</action>
+<action issue="LOGCXX-13">Add branch optimization hint to LOG4CXX_DEBUG macro</action>
+<action issue="LOGCXX-14">add -Wall to compile log4cxx will get many warning</action>
+<action issue="LOGCXX-15">PatternLayout don't use locale time zone,it's use GMT tome zone</action>
+<action issue="LOGCXX-16">Misleading statements in Introduction to log4cxx</action>
+<action issue="LOGCXX-17">Use of non reentrant time functions</action>
+<action issue="LOGCXX-18">LoggerStream Feature</action>
+<action issue="LOGCXX-19">Add .cvsignore's to ignore generated files</action>
+<action issue="LOGCXX-21">Add check that libxml2 not libxml has been included</action>
+<action issue="LOGCXX-22">Backslashes in filenames in XML config of FileAppender broken</action>
+<action issue="LOGCXX-23">Unit tests have become stale</action>
+<action issue="LOGCXX-24">Class and module name not available in LogEvent</action>
+<action issue="LOGCXX-25">Add Ant+cpptasks build file</action>
+<action issue="LOGCXX-26">Default initialization is broken</action>
+<action issue="LOGCXX-27">Appender threshold cannot be set in configuration files</action>
+<action issue="LOGCXX-28">Appender threshold cannot be set in configuration files</action>
+<action issue="LOGCXX-29">Appender attributes are not passed passed to setOption correctly.</action>
+<action issue="LOGCXX-30">StringTokenizer uses evil strtok and wcstok functions</action>
+<action issue="LOGCXX-31">Missing const qualifiers, Exception::getMessage() in particular.</action>
+<action issue="LOGCXX-32">Missing copy constructors and assignment operators</action>
+<action issue="LOGCXX-33">log4cxx::Exception is not derived from std::exception</action>
+<action issue="LOGCXX-34">Visual Studio 6 CVS build broken</action>
+<action issue="LOGCXX-35">Avoid use of MSXML</action>
+<action issue="LOGCXX-36">Migrate to Apache Portable Runtime threads</action>
+<action issue="LOGCXX-37">Unable to build log4cxx under Borland C++</action>
+<action issue="LOGCXX-39">Remove DailyRollingFileAppender</action>
+<action issue="LOGCXX-40">PatternLayout does not support Java date format specifiers</action>
+<action issue="LOGCXX-41">Layout timestamp doesn't seem to adjust for daylight saving</action>
+<action issue="LOGCXX-43">configure/make help needed</action>
+<action issue="LOGCXX-44">GUMP integation</action>
+<action issue="LOGCXX-45">_T causes error : 1048576 cannot be used as a function</action>
+<action issue="LOGCXX-46">Extra semicolon after namespace closing paren</action>
+<action issue="LOGCXX-47">Check headers for missing declarations and Effective C++ violations</action>
+<action issue="LOGCXX-48">Use hex representation for thread identifier</action>
+<action issue="LOGCXX-49">Move timezone specification into pattern, remove locale specification</action>
+<action issue="LOGCXX-50">variable name clash in macro</action>
+<action issue="LOGCXX-52">Migrate log4j 1.3 RollingFileAppender</action>
+<action issue="LOGCXX-53">Problems compiling with MsDev 6.0 (space in paths)</action>
+<action issue="LOGCXX-54">Eliminate use of boost-regex in unit tests</action>
+<action issue="LOGCXX-55">DailyRolling File Appender</action>
+<action issue="LOGCXX-56">BasicConfiguration is unreliable</action>
+<action issue="LOGCXX-57">Port log4j performance test</action>
+<action issue="LOGCXX-58">ImmediateFlush'd FileAppenders extremely slow on Windows</action>
+<action issue="LOGCXX-59">Implement encoding support for Writer appender</action>
+<action issue="LOGCXX-60">XML layout can be mismatched with document encoding</action>
+<action issue="LOGCXX-62">log4cxx 0.10.0 release</action>
+<action issue="LOGCXX-63">Platform appropriate line-feed convention</action>
+<action issue="LOGCXX-64">Migrate to APR network IO</action>
+<action issue="LOGCXX-66">SyslogAppender append method currently stubbed out</action>
+<action issue="LOGCXX-67">NTEventLogAppender always uses RPC method for logging and has inadequate error handling.</action>
+<action issue="LOGCXX-70">Logic flaws in StringHelper::startsWith and StringHelper::endsWith</action>
+<action issue="LOGCXX-71">Update performance page on web site</action>
+<action issue="LOGCXX-72">INSTALL out of date</action>
+<action issue="LOGCXX-73">Not loading configuration from log4cxx.properties or log4cxx.xml</action>
+<action issue="LOGCXX-74">MinGW build</action>
+<action issue="LOGCXX-75">Cygwin build</action>
+<action issue="LOGCXX-76">user.home, user.dir, java.io.tmpdir available within configuration files</action>
+<action issue="LOGCXX-77">Static builds broken</action>
+<action issue="LOGCXX-79">configure check for apr-util</action>
+<action issue="LOGCXX-80">Migrated network appenders to APR network IO</action>
+<action issue="LOGCXX-81">SimpleDateFormat does not compile on Solaris 2.95.2 gcc</action>
+<action issue="LOGCXX-82">Compiling with stream.h in multiple object files errors</action>
+<action issue="LOGCXX-83">log4cxx::Level::ERROR fails to compile when GDI enabled</action>
+<action issue="LOGCXX-84">Problems with stream logging in UTF8, no WCHAR_T build</action>
+<action issue="LOGCXX-85">Mac OS/X fixes and enhancements</action>
+<action issue="LOGCXX-86">Add TRACE level</action>
+<action issue="LOGCXX-87">Remove remaining uses of Category and Priority</action>
+<action issue="LOGCXX-88">Explore use of security-enhanced CRT methods</action>
+<action issue="LOGCXX-94">simplesocketserver.cpp should use LOG4CXX_STR("...") not L"..."</action>
+<action issue="LOGCXX-98">Gump build fails for log4cxx-ant-no-wchar-t target</action>
+<action issue="LOGCXX-100">Fixes for ODBCAppender</action>
+<action issue="LOGCXX-103">Much of CVS HEAD seems #if 0 out, especially ResourceBundle stuff</action>
+<action issue="LOGCXX-104">ODBCAppender::close does not check if appender is already closed</action>
+<action issue="LOGCXX-105">Infinite loop in string replacing</action>
+<action issue="LOGCXX-106">maxFileSize has bad type in SizeBasedTriggeringPolicy file</action>
+<action issue="LOGCXX-107">Can't compile log4cxx in ascii on Windows</action>
+<action issue="LOGCXX-110">try fix 64bit log4cxx_intptr_t</action>
+<action issue="LOGCXX-111">make Logger cache a LoggerRepositoryPtr instead of a "blind" pointer</action>
+<action issue="LOGCXX-112">change "static" to "auto" for Transcoder::decode() decoder and CharsetDecoder::getDefaultDecoder() decoder</action>
+<action issue="LOGCXX-113">separate apr detection m4 codes from aclocal.m4</action>
+<action issue="LOGCXX-114">Upgrade APR to 1.2.2 from 1.1.0</action>
+<action issue="LOGCXX-115">SVN head does not compile with Borland C++ compiler</action>
+<action issue="LOGCXX-116">SVN head does not compiler with MinGW compiler</action>
+<action issue="LOGCXX-117">Memory leak with ThreadSpecificData on Win32</action>
+<action issue="LOGCXX-118">Hierarchy corrupts with PropertyConfigurator</action>
+<action issue="LOGCXX-119">ndctestcase not working</action>
+<action issue="LOGCXX-120">Wrong parameter description in Patternlayout</action>
+<action issue="LOGCXX-123">UTF-8 build fails on Linux</action>
+<action issue="LOGCXX-124">wchar_t constructor missing in class NDC</action>
+<action issue="LOGCXX-125">L7dTestCase is stubbed out</action>
+<action issue="LOGCXX-126">std::cout stops working if log4cxx is first to output</action>
+<action issue="LOGCXX-127">Main build.xml not referencing "env" properly.</action>
+<action issue="LOGCXX-129">Asyncappender is full of race conditions (improper use of condition variables)</action>
+<action issue="LOGCXX-130">Compile fails on gcc4.1</action>
+<action issue="LOGCXX-131">TimeBasedRollingPolicy is declared "abstract"</action>
+<action issue="LOGCXX-132">various segmentation faults in multithreaded application</action>
+<action issue="LOGCXX-133">Missing parenthesis in LOG4CXX_ASSERT</action>
+<action issue="LOGCXX-134">FileAppender could create missing directories</action>
+<action issue="LOGCXX-135">Use std::string with logstream</action>
+<action issue="LOGCXX-136">DailyRollingFileAppender not using Property options</action>
+<action issue="LOGCXX-138">XMLLayoutTestCase output and filtered output gets overwritten</action>
+<action issue="LOGCXX-139">XMLLayoutTestCase uses inadequate filters for 64 bit platforms</action>
+<action issue="LOGCXX-140">Handle leak with LoggingEvent::getCurrentThreadName</action>
+<action issue="LOGCXX-141">Upgrade to APR 1.2.7 or later</action>
+<action issue="LOGCXX-142">socketservertestcase.cpp does not compile with Sun Studio 11 on Solaris</action>
+<action issue="LOGCXX-143">-xarch=v8plus should be removed from Makefile.in</action>
+<action issue="LOGCXX-146">DailyRollingFileAppender::~DailyRollingFileAppender must call finalize</action>
+<action issue="LOGCXX-149">make dist does not work</action>
+<action issue="LOGCXX-150">logstream's operator&lt;&lt; declared in the wrong namespace</action>
+<action issue="LOGCXX-151">Umlauts as literal in patternlayout won't be logged correct</action>
+<action issue="LOGCXX-152">gcc warning about cast from `const void*' to `log4cxx::helpers::Object*' discards qualifiers from pointer target typ</action>
+<action issue="LOGCXX-153">Automate log4cxx site and doxygen generation and deployment</action>
+<action issue="LOGCXX-155">Update source headers per new ASF header policy</action>
+<action issue="LOGCXX-156">immediate flush in console appender</action>
+<action issue="LOGCXX-157">make install fails since @manual_dest@ replacement is missing in Makefiles</action>
+<action issue="LOGCXX-158">tolower not defined in stringhelper.cpp</action>
+<action issue="LOGCXX-159">Initialization of local static objects out of order on Linux</action>
+<action issue="LOGCXX-160">helpers/object.h: DECLARE_LOG4CXX_OBJECT macro definition is missing virtual destructor declaration</action>
+<action issue="LOGCXX-161">Using RollingFileAppender increases the working set with each rollover</action>
+<action issue="LOGCXX-162">Problem printing string with embedded NULL character</action>
+<action issue="LOGCXX-163">liblog4cxx (svn 480882) does not link on Mac OS X 10.4</action>
+<action issue="LOGCXX-164">XMLSocketAppender is disabled</action>
+<action issue="LOGCXX-165">XMLSocketAppender may generate erroneous output due to mismatched encoding</action>
+<action issue="LOGCXX-167">system locale charmap is not determined properly on Fedora Core 6</action>
+<action issue="LOGCXX-168">log4j.dtd does not contain rollingPolicy and other o.a.l.r.RFA elements</action>
+<action issue="LOGCXX-169">XMLLayoutTestCase fails on compilers that do not provide location info</action>
+<action issue="LOGCXX-171">Add project description file for projects.apache.org</action>
+<action issue="LOGCXX-172">configure fail with ".infig.status: error: cannot find input file:"</action>
+<action issue="LOGCXX-175">APRCharsetEncoder is not thread safe</action>
+<action issue="LOGCXX-177">SocketImpl::accept uses private APR function: apr_wait_for_io_or_timeout</action>
+<action issue="LOGCXX-178">Link failure if wchar_t cannot be determined as UTF-16 or UTF-32</action>
+<action issue="LOGCXX-179">example applications do SIGABRT on aix 5.2</action>
+<action issue="LOGCXX-180">Build fails at domconfigurator.h</action>
+<action issue="LOGCXX-181">Level::DEBUG and other non-local statics cause crash on app shutdown on AIX</action>
+<action issue="LOGCXX-182">missing man page for simplesocketserver</action>
+<action issue="LOGCXX-183">Compiler warning: dereferencing type-punned pointer will break strict-aliasing rules</action>
+<action issue="LOGCXX-184">Crash when log level set to 'inherited'</action>
+<action issue="LOGCXX-186">Garbage characters in log files when log requests from multiple threads with hyperthreading enabled</action>
+<action issue="LOGCXX-187">LogLog::emit() could potentially interleave messages</action>
+<action issue="LOGCXX-188">Upgrade to apr 1.2.9 and apr-util 1.2.8</action>
+<action issue="LOGCXX-189">Migrate to Maven 2.0 for documentation and packaging</action>
+<action issue="LOGCXX-190">The 'logger.h' header includes itself.</action>
+<action issue="LOGCXX-191">Application cores when syslog appender is given an unreachable host/ip.</action>
+<action issue="LOGCXX-192">Suggested improvements to log4cxx webpages</action>
+<action issue="LOGCXX-193">Please rename or remove new local variable "buf" in Logger.h macros</action>
+<action issue="LOGCXX-194">Garbage in log files when appenders are defined in multiple levels of the logger hierarchy</action>
+<action issue="LOGCXX-195">Syslog appender adds characters to output.</action>
+<action issue="LOGCXX-196">Syslog appender destructor can cause core</action>
+<action issue="LOGCXX-197">ant can't generate vc6 project</action>
+<action issue="LOGCXX-200">Implement compression for RollingFileAppender</action>
+<action issue="LOGCXX-201">Visual Studio 6 build</action>
+<action issue="LOGCXX-202">ObjectPtrT has inconsistent const-ness on accessors</action>
+<action issue="LOGCXX-204">PatternParserTestCase and FileNamePatternTestCase fail only with VC6</action>
+<action issue="LOGCXX-208">isTraceEnabled implemenation missing in logger.cpp (Revision: 592627)</action>
+<action issue="LOGCXX-209">A  message of type wchar_t* is not beeing written correctly to the internal message buffer (Revision: 592627)</action>
+<action issue="LOGCXX-210">HTMLLayout NDC null check</action>
+<action issue="LOGCXX-211">Crash(Segmentation Fault) in DailyRollingFileAppender when file change</action>
+<action issue="LOGCXX-212">unittest failed</action>
+<action issue="LOGCXX-213">trace method implementation is missing</action>
+<action issue="LOGCXX-214">Possible memory leak due to fault in build process (via make)</action>
+<action issue="LOGCXX-215">Eliminate sqlext.h from odbcappender.h</action>
+<action issue="LOGCXX-216">crash on program exit</action>
+<action issue="LOGCXX-217">Not initialized LoggerPtr segfault program.</action>
+<action issue="LOGCXX-218">Visual Studio 8 build</action>
+<action issue="LOGCXX-219">suspicious warnings</action>
+<action issue="LOGCXX-220">Memory leaks when using MFC</action>
+<action issue="LOGCXX-221">ThreadID layout does not match debugger</action>
+<action issue="LOGCXX-222">trunk compile error.</action>
+<action issue="LOGCXX-225">Migrate unit tests from LGPL'd CPPUNIT to an ASL'd testing framework</action>
+<action issue="LOGCXX-226">Default configurator uses *.properties in preference to *.xml</action>
+<action issue="LOGCXX-227">Remove @since tags</action>
+<action issue="LOGCXX-228">Remove @author tags</action>
+<action issue="LOGCXX-230">Align ant build options with automake</action>
+<action issue="LOGCXX-231">Deadlock in AsyncAppender</action>
+<action issue="LOGCXX-232">Drop src/performance</action>
+<action issue="LOGCXX-233">Unnecessary casts in ObjectPtrT</action>
+<action issue="LOGCXX-234">Assignment operator removes const qualifier</action>
+<action issue="LOGCXX-235">Add ObjectPtrT::exchange</action>
+<action issue="LOGCXX-236">Re-order constructor initialiser lists to match declaration order</action>
+<action issue="LOGCXX-237">Include missing headers</action>
+<action issue="LOGCXX-239">Inconsistent const qualification on logging methods.</action>
+<action issue="LOGCXX-241">Non-ascii named files have names mangled</action>
+<action issue="LOGCXX-242">Eliminate log4cxx proxies for APR types</action>
+<action issue="LOGCXX-243">Problem Compile in Doxy</action>
+<action issue="LOGCXX-246">Config refresh hangs a client application that uses TelnetAppender</action>
+<action issue="LOGCXX-247">MSVC project has wrong additional include directories</action>
+<action issue="LOGCXX-248">ODBCAppender has unicode issues</action>
+<action issue="LOGCXX-251">NDC::cloneStack and NDC::inherit missing in 0.10.0 RC2</action>
+<action issue="LOGCXX-252">Add documentation for use of operator&lt;&lt; in logging requests</action>
+<action issue="LOGCXX-253">Transcoder compilation error with utf-8 charset</action>
+<action issue="LOGCXX-254">Add build option for static C RTL</action>
+<action issue="LOGCXX-256">SocketHubAppender fails after accepting connection</action>
+<action issue="LOGCXX-257">ServerSocket::accept hangs on Unix</action>
+<action issue="LOGCXX-258">unable to build from make dist package due to missing doxygen file</action>
+<action issue="LOGCXX-259">Several appenders fail to compile in Visual Studio 2008</action>
+</release>
+<release version="0.9.7" date="2004-05-10">
+<action type="fix">Fixed examples source code in the "Short introduction to log4cxx".</action>
+<action type="fix">Fixed, in the renaming algorithm of RollingFileAppender and
+  DailyRollingFileAppender, a problem specific to Unicode.</action>
+<action type="fix">Fixed conflict with Windows macros "min" and "max", by renaming
+  StrictMath::min and StrictMath::max to StrictMath::minimum and
+  StrictMath::maximum.</action>
+<action type="add">Port to HPUX 11.0.</action>
+<action type="fix">Fixed segmentation fault in PropertyConfigurator.</action>
+<action type="add">Port to Solaris.</action>
+<action type="fix">Fixed MutexException thrown while destroying RollingFileAppender.</action>
+<action type="fix">Logging macros can be used without explicity declaring the use of log4cxx namespace.</action>
+<action type="fix">Fixed static library unresolved externals for msvc 6 and 7.1</action>
+</release>
+<release version="0.9.6" date="2004-04-11">
+<action>Timezone management has been optimized through the class TimeZone</action>
+<action>Inter-thread synchronization and reference counting has been optimized</action>
+<action>Reference counting now uses gcc atomic functions (bug 929078)</action>
+<action>Use of StringBuffer has been optimized.</action>
+<action>Support of localisation throug resourceBundles</action>
+<action>SyslogAppender now uses the system function 'syslog' to log on the local host.
+ (only for POSIX systems)</action>
+<action>Added TimeZone configuration to PatternLayout (bug 912563)</action>
+<action>Support of the DailyRollingFileAppender (feature request 842765)</action>
+</release>
+<release version="0.9.5" date="2004-02-04">
+<action>Port of log4j Jnuit tests with Cppunit and Boost Regex.</action>
+<action>Added explicit exports for MSDEV 6 and MSDEV 7 (no further need of .def files)</action>
+<action>Custom levels can be configured through the DOMConfigurator and
+  PropertyConfigurator classes (Level inherites from Object)</action>
+<action>Added a reference counter to LoggingEvent to avoid useless copies
+  (LoggingEvent inherites from Object)</action>
+<action>The file log4j.xml as well as the file log4j.properties are now search
+  for, in log4cxx initialization.</action>
+<action>The root logger can be assigned the "OFF" level.</action>
+<action>Added MSVC6 project missing files mutext.cpp and condition.cpp (bug 847397)</action>
+<action>condition.cpp now compiles with MSVC6 (bug 847417)</action>
+<action>fixed pure virtual function call in PropertyConfigurator::configureAndWatch
+  (bug 848521)</action>
+<action>XMLAppender now displays correct timestamp with MSVC 6 (bug 852836)</action>
+<action>SRLPORT 4.6 support.</action>
+<action>Fixed an infinite loop in class Properties.</action>
+<action>Fixed compilations problems with unicode.</action>
+<action>Fixed SocketAppender bug concerning MDC and NDC.</action>
+</release>
+<release version="0.9.4" date="2003-10-25">
+<action>StringBuffer has been optimized.</action>
+<action>Fixed miscellaneous threading problems.</action>
+<action>Added TimeZone support in PatternLayout (bug 796894)</action>
+<action>Fixed threading configuration problems (bug 809125)</action>
+<action>Fixed miscellaneous MSVC and cygwin compilation problems.</action>
+</release>
+<release version="0.9.3" date="2003-09-19">
+<action>Changed tstring to log4cxx::String and tostringstream to
+  log4cxx::StringBuffer.
+</action>
+<action>Fixed MSVC 2003 compilation erros and warnings.
+</action>
+<action>Added helpers for NDC and MDC.
+</action>
+<action>Added TimeZone support in TTCCLayout.
+</action>
+<action>Fixed compilation problems with logger macros (LOG4CXX_...)
+</action>
+<action>Fixed milliseconds formatting problem with MSVC 6.0 and 2003
+</action>
+<action>Fixed AsyncAppender crash
+</action>
+<action>Added new tests
+</action>
+<action>Added benchmarks
+</action>
+</release>
+<release version="0.9.2" date="2003-08-10">
+<action>Fixed FreeBSD compilation problem with pthread mutex (class CriticalSection).
+</action>
+<action>Fixed milliseconds formatting problem (class DateFormat).
+</action>
+<action>Long events (&gt; 1024 chars) are now supported in the class XMLSocketAppender.
+</action>
+<action>Carriage returns have been normalized in the class XMLLayout.
+</action>
+</release>
+<release version="0.9.1" date="2003-08-06">
+<action>Fixed deadlock problems in classes Logger and AsyncAppender.
+</action>
+<action>Fixed MSVC 6.0 compilation problems.
+</action>
+<action>Added MSVC 6.0 static libraty project.
+</action>
+<action>Default configuration for the SMTP options is "no".
+</action>
+</release>
+<release version="0.9.0" date="2003-08-06">
+<action>Added ODBCAppender (matching log4j JDBCAppender)
+</action>
+<action>Added SyslogAppender
+</action>
+<action>Added SMTPAppender (only for Linux/FreeBSD)
+</action>
+<action>Added BasicConfigurator
+</action>
+<action>Added a FileWatchDog in PropertyConfigurator and DOMConfigurator
+</action>
+<action>Possibility to load a custom LoggerFactory through the DOMConfigurator
+</action>
+<action>Changed time precision from seconds to milliseconds
+</action>
+<action>Added MSVC 6.0 'Unicode Debug' and 'Unicode Release' targets
+</action>
+<action>Added Java like System class.
+</action>
+</release>
+<release version="0.1.1" date="2003-07-09">
+<action>Fixed MSVC 6.0 compilation problems concerning the 'Release' target
+</action>
+<action>Added MSVC 6.0 tests projects
+</action>
+</release>
+<release version="0.1.0" date="2003-07-08">
+<action>FreeBSD Autotools/Compilation support
+</action>
+<action>Fixed TelnetAppender crash when a socket bind exception occured.
+</action>
+<action>Added log4j DTD support to XMLLayout and DOMConfigurator
+</action>
+<action>Can now send events in XML format over TCP (class XMLSocketAppender) for the
+  log4j Chainsaw UI
+</action>
+<action>Now compiles with 'configure --enable-unicode' (UTF16 Unicode support)
+</action>
+<action>Added Java like Properties class. It's a helper for the PropertyConfigurator
+</action>
+<action>Added Java like objects with dynamic cast and instanciation. Custom objects
+  can be configured through the DOMConfigurator and PropertyConfigurator classes
+</action>
+<action>Port of the PropertyConfigurator class
+</action>
+<action>Port of the "Map Diagnostic Context" (MDC) class
+</action>
+<action>Added 13 tests (try make check)
+</action>
+</release>
+<release version="0.0.1" date="2003-05-31">
+<action type="add">Loggers, Hierarchy, Filters, Appenders, Layouts, NDC
+</action>
+<action type="add">Appenders:
+  AsyncAppender, ConsoleAppender, FileAppender, NTEventLogAppender,
+  RollingFileAppender, SocketAppender, SocketHubAappender,
+  TelnetAppender
+</action>
+<action type="add">Layouts:
+  HTMLLayout, PatternLayout, SimpleLayout, TTCCLayout, XMLLayout
+</action>
+<action type="add">Filters:
+  DenyAllFilter, LevelMatchFilter, LevelRangeFilter, StringMatchFilter
+
+</action>
+<action type="add">Configurators:
+  DOMConfigurator
+</action>
+</release>
+</body>
+</document>

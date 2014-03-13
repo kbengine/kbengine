@@ -1,0 +1,235 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+ ------
+ Building Apache log4cxx with Apache Ant
+ ------
+ ------
+ ------
+
+
+Building Apache log4cxx with Apache Ant
+
+   {{{http://ant.apache.org}Apache Ant}} with cpptasks from the 
+   {{{http://ant-contrib.sourceforge.net}Ant-Contrib}} project can be used to build log4cxx
+   with supported compilers and is also used to generate the IDE project files included
+   in the releases.  The Apache Maven build which is used to generate the site documentation
+   and release packaging delegates to this build.  The Ant build can build APR and APR-Util
+   if source is available.
+
+* Quick start:
+  
+  *Install {{{http://ant.apache.org}Apache Ant}} 1.6.5 or later.
+
+  *Install cpptasks 1.0b5 or later from the {{{http://ant-contrib.sourceforge.net}Ant-Contrib Project}}.
+     ant-contribs 1.0b3 or later is needed for some less frequent build targets.
+
+  *Install APR and APR-Util or place source in apr and apr-util directories as a 
+  sibling to the log4cxx directory.
+  
+  *Install gzip and zip (used for compression by RollingFileAppender) and 
+   sed (used to normalize output files for comparison in unit tests).
+
+  * Install log4j 1.2.  Used in testing of SocketAppender. 
+        
+   Building and testing log4cxx on a Unix platform with packaged APR and APR-Util.  
+
++----+
+$ export CLASSPATH=~/cpptasks/cpptasks-1.0b5.jar
+$ cd apache-log4cxx-0.10.0
+$ ant
++----+  
+
+   Building and testing log4cxx on a Unix platform with APR and APR-Util built from source.  
+
++----+
+$ export CLASSPATH=~/cpptasks/cpptasks-1.0b5.jar
+$ tar -xvzf apr-1.2.12.tar.gz
+$ mv apr-1.2.12 apr
+$ tar -xvzf apr-util-1.2.12.tar.gz
+$ mv apr-util-1.2.12 apr-util
+$ cd apache-log4cxx-0.10.0
+$ ant
++----+  
+
+   Building and testing log4cxx on a Microsoft Windows with APR and APR-Util built from source.  
+
++----+
+set PATH=\apache-ant-1.7.0\bin;%PATH%
+set CLASSPATH=\cpptasks\cpptasks-1.0b5.jar
+tar -xvzf apr-1.2.12.tar.gz
+rename apr-1.2.12 apr
+tar -xvzf apr-util-1.2.12.tar.gz
+rename apr-util-1.2.12 apr-util
+cd apache-log4cxx-0.10.0
+ant -Dfind=false
++----+  
+
+
+
+
+
+* Common ant targets
+
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build                 | build log4cxx library.                                                                      |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| check                 | build logcxx library and build and run unit tests and examples.                             |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| clean                 | Delete all generated files.                                                                 |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-unittest        | build log4cxx library and unit test.                                                        |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| run-socketserver      | Tests SocketAppender with Java-based receiver.                                              |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-projects-vc6    | Build Microsoft Visual Studio 6 project files.                                              |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-projects-vc7    | Build Microsoft Visual Studio .NET project files.                                           |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-projects-vc8    | Build Microsoft Visual Studio 2005 project files.                                           |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-projects-vc9    | Build Microsoft Visual Studio 2008 project files.                                           |
+*-----------------------+---------------------------------------------------------------------------------------------+
+| build-projects-xcode  | Build Apple Xcode project files.                                                            |
+*-----------------------+---------------------------------------------------------------------------------------------+
+
+   All build products will be placed in the target subdirectory.  
+   
+   Project files should be generated after successfully building the library, however it is possible
+   to generate Microsoft Visual Studio project files on other platforms.  The project
+   files will typically be missing references to the Platform SDK libraries.
+   The Maven project modifies the generated project files for release preparation.  Generation
+   of Xcode projects from Microsoft Windows is not supported.
+
+
+* ant options
+
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dcompiler        | Compiler, see cpptasks documentation for full list.                                         |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Ddebug           |  Build for debugging, yes (default), no.                                                    |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dfind            |  Attempt to locate compiled APR and APR-Util, yes (default), no.                            |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-apr        | path to non-default location for APR.                                                       |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-apr-util   | path to non-default location for APR-Util.                                                  |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Denable-wchar_t  | Enable wchar_t API methods, choice of yes (default), no.                                    |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Denable-unichar  | Enable UniChar API methods, choice of yes, no (default).                                    |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Denable-cfstring | Enable CFString API methods, requires Mac OS/X CoreFoundation, choice of yes, no (default). |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-logchar    | Interal character representation, choice of utf-8 (default), wchar_t , unichar.             | 
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-charset    | Exteral character encoding, choice of utf-8, iso-8859-1, usascii, ebcdic,  auto (default).  |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-SMTP       | SMTP implementation for SMTPAppender, choice of libesmtp, no (default).                     |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dwith-ODBC       | OBDC implementation for ODBCAppender, choice of unixODBC, iODBC, Microsoft, no (default).   |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dlog4j.jar       | Path to log4j.jar for run-socketserver.                                                     |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dprojects.dir    | Location for generated IDE projects.                                                        |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Dlib.type        | Library type to create, choice of shared (default), static.                                 |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Druntime         | Type of C runtime library to use, choice of dynamic (default), static.                      |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -Doptimization    | Optimization: none (default), size, minimal, speed, full, aggressive, extreme, unsafe.      |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -p                | Display available targets and quit.                                                         |
+*-------------------+---------------------------------------------------------------------------------------------+
+
+   SMTP and ODBC options can depend on libraries that 
+   that have different licenses.
+   You should review the corresponding licenses and understand
+   the implications before redistribution.
+
+   Combining -Dlib.type=shared and -Druntime=static is unsafe.
+   
+   Properties may also be placed in a build.properties file in the log4cxx directory.
+
+* Platform specific notes:
+
+  ** Microsoft Windows
+
+  {{{http://gnuwin32.sourceforge.net}GnuWin32}}
+  provides binary versions of sed, gzip and zip.  Alternative,
+  the bin directory of {{{http://www.cygwin.com}Cygwin}} may be placed on the path.
+
+  If -Dwith-SMTP=libesmtp is specified, the build will attempt to build
+  libesmtp from source, unfortunately libesmtp depends on poll.h and will not build.
+  
+  APR 1.2.12 has a known issue that will prevent
+  compilation with Visual Studio 6 unless a later Platform SDK is installed.
+  See APR bug {{{http://issues.apache.org/bugzilla/show_bug.cgi?44327}44327}}.
+  APR 1.2.11 and the corresponding APR-Util 1.2.10 will compile with Visual Studio 6.  
+
+  
+  *** Cygwin:
+  
+  gcc 3.x does not provide wchar_t support which needs to be explicitly disabled.
+  The Win32 path to the APR libraries need to be provided (CYGWIN_HOME/lib) if compiling against an installed APR and APR-Util.
+  
++-----+
+$ cd apache-log4cxx-0.10.0
+$ ant -Dos.family=cygwin \
+   -Dwith-apr=/cygwin/lib \
+   -Dwith-apr-util=/cygwin/lib \
+   -Denable-wchar_t=0
++-----+  
+    
+
+  *** MinGW:
+
++----+
+$ cd apache-log4cxx-0.10.0
+$ path c:\mingw\bin;%PATH%
+$ ant -Dcompiler=gcc -Dfind=false build-all
+$ cd src\test\resources
+$ set TOTO=wonderful
+$ set key1=value1
+$ set key2=value2
+$ ..\..\..\target\debug\shared\testsuite -v 
+$ ..\..\..\target\debug\shared\trivial
+$ ..\..\..\target\debug\shared\stream 
++----+
+
+   Running "ant check" was observed to fail with unexpected exceptions
+   in streamtestcase and datetimedateformattestcase.
+   See {{{http://issues.apache.org/jira/browse/LOGCXX-244}LOGCXX-244}}.
+
+  ** Debian:
+  
+  Apache APR, APR-Util, Ant and log4j and zip may be installed using:
+
++----+
+$ sudo apt-get install libapr1.0-dev libaprutil1.0-dev \
+      ant ant-optional liblog4j1.2-java zip
++----+
+
+
+  ** Mac OS/X:
+  
+  APR and APR-Util are provided by the platform in Mac OS/X 10.5 and iODBC in 10.4.
+  
+  Site generation requires "doxygen" command on path which can be provided
+  by installing Doxygen.app and then setting the path like:
+  
++---+
+$ setenv PATH /Applications/Doxygen.app/Contents/Resources:$PATH
++---+
+  

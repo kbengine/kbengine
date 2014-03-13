@@ -1,0 +1,52 @@
+This file contains the PGP&GPG keys of various Apache developers.
+Please don't use them for email unless you have to. Their main
+purpose is code signing.
+
+Apache users: pgp < KEYS
+Apache developers: 
+        (pgpk -ll <your name> && pgpk -xa <your name>) >> this file.
+      or
+        (gpg --fingerprint --list-sigs <your name>
+             && gpg --armor --export <your name>) >> this file.
+
+Apache developers: please ensure that your key is also available via the
+PGP keyservers (such as pgpkeys.mit.edu).
+
+
+pub   1024D/2E114322 2005-06-11 [expires: 2010-06-10]
+      Key fingerprint = A1A2 B554 6D43 31B2 A41E  1C07 BE16 C95D 2E11 4322
+uid                  Curt Arnold <carnold@apache.org>
+sig 3        2E114322 2005-06-11  Curt Arnold <carnold@apache.org>
+sub   2048g/209ECE57 2005-06-11 [expires: 2010-06-10]
+sig          2E114322 2005-06-11  Curt Arnold <carnold@apache.org>
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.3 (Darwin)
+
+mQGiBEKrSNQRBAC4J7udOBoC5+gVxBaPAbjXfnq12l5Pau1WD+UothePNGjI2hOp
++Rnzikk3ISgyrjiX3A8ScZYbu3iXvMpF4zknkGLdmerpf4Gz9xGeushwun+UFaFL
+MX5u7LWJo9wDKzbcJJit1j/qGEg/HRp5fnVYCh0/l4dLansL60NhxtYdxwCguu2e
+wZMZFroaiIXqnce7+cGDRq8D/2HgKGtEJHY3z8OtUqncWbW+RAQqdcT0Z+bMB8o6
+0UCHxUoJrFS1lA62qU3kcZ8ACPoh9xDW4X47EgNPELX81alymTI5FdqiDK7RIwzE
+JlOH/8JJgC6eSwiUXJ0cOJwpMonitcpMLouxuURuPSpfE5b1mQ1gFzN5MBL8xlZQ
+8IO6A/9qWwyWyQBoJud0RDIsVRosdoSBZtw9PHsURgsqfNsS2NXTWK4HjxExw1KO
+AXmRlALfrH8yAShy/AyiUrwlKHG2WPTe6Etygjlr4dIxqTiCOoi+qv+H8SXW4Qy3
+SnyozJ2RlKoYG0oDTbVMsPhOFdytHjConDLL9vS14j4kN9zWB7QgQ3VydCBBcm5v
+bGQgPGNhcm5vbGRAYXBhY2hlLm9yZz6IZAQTEQIAJAUCQqtI1AIbAwUJCWYBgAYL
+CQgHAwIDFQIDAxYCAQIeAQIXgAAKCRC+FsldLhFDIs5CAJ9roOB39ithHoCLaDJx
+l14efLwgNgCfcDBYutNX5W627kCeheDqhQbTqTi5Ag0EQqtJBRAIAN8maiGIO44S
+dc9Ep3CAm0aXDeR8IQ/F253WcMQtkFBjeHEDd6/+EFT52vswMI6ZJDVV/A7pe4VM
+XAdNutFmUG2gy9OJOu8gMuO3jTCLxUXyQYNF/RasOAQJgc7q1N5QgKtXVH2InQ21
+vHvlHM1fVe4rYDPr4JL2lZHe0P8kTzeQ7jI5pQnfYRJmS8I5AMQYFOiM48Pd7Sbs
+Wu/rym7ikcmKUe6ZE59hSioneVP31CDMNRxCAQJVS1mZxTozsAEoh+cvmRjOD1Es
+0iXvu6Sfe8+sLRL+7CNUZgixE1UFbdnNxuZGlG9qs0LGP7hDWijT1/Y4SHz4ovXx
+k0oocmFtiLcAAwcIAMbY7K99hLAFVaU2ukxCSp1TNPcD+IB3gtpRieKaZvBn/LGe
+CO+fNAogkw537lmpLk4nI+JiP/xWohyJ9lyEpW7yD4c9AHKNjqvEWD5Bhpnw4qKJ
+ohQSVQwEeJRsftY4D0jCP9xbgPiq5woBzHWNok3BVaHqLK0fd0/+KygnT+k6cR22
+Mus9RsEisXk9Oj5lvC0miDOWof4vk2Ll8/H3xt4CXAr13n5Yj2632HolOHrFUQXT
+gwc9v5CNIihOQMEiXFxHh743qbsUZktjxeYH7r8wSCV93/QQ4qELiWoUzndpkCRT
+lEKenucAv6f5qqZqG7pVW8S48T99HwzwqgFX5VOITwQYEQIADwUCQqtJBQIbDAUJ
+CWYBgAAKCRC+FsldLhFDIjnoAJ9ECOIrTH3adnVLOkHZnewyp2ssxwCgtLjlwZ7/
+4QtL3W5Id3nKxPFiI+c=
+=9ut1
+-----END PGP PUBLIC KEY BLOCK-----

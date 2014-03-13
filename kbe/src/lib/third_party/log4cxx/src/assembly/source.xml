@@ -1,0 +1,99 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<assembly>
+	<id>source</id>
+	<formats>
+		<format>zip</format>
+		<format>tar.gz</format>
+	</formats>
+	<baseDirectory>apache-log4cxx-${project.version}</baseDirectory>
+	<includeSiteDirectory>true</includeSiteDirectory>
+	<fileSets>
+        <!-- autogen.sh is executable -->
+		<fileSet>
+			<includes>
+               <include>autogen.sh</include>
+               <include>configure.bat</include>
+               <include>configure-aprutil.bat</include>
+               <include>configure</include>
+	       <include>install-sh</include>
+               <include>missing</include>
+               <include>ltmain.sh</include>
+	       <include>depcomp</include>
+           </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+		<fileSet>
+			<includes>
+				<include>INSTALL</include>
+				<include>KEYS</include>
+				<include>LICENSE</include>
+               <include>Makefile.am</include>
+				<include>NOTICE</include>
+ 				<include>build.xml</include>
+               <include>configure.in</include>
+               <include>find_apr.m4</include>
+               <include>find_apu.m4</include>
+               <include>liblog4cxx.pc.in</include>
+				<include>pom.xml</include>
+				<include>Makefile.in</include>
+                                <include>config.sub</include>
+                                <include>config.guess</include>
+                                <include>aclocal.m4</include>
+                <include>src/**</include>
+            </includes>
+            <excludes>
+                <exclude>src/main/include/log4cxx/log4cxx.h</exclude>
+                <exclude>src/main/include/log4cxx/private/log4cxx_private.h</exclude>
+                <exclude>src/test/cpp/testsuite</exclude>
+                <exclude>src/examples/cpp/console</exclude>
+                <exclude>src/examples/cpp/delayedloop</exclude>
+                <exclude>src/examples/cpp/stream</exclude>
+                <exclude>src/examples/cpp/trivial</exclude>
+                <exclude>**/Makefile</exclude>
+                <exclude>**/*.o</exclude>
+                <exclude>**/*.Po</exclude>
+                <exclude>**/*.lo</exclude>
+                <exclude>**/*.a</exclude>
+                <exclude>**/*.la</exclude>
+                <exclude>**/*.so</exclude>
+                <exclude>**/*.dylib</exclude>
+                <exclude>**/*.dll</exclude>
+                <exclude>**/Doxyfile</exclude>
+                 <exclude>src/test/resources/output/**</exclude>
+                 <exclude>**/.libs/**</exclude>
+                 <exclude>**/.deps/**</exclude>
+                 <exclude>**/.svn</exclude>
+			</excludes>
+		</fileSet>
+        <fileSet>
+            <directory>target</directory>
+            <lineEnding>keep</lineEnding>
+            <outputDirectory>projects</outputDirectory>
+            <includes>
+                <include>*.dsw</include>
+                <include>*.dsp</include>
+                <include>*.xcodeproj/project.pbxproj</include>
+            </includes>
+            <excludes>
+                <exclude>apr*.ds*</exclude>
+                <exclude>xml.ds*</exclude>
+            </excludes>
+        </fileSet>
+	</fileSets>
+</assembly>

@@ -1,0 +1,32 @@
+# Microsoft Developer Studio Generated Dependency File, included by xml.mak
+
+.\xmlparse.c : \
+	".\expat.h"\
+	".\internal.h"\
+	".\winconfig.h"\
+	".\xmlrole.h"\
+	".\xmltok.h"\
+	
+
+.\xmlrole.c : \
+	".\ascii.h"\
+	".\internal.h"\
+	".\winconfig.h"\
+	".\xmlrole.h"\
+	".\xmltok.h"\
+	
+
+.\xmltok.c : \
+	".\ascii.h"\
+	".\asciitab.h"\
+	".\iasciitab.h"\
+	".\internal.h"\
+	".\latin1tab.h"\
+	".\nametab.h"\
+	".\utf8tab.h"\
+	".\winconfig.h"\
+	".\xmltok.h"\
+	".\xmltok_impl.c"\
+	".\xmltok_impl.h"\
+	".\xmltok_ns.c"\
+	

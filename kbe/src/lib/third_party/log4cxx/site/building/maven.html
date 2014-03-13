@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+
+
+
+
+
+
+
+
+
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+--><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>log4cxx - Building Apache log4cxx with Apache Maven 2</title>
+    <style type="text/css" media="all">
+      @import url("../css/maven-base.css");
+      @import url("../css/maven-theme.css");
+      @import url("../css/site.css");
+    </style>
+    <link rel="stylesheet" href="../css/print.css" type="text/css" media="print" />
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+      </head>
+  <body class="composite">
+    <div id="banner">
+                  <a href="http://logging.apache.org/" id="bannerLeft">
+    
+                                            <img src="../images/ls-logo.jpg" alt="" />
+    
+            </a>
+                    <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="breadcrumbs">
+          
+  
+
+  
+    
+  
+  
+    
+            <div class="xleft">
+        Last Published: 2008-03-31
+                          |   
+                <a href="http://www.apache.org/" class="externalLink">Apache</a>
+                &gt;
+      
+                <a href="http://logging.apache.org/" class="externalLink">Logging Services</a>
+                &gt;
+      
+                <a href="../">log4cxx</a>
+                          </div>
+            <div class="xright">      
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+    <div id="leftColumn">
+      <div id="navcolumn">
+           
+  
+
+  
+    
+  
+  
+    
+                   <h5>Get log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../download.html">Download</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../changes-report.html">Changes</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../license.html">License</a>
+          </li>
+          </ul>
+              <h5>About log4cxx</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../index.html">What is log4cxx?</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../apidocs/index.html">API Documentation</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../faq.html">FAQ</a>
+          </li>
+          </ul>
+              <h5>Community</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../mail-lists.html">Mailing Lists</a>
+          </li>
+              
+    <li class="none">
+                    <a href="../issue-tracking.html">Issue Tracking</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://wiki.apache.org/logging-log4cxx" class="externalLink">Wiki</a>
+          </li>
+          </ul>
+              <h5>Development</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="../source-repository.html">Repository</a>
+          </li>
+              
+          
+              
+      
+            
+      
+            
+            
+            
+      
+            
+      
+              
+            <li class="expanded">
+                    <a href="../">Building</a>
+                  <ul>
+                  
+    <li class="none">
+                    <a href="../building/autotools.html">autotools</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="../building/ant.html">Apache Ant</a>
+          </li>
+                  
+    <li class="none">
+              <strong>Apache Maven 2</strong>
+        </li>
+                  
+    <li class="none">
+                    <a href="../building/vstudio.html">Microsoft Visual Studio</a>
+          </li>
+                  
+    <li class="none">
+                    <a href="../building/xcode.html">Apple Xcode</a>
+          </li>
+              </ul>
+        </li>
+          </ul>
+              <h5>Apache</h5>
+            <ul>
+              
+    <li class="none">
+                    <a href="http://www.apache.org" class="externalLink">Home</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/sponsorship.html" class="externalLink">Sponsorship</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apache.org/foundation/thanks.html" class="externalLink">Thanks</a>
+          </li>
+              
+    <li class="none">
+                    <a href="http://www.apachecon.com" class="externalLink">Conferences</a>
+          </li>
+          </ul>
+                                           <a href="http://maven.apache.org/" title="Built by Maven" class="poweredBy">
+            <img alt="Built by Maven" src="../images/logos/maven-feather.png"></img>
+          </a>
+                       
+  
+
+  
+    
+  
+  
+    
+        </div>
+    </div>
+    <div id="bodyColumn">
+      <div id="contentBox">
+        <div class="section"><h2>Building Apache log4cxx with Apache Maven 2</h2>
+<p><a href="http://maven.apache.org" class="externalLink">Apache Maven 2</a>
+ is used to generate the release assemblies and generate product documentation. It delegates to the <a href="ant.html">Apache Ant build</a>
+ to build and test log4cxx and can be used as an alternate front end to the Ant build process since it can automatically download and use ant-contrib, cpptasks and log4j. The Maven build, like the Ant build, can build APR and APR-Util from source.</p>
+<div class="section"><h3>Quick start:</h3>
+<ul><li>Install <a href="http://maven.apache.org" class="externalLink">Apache Maven</a>
+ 2.0.8 or later.</li>
+<li>Install APR and APR-Util or place source in apr and apr-util directories in same parent directory as log4cxx directory.<p>Building and testing log4cxx on a Unix platform with packaged APR and APR-Util. </p>
+<div class="source"><pre> sudo apt-get install libapr1.0-dev libaprutil1.0-dev doxygen
+ cd apache-log4cxx-0.10.0
+ export PATH=/home/myself/maven-2.0.8/bin:$PATH
+ mvn package</pre>
+</div>
+<p>Building and testing log4cxx on a Microsoft Windows with APR and APR-Util built from source. </p>
+<div class="source"><pre> set PATH=\maven-2.0.8\bin;%PATH%
+ tar -xvzf apr-1.2.12.tar.gz
+ rename apr-1.2.12 apr
+ tar -xvzf apr-util-1.2.12.tar.gz
+ rename apr-util-1.2.12 apr-util
+ cd apache-log4cxx-0.10.0
+ mvn package</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section"><h3>Common Maven targets</h3>
+<table class="bodyTable"><tbody><tr class="a"><td align="left">compile</td>
+<td align="left">build log4cxx library.</td>
+</tr>
+<tr class="b"><td align="left">package</td>
+<td align="left">build logcxx library and build and run unit tests and examples.</td>
+</tr>
+<tr class="a"><td align="left">site</td>
+<td align="left">Generate documentation and IDE project files, requires doxygen.</td>
+</tr>
+<tr class="b"><td align="left">site assembly:assembly</td>
+<td align="left">Generate snapshot tarball and zip file.</td>
+</tr>
+<tr class="a"><td align="left">site-deploy</td>
+<td align="left">Publish website to staging area on ASF subversion repository (requires credentials).</td>
+</tr>
+<tr class="b"><td align="left">clean</td>
+<td align="left">Delete all generated files.</td>
+</tr>
+</tbody>
+</table>
+<p>All build products will be placed in the target subdirectory. </p>
+<p>It is not possible to directly pass options to the Ant build, however the ant build will read any build.properties file in the log4cxx directory.</p>
+<p>SMTP and ODBC options can depend on libraries that that have different licenses. You should review the corresponding licenses and understand the implications before redistribution.</p>
+</div>
+<div class="section"><h3>Platform specific notes:</h3>
+<p>See the <a href="ant.html">Apache Ant build</a>
+ for platform specific notes. </p>
+</div>
+</div>
+
+      </div>
+    </div>
+    <div class="clear">
+      <hr/>
+    </div>
+    <div id="footer">
+      <div class="xright">&#169;  
+          2008
+    
+          Apache Software Foundation
+          
+  
+
+  
+    
+  
+  
+    
+  </div>
+      <div class="clear">
+        <hr/>
+      </div>
+    </div>
+  </body>
+</html>

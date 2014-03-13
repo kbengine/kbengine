@@ -1,0 +1,14 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_crypto_openssl.mak
+
+.\apr_crypto_openssl.c : \
+	"..\include\apr_buckets.h"\
+	"..\include\apr_crypto.h"\
+	"..\include\apu.h"\
+	"..\include\apu_errno.h"\
+	"..\include\private\apr_crypto_internal.h"\
+	
+
+..\libaprutil.rc : \
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	

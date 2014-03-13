@@ -1,0 +1,136 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+ ------
+ Building Apache log4cxx with autotools
+ ------
+ ------
+ ------
+
+Building Apache log4cxx with autotools
+
+* Quick start:
+
+  Install or build apr 1.x, apr-util 1.x, gzip and zip.
+
++------------+
+$ cd apache-log4cxx-0.10.0
+$ ./configure
+$ make
+$ make check
+$ sudo make install
++------------+
+
+
+* configure options
+
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-apr        |  path to non-default location for APR.                                                      |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-apr-util   | path to non-default location for APR-Util.                                                  |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --enable-wchar_t  | Enable wchar_t API methods, choice of yes (default), no.                                    |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --enable-unichar  | Enable UniChar API methods, choice of yes, no (default).                                    |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --enable-cfstring | Enable CFString API methods, requires Mac OS/X CoreFoundation, choice of yes, no (default). |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-logchar    | Interal character representation, choice of utf-8 (default), wchar_t , unichar.             | 
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-charset    | Exteral character encoding, choice of utf-8, iso-8859-1, usascii, ebcdic,  auto (default).  |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-SMTP       | SMTP implementation for SMTPAppender, choice of libesmtp, no (default).                     |
+*-------------------+---------------------------------------------------------------------------------------------+
+| --with-ODBC       | OBDC implementation for ODBCAppender, choice of unixODBC, iODBC, Microsoft, no (default).   |
+*-------------------+---------------------------------------------------------------------------------------------+
+| -help             | Display help showing all options and exit.                                                  |
+*-------------------+---------------------------------------------------------------------------------------------+
+
+        
+   SMTP and ODBC options can depend on libraries that 
+   that have different licenses.
+   You should review the corresponding licenses and understand
+   the implications before redistribution.
+
+* Platform specific notes:
+
+** Mac OS/X:
+  
+  APR and APR-Util are provided by the platform in Mac OS/X 10.5 and iODBC in 10.4.
+
+** Debian:
+
+  APR, APR-Util and zip may be installed by:
+
++----+
+$ sudo apt-get install libapr1.0-dev libaprutil1.0-dev zip
++----+
+
+** FreeBSD:
+
+  APR, APR-Util and zip may be installed from the ports collection by:
+
++----+
+# cd /usr/ports/archivers/zip
+# make
+# make install
+# cd /usr/ports/devel/apr
+# make
+# make install
++----+
+  
+** Cygwin:
+  
+  Install zip (used by RollingFileAppender) and sed (used to normalize
+  output files for comparison in the unit tests).  The prepackaged
+  APR currently available from Cygwin has APR_HAS_THREADS == 0.
+  Some appenders will not be available and some may operate
+  with reduced functionality.  There have been reports of
+  building APR on Cygwin with threads enabled.
+
+
+** MinGW:
+
+   Recent APR 1.2.x releases fail ./configure with a error
+   of "decision on anonymous shared memory failed".  That issue
+   has been fixed in the current APR SVN HEAD.  The follow
+   sequence worked with MSYS (with Python on Path):
+
++----+
+$ cd expat-2.0.1
+$ ./configure
+$ make install
+$ cd ..
+$ svn co https://svn.apache.org/repos/asf/apr/apr/trunk apr
+$ cd apr
+$ ./buildconf.sh
+$ ./configure 
+$ make install
+$ cd ..
+$ svn co \
+   https://svn.apache.org/repos/asf/apr/apr-util/trunk \
+   apr-util
+$ cd apr-util
+$ ./buildconf.sh
+$ ./configure --with-apr=/usr/local --with-expat=/usr/local
+$ make install
+$ cd ../apache-log4cxx-0.10.0
+$ ./configure --with-apr=/usr/local \
+   --with-apr-util=/usr/local --with-logchar=wchar_t
+$ make install
++----+
+
+   Running "make check" was observed to fail with unexpected exceptions
+   in streamtestcase and datetimedateformattestcase.
+   See {{{http://issues.apache.org/jira/browse/LOGCXX-244}LOGCXX-244}}.

@@ -1,0 +1,65 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+ ------
+ Building Apache log4cxx with Apple Xcode
+ ------
+ ------
+ ------
+
+Building Apache log4cxx with Apple Xcode
+
+*Building log4cxx.dylib
+
+   Run configure to generate log4cxx.h and log4cxx_private.h
+   then launch Xcode.
+   
++----+
+cd apache-log4cxx-0.10.0
+./configure
+open projects/log4cxx.xcodeproj
++----+   
+
+
+*Running unit tests
+
+   Run configure then open projects/testsuite.xcodeproj 
+   or projects/testsuite-standalone.xcodeproj
+   (test suite and implementation in one project) in Xcode.
+   
+   The unit tests require the working directory and several environment variables
+   to be set.  To set these, elect the executable in Groups & Files and press Info and:
+   
+   * In the General pane, set Working Directory to Custom with path "../src/test/resources".
+
+   * In the Arguments pane, add following key value pairs to "Variables to be set in the environment":
+     TOTO=wonderful, key1=value1 and key2=value2.
+   
+   * In the Arguments pane, add "-v" for verbose output, or individual test names in "Arguments to be passed on launch".
+
+*Issues
+    
+   The project file generation does does not 
+   properly create an entry in the "Link Binary with Libraries"
+   build phase for projects (such as the examples and unit tests) that depend 
+   on log4cxx.  To work around the problem, open the project in Xcode and
+   in the Groups & Files pane, drag log4cxx.dylib
+   and drop on the "Link Binary with Libraries" folder
+   under Targets.
+
+   See issue {{{http://issues.apache.org/jira/browse/LOGCXX-245}LOGCXX-245}} for further information.
+   
+   The projects provided in the release target Mac OS/X 10.5 which provides 
+   preinstalled APR and APR-Util libraries.  To generate XCode projects to target Mac OS/X 10.4, 
+   set up the ant build and then "ant build-projects-xcode -Dfind=false".

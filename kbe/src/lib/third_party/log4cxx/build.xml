@@ -1,0 +1,1251 @@
+<?xml version="1.0"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<!DOCTYPE project [
+<!ENTITY libsets '
+        <libset libs="${apr-util.lib.prefix}${apr-util.lib.name}${apr-util.lib.suffix}" dir="${apr-util.lib.dir}" if="apr-util.lib.dir"/>
+        <libset libs="${apr-util.lib.prefix}${apr-util.lib.name}${apr-util.lib.suffix}" unless="apr-util.lib.dir"/>
+        <libset libs="${apr.lib.prefix}${apr.lib.name}${apr.lib.suffix}" dir="${apr.lib.dir}" if="apr.lib.dir"/>
+        <libset libs="${apr.lib.prefix}${apr.lib.name}${apr.lib.suffix}" unless="apr.lib.dir"/>
+        <libset libs="esmtp" dir="${esmtp.lib.dir}" if="esmtp.lib.dir"/>
+        <libset libs="esmtp" if="has-libesmtp" unless="esmtp.lib.dir"/>
+      <libset libs="${odbc.lib}" if="odbc.lib"/>
+      <libset libs="${apr-util.dependencies}" if="apr-util.dependencies" unless="apr-util-includes-dependencies"/>
+        <libset libs="pthread" if="is-unix"/>
+        <syslibset libs="advapi32 mswsock ws2_32 shell32" if="is-windows"/>
+        <syslibset libs="stdc++" if="is-gcc"/>
+        <syslibset libs="cw32mt" if="is-bcc"/>
+'>
+<!ENTITY license '
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+'>
+<!ENTITY common SYSTEM 'src/ant/common.xml'>
+<!ENTITY find-apr SYSTEM 'src/ant/find-apr.xml'>
+<!ENTITY find-apr-util SYSTEM 'src/ant/find-apr-util.xml'>
+<!ENTITY find-libesmtp SYSTEM 'src/ant/find-libesmtp.xml'>
+]>
+
+<!--
+This file builds log4cxx using Apache Ant (http://ant.apache.org)
+and the C++ compilation tasks from http://ant-contrib.sourceforge.net.
+
+
+-->
+<project name="log4cxx" default="check">
+
+&common;
+&find-apr;
+&find-apr-util;
+&find-libesmtp;
+
+<property name="base.dir" location="."/>
+<property name="src.dir" location="${base.dir}/src/main/cpp"/>
+<property name="resources.dir" location="${base.dir}/src/main/resources"/>
+<property name="include.dir" location="${base.dir}/src/main/include"/>
+<property name="target.dir" location="${base.dir}/target"/>
+<property name="lib.dir" location="${target.dir}/lib"/>
+<property name="examples.dir" location="${base.dir}/src/examples/cpp"/>
+<property name="tests.dir" location="${base.dir}/src/test"/>
+<property name="tests.cpp.dir" location="${tests.dir}/cpp"/>
+<property name="tests.resources.dir" location="${tests.dir}/resources"/>
+<property name="tests.output.dir" location="${tests.resources.dir}/output"/>
+<property name="m2_repo" location="${user.home}/.m2/repository"/>
+<property name="log4j.version" value="1.2.14"/>
+<available property="log4j.jar"
+           value="/usr/share/java/log4j-1.2.jar"
+           file="/usr/share/java/log4j-1.2.jar"/>
+<property name="log4j.jar" 
+       location="${m2_repo}/log4j/log4j/${log4j.version}/log4j-${log4j.version}.jar"/>
+
+
+<property name="doxygen.exe" value="doxygen"/>
+
+<property name="lib.name" value="log4cxx"/>
+<property name="lib.prefix" value=""/>
+<property name="version" value="0.10.0"/>
+<property name="enable-char" value="1"/>
+<property name="enable-wchar_t" value="1"/>
+<property name="enable-unichar" value="0"/>
+<property name="enable-cfstring" value="0"/>
+<property name="with-charset" value="auto"/>
+<property name="with-SMTP" value="no"/>
+<property name="with-ODBC" value="no"/>
+
+
+<property name="svnsite.url" value="https://svn.apache.org/repos/asf/logging/site/trunk/docs/log4cxx"/>
+
+
+
+<target name="usage" description="Describes usage of the build script">
+        <echo>
+Ant build file for log4cxx
+
+Common invocations:
+
+> ant
+
+will attempt to locate APR and APR-util in /usr, /usr/local/apr and ..
+
+Builds and tests log4cxx.
+
+> ant -Dwith-apr=APRPATH -Dwith-apr-util=APUPATH
+
+Builds and tests log4cxx using APR and APR-Util at specified location
+
+> ant -p
+
+Displays available targets
+
+> ant build-projects-vc6
+
+Builds Microsoft Visual Studio 6 projects.
+-vc7, -vc8, -vc9 and -xcode for Visual Studio .NET, 2005, 2008 and Apple Xcode 2 and later.
+respectively.
+
+Command line options:
+
+-Ddebug=[true|false]
+-Doptimize=[speed|size|none]
+-Dversion=n.n.n
+-Denable-shared=[yes|no] (default yes)
+-Denable-static=[yes|no] (default yes)
+-Denable-char=[0, 1] (expose char* API, default 1)
+-Denable-wchar_t=[0, 1] (expose wchar_t* API, default 1)
+-Denable-unichar=[0, 1] (expose UniChar API, default 0)
+-Denable-cfstring[0, 1] (expose CFString API, default 0)
+-Dwith-charset=[auto|utf-8|iso-8859-1|usascii|ebcdic] (default auto)
+-Dwith-logchar=[utf-8|wchar_t|unichar] (default=utf-8 on Unix, wchar_t on Windows)
+-Dwith-apr=APRPATH
+-Dwith-apr-util=PATH
+-Dwith-SMTP=[libesmtp, no] (default no)
+-Dwith-ODBC=[unixODBC, iODBC, Microsoft, no] (default no)
+
+</echo>
+</target>
+
+
+<target name="init" depends="common-init">
+
+        <property name="log4cxx.lib.dir" value="${executable.dir}"/>
+        <mkdir dir="${log4cxx.lib.dir}"/>
+
+        <condition property="with-logchar" value="wchar_t">
+            <isset property="is-windows"/>
+        </condition>
+        <property name="with-logchar" value="utf-8"/>
+        
+        <condition property="has-libesmtp" value="1">
+            <equals arg1="${with-SMTP}" arg2="libesmtp"/>
+        </condition>
+
+      <condition property="odbc.lib" value="iodbc">
+          <equals arg1="${with-ODBC}" arg2="iODBC"/>
+      </condition>
+
+      <condition property="odbc.lib" value="unixodbc">
+          <equals arg1="${with-ODBC}" arg2="unixODBC"/>
+      </condition>
+
+      <condition property="odbc.lib" value="odbc32">
+          <equals arg1="${with-ODBC}" arg2="Microsoft"/>
+      </condition>
+
+      <condition property="has-ODBC" value="1">
+          <isset property="odbc.lib"/>
+      </condition>
+      <property name="has-ODBC" value="0"/>
+        
+        <condition property="force-ant" value="1">
+            <equals arg1="${find}" arg2="false"/>
+        </condition>
+        <echo>force-ant: ${force-ant}</echo>
+
+</target>
+
+<target name="clean" depends="init" description="Removes built files">
+        <delete dir="${target.dir}"/>
+        <delete>
+            <fileset dir="${include.dir}/log4cxx" includes="**/log4cxx.h"/>
+        </delete>
+        
+</target>
+
+<target name="unix-configure" if="is-unix">
+        <copy tofile="${include.dir}/log4cxx/log4cxx.tmp"
+              file="${include.dir}/log4cxx/log4cxx.h.in" overwrite="true"/>
+        <copy tofile="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+              file="${include.dir}/log4cxx/private/log4cxx_private.h.in" overwrite="true"/>
+</target>
+
+<target name="win-configure" if="is-windows">
+        <copy tofile="${include.dir}/log4cxx/log4cxx.tmp"
+              file="${include.dir}/log4cxx/log4cxx.hw" overwrite="true"/>
+        <copy tofile="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+              file="${include.dir}/log4cxx/private/log4cxx_private.hw" overwrite="true"/>
+      <property name="odbc.lib" value="odbc32"/>
+</target>
+
+
+<target name="configure" depends="init,
+                                  unix-configure,
+                                  win-configure">
+    <echo message="Configuring with-logchar=${with-logchar}" />
+    <echo message="Configuring with-charset=${with-charset}" />
+    <echo message="Configuring with-SMTP=${with-SMTP}" />
+    <echo message="Configuring with-ODBC=${with-ODBC}" />
+    <echo message="Configuring enable-char=${enable-char}"/>
+    <echo message="Configuring enable-wchar_t=${enable-wchar_t}"/>
+    <echo message="Configuring enable-unichar=${enable-unichar}"/>
+    <echo message="Configuring enable-cfstring=${enable-cfstring}"/>
+
+    <condition property="logchar_is_utf8" value="1">
+       <equals arg1="${with-logchar}" arg2="utf-8"/>
+    </condition>
+    <property name="logchar_is_utf8" value="0"/>
+
+    <condition property="logchar_is_unichar" value="1">
+       <equals arg1="${with-logchar}" arg2="unichar"/>
+    </condition>
+    <property name="logchar_is_unichar" value="0"/>
+
+    <condition property="logchar_is_wchar" value="1">
+       <equals arg1="${with-logchar}" arg2="wchar_t"/>
+    </condition>
+    <property name="logchar_is_wchar" value="0"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@LOGCHAR_IS_UNICHAR@"
+       replace="${logchar_is_unichar}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@LOGCHAR_IS_UTF8@"
+       replace="${logchar_is_utf8}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@LOGCHAR_IS_WCHAR@"
+       replace="${logchar_is_wchar}"/>
+
+    <condition property="charset_is_utf8" value="1">
+       <equals arg1="${with-charset}" arg2="utf-8"/>
+    </condition>
+    <property name="charset_is_utf8" value="0"/>
+
+    <condition property="charset_is_iso-8859-1" value="1">
+       <equals arg1="${with-charset}" arg2="iso-8859-1"/>
+    </condition>
+    <property name="charset_is_iso-8859-1" value="0"/>
+
+    <condition property="charset_is_usascii" value="1">
+       <equals arg1="${with-charset}" arg2="usascii"/>
+    </condition>
+    <property name="charset_is_usascii" value="0"/>
+
+    <condition property="charset_is_ebcdic" value="1">
+       <equals arg1="${with-charset}" arg2="ebcdic"/>
+    </condition>
+    <property name="charset_is_ebcdic" value="0"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@CHARSET_UTF8@"
+       replace="${charset_is_utf8}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@CHARSET_ISO88591@"
+       replace="${charset_is_iso-8859-1}"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@CHARSET_USASCII@"
+       replace="${charset_is_usascii}"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@CHARSET_EBCDIC@"
+       replace="${charset_is_ebcdic}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@CHAR_API@"
+       replace="${enable-char}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@WCHAR_T_API@"
+       replace="${enable-wchar_t}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@UNICHAR_API@"
+       replace="${enable-unichar}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/log4cxx.tmp"
+       match="@CFSTRING_API@"
+       replace="${enable-cfstring}"/>
+
+
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_SYSLOG@"
+       replace="1"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_STD_LOCALE@"
+       replace="1"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_MBSRTOWCS@"
+       replace="1"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_WCSTOMBS@"
+       replace="1"/>
+    <condition property="has-fwide" value="0">
+        <isset property="is-cygwin"/>
+    </condition>
+    <property name="has-fwide" value="1"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_FWIDE@"
+       replace="${has-fwide}"/>
+
+    <condition property="has-libesmtp-value" value="1">
+        <isset property="has-libesmtp"/>
+    </condition>
+    <property name="has-libesmtp-value" value="0"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="LOG4CXX_HAVE_LIBESMTP 0"
+       replace="LOG4CXX_HAVE_LIBESMTP ${has-libesmtp-value}"/>
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_LIBESMTP@"
+       replace="${has-libesmtp-value}"/>
+
+    <replaceregexp file="${include.dir}/log4cxx/private/log4cxx_private.tmp"
+       match="@HAS_ODBC@"
+       replace="${has-ODBC}"/>
+       
+    <antcall target="copy-if-changed">
+        <param name="tofile" value="${include.dir}/log4cxx/log4cxx.h"/>
+        <param name="file" value="${include.dir}/log4cxx/log4cxx.tmp"/>
+    </antcall>
+    <delete file="${include.dir}/log4cxx/log4cxx.tmp"/>
+    <antcall target="copy-if-changed">
+        <param name="tofile" value="${include.dir}/log4cxx/private/log4cxx_private.h"/>
+        <param name="file" value="${include.dir}/log4cxx/private/log4cxx_private.tmp"/>
+    </antcall>
+    <delete file="${include.dir}/log4cxx/private/log4cxx_private.tmp"/>
+    
+</target>
+
+
+<target name="build-apr" depends="find-apr" unless="apr.lib.file">
+    <fail unless="apr.src.dir">Could not locate apr library or source.</fail>
+    <property name="apr.lib.type" value="static"/>
+   <property name="apr.lib.prefix" value=""/>
+   <property name="apr.lib.suffix" value=""/>
+   <property name="project.type" value="msvc6"/>
+    <ant antfile="src/ant/apr-build.xml" target="build" inheritAll="false">
+        <property name="basedir" value="${apr.src.dir}"/>
+        <property name="target.dir" value="${target.dir}"/>
+        <property name="debug" value="${debug}"/>
+        <property name="lib.prefix" value="${apr.lib.prefix}"/>
+        <property name="lib.suffix" value="${apr.lib.suffix}"/>
+        <property name="compiler" value="${compiler}"/>
+        <property name="runtime" value="${runtime}"/>
+        <property name="lib.type" value="${apr.lib.type}"/>
+        <property name="project.type" value="${project.type}"/>
+        <property name="projects.dir" value="${projects.dir}"/>
+        <property name="project.if.value" value="${project.if}"/>
+        <property name="use-pic" value="${use-pic}"/>
+        <property name="os.family" value="${os.family}"/>
+    </ant>
+    <condition property="apr.lib.dir" value="${target.dir}/${debug.release}/shared">
+        <equals arg1="${apr.lib.type}" arg2="shared"/>
+    </condition>
+    <property name="apr.lib.dir" location="${target.dir}/${debug.release}/static"/>
+    <property name="apr.project.file" location="${projects.dir}/apr"/>
+</target>
+
+
+<target name="build-apr-util" depends="build-apr, find-apr-util" unless="apr-util.lib.file">
+    <fail unless="apr-util.src.dir">Could not locate apr-util library or source.</fail>
+    <property name="apr-util.lib.type" value="${apr.lib.type}"/>
+   <property name="apr-util.lib.prefix" value=""/>
+   <property name="apr-util.lib.suffix" value=""/>
+   <property name="project.type" value="msvc6"/>
+   <!--  built this way, apr-util will include expat and doesn't need an external reference  -->
+   <property name="apr-util-includes-dependencies" value="1"/>
+
+    <ant antfile="src/ant/apr-util-build.xml" target="build" inheritAll="false">
+        <property name="target.dir" value="${target.dir}"/>
+        <property name="basedir" value="${apr-util.src.dir}"/>
+        <property name="debug" value="${debug}"/>
+        <property name="lib.prefix" value="${apr-util.lib.prefix}"/>
+        <property name="lib.suffix" value="${apr-util.lib.suffix}"/>
+        <property name="compiler" value="${compiler}"/>
+        <property name="runtime" value="${runtime}"/>
+        <property name="apr.include.dir" value="${apr.include.dir}"/>
+        <property name="apr.lib.dir" value="${apr.lib.dir}"/>
+        <property name="apr.lib.type" value="${apr.lib.type}"/>
+        <property name="lib.type" value="${apr-util.lib.type}"/>
+        <property name="project.type" value="${project.type}"/>
+        <property name="projects.dir" value="${projects.dir}"/>
+        <property name="project.if.value" value="${project.if}"/>
+        <property name="use-pic" value="${use-pic}"/>
+        <property name="os.family" value="${os.family}"/>
+    </ant>
+
+    <condition property="apr-util.lib.dir" value="${target.dir}/${debug.release}/shared">
+        <equals arg1="${apr-util.lib.type}" arg2="shared"/>
+    </condition>
+    <property name="apr-util.lib.dir" location="${target.dir}/${debug.release}/static"/>
+    <property name="apr-util.project.file" location="${projects.dir}/apr-util"/>
+</target>
+
+<target name="build-libesmtp" depends="find-esmtp" if="has-libesmtp" unless="esmtp.lib.file">
+    <fail unless="esmtp.src.dir">Could not locate libesmtp library or source.</fail>
+    <property name="esmtp.lib.type" value="static"/>
+    <property name="esmtp.lib.prefix" value=""/>
+    <property name="esmtp.lib.suffix" value=""/>
+    <property name="project.type" value="msvc6"/>
+    <condition property="esmtp.compiler" value="gcc">
+        <equals arg1="${compiler}" arg2="g++"/>
+    </condition>
+    <property name="esmtp.compiler" value="${compiler}"/>
+
+    <ant antfile="src/ant/esmtp-build.xml" target="build" inheritAll="false">
+        <property name="target.dir" value="${target.dir}"/>
+        <property name="basedir" value="${esmtp.src.dir}"/>
+        <property name="debug" value="${debug}"/>
+        <property name="lib.prefix" value="${esmtp.lib.prefix}"/>
+        <property name="lib.suffix" value="${esmtp.lib.suffix}"/>
+        <property name="compiler" value="${esmtp.compiler}"/>
+        <property name="runtime" value="${runtime}"/>
+        <property name="lib.type" value="${esmtp.lib.type}"/>
+        <property name="project.type" value="${project.type}"/>
+        <property name="projects.dir" value="${projects.dir}"/>
+        <property name="project.if.value" value="${project.if}"/>
+        <property name="use-pic" value="${use-pic}"/>
+        <property name="os.family" value="${os.family}"/>
+    </ant>
+
+    <condition property="esmtp.lib.dir" value="${target.dir}/${debug.release}/shared">
+        <equals arg1="${esmtp.lib.type}" arg2="shared"/>
+    </condition>
+    <property name="esmtp.lib.dir" location="${target.dir}/${debug.release}/static"/>
+    <property name="esmtp.project.file" location="${projects.dir}/libesmtp"/>
+</target>
+
+
+<target name="make-header-check">
+   <echo file="${header}.cpp" append="false">
+#include "${header}"
+#include "${header}"
+</echo>
+</target>
+
+
+<target name="header-check" depends="build-apr-util, configure"
+    description="Checks headers against Effective C++ guidelines">
+        <fail unless="is-gcc">Requires GCC compiler</fail>
+        <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+        <delete dir="${target.dir}/header-check"/>
+        <mkdir dir="${target.dir}/header-check"/>
+        <copy todir="${target.dir}/header-check" overwrite="true">
+             <fileset dir="${include.dir}" includes="**/*.h">
+                    <!-- obsolete header with #error directive to eliminate its use -->
+                    <exclude name="**/tchar.h"/>
+                    <!--  excluded due to conflict between log4cxx/rfa.h and log4cxx/rolling/rfa.h  -->
+                    <exclude name="log4cxx/rollingfileappender.h"/>
+             </fileset>
+        </copy>
+        <foreach target="make-header-check" param="header">
+                <path><fileset dir="${target.dir}/header-check" includes="**/*.h"/></path>
+        </foreach>
+       <property name="project.type" value="msvc6"/>
+        <cc objdir="${target.dir}/header-check"
+                name="gcc"
+                exceptions="true"
+                subsystem="gui"
+                optimize="none"
+                multithreaded="true"
+                relentless="true"
+                debug="${debug}"
+                projectsOnly="${projectsOnly}">
+                <compilerarg value="-Weffc++"/>
+                <compilerarg value="-Wall"/>
+                <compilerarg value="${pic-option}" if="pic-option"/>
+                <fileset dir="${target.dir}/header-check"
+                     includes="**/*.cpp"
+                     excludes="log4cxx/private/*.cpp **/aprinitializer.h.cpp"/>
+                <includepath path="${include.dir}"/>
+                <project outfile="${projects.dir}/header-check"
+                    type="${project.type}" if="project.if"/>
+         </cc>
+</target>
+
+<target name="build-lib" depends="build-apr-util, build-libesmtp, configure" description="Build log4cxx library">
+    <mkdir dir="${log4cxx.lib.dir}/log4cxx_obj"/>
+
+   <condition property="apr-static" value="1">
+      <equals arg1="${apr.lib.type}" arg2="static"/>
+   </condition>
+      
+   <condition property="apr-util-static" value="1">
+      <equals arg1="${apr-util.lib.type}" arg2="static"/>
+   </condition>
+
+   <condition property="apr-libs-match" value="1">
+      <equals arg1="${apr.lib.type}" arg2="${apr-util.lib.type}"/>
+   </condition>
+
+   <fail unless="apr-libs-match">apr is ${apr.lib.type} and apr-util is ${apr-util.lib.type}, must be same type.</fail>
+   <property name="lib.name" value="log4cxx"/>
+   <property name="lib.prefix" value=""/>
+   <property name="lib.suffix" value=""/>
+
+   <condition property="apr-util.dependencies" value="expat iconv">
+      <equals arg1="${apr-util.lib.type}" arg2="static"/>
+   </condition>
+
+
+    <property name="project.compiler" value="${compiler}"/>
+   <property name="project.type" value="msvc6"/>
+
+  <condition property="resource.compiler" value="windres">
+    <isset property="is-gcc"/>
+  </condition>
+  <condition property="resource.compiler" value="brc">
+    <isset property="is-bcc"/>
+  </condition>
+  <property name="resource.compiler" value="msrc"/>
+    
+    <cc name="${project.compiler}"
+                exceptions="true"
+                outfile="${log4cxx.lib.dir}/${lib.prefix}${lib.name}${lib.suffix}"
+                outputfileproperty="log4cxx.lib.file"
+                subsystem="console"
+                multithreaded="true"
+                runtime="${runtime}"
+                outtype="${lib.type}"
+                objdir="${log4cxx.lib.dir}/log4cxx_obj"
+                debug="${debug}"
+                projectsOnly="${projectsOnly}">
+        <compiler name="${resource.compiler}" if="is-windows">
+          <includepath path="${resources.dir}"/>
+          <fileset dir="${resources.dir}" includes="*.rc"/>
+        </compiler>
+        <fileset dir="${src.dir}" includes="*.cpp"/>
+        <fileset dir="${include.dir}" includes="**/*.h"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${apr.include.dir}" if="apr.include.dir"/>
+        <includepath path="${apr-util.include.dir}" if="apr-util.include.dir"/>
+        <includepath path="${esmtp.include.dir}" if="esmtp.include.dir"/>
+        <defineset define="_USRDLL DLL_EXPORTS" if="is-windows"/>
+        <defineset define="LOG4CXX"/>
+        <defineset define="LOG4CXX_STATIC" if="is-static"/>
+        <defineset define="APR_DECLARE_STATIC" if="apr-static"/>
+        <defineset define="APU_DECLARE_STATIC" if="apr-util-static"/>
+        <defineset define="WIN32" if="is-windows"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        &libsets;
+        <project type="${project.type}" outfile="${projects.dir}/${lib.name}" if="project.if">
+         <comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+            <dependency file="${projects.dir}/xml"/>
+            <dependency file="${projects.dir}/aprutil" depends="apr,xml"/>
+            <dependency name="${projects.dir}/libesmtp"/>
+        </project>
+    </cc>
+
+    <!-- copy liblog4cxx.so to log4cxx.dll for MinGW and Cygwin -->
+    <condition property="copy.log4cxx" value="${log4cxx.lib.dir}/${lib.prefix}${lib.name}${lib.suffix}.dll">
+        <and>
+            <os family="windows"/>
+            <isset property="is-gcc"/>
+            <equals arg1="${lib.type}" arg2="shared"/>
+            <isset property="log4cxx.lib.file"/>
+         </and>
+    </condition>
+</target>
+
+<target name="build" depends="build-lib" if="copy.log4cxx">
+    <copy file="${log4cxx.lib.file}" tofile="${copy.log4cxx}" 
+       overwrite="true" preservelastmodified="true"/>
+</target>
+
+<target name="build-example">
+    <mkdir dir="${log4cxx.lib.dir}/${example.name}_obj"/>
+    <property name="project.compiler" value="${compiler}"/>
+   <property name="project.type" value="msvc6"/>
+    <property name="example.include.dir" value="${example.src.dir}"/>
+    <cc name="${project.compiler}"
+                exceptions="true"
+                outfile="${log4cxx.lib.dir}/${example.name}"
+                subsystem="console"
+                multithreaded="true"
+                runtime="${runtime}"
+                outtype="executable"
+                objdir="${log4cxx.lib.dir}/${example.name}_obj"
+                debug="${debug}"
+                projectsOnly="${projectsOnly}">
+        <fileset dir="${example.src.dir}" includes="${example.includes}"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${example.include.dir}"/>
+        <includepath path="${apr.include.dir}" if="apr.include.dir"/>
+
+        <defineset define="WIN32" if="is-windows"/>
+        <defineset define="LOG4CXX_STATIC" if="is-static"/>
+        <defineset define="APR_DECLARE_STATIC" if="apr-static"/>
+
+        <compilerarg value="${pic-option}" if="pic-option"/>
+
+        <libset libs="${lib.prefix}${lib.name}${lib.suffix}" dir="${log4cxx.lib.dir}"/>
+        &libsets;
+
+        <project outfile="${projects.dir}/${example.name}" type="${project.type}" if="project.if">
+         <comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+            <dependency file="${projects.dir}/xml"/>
+            <dependency name="${projects.dir}/aprutil" depends="apr,xml"/>
+            <dependency name="${projects.dir}/libesmtp"/>
+            <dependency file="${projects.dir}/log4cxx" depends="apr,aprutil,xml"/>
+        </project>
+        
+    </cc>
+</target>
+
+<target name="run-example">
+    <!--  remove any stray configuration files  -->
+    <delete>
+        <fileset dir="${log4cxx.lib.dir}" includes="log4*.properties log4*.xml"/>
+    </delete>
+    <exec executable="${log4cxx.lib.dir}/${example.name}"
+          dir="${log4cxx.lib.dir}"
+          failonerror="true">
+          <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+            <env key="Path" value="${env.Path}"/>
+    </exec>
+</target>
+
+
+<target name="build-delayedloop" depends="build">
+    <antcall target="build-example">
+       <param name="example.src.dir" value="${examples.dir}"/>
+       <param name="example.name" value="delayedloop"/>
+       <param name="example.includes" value="delayedloop.cpp"/>
+    </antcall>
+</target>
+
+<target name="build-trivial" depends="build">
+    <antcall target="build-example">
+       <param name="example.src.dir" value="${examples.dir}"/>
+       <param name="example.name" value="trivial"/>
+       <param name="example.includes" value="trivial.cpp"/>
+    </antcall>
+</target>
+
+<target name="build-console" depends="build">
+    <antcall target="build-example">
+       <param name="example.src.dir" value="${examples.dir}"/>
+       <param name="example.name" value="console"/>
+       <param name="example.includes" value="console.cpp"/>
+    </antcall>
+</target>
+
+<target name="build-stream" depends="build">
+    <antcall target="build-example">
+       <param name="example.src.dir" value="${examples.dir}"/>
+       <param name="example.name" value="stream"/>
+       <param name="example.includes" value="stream.cpp"/>
+    </antcall>
+</target>
+
+<target name="build-examples"
+    depends="build-delayedloop, build-trivial, build-stream, build-console"
+    description="Builds example programs"/>
+
+
+
+<target name="build-unittest" depends="build"
+    description="Builds unit test app">
+    <mkdir dir="${log4cxx.lib.dir}/testsuite_obj"/>
+
+    <property name="project.compiler" value="${compiler}"/>
+   <property name="project.type" value="msvc6"/>
+    <cc name="${project.compiler}"
+                exceptions="true"
+                outfile="${log4cxx.lib.dir}/testsuite"
+                subsystem="console"
+                multithreaded="true"
+                runtime="${runtime}"
+                outputfileproperty="testsuite.exe"
+                outtype="executable"
+                objdir="${log4cxx.lib.dir}/testsuite_obj"
+                debug="${debug}"
+                projectsOnly="${projectsOnly}">
+        <fileset dir="${tests.cpp.dir}" includes="**/*.cpp **/*.c **/*.h"/>
+        <includepath path="${include.dir}"/>
+        <includepath path="${apr.include.dir}" if="apr.include.dir"/>
+        <includepath path="${apr-util.include.dir}" if="apr-util.include.dir"/>
+        <defineset define="LOG4CXX_STATIC" if="is-static"/>
+        <defineset define="APR_DECLARE_STATIC" if="apr-static"/>
+        <defineset define="APU_DECLARE_STATIC" if="apr-util-static"/>
+        <defineset define="WIN32" if="is-windows"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+
+        <libset libs="${lib.prefix}${lib.name}${lib.suffix}" dir="${log4cxx.lib.dir}"/>
+        &libsets;
+
+        <project outfile="${projects.dir}/testsuite" type="${project.type}" if="project.if">
+         <comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+            <dependency file="${projects.dir}/xml"/>
+            <dependency file="${projects.dir}/aprutil" depends="apr,xml"/>
+            <dependency name="${projects.dir}/libesmtp"/>
+            <dependency file="${projects.dir}/log4cxx" depends="apr,aprutil,libesmtp"/>
+        </project>
+    </cc>
+</target>
+
+
+
+
+<target name="build-standalone-unittest"
+    description="Builds a unit tests + log4cxx executable"
+    depends="build-apr-util, build-libesmtp, configure">
+    <mkdir dir="${executable.dir}/static/testsuite-standalone_obj"/>
+    <property name="project.compiler" value="${compiler}"/>
+   <property name="project.type" value="msvc6"/>
+  <condition property="resource.compiler" value="windres">
+    <isset property="is-gcc"/>
+  </condition>
+  <property name="resource.compiler" value="msrc"/>
+
+  <cc name="${project.compiler}"
+                exceptions="true"
+                outfile="${executable.dir}/static/testsuite-standalone"
+                subsystem="console"
+                multithreaded="true"
+                runtime="${runtime}"
+                outputfileproperty="testsuite-standalone.exe"
+                outtype="executable"
+                objdir="${executable.dir}/static/testsuite-standalone_obj"
+                debug="${debug}"
+                projectsOnly="${projectsOnly}">
+        <compiler name="${resource.compiler}" if="is-windows">
+          <includepath path="${resources.dir}"/>
+          <fileset dir="${resources.dir}" includes="*.rc"/>
+        </compiler>
+        <fileset dir="${src.dir}" includes="*.cpp" excludes="**/iconv_module.cpp"/>
+        <fileset dir="${include.dir}" includes="**/*.h"/>
+        <fileset dir="${tests.cpp.dir}" includes="**/*.cpp **/*.c **/*.h"/>
+        <includepath path="${include.dir}"/>
+         <includepath path="${apr.include.dir}" if="apr.include.dir"/>
+        <includepath path="${apr-util.include.dir}" if="apr-util.include.dir"/>
+        <includepath path="${esmtp.include.dir}" if="esmtp.include.dir"/>
+        <defineset define="LOG4CXX"/>
+        <defineset define="APR_DECLARE_STATIC" if="apr-static"/>
+        <defineset define="APU_DECLARE_STATIC" if="apr-util-static"/>
+        <defineset define="WIN32" if="is-windows"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+
+        &libsets;
+
+        <includepath path="${include.dir}"/>
+        <includepath path="${apr.include.dir}"/>
+        <defineset define="LOG4CXX"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+
+
+        <project outfile="${projects.dir}/testsuite-standalone"
+                 type="${project.type}"
+                 if="project.if">
+         <comment>&license;</comment>
+            <dependency file="${projects.dir}/apr"/>
+            <dependency file="${projects.dir}/xml"/>
+            <dependency file="${projects.dir}/aprutil" depends="apr,xml"/>
+            <dependency name="${projects.dir}/libesmtp"/>
+        </project>
+    </cc>
+</target>
+
+<target name="build-all" depends="build-examples, build-unittest"
+     description="Builds all artifacts"/>
+
+<target name="clean-output" depends="init">
+     <delete>
+         <fileset dir="${tests.dir}" includes="output/*"/>
+     </delete>
+</target>
+
+<target name="run-defaultinit-unittest" depends="build-unittest">
+    <antcall target="run-defaultinit-log4X">
+        <param name="config" value="log4j"/>
+    </antcall>
+    <antcall target="run-defaultinit-log4X">
+        <param name="config" value="log4cxx"/>
+    </antcall>
+</target>
+
+<target name="run-defaultinit-log4X">
+    <mkdir dir="${tests.output.dir}"/>
+
+
+    <!--  test of log4j.properties -->
+    <delete>
+        <fileset dir="${log4cxx.lib.dir}" includes="*.properties *.xml"/>
+    </delete>
+    <exec executable="${testsuite.exe}" dir="${log4cxx.lib.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <arg value="testcase1"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+    </exec>
+
+    <copy tofile="${log4cxx.lib.dir}/${config}.xml"
+       file="${tests.resources.dir}/input/xml/defaultInit.xml" overwrite="true"/>
+    <exec executable="${testsuite.exe}" dir="${log4cxx.lib.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <arg value="testcase2"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+    </exec>
+    <delete>
+        <fileset dir="${log4cxx.lib.dir}" includes="*.properties *.xml"/>
+    </delete>
+
+
+    <copy tofile="${log4cxx.lib.dir}/${config}.properties"
+       file="${tests.resources.dir}/input/defaultInit3.properties" overwrite="true"/>
+    <exec executable="${testsuite.exe}" dir="${log4cxx.lib.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <arg value="testcase3"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+    </exec>
+    <delete>
+        <fileset dir="${log4cxx.lib.dir}" includes="*.properties *.xml"/>
+    </delete>
+
+
+    <copy file="${tests.resources.dir}/input/xml/defaultInit.xml" tofile="${log4cxx.lib.dir}/${config}.xml"/>
+    <copy file="${tests.resources.dir}/input/defaultInit3.properties" tofile="${log4cxx.lib.dir}/${config}.properties"/>
+    <exec executable="${testsuite.exe}" dir="${log4cxx.lib.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <arg value="testcase4"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+    </exec>
+    <delete>
+        <fileset dir="${log4cxx.lib.dir}" includes="*.properties *.xml"/>
+    </delete>
+
+
+</target>
+
+<target name="run-unittest" depends="build-unittest, run-defaultinit-unittest, clean-output"
+    description="Runs unit test">
+    <property environment="env"/>
+    <mkdir dir="${tests.output.dir}"/>
+    <delete>
+         <fileset dir="${tests.output.dir}" includes="*"/>
+    </delete>
+    <exec executable="${testsuite.exe}" dir="${tests.resources.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <env key="TOTO" value="wonderful"/>
+            <env key="key1" value="value1"/>
+            <env key="key2" value="value2"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="Path"
+                   value="${log4cxx.lib.dir};${env.Path}"/>
+    </exec>
+    <available property="dom3-status" value="" file="src/test/resources/output/dom&#xB3;"/>
+    <available property="dom4-status" value="" file="src/test/resources/output/dom&#x3195;"/>
+    <property name="dom3-status" value="NOT"/>
+    <property name="dom4-status" value="NOT"/>
+    <echo>output/dom&#xB3; was ${dom3-status} created in DOMTestCase::test3</echo>
+    <echo>output/dom&#x3195; was ${dom4-status} created in DOMTestCase::test4</echo>
+</target>
+
+<target name="run-standalone-unittest"
+   depends="build-standalone-unittest, clean-output"
+   description="Runs standalone unit test">
+    <property environment="env"/>
+    <mkdir dir="${tests.output.dir}"/>
+    <delete>
+         <fileset dir="${tests.output.dir}" includes="*"/>
+    </delete>
+    <exec executable="${log4cxx-standalone-test.exe}" dir="${tests.resources.dir}"
+              failonerror="true">
+            <arg value="-v"/>
+            <env key="TOTO" value="wonderful"/>
+            <env key="key1" value="value1"/>
+            <env key="key2" value="value2"/>
+            <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+            <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+            <env key="Path"
+                   value="${log4cxx.lib.dir};${env.Path}"/>
+    </exec>
+    <available property="dom3-status" value="" file="src/test/resources/output/dom&#xB3;"/>
+    <available property="dom4-status" value="" file="src/test/resources/output/dom&#x3195;"/>
+    <property name="dom3-status" value="NOT"/>
+    <property name="dom4-status" value="NOT"/>
+    <echo>output/dom&#xB3; was ${dom3-status} created in DOMTestCase::test3</echo>
+    <echo>output/dom&#x3195; was ${dom4-status} created in DOMTestCase::test4</echo>
+</target>
+
+<target name="run-socketserver" depends="build-unittest, clean-output"
+    description="Runs SocketServer test">
+    <property environment="env"/>
+    <mkdir dir="${tests.output.dir}"/>
+    <delete>
+         <fileset dir="${tests.output.dir}" includes="*"/>
+    </delete>
+    <mkdir dir="target/test-classes"/>
+    <javac srcdir="src/test/java"
+           includes="org/apache/log4j/net/ShortSocketServer.java" 
+           destdir="target/test-classes" 
+           classpath="${log4j.jar}"/>
+    <parallel>
+       <java classname="org.apache.log4j.net.ShortSocketServer" 
+          fork="yes" dir="src/test/resources" classpath="target/test-classes:${log4j.jar}">
+            <arg value="8"/> 
+            <arg value="input/socketServer"/> 
+       </java>
+       <sequential>
+          <sleep seconds="2"/>
+            <exec executable="${testsuite.exe}" dir="${tests.resources.dir}"
+              failonerror="true">
+                <arg value="-v"/>
+                <arg value="socketservertestcase"/>
+                <env key="LD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.LD_LIBRARY_PATH}"/>
+                <env key="DYLD_LIBRARY_PATH"
+                   value="${log4cxx.lib.dir}:${apr.lib.dir}:${apr-util.lib.dir}:${env.DYLD_LIBRARY_PATH}"/>
+                <env key="Path"
+                   value="${log4cxx.lib.dir};${env.Path}"/>
+            </exec>
+        </sequential>
+    </parallel>
+
+</target>
+
+<target name="build-projects">
+        <mkdir dir="${projects.dir}"/>
+       <property name="project.type" value="msvc6"/>
+        <antcall target="build-unittest">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="debug" value="${debug}"/>
+                <param name="projectsOnly" value="true"/>
+                <param name="os.family" value="${os.family}"/>
+                <param name="find" value="${find}"/>
+        </antcall>
+        <antcall target="build-standalone-unittest">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="debug" value="${debug}"/>
+                <param name="projectsOnly" value="true"/>
+                <param name="os.family" value="${os.family}"/>
+                <param name="find" value="${find}"/>
+        </antcall>
+        <antcall target="build-examples">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="debug" value="${debug}"/>
+                <param name="projectsOnly" value="true"/>
+                <param name="os.family" value="${os.family}"/>
+                <param name="find" value="${find}"/>
+        </antcall>
+</target>
+
+<target name="build-projects-vc6" depends="init" 
+          description="Builds project files for Microsoft Visual C++ 6">
+    <antcall target="build-projects">
+        <param name="project.type" value="msvc6"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="debug" value="${debug}"/>
+        <param name="find" value="${find}"/>
+    </antcall>
+</target>
+
+<target name="build-projects-vc7" depends="init" 
+          description="Builds project files for Microsoft Visual Studio .NET">
+    <antcall target="build-projects">
+        <param name="project.type" value="msvc7"/>
+        <param name="project.compiler" value="msvc"/>
+        <param name="os.family" value="windows"/>
+        <param name="debug" value="${debug}"/>
+        <param name="find" value="${find}"/>
+    </antcall>
+</target>
+
+<target name="build-projects-vc8" depends="init"
+         description="Builds project files for Microsoft Visual C++ 2005">
+    <antcall target="build-projects">
+      <param name="project.type" value="msvc8"/>
+      <param name="project.compiler" value="msvc"/>
+      <param name="os.family" value="windows"/>
+      <param name="debug" value="${debug}"/>
+      <param name="find" value="${find}"/>
+    </antcall>
+</target>
+
+
+<target name="build-projects-vc9" depends="init"
+           description="Builds project files for Microsoft Visual C++ 2008">
+    <antcall target="build-projects">
+      <param name="project.type" value="msvc9"/>
+      <param name="project.compiler" value="msvc"/>
+      <param name="os.family" value="windows"/>
+      <param name="debug" value="${debug}"/>
+      <param name="find" value="${find}"/>
+    </antcall>
+</target>
+
+  <target name="build-projects-xcode" depends="init" 
+          description="Builds project files for Apple Xcode">
+    <antcall target="build-projects">
+        <param name="project.type" value="xcode"/>
+        <param name="project.compiler" value="gcc"/>
+        <param name="os.family" value="mac"/>
+        <param name="debug" value="${debug}"/>
+        <param name="find" value="${find}"/>
+    </antcall>
+</target>
+
+
+<target name="test-compile" depends="build-unittest, build-examples"/>
+
+
+<target name="check" depends="run-unittest, build-examples"
+     description="Runs all diagnostic tests">
+    <antcall target="run-example">
+        <param name="example.name" value="trivial"/>
+    </antcall>
+    <antcall target="run-example">
+        <param name="example.name" value="stream"/>
+    </antcall>
+</target>
+
+
+
+<target name="apidocs" depends="init" description="Build log4cxx manual">
+  <copy file="src/site/doxy/Doxyfile.in" tofile="${target.dir}/Doxyfile" 
+     overwrite="true"/>
+  <replace file="${target.dir}/Doxyfile">
+    <replacefilter token="@VERSION@" value="${version}"/>
+    <replacefilter token="@base_dir@" value="${base.dir}"/>
+    <replacefilter token="@manual_dest@" value="${base.dir}/target/site/apidocs"/>
+  </replace>
+  <mkdir dir="target/site/apidocs"/>
+  <exec executable="${doxygen.exe}" dir="${target.dir}"/>
+
+    <!--  doxygen.css is GPL'd, looks better with it, but not intolerable without it -->
+    <echo file="${target.dir}/site/apidocs/doxygen.css">
+/*
+&license;
+*/
+/*  Minimal replacement for GPL'd doxygen.css  */
+</echo>
+    <echo file="${target.dir}/site/apidocs/tabs.css">
+/*
+&license;
+*/
+/*  Minimal replacement for GPL'd tabs.css  */
+DIV.tabs {
+    display : none ;
+}
+</echo>
+     <!--   fix for issue http://jira.codehaus.org/browse/MSKINS-2  -->
+     <replace file="${target.dir}/site/css/maven-theme.css"
+           token="font-size: normal;"
+           value="font-size: medium;"/>
+
+</target>
+
+
+<target name="site" depends="apidocs">
+    <!-- generate Visual Studio and XCode project files -->
+    <antcall target="build-projects-vc6">
+        <param name="find" value="false"/>
+    </antcall>
+    <antcall target="build-projects-xcode">
+    </antcall>
+    
+    <replaceregexp flags="ig"
+        match="ADD LINK32 .*/NOLOGO"
+        replace="ADD LINK32 ADVAPI32.LIB WS2_32.LIB MSWSOCK.LIB SHELL32.LIB ODBC32.LIB /NOLOGO">
+        <fileset dir="${target.dir}" includes="**/*.dsp"/>        
+    </replaceregexp>
+    <replaceregexp flags="g"
+        match=".\\apr.dsp"
+        replace="..\\\\..\\\\apr\\\\apr.dsp">
+        <fileset dir="${target.dir}" includes="**/*.dsw"/>        
+    </replaceregexp>
+    <replaceregexp flags="g"
+        match=".\\aprutil.dsp"
+        replace="..\\\\..\\\\apr-util\\\\aprutil.dsp">
+        <fileset dir="${target.dir}" includes="**/*.dsw"/>        
+    </replaceregexp>
+    <replaceregexp flags="g"
+        match=".\\xml.dsp"
+        replace="..\\\\..\\\\apr-util\\\\xml\\\\expat\\\\lib\\\\xml.dsp">
+        <fileset dir="${target.dir}" includes="**/*.dsw"/>        
+    </replaceregexp>
+    <!-- drop library search path -->
+    <replaceregexp flags="g"
+        match="&lt;string&gt;[\./]*/usr/lib&lt;/string&gt;"
+        replace="">
+        <fileset dir="${target.dir}" includes="**/*.pbxproj"/>
+    </replaceregexp>
+    <replace dir="${target.dir}" includes="**/*.pbxproj"
+        token="/usr/include/apr-1.0"
+        value="/usr/include/apr-1"/>
+    <replace dir="${target.dir}" includes="**/*.pbxproj"
+        token="MacOSX10.4u.sdk"
+        value="MacOSX10.5.sdk"/>
+    <replace dir="${target.dir}/site" includes="**/*.html">
+        <replacetoken>&lt;html</replacetoken>
+        <replacevalue>&lt;!--
+&license;
+--&gt;&lt;html</replacevalue>
+    </replace>
+    <replace dir="${target.dir}/site/css" includes="maven*.css">
+        <replacetoken>body {</replacetoken>
+        <replacevalue>/*
+&license;
+*/
+body {</replacevalue>
+    </replace>
+    <replace dir="${target.dir}/site/css" includes="print.css">
+        <replacetoken>#banner</replacetoken>
+        <replacevalue>/*
+&license;
+*/
+#banner</replacevalue>
+    </replace>
+    
+</target>
+
+<target name="gump" depends="check, header-check"/>
+
+<target name="fixcrlf" depends="init" description="repair end-of-line sequences">
+   <fixcrlf srcDir="${base.dir}" tab="remove" tablength="3"
+       eof="remove" fixlast="true" eol="unix" includes="*.xml **/*.cpp **/*.h" excludes="lib/**/*"/>
+</target>
+
+        <target name="prepare-changes" description="Prepares changes.xml from a JIRA issues list">
+            <xslt style="src/changes/changes.xslt" 
+                  in="issues.xml" 
+                  out="src/changes/changes.xml"/>
+        </target>
+
+   <target name="checkout-site" unless="svn-available">
+      <exec executable="svn">
+         <arg value="co"/>
+         <arg value="${svnsite.url}"/>
+         <arg value="target/site-deploy"/>
+      </exec>
+   </target>
+
+   <target name="update-site" if="svn-available">
+      <exec executable="svn" dir="target/site-deploy" failonerror="true">
+         <arg value="update"/>
+      </exec>
+   </target>
+
+   <target name="post-site" depends="checkout-site, update-site"/>
+   
+
+        <target name="mime=html">
+            <exec executable="svn">
+      <arg value="propset"/>
+                <arg value="svn:mime-type"/>
+                <arg value="text/html"/>
+                <arg value="${src.html}"/>
+            </exec>
+        </target>
+
+        <target name="mime=css">
+            <exec executable="svn">
+      <arg value="propset"/>
+                <arg value="svn:mime-type"/>
+                <arg value="text/css"/>
+                <arg value="${src.css}"/>
+            </exec>
+        </target>
+   
+
+   <target name="site-deploy">
+      <!-- Add any new files (and generate innocuous warnings for the existing content)  -->
+                <delete file="target/site-deploy/svn-commit.tmp~"/>
+      <exec executable="bash" dir="target/site-deploy" failonerror="true">
+         <arg line='-c "svn add --force *"'/>
+      </exec>
+                <taskdef name="foreach" classname="net.sf.antcontrib.logic.ForEach" />
+                <foreach target="mime=html" param="src.html">
+                        <path>
+                                <fileset dir="target/site-deploy" includes="**/*.html"/>
+                        </path>
+                </foreach>
+                <foreach target="mime=css" param="src.css">
+                        <path>
+                                <fileset dir="target/site-deploy" includes="**/*.css"/>
+                        </path>
+                </foreach>
+      <!--  requires that SVN_EDITOR, VISUAL or EDITOR being set to edit commit description -->
+      <exec executable="svn" dir="target/site-deploy" failonerror="true">
+          <arg value="commit"/>
+      </exec>
+   </target>
+
+   <target name="autogen" depends="init" if="is-unix">
+	<exec executable="sh">
+		<arg value="autogen.sh"/>
+	</exec>
+   </target>
+
+
+</project>

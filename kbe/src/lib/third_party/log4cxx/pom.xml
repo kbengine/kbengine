@@ -1,0 +1,247 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>log4cxx</groupId>
+  <artifactId>apache-log4cxx</artifactId>
+  <packaging>pom</packaging>
+  <version>0.10.0</version>
+  <name>Apache log4cxx</name>
+  <description>Logging framework for C++.</description>
+  <url>http://logging.apache.org:80/log4cxx</url>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://issues.apache.org/jira/</url>
+  </issueManagement>
+<mailingLists>
+   <mailingList>
+      <name>log4cxx-user : log4cxx usage</name>
+      <subscribe>log4cxx-user-subscribe@logging.apache.org</subscribe>
+      <unsubscribe>log4cxx-user-unsubscribe@logging.apache.org</unsubscribe>
+      <post>log4cxx-user@logging.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/logging-log4cxx-user/</archive>
+      <otherArchives>
+          <otherArchive>http://markmail.org/search/list:org.apache.logging.log4cxx-user</otherArchive>
+          <otherArchive>http://marc.info/?l=log4cxx-user</otherArchive>
+          <otherArchive>http://dir.gmane.org/gmane.comp.apache.logging.log4cxx.user</otherArchive>
+      </otherArchives>
+   </mailingList>
+   <mailingList>
+      <name>log4cxx-dev : log4cxx development</name>
+      <subscribe>log4cxx-dev-subscribe@logging.apache.org</subscribe>
+      <unsubscribe>log4cxx-dev-unsubscribe@logging.apache.org</unsubscribe>
+      <post>log4cxx-dev@logging.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/logging-log4cxx-dev/</archive>
+      <otherArchives>
+          <otherArchive>http://markmail.org/search/list:org.apache.logging.log4cxx-dev</otherArchive>
+          <otherArchive>http://marc.info/?l=log4cxx-dev</otherArchive>
+          <otherArchive>http://dir.gmane.org/gmane.comp.jakarta.log4j.devel</otherArchive>
+      </otherArchives>
+   </mailingList>
+</mailingLists>
+<licenses>
+        <license>
+                <name>Apache License, Version 2.0</name>
+                <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+                <distribution>repo</distribution>
+        </license>
+</licenses>
+<scm>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/logging/log4cxx/tags/v0_10_0-rc8</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/logging/log4cxx/tags/v0_10_0-rc8</developerConnection>
+        <url>http://svn.apache.org/viewcvs.cgi/logging/log4cxx/tags/v0_10_0-rc8</url>
+</scm>
+<organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+</organization>
+<build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <id>compile</id>
+            <configuration>
+                <tasks>
+                   <ant target="build" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>test-compile</phase>
+            <id>test-compile</id>
+            <configuration>
+                <tasks>
+                   <ant target="test-compile" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>test</phase>
+            <id>test</id>
+            <configuration>
+                <tasks>
+                    <ant target="check" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>package</phase>
+            <id>autogen</id>
+            <configuration>
+                <tasks>
+                   <ant target="autogen" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+                  <execution>
+            <phase>site</phase>
+            <id>site</id>
+            <configuration>
+                <tasks>
+                    <ant target="site" />
+                    <taskdef name="replaceregexp" classname="org.apache.tools.ant.taskdefs.optional.ReplaceRegExp" />                
+                   <replaceregexp file="target/site/source-repository.html" match="/tags/[^ &quot;'&lt;]*" replace="/trunk" flags="g" />
+                <replaceregexp match="Generated on .* for " replace="Generated for " flags="g">
+                    <fileset dir="target/site/apidocs" includes="**/*.html" />
+      </replaceregexp>
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>post-site</phase>
+            <id>post-site</id>
+            <configuration>
+                <tasks>
+                   <ant target="post-site" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>site-deploy</phase>
+            <id>site-deploy</id>
+            <configuration>
+                <tasks>
+                   <ant target="site-deploy" />
+                </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+       <dependencies>
+          <dependency>
+            <groupId>ant</groupId>
+            <artifactId>ant-nodeps</artifactId>
+            <version>1.6.5</version>
+          </dependency>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b2</version>
+          </dependency>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>cpptasks</artifactId>
+            <version>1.0b5</version>
+          </dependency>
+        </dependencies>
+      </plugin>  
+          <plugin>
+         <artifactId>maven-assembly-plugin</artifactId>
+         <configuration>
+           <descriptors>
+              <descriptor>src/assembly/source.xml</descriptor>
+           </descriptors>
+           <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+            <execution>
+                <goals>
+                    <goal>assembly</goal>
+                </goals>
+            </execution>
+        </executions>
+         </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rat-maven-plugin</artifactId>
+      </plugin>             
+    </plugins>
+</build>
+  <dependencies>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.14</version>
+        <scope>test</scope>
+      </dependency>      
+  </dependencies>
+  <reporting>
+    <excludeDefaults>true</excludeDefaults>  
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>scm</report>
+              <report>dependencies</report>
+              <report>issue-tracking</report>
+              <report>mailing-list</report>
+              <report>license</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+              <goals>site-deploy assembly:assembly</goals>
+          </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-changes-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>changes-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+                <issueLinkTemplate>%URL%/browse/%ISSUE%</issueLinkTemplate>
+        </configuration>
+      </plugin>      
+    </plugins>
+  </reporting>
+ <distributionManagement>
+    <repository>
+	<id>tmp.repo</id>
+	<url>file:///tmp</url>
+    </repository>
+    <site>
+      <id>logging.site</id>
+      <url>file:///${user.dir}/target/site-deploy</url>
+    </site>
+  </distributionManagement> 
+</project>
