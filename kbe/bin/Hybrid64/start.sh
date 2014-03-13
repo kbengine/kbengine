@@ -1,5 +1,9 @@
 #!/bin/sh
 
+echo KBE_ROOT = \"${KBE_ROOT}\"
+echo KBE_ROOT = \"${KBE_RES_PATH}\"
+echo KBE_ROOT = \"${KBE_HYBRID_PATH}\"
+
 ./kbmachine&
 sleep 1s
 ./billingsystem&
