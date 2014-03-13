@@ -1,4 +1,4 @@
-kbengine
+KBEngine
 ========
 
 ##官方网站:
@@ -9,7 +9,7 @@ https://sourceforge.net/projects/kbengine/files/
 
 ##什么是KBEngine?
 
-kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5等作为前端表现。
+KBEngine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5等作为前端表现。
 
 底层框架由c++编写， 逻辑层使用python脚本， 开发者无需重复实现一些通用的底层服务端技术，
 使开发者能够真正集中精力到游戏开发上来， 快速并且保证效率的打造各种类型的游戏。
@@ -92,7 +92,7 @@ Linux: (假设kbe被放置在~/目录下)
 Windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
-	(注意:windows下需要在环境变量中添加UID, 值需大于0)
+	(注意: Windows下需要在环境变量中添加UID, 值需大于0)
 
 
 
@@ -173,7 +173,7 @@ windows:
 ##启动服务端:
 
 
-linux:
+Linux:
 
 	[root@localhost ~]# cd $KBE_HYBRID_PATH
 
@@ -181,15 +181,15 @@ linux:
 
 	sh kill.sh
 
-	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
-	并且允许udp广播端口20086-20088)
-	(注意: 如果有二块网卡如果有eth0(公网ip)、eth1(局域网ip)
+	(注意: 如有防火墙限制请设置防火墙规则对外开放这些TCP端口: loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
+	以及UDP广播端口:20086-20088)
+	(注意: 如果有二块网卡, 例如: eth0(公网ip)、eth1(局域网ip)
 	请设置kbengine.xml|kbengine_defs.xml除baseapp|loginapp|billingsystem的externalInterface设置为eth0以外, 
 	其他相关{internal|external}Interface为局域网ip的那块网卡(eth1), 并设置使用局域网ip来接收udp广播:
 	/sbin/ip route del broadcast 255.255.255.255 dev eth0
 	/sbin/ip route add broadcast 255.255.255.255 dev eth1
 	)
-windows:
+Windows:
 
 	cd KBE_HYBRID_PATH
 
@@ -198,8 +198,8 @@ windows:
 	~.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
-	(注意: windows版本仅用于测试， 由于使用select目前不支持大量连接。)
+	(注意: Windows版本仅用于测试， 由于使用select目前不支持大量连接。)
 
 ##日志:
 
-	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用guiconsole来查看。
+	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用GUIConsole来查看。
