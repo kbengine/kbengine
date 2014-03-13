@@ -1568,16 +1568,16 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	}
 
 	char* pEntityType = NULL;
-	Position3D orginpos;
+	Position3D originpos;
 	
 	// 将坐标信息提取出来
 	if(pyPosition)
 	{
-		script::ScriptVector3::convertPyObjectToVector3(orginpos, pyPosition);
+		script::ScriptVector3::convertPyObjectToVector3(originpos, pyPosition);
 	}
 	else
 	{
-		orginpos = pobj->getPosition();
+		originpos = pobj->getPosition();
 	}
 
 	if(pyEntityType && pyEntityType != Py_None)
@@ -1605,7 +1605,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	std::vector<Entity*> findentities;
 
 	// 用户总是期望在entity附近搜寻， 因此我们从身边搜索
-	EntityRangeNode::entitiesInRange(findentities,  pobj->pEntityRangeNode(), orginpos, radius, entityUType);
+	EntityRangeNode::entitiesInRange(findentities,  pobj->pEntityRangeNode(), originpos, radius, entityUType);
 
 	PyObject* pyList = PyList_New(findentities.size());
 
