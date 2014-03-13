@@ -74,13 +74,13 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 kbe会读取KBE_ROOT，KBE_RES_PATH， KBE_HYBRID_PATH系统环境变量来做一些事情。
 
 
-linux:
+Linux: (假设kbe被放置在~/目录下)
 
 	[kbe@localhost ~]# vim ~/.bashrc
 
 	ulimit -c unlimited
 
-	export KBE_ROOT=/home/kbe/kbengine/
+	export KBE_ROOT=~/kbengine/
 
 	export KBE_RES_PATH=$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/res/
 
@@ -89,7 +89,7 @@ linux:
 	[root@localhost ~]# vim /etc/passwd
 	
 	修改kbe的uid必须唯一, uid用来区分不同的服务端组， 如果二台硬件维护一组服务端那么二台硬件上的uid必须一致, 值需大于0。
-windows:
+Windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
 	(注意:windows下需要在环境变量中添加UID, 值需大于0)
