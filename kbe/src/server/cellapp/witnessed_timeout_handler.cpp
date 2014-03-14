@@ -84,10 +84,20 @@ void WitnessedTimeoutHandler::handleTimeout(TimerHandle, void * arg)
 //-------------------------------------------------------------------------------------
 void WitnessedTimeoutHandler::addWitnessed(Entity* pEntity)
 {
+	if(pEntity == NULL)
+		return;
+
+	const uint16 witness_timeout_dec = ServerConfig::getSingleton().getCellApp().witness_timeout;
+	if(witness_timeout_dec == 0)
+	{
+		pEntity->onDelWitnessed();
+		return;
+	}
+
 	if(witnessedEntityIDs_.find(pEntity->getID()) != witnessedEntityIDs_.end())
-		witnessedEntityIDs_[pEntity->getID()] = ServerConfig::getSingleton().getCellApp().witness_timeout;
+		witnessedEntityIDs_[pEntity->getID()] = witness_timeout_dec;
 	else
-		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->getID(), ServerConfig::getSingleton().getCellApp().witness_timeout));
+		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->getID(), witness_timeout_dec));
 	
 	if(pTimerHandle_ == NULL)
 	{
@@ -100,6 +110,9 @@ void WitnessedTimeoutHandler::addWitnessed(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void WitnessedTimeoutHandler::delWitnessed(Entity* pEntity)
 {
+	if(witnessedEntityIDs_.size() == 0)
+		return;
+
 	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.find(pEntity->getID());
 
 	if(iter != witnessedEntityIDs_.end())
