@@ -384,6 +384,16 @@ PyObject* Base::pyDestroyCellEntity()
 PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs)
 {
 	Base* pobj = static_cast<Base*>(self);
+
+	if(pobj->initing())
+	{
+		PyErr_Format(PyExc_AssertionError,
+			"Base::destroy(): %s is in initing, reject the request!\n",	
+			pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	static char * keywords[] =
 	{
 		const_cast<char *> ("deleteFromDB"),

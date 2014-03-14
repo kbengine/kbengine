@@ -181,6 +181,15 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
+	if(pobj->initing())
+	{
+		PyErr_Format(PyExc_AssertionError,
+			"Entity::destroy(): %s is in initing, reject the request!\n",	
+			pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	if(currargsSize > 0)
 	{
 		PyErr_Format(PyExc_AssertionError,
