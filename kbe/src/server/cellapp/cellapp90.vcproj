@@ -289,6 +289,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_trigger_node.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
@@ -426,6 +430,10 @@
 			</File>
 			<File
 				RelativePath=".\range_trigger.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\range_trigger_node.hpp"
 				>
 			</File>
 			<File

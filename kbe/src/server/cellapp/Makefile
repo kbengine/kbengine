@@ -30,7 +30,8 @@ SRCS =						\
 	proximity_controller			\
 	range_node				\
 	range_list				\
-	range_trigger				
+	range_trigger				\
+	range_trigger_node
 
 ASMS =
 

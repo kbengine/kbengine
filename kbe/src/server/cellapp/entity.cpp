@@ -669,7 +669,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	
 	if(this->pEntityRangeNode() == NULL || this->pEntityRangeNode()->pRangeList() == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::addProximity: %1% %2% not in world. pRangeList() == NULL\n") % 
+		ERROR_MSG(boost::format("Entity::addProximity: %1%(%2%) not in world!\n") % 
 			getScriptName() % getID());
 
 		return 0;
