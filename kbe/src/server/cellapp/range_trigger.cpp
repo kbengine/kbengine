@@ -50,13 +50,14 @@ RangeTrigger::~RangeTrigger()
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
+		positiveBoundary_ = new RangeTriggerNode(this,0.0f, 0.0f);
+	else
+		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
-
-	positiveBoundary_->range(0.0f, 0.0f);
-	negativeBoundary_->range(0.0f, 0.0f);
+		negativeBoundary_ = new RangeTriggerNode(this, 0.0f, 0.0f);
+	else
+		negativeBoundary_->range(0.0f, 0.0f);
 
 	origin_->pRangeList()->insert(positiveBoundary_);
 	origin_->pRangeList()->insert(negativeBoundary_);

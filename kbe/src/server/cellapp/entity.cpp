@@ -602,6 +602,8 @@ PyObject* Entity::pyIsReal()
 //-------------------------------------------------------------------------------------
 void Entity::addWitnessed(Entity* entity)
 {
+	Cellapp::getSingleton().pWitnessedTimeoutHandler()->delWitnessed(this);
+
 	witnesses_.push_back(entity->getID());
 
 	/*
@@ -636,7 +638,15 @@ void Entity::delWitnessed(Entity* entity)
 	KBE_ASSERT(witnesses_.size() > 0);
 
 	witnesses_.remove(entity->getID());
+	
+	// ÑÓÊ±Ö´ÐÐ
+	// onDelWitnessed();
+	Cellapp::getSingleton().pWitnessedTimeoutHandler()->addWitnessed(this);
+}
 
+//-------------------------------------------------------------------------------------
+void Entity::onDelWitnessed()
+{
 	if(witnesses_.size() == 0)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 

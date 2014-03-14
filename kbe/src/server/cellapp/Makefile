@@ -19,10 +19,6 @@ SRCS =						\
 	main					\
 	space					\
 	spaces					\
-	trap_trigger				\
-	updatable				\
-	updatables				\
-	witness					\
 	movetoentity_controller			\
 	movetopoint_controller			\
 	navigate_controller			\
@@ -31,7 +27,12 @@ SRCS =						\
 	range_node				\
 	range_list				\
 	range_trigger				\
-	range_trigger_node
+	range_trigger_node			\
+	trap_trigger				\
+	updatable				\
+	updatables				\
+	witness					\
+	witnessed_timeout_handler
 
 ASMS =
 

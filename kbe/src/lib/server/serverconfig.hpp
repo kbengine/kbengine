@@ -119,6 +119,7 @@ typedef struct EngineComponentInfo
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
 	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
+	uint16 witness_timeout;									// 观察者默认超时时间(秒)
 	const Mercury::Address* externalAddr;					// 外部地址
 	const Mercury::Address* internalAddr;					// 内部地址
 	COMPONENT_ID componentID;
@@ -236,6 +237,7 @@ public:
 
 	float shutdowntime(){ return shutdown_time_; }
 	float shutdownWaitTickTime(){ return shutdown_waitTickTime_; }
+
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -271,8 +273,8 @@ public:
 	float shutdown_waitTickTime_;
 
 	float callback_timeout_;										// callback默认超时时间(秒)
-
 	float thread_timeout_;											// 默认超时时间(秒)
+
 	uint32 thread_init_create_, thread_pre_create_, thread_max_create_;
 	
 	EmailServerInfo	emailServerInfo_;
