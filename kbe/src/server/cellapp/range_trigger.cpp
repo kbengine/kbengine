@@ -153,7 +153,7 @@ bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
 
 	volatile float lowerBound = originY - fabs(old_range_y_);
 	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_y()) && (pNode->old_y() <= upperBound);
+	return (lowerBound < pNode->old_y()) && (pNode->old_y() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
