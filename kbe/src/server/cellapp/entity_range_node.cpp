@@ -111,14 +111,14 @@ bool EntityRangeNode::delWatcherNode(RangeNode* pNode)
 
 //-------------------------------------------------------------------------------------
 void EntityRangeNode::entitiesInRange(std::vector<Entity*>& findentities, RangeNode* rootNode, 
-									  const Position3D& orginpos, float radius, int entityUType)
+									  const Position3D& originpos, float radius, int entityUType)
 {
 	if((rootNode->flags() & RANGENODE_FLAG_ENTITY) > 0)
 	{
 		Entity* pEntity = static_cast<EntityRangeNode*>(rootNode)->pEntity();
 		if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 		{
-			Position3D distVec = orginpos - pEntity->getPosition();
+			Position3D distVec = originpos - pEntity->getPosition();
 			float dist = KBEVec3Length(&distVec);
 
 			if(dist <= radius)
@@ -138,7 +138,7 @@ void EntityRangeNode::entitiesInRange(std::vector<Entity*>& findentities, RangeN
 			
 			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = orginpos - pEntity->getPosition();
+				Position3D distVec = originpos - pEntity->getPosition();
 				float dist = KBEVec3Length(&distVec);
 
 				if(dist <= radius)
@@ -162,7 +162,7 @@ void EntityRangeNode::entitiesInRange(std::vector<Entity*>& findentities, RangeN
 			
 			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = orginpos - pEntity->getPosition();
+				Position3D distVec = originpos - pEntity->getPosition();
 				float dist = KBEVec3Length(&distVec);
 
 				if(dist <= radius)

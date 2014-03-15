@@ -1,0 +1,156 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+H1, H2, H3 {
+ color: #101099;
+}
+
+A:link, A:visited {
+  text-decoration: none;
+  color: #006699;
+}
+
+A:link:hover {
+  text-decoration: underline;
+}
+
+.centercol {
+  margin-top: 120px;
+  margin-left: 210px;
+  margin-right:210px;
+  max-width: 800px;
+}
+
+.leftcol {
+  position: absolute;
+  left:  10px;
+  top:   130px; 
+  width: 190px;
+}
+
+.banner {
+  position: absolute;
+  left:  10px;
+  top:   10px; 
+  height: 130px;
+  width: 1000px;
+}
+
+.menu_header, .menu_item {
+/*  width: 190px; */
+  font-family: "trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: smaller;
+}
+
+.menu_header {
+  border:1px solid #AAAAAA;
+  background: #CCCCCC; 
+  padding-left: 1ex;
+}
+
+.menu_item:hover {
+  background: #DDD; 
+}
+
+.menu_item {
+  background: #EEEEEE;
+  padding-left: 2ex;
+  border-top:   0px solid #AAAAAA;
+  border-right: 1px solid #AAAAAA;
+  border-bottom:1px solid #AAAAAA;
+  border-left:  1px solid #AAAAAA;
+}
+
+.source {
+  border-top: 1px solid #DDDDDD;
+  border-bottom: 1px solid #DDDDDD;
+  background:#eee;
+  font-family: Courier, "MS Courier New", Prestige, Everson Monocourrier, monospace;
+  font-size: smaller;
+  padding-bottom: 0.5ex;
+  padding-top: 0.5ex;
+  padding-left: 2ex;
+}
+
+table.ls {
+  background: #FFFFFF;
+}
+table.ls td {
+  background: #f4f4f4; 
+  vertical-align: top;
+  padding-bottom: 1ex;
+}
+
+table.ls th {
+  background: #E4E4E4;
+}
+
+.index-faqSection {
+   font-size: larger;
+   padding-left: 0em;
+   font-weight: bolder;
+}
+.index-question {
+   padding-left: 1em;
+}
+
+.faqSection {
+  font-size: larger;
+  font-weight: bolder;
+}
+
+.question {
+  font-weight: bolder;
+}
+
+/* this class is used for screen output placed in <pre></pre> tags */
+.screen_output {
+  padding-left:  1em;
+  padding-right: 1em;
+  border-top:   1px solid #AAAAAA;
+  border-right: 1px solid #AAAAAA;
+  border-bottom:1px solid #AAAAAA;
+  border-left:  1px solid #AAAAAA;
+}
+
+
+.big {
+  font-size: larger;
+  font-weight: bold;
+}
+
+.small {
+  font-size: smaller;
+}
+
+.red {
+  color: #AA0000;
+}
+
+.msg_title {
+  padding-left:  1ex;
+  padding-right: 1ex;
+  font-family: Courier, "MS Courier New", Prestige, Everson Monocourrier, monospace;
+  border:   1px solid #AAAAAA;
+  background: #DDDDFF;
+
+}
+
+.msg_meaning {
+  padding-left:  1em;
+  padding-right: 1em;
+}

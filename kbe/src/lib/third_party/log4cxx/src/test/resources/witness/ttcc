@@ -1,0 +1,25 @@
+ [main] FATAL ERR - Message 0
+ [main] ERROR ERR - Message 1
+ [main] FATAL INF - Message 2
+ [main] ERROR INF - Message 3
+ [main] WARN INF - Message 4
+ [main] INFO INF - Message 5
+ [main] FATAL INF.UNDEF - Message 6
+ [main] ERROR INF.UNDEF - Message 7
+ [main] WARN INF.UNDEF - Message 8
+ [main] INFO INF.UNDEF - Message 9
+ [main] FATAL INF.ERR - Message 10
+ [main] ERROR INF.ERR - Message 11
+ [main] FATAL INF.ERR.UNDEF - Message 12
+ [main] ERROR INF.ERR.UNDEF - Message 13
+ [main] FATAL DEB - Message 14
+ [main] ERROR DEB - Message 15
+ [main] WARN DEB - Message 16
+ [main] INFO DEB - Message 17
+ [main] DEBUG DEB - Message 18
+ [main] FATAL UNDEF - Message 19
+ [main] ERROR UNDEF - Message 20
+ [main] WARN UNDEF - Message 21
+ [main] INFO UNDEF - Message 22
+ [main] DEBUG UNDEF - Message 23
+ [main] INFO INF - Messages should bear numbers 0 through 23.

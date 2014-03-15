@@ -1,0 +1,435 @@
+# Microsoft Developer Studio Generated Dependency File, included by aprutil.mak
+
+.\buckets\apr_brigade.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_alloc.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_eos.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_file.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_flush.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_heap.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_mmap.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_pipe.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_pool.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_refcount.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_simple.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\buckets\apr_buckets_socket.c : \
+	".\include\apr_buckets.h"\
+	".\include\apu.h"\
+	
+
+.\crypto\apr_crypto.c : \
+	".\include\apr_crypto.h"\
+	".\include\apu.h"\
+	".\include\apu_errno.h"\
+	".\include\apu_version.h"\
+	".\include\private\apr_crypto_internal.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	
+
+.\crypto\apr_md4.c : \
+	".\include\apr_md4.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	
+
+.\crypto\apr_md5.c : \
+	".\include\apr_md5.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\crypto\apr_passwd.c : \
+	".\crypto\crypt_blowfish.h"\
+	".\include\apr_md5.h"\
+	".\include\apr_sha1.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\crypto\apr_sha1.c : \
+	".\include\apr_base64.h"\
+	".\include\apr_sha1.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	
+
+.\crypto\crypt_blowfish.c : \
+	".\crypto\crypt_blowfish.h"\
+	
+
+.\crypto\getuuid.c : \
+	".\include\apr_md5.h"\
+	".\include\apr_uuid.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	
+
+.\crypto\uuid.c : \
+	".\include\apr_uuid.h"\
+	".\include\apu.h"\
+	
+
+.\dbd\apr_dbd.c : \
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apr_dbd_internal.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	
+
+.\dbd\apr_dbd_freetds.c : \
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbd_internal.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\dbd\apr_dbd_mysql.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apr_dbd_internal.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\dbd\apr_dbd_odbc.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apr_dbd_internal.h"\
+	".\include\private\apr_dbd_odbc_v2.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\dbd\apr_dbd_oracle.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbd_internal.h"\
+	
+
+.\dbd\apr_dbd_pgsql.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbd_internal.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\dbd\apr_dbd_sqlite2.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbd_internal.h"\
+	
+
+.\dbd\apr_dbd_sqlite3.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_dbd.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbd_internal.h"\
+	
+
+.\dbm\apr_dbm.c : \
+	".\include\apr_dbm.h"\
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apr_dbm_private.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	".\include\private\apu_select_dbm.h"\
+	
+
+.\dbm\apr_dbm_berkeleydb.c : \
+	".\include\apr_dbm.h"\
+	".\include\apu.h"\
+	".\include\apu_want.h"\
+	".\include\private\apr_dbm_private.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_select_dbm.h"\
+	
+
+.\dbm\apr_dbm_gdbm.c : \
+	".\include\apr_dbm.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbm_private.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_select_dbm.h"\
+	
+
+.\dbm\apr_dbm_sdbm.c : \
+	".\include\apr_dbm.h"\
+	".\include\apr_sdbm.h"\
+	".\include\apu.h"\
+	".\include\private\apr_dbm_private.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_select_dbm.h"\
+	
+
+.\encoding\apr_base64.c : \
+	".\include\apr_base64.h"\
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	
+
+.\hooks\apr_hooks.c : \
+	".\include\apr_hooks.h"\
+	".\include\apr_optional.h"\
+	".\include\apr_optional_hooks.h"\
+	".\include\apu.h"\
+	
+
+.\ldap\apr_ldap_init.c : \
+	".\include\apr_ldap.h"\
+	".\include\apr_ldap_init.h"\
+	".\include\apr_ldap_option.h"\
+	".\include\apr_ldap_rebind.h"\
+	".\include\apr_ldap_url.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	
+
+.\ldap\apr_ldap_option.c : \
+	".\include\apr_ldap.h"\
+	".\include\apr_ldap_init.h"\
+	".\include\apr_ldap_option.h"\
+	".\include\apr_ldap_rebind.h"\
+	".\include\apr_ldap_url.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\ldap\apr_ldap_rebind.c : \
+	".\include\apr_ldap.h"\
+	".\include\apr_ldap_init.h"\
+	".\include\apr_ldap_option.h"\
+	".\include\apr_ldap_rebind.h"\
+	".\include\apr_ldap_url.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\ldap\apr_ldap_stub.c : \
+	".\include\apr_ldap.h"\
+	".\include\apr_ldap_init.h"\
+	".\include\apr_ldap_option.h"\
+	".\include\apr_ldap_rebind.h"\
+	".\include\apr_ldap_url.h"\
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	
+
+.\ldap\apr_ldap_url.c : \
+	".\include\apr_ldap.h"\
+	".\include\apr_ldap_init.h"\
+	".\include\apr_ldap_option.h"\
+	".\include\apr_ldap_rebind.h"\
+	".\include\apr_ldap_url.h"\
+	".\include\apu.h"\
+	
+
+.\memcache\apr_memcache.c : \
+	".\include\apr_buckets.h"\
+	".\include\apr_memcache.h"\
+	".\include\apr_reslist.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apr_date.c : \
+	".\include\apr_date.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apr_queue.c : \
+	".\include\apr_queue.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apr_reslist.c : \
+	".\include\apr_reslist.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apr_rmm.c : \
+	".\include\apr_anylock.h"\
+	".\include\apr_rmm.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apr_thread_pool.c : \
+	".\include\apr_thread_pool.h"\
+	".\include\apu.h"\
+	
+
+.\misc\apu_dso.c : \
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	".\include\private\apu_config.h"\
+	".\include\private\apu_internal.h"\
+	
+
+.\misc\apu_version.c : \
+	".\include\apu.h"\
+	".\include\apu_version.h"\
+	
+
+.\dbm\sdbm\sdbm.c : \
+	".\dbm\sdbm\sdbm_pair.h"\
+	".\dbm\sdbm\sdbm_private.h"\
+	".\dbm\sdbm\sdbm_tune.h"\
+	".\include\apr_sdbm.h"\
+	".\include\apu.h"\
+	
+
+.\dbm\sdbm\sdbm_hash.c : \
+	".\dbm\sdbm\sdbm_private.h"\
+	".\include\apr_sdbm.h"\
+	".\include\apu.h"\
+	
+
+.\dbm\sdbm\sdbm_lock.c : \
+	".\dbm\sdbm\sdbm_private.h"\
+	".\dbm\sdbm\sdbm_tune.h"\
+	".\include\apr_sdbm.h"\
+	".\include\apu.h"\
+	
+
+.\dbm\sdbm\sdbm_pair.c : \
+	".\dbm\sdbm\sdbm_pair.h"\
+	".\dbm\sdbm\sdbm_private.h"\
+	".\dbm\sdbm\sdbm_tune.h"\
+	".\include\apr_sdbm.h"\
+	".\include\apu.h"\
+	
+
+.\strmatch\apr_strmatch.c : \
+	".\include\apr_strmatch.h"\
+	".\include\apu.h"\
+	
+
+.\uri\apr_uri.c : \
+	".\include\apr_uri.h"\
+	".\include\apu.h"\
+	
+
+.\xlate\xlate.c : \
+	".\include\apr_xlate.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	
+
+.\xml\apr_xml.c : \
+	".\include\apr_xlate.h"\
+	".\include\apr_xml.h"\
+	".\include\apu.h"\
+	".\include\private\apu_config.h"\
+	".\xml\expat\lib\expat.h"\
+	
+
+!IF  "$(CFG)" == "aprutil - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Debug"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "aprutil - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Debug"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "aprutil - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Debug"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "aprutil - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Debug"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "aprutil - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Release"
+
+!ELSEIF  "$(CFG)" == "aprutil - x64 Debug"
+
+!ENDIF 
+

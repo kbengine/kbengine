@@ -5,7 +5,7 @@
 
 #ifndef UUID_618474C2DE1511DEB74A388C56D89593
 #define UUID_618474C2DE1511DEB74A388C56D89593
-#if defined(__GNUC__) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
+#if (__GNUC__*100+__GNUC_MINOR__>301) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
 #pragma GCC system_header
 #endif
 #if defined(_MSC_VER) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
@@ -21,6 +21,9 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/detail/type_info.hpp>
 #include <boost/exception/detail/clone_current_exception.hpp>
+//#ifndef BOOST_NO_RTTI
+//#include <boost/units/detail/utility.hpp>
+//#endif
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
 #include <new>
@@ -89,7 +92,7 @@ boost
     std::string
     to_string( original_exception_type const & x )
         {
-        return x.value()->name();
+        return /*units::detail::demangle*/(x.value()->name());
         }
 #endif
 
@@ -118,10 +121,12 @@ boost
             {
             Exception ba;
             exception_detail::clone_impl<Exception> c(ba);
+#ifndef BOOST_EXCEPTION_DISABLE
             c <<
                 throw_function(BOOST_CURRENT_FUNCTION) <<
                 throw_file(__FILE__) <<
                 throw_line(__LINE__);
+#endif
             static exception_ptr ep(shared_ptr<exception_detail::clone_base const>(new exception_detail::clone_impl<Exception>(c)));
             return ep;
             }
@@ -467,7 +472,7 @@ boost
 
     inline
     std::string
-    diagnostic_information( exception_ptr const & p )
+    diagnostic_information( exception_ptr const & p, bool verbose=true )
         {
         if( p )
             try
@@ -477,7 +482,7 @@ boost
             catch(
             ... )
                 {
-                return current_exception_diagnostic_information();
+                return current_exception_diagnostic_information(verbose);
                 }
         return "<empty>";
         }

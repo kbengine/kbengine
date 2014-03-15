@@ -1,0 +1,11 @@
+PKG="ASFapu-1"
+NAME="apr-util"
+ARCH="@target_cpu@"
+VERSION="@APRUTIL_DOTTED_VERSION@"
+CATEGORY="application"
+VENDOR="Apache Software Foundation"
+EMAIL="dev@apr.apache.org"
+PSTAMP="dev@apr.apache.org"
+BASEDIR="@prefix@"
+CLASSES="none"
+

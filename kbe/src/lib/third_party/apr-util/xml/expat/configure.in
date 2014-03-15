@@ -1,0 +1,108 @@
+dnl   configuration script for expat
+dnl   Process this file with autoconf to produce a configure script.
+dnl
+dnl   Copyright 2000 Clark Cooper
+dnl
+dnl   This file is part of EXPAT.
+dnl
+dnl   EXPAT is free software; you can redistribute it and/or modify it
+dnl   under the terms of the License (based on the MIT/X license) contained
+dnl   in the file COPYING that comes with this distribution.
+dnl
+
+dnl Ensure that Expat is configured with autoconf 2.52 or newer
+AC_PREREQ(2.52)
+
+
+dnl ### apr-util hack: just hard-code the version here, as is done in expat.h.
+AC_INIT(expat, 1.95.7, expat-bugs@mail.libexpat.org)
+
+AC_CONFIG_SRCDIR(Makefile.in)
+AC_CONFIG_AUX_DIR(conftools)
+AC_CONFIG_MACRO_DIR(conftools)
+
+dnl
+dnl Increment LIBREVISION if source code has changed at all
+dnl
+dnl If the API has changed, increment LIBCURRENT and set LIBREVISION to 0
+dnl
+dnl If the API changes compatibly (i.e. simply adding a new function
+dnl without changing or removing earlier interfaces), then increment LIBAGE.
+dnl 
+dnl If the API changes incompatibly set LIBAGE back to 0
+dnl
+
+LIBCURRENT=5
+LIBREVISION=0
+LIBAGE=5
+
+AC_CONFIG_HEADER(expat_config.h)
+
+dnl
+dnl Include our own M4 macros along with those for libtool
+dnl
+sinclude(conftools/ac_c_bigendian_cross.m4)
+sinclude(conftools/libtool.m4)
+sinclude(conftools/ltsugar.m4)
+sinclude(conftools/argz.m4)
+sinclude(conftools/ltoptions.m4)
+sinclude(conftools/ltversion.m4)
+sinclude(conftools/lt~obsolete.m4)
+
+AC_CANONICAL_SYSTEM
+
+case "$host_os" in
+*os2*)
+    # Use a custom made libtool replacement
+    echo Using aplibtool
+    LIBTOOL="$srcdir/../../../apr/build/aplibtool"
+    ;;
+*)
+AC_LIBTOOL_WIN32_DLL
+AC_PROG_LIBTOOL
+    ;;
+esac
+
+AC_SUBST(LIBCURRENT)
+AC_SUBST(LIBREVISION)
+AC_SUBST(LIBAGE)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl check for endianness
+if test "$cross_compiling" = "no"; then
+  AC_C_BIGENDIAN
+else
+  AC_DEFINE(AP_UNKNOWN_BYTE_ORDER,1,
+                [byte order is unknown due to cross-compilation])
+fi
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_CHECK_FUNCS(memmove bcopy)
+
+dnl Only needed for regression tests:
+AC_CHECK_HEADERS(check.h)
+
+dnl Some basic configuration:
+AC_DEFINE([XML_NS], 1,
+          [Define to make XML Namespaces functionality available.])
+AC_DEFINE([XML_DTD], 1,
+          [Define to make parameter entity parsing functionality available.])
+AC_DEFINE([XML_CONTEXT_BYTES], 1024,
+          [Define to specify how much context to retain around the current parse point.])
+
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT
+
+abs_srcdir="`cd $srcdir && pwd`"
+abs_builddir="`pwd`"
+if test "$abs_srcdir" != "$abs_builddir"; then
+  mkdir lib
+fi
+

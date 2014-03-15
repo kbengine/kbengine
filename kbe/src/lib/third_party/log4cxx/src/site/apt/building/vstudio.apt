@@ -1,0 +1,86 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~      http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+ ------
+ Building Apache log4cxx with Microsoft Visual Studio
+ ------
+ ------
+ ------
+
+Building Apache log4cxx with Microsoft Visual Studio
+
+*Preparation
+
++----+
+unzip apr-1.2.11-win32-src.zip
+rename apr-1.2.11 apr
+unzip apr-util-1.2.10-win32-src.zip
+rename apr-util-1.2.10 apr-util
+cd apache-log4cxx-0.10.0
+configure
+configure-aprutil
++----+
+
+  configure.bat copies the prefabricated log4cxx.hw and private/log4cxx_private.hw over
+  to log4cxx.h and private/log4cxx_private.h.
+  
+  configure-aprutil.bat uses "sed" to modify apu.hw and apr_ldap.hw to disable APR-Iconv
+  and LDAP which are not necessary for log4cxx and problematic to build.
+  If "sed" is not available, the modifications would be trivial to do in any text editor.
+  
+  Use the Win32 source zips for APR and APR-Util to preserve the required line endings
+  for the project files.  Directories need to be renamed to "apr" and "apr-util" respectively.
+
+  
+
+*Building log4cxx.dll
+
+   Open projects/log4cxx.dsw with Microsoft
+   Visual Studio 6 or later at which time you may be prompted to
+   upgrade the projects to the format used by your version
+   of Microsoft Visual Studio.
+   
+   Select log4cxx as active project and build.
+   
+   
+*Running unit tests
+
+   To pass the unit tests, gzip, zip and sed must be on the path.  
+   Also three
+   environment variables need to be defined: TOTO=wonderful,
+   key1=value1 and key2=value2.  These must be done outside
+   of Microsoft Visual Studio, either in the Control Panel or
+   in a Command Prompt uses to launch Microsoft Visual Studio.
+
+   Open projects/testsuite.dsw or projects/testsuite-standalone.dsw
+   (test suite and implementation in one project) in Microsoft Visual
+   Studio, select active project and build.
+
+   On the Debug Tab of the Project/Settings dialog,
+   set the Working Directory to "../src/test/resources".
+   Individual tests can be specified in Program Arguments
+   and "-v" can be specified to output verbose test results.
+
+
+*Known Issues
+
+  *APR 1.2.12 has a known issue that will prevent
+  compilation with Visual Studio 6 unless a later Platform SDK is installed.
+  See APR bug {{{http://issues.apache.org/bugzilla/show_bug.cgi?44327}44327}}.
+  APR 1.2.11 and the corresponding APR-Util 1.2.10 will compile with Visual Studio 6.
+  
+  *APR-Util requires later LDAP headers than provided with Visual Studio 6
+  and will fail to compile.  log4cxx does not use LDAP, it can be disabled in apr_ldap.hw.
+  
+  *APR-Iconv is problematic and not used by log4cxx, it can be disabled in apu.hw.

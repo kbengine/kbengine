@@ -1,13 +1,15 @@
-kbengine
+KBEngine
 ========
 
 ##官方网站:
 http://www.kbengine.org
 
+##Release: 
+https://sourceforge.net/projects/kbengine/files/
 
 ##什么是KBEngine?
 
-kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5、 ios、 android等作为前端表现。
+KBEngine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5等作为前端表现。
 
 底层框架由c++编写， 逻辑层使用python脚本， 开发者无需重复实现一些通用的底层服务端技术，
 使开发者能够真正集中精力到游戏开发上来， 快速并且保证效率的打造各种类型的游戏。
@@ -72,13 +74,13 @@ kbengine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 kbe会读取KBE_ROOT，KBE_RES_PATH， KBE_HYBRID_PATH系统环境变量来做一些事情。
 
 
-linux:
+Linux: (假设kbe被放置在~/目录下)
 
 	[kbe@localhost ~]# vim ~/.bashrc
 
 	ulimit -c unlimited
 
-	export KBE_ROOT=/home/kbe/kbengine/
+	export KBE_ROOT=~/kbengine/
 
 	export KBE_RES_PATH=$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/res/
 
@@ -87,10 +89,10 @@ linux:
 	[root@localhost ~]# vim /etc/passwd
 	
 	修改kbe的uid必须唯一, uid用来区分不同的服务端组， 如果二台硬件维护一组服务端那么二台硬件上的uid必须一致, 值需大于0。
-windows:
+Windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
-	(注意:windows下需要在环境变量中添加UID, 值需大于0)
+	(注意: Windows下需要在环境变量中添加UID, 值需大于0)
 
 
 
@@ -131,7 +133,7 @@ windows:
 
 注意: 
 
-	1: 如使用其他版本编译器最好将python、openssl、log4cxx(kbe\src\libs\*.a)也重新编译。
+	1: 如使用其他版本编译器最好将openssl、log4cxx(kbe\src\libs\*.a)也重新编译。
 
 	2: 某些平台上的mysql路径可能不是/usr/lib64/mysql/mysql_config
 
@@ -156,8 +158,8 @@ windows:
 		[mysqld]
 		lower_case_table_names=0
 
-	2: 新建一个数据库， 假设数据库名为"demo"
-		create database demo;
+	2: 新建一个数据库， 假设数据库名为"kbe"
+		create database kbe;
 
 	3: 创建一个数据库账户， 假设用户名密码都为"kbe"
 		grant all privileges on *.* to kbe@'%' identified by 'kbe';
@@ -171,7 +173,7 @@ windows:
 ##启动服务端:
 
 
-linux:
+Linux:
 
 	[root@localhost ~]# cd $KBE_HYBRID_PATH
 
@@ -179,15 +181,15 @@ linux:
 
 	sh kill.sh
 
-	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
-	并且允许udp广播端口20086-20088)
-	(注意: 如果有二块网卡如果有eth0(公网ip)、eth1(局域网ip)
+	(注意: 如有防火墙限制请设置防火墙规则对外开放这些TCP端口: loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
+	以及UDP广播端口:20086-20088)
+	(注意: 如果有二块网卡, 例如: eth0(公网ip)、eth1(局域网ip)
 	请设置kbengine.xml|kbengine_defs.xml除baseapp|loginapp|billingsystem的externalInterface设置为eth0以外, 
 	其他相关{internal|external}Interface为局域网ip的那块网卡(eth1), 并设置使用局域网ip来接收udp广播:
 	/sbin/ip route del broadcast 255.255.255.255 dev eth0
 	/sbin/ip route add broadcast 255.255.255.255 dev eth1
 	)
-windows:
+Windows:
 
 	cd KBE_HYBRID_PATH
 
@@ -196,8 +198,8 @@ windows:
 	~.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
-	(注意: windows版本仅用于测试， 由于使用select目前不支持大量连接。)
+	(注意: Windows版本仅用于测试， 由于使用select目前不支持大量连接。)
 
 ##日志:
 
-	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用guiconsole来查看。
+	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用GUIConsole来查看。

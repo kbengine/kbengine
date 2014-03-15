@@ -238,5 +238,89 @@ typedef int8 CLIENT_CTYPE;
 /** 一个空间的一个chunk大小 */
 #define SPACE_CHUNK_SIZE					100
 
+
+/** 检查用户名合法性 */
+inline bool validName(const char* name, int size)
+{
+	if(size >= 256)
+		return false;
+
+	for(int i=0; i<size; i++)
+	{
+		char ch = name[i];
+		if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_'))
+			continue;
+
+		return false;
+	}
+
+	return true;
+}
+
+inline bool validName(const std::string& name)
+{
+	return validName(name.c_str(), name.size());
+}
+
+/** 检查email地址合法性 
+严格匹配请用如下表达式
+[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?
+*/
+#ifdef USE_REGEX
+#include <regex>
+#endif
+
+inline bool email_isvalid(const char *address) 
+{
+#ifdef USE_REGEX
+	std::tr1::regex _mail_pattern("([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
+	return std::tr1::regex_match(accountName, _mail_pattern);
+#endif
+	int len = strlen(address);
+	if(len <= 3)
+		return false;
+
+	char ch = address[len - 1];
+	if(!((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')))
+		return false;
+
+	int        count = 0;
+	const char *c, *domain;
+	static const char *rfc822_specials = "()<>@,;:\\\"[]";
+
+	/* first we validate the name portion (name@domain) */
+	for (c = address;  *c;  c++) {
+	if (*c == '\"' && (c == address || *(c - 1) == '.' || *(c - 1) == 
+		'\"')) {
+	  while (*++c) {
+		if (*c == '\"') break;
+		if (*c == '\\' && (*++c == ' ')) continue;
+		if (*c <= ' ' || *c >= 127) return false;
+	  }
+	  if (!*c++) return false;
+	  if (*c == '@') break;
+	  if (*c != '.') return false;
+	  continue;
+	}
+	if (*c == '@') break;
+	if (*c <= ' ' || *c >= 127) return false;
+	if (strchr(rfc822_specials, *c)) return false;
+	}
+	if (c == address || *(c - 1) == '.') return false;
+
+	/* next we validate the domain portion (name@domain) */
+	if (!*(domain = ++c)) return false;
+	do {
+	if (*c == '.') {
+	  if (c == domain || *(c - 1) == '.') return false;
+	  count++;
+	}
+	if (*c <= ' ' || *c >= 127) return false;
+	if (strchr(rfc822_specials, *c)) return false;
+	} while (*++c);
+
+	return (count >= 1);
+}
+
 }
 #endif // __CSTDKBE__

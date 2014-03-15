@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<!DOCTYPE project [
+<!ENTITY common SYSTEM 'common.xml'>
+]>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+
+<!--
+
+This file builds libesmtp using Apache Ant (http://ant.apache.org)
+and the C++ compilation tasks from http://ant-contrib.sourceforge.net.
+
+
+-->
+<project name="esmtp" default="build">
+
+&common;
+
+<property name="src.dir" location="${basedir}"/>
+<property name="include.dir" location="${src.dir}"/>
+<property name="test.dir" location="${src.dir}/test"/>
+<property name="target.dir" location="${basedir}/target"/>
+<property name="lib.type" value="shared"/>
+<property name="projects.dir" location="${target.dir}"/>
+
+<target name="usage" description="Displays usage notes on build">
+        <echo>
+        </echo>
+</target>
+
+
+<target name="init" depends="common-init">
+</target>
+
+<target name="clean" description="Removes build product files">
+        <delete dir="${target.dir}"/>
+</target>
+
+
+<target name="configure-check" depends="init">
+        <condition property="esmtp-configure-available" value="true">
+              <available file="${include.dir}/config.h"/>
+        </condition>
+</target>
+
+
+<target name="win-configure" depends="configure-check" if="is-windows">
+    <antcall target="copy-if-changed">
+        <param name="file" value="${include.dir}/config.h.in"/>
+        <param name="tofile" value="${include.dir}/config.h"/>
+    </antcall>
+</target>
+
+<target name="unix-configure" depends="configure-check" if="is-unix" unless="esmtp-configure-available">
+         <!--  shelling to configure allows cygwin to work  -->
+        <exec executable="sh" dir="${src.dir}">
+            <arg value="./configure"/>
+        </exec>
+</target>
+
+
+<target name="configure" depends="unix-configure, win-configure"/>
+
+
+<target name="build" depends="configure" description="Build library">
+    <mkdir dir="${executable.dir}/libesmtp-ofiles"/>
+    <property name="project.compiler" value="${compiler}"/>
+    <cc name="${project.compiler}"
+        outfile="${executable.dir}/esmtp${lib-suffix}"
+        subsystem="console"
+        multithreaded="true"
+        outtype="${lib.type}"
+        objdir="${executable.dir}/libesmtp-ofiles"
+        outputfileproperty="esmtp.dll"
+        debug="${debug}"
+        projectsOnly="${projectsOnly}">
+        <fileset dir="${src.dir}">
+            <include name="*.c"/>
+            <exclude name="getaddrinfo.c"/>
+            <exclude name="gethostbyname.c" if="is-windows"/>
+            <exclude name="strdup.c" if="is-windows"/>
+            <exclude name="snprintf.c" if="is-windows"/>
+            <exclude name="auth-client.c" if="is-windows"/>
+            <!-- exclude name="siobuf.c" if="is-windows"/ -->
+        </fileset>
+        <includepath path="${include.dir}"/>
+        <defineset define="HAVE_CONFIG_H"/>
+        <compilerarg value="${pic-option}" if="pic-option"/>
+        <libset libs="advapi32 ws2_32 mswsock rpcrt4" if="is-windows"/>
+        <libset libs="ssl crypto" if="is-unix"/>
+        <libset libs="cw32mt" if="is-bcc"/>
+        <project type="${project.type}" outfile="${projects.dir}/libesmtp" if="project.if"/>
+    </cc>
+</target>
+
+
+<target name="build-projects">
+        <mkdir dir="${projects.dir}"/>
+        <antcall target="build">
+                <param name="project.if" value="true"/>
+                <param name="project.type" value="${project.type}"/>
+                <param name="project.compiler" value="${project.compiler}"/>
+                <param name="projects.dir" value="${projects.dir}"/>
+                <param name="projectsOnly" value="true"/>
+        </antcall>
+</target>
+
+<target name="build-projects-vc6" description="Builds project files for Microsoft Visual C++ 6">
+    <antcall target="build-projects">
+        <param name="project.type" value="msvc6"/>
+        <param name="project.compiler" value="msvc"/>
+    </antcall>
+</target>
+
+<target name="build-projects-vc8" description="Builds project files for Microsoft Visual C++ 2005">
+  <antcall target="build-projects">
+    <param name="project.type" value="msvc8"/>
+    <param name="project.compiler" value="msvc"/>
+  </antcall>
+</target>
+
+<target name="build-projects-xcode" description="Builds project files for Apple Xcode">
+    <antcall target="build-projects">
+        <param name="project.type" value="xcode"/>
+        <param name="project.compiler" value="g++"/>
+    </antcall>
+</target>
+
+
+</project>

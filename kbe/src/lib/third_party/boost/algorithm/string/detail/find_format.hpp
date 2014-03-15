@@ -12,7 +12,7 @@
 #define BOOST_STRING_FIND_FORMAT_DETAIL_HPP
 
 #include <boost/algorithm/string/config.hpp>
-#include <boost/range/iterator_range.hpp>
+#include <boost/range/iterator_range_core.hpp>
 #include <boost/range/const_iterator.hpp>
 #include <boost/range/iterator.hpp>
 #include <boost/algorithm/string/detail/find_format_store.hpp>
@@ -56,7 +56,7 @@ namespace boost {
                 // Copy the beginning of the sequence
                 Output = std::copy( ::boost::begin(Input), ::boost::begin(M), Output );
                 // Format find result
-                // Copy formated result
+                // Copy formatted result
                 Output = std::copy( ::boost::begin(M.format_result()), ::boost::end(M.format_result()), Output );
                 // Copy the rest of the sequence
                 Output = std::copy( M.end(), ::boost::end(Input), Output );
@@ -118,11 +118,11 @@ namespace boost {
 
                 InputT Output;
                 // Copy the beginning of the sequence
-                insert( Output, ::boost::end(Output), ::boost::begin(Input), M.begin() );
-                // Copy formated result
-                insert( Output, ::boost::end(Output), M.format_result() );
+                boost::algorithm::detail::insert( Output, ::boost::end(Output), ::boost::begin(Input), M.begin() );
+                // Copy formatted result
+                boost::algorithm::detail::insert( Output, ::boost::end(Output), M.format_result() );
                 // Copy the rest of the sequence
-                insert( Output, ::boost::end(Output), M.end(), ::boost::end(Input) );
+                boost::algorithm::detail::insert( Output, ::boost::end(Output), M.end(), ::boost::end(Input) );
 
                 return Output;
             }

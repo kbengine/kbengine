@@ -30,6 +30,7 @@ int32 secondsToTicks(float seconds, int lowerBound)
 	return std::max(lowerBound, int(floorf(seconds * g_kbeSrvConfig.gameUpdateHertz() + 0.5f)));
 }
 
+//-------------------------------------------------------------------------------------
 uint16 datatype2id(std::string datatype)
 {
 	std::transform(datatype.begin(), datatype.end(), datatype.begin(), toupper);	
@@ -38,7 +39,7 @@ uint16 datatype2id(std::string datatype)
 	else if(datatype == "UINT8" || datatype == "BOOL" || datatype == "DATATYPE" || datatype == "CHAR" || datatype == "DETAIL_TYPE" ||
 		datatype == "MAIL_TYPE")
 		return 2;
-	else if(datatype == "UINT16" | datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
+	else if(datatype == "UINT16" || datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
 		datatype == "ENTITY_PROPERTY_UID" || datatype == "ENTITY_METHOD_UID" || datatype == "ENTITY_SCRIPT_UID" || datatype == "DATATYPE_UID")
 		return 3;
 	else if(datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" ||datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||

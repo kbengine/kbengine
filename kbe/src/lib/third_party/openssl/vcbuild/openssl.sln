@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "libeay32\libeay32.vcproj", "{26195A87-700C-42D6-A271-20B6CACC6249}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "ssleay32\ssleay32.vcproj", "{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26195A87-700C-42D6-A271-20B6CACC6249}.Debug|Win32.ActiveCfg = Debug|Win32
+		{26195A87-700C-42D6-A271-20B6CACC6249}.Debug|Win32.Build.0 = Debug|Win32
+		{26195A87-700C-42D6-A271-20B6CACC6249}.Release|Win32.ActiveCfg = Release|Win32
+		{26195A87-700C-42D6-A271-20B6CACC6249}.Release|Win32.Build.0 = Release|Win32
+		{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}.Debug|Win32.Build.0 = Debug|Win32
+		{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}.Release|Win32.ActiveCfg = Release|Win32
+		{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

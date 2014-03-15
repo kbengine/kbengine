@@ -1,0 +1,109 @@
+# PROGRAMS includes all test programs built on this platform.
+# STDTEST_PORTABLE
+#   test programs invoked via standard user interface, run on all platforms
+# STDTEST_NONPORTABLE
+#   test programs invoked via standard user interface, not portable
+# OTHER_PROGRAMS
+#   programs such as sendfile, that have to be invoked in a special sequence
+#   or with special parameters
+
+!IFNDEF MODEL
+MODEL=dynamic
+!ENDIF
+
+INCDIR=../../include
+
+!IFNDEF OUTDIR
+!IF "$(MODEL)" == "static"
+OUTDIR=LibR
+!ELSE
+OUTDIR=Release
+!ENDIF
+
+!IF [$(COMSPEC) /c cl /nologo /? | find "x64" >NUL ] == 0
+OUTDIR=x64\$(OUTDIR)
+!ENDIF
+!ENDIF
+
+!IF !EXIST("$(OUTDIR)\.")
+!IF ([$(COMSPEC) /C mkdir $(OUTDIR)] == 0)
+!ENDIF
+!ENDIF
+
+!IFNDEF INTDIR
+INTDIR=$(OUTDIR)
+!ELSE
+!IF !EXIST("$(INTDIR)\.")
+!IF ([$(COMSPEC) /C mkdir $(INTDIR)] == 0)
+!ENDIF
+!ENDIF
+!ENDIF
+
+!MESSAGE Building tests into $(OUTDIR) for $(MODEL)
+
+NONPORTABLE = \
+	$(OUTDIR)\testucs.exe
+
+CLEAN_BUILDDIRS = Release Debug 9x x64
+
+PROGRAMS = 
+
+TARGETS = $(PROGRAMS) $(NONPORTABLE)
+
+# bring in rules.mk for standard functionality
+ALL: $(TARGETS)
+
+CL = cl.exe
+LD = link.exe 
+
+!IF "$(MODEL)" == "static"
+LOCAL_LIB= ..\..\$(OUTDIR)\apr-1.lib 
+STATIC_CFLAGS = /D APR_DECLARE_STATIC
+!ELSE
+LOCAL_LIB= ..\..\$(OUTDIR)\libapr-1.lib 
+STATIC_CFLAGS = 
+!ENDIF
+
+!IFDEF _DEBUG
+DEBUG_CFLAGS = /MDd
+!ELSE
+DEBUG_CFLAGS = /MD 
+!ENDIF
+
+INCLUDES=/I "$(INCDIR)"
+
+CFLAGS = /nologo /c /W3 /Gm /EHsc /Zi /Od $(INCLUDES) \
+	 $(STATIC_CFLAGS) $(DEBUG_CFLAGS) /D "BINPATH=$(OUTDIR:\=/)" \
+	 /D _DEBUG /D WIN32 /Fo"$(INTDIR)/" /FD
+
+LD_LIBS = kernel32.lib advapi32.lib ws2_32.lib wsock32.lib \
+	  ole32.lib shell32.lib rpcrt4.lib
+
+LDFLAGS = /nologo /debug /subsystem:console /incremental:no 
+SHLDFLAGS = /nologo /dll /debug /subsystem:windows /incremental:no
+
+.c{$(INTDIR)}.obj:
+	$(CL) $(CFLAGS) -c $< -Fd$(INTDIR)\ $(INCLUDES) 
+
+$(OUTDIR)\testucs.exe: $(INTDIR)\testucs.obj $(LOCAL_LIB) 
+	$(LD) $(LDFLAGS) /out:"$@" $** $(LD_LIBS)
+	@if exist "$@.manifest" \
+	    mt.exe -manifest "$@.manifest" -outputresource:$@;1
+
+
+clean:
+	@if EXIST $(INTDIR)\. rmdir /s /q $(INTDIR)
+	@if EXIST $(OUTDIR)\. rmdir /s /q $(OUTDIR)
+
+cleanall:
+	@for %d in ($(CLEAN_BUILDDIRS)) do @if EXIST %d\. rmdir /s /q %d
+
+
+PATH=$(OUTDIR);..\..\$(OUTDIR);$(PATH)
+
+check: $(NONPORTABLE)
+	@for %p in ($(NONPORTABLE)) do @( \
+	    echo Testing %p && %p || echo %p failed \
+	)
+
+# DO NOT REMOVE

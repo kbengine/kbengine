@@ -1,0 +1,37 @@
+# Microsoft Developer Studio Generated Dependency File, included by apr_ldap.mak
+
+.\apr_ldap_init.c : \
+	"..\include\apr_ldap.h"\
+	"..\include\apr_ldap_init.h"\
+	"..\include\apr_ldap_option.h"\
+	"..\include\apr_ldap_rebind.h"\
+	"..\include\apr_ldap_url.h"\
+	"..\include\apu.h"\
+	"..\include\private\apu_config.h"\
+	"..\include\private\apu_internal.h"\
+	
+
+.\apr_ldap_option.c : \
+	"..\include\apr_ldap.h"\
+	"..\include\apr_ldap_init.h"\
+	"..\include\apr_ldap_option.h"\
+	"..\include\apr_ldap_rebind.h"\
+	"..\include\apr_ldap_url.h"\
+	"..\include\apu.h"\
+	"..\include\private\apu_config.h"\
+	
+
+.\apr_ldap_rebind.c : \
+	"..\include\apr_ldap.h"\
+	"..\include\apr_ldap_init.h"\
+	"..\include\apr_ldap_option.h"\
+	"..\include\apr_ldap_rebind.h"\
+	"..\include\apr_ldap_url.h"\
+	"..\include\apu.h"\
+	"..\include\private\apu_config.h"\
+	
+
+..\libaprutil.rc : \
+	"..\include\apu.h"\
+	"..\include\apu_version.h"\
+	

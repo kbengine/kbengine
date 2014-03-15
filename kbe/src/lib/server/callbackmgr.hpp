@@ -82,7 +82,7 @@ public:
 
 		CALLBACK_ID cbID = idAlloc_.alloc();
 		cbMap_.insert(typename CALLBACKS::value_type(cbID, 
-			std::make_pair< T, uint64 >(callback, timestamp() + (timeout * stampsPerSecond()))));
+			std::pair< T, uint64 >(callback, timestamp() + (timeout * stampsPerSecond()))));
 
 		tick();
 		return cbID;

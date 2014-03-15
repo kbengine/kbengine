@@ -74,6 +74,14 @@ bool Resmgr::initialize()
 	//kb_env_.res_path			= "/home/kbe/kbengine/kbe/res/;/home/kbe/kbengine/demo/;/home/kbe/kbengine/demo/res/"; 
 	//kb_env_.hybrid_path		= "/home/kbe/kbengine/kbe/bin/Hybrid/"; 
 	
+	if(kb_env_.res_path.size() == 0 || kb_env_.root.size() == 0)
+	{
+		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
+#if KBE_PLATFORM == PLATFORM_WIN32
+		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+#endif
+	}
+
 	char ch;
 	
 	if(kb_env_.root.size() > 0)

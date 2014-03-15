@@ -1,0 +1,33 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+  #
+  #   rewrite site requests to equivalent new URLs
+  #
+  RewriteRule ^contributing\.html$ http://logging.apache.org/log4cxx/issue-tracking.html [R=permanent,L]
+  RewriteRule ^roadmap\.html$ http://logging.apache.org/log4cxx/issue-tracking.html [R=permanent,L]
+  RewriteRule ^support\.html$ http://logging.apache.org/log4cxx/index.html [R=permanent,L]
+  RewriteRule ^team\.html$ http://logging.apache.org/team-list.html [R=permanent,L]
+  RewriteRule ^performance\.html$ http://logging.apache.org/log4cxx/index.html [R=permanent,L]
+  RewriteRule ^ChangeLog$ http://logging.apache.org/log4cxx/changes-report.html [R=permanent,L]
+  RewriteRule ^news$ http://logging.apache.org/log4cxx/changes-report.html [R=permanent,L]
+  RewriteRule ^manual\.html$ http://logging.apache.org/log4cxx/index.html [R=permanent,L]
+  RewriteRule ^manual/index\.html$ http://logging.apache.org/log4cxx/manual.html [R=permanent,L] 
+  RewriteRule ^manual/(.*)$ http://logging.apache.org/log4cxx/apidocs/$1 [R=permanent,L]
+  RewriteRule ^manual\.html/index\.html$ http://logging.apache.org/log4cxx/manual.html [R=permanent,L] 
+  RewriteRule ^manual\.html/(.*)$ http://logging.apache.org/log4cxx/apidocs/$1 [R=permanent,L]
+</IfModule>

@@ -1,0 +1,10 @@
+[main] DEBUG patternlayouttest.cpp(X): Message 0
+[main] DEBUG patternlayouttest.cpp(X): Message 0
+[main] INFO  patternlayouttest.cpp(X): Message 1
+[main] INFO  patternlayouttest.cpp(X): Message 1
+[main] WARN  patternlayouttest.cpp(X): Message 2
+[main] WARN  patternlayouttest.cpp(X): Message 2
+[main] ERROR patternlayouttest.cpp(X): Message 3
+[main] ERROR patternlayouttest.cpp(X): Message 3
+[main] FATAL patternlayouttest.cpp(X): Message 4
+[main] FATAL patternlayouttest.cpp(X): Message 4

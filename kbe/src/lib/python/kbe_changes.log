@@ -2,6 +2,17 @@
 * 注释掉 pyconfig -> //#define _POSIX_C_SOURCE 200112L
 * 注释掉 pyconfig -> //#define _XOPEN_SOURCE 600
 
+* kbe\src\lib\python\Include
+pyconfig:
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200112L
+#endif
+
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 600
+#endif
+
+
 * 使用自带openssl
 $ sudo vi Modules/Setup.dist
 # Socket module helper for SSL support; you must comment out the other

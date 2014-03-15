@@ -1,0 +1,60 @@
+#
+# Declare the sub-directories to be built here
+#
+
+SUBDIRS = \
+	$(EOLIST) 
+
+#
+# Get the 'head' of the build environment.  This includes default targets and
+# paths to tools
+#
+
+include $(APR_WORK)/build/NWGNUhead.inc
+
+#
+# build this level's files
+
+#
+# If there is an NLM target, put it here
+#
+TARGET_nlm = \
+	$(OBJDIR)/aprtest.nlm \
+	$(OBJDIR)/echod.nlm \
+	$(OBJDIR)/globalmutexchild.nlm \
+	$(OBJDIR)/mod_test.nlm \
+	$(OBJDIR)/proc_child.nlm \
+	$(OBJDIR)/readchild.nlm \
+	$(OBJDIR)/sockchild.nlm \
+	$(OBJDIR)/sockperf.nlm \
+	$(OBJDIR)/testatmc.nlm \
+	$(OBJDIR)/tryread.nlm \
+	$(EOLIST)
+
+#
+# implement targets and dependancies (leave this section alone)
+#
+
+libs :: $(OBJDIR) $(TARGET_lib)
+
+nlms :: libs $(TARGET_nlm)
+
+#
+# Updated this target to create necessary directories and copy files to the 
+# correct place.  (See $(APR_WORK)/build/NWGNUhead.inc for examples)
+#
+install :: nlms FORCE
+	$(call COPY,$(OBJDIR)/*.nlm,$(INSTALLBASE))
+	$(call COPYR,data,$(INSTALLBASE)/data/)
+
+#
+# Any specialized rules here
+#
+
+#
+# Include the 'tail' makefile that has targets that depend on variables defined
+# in this makefile
+#
+
+include $(APRBUILD)/NWGNUtail.inc
+
