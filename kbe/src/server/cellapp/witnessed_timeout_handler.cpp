@@ -55,7 +55,7 @@ void WitnessedTimeoutHandler::handleTimeout(TimerHandle, void * arg)
 {
 	const uint16 witness_timeout_dec = ServerConfig::getSingleton().getCellApp().witness_timeout;
 	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.begin();
-	for(; iter != witnessedEntityIDs_.end(); iter)
+	for(; iter != witnessedEntityIDs_.end();)
 	{
 		if(iter->second > TICKSECS)
 		{
@@ -77,7 +77,7 @@ void WitnessedTimeoutHandler::handleTimeout(TimerHandle, void * arg)
 	if(witnessedEntityIDs_.size() == 0)
 	{
 		cancel();
-		DEBUG_MSG(boost::format("WitnessedTimeoutHandler::handleTimeout: witnesseds is empty, timer is canceled!\n"));
+		DEBUG_MSG("WitnessedTimeoutHandler::handleTimeout: witnesseds is empty, timer is canceled!\n");
 	}
 }
 
