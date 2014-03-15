@@ -47,7 +47,8 @@ pRangeTrigger_(pRangeTrigger)
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
-	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+	if(pRangeTrigger_)
+		static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------
