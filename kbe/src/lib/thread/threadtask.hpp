@@ -49,8 +49,7 @@ public:
 	};
 
 	/**
-		返回值： true， 代表任务执行完毕可以销毁任务了
-				 否则继续添加到线程执行
+		返回值： thread::TPTask::TPTaskState， 请参看TPTaskState
 	*/
 	virtual thread::TPTask::TPTaskState presentMainThread(){ 
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
