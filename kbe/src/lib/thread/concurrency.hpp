@@ -55,4 +55,4 @@ void setMainThreadIdleFunctions( void (*pStartFunc)(), void (*pEndFunc)() )
 
 }
 
-#endif // __TIMESTAMP_HPP__
+#endif // __CONCURENCY_HPP__
