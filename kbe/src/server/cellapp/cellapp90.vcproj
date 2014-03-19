@@ -289,6 +289,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_trigger_node.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
@@ -310,6 +314,10 @@
 			</File>
 			<File
 				RelativePath=".\witness.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\witnessed_timeout_handler.cpp"
 				>
 			</File>
 			<Filter
@@ -429,6 +437,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_trigger_node.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.hpp"
 				>
 			</File>
@@ -450,6 +462,10 @@
 			</File>
 			<File
 				RelativePath=".\witness.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\witnessed_timeout_handler.hpp"
 				>
 			</File>
 		</Filter>

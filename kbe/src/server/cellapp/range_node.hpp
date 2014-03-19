@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 #define RANGENODE_FLAG_UNKNOWN				0x00000000
-#define RANGENODE_FLAG_ENTITY				0x00000001		// 一个entity节点
+#define RANGENODE_FLAG_ENTITY				0x00000001		// 一个Entity节点
 #define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
 #define RANGENODE_FLAG_REMOVE				0x00000008		// 删除节点

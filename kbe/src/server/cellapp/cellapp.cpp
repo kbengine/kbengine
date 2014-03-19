@@ -59,7 +59,8 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 	pCellAppData_(NULL),
 	forward_messagebuffer_(ninterface),
 	cells_(),
-	pTelnetServer_(NULL)
+	pTelnetServer_(NULL),
+	pWitnessedTimeoutHandler_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -233,6 +234,8 @@ bool Cellapp::initializeEnd()
 		script::PyProfile::start("kbengine");
 	}
 
+	pWitnessedTimeoutHandler_ = new WitnessedTimeoutHandler();
+
 	// ÊÇ·ñ¹ÜÀíYÖá
 	RangeList::hasY = g_kbeSrvConfig.getCellApp().rangelist_hasY;
 
@@ -248,6 +251,8 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	SAFE_RELEASE(pWitnessedTimeoutHandler_);
+
 	if(pTelnetServer_)
 	{
 		pTelnetServer_->stop();

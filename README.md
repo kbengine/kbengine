@@ -158,15 +158,20 @@ windows:
 		[mysqld]
 		lower_case_table_names=0
 
-	2: 新建一个数据库， 假设数据库名为"kbe"
+	2: 记得重启mysql服务， 否则不生效(命令行输入):
+		net stop mysql
+		net start mysql
+
+	3: 新建一个数据库， 假设数据库名为"kbe"
 		create database kbe;
 
-	3: 创建一个数据库账户， 假设用户名密码都为"kbe"
+	4: 创建一个数据库账户， 假设用户名密码都为"kbe"
 		grant all privileges on *.* to kbe@'%' identified by 'kbe';
 		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
 
-	4: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
+	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
+		如果mysql端口不是3306， 请在kbengine.xml中的dbmgr段加入<port>端口号</port>。
 
 
 

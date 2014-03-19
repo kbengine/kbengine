@@ -13,7 +13,7 @@ __TERRITORY_AREA__ = 30.0
 
 class AI:
 	def __init__(self):
-		pass
+		self.enable()
 	
 	def initEntity(self):
 		"""

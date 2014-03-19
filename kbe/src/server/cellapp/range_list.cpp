@@ -81,10 +81,12 @@ bool RangeList::insert(RangeNode* pNode)
 		return true;
 	}
 
+	// 设置旧坐标为负无穷大
 	pNode->old_x(-FLT_MAX);
 	pNode->old_y(-FLT_MAX);
 	pNode->old_z(-FLT_MAX);
 
+	// 将新加入的节点插入到第一个节点
 	first_x_rangeNode_->pPrevX(pNode);
 	pNode->pNextX(first_x_rangeNode_);
 	first_x_rangeNode_ = pNode;
@@ -102,7 +104,8 @@ bool RangeList::insert(RangeNode* pNode)
 
 	pNode->pRangeList(this);
 	++size_;
-
+	
+	// 节点开始参与计算
 	update(pNode);
 	return true;
 }
@@ -191,12 +194,15 @@ void RangeList::update(RangeNode* pNode)
 	float py = pNode->y();
 	float pz = pNode->z();
 	
+	// 如果坐标有改变才进行计算
 	if(px != pNode->old_x())
 	{
 		RangeNode* pCurrNode = pNode->pPrevX();
-
+		
+		// 向前寻找到适合的插入位置， 越是前边值越小
 		while(pCurrNode && pCurrNode->x() > px)
 		{
+			// 如果节点是隐藏的则不进入判断, 其他节点不会感知
 			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
 			{
 				/*
@@ -219,6 +225,7 @@ void RangeList::update(RangeNode* pNode)
 			pCurrNode = pCurrNode->pPrevX();
 		};
 		
+		// 向后寻找到适合的插入位置， 越是后边值越大
 		if(pNode->pNextX() && pNode->pNextX()->x() < px)
 		{
 			pCurrNode = pNode->pNextX();
@@ -247,9 +254,12 @@ void RangeList::update(RangeNode* pNode)
 				pCurrNode = pCurrNode->pNextX();
 			};
 		}
-
+		
+		// 找到插入点
 		if(pCurrNode != NULL)
 		{
+			// 如果当前节点x大于要插入的节点
+			// 那么将插入节点插入在该插入点的前面
 			if(pCurrNode->x() > px)
 			{
 				RangeNode* pPreNode = pCurrNode->pPrevX();
@@ -276,6 +286,7 @@ void RangeList::update(RangeNode* pNode)
 			}
 			else
 			{
+				// 插入到插入点的后面
 				RangeNode* pNextNode = pCurrNode->pNextX();
 				if(pNextNode != pNode)
 				{
@@ -409,6 +420,7 @@ void RangeList::update(RangeNode* pNode)
 		}
 	}
 
+	// 如果坐标有改变才进行计算
 	if(pz != pNode->old_z())
 	{
 		RangeNode* pCurrNode = pNode->pPrevZ();

@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "spaces.hpp"
 #include "cells.hpp"
 #include "updatables.hpp"
+#include "witnessed_timeout_handler.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
 
@@ -211,6 +212,8 @@ public:
 		获取进程内部网络地址
 	*/
 	static PyObject* __py_address(PyObject* self, PyObject* args);
+
+	WitnessedTimeoutHandler	* pWitnessedTimeoutHandler(){ return pWitnessedTimeoutHandler_; }
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
@@ -221,6 +224,8 @@ protected:
 	Cells								cells_;
 
 	TelnetServer*						pTelnetServer_;
+
+	WitnessedTimeoutHandler	*			pWitnessedTimeoutHandler_;
 };
 
 }

@@ -18,44 +18,41 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __THREADTASK_H__
-#define __THREADTASK_H__
+#ifndef __KBE_WITNESSED_TIMEOUT_HANDLER__
+#define __KBE_WITNESSED_TIMEOUT_HANDLER__
 
-// common include	
-// #define NDEBUG
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/task.hpp"
+// common include
 #include "helper/debug_helper.hpp"
+#include "cstdkbe/cstdkbe.hpp"
+// #define NDEBUG
+// windows include	
+#if KBE_PLATFORM == PLATFORM_WIN32
+#else
+// linux include
+#endif
 
-namespace KBEngine{ namespace thread{
+namespace KBEngine{
 
-/*
-	线程池的线程基类
-*/
+class WitnessedTimeoutHandler : public TimerHandler
+{	
+public:	
+	WitnessedTimeoutHandler();
 
-class TPTask : public Task
-{
-public:
-	enum TPTaskState
-	{
-		/// 一个任务已经完成
-		TPTASK_STATE_COMPLETED = 0,
+	~WitnessedTimeoutHandler();
 
-		/// 继续在主线程执行
-		TPTASK_STATE_CONTINUE_MAINTHREAD = 1,
+	void addWitnessed(Entity* pEntity);
+	void delWitnessed(Entity* pEntity);
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser);
 
-		// 继续在子线程执行
-		TPTASK_STATE_CONTINUE_CHILDTHREAD = 2,
-	};
+	virtual void onRelease( TimerHandle handle, void * /*pUser*/ ){};
 
-	/**
-		返回值： thread::TPTask::TPTaskState， 请参看TPTaskState
-	*/
-	virtual thread::TPTask::TPTaskState presentMainThread(){ 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
-	}
-};
+	void cancel();
 
-}
+	std::map<ENTITY_ID, uint16>		witnessedEntityIDs_;
+	TimerHandle* pTimerHandle_;
+};	
+
+
 }
 #endif

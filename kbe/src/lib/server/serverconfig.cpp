@@ -482,6 +482,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_cellAppInfo.perSecsDestroyEntitySize = uint32(xml->getValInt(childnode));
 			}
 		}
+
+		node = xml->enterNode(rootNode, "witness");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "timeout");
+			if(childnode)
+			{
+				_cellAppInfo.witness_timeout = uint16(xml->getValInt(childnode));
+			}
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseapp");
