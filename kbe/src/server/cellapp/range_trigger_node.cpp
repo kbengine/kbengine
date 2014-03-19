@@ -61,37 +61,49 @@ void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::x()const 
 {
+	if(pRangeTrigger_== NULL)
+		return old_x_ + range_xz_; 
+
 	return pRangeTrigger_->origin()->x() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::y()const 
 {
+	if(pRangeTrigger_== NULL)
+		return old_y_ + range_y_; 
+
 	return pRangeTrigger_->origin()->y() + range_y_; 
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::z()const 
 {
+	if(pRangeTrigger_== NULL)
+		return old_z_ + range_xz_; 
+
 	return pRangeTrigger_->origin()->z() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
 {
-	pRangeTrigger_->onNodePassX(this, pNode, isfront);
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
 {
-	pRangeTrigger_->onNodePassY(this, pNode, isfront);
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
 {
-	pRangeTrigger_->onNodePassZ(this, pNode, isfront);
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------

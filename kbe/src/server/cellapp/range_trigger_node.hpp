@@ -40,6 +40,7 @@ public:
 	INLINE float range_y()const;
 
 	INLINE RangeTrigger* pRangeTrigger()const;
+	INLINE void pRangeTrigger(RangeTrigger* pRangeTrigger);
 
 	/**
 		x && z由不同的应用实现(从不同处获取)

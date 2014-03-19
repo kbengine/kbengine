@@ -60,7 +60,8 @@ RangeNode::~RangeNode()
 //-------------------------------------------------------------------------------------
 void RangeNode::update()
 {
-	pRangeList_->update(this);
+	if(pRangeList_)
+		pRangeList_->update(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,8 +78,8 @@ void RangeNode::debug()
 {
 	c_str();
 
-	if(pNextY_)
-		this->pNextY_->debug();
+	if(pNextX_)
+		this->pNextX_->debug();
 }
 
 //-------------------------------------------------------------------------------------
