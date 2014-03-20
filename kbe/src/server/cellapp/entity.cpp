@@ -146,7 +146,10 @@ void Entity::installRangeNodes(RangeList* pRangeList)
 void Entity::uninstallRangeNodes(RangeList* pRangeList)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+	{
 		pRangeList->remove((KBEngine::RangeNode*)pEntityRangeNode());
+		pEntityRangeNode_ = new EntityRangeNode(this);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,6 +183,15 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 {
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
+
+	if(pobj->initing())
+	{
+		PyErr_Format(PyExc_AssertionError,
+			"Entity::destroy(): %s is in initing, reject the request!\n",	
+			pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
 
 	if(currargsSize > 0)
 	{
@@ -593,6 +605,8 @@ PyObject* Entity::pyIsReal()
 //-------------------------------------------------------------------------------------
 void Entity::addWitnessed(Entity* entity)
 {
+	Cellapp::getSingleton().pWitnessedTimeoutHandler()->delWitnessed(this);
+
 	witnesses_.push_back(entity->getID());
 
 	/*
@@ -627,7 +641,15 @@ void Entity::delWitnessed(Entity* entity)
 	KBE_ASSERT(witnesses_.size() > 0);
 
 	witnesses_.remove(entity->getID());
+	
+	// ÑÓÊ±Ö´ÐÐ
+	// onDelWitnessed();
+	Cellapp::getSingleton().pWitnessedTimeoutHandler()->addWitnessed(this);
+}
 
+//-------------------------------------------------------------------------------------
+void Entity::onDelWitnessed()
+{
 	if(witnesses_.size() == 0)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
@@ -660,7 +682,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	
 	if(this->pEntityRangeNode() == NULL || this->pEntityRangeNode()->pRangeList() == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::addProximity: %1% %2% not in world. pRangeList() == NULL\n") % 
+		ERROR_MSG(boost::format("Entity::addProximity: %1%(%2%) not in world!\n") % 
 			getScriptName() % getID());
 
 		return 0;

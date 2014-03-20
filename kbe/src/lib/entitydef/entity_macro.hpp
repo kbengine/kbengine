@@ -245,6 +245,8 @@ protected:																									\
 	Mercury::Bundle* pBundle_;																				\
 	bool initing_;																							\
 public:																										\
+	bool initing()const{ return initing_; }																	\
+																											\
 	void initializeScript()																					\
 	{																										\
 		initing_ = false;																					\

@@ -240,6 +240,11 @@
 			<!-- 每秒销毁有base的entity -->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
+		
+		<witness>
+			<!-- 观察者 timeout超时(秒) Integer-->
+			<timeout> 15 </timeout>
+		</witness>
 	</cellapp>
 	
 	<baseapp>

@@ -43,6 +43,8 @@ public:
 		将节点从list中移除
 	*/
 	bool remove(RangeNode* pNode);
+	bool removeReal(RangeNode* pNode);
+	void removeDelNodes();
 
 	/**
 		当某个节点有变动时，需要更新它在list中的
@@ -66,6 +68,10 @@ private:
 	RangeNode* first_x_rangeNode_;
 	RangeNode* first_y_rangeNode_;
 	RangeNode* first_z_rangeNode_;
+
+	std::list<RangeNode*> dels_;
+
+	int updating;
 };
 
 }

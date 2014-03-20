@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "range_trigger.hpp"
 #include "range_list.hpp"
+#include "range_node.hpp"
 #include "entity_range_node.hpp"
 
 #ifndef CODE_INLINE
@@ -28,72 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{	
 
-//-------------------------------------------------------------------------------------
-RangeTriggerNode::RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y):
-RangeNode(NULL),
-range_xz_(xz),
-range_y_(y),
-old_range_xz_(range_xz_),
-old_range_y_(range_y_),
-pRangeTrigger_(pRangeTrigger)
-{
-	flags(RANGENODE_FLAG_HIDE);
-
-#ifdef _DEBUG
-	descr((boost::format("RangeTriggerNode(origin=%1%->%2%)") % pRangeTrigger_->origin() % pRangeTrigger_->origin()->descr()).str());
-#endif
-
-	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->addWatcherNode(this);
-}
-
-//-------------------------------------------------------------------------------------
-RangeTriggerNode::~RangeTriggerNode()
-{
-	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
-}
-
-//-------------------------------------------------------------------------------------
-void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
-{
-	if((flags() & RANGENODE_FLAG_REMOVE) <= 0)
-		pParentNode->pRangeList()->remove(this);
-}
-
-//-------------------------------------------------------------------------------------
-float RangeTriggerNode::x()const 
-{
-	return pRangeTrigger_->origin()->x() + range_xz_; 
-}
-
-//-------------------------------------------------------------------------------------
-float RangeTriggerNode::y()const 
-{
-	return pRangeTrigger_->origin()->y() + range_y_; 
-}
-
-//-------------------------------------------------------------------------------------
-float RangeTriggerNode::z()const 
-{
-	return pRangeTrigger_->origin()->z() + range_xz_; 
-}
-
-//-------------------------------------------------------------------------------------
-void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
-{
-	pRangeTrigger_->onNodePassX(this, pNode, isfront);
-}
-
-//-------------------------------------------------------------------------------------
-void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
-{
-	pRangeTrigger_->onNodePassY(this, pNode, isfront);
-}
-
-//-------------------------------------------------------------------------------------
-void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
-{
-	pRangeTrigger_->onNodePassZ(this, pNode, isfront);
-}
 
 //-------------------------------------------------------------------------------------
 RangeTrigger::RangeTrigger(RangeNode* origin, float xz, float y):
@@ -115,13 +50,14 @@ RangeTrigger::~RangeTrigger()
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
+		positiveBoundary_ = new RangeTriggerNode(this,0.0f, 0.0f);
+	else
+		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
-
-	positiveBoundary_->range(0.0f, 0.0f);
-	negativeBoundary_->range(0.0f, 0.0f);
+		negativeBoundary_ = new RangeTriggerNode(this, 0.0f, 0.0f);
+	else
+		negativeBoundary_->range(0.0f, 0.0f);
 
 	origin_->pRangeList()->insert(positiveBoundary_);
 	origin_->pRangeList()->insert(negativeBoundary_);
@@ -129,36 +65,37 @@ bool RangeTrigger::install()
 	positiveBoundary_->old_x(FLT_MAX);
 	positiveBoundary_->old_y(FLT_MAX);
 	positiveBoundary_->old_z(FLT_MAX);
+	positiveBoundary_->range(range_xz_, range_y_);
+	positiveBoundary_->old_range(range_xz_, range_y_);
+	positiveBoundary_->update();
 
 	negativeBoundary_->old_x(-FLT_MAX);
 	negativeBoundary_->old_y(-FLT_MAX);
 	negativeBoundary_->old_z(-FLT_MAX);
-
-	positiveBoundary_->range(range_xz_, range_y_);
-	positiveBoundary_->old_range(range_xz_, range_y_);
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
-
-	positiveBoundary_->update();
 	negativeBoundary_->update();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTrigger::uninstall(bool isDestroy)
+bool RangeTrigger::uninstall()
 {
 	if(positiveBoundary_ && positiveBoundary_->pRangeList())
-		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
-
-	if(negativeBoundary_ && negativeBoundary_->pRangeList())
-		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
-
-	if(isDestroy)
 	{
-		SAFE_RELEASE(positiveBoundary_);
-		SAFE_RELEASE(negativeBoundary_);
+		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
+		positiveBoundary_->pRangeTrigger(NULL);
+		positiveBoundary_->resetOld();
 	}
 
+	if(negativeBoundary_ && negativeBoundary_->pRangeList())
+	{
+		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
+		negativeBoundary_->pRangeTrigger(NULL);
+		negativeBoundary_->resetOld();
+	}
+	
+	// 此处不必release node， 节点的释放统一交给rangelist
 	return true;
 }
 
@@ -217,7 +154,7 @@ bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
 
 	volatile float lowerBound = originY - fabs(old_range_y_);
 	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_y()) && (pNode->old_y() <= upperBound);
+	return (lowerBound < pNode->old_y()) && (pNode->old_y() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------

@@ -53,7 +53,7 @@ INLINE bool RangeTriggerNode::isInXRange(RangeNode * pNode)
 
 	volatile float lowerBound = originX - fabs(range_xz_);
 	volatile float upperBound = originX + fabs(range_xz_);
-	return (lowerBound < pNode->x()) && (pNode->x() <= upperBound);
+	return (lowerBound < pNode->x()) && (pNode->x() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ INLINE bool RangeTriggerNode::isInYRange(RangeNode * pNode)
 
 	volatile float lowerBound = originY - fabs(range_y_);
 	volatile float upperBound = originY + fabs(range_y_);
-	return (lowerBound < pNode->y()) && (pNode->y() <= upperBound);
+	return (lowerBound < pNode->y()) && (pNode->y() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ INLINE bool RangeTriggerNode::isInZRange(RangeNode * pNode)
 
 	volatile float lowerBound = originZ - fabs(range_xz_);
 	volatile float upperBound = originZ + fabs(range_xz_);
-	return (lowerBound < pNode->z()) && (pNode->z() <= upperBound);
+	return (lowerBound < pNode->z()) && (pNode->z() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ INLINE bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
 
 	volatile float lowerBound = originX - fabs(old_range_xz_);
 	volatile float upperBound = originX + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_x()) && (pNode->old_x() <= upperBound);
+	return (lowerBound < pNode->old_x()) && (pNode->old_x() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ INLINE bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
 
 	volatile float lowerBound = originZ - fabs(old_range_xz_);
 	volatile float upperBound = originZ + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_z()) && (pNode->old_z() <= upperBound);
+	return (lowerBound < pNode->old_z()) && (pNode->old_z() < upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -126,6 +126,12 @@ INLINE float RangeTriggerNode::range_y()const
 INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger()const
 {
 	return pRangeTrigger_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void RangeTriggerNode::pRangeTrigger(RangeTrigger* pRangeTrigger)
+{
+	pRangeTrigger_ = pRangeTrigger;
 }
 
 //-------------------------------------------------------------------------------------

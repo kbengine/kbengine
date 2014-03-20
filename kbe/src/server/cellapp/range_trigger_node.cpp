@@ -18,107 +18,92 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "range_node.hpp"
 #include "range_list.hpp"
-
-#ifndef CODE_INLINE
-#include "range_node.ipp"
-#endif
+#include "range_trigger.hpp"
+#include "range_trigger_node.hpp"
+#include "entity_range_node.hpp"
 
 namespace KBEngine{	
 
+
 //-------------------------------------------------------------------------------------
-RangeNode::RangeNode(RangeList* pRangeList):
-pPrevX_(NULL),
-pNextX_(NULL),
-pPrevY_(NULL),
-pNextY_(NULL),
-pPrevZ_(NULL),
-pNextZ_(NULL),
-pRangeList_(pRangeList),
-x_(0.f),
-y_(0.f),
-z_(0.f),
-old_x_(0.f),
-old_y_(0.f),
-old_z_(0.f),
+RangeTriggerNode::RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y):
+RangeNode(NULL),
+range_xz_(xz),
+range_y_(y),
+old_range_xz_(range_xz_),
+old_range_y_(range_y_),
+pRangeTrigger_(pRangeTrigger)
+{
+	flags(RANGENODE_FLAG_HIDE);
+
 #ifdef _DEBUG
-descr_(),
+	descr((boost::format("RangeTriggerNode(origin=%1%->%2%)") % pRangeTrigger_->origin() % pRangeTrigger_->origin()->descr()).str());
 #endif
-flags_(RANGENODE_FLAG_UNKNOWN)
-{
-	old_x_ = x();
-	old_y_ = y();
-	old_z_ = z();
+
+	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->addWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------
-RangeNode::~RangeNode()
+RangeTriggerNode::~RangeTriggerNode()
 {
+	if(pRangeTrigger_)
+		static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::update()
+void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
 {
-	if(pRangeList_)
-		pRangeList_->update(this);
+	if((flags() & RANGENODE_FLAG_REMOVE) <= 0)
+		pParentNode->pRangeList()->remove(this);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::c_str()
+float RangeTriggerNode::x()const 
 {
-	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
-		this % x() % y() % z() %
-		old_x_ % old_y_ % old_z_ %
-		pPrevX_ % pNextX_ % pPrevZ_ % pNextZ_ % descr());
+	if(pRangeTrigger_== NULL)
+		return old_x_ + range_xz_; 
+
+	return pRangeTrigger_->origin()->x() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugX()
+float RangeTriggerNode::y()const 
 {
-	c_str();
+	if(pRangeTrigger_== NULL)
+		return old_y_ + range_y_; 
 
-	if(pNextX_)
-		this->pNextX_->debugX();
+	return pRangeTrigger_->origin()->y() + range_y_; 
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugY()
+float RangeTriggerNode::z()const 
 {
-	c_str();
+	if(pRangeTrigger_== NULL)
+		return old_z_ + range_xz_; 
 
-	if(pNextY_)
-		this->pNextY_->debugY();
+	return pRangeTrigger_->origin()->z() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugZ()
+void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
 {
-	c_str();
-
-	if(pNextZ_)
-		this->pNextZ_->debugZ();
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassX(RangeNode* pNode, bool isfront)
+void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
 {
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassY(RangeNode* pNode, bool isfront)
+void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
 {
-}
-
-//-------------------------------------------------------------------------------------
-void RangeNode::onNodePassZ(RangeNode* pNode, bool isfront)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void RangeNode::onRemove()
-{
-	x_ = -FLT_MAX;
+	if(pRangeTrigger_)
+		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------

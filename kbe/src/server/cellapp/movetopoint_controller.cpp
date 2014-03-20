@@ -117,7 +117,7 @@ bool MoveToPointController::update()
 	// 通知脚本
 	pEntity_->onMove(id(), pyuserarg_);
 
-	// 如果达到目的地则返回true
+	// 如果达到目的地则返回false
 	if(!ret)
 	{
 		return !requestMoveOver();

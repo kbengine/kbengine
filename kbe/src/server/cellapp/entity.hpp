@@ -345,6 +345,7 @@ public:
 		移除一个观察自身的观察者 
 	*/
 	void delWitnessed(Entity* entity);
+	void onDelWitnessed();
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
 

@@ -32,6 +32,8 @@ class ScriptVector3 : public ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(ScriptVector3, ScriptObject)
 public:	
+	typedef std::tr1::function<void (void)> PYVector3ChangedCallback;
+
 	static PySequenceMethods seqMethods;
 	static PyNumberMethods numberMethods;
 		
@@ -116,8 +118,10 @@ public:
 	
 	int length(void){ return VECTOR_SIZE; }
 	Vector3& getVector(void){ return *val_; }
-	void setVector(const Vector3& v){ *val_ = v; }
-	
+
+	void setVector(const Vector3& v);
+	void setVectorFromPy(const Vector3& v);
+
 	/** 
 		检查某个python对象是否可以转换为本类型 
 	*/
@@ -127,11 +131,19 @@ public:
 		将某个经过check检查过的python对象转换为vector3 
 	*/
 	static void convertPyObjectToVector3(Vector3& v, PyObject* obj);
+
+	/** 
+		设置mailbox的__getEntityFunc函数地址 
+	*/
+	void setPYVector3ChangedCallback(PYVector3ChangedCallback* func){ 
+		_pyVector3ChangedCallback = func; 
+	};
 private:
 	Vector3*			val_;
 	bool				isCopy_;
 	bool				isReadOnly_;
 	static const int 	VECTOR_SIZE;
+	PYVector3ChangedCallback* _pyVector3ChangedCallback;
 } ;
 
 }

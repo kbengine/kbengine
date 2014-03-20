@@ -323,8 +323,16 @@ bool Witness::update()
 			{
 				if(remainPacketSize <= 0)
 					break;
-
-				Entity* otherEntity = (*iter)->pEntity();
+				
+				// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
+				Entity* otherEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+				
+				if(otherEntity == NULL)
+				{
+					delete (*iter);
+					iter = aoiEntities_.erase(iter);
+					continue;
+				}
 
 				if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 				{

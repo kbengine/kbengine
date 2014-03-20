@@ -1,2 +1,2 @@
-python-2.6.2.msi
-pywin32-215.win32-py2.6.exe
+python-3.x.msi
+pywin32-218.win32-py3.x.exe
