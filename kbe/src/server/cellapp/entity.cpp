@@ -969,21 +969,45 @@ void Entity::setPositionAndDirection(const Position3D& position, const Direction
 //-------------------------------------------------------------------------------------
 void Entity::onPyPositionChanged()
 {
-	onPositionChanged();
+	static ENTITY_PROPERTY_UID posuid = 0;
+	if(posuid == 0)
+	{
+		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		Mercury::FixedMessages::MSGInfo* msgInfo =
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
+	}
+
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	onDefDataChanged(&positionDescription, pPyPosition_);
+
+	if(this->pEntityRangeNode())
+		this->pEntityRangeNode()->update();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
 	posChangedTime_ = g_kbetime;
-	if(this->pEntityRangeNode())
-		this->pEntityRangeNode()->update();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPyDirectionChanged()
 {
-	onDirectionChanged();
+	// onDirectionChanged();
+	static ENTITY_PROPERTY_UID diruid = 0;
+	if(diruid == 0)
+	{
+		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+		Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)	
+			diruid = msgInfo->msgid;
+	}
+
+	static PropertyDescription positionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	onDefDataChanged(&positionDescription, pPyDirection_);
 }
 
 //-------------------------------------------------------------------------------------
