@@ -121,11 +121,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ScriptVector3, 0, &ScriptVector3::seqMethods, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-ScriptVector3::ScriptVector3(Vector3* v):
+ScriptVector3::ScriptVector3(Vector3* v, PYVector3ChangedCallback* pyVector3ChangedCallback):
 ScriptObject(getScriptType(), false),
 val_(v),
-isCopy_(true),
-_pyVector3ChangedCallback(NULL)
+isRef_(true),
+_pyVector3ChangedCallback(pyVector3ChangedCallback)
 {
 }
 
@@ -133,7 +133,7 @@ _pyVector3ChangedCallback(NULL)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(Vector3 v):
 ScriptObject(getScriptType(), false),
-isCopy_(false),
+isRef_(false),
 _pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(v);
@@ -142,20 +142,19 @@ _pyVector3ChangedCallback(NULL)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(float x, float y, float z):
 ScriptObject(getScriptType(), false),
-isCopy_(false),
+isRef_(false),
 _pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(x, y, z);
-
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector3::~ScriptVector3()
 {
-	if(!isCopy_)
+	if(!isRef_)
 		delete val_;
 
-	SAFE_RELEASE(_pyVector3ChangedCallback);
+	_pyVector3ChangedCallback = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -190,7 +189,13 @@ PyObject* ScriptVector3::tp_repr()
 		kbe_snprintf(str + strlen(str), 128, "%f", v[i]);
 	}
 
-	strcat(str, ")");
+	strcat(str, "), ref=");
+	
+	if(isRef_)
+		strcat(str, "true");
+	else
+		strcat(str, "false");
+
 	return PyUnicode_FromString(str);
 }
 
@@ -317,6 +322,7 @@ int ScriptVector3::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* valu
 int ScriptVector3::pySetX(PyObject *value)
 { 
 	getVector().x = float(PyFloat_AsDouble(value)); 
+	onPyPositionChanged();
 	return 0; 
 }
 
@@ -330,6 +336,7 @@ PyObject* ScriptVector3::pyGetX()
 int ScriptVector3::pySetY(PyObject *value)
 { 
 	getVector().y = float(PyFloat_AsDouble(value)); 
+	onPyPositionChanged();
 	return 0; 
 }
 
@@ -343,6 +350,7 @@ PyObject* ScriptVector3::pyGetY()
 int ScriptVector3::pySetZ(PyObject *value)
 {
 	getVector().z = float(PyFloat_AsDouble(value)); 
+	onPyPositionChanged();
 	return 0; 
 }
 
@@ -840,7 +848,7 @@ PyObject* ScriptVector3::__py_pySet(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	sv->setVectorFromPy(v);
+	sv->setVector(v);
 	S_Return;
 }
 
@@ -854,7 +862,13 @@ void ScriptVector3::setVector(const Vector3& v)
 void ScriptVector3::setVectorFromPy(const Vector3& v)
 {
 	setVector(v);
-	if(_pyVector3ChangedCallback != NULL)
+	onPyPositionChanged();
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptVector3::onPyPositionChanged()
+{
+	if(isRef_ && _pyVector3ChangedCallback != NULL)
 	{
 		(*_pyVector3ChangedCallback)();
 	}

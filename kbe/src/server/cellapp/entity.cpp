@@ -104,8 +104,13 @@ allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
 pEntityRangeNode_(NULL),
 pControllers_(new Controllers()),
-pMoveController_(NULL)
+pMoveController_(NULL),
+pyPositionChangedCallback_(),
+pyDirectionChangedCallback_()
 {
+	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPositionChanged, this);
+	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onDirectionChanged, this);
+
 	ENTITY_INIT_PROPERTYS(Entity);
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -821,7 +826,7 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition());
+	return new script::ScriptVector3(&getPosition(), &pyPositionChangedCallback_);
 }
 
 //-------------------------------------------------------------------------------------

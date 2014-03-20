@@ -453,55 +453,58 @@ private:
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID);
 protected:
 	// 这个entity的客户端mailbox
-	EntityMailbox*							clientMailbox_;						
+	EntityMailbox*											clientMailbox_;						
 
 	// 这个entity的baseapp mailbox
-	EntityMailbox*							baseMailbox_;						
+	EntityMailbox*											baseMailbox_;						
 
 	// entity的当前位置
-	Position3D								position_;							
+	Position3D												position_;							
 
 	// entity的当前方向
-	Direction3D								direction_;		
+	Direction3D												direction_;		
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
-	GAME_TIME								posChangedTime_;
-	GAME_TIME								dirChangedTime_;
+	GAME_TIME												posChangedTime_;
+	GAME_TIME												dirChangedTime_;
 
 	// 自己是否是一个realEntity
-	bool									isReal_;	
+	bool													isReal_;	
 
 	// 是否在地面上
-	bool									isOnGround_;						
+	bool													isOnGround_;						
 
 	// entity x,z轴最高移动速度
-	float									topSpeed_;							
+	float													topSpeed_;							
 
 	// entity y轴最高移动速度
-	float									topSpeedY_;							
+	float													topSpeedY_;							
 
 	// 自身在space的entities中的位置
-	SPACE_ENTITIES::size_type				spaceEntityIdx_;					
+	SPACE_ENTITIES::size_type								spaceEntityIdx_;					
 
 	// 是否被任何观察者监视到
-	std::list<ENTITY_ID>					witnesses_;
+	std::list<ENTITY_ID>									witnesses_;
 
 	// 观察者对象
-	Witness*								pWitness_;							
+	Witness*												pWitness_;							
 
-	AllClients*								allClients_;
-	AllClients*								otherClients_;
+	AllClients*												allClients_;
+	AllClients*												otherClients_;
 
 	// entity节点
-	EntityRangeNode*						pEntityRangeNode_;					
+	EntityRangeNode*										pEntityRangeNode_;					
 
 	// 控制器管理器
-	Controllers*							pControllers_;						
-	Controller*								pMoveController_;
+	Controllers*											pControllers_;						
+	Controller*												pMoveController_;
 
 	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
-	int8									shouldAutoBackup_;
+	int8													shouldAutoBackup_;
+
+	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
+	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
 };
 
 }

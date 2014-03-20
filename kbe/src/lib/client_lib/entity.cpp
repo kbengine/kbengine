@@ -264,7 +264,7 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition());
+	return new script::ScriptVector3(&getPosition(), NULL);
 }
 
 //-------------------------------------------------------------------------------------
