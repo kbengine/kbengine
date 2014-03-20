@@ -141,10 +141,6 @@ public:
 	INLINE Direction3D& getDirection();
 	INLINE void setDirection(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
-
-	DECLARE_PY_GETSET_MOTHOD(pyGetYaw, pySetYaw);
-	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
-	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
 	
 
 	/**
@@ -162,6 +158,9 @@ public:
 	void onPositionChanged();
 	void onDirectionChanged();
 	
+	void onPyPositionChanged();
+	void onPyDirectionChanged();
+
 	bool checkMoveForTopSpeed(const Position3D& position);
 
 	/** 网络接口
@@ -460,9 +459,11 @@ protected:
 
 	// entity的当前位置
 	Position3D												position_;							
+	script::ScriptVector3*									pPyPosition_;	
 
 	// entity的当前方向
 	Direction3D												direction_;		
+	script::ScriptVector3*									pPyDirection_;	
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity

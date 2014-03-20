@@ -140,12 +140,14 @@ public:
 	};
 
 	void onPyPositionChanged();
+
+	void onLoseRef();
 private:
-	Vector3*			val_;
-	bool				isRef_;
-	bool				isReadOnly_;
-	static const int 	VECTOR_SIZE;
-	PYVector3ChangedCallback* _pyVector3ChangedCallback;
+	Vector3*						val_;
+	bool							isRef_;
+	bool							isReadOnly_;
+	static const int 				VECTOR_SIZE;
+	PYVector3ChangedCallback*		_pyVector3ChangedCallback;
 } ;
 
 }

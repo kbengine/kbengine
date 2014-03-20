@@ -158,6 +158,14 @@ ScriptVector3::~ScriptVector3()
 }
 
 //-------------------------------------------------------------------------------------
+void ScriptVector3::onLoseRef()
+{
+	setPYVector3ChangedCallback(NULL);
+	isRef_ = false;
+	val_ = new Vector3((*val_));
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* ScriptVector3::tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {					
 	ScriptVector3* v = new ScriptVector3(0,0,0);

@@ -77,7 +77,7 @@ INLINE void Entity::setPosition(const Position3D& pos)
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setDirection(const Direction3D& dir)
 {
-	if(almostEqual(direction_.yaw, dir.yaw) && almostEqual(direction_.roll, dir.roll) && almostEqual(direction_.pitch, dir.pitch))
+	if(almostEqual(direction_.yaw(), dir.yaw()) && almostEqual(direction_.roll(), dir.roll()) && almostEqual(direction_.pitch(), dir.pitch()))
 		return;
 
 	direction_ = dir; 

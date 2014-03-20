@@ -204,11 +204,15 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			int32 x, y, z;
 			s >> size >> x >> y >> z;
 
-			dir.roll = (float)x;
-			dir.pitch = (float)y;
-			dir.yaw = (float)z;
+			dir.roll((float)x);
+			dir.pitch((float)y);
+			dir.yaw((float)z);
 #else
-			s >> size >> dir.roll >> dir.pitch >> dir.yaw;
+			float yaw, pitch, roll;
+			s >> size >> roll >> pitch >> yaw;
+			dir.yaw(yaw);
+			dir.pitch(pitch);
+			dir.roll(roll);
 #endif
 
 			setDirection(dir);
@@ -304,13 +308,13 @@ int Entity::pySetDirection(PyObject *value)
 
 	Direction3D& dir = getDirection();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
-	dir.roll	= float(PyFloat_AsDouble(pyItem));
+	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 1);
-	dir.pitch	= float(PyFloat_AsDouble(pyItem));
+	dir.pitch(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 2);
-	dir.yaw		= float(PyFloat_AsDouble(pyItem));
+	dir.yaw(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
 	onDirectionChanged();
@@ -320,7 +324,7 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(getDirection().asVector3());
+	return new script::ScriptVector3(&getDirection().dir, NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -330,9 +334,9 @@ void Entity::onDirectionChanged()
 		return;
 
 	EventData_DirectionChanged eventdata;
-	eventdata.yaw = direction_.yaw;
-	eventdata.pitch = direction_.pitch;
-	eventdata.roll = direction_.roll;
+	eventdata.yaw = direction_.yaw();
+	eventdata.pitch = direction_.pitch();
+	eventdata.roll = direction_.roll();
 	eventdata.pEntity = getAspect();
 
 	pClientApp_->fireEvent(&eventdata);

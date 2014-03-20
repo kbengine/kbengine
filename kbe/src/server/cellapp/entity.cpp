@@ -77,9 +77,6 @@ SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
-SCRIPT_GETSET_DECLARE("yaw",						pyGetYaw,						pySetYaw,					0,		0)
-SCRIPT_GETSET_DECLARE("roll",						pyGetRoll,						pySetRoll,					0,		0)
-SCRIPT_GETSET_DECLARE("pitch",						pyGetPitch,						pySetPitch,					0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
 SCRIPT_GETSET_DECLARE("shouldAutoBackup",			pyGetShouldAutoBackup,			pySetShouldAutoBackup,		0,		0)
@@ -92,6 +89,10 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
+position_(),
+pPyPosition_(NULL),
+direction_(),
+pPyDirection_(NULL),
 posChangedTime_(0),
 dirChangedTime_(0),
 isReal_(true),
@@ -108,8 +109,10 @@ pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_()
 {
-	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPositionChanged, this);
-	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onDirectionChanged, this);
+	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
+	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
+	pPyPosition_ = new script::ScriptVector3(&getPosition(), &pyPositionChangedCallback_);
+	pPyDirection_ = new script::ScriptVector3(&getDirection().dir, &pyDirectionChangedCallback_);
 
 	ENTITY_INIT_PROPERTYS(Entity);
 
@@ -138,6 +141,12 @@ Entity::~Entity()
 
 	SAFE_RELEASE(pControllers_);
 	SAFE_RELEASE(pEntityRangeNode_);
+
+	Py_DECREF(pPyPosition_);
+	pPyPosition_ = NULL;
+	
+	Py_DECREF(pPyDirection_);
+	pPyDirection_ = NULL;
 }	
 
 //-------------------------------------------------------------------------------------
@@ -181,6 +190,9 @@ void Entity::onDestroy(void)
 	{
 		space->removeEntity(this);
 	}
+
+	pPyPosition_->onLoseRef();
+	pPyDirection_->onLoseRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -826,7 +838,8 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition(), &pyPositionChangedCallback_);
+	Py_INCREF(pPyPosition_);
+	return pPyPosition_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -895,7 +908,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	dir.roll	= float(PyFloat_AsDouble(pyItem));
+	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
 	pyItem = PySequence_GetItem(value, 1);
@@ -908,7 +921,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	dir.pitch	= float(PyFloat_AsDouble(pyItem));
+	dir.pitch(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
 	pyItem = PySequence_GetItem(value, 2);
@@ -921,7 +934,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	dir.yaw		= float(PyFloat_AsDouble(pyItem));
+	dir.yaw(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
 	static ENTITY_PROPERTY_UID diruid = 0;
@@ -942,85 +955,8 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(getDirection().asVector3());
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::pySetYaw(PyObject *value)
-{
-	if(!PyFloat_Check(value))
-	{
-		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
-		PyErr_PrintEx(0);
-		return -1;
-	}
-
-	Direction3D& dir = getDirection();
-	dir.yaw = float(PyFloat_AsDouble(value));
-
-	PyObject* pydatas = pyGetDirection();
-	pySetDirection(pydatas);
-	Py_DECREF(pydatas);
-
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetYaw()
-{
-	return PyFloat_FromDouble(getDirection().yaw);
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::pySetRoll(PyObject *value)
-{
-	if(!PyFloat_Check(value))
-	{
-		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
-		PyErr_PrintEx(0);
-		return -1;
-	}
-
-	Direction3D& dir = getDirection();
-	dir.roll = float(PyFloat_AsDouble(value));
-
-	PyObject* pydatas = pyGetDirection();
-	pySetDirection(pydatas);
-	Py_DECREF(pydatas);
-
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetRoll()
-{
-	return PyFloat_FromDouble(getDirection().roll);
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::pySetPitch(PyObject *value)
-{
-	if(!PyFloat_Check(value))
-	{
-		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", value->ob_type->tp_name);
-		PyErr_PrintEx(0);
-		return -1;
-	}
-
-	Direction3D& dir = getDirection();
-	dir.pitch = float(PyFloat_AsDouble(value));
-
-	PyObject* pydatas = pyGetDirection();
-	pySetDirection(pydatas);
-	Py_DECREF(pydatas);
-
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetPitch()
-{
-	return PyFloat_FromDouble(getDirection().pitch);
+	Py_INCREF(pPyDirection_);
+	return pPyDirection_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1031,11 +967,23 @@ void Entity::setPositionAndDirection(const Position3D& position, const Direction
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onPyPositionChanged()
+{
+	onPositionChanged();
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
 	posChangedTime_ = g_kbetime;
 	if(this->pEntityRangeNode())
 		this->pEntityRangeNode()->update();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onPyDirectionChanged()
+{
+	onDirectionChanged();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1128,9 +1076,14 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 	Position3D pos;
 	Direction3D dir;
 	uint8 isOnGround = 0;
-	
-	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll >> isOnGround;
+	float yaw, pitch, roll;
+
+	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll >> isOnGround;
 	isOnGround_ = isOnGround > 0;
+
+	dir.yaw(yaw);
+	dir.pitch(pitch);
+	dir.roll(roll);
 	this->setDirection(dir);
 
 	if(checkMoveForTopSpeed(pos))
@@ -1163,7 +1116,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << getID();
 		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
-		(*pForwardBundle) << getDirection().yaw << getDirection().pitch << getDirection().roll;
+		(*pForwardBundle) << getDirection().yaw() << getDirection().pitch() << getDirection().roll();
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
@@ -1761,15 +1714,15 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 	Py_DECREF(pyitem);
 
 	pyitem = PySequence_GetItem(pydirection, 0);
-	dir.roll = (float)PyFloat_AsDouble(pyitem);
+	dir.roll((float)PyFloat_AsDouble(pyitem));
 	Py_DECREF(pyitem);
 
 	pyitem = PySequence_GetItem(pydirection, 1);
-	dir.pitch = (float)PyFloat_AsDouble(pyitem);
+	dir.pitch((float)PyFloat_AsDouble(pyitem));
 	Py_DECREF(pyitem);
 
 	pyitem = PySequence_GetItem(pydirection, 2);
-	dir.yaw = (float)PyFloat_AsDouble(pyitem);
+	dir.yaw((float)PyFloat_AsDouble(pyitem));
 	Py_DECREF(pyitem);
 	
 	teleport(nearbyMBRef, pos, dir);
