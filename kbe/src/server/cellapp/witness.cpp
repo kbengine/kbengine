@@ -606,48 +606,48 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	{
 		if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.yaw);
-			(*mstream) << angle2int8(dir.pitch);
-			(*mstream) << angle2int8(dir.roll);
+			(*mstream) << angle2int8(dir.yaw());
+			(*mstream) << angle2int8(dir.pitch());
+			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
 		}
 		else if(volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.pitch);
-			(*mstream) << angle2int8(dir.roll);
+			(*mstream) << angle2int8(dir.pitch());
+			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_PITCH_ROLL; 
 		}
 		else if(volatileInfo.yaw() > 0.f && volatileInfo.pitch() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.yaw);
-			(*mstream) << angle2int8(dir.pitch);
+			(*mstream) << angle2int8(dir.yaw());
+			(*mstream) << angle2int8(dir.pitch());
 
 			flags |= UPDATE_FLAG_YAW_PITCH; 
 		}
 		else if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.yaw);
-			(*mstream) << angle2int8(dir.roll);
+			(*mstream) << angle2int8(dir.yaw());
+			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_YAW_ROLL; 
 		}
 		else if(volatileInfo.yaw() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.yaw);
+			(*mstream) << angle2int8(dir.yaw());
 
 			flags |= UPDATE_FLAG_YAW; 
 		}
 		else if(volatileInfo.roll() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.roll);
+			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_ROLL; 
 		}
 		else if(volatileInfo.pitch() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.pitch);
+			(*mstream) << angle2int8(dir.pitch());
 
 			flags |= UPDATE_FLAG_PITCH; 
 		}

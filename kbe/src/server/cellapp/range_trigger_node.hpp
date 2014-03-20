@@ -49,13 +49,13 @@ public:
 	virtual float y()const;
 	virtual float z()const;
 
-	INLINE bool isInXRange(RangeNode * pNode);
-	INLINE bool isInYRange(RangeNode * pNode);
-	INLINE bool isInZRange(RangeNode * pNode);
+	bool isInXRange(RangeNode * pNode);
+	bool isInYRange(RangeNode * pNode);
+	bool isInZRange(RangeNode * pNode);
 
-	INLINE bool wasInXRange(RangeNode * pNode);
+	bool wasInXRange(RangeNode * pNode);
 	bool wasInYRange(RangeNode * pNode);
-	INLINE bool wasInZRange(RangeNode * pNode);
+	bool wasInZRange(RangeNode * pNode);
 
 	virtual void resetOld(){ 
 		RangeNode::resetOld();
@@ -82,4 +82,7 @@ protected:
 
 }
 
+#ifdef CODE_INLINE
+#include "range_trigger_node.ipp"
+#endif
 #endif

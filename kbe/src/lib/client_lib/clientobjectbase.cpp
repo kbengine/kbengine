@@ -555,9 +555,9 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventdata.x = entity->getPosition().x;
 	eventdata.y = entity->getPosition().y;
 	eventdata.z = entity->getPosition().z;
-	eventdata.pitch = entity->getDirection().pitch;
-	eventdata.roll = entity->getDirection().roll;
-	eventdata.yaw = entity->getDirection().yaw;
+	eventdata.pitch = entity->getDirection().pitch();
+	eventdata.roll = entity->getDirection().roll();
+	eventdata.yaw = entity->getDirection().yaw();
 	eventdata.speed = entity->getMoveSpeed();
 	eventHandler_.fire(&eventdata);
 
@@ -740,7 +740,7 @@ void ClientObjectBase::updatePlayerToServer()
 	Position3D& pos = pEntity->getPosition();
 	Direction3D& dir = pEntity->getDirection();
 
-	bool dirNoChanged = almostEqual(dir.yaw, entityDir_.yaw) && almostEqual(dir.pitch, entityDir_.pitch) && almostEqual(dir.roll, entityDir_.roll);
+	bool dirNoChanged = almostEqual(dir.yaw(), entityDir_.yaw()) && almostEqual(dir.pitch(), entityDir_.pitch()) && almostEqual(dir.roll(), entityDir_.roll());
 	Vector3 movement = pos - entityPos_;
 
 	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
@@ -758,9 +758,9 @@ void ClientObjectBase::updatePlayerToServer()
 	(*pBundle) << pos.y;
 	(*pBundle) << pos.z;
 
-	(*pBundle) << dir.yaw;
-	(*pBundle) << dir.pitch;
-	(*pBundle) << dir.roll;
+	(*pBundle) << dir.yaw();
+	(*pBundle) << dir.pitch();
+	(*pBundle) << dir.roll();
 
 	(*pBundle) << pEntity->isOnGound();
 	pServerChannel_->pushBundle(pBundle);
@@ -795,7 +795,12 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 
 	Position3D pos;
 	Direction3D dir;
-	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll;
+	float yaw, pitch, roll;
+	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll;
+	
+	dir.yaw(yaw);
+	dir.pitch(pitch);
+	dir.roll(roll);
 
 	entity->setPosition(pos);
 	entity->setDirection(dir);
@@ -808,9 +813,9 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	fireEvent(&eventdata);
 
 	EventData_DirectionForce direventData;
-	direventData.yaw = dir.yaw;
-	direventData.pitch = dir.pitch;
-	direventData.roll = dir.roll;
+	direventData.yaw = dir.yaw();
+	direventData.pitch = dir.pitch();
+	direventData.roll = dir.roll();
 	direventData.pEntity = entity->getAspect();
 	fireEvent(&direventData);
 }
@@ -1050,13 +1055,13 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	Direction3D dir = entity->getDirection();
 
 	if(yaw != FLT_MAX)
-		dir.yaw = yaw;
+		dir.yaw(yaw);
 
 	if(pitch != FLT_MAX)
-		dir.pitch = pitch;
+		dir.pitch(pitch);
 
 	if(roll != FLT_MAX)
-		dir.roll = roll;
+		dir.roll(roll);
 
 	entity->setDirection(dir);
 }

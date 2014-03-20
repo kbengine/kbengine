@@ -106,7 +106,7 @@ bool MoveToPointController::update()
 	
 	// 是否需要改变面向
 	if (faceMovement_ && (movement.x != 0.f || movement.z != 0.f))
-		direction.yaw = movement.yaw();
+		direction.yaw(movement.yaw());
 	
 	// 设置entity的新位置和面向
 	pEntity_->setPositionAndDirection(currpos, direction);

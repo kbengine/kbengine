@@ -38,7 +38,7 @@ public:
 	static PyNumberMethods numberMethods;
 		
 	ScriptVector3(Vector3 v);
-	ScriptVector3(Vector3* v);
+	ScriptVector3(Vector3* v, PYVector3ChangedCallback* pyVector3ChangedCallback);
 	ScriptVector3(float x, float y, float z);
 	virtual ~ScriptVector3();
 
@@ -138,12 +138,16 @@ public:
 	void setPYVector3ChangedCallback(PYVector3ChangedCallback* func){ 
 		_pyVector3ChangedCallback = func; 
 	};
+
+	void onPyPositionChanged();
+
+	void onLoseRef();
 private:
-	Vector3*			val_;
-	bool				isCopy_;
-	bool				isReadOnly_;
-	static const int 	VECTOR_SIZE;
-	PYVector3ChangedCallback* _pyVector3ChangedCallback;
+	Vector3*						val_;
+	bool							isRef_;
+	bool							isReadOnly_;
+	static const int 				VECTOR_SIZE;
+	PYVector3ChangedCallback*		_pyVector3ChangedCallback;
 } ;
 
 }

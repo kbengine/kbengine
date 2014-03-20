@@ -22,28 +22,41 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeTrigger::range(float xz, float y)
+INLINE void RangeTriggerNode::range(float xz, float y)
 {
-	range_xz_ = fabs(xz);
-	range_y_ = fabs(y);
+	range_xz_ = xz;
+	range_y_ = y;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTrigger::range_xz()const
+INLINE void RangeTriggerNode::old_range(float xz, float y)
+{
+	old_range_xz_ = xz;
+	old_range_y_ = y;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE float RangeTriggerNode::range_xz()const
 {
 	return range_xz_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTrigger::range_y()const
+INLINE float RangeTriggerNode::range_y()const
 {
 	return range_y_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeTrigger::origin()const
+INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger()const
 {
-	return origin_;
+	return pRangeTrigger_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void RangeTriggerNode::pRangeTrigger(RangeTrigger* pRangeTrigger)
+{
+	pRangeTrigger_ = pRangeTrigger;
 }
 
 //-------------------------------------------------------------------------------------

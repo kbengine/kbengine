@@ -490,6 +490,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\range_trigger_node.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

@@ -193,14 +193,20 @@ typedef Vector3													Position3D;												// 表示3D位置变量类型								
 
 struct Direction3D																										// 表示方向位置变量类型
 {
-	Direction3D():roll(0.0f), pitch(0.0f), yaw(0.0f) {};
-	Direction3D(const Vector3 & v):roll(v[0]), pitch(v[1]), yaw(v[2]) {}
-	Direction3D(float r, float p, float y):roll(r), pitch(p), yaw(y) {}
-	Vector3 asVector3() const { return Vector3(roll, pitch, yaw); }
+	Direction3D():dir(0.f, 0.f, 0.f) {};
+	Direction3D(const Vector3 & v):dir(v){}
+	Direction3D(float r, float p, float y):dir(r, p, y){}
 
-	float roll;		
-	float pitch;	
-	float yaw;		
+	float roll()const{ return dir.x; }		
+	float pitch()const{ return dir.y; }		
+	float yaw()const{ return dir.z; }		
+
+	void roll(float v){ dir.x = v; }		
+	void pitch(float v){ dir.y = v; }		
+	void yaw(float v){ dir.z = v; }	
+
+	// roll, pitch, yaw
+	Vector3 dir;
 };
 
 /** 浮点数比较 */
