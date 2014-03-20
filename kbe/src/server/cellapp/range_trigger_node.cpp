@@ -52,6 +52,56 @@ RangeTriggerNode::~RangeTriggerNode()
 }
 
 //-------------------------------------------------------------------------------------
+bool RangeTriggerNode::isInXRange(RangeNode * pNode)
+{
+	float originX = pRangeTrigger_->origin()->x();
+
+	volatile float lowerBound = originX - fabs(range_xz_);
+	volatile float upperBound = originX + fabs(range_xz_);
+	return (lowerBound < pNode->x()) && (pNode->x() < upperBound);
+}
+
+//-------------------------------------------------------------------------------------
+bool RangeTriggerNode::isInYRange(RangeNode * pNode)
+{
+	float originY = pRangeTrigger_->origin()->y();
+
+	volatile float lowerBound = originY - fabs(range_y_);
+	volatile float upperBound = originY + fabs(range_y_);
+	return (lowerBound < pNode->y()) && (pNode->y() < upperBound);
+}
+
+//-------------------------------------------------------------------------------------
+bool RangeTriggerNode::isInZRange(RangeNode * pNode)
+{
+	float originZ = pRangeTrigger_->origin()->z();
+
+	volatile float lowerBound = originZ - fabs(range_xz_);
+	volatile float upperBound = originZ + fabs(range_xz_);
+	return (lowerBound < pNode->z()) && (pNode->z() < upperBound);
+}
+
+//-------------------------------------------------------------------------------------
+bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
+{
+	float originX = old_x() - old_range_xz_;
+
+	volatile float lowerBound = originX - fabs(old_range_xz_);
+	volatile float upperBound = originX + fabs(old_range_xz_);
+	return (lowerBound < pNode->old_x()) && (pNode->old_x() < upperBound);
+}
+
+//-------------------------------------------------------------------------------------
+bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
+{
+	float originZ = old_z() - old_range_xz_;
+
+	volatile float lowerBound = originZ - fabs(old_range_xz_);
+	volatile float upperBound = originZ + fabs(old_range_xz_);
+	return (lowerBound < pNode->old_z()) && (pNode->old_z() < upperBound);
+}
+
+//-------------------------------------------------------------------------------------
 void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
 {
 	if((flags() & RANGENODE_FLAG_REMOVE) <= 0)
