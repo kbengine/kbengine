@@ -65,36 +65,37 @@ bool RangeTrigger::install()
 	positiveBoundary_->old_x(FLT_MAX);
 	positiveBoundary_->old_y(FLT_MAX);
 	positiveBoundary_->old_z(FLT_MAX);
+	positiveBoundary_->range(range_xz_, range_y_);
+	positiveBoundary_->old_range(range_xz_, range_y_);
+	positiveBoundary_->update();
 
 	negativeBoundary_->old_x(-FLT_MAX);
 	negativeBoundary_->old_y(-FLT_MAX);
 	negativeBoundary_->old_z(-FLT_MAX);
-
-	positiveBoundary_->range(range_xz_, range_y_);
-	positiveBoundary_->old_range(range_xz_, range_y_);
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
-
-	positiveBoundary_->update();
 	negativeBoundary_->update();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTrigger::uninstall(bool isDestroy)
+bool RangeTrigger::uninstall()
 {
 	if(positiveBoundary_ && positiveBoundary_->pRangeList())
-		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
-
-	if(negativeBoundary_ && negativeBoundary_->pRangeList())
-		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
-
-	if(isDestroy)
 	{
-		SAFE_RELEASE(positiveBoundary_);
-		SAFE_RELEASE(negativeBoundary_);
+		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
+		positiveBoundary_->pRangeTrigger(NULL);
+		positiveBoundary_->resetOld();
 	}
 
+	if(negativeBoundary_ && negativeBoundary_->pRangeList())
+	{
+		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
+		negativeBoundary_->pRangeTrigger(NULL);
+		negativeBoundary_->resetOld();
+	}
+	
+	// 此处不必release node， 节点的释放统一交给rangelist
 	return true;
 }
 

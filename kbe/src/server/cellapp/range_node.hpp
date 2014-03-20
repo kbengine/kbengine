@@ -31,6 +31,9 @@ namespace KBEngine{
 #define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
 #define RANGENODE_FLAG_REMOVE				0x00000008		// 删除节点
+#define RANGENODE_FLAG_PENDING				0x00000010		// 这类节点处于update操作中。
+
+#define RANGENODE_FLAG_HIDE_OR_REMOVE		(RANGENODE_FLAG_REMOVE | RANGENODE_FLAG_HIDE)
 
 class RangeList;
 class RangeNode
@@ -68,7 +71,10 @@ public:
 	}
 
 	void c_str();
-	void debug();
+
+	void debugX();
+	void debugY();
+	void debugZ();
 
 	INLINE void pRangeList(RangeList* p);
 	INLINE RangeList* pRangeList()const;
@@ -82,6 +88,13 @@ public:
 	INLINE RangeNode* pNextY()const;
 	INLINE RangeNode* pPrevZ()const;
 	INLINE RangeNode* pNextZ()const;
+
+	INLINE RangeNode* pPassPrevX(uint32 flags)const;
+	INLINE RangeNode* pPassNextX(uint32 flags)const;
+	INLINE RangeNode* pPassPrevY(uint32 flags)const;
+	INLINE RangeNode* pPassNextY(uint32 flags)const;
+	INLINE RangeNode* pPassPrevZ(uint32 flags)const;
+	INLINE RangeNode* pPassNextZ(uint32 flags)const;
 
 	/**
 		设置链表的前后端指针

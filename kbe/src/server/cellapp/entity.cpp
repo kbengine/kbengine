@@ -146,7 +146,10 @@ void Entity::installRangeNodes(RangeList* pRangeList)
 void Entity::uninstallRangeNodes(RangeList* pRangeList)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+	{
 		pRangeList->remove((KBEngine::RangeNode*)pEntityRangeNode());
+		pEntityRangeNode_ = new EntityRangeNode(this);
+	}
 }
 
 //-------------------------------------------------------------------------------------

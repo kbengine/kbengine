@@ -60,25 +60,44 @@ RangeNode::~RangeNode()
 //-------------------------------------------------------------------------------------
 void RangeNode::update()
 {
-	pRangeList_->update(this);
+	if(pRangeList_)
+		pRangeList_->update(this);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeNode::c_str()
 {
-	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% descr=%10%\n") % 
+	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
 		this % x() % y() % z() %
 		old_x_ % old_y_ % old_z_ %
-		pPrevX_ % pNextX_ % descr());
+		pPrevX_ % pNextX_ % pPrevZ_ % pNextZ_ % descr());
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debug()
+void RangeNode::debugX()
+{
+	c_str();
+
+	if(pNextX_)
+		this->pNextX_->debugX();
+}
+
+//-------------------------------------------------------------------------------------
+void RangeNode::debugY()
 {
 	c_str();
 
 	if(pNextY_)
-		this->pNextY_->debug();
+		this->pNextY_->debugY();
+}
+
+//-------------------------------------------------------------------------------------
+void RangeNode::debugZ()
+{
+	c_str();
+
+	if(pNextZ_)
+		this->pNextZ_->debugZ();
 }
 
 //-------------------------------------------------------------------------------------

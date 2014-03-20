@@ -124,7 +124,8 @@ SCRIPT_INIT(ScriptVector3, 0, &ScriptVector3::seqMethods, 0, 0, 0)
 ScriptVector3::ScriptVector3(Vector3* v):
 ScriptObject(getScriptType(), false),
 val_(v),
-isCopy_(true)
+isCopy_(true),
+_pyVector3ChangedCallback(NULL)
 {
 }
 
@@ -132,7 +133,8 @@ isCopy_(true)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(Vector3 v):
 ScriptObject(getScriptType(), false),
-isCopy_(false)
+isCopy_(false),
+_pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(v);
 }
@@ -140,7 +142,8 @@ isCopy_(false)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(float x, float y, float z):
 ScriptObject(getScriptType(), false),
-isCopy_(false)
+isCopy_(false),
+_pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(x, y, z);
 
@@ -151,6 +154,8 @@ ScriptVector3::~ScriptVector3()
 {
 	if(!isCopy_)
 		delete val_;
+
+	SAFE_RELEASE(_pyVector3ChangedCallback);
 }
 
 //-------------------------------------------------------------------------------------
@@ -835,8 +840,24 @@ PyObject* ScriptVector3::__py_pySet(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	sv->setVector(v);
+	sv->setVectorFromPy(v);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptVector3::setVector(const Vector3& v)
+{
+	*val_ = v; 
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptVector3::setVectorFromPy(const Vector3& v)
+{
+	setVector(v);
+	if(_pyVector3ChangedCallback != NULL)
+	{
+		(*_pyVector3ChangedCallback)();
+	}
 }
 
 //-------------------------------------------------------------------------------------

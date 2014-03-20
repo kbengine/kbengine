@@ -129,4 +129,10 @@ INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void RangeTriggerNode::pRangeTrigger(RangeTrigger* pRangeTrigger)
+{
+	pRangeTrigger_ = pRangeTrigger;
+}
+
+//-------------------------------------------------------------------------------------
 }
