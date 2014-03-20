@@ -34,7 +34,7 @@ public:
 	virtual ~RangeTrigger();
 
 	bool install();
-	bool uninstall(bool isDestroy = true);
+	bool uninstall();
 
 	INLINE void range(float xz, float y);
 	INLINE float range_xz()const;
