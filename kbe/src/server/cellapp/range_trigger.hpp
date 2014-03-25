@@ -21,12 +21,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBE_RANGE_TRIGGER_HPP__
 #define __KBE_RANGE_TRIGGER_HPP__
 
-#include "range_trigger_node.hpp"
+#include "range_node.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"	
 
 namespace KBEngine{
 
+class RangeTriggerNode;
 class RangeTrigger
 {
 public:

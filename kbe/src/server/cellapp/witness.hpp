@@ -81,6 +81,8 @@ class Witness : public PoolObject, public Updatable
 public:
 	Witness();
 	~Witness();
+	
+	virtual std::string c_str(){ return "Witness"; }
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
@@ -113,7 +115,8 @@ public:
 
 	void onEnterAOI(Entity* pEntity);
 	void onLeaveAOI(Entity* pEntity);
-	
+	void _onLeaveAOI(EntityRef* pEntityRef);
+
 	/**
 		写Volatile数据到流
 	*/

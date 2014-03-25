@@ -35,11 +35,12 @@ public:
 	virtual ~EntityRangeNode();
 
 	/**
+		(扩展坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
-	virtual float x()const;
-	virtual float y()const;
-	virtual float z()const;
+	virtual float xx()const;
+	virtual float yy()const;
+	virtual float zz()const;
 
 	virtual void update();
 

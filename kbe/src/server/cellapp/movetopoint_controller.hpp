@@ -30,6 +30,8 @@ namespace KBEngine{
 class MoveToPointController : public Controller, public Updatable
 {
 public:
+	virtual std::string c_str(){ return "MoveToPointController"; }
+
 	MoveToPointController(Entity* pEntity, const Position3D& destPos, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg, uint32 id = 0);
 	virtual ~MoveToPointController();

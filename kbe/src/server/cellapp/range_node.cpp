@@ -36,20 +36,17 @@ pNextY_(NULL),
 pPrevZ_(NULL),
 pNextZ_(NULL),
 pRangeList_(pRangeList),
-x_(0.f),
-y_(0.f),
-z_(0.f),
-old_x_(0.f),
-old_y_(0.f),
-old_z_(0.f),
+x_(-FLT_MAX),
+y_(-FLT_MAX),
+z_(-FLT_MAX),
+old_xx_(-FLT_MAX),
+old_yy_(-FLT_MAX),
+old_zz_(-FLT_MAX),
 #ifdef _DEBUG
 descr_(),
 #endif
 flags_(RANGENODE_FLAG_UNKNOWN)
 {
-	old_x_ = x();
-	old_y_ = y();
-	old_z_ = z();
 }
 
 //-------------------------------------------------------------------------------------
@@ -69,7 +66,7 @@ void RangeNode::c_str()
 {
 	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
 		this % x() % y() % z() %
-		old_x_ % old_y_ % old_z_ %
+		old_xx_ % old_yy_ % old_zz_ %
 		pPrevX_ % pNextX_ % pPrevZ_ % pNextZ_ % descr());
 }
 
@@ -79,7 +76,14 @@ void RangeNode::debugX()
 	c_str();
 
 	if(pNextX_)
+	{
 		this->pNextX_->debugX();
+
+		if(this->pNextX_->x() < x())
+		{
+			ERROR_MSG(boost::format("RangeNode::debugX():: %1% > %2%\n") % this % pNextX_);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -88,7 +92,14 @@ void RangeNode::debugY()
 	c_str();
 
 	if(pNextY_)
+	{
 		this->pNextY_->debugY();
+
+		if(this->pNextY_->y() < y())
+		{
+			ERROR_MSG(boost::format("RangeNode::debugY():: %1% > %2%\n") % this % pNextY_);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -97,7 +108,14 @@ void RangeNode::debugZ()
 	c_str();
 
 	if(pNextZ_)
+	{
 		this->pNextZ_->debugZ();
+
+		if(this->pNextZ_->z() < z())
+		{
+			ERROR_MSG(boost::format("RangeNode::debugZ():: %1% > %2%\n") % this % pNextZ_);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

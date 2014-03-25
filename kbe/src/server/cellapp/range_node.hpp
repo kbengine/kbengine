@@ -30,10 +30,11 @@ namespace KBEngine{
 #define RANGENODE_FLAG_ENTITY				0x00000001		// 一个Entity节点
 #define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
-#define RANGENODE_FLAG_REMOVE				0x00000008		// 删除节点
-#define RANGENODE_FLAG_PENDING				0x00000010		// 这类节点处于update操作中。
+#define RANGENODE_FLAG_REMOVEING			0x00000008		// 删除节点
+#define RANGENODE_FLAG_REMOVED				0x00000010		// 删除节点
+#define RANGENODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
 
-#define RANGENODE_FLAG_HIDE_OR_REMOVE		(RANGENODE_FLAG_REMOVE | RANGENODE_FLAG_HIDE)
+#define RANGENODE_FLAG_HIDE_OR_REMOVED		(RANGENODE_FLAG_REMOVED | RANGENODE_FLAG_HIDE)
 
 class RangeList;
 class RangeNode
@@ -46,6 +47,7 @@ public:
 	INLINE uint32 flags()const;
 
 	/**
+		(节点本身的坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
 	virtual float x()const { return x_; }
@@ -56,18 +58,26 @@ public:
 	virtual void y(float v){ y_ = v; }
 	virtual void z(float v){ z_ = v; }
 
-	void old_x(float v) { old_x_ = v; }
-	void old_y(float v) { old_y_ = v; }
-	void old_z(float v) { old_z_ = v; }
+	/**
+		(扩展坐标)
+		x && z由不同的应用实现(从不同处获取)
+	*/
+	virtual float xx()const { return 0.f; }
+	virtual float yy()const { return 0.f; }
+	virtual float zz()const { return 0.f; }
 
-	float old_x()const { return old_x_; }
-	float old_y()const { return old_y_; }
-	float old_z()const { return old_z_; }
+	void old_xx(float v) { old_xx_ = v; }
+	void old_yy(float v) { old_yy_ = v; }
+	void old_zz(float v) { old_zz_ = v; }
+
+	float old_xx()const { return old_xx_; }
+	float old_yy()const { return old_yy_; }
+	float old_zz()const { return old_zz_; }
 
 	virtual void resetOld(){ 
-		old_x_ = x();
-		old_y_ = y();
-		old_z_ = z();
+		old_xx_ = xx();
+		old_yy_ = yy();
+		old_zz_ = zz();
 	}
 
 	void c_str();
@@ -88,13 +98,6 @@ public:
 	INLINE RangeNode* pNextY()const;
 	INLINE RangeNode* pPrevZ()const;
 	INLINE RangeNode* pNextZ()const;
-
-	INLINE RangeNode* pPassPrevX(uint32 flags)const;
-	INLINE RangeNode* pPassNextX(uint32 flags)const;
-	INLINE RangeNode* pPassPrevY(uint32 flags)const;
-	INLINE RangeNode* pPassNextY(uint32 flags)const;
-	INLINE RangeNode* pPassPrevZ(uint32 flags)const;
-	INLINE RangeNode* pPassNextZ(uint32 flags)const;
 
 	/**
 		设置链表的前后端指针
@@ -147,7 +150,7 @@ protected:
 	RangeList* pRangeList_;
 
 	float x_, y_, z_;
-	float old_x_, old_y_, old_z_;
+	float old_xx_, old_yy_, old_zz_;
 
 #ifdef _DEBUG
 	std::string descr_;

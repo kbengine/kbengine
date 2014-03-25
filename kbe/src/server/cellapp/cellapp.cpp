@@ -358,8 +358,16 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		
 		// 添加到space
 		space->addEntityAndEnterWorld(pEntity);
+
+		// 有可能在addEntityAndEnterWorld中被销毁了
+		// 是否能在创建过程中被销毁还需要考虑
+		if(pEntity->isDestroyed())
+		{
+			Py_DECREF(pEntity);
+			return NULL;
+		}
 	}
-	
+
 	//Py_XDECREF(params);
 	return pEntity;
 }
@@ -936,8 +944,15 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
 		pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-
+		
+		// 这里增加一个引用， 因为可能在进入时被销毁
+		Py_INCREF(e);
 		space->addEntityToNode(e);
+		bool isDestroyed = e->isDestroyed();
+		Py_DECREF(e);
+
+		if(isDestroyed == true)
+			return;
 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)

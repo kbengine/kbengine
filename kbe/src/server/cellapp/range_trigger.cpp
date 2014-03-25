@@ -20,15 +20,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "range_trigger.hpp"
 #include "range_list.hpp"
-#include "range_node.hpp"
 #include "entity_range_node.hpp"
+#include "range_trigger_node.hpp"
 
 #ifndef CODE_INLINE
 #include "range_trigger.ipp"
 #endif
 
 namespace KBEngine{	
-
 
 //-------------------------------------------------------------------------------------
 RangeTrigger::RangeTrigger(RangeNode* origin, float xz, float y):
@@ -50,28 +49,29 @@ RangeTrigger::~RangeTrigger()
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this,0.0f, 0.0f);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
 	else
 		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0.0f, 0.0f);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
 
 	origin_->pRangeList()->insert(positiveBoundary_);
 	origin_->pRangeList()->insert(negativeBoundary_);
 	
-	positiveBoundary_->old_x(FLT_MAX);
-	positiveBoundary_->old_y(FLT_MAX);
-	positiveBoundary_->old_z(FLT_MAX);
+	positiveBoundary_->old_xx(FLT_MAX);
+	positiveBoundary_->old_yy(FLT_MAX);
+	positiveBoundary_->old_zz(FLT_MAX);
+
 	positiveBoundary_->range(range_xz_, range_y_);
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
 
-	negativeBoundary_->old_x(-FLT_MAX);
-	negativeBoundary_->old_y(-FLT_MAX);
-	negativeBoundary_->old_z(-FLT_MAX);
+	negativeBoundary_->old_xx(-FLT_MAX);
+	negativeBoundary_->old_yy(-FLT_MAX);
+	negativeBoundary_->old_zz(-FLT_MAX);
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
 	negativeBoundary_->update();
@@ -83,16 +83,14 @@ bool RangeTrigger::uninstall()
 {
 	if(positiveBoundary_ && positiveBoundary_->pRangeList())
 	{
-		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
 		positiveBoundary_->pRangeTrigger(NULL);
-		positiveBoundary_->resetOld();
+		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
 	}
 
 	if(negativeBoundary_ && negativeBoundary_->pRangeList())
 	{
-		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
 		negativeBoundary_->pRangeTrigger(NULL);
-		negativeBoundary_->resetOld();
+		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
 	}
 	
 	// 此处不必release node， 节点的释放统一交给rangelist
@@ -150,11 +148,11 @@ bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
 	if(!RangeList::hasY)
 		return true;
 
-	float originY = old_y() - old_range_y_;
+	float originY = old_yy() - old_range_y_;
 
 	volatile float lowerBound = originY - fabs(old_range_y_);
 	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_y()) && (pNode->old_y() < upperBound);
+	return (lowerBound < pNode->old_yy()) && (pNode->old_yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------

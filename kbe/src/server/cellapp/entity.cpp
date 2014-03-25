@@ -170,7 +170,8 @@ void Entity::uninstallRangeNodes(RangeList* pRangeList)
 void Entity::onDestroy(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
+	
+	SAFE_RELEASE(pControllers_);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
 	if(baseMailbox_ != NULL)
@@ -991,6 +992,8 @@ void Entity::onPyPositionChanged()
 void Entity::onPositionChanged()
 {
 	posChangedTime_ = g_kbetime;
+	if(this->pEntityRangeNode())
+		this->pEntityRangeNode()->update();
 }
 
 //-------------------------------------------------------------------------------------
