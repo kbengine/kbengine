@@ -45,6 +45,7 @@ public:
 	virtual void update();
 
 	Entity* pEntity()const { return pEntity_; }
+	void pEntity(Entity* pEntity) { pEntity_ = pEntity; }
 
 	bool addWatcherNode(RangeNode* pNode);
 	bool delWatcherNode(RangeNode* pNode);

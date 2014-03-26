@@ -94,6 +94,8 @@ bool RangeTrigger::uninstall()
 	}
 	
 	// 此处不必release node， 节点的释放统一交给rangelist
+	positiveBoundary_ = NULL;
+	negativeBoundary_ = NULL;
 	return true;
 }
 

@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "range_node.hpp"
 #include "range_list.hpp"
+#include "profile.hpp"
 
 #ifndef CODE_INLINE
 #include "range_list.ipp"
@@ -413,6 +414,8 @@ void RangeList::moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode)
 //-------------------------------------------------------------------------------------
 void RangeList::update(RangeNode* pNode)
 {
+	AUTO_SCOPED_PROFILE("rangeListUpdates");
+
 	// DEBUG_MSG(boost::format("RangeList::update:[%1%]:  (%2%  %3%  %4%)\n") % pNode % pNode->xx() % pNode->yy() % pNode->zz());
 	pNode->flags(pNode->flags() | RANGENODE_FLAG_PENDING);
 	++updating_;

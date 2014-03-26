@@ -60,7 +60,7 @@ void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::xx()const 
 {
-	if(pRangeTrigger_ == NULL)
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->xx() + range_xz_; 
@@ -69,7 +69,7 @@ float RangeTriggerNode::xx()const
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::yy()const 
 {
-	if(pRangeTrigger_ == NULL)
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->yy() + range_y_; 
@@ -78,7 +78,7 @@ float RangeTriggerNode::yy()const
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::zz()const 
 {
-	if(pRangeTrigger_ == NULL)
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->zz() + range_xz_; 
@@ -87,21 +87,21 @@ float RangeTriggerNode::zz()const
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 
