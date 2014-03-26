@@ -170,6 +170,7 @@ void Entity::uninstallRangeNodes(RangeList* pRangeList)
 void Entity::onDestroy(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	stopMove();
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
@@ -226,7 +227,15 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDestroySpace()																		
-{		
+{
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(getSpaceID() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "Entity::destroySpace: spaceID is 0.\n");
@@ -715,12 +724,25 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	return PyLong_FromLong(addProximity(range_xz, range_y, userarg));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::cancelController(uint32 id)
 {
+	if(this->isDestroyed())
+	{
+		return;
+	}
+
 	if(!pControllers_->remove(id))
 	{
 		ERROR_MSG(boost::format("%1%::cancel: %2% not found %3%.\n") % 
@@ -812,6 +834,14 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, ui
 //-------------------------------------------------------------------------------------
 int Entity::pySetPosition(PyObject *value)
 {
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return -1;																				
+	}
+
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
@@ -882,6 +912,14 @@ void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y,
 //-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
 {
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return -1;																				
+	}
+
 	if(PySequence_Check(value) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "args of direction is must a sequence.");
@@ -962,6 +1000,9 @@ PyObject* Entity::pyGetDirection()
 //-------------------------------------------------------------------------------------
 void Entity::setPositionAndDirection(const Position3D& position, const Direction3D& direction)
 {
+	if(this->isDestroyed())
+		return;
+
 	setPosition(position);
 	setDirection(direction);
 }
@@ -969,6 +1010,9 @@ void Entity::setPositionAndDirection(const Position3D& position, const Direction
 //-------------------------------------------------------------------------------------
 void Entity::onPyPositionChanged()
 {
+	if(this->isDestroyed())
+		return;
+
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
 	{
@@ -990,12 +1034,20 @@ void Entity::onPyPositionChanged()
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
+	if(this->isDestroyed())
+		return;
+
 	posChangedTime_ = g_kbetime;
+	if(this->pEntityRangeNode())
+		this->pEntityRangeNode()->update();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPyDirectionChanged()
 {
+	if(this->isDestroyed())
+		return;
+
 	// onDirectionChanged();
 	static ENTITY_PROPERTY_UID diruid = 0;
 	if(diruid == 0)
@@ -1013,6 +1065,9 @@ void Entity::onPyDirectionChanged()
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
+	if(this->isDestroyed())
+		return;
+
 	dirChangedTime_ = g_kbetime;
 }
 
@@ -1314,7 +1369,6 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 	KBE_ASSERT(ret);
 	
 	pMoveController_ = p;
-
 	return p->id();
 }
 
@@ -1322,6 +1376,13 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
 								 int8 faceMovement, float girth, PyObject_ptr userData)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	Position3D destination;
 
@@ -1362,7 +1423,6 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 	KBE_ASSERT(ret);
 	
 	pMoveController_ = p;
-
 	return p->id();
 }
 
@@ -1370,6 +1430,14 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	Position3D destination;
 
 	if(!PySequence_Check(pyDestination))
@@ -1415,6 +1483,14 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	Py_INCREF(userData);
 	return PyLong_FromLong(moveToEntity(targetID, velocity, range, userData, faceMovement > 0, moveVertically > 0));
 }
@@ -1422,6 +1498,9 @@ PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range
 //-------------------------------------------------------------------------------------
 void Entity::onMove(uint32 controllerId, PyObject* userarg)
 {
+	if(this->isDestroyed())
+		return;
+
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
 		const_cast<char*>("IO"), controllerId, userarg);
@@ -1430,6 +1509,9 @@ void Entity::onMove(uint32 controllerId, PyObject* userarg)
 //-------------------------------------------------------------------------------------
 void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
 {
+	if(this->isDestroyed())
+		return;
+
 	pMoveController_ = NULL;
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
 		const_cast<char*>("IO"), controllerId, userarg);
@@ -1438,6 +1520,9 @@ void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
 //-------------------------------------------------------------------------------------
 void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 {
+	if(this->isDestroyed())
+		return;
+
 	pMoveController_ = NULL;
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
@@ -1482,6 +1567,14 @@ void Entity::debugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDebugAOI()
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	debugAOI();
 	S_Return;
 }
@@ -1489,6 +1582,14 @@ PyObject* Entity::pyDebugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyEntitiesInAOI()
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	PyObject* pyList = PyList_New(pWitness_->aoiEntities().size());
 
 	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
@@ -1514,6 +1615,13 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	Entity* pobj = static_cast<Entity*>(self);
 	PyObject* pyPosition = NULL, *pyEntityType = NULL;
 	float radius = 0.f;
+
+	if(pobj->isDestroyed())
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: entity is destroyed!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	if(currargsSize == 1)
 	{
@@ -1708,6 +1816,14 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", getScriptName(), getID());

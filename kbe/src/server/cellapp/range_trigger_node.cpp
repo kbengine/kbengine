@@ -47,112 +47,61 @@ pRangeTrigger_(pRangeTrigger)
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
-	if(pRangeTrigger_)
-		static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::isInXRange(RangeNode * pNode)
-{
-	float originX = pRangeTrigger_->origin()->x();
-
-	volatile float lowerBound = originX - fabs(range_xz_);
-	volatile float upperBound = originX + fabs(range_xz_);
-	return (lowerBound < pNode->x()) && (pNode->x() < upperBound);
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::isInYRange(RangeNode * pNode)
-{
-	float originY = pRangeTrigger_->origin()->y();
-
-	volatile float lowerBound = originY - fabs(range_y_);
-	volatile float upperBound = originY + fabs(range_y_);
-	return (lowerBound < pNode->y()) && (pNode->y() < upperBound);
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::isInZRange(RangeNode * pNode)
-{
-	float originZ = pRangeTrigger_->origin()->z();
-
-	volatile float lowerBound = originZ - fabs(range_xz_);
-	volatile float upperBound = originZ + fabs(range_xz_);
-	return (lowerBound < pNode->z()) && (pNode->z() < upperBound);
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
-{
-	float originX = old_x() - old_range_xz_;
-
-	volatile float lowerBound = originX - fabs(old_range_xz_);
-	volatile float upperBound = originX + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_x()) && (pNode->old_x() < upperBound);
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
-{
-	float originZ = old_z() - old_range_xz_;
-
-	volatile float lowerBound = originZ - fabs(old_range_xz_);
-	volatile float upperBound = originZ + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_z()) && (pNode->old_z() < upperBound);
+	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
 {
-	if((flags() & RANGENODE_FLAG_REMOVE) <= 0)
+	if((flags() & RANGENODE_FLAG_REMOVEING) <= 0)
 		pParentNode->pRangeList()->remove(this);
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::x()const 
+float RangeTriggerNode::xx()const 
 {
-	if(pRangeTrigger_== NULL)
-		return old_x_ + range_xz_; 
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+		return -FLT_MAX;
 
-	return pRangeTrigger_->origin()->x() + range_xz_; 
+	return pRangeTrigger_->origin()->xx() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::y()const 
+float RangeTriggerNode::yy()const 
 {
-	if(pRangeTrigger_== NULL)
-		return old_y_ + range_y_; 
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+		return -FLT_MAX;
 
-	return pRangeTrigger_->origin()->y() + range_y_; 
+	return pRangeTrigger_->origin()->yy() + range_y_; 
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::z()const 
+float RangeTriggerNode::zz()const 
 {
-	if(pRangeTrigger_== NULL)
-		return old_z_ + range_xz_; 
+	if((flags() & RANGENODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+		return -FLT_MAX;
 
-	return pRangeTrigger_->origin()->z() + range_xz_; 
+	return pRangeTrigger_->origin()->zz() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
 {
-	if(pRangeTrigger_)
+	if((flags() & RANGENODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 

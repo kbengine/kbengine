@@ -163,7 +163,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 void Witness::onEnterAOI(Entity* pEntity)
 {
 	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_handler(pEntity));
+		findif_vector_entityref_exist_by_entity_handler(pEntity));
 
 	if(iter != aoiEntities_.end())
 	{
@@ -194,21 +194,30 @@ void Witness::onEnterAOI(Entity* pEntity)
 void Witness::onLeaveAOI(Entity* pEntity)
 {
 	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_handler(pEntity));
+		findif_vector_entityref_exist_by_entityid_handler(pEntity->getID()));
 
 	if(iter == aoiEntities_.end())
 		return;
 
+	_onLeaveAOI((*iter));
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::_onLeaveAOI(EntityRef* pEntityRef)
+{
 	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % 
-		pEntity_->getID() % pEntity->getID());
+		pEntity_->getID() % pEntityRef->id());
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);
 	//aoiEntities_.erase(iter);
 
-	(*iter)->flags((((*iter)->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~ENTITYREF_FLAG_ENTER_CLIENT_PENDING));
-	(*iter)->pEntity(NULL);
-	pEntity->delWitnessed(pEntity_);
+	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~ENTITYREF_FLAG_ENTER_CLIENT_PENDING));
+
+	if(pEntityRef->pEntity())
+		pEntityRef->pEntity()->delWitnessed(pEntity_);
+
+	pEntityRef->pEntity(NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -324,18 +333,19 @@ bool Witness::update()
 				if(remainPacketSize <= 0)
 					break;
 				
-				// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
-				Entity* otherEntity = Cellapp::getSingleton().findEntity((*iter)->id());
-				
-				if(otherEntity == NULL)
-				{
-					delete (*iter);
-					iter = aoiEntities_.erase(iter);
-					continue;
-				}
-
 				if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 				{
+					// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
+					Entity* otherEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+					if(otherEntity == NULL)
+					{
+						(*iter)->pEntity(NULL);
+						_onLeaveAOI((*iter));
+						delete (*iter);
+						iter = aoiEntities_.erase(iter);
+						continue;
+					}
+					
 					(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
 					Mercury::Bundle* pForwardBundle1 = Mercury::Bundle::ObjPool().createObject();
@@ -383,6 +393,7 @@ bool Witness::update()
 				}
 				else
 				{
+					Entity* otherEntity = (*iter)->pEntity();
 					if(otherEntity == NULL)
 					{
 						delete (*iter);

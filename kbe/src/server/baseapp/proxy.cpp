@@ -228,6 +228,14 @@ PyObject* Proxy::pyGetClientType()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	// 如果为None 则设置为NULL
 	Proxy* oterProxy = NULL;
 	if(pyOterProxy != Py_None)

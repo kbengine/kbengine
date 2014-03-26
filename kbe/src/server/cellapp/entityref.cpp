@@ -45,9 +45,15 @@ void EntityRef::pEntity(Entity* e)
 }
 
 //-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_handler::operator()(const EntityRef* obj)
+bool findif_vector_entityref_exist_by_entity_handler::operator()(const EntityRef* obj)
 {
 	return obj->id() == obj_->getID();
+}
+
+//-------------------------------------------------------------------------------------
+bool findif_vector_entityref_exist_by_entityid_handler::operator()(const EntityRef* obj)
+{
+	return obj->id() == entityID_;
 }
 
 //-------------------------------------------------------------------------------------

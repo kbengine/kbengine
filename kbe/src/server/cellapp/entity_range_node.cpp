@@ -44,23 +44,29 @@ EntityRangeNode::~EntityRangeNode()
 }
 
 //-------------------------------------------------------------------------------------
-float EntityRangeNode::x()const
+float EntityRangeNode::xx()const
 {
-	if((flags() & RANGENODE_FLAG_REMOVE) > 0)
+	if(pEntity_ == NULL || (flags() & (RANGENODE_FLAG_REMOVED | RANGENODE_FLAG_REMOVEING)) > 0)
 		return -FLT_MAX;
 
 	return pEntity_->getPosition().x;
 }
 
 //-------------------------------------------------------------------------------------
-float EntityRangeNode::y()const
+float EntityRangeNode::yy()const
 {
+	if(pEntity_ == NULL)
+		return -FLT_MAX;
+
 	return pEntity_->getPosition().y;
 }
 
 //-------------------------------------------------------------------------------------
-float EntityRangeNode::z()const
+float EntityRangeNode::zz()const
 {
+	if(pEntity_ == NULL)
+		return -FLT_MAX;
+
 	return pEntity_->getPosition().z;
 }
 

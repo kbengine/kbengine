@@ -45,12 +45,20 @@ public:
 	bool remove(RangeNode* pNode);
 	bool removeReal(RangeNode* pNode);
 	void removeDelNodes();
-
+	
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
 	*/
 	void update(RangeNode* pNode);
+	void update(RangeNode* pNode, RangeNode& tmpNode, bool isMove);
+
+	/**
+		移动节点
+	*/
+	void moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode);
+	void moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode);
+	void moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode);
 
 	INLINE RangeNode * pFirstXNode()const;
 	INLINE RangeNode * pFirstYNode()const;
@@ -70,8 +78,7 @@ private:
 	RangeNode* first_z_rangeNode_;
 
 	std::list<RangeNode*> dels_;
-
-	int updating;
+	int updating_;
 };
 
 }

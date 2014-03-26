@@ -30,60 +30,6 @@ INLINE RangeNode* RangeNode::pPrevZ()const { return pPrevZ_; }
 INLINE RangeNode* RangeNode::pNextZ()const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassPrevX(uint32 flags)const 
-{ 
-	if(pPrevX_ && (pPrevX_->flags() & flags) > 0)
-		return pPrevX_->pPassPrevX(flags);
-
-	return pPrevX_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassNextX(uint32 flags)const 
-{ 
-	if(pNextX_ && (pNextX_->flags() & flags) > 0)
-		return pNextX_->pPassNextX(flags);
-
-	return pNextX_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassPrevY(uint32 flags)const 
-{
-	if(pPrevY_ && (pPrevY_->flags() & flags) > 0)
-		return pPrevY_->pPassPrevY(flags);
-
-	return pPrevY_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassNextY(uint32 flags)const 
-{ 
-	if(pNextY_ && (pNextY_->flags() & flags) > 0)
-		return pNextY_->pPassNextY(flags);
-
-	return pNextY_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassPrevZ(uint32 flags)const 
-{ 
-	if(pPrevZ_ && (pPrevZ_->flags() & flags) > 0)
-		return pPrevZ_->pPassPrevZ(flags);
-
-	return pPrevZ_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPassNextZ(uint32 flags)const 
-{ 
-	if(pNextZ_ && (pNextZ_->flags() & flags) > 0)
-		return pNextZ_->pPassNextZ(flags);
-
-	return pNextZ_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE void RangeNode::pPrevX(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevX_ != pNode); pPrevX_ = pNode; }
 INLINE void RangeNode::pNextX(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextX_ != pNode); pNextX_ = pNode; }
 INLINE void RangeNode::pPrevY(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevY_ != pNode); pPrevY_ = pNode; }
