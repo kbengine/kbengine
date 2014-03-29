@@ -512,11 +512,34 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 		PyErr_PrintEx(0);
 		return 0;
 	}
+	
+	if(key == NULL || value == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key or value is error, not is string!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(strlen(key) == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: (spaceID=%u) not found!", 
+			spaceID);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	if(kbe_stricmp(key, "_mapping") != 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -543,6 +566,20 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 	if(PyArg_ParseTuple(args, "Is", &spaceID, &key) == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(key == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key not is string!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(strlen(key) == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -589,6 +626,20 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 		return 0;
 	}
 
+	if(key == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key not is string!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(strlen(key) == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
@@ -608,9 +659,16 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 		return 0;
 	}
 	
-	if(key != "_mapping")
-		space->delSpaceData(key);
+	if(kbe_stricmp(key, "_mapping") != 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
+			spaceID);
 
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	space->delSpaceData(key);
 	S_Return;
 }
 
