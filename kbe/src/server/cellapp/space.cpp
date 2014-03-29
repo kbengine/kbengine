@@ -537,7 +537,7 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 		return 0;
 	}
 	
-	if(kbe_stricmp(key, "_mapping") != 0)
+	if(kbe_stricmp(key, "_mapping") == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
 			spaceID);
@@ -659,7 +659,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 		return 0;
 	}
 	
-	if(kbe_stricmp(key, "_mapping") != 0)
+	if(kbe_stricmp(key, "_mapping") == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
 			spaceID);
