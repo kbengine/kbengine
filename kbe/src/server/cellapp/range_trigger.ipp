@@ -47,4 +47,10 @@ INLINE RangeNode* RangeTrigger::origin()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void RangeTrigger::origin(RangeNode* pRangeNode)
+{
+	origin_ = pRangeNode;
+}
+
+//-------------------------------------------------------------------------------------
 }

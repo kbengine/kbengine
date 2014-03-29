@@ -106,6 +106,8 @@ public:
 	static PyObject* __py_SetSpaceData(PyObject* self, PyObject* args);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
 	static PyObject* __py_DelSpaceData(PyObject* self, PyObject* args);
+
+	RangeList* pRangeList(){ return &rangeList_; }
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
 protected:

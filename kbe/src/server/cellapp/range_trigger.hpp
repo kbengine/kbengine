@@ -42,6 +42,7 @@ public:
 	INLINE float range_y()const;
 
 	INLINE RangeNode* origin()const;
+	INLINE void origin(RangeNode* pRangeNode);
 
 	/**
 		某个节点进入或者离开了rangeTrigger
