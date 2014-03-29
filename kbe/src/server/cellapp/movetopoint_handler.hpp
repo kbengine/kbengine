@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_MOVETOPOINTCONTROLLER_HPP__
-#define __KBE_MOVETOPOINTCONTROLLER_HPP__
+#ifndef __KBE_MOVETOPOINTHANDLER_HPP__
+#define __KBE_MOVETOPOINTHANDLER_HPP__
 
 #include "controller.hpp"
 #include "updatable.hpp"
@@ -27,23 +27,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class MoveToPointController : public Controller, public Updatable
+class MoveToPointHandler : public Updatable
 {
 public:
-	virtual std::string c_str(){ return "MoveToPointController"; }
+	virtual std::string c_str(){ return "MoveToPointHandler"; }
 
-	MoveToPointController(Entity* pEntity, const Position3D& destPos, float velocity, float range, bool faceMovement, 
-		bool moveVertically, PyObject* userarg, uint32 id = 0);
-	virtual ~MoveToPointController();
+	MoveToPointHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
+		bool moveVertically, PyObject* userarg);
+	virtual ~MoveToPointHandler();
 	
 	virtual bool update();
 
 	virtual const Position3D& destPos(){ return destPos_; }
 	virtual bool requestMoveOver();
 
-	void destroyed(){ destroyed_ = true; }
-
 	virtual bool isOnGround(){ return false; }
+		
+	void pController(Controller* pController){ pController_ = pController; }
 protected:
 	Position3D destPos_;
 	float velocity_;			// 速度
@@ -51,9 +51,9 @@ protected:
 	bool moveVertically_;		// true则可以飞起来移动否则贴地
 	PyObject* pyuserarg_;
 	float range_;
-	bool destroyed_;
+	Controller* pController_;
 };
  
 }
-#endif // __KBE_MOVETOPOINTCONTROLLER_HPP__
+#endif // __KBE_MOVETOPOINTHANDLER_HPP__
 

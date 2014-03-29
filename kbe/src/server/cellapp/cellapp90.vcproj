@@ -257,15 +257,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_controller.cpp"
+				RelativePath=".\movetoentity_handler.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_controller.cpp"
+				RelativePath=".\movetopoint_handler.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\navigate_controller.cpp"
+				RelativePath=".\navigate_handler.cpp"
 				>
 			</File>
 			<File
@@ -405,15 +405,23 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_controller.hpp"
+				RelativePath=".\move_controller.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_controller.hpp"
+				RelativePath=".\move_controller.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\navigate_controller.hpp"
+				RelativePath=".\movetoentity_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\movetopoint_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\navigate_handler.hpp"
 				>
 			</File>
 			<File

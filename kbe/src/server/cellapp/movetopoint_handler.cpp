@@ -20,60 +20,65 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "entity.hpp"
-#include "movetopoint_controller.hpp"	
+#include "movetopoint_handler.hpp"	
+#include "move_controller.hpp"	
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointController::MoveToPointController(Entity* pEntity, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(Controller* pController, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
-											bool moveVertically, PyObject* userarg, uint32 id):
-Controller(CONTROLLER_TYPE_MOVE, pEntity, 0, id),
+											bool moveVertically, PyObject* userarg):
+pController_(pController),
 destPos_(destPos),
 velocity_(velocity),
 faceMovement_(faceMovement),
 moveVertically_(moveVertically),
 pyuserarg_(userarg),
-range_(range),
-destroyed_(false)
+range_(range)
 {
+	static_cast<MoveController*>(pController)->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
 //-------------------------------------------------------------------------------------
-MoveToPointController::~MoveToPointController()
+MoveToPointHandler::~MoveToPointHandler()
 {
 	if(pyuserarg_ != NULL)
 	{
 		Py_DECREF(pyuserarg_);
 	}
+
+	// DEBUG_MSG(boost::format("MoveToPointHandler::~MoveToPointHandler(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
-bool MoveToPointController::requestMoveOver()
+bool MoveToPointHandler::requestMoveOver()
 {
-	if(!destroyed_)
+	if(pController_)
 	{
-		pEntity_->onMoveOver(id(), pyuserarg_);
-		destroy();
+		if(pController_->pEntity())
+			pController_->pEntity()->onMoveOver(pController_->id(), pyuserarg_);
+		pController_->destroy();
 	}
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool MoveToPointController::update()
+bool MoveToPointHandler::update()
 {
-	if(destroyed_)
+	if(pController_ == NULL)
 	{
-		destroy();
+		delete this;
 		return false;
 	}
-
+	
+	Entity* pEntity = pController_->pEntity();
 	const Position3D& dstPos = destPos();
-	Position3D currpos = pEntity_->getPosition();
-	Direction3D direction = pEntity_->getDirection();
+	Position3D currpos = pEntity->getPosition();
+	Direction3D direction = pEntity->getDirection();
 
 	Vector3 movement = dstPos - currpos;
 	if (!moveVertically_) movement.y = 0.f;
@@ -113,16 +118,16 @@ bool MoveToPointController::update()
 		direction.yaw(movement.yaw());
 	
 	// 设置entity的新位置和面向
-	if(!destroyed_)
-		pEntity_->setPositionAndDirection(currpos, direction);
+	if(pController_)
+		pEntity->setPositionAndDirection(currpos, direction);
 
 	// 非navigate都不能确定其在地面上
-	if(!destroyed_)
-		pEntity_->isOnGround(isOnGround());
+	if(pController_)
+		pEntity->isOnGround(isOnGround());
 
 	// 通知脚本
-	if(!destroyed_)
-		pEntity_->onMove(id(), pyuserarg_);
+	if(pController_)
+		pEntity->onMove(pController_->id(), pyuserarg_);
 
 	// 如果达到目的地则返回true
 	if(!ret)

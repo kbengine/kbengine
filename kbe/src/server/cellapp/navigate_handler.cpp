@@ -20,18 +20,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "entity.hpp"
-#include "navigate_controller.hpp"	
+#include "navigate_handler.hpp"	
 #include "navigation/navmeshex.hpp"
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-NavigateController::NavigateController(Entity* pEntity, const Position3D& destPos, 
+NavigateHandler::NavigateHandler(Controller* pController, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
 											 float maxMoveDistance, float maxDistance, float girth,
-											PyObject* userarg, uint32 id):
-MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, true, userarg, id),
+											PyObject* userarg):
+MoveToPointHandler(pController, pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
 pNavMeshHandle_(NULL),
@@ -39,15 +39,16 @@ maxMoveDistance_(maxMoveDistance),
 maxDistance_(maxDistance),
 girth_(girth)
 {
+	Entity* pEntity = pController->pEntity();
 	if(pNavMeshHandle_ == NULL)
 	{
-		Space* pSpace = Spaces::findSpace(pEntity_->getSpaceID());
+		Space* pSpace = Spaces::findSpace(pEntity->getSpaceID());
 		if(pSpace == NULL)
 		{
-			ERROR_MSG(boost::format("NavigateController::NavigateController(): not found space(%1%), entityID(%2%)!\n") % 
-				pEntity_->getSpaceID() % pEntity_->getID());
+			ERROR_MSG(boost::format("NavigateHandler::NavigateHandler(): not found space(%1%), entityID(%2%)!\n") % 
+				pEntity->getSpaceID() % pEntity->getID());
 
-			destroyed_ = true;
+			pController_ = NULL;
 		}
 		else
 		{
@@ -55,35 +56,35 @@ girth_(girth)
 
 			if(pNavMeshHandle_)
 			{
-				Position3D currpos = pEntity_->getPosition();
+				Position3D currpos = pEntity->getPosition();
 				pNavMeshHandle_->findStraightPath(currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
-					destroyed_ = true;
+					pController_ = NULL;
 				else
 					destPos_ = paths_[destPosIdx_++];
 			}
 			else
 			{
-				destroyed_ = true;
+				pController_ = NULL;
 
-				WARNING_MSG(boost::format("NavigateController::NavigateController(): space(%1%), entityID(%2%), not found navmesh!\n") % 
-					pEntity_->getSpaceID() % pEntity_->getID());
+				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navmesh!\n") % 
+					pEntity->getSpaceID() % pEntity->getID());
 			}
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-NavigateController::~NavigateController()
+NavigateHandler::~NavigateHandler()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool NavigateController::requestMoveOver()
+bool NavigateHandler::requestMoveOver()
 {
 	if(destPosIdx_ == ((int)paths_.size()))
-		return MoveToPointController::requestMoveOver();
+		return MoveToPointHandler::requestMoveOver();
 	else
 		destPos_ = paths_[destPosIdx_++];
 

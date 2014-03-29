@@ -19,9 +19,10 @@ SRCS =						\
 	main					\
 	space					\
 	spaces					\
-	movetoentity_controller			\
-	movetopoint_controller			\
-	navigate_controller			\
+	move_controller				\
+	movetoentity_handler			\
+	movetopoint_handler			\
+	navigate_handler			\
 	profile					\
 	proximity_controller			\
 	range_node				\

@@ -18,34 +18,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_NAVIGATECONTROLLER_HPP__
-#define __KBE_NAVIGATECONTROLLER_HPP__
+#ifndef __KBE_MOVETOENTITYHANDLER_HPP__
+#define __KBE_MOVETOENTITYHANDLER_HPP__
 
-#include "movetopoint_controller.hpp"	
+#include "movetopoint_handler.hpp"	
+
 
 namespace KBEngine{
 
-class NavigateController : public MoveToPointController
+class MoveToEntityHandler : public MoveToPointHandler
 {
 public:
-	NavigateController(Entity* pEntity, const Position3D& destPos, float velocity, float range, bool faceMovement, 
-		float maxMoveDistance, float maxDistance, float girth,
-		PyObject* userarg, uint32 id = 0);
-	virtual ~NavigateController();
+	MoveToEntityHandler(Controller* pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
+		bool moveVertically, PyObject* userarg);
+	virtual ~MoveToEntityHandler();
 	
-	virtual bool requestMoveOver();
+	virtual bool update();
 
-	virtual bool isOnGround(){ return true; }
+	virtual const Position3D& destPos();
 protected:
-	int destPosIdx_;
-	std::vector<Position3D> paths_;
-	NavMeshHandle* pNavMeshHandle_;
-
-	float maxMoveDistance_;
-	float maxDistance_;
-	float girth_;
+	ENTITY_ID pTargetID_;
 };
  
 }
-#endif // __KBE_NAVIGATECONTROLLER_HPP__
+#endif // __KBE_MOVETOENTITYHANDLER_HPP__
 

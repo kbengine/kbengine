@@ -20,44 +20,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "entity.hpp"
-#include "movetoentity_controller.hpp"	
+#include "move_controller.hpp"	
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-MoveToEntityController::MoveToEntityController(Entity* pEntity, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
-		bool moveVertically, PyObject* userarg, uint32 id):
-MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, moveVertically, userarg, id),
-pTargetID_(pTargetID)
+MoveController::MoveController(Controller::ControllerType type, Entity* pEntity, MoveToPointHandler* pMoveToPointHandler, uint32 id):
+Controller(type, pEntity, 0, id),
+pMoveToPointHandler_(pMoveToPointHandler)
 {
 }
 
 //-------------------------------------------------------------------------------------
-MoveToEntityController::~MoveToEntityController()
+MoveController::~MoveController()
 {
-}
-
-//-------------------------------------------------------------------------------------
-const Position3D& MoveToEntityController::destPos()
-{
-	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
-	return pEntity->getPosition();
-}
-
-//-------------------------------------------------------------------------------------
-bool MoveToEntityController::update()
-{
-	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
-	if(pEntity == NULL)
-	{
-		pEntity_->onMoveFailure(id(), pyuserarg_);
-
-		destroy();
-		return false;
-	}
-
-	return MoveToPointController::update();
+	// DEBUG_MSG(boost::format("MoveController::~MoveController(): %1%\n") % this);
+	pMoveToPointHandler_->pController(NULL);
+	pMoveToPointHandler_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
