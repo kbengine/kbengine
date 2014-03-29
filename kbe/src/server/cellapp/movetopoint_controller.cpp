@@ -29,7 +29,7 @@ namespace KBEngine{
 MoveToPointController::MoveToPointController(Entity* pEntity, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
 											bool moveVertically, PyObject* userarg, uint32 id):
-Controller(pEntity, 0, id),
+Controller(CONTROLLER_TYPE_MOVE, pEntity, 0, id),
 destPos_(destPos),
 velocity_(velocity),
 faceMovement_(faceMovement),
