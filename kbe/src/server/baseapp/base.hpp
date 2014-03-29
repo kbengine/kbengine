@@ -237,7 +237,7 @@ public:
 	/**
 		´«ËÍ»Øµ÷
 	*/
-	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID);  
+	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
 	void onTeleportFailure();  
 	void onTeleportSuccess(SPACE_ID spaceID);
 

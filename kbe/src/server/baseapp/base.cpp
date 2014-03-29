@@ -1156,11 +1156,14 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID)
+void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport)
 {
 	if(spaceID > 0)
 	{
-		onTeleportSuccess(spaceID);
+		if(!fromCellTeleport)
+			onTeleportSuccess(spaceID);
+		else
+			this->setSpaceID(spaceID);
 	}
 	else
 	{
