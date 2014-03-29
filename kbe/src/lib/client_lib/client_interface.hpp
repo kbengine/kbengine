@@ -160,11 +160,20 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 错误码描述导出
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportMercuryErrorsDescr,				MERCURY_VARIABLE_MESSAGE)
-	
-	// 服务端添加了某个space的几何映射
-	CLIENT_MESSAGE_DECLARE_ARGS2(addSpaceGeometryMapping,					MERCURY_VARIABLE_MESSAGE,
+
+	// 服务端初始化spacedata
+	CLIENT_MESSAGE_DECLARE_STREAM(initSpaceData,							MERCURY_VARIABLE_MESSAGE)
+
+	// 服务端设置了spacedata
+	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								MERCURY_VARIABLE_MESSAGE,
 									SPACE_ID,								spaceID,
-									std::string,							respath)
+									std::string,							key,
+									std::string,							valye)
+
+	// 服务端删除了spacedata
+	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								MERCURY_VARIABLE_MESSAGE,
+									SPACE_ID,								spaceID,
+									std::string,							key)
 
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountResetPasswordCB,				MERCURY_FIXED_MESSAGE,

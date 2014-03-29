@@ -147,6 +147,9 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,			METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,			METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
 	return EntityApp<Entity>::installPyModules();
@@ -1308,6 +1311,21 @@ PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
 	PyTuple_SetItem(pyobj, 0,  PyLong_FromUnsignedLong(addr.ip));
 	PyTuple_SetItem(pyobj, 1,  PyLong_FromUnsignedLong(addr.port));
 	return pyobj;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	Position3D pos;
+	Direction3D dir;
+
+	s >> nearbyMBRefID >> teleportEntityID;
+	s >> pos.x >> pos.y >> pos.z;
+	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+
+	// 读取entity的celldata并且创建entity
+
 }
 
 //-------------------------------------------------------------------------------------

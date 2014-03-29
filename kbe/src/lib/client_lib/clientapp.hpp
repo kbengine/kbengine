@@ -147,7 +147,11 @@ public:
 
 	virtual void onTargetChanged();
 
+	/** 
+		服务端添加了某个space的几何映射
+	*/
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
+
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

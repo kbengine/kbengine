@@ -248,7 +248,10 @@ void Witness::onEnterSpace(Space* pSpace)
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 
 	if(pAOITrigger_)
+	{
+		pAOITrigger_->origin((RangeNode*)pEntity_->pEntityRangeNode());
 		pAOITrigger_->install();
+	}
 }
 
 //-------------------------------------------------------------------------------------

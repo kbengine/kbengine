@@ -287,9 +287,11 @@ public:
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 
 	/** 网络接口
+		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/
-	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);
+	void setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	void delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
 protected:
 	PyBots*													pPyBots_;
 

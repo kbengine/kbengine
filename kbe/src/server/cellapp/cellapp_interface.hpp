@@ -149,6 +149,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 开始profile
 	CELLAPP_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
 
+	// 请求teleport到当前cellapp上
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

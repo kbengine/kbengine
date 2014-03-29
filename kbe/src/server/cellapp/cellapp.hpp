@@ -214,6 +214,13 @@ public:
 	static PyObject* __py_address(PyObject* self, PyObject* args);
 
 	WitnessedTimeoutHandler	* pWitnessedTimeoutHandler(){ return pWitnessedTimeoutHandler_; }
+
+	/**
+		网络接口
+		另一个cellapp的entity要teleport到本cellapp上的space中
+	*/
+	void reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s);
+
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

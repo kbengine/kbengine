@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(ClientObjectBase)
+SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -56,6 +57,7 @@ pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
 entityID_(0),
+spaceID_(0),
 entityPos_(FLT_MAX, FLT_MAX, FLT_MAX),
 entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
@@ -73,7 +75,6 @@ bufferedCreateEntityMessage_(),
 eventHandler_(),
 ninterface_(ninterface),
 targetID_(0),
-loadGeometryPath_(),
 isLoadedGeometry_(false)
 {
 	pServerChannel_->incRef();
@@ -1354,12 +1355,11 @@ void ClientObjectBase::onStreamDataCompleted(Mercury::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath)
+void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
 	INFO_MSG(boost::format("ClientObjectBase::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
 		spaceID % respath);
 
-	loadGeometryPath_ = respath;
 	isLoadedGeometry_ = false;
 	onAddSpaceGeometryMapping(spaceID, respath);
 
@@ -1367,6 +1367,131 @@ void ClientObjectBase::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE
 	eventdata.spaceID = spaceID;
 	eventdata.respath = respath;
 	fireEvent(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	spacedatas_.clear();
+
+	s >> spaceID_;
+	std::string key, value;
+
+	while(s.opsize() > 0)
+	{
+		s >> key >> value;
+		setSpaceData(pChannel, spaceID_, key, value);
+	}
+
+	DEBUG_MSG(boost::format("ClientObjectBase::initSpaceData: spaceID(%1%), datasize=%2%.\n") % 
+		spaceID_ % spacedatas_.size());
+}
+
+//-------------------------------------------------------------------------------------
+const std::string& ClientObjectBase::getGeometryPath()
+{ 
+	return getSpaceData("_mapping"); 
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
+{
+	if(spaceID_ != spaceID)
+	{
+		ERROR_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%, value=%4%.\n") % 
+			spaceID_ % spaceID % key % value);
+		return;
+	}
+
+	DEBUG_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(%1%), key=%2%, value=%3%.\n") % 
+		spaceID_ % key % value);
+
+	SPACE_DATA::iterator iter = spacedatas_.find(key);
+	if(iter == spacedatas_.end())
+		spacedatas_.insert(SPACE_DATA::value_type(key, value)); 
+	else
+		if(iter->second == value)
+			return;
+		else
+			spacedatas_[key] = value;
+
+	if(key == "_mapping")
+		addSpaceGeometryMapping(spaceID, value);
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientObjectBase::hasSpaceData(const std::string& key)
+{
+	SPACE_DATA::iterator iter = spacedatas_.find(key);
+	if(iter == spacedatas_.end())
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+const std::string& ClientObjectBase::getSpaceData(const std::string& key)
+{
+	SPACE_DATA::iterator iter = spacedatas_.find(key);
+	if(iter == spacedatas_.end())
+	{
+		static const std::string null = "";
+		return null;
+	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
+{
+	if(spaceID_ != spaceID)
+	{
+		ERROR_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%.\n") % 
+			spaceID_ % spaceID % key);
+		return;
+	}
+
+	DEBUG_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(%1%), key=%2%.\n") % 
+		spaceID_ % key);
+
+	SPACE_DATA::iterator iter = spacedatas_.find(key);
+	if(iter == spacedatas_.end())
+		return;
+
+	spacedatas_.erase(iter);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* key = NULL;
+	if(PyArg_ParseTuple(args, "s",  &key) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+
+	if(!pClientObjectBase->hasSpaceData(key))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (key=%s) not found!", 
+			key);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return PyUnicode_FromString(pClientObjectBase->getSpaceData(key).c_str());
 }
 
 //-------------------------------------------------------------------------------------		

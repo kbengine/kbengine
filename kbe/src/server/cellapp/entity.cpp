@@ -696,6 +696,21 @@ PyObject* Entity::pyHasWitness()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::restoreProximitys()
+{
+	Controllers::CONTROLLERS_MAP& objects = pControllers_->objects();
+	Controllers::CONTROLLERS_MAP::iterator iter = objects.begin();
+	for(; iter != objects.end(); iter++)
+	{
+		if(iter->second->type() == Controller::CONTROLLER_TYPE_PROXIMITY)
+		{
+			ProximityController* pProximityController = static_cast<ProximityController*>(iter->second.get());
+			pProximityController->reinstall(static_cast<RangeNode*>(this->pEntityRangeNode()));
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 {
 	if(range_xz <= 0.0f || (RangeList::hasY && range_y <= 0.0f))
@@ -1769,6 +1784,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 			return;
 		}
+
+		// 目标cell不是当前， 我们现在可以将entity迁往目的地了
 	}
 	else
 	{
@@ -1870,14 +1887,141 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir)
+{
+	if(entity == NULL)
+	{
+		ERROR_MSG("Entity::teleport: nearbyEntityRef is null!\n");
+		onTeleportFailure();
+		return;
+	}
+	
+	SPACE_ID lastSpaceID = this->getSpaceID();
+	
+	/* 即使entity已经销毁， 但内存未释放时spaceID应该是正确的， 所以理论可以找到space
+	if(entity->isDestroyed())
+	{
+		ERROR_MSG("Entity::teleport: nearbyMBRef is destroyed!\n");
+		onTeleportFailure();
+		return;
+	}
+	*/
+
+	/* 即使是ghost， 但space肯定是在当前cell上， 直接操作应该不会有问题
+	if(!entity->isReal())
+	{
+		ERROR_MSG("Entity::teleport: nearbyMBRef is ghost!\n");
+		onTeleportFailure();
+		return;
+	}
+	*/
+
+	SPACE_ID spaceID = entity->getSpaceID();
+
+	// 如果是相同space则为本地跳转
+	if(spaceID == this->getSpaceID())
+	{
+		teleportLocal(entity, pos, dir);
+	}
+	else
+	{
+		// 否则为当前cellapp上的space， 那么我们也能够直接执行操作
+		Space* currspace = Spaces::findSpace(this->getSpaceID());
+		Space* space = Spaces::findSpace(spaceID);
+		currspace->removeEntity(this);
+		this->setPositionAndDirection(pos, dir);
+		space->addEntityAndEnterWorld(this);
+
+		onTeleportSuccess(entity, lastSpaceID);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
+{
+	/* 此功能需要考虑好安全问题， 暂时不支持
+	SPACE_ID lastSpaceID = this->getSpaceID();
+	
+	if(nearbyMBRef->isBase())
+	{
+		PyObject* pyret = PyObject_GetAttrString(nearbyMBRef, const_cast<char*>("cell"));
+		if(pyret == NULL)
+			return;
+
+		if(pyret == Py_None)
+		{
+			Py_DECREF(pyret);
+			return;
+		}
+
+		nearbyMBRef = static_cast<EntityMailbox*>(pyret);
+	}
+	else
+	{
+		Py_INCREF(nearbyMBRef);
+	}
+	
+	COMPONENT_ID targetCellappID = nearbyMBRef->getComponentID();
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+//	(*pBundle).newMessage(CellappInterface::reqTeleportOther);
+	(*pBundle) << nearbyMBRef->getID();
+	(*pBundle) << pos.x << pos.y << pos.z;
+	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
+//	CellappInterface::reqTeleportOtherArgs3::staticAddToBundle((*pBundle), this->getID(), 
+//		g_componentID, this->getBaseMailbox()->getComponentID());
+
+	nearbyMBRef->postMail((*pBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	Py_DECREF(nearbyMBRef);
+	*/
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir)
+{
+	// 本地跳转在未来需要考虑space被分割为多cell的情况， 当前直接操作
+	SPACE_ID lastSpaceID = this->getSpaceID();
+
+	// 先要从rangelist中删除entity节点
+	Space* currspace = Spaces::findSpace(this->getSpaceID());
+	this->uninstallRangeNodes(currspace->pRangeList());
+
+	// 此时不会扰动ranglist
+	this->setPositionAndDirection(pos, dir);
+
+	currspace->addEntityToNode(this);
+
+	onTeleportSuccess(nearbyMBRef, lastSpaceID);
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
+	/*
+		1: 任何形式的teleport都被认为是瞬间移动的（可突破空间限制进入到任何空间）， 哪怕是在当前位置只移动了0.1米, 这就造成如果当前entity
+			刚好在某个trap中， teleport向前移动0.1米但是没有出trap， 因为这是瞬间移动的特性我们目前认为
+			entity会先离开trap并且触发相关回调, 然后瞬时出现在了另一个点， 那么因为该点也是在当前trap中所以又会抛出进入trap回调.
+
+		2: 如果是当前space上跳转则立即进行移动操作
+
+		3: 如果是跳转到其他space上, 但是那个space也在当前cellapp上的情况时， 立即执行跳转操作(因为不需要进行任何其他关系的维护， 直接切换就好了)。 
+		
+		4: 如果要跳转的目标space在另一个cellapp上：
+			4.1: 当前entity没有base部分， 不考虑维护base部分的关系， 但是还是要考虑意外情况导致跳转失败， 那么此时应该返回跳转失败回调并且继续
+			正常存在于当前space上。
+		
+			4.2: 当前entity有base部分， 那么我们需要改变base所映射的cell部分(并且在未正式切换关系时baseapp上所有送达cell的消息都应该不被丢失)， 为了安全我们需要做一些工作
+	*/
+
 	SPACE_ID lastSpaceID = this->getSpaceID();
 
 	// 如果为None则是entity自己想在本space上跳转到某位置
 	if(nearbyMBRef == Py_None)
 	{
-		this->setPositionAndDirection(pos, dir);
+		// 直接执行操作
+		teleportLocal(nearbyMBRef, pos, dir);
 	}
 	else
 	{
@@ -1887,27 +2031,25 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 		// 如果是entity则一定是在本cellapp上， 可以直接进行操作
 		if(PyObject_TypeCheck(nearbyMBRef, Entity::getScriptType()))
 		{
-			Entity* entity = static_cast<Entity*>(nearbyMBRef);
-			spaceID = entity->getSpaceID();
-			if(spaceID == this->getSpaceID())
-			{
-				this->setPositionAndDirection(pos, dir);
-				onTeleportSuccess(nearbyMBRef, lastSpaceID);
-			}
-			else
-			{
-				this->setPositionAndDirection(pos, dir);
-				Space* currspace = Spaces::findSpace(this->getSpaceID());
-				Space* space = Spaces::findSpace(spaceID);
-				currspace->removeEntity(this);
-				space->addEntityAndEnterWorld(this);
-				onTeleportSuccess(nearbyMBRef, lastSpaceID);
-			}
+			teleportRefEntity(static_cast<Entity*>(nearbyMBRef), pos, dir);
 		}
 		else
 		{
+			// 如果是mailbox, 先检查本cell上是否能够通过这个mailbox的ID找到entity
+			// 如果能找到则也是在本cellapp上可直接进行操作
 			if(PyObject_TypeCheck(nearbyMBRef, EntityMailbox::getScriptType()))
 			{
+				EntityMailbox* mb = static_cast<EntityMailbox*>(nearbyMBRef);
+				Entity* entity = Cellapp::getSingleton().findEntity(mb->getID());
+				
+				if(entity)
+				{
+					teleportRefEntity(entity, pos, dir);
+				}
+				else
+				{
+					teleportRefMailbox(mb, pos, dir);
+				}
 			}
 		}
 	}
