@@ -229,6 +229,80 @@ namespace KBEngine{
 																				\
 
 /**
+	Base消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef BASE_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(BASEAPP)
+#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+										ARG_TYPE2, ARG_NAME2)					\
+	void NAME##BaseMessagehandler2::handle(Mercury::Channel* pChannel,			\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Base* e =													\
+					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
+			ARG_TYPE1 ARG_NAME1;												\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME1 >> ARG_NAME2;										\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel, ARG_NAME1, ARG_NAME2);						\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG(boost::format(										\
+					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
+					eid);														\
+			}																	\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler2::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+
+#else
+#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+										ARG_TYPE2, ARG_NAME2)					\
+	void NAME##BaseMessagehandler2::handle(Mercury::Channel* pChannel,			\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler2::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+		
+#endif
+#else
+#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+										ARG_TYPE2, ARG_NAME2)					\
+	class NAME##BaseMessagehandler2 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+	};																			\
+
+#endif
+
+#define BASE_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+										ARG_TYPE2, ARG_NAME2)					\
+	BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,						\
+										ARG_TYPE2, ARG_NAME2)					\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Base, NAME,									\
+				NAME##BaseMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+										ARG_TYPE2, ARG_NAME2)					\
+																				\
+
+
+
+/**
 	Base消息宏，  只有三个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
