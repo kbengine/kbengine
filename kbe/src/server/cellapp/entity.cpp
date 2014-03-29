@@ -1750,7 +1750,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID)
+void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport)
 {
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
@@ -1758,7 +1758,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
-		BaseappInterface::onTeleportCBArgs1::staticAddToBundle((*pBundle), spaceID);
+		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
 		(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
@@ -1781,7 +1781,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, teleport is error, not found cellapp, targetEntityID, cellAppID=%3%.\n") %
 				this->getScriptName() % this->getID() % targetEntityID % cellAppID);
 
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID, false);
 			return;
 		}
 
@@ -1795,7 +1795,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found targetEntity(%3%).\n") %
 				this->getScriptName() % this->getID() % targetEntityID);
 
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID, false);
 			return;
 		}
 		
@@ -1811,21 +1811,21 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 				ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found space(%3%).\n") %
 					this->getScriptName() % this->getID() % spaceID);
 
-				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
+				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID, false);
 				return;
 			}
 			
 			Space* currspace = Spaces::findSpace(this->getSpaceID());
 			currspace->removeEntity(this);
 			space->addEntityAndEnterWorld(this);
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID, false);
 		}
 		else
 		{
 			WARNING_MSG(boost::format("%1%::teleportFromBaseapp: %2% targetSpace(%3%) == currSpaceID(%4%).\n") %
 				this->getScriptName() % this->getID() % spaceID % this->getSpaceID());
 
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID, false);
 		}
 	}
 }
@@ -2075,6 +2075,12 @@ void Entity::onTeleportFailure()
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	
+	EntityMailbox* mb = this->getBaseMailbox();
+	if(mb)
+	{
+		_sendBaseTeleportResult(this->getID(), mb->getComponentID(), this->getSpaceID(), lastSpaceID, true);
+	}
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);

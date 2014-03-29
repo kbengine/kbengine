@@ -283,8 +283,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 								COMPONENT_ID,								reqTeleportEntityBaseAppID)
 
 	// 某个entity请求teleport后的回调结果
-	BASE_MESSAGE_DECLARE_ARGS1(onTeleportCB,								MERCURY_FIXED_MESSAGE,
-								SPACE_ID,									spaceID)
+	BASE_MESSAGE_DECLARE_ARGS2(onTeleportCB,								MERCURY_FIXED_MESSAGE,
+								SPACE_ID,									spaceID,
+								bool,										fromCellTeleport)
 
 	// 某个entity请求teleport后的回调结果
 	BASE_MESSAGE_DECLARE_ARGS1(onGetDBID,									MERCURY_FIXED_MESSAGE,
