@@ -873,13 +873,23 @@ void Bots::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
 	}
 }
 
-//-------------------------------------------------------------------------------------
-void Bots::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath)
+//-------------------------------------------------------------------------------------	
+void Bots::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->addSpaceGeometryMapping(pChannel, spaceID, respath);
+		pClient->setSpaceData(pChannel, spaceID, key, value);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->delSpaceData(pChannel, spaceID, key);
 	}
 }
 

@@ -295,6 +295,7 @@ typedef int32													ScriptID;
 typedef uint32													ArraySize;												// 任何数组的大小都用这个描述
 typedef uint64													DBID;													// 一个在数据库中的索引用来当做某ID
 typedef uint32													CELL_ID;
+typedef KBEUnordered_map<std::string, std::string>				SPACE_DATA;												// space中存储的数据
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16
