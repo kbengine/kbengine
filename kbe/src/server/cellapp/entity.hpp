@@ -196,6 +196,9 @@ public:
 	*/
 	DECLARE_PY_MOTHOD_ARG3(pyTeleport, PyObject_ptr, PyObject_ptr, PyObject_ptr);
 	void teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir);
+	void teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
 
 	/**
 		传送成功和失败相关回调
@@ -373,31 +376,37 @@ public:
 	void onUpdateDataFromClient(KBEngine::MemoryStream& s);
 
 	/** 
-		添加一个陷阱 
+		添加一个范围触发器  
 	*/
 	uint32 addProximity(float range_xz, float range_y, int32 userarg);
 	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, int32);
 
 	/** 
-		删除一个陷阱 
+		恢复所有的范围触发器 
+		在teleport时会出现这样的情况
+	*/
+	void restoreProximitys();
+
+	/** 
+		删除一个范围触发器  
 	*/
 	void cancelController(uint32 id);
 	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);
 
 	/** 
-		一个entity进入了这个entity的某个陷阱 
+		一个entity进入了这个entity的某个范围触发器  
 	*/
 	void onEnterTrap(Entity* entity, float range_xz, float range_y, 
 							uint32 controllerID, int32 userarg);
 
 	/** 
-		一个entity离开了这个entity的某个陷阱 
+		一个entity离开了这个entity的某个范围触发器  
 	*/
 	void onLeaveTrap(Entity* entity, float range_xz, float range_y, 
 							uint32 controllerID, int32 userarg);
 
 	/** 
-		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
+		当entity跳到一个新的space上去后，离开范围触发器事件将触发这个接口 
 	*/
 	void onLeaveTrapID(ENTITY_ID entityID, 
 							float range_xz, float range_y, 

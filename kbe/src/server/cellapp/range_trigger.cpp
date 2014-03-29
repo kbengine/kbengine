@@ -46,6 +46,14 @@ RangeTrigger::~RangeTrigger()
 }
 
 //-------------------------------------------------------------------------------------
+bool RangeTrigger::reinstall(RangeNode* pRangeNode)
+{
+	uninstall();
+	origin_ = pRangeNode;
+	return install();
+}
+
+//-------------------------------------------------------------------------------------
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)

@@ -36,6 +36,7 @@ public:
 
 	bool install();
 	bool uninstall();
+	bool reinstall(RangeNode* pRangeNode);
 
 	INLINE void range(float xz, float y);
 	INLINE float range_xz()const;

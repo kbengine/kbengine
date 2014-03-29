@@ -1314,5 +1314,20 @@ PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	Position3D pos;
+	Direction3D dir;
+
+	s >> nearbyMBRefID >> teleportEntityID;
+	s >> pos.x >> pos.y >> pos.z;
+	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+
+	// 读取entity的celldata并且创建entity
+
+}
+
+//-------------------------------------------------------------------------------------
 
 }

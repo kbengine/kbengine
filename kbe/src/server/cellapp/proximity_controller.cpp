@@ -45,6 +45,12 @@ ProximityController::~ProximityController()
 }
 
 //-------------------------------------------------------------------------------------
+bool ProximityController::reinstall(RangeNode* pRangeNode)
+{
+	return pTrapTrigger_->reinstall(pRangeNode);
+}
+
+//-------------------------------------------------------------------------------------
 void ProximityController::onEnter(Entity* pEntity, float xz, float y)
 {
 	pEntity_->onEnterTrap(pEntity, xz, y, id(), userarg());

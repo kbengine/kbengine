@@ -225,6 +225,9 @@ void Space::addEntity(Entity* pEntity)
 void Space::addEntityToNode(Entity* pEntity)
 {
 	pEntity->installRangeNodes(&rangeList_);
+
+	// 如果身上有trap等触发器还得重新添加进去
+	pEntity->restoreProximitys();
 }
 
 //-------------------------------------------------------------------------------------
