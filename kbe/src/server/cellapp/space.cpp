@@ -185,7 +185,7 @@ void Space::onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle)
 
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
-		const_cast<char*>("Is"), this->getID(), getGeometryPath());
+		const_cast<char*>("Is"), this->getID(), getGeometryPath().c_str());
 
 	onAllSpaceGeometryLoaded();
 }
@@ -195,7 +195,7 @@ void Space::onAllSpaceGeometryLoaded()
 {
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onAllSpaceGeometryLoaded"), 
-		const_cast<char*>("Iis"), this->getID(), true, getGeometryPath());
+		const_cast<char*>("Iis"), this->getID(), true, getGeometryPath().c_str());
 }
 
 //-------------------------------------------------------------------------------------
