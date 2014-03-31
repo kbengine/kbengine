@@ -30,13 +30,13 @@ namespace KBEngine{
 MoveToPointHandler::MoveToPointHandler(Controller* pController, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
-pController_(pController),
 destPos_(destPos),
 velocity_(velocity),
 faceMovement_(faceMovement),
 moveVertically_(moveVertically),
 pyuserarg_(userarg),
-range_(range)
+range_(range),
+pController_(pController)
 {
 	static_cast<MoveController*>(pController)->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
