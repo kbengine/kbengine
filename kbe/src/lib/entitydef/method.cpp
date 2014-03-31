@@ -79,7 +79,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 {
 	if (args == NULL || !PyTuple_Check(args))
 	{
-		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", 
+		PyErr_Format(PyExc_AssertionError, "Method::checkArgs: method[%s] args is not a tuple.\n", 
 			getName());
 
 		PyErr_PrintEx(0);
@@ -92,7 +92,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 
 	if (giveArgsSize != argsSize + offset)
 	{
-		PyErr_Format(PyExc_TypeError, "Method::checkArgs: method[%s] requires exactly %d argument%s%s; %d given", 
+		PyErr_Format(PyExc_AssertionError, "Method::checkArgs: method[%s] requires exactly %d argument%s%s; %d given", 
 				getName(),
 				argsSize,
 				(offset > 0) ? " + exposed(1)" : "",
@@ -132,7 +132,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		if (!argTypes_[i]->isSameType(pyArg))
 		{
 			PyObject* pExample = argTypes_[i]->parseDefaultStr("");
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_AssertionError,
 				"Method::checkArgs: method[%s] argument %d: Expected %s, %s found",
 				getName(),
 				i+1,

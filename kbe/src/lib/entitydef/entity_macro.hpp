@@ -610,7 +610,7 @@ public:																										\
 		{																									\
 			if(PyArg_ParseTuple(args, "O", &pycallback) == -1)												\
 			{																								\
-				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args is error!");						\
+				PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");					\
 				PyErr_PrintEx(0);																			\
 				pycallback = NULL;																			\
 				S_Return;																					\

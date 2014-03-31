@@ -59,14 +59,14 @@ PyObject* Space::__py_GetSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: (argssize != 1) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceGeometryMapping: (argssize != 1) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PyArg_ParseTuple(args, "I", &spaceID) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: args is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceGeometryMapping: args is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -74,7 +74,7 @@ PyObject* Space::__py_GetSpaceGeometryMapping(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: (spaceID=%u) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceGeometryMapping: (spaceID=%u) not found!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -95,7 +95,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount < 3 || argCount > 4)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (argssize != 4) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize != 4) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -104,7 +104,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "I|O|s|b", &spaceID, &mapper, &path, &shouldLoadOnServer) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -113,7 +113,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -122,7 +122,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) not found!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -131,7 +131,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -500,7 +500,7 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 
 	if(PyTuple_Size(args) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: (argssize != (spaceID, key, value)) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: (argssize != (spaceID, key, value)) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -508,21 +508,21 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 	char* key = NULL, *value = NULL;
 	if(PyArg_ParseTuple(args, "Iss", &spaceID, &key, &value) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: args is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: args is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 	
 	if(key == NULL || value == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key or value is error, not is string!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: key or value is error, not is string!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(strlen(key) == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: key is empty!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -530,7 +530,7 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: (spaceID=%u) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: (spaceID=%u) not found!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -539,7 +539,7 @@ PyObject* Space::__py_SetSpaceData(PyObject* self, PyObject* args)
 	
 	if(kbe_stricmp(key, "_mapping") == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -557,7 +557,7 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 
 	if(PyTuple_Size(args) != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (spaceID, key)) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: (argssize != (spaceID, key)) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -565,21 +565,21 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 	char* key = NULL;
 	if(PyArg_ParseTuple(args, "Is", &spaceID, &key) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: args is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(key == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key not is string!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: key not is string!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(strlen(key) == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: key is empty!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -587,7 +587,7 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (spaceID=%u) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: (spaceID=%u) not found!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -596,7 +596,7 @@ PyObject* Space::__py_GetSpaceData(PyObject* self, PyObject* args)
 	
 	if(!space->hasSpaceData(key))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (spaceID=%u, key=%s) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::getSpaceData: (spaceID=%u, key=%s) not found!", 
 			spaceID, key);
 
 		PyErr_PrintEx(0);
@@ -613,7 +613,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 
 	if(PyTuple_Size(args) != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::delSpaceData: (argssize != (spaceID, key)) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: (argssize != (spaceID, key)) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -621,21 +621,21 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 	char* key = NULL;
 	if(PyArg_ParseTuple(args, "Is", &spaceID, &key) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::delSpaceData: args is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: args is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(key == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key not is string!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: key not is string!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(strlen(key) == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key is empty!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: key is empty!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -643,7 +643,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::delSpaceData: (spaceID=%u) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: (spaceID=%u) not found!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
@@ -652,7 +652,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 
 	if(!space->hasSpaceData(key))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (spaceID=%u, key=%s) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: (spaceID=%u, key=%s) not found!", 
 			spaceID, key);
 
 		PyErr_PrintEx(0);
@@ -661,7 +661,7 @@ PyObject* Space::__py_DelSpaceData(PyObject* self, PyObject* args)
 	
 	if(kbe_stricmp(key, "_mapping") == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setSpaceData: key{_mapping} is protected!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::delSpaceData: key{_mapping} is protected!", 
 			spaceID);
 
 		PyErr_PrintEx(0);
