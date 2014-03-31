@@ -28,9 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "controllers.hpp"	
 #include "entity_range_node.hpp"
 #include "proximity_controller.hpp"
-#include "movetopoint_controller.hpp"	
-#include "movetoentity_controller.hpp"	
-#include "navigate_controller.hpp"	
+#include "move_controller.hpp"	
+#include "movetopoint_handler.hpp"	
+#include "movetoentity_handler.hpp"	
+#include "navigate_handler.hpp"	
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -1262,7 +1263,7 @@ bool Entity::stopMove()
 {
 	if(pMoveController_)
 	{
-		static_cast<MoveToPointController*>(pMoveController_)->destroyed();
+		static_cast<MoveController*>(pMoveController_)->destroy();
 		pMoveController_ = NULL;
 		return true;
 	}
@@ -1377,8 +1378,10 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	NavigateController* p = new NavigateController(this, destination, velocity, 
-		range, faceMovement, maxMoveDistance, maxDistance, girth, userData, pControllers_->freeID());
+	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+	
+	NavigateHandler* pNavigateHandler = new NavigateHandler(p, destination, velocity, 
+		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1431,8 +1434,10 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveToPointController* p = new MoveToPointController(this, destination, velocity, 
-		0.0f, faceMovement, moveVertically, userData, pControllers_->freeID());
+	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+
+	MoveToPointHandler* pMoveToPointHandler = new MoveToPointHandler(p, destination, velocity, 
+		0.0f, faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1484,8 +1489,10 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveToEntityController* p = new MoveToEntityController(this, targetID, velocity, range,
-		faceMovement, moveVertically, userData, pControllers_->freeID());
+	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+
+	MoveToEntityHandler* pMoveToEntityHandler = new MoveToEntityHandler(p, targetID, velocity, range,
+		faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
