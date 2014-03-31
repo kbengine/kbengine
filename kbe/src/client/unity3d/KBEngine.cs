@@ -24,15 +24,20 @@ namespace KBEngine
         public void run()
         {
 			MonoBehaviour.print("KBEThread::run()");
+			int count = 0;
 START_RUN:
             try
             {
                 this.app_.process();
+                count = 0;
             }
             catch (Exception e)
             {
                 MonoBehaviour.print(e.ToString());
-                goto START_RUN;
+                MonoBehaviour.print("KBEThread::try run:" + count);
+                count ++;
+                if(count < 10)
+                	goto START_RUN;
             }
 			
 			MonoBehaviour.print("KBEThread::end()");
@@ -80,11 +85,16 @@ START_RUN:
 		public UInt64 entity_uuid = 0;
 		public Int32 entity_id = 0;
 		public string entity_type = "";
+		public Vector3 entityLastLocalPos = new Vector3(0f, 0f, 0f);
+		public Vector3 entityLastLocalDir = new Vector3(0f, 0f, 0f);
 		public Vector3 entityServerPos = new Vector3(0f, 0f, 0f);
+		Dictionary<string, string> spacedatas = new Dictionary<string, string>();
 		
 		public Dictionary<Int32, Entity> entities = new Dictionary<Int32, Entity>();
 		
 		private Dictionary<Int32, MemoryStream> bufferedCreateEntityMessage = new Dictionary<Int32, MemoryStream>(); 
+		
+		public static SkillBox skillbox = new SkillBox();
 		
 		public struct MercuryErr
 		{
@@ -96,6 +106,8 @@ START_RUN:
 		public static Dictionary<UInt16, MercuryErr> mercuryErrs = new Dictionary<UInt16, MercuryErr>(); 
 		
 		private System.DateTime lastticktime_ = System.DateTime.Now;
+		private System.DateTime lastUpdateToServerTime_ = System.DateTime.Now;
+		
 		public UInt32 spaceID = 0;
 		public string spaceResPath = "";
 		
@@ -115,7 +127,15 @@ START_RUN:
             t_ = new Thread(new ThreadStart(kbethread_.run));
             t_.Start();
         }
-		
+
+        public void destroy(){
+        	isbreak = true;
+        	t_.Abort();
+        	t_ = null;
+        	
+        	reset();
+        }
+        
         public Thread t(){
         	return t_;
         }
@@ -144,10 +164,14 @@ START_RUN:
 			bufferedCreateEntityMessage.Clear();
 			
 			lastticktime_ = System.DateTime.Now;
+			lastUpdateToServerTime_ = System.DateTime.Now;
 			spaceID = 0;
 			spaceResPath = "";
 			
 			networkInterface_.reset();
+			
+			skillbox.clear();
+			spacedatas.Clear();
 		}
 		
 		public static bool validEmail(string strEmail) 
@@ -225,8 +249,7 @@ START_RUN:
 			
 			TimeSpan span = DateTime.Now - lastticktime_; 
 			
-			if(span.Milliseconds >= 100)
-				updatePlayerToServer();
+			updatePlayerToServer();
 			
 			if(span.Seconds > 15)
 			{
@@ -381,7 +404,7 @@ START_RUN:
 				Dbg.ERROR_MSG(string.Format("KBEngine::autoImportMessagesFromServer(): connect {0}:{1} is error!", ip, port));
 				return false;
 			}
-			
+
 			if(isLoginapp)
 			{
 				currserver_ = "loginapp";
@@ -663,7 +686,7 @@ START_RUN:
 					savedata.name = name;
 					savedata.methodUtype = methodUtype;
 					savedata.args = args;
-					
+				
 					module.cell_methods[name] = savedata;
 					module.idcell_methods[methodUtype] = savedata;
 					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
@@ -686,9 +709,9 @@ START_RUN:
 					newp.setmethod = infos.setmethod;
 					
 					defpropertys.Add(infos.name, newp);
-					if(module.script != null && module.script.GetType().GetMember(name) == null)
+					if(module.script != null && module.script.GetMember(name) == null)
 					{
-						Dbg.ERROR_MSG(scriptmethod_name + ":: property(" + name + ") no defined!");
+						Dbg.ERROR_MSG(scriptmethod_name + "(" + module.script + "):: property(" + name + ") no defined!");
 					}
 				};
 	
@@ -696,9 +719,9 @@ START_RUN:
 				{
 					Method infos = module.methods[name];
 
-					if(module.script != null && module.script.GetType().GetMethod(name) == null)
+					if(module.script != null && module.script.GetMethod(name) == null)
 					{
-						Dbg.WARNING_MSG(scriptmethod_name + ":: method(" + name + ") no implement!");
+						Dbg.WARNING_MSG(scriptmethod_name + "(" + module.script + "):: method(" + name + ") no implement!");
 					}
 				};
 			}
@@ -984,6 +1007,18 @@ START_RUN:
 			}
 		}
 		
+		public Entity findEntity(Int32 entityID)
+		{
+			Entity entity = null;
+			
+			if(!entities.TryGetValue(entityID, out entity))
+			{
+				return null;
+			}
+			
+			return entity;
+		}
+		
 		public void Client_onUpdatePropertys(MemoryStream stream)
 		{
 			Int32 eid = stream.readInt32();
@@ -1093,6 +1128,11 @@ START_RUN:
 			{
 				if(!entity.inWorld)
 				{
+					entity.cellMailbox = new Mailbox();
+					entity.cellMailbox.id = eid;
+					entity.cellMailbox.classtype = entityType;
+					entity.cellMailbox.type = Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL;
+
 					entity.enterWorld();
 				}
 			}
@@ -1154,32 +1194,91 @@ START_RUN:
 		
 		public void updatePlayerToServer()
 		{
+			TimeSpan span = DateTime.Now - lastUpdateToServerTime_; 
+			
+			if(span.Milliseconds < 50)
+				return;
+			
 			Entity playerEntity = player();
 			if(playerEntity == null || playerEntity.inWorld == false)
 				return;
 			
+			lastUpdateToServerTime_ = System.DateTime.Now;
+			
 			Vector3 position = playerEntity.position;
 			Vector3 direction = playerEntity.direction;
 			
-			Bundle bundle = new Bundle();
-			bundle.newMessage(Message.messages["Baseapp_onUpdateDataFromClient"]);
-			bundle.writeFloat(position.x);
-			bundle.writeFloat(position.y);
-			bundle.writeFloat(position.z);
-			bundle.writeFloat(direction.z);
-			bundle.writeFloat(direction.y);
-			bundle.writeFloat(direction.x);
-			bundle.writeUint8((Byte)(playerEntity.isOnGound == true ? 1 : 0));
-			bundle.send(networkInterface_);
+			bool posHasChanged = Vector3.Distance(entityLastLocalPos, position) > 0.001f;
+			bool dirHasChanged = Vector3.Distance(entityLastLocalDir, direction) > 0.001f;
+			
+			if(posHasChanged || dirHasChanged)
+			{
+				entityLastLocalPos = position;
+				entityLastLocalDir = direction;
+				
+				Bundle bundle = new Bundle();
+				bundle.newMessage(Message.messages["Baseapp_onUpdateDataFromClient"]);
+				bundle.writeFloat(position.x);
+				bundle.writeFloat(position.y);
+				bundle.writeFloat(position.z);
+
+				bundle.writeFloat((float)((double)direction.z / 360 * 6.283185307179586));
+				bundle.writeFloat((float)((double)direction.y / 360 * 6.283185307179586));
+				bundle.writeFloat((float)((double)direction.x / 360 * 6.283185307179586));
+				bundle.writeUint8((Byte)(playerEntity.isOnGound == true ? 1 : 0));
+				bundle.send(networkInterface_);
+			}
 		}
 		
-		public void Client_addSpaceGeometryMapping(UInt32 spaceID, string respath)
+		public void addSpaceGeometryMapping(UInt32 spaceID, string respath)
 		{
-			Dbg.DEBUG_MSG("KBEngine::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
+			Dbg.DEBUG_MSG("KBEngine::addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
 			
 			spaceID = spaceID;
 			spaceResPath = respath;
 			Event.fire("addSpaceGeometryMapping", new object[]{spaceResPath});
+		}
+		
+		public void Client_initSpaceData(MemoryStream stream)
+		{
+			spacedatas.Clear();
+			UInt32 spaceID = stream.readUint32();
+			
+			while(stream.opsize() > 0)
+			{
+				string key = stream.readString();
+				string val = stream.readString();
+				Client_setSpaceData(spaceID, key, val);
+			}
+			
+			Dbg.DEBUG_MSG("KBEngine::Client_initSpaceData: spaceID(" + spaceID + "), size(" + spacedatas.Count + ")!");
+		}
+		
+		public void Client_setSpaceData(UInt32 spaceID, string key, string value)
+		{
+			Dbg.DEBUG_MSG("KBEngine::Client_setSpaceData: spaceID(" + spaceID + "), key(" + key + "), value(" + value + ")!");
+			spacedatas[key] = value;
+			
+			if(key == "_mapping")
+				addSpaceGeometryMapping(spaceID, value);
+		}
+
+		public void Client_delSpaceData(UInt32 spaceID, string key)
+		{
+			Dbg.DEBUG_MSG("KBEngine::Client_delSpaceData: spaceID(" + spaceID + "), key(" + key + ")");
+			spacedatas.Remove(key);
+		}
+		
+		public string getSpaceData(string key)
+		{
+			string val = "";
+			
+			if(!spacedatas.TryGetValue(key, out val))
+			{
+				return "";
+			}
+			
+			return val;
 		}
 		
 		public void Client_onUpdateBasePos(MemoryStream stream)
@@ -1216,9 +1315,9 @@ START_RUN:
 			entity.position.y = stream.readFloat();
 			entity.position.z = stream.readFloat();
 			
-			entity.direction.z = stream.readFloat();
-			entity.direction.y = stream.readFloat();
-			entity.direction.x = stream.readFloat();
+			entity.direction.z = KBEMath.int82angle((SByte)stream.readFloat(), false) * 360 / ((float)System.Math.PI * 2);
+			entity.direction.y = KBEMath.int82angle((SByte)stream.readFloat(), false) * 360 / ((float)System.Math.PI * 2);
+			entity.direction.x = KBEMath.int82angle((SByte)stream.readFloat(), false) * 360 / ((float)System.Math.PI * 2);
 			
 			Vector3 position = (Vector3)entity.getDefinedPropterty("position");
 			Vector3 direction = (Vector3)entity.getDefinedPropterty("direction");
@@ -1492,7 +1591,7 @@ START_RUN:
 		public void _updateVolatileData(Int32 entityID, float x, float y, float z, float yaw, float pitch, float roll)
 		{
 			Entity entity = null;
-			
+
 			if(!entities.TryGetValue(entityID, out entity))
 			{
 				Dbg.ERROR_MSG("KBEngine::_updateVolatileData: entity(" + entityID + ") not found!");
@@ -1527,7 +1626,6 @@ START_RUN:
 			if(!KBEMath.almostEqual(x + y + z, 0f, 0.000001f))
 			{
 				Vector3 pos = new Vector3(x + entityServerPos.x, y + entityServerPos.y, z + entityServerPos.z);
-
 				entity.position = pos;
 				Event.fire("update_position", new object[]{entity});
 			}

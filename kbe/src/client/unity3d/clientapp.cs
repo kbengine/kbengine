@@ -5,6 +5,7 @@ using KBEngine;
 
 public class clientapp : MonoBehaviour {
 	public static KBEngineApp gameapp = null;
+	
 	// Use this for initialization
 	void Start () {
 		MonoBehaviour.print("clientapp::start()");
@@ -19,7 +20,7 @@ public class clientapp : MonoBehaviour {
 	void OnDestroy()
 	{
 		MonoBehaviour.print("clientapp::OnDestroy()");
-		gameapp.isbreak = true;
+		gameapp.destroy();
 	}
 	
 	void FixedUpdate () {

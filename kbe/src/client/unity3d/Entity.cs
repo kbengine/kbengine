@@ -52,8 +52,24 @@ namespace KBEngine
 			return id == KBEngineApp.app.entity_id;
 		}
 		
+		public void addDefinedPropterty(string name, object v)
+		{
+			Property newp = new Property();
+			newp.name = name;
+			newp.properUtype = 0;
+			newp.val = v;
+			newp.setmethod = null;
+			defpropertys_.Add(name, newp);
+		}
+		
 		public object getDefinedPropterty(string name)
 		{
+			Property obj = null;
+			if(!defpropertys_.TryGetValue(name, out obj))
+			{
+				return null;
+			}
+		
 			return defpropertys_[name].val;
 		}
 		
@@ -64,6 +80,12 @@ namespace KBEngine
 		
 		public object getDefinedProptertyByUType(UInt16 utype)
 		{
+			Property obj = null;
+			if(!iddefpropertys_.TryGetValue(utype, out obj))
+			{
+				return null;
+			}
+			
 			return iddefpropertys_[utype].val;
 		}
 		
@@ -117,10 +139,10 @@ namespace KBEngine
 				Dbg.ERROR_MSG("Entity::cellCall: args(" + (arguments.Length) + "!= " + method.args.Count + ") size is error!");  
 				return;
 			}
-			
+
 			cellMailbox.newMail();
 			cellMailbox.bundle.writeUint16(methodID);
-			
+				
 			try
 			{
 				for(var i=0; i<method.args.Count; i++)
@@ -134,7 +156,7 @@ namespace KBEngine
 				cellMailbox.bundle = null;
 				return;
 			}
-			
+
 			cellMailbox.postMail(null);
 		}
 	
@@ -154,50 +176,50 @@ namespace KBEngine
 		
 		public virtual void set_HP(object old)
 		{
-			object hp = getDefinedPropterty("HP");
-			Dbg.DEBUG_MSG(classtype + "::set_HP: " + hp); 
-			Event.fire("set_HP", new object[]{this, hp});
+			object v = getDefinedPropterty("HP");
+			Dbg.DEBUG_MSG(classtype + "::set_HP: " + old + " => " + v); 
+			Event.fire("set_HP", new object[]{this, v});
 		}
 		
 		public virtual void set_MP(object old)
 		{
-			object mp = getDefinedPropterty("MP");
-			Dbg.DEBUG_MSG(classtype + "::set_MP: " + mp); 
-			Event.fire("set_MP", new object[]{this, mp});
+			object v = getDefinedPropterty("MP");
+			Dbg.DEBUG_MSG(classtype + "::set_MP: " + old + " => " + v); 
+			Event.fire("set_MP", new object[]{this, v});
 		}
 		
 		public virtual void set_HP_Max(object old)
 		{
 			object v = getDefinedPropterty("HP_Max");
-			Dbg.DEBUG_MSG(classtype + "::set_HP_Max: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_HP_Max: " + old + " => " + v); 
 			Event.fire("set_HP_Max", new object[]{this, v});
 		}
 		
 		public virtual void set_MP_Max(object old)
 		{
 			object v = getDefinedPropterty("MP_Max");
-			Dbg.DEBUG_MSG(classtype + "::set_MP_Max: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_MP_Max: " + old + " => " + v); 
 			Event.fire("set_MP_Max", new object[]{this, v});
 		}
 		
 		public virtual void set_level(object old)
 		{
 			object v = getDefinedPropterty("level");
-			Dbg.DEBUG_MSG(classtype + "::set_level: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_level: " + old + " => " + v); 
 			Event.fire("set_level", new object[]{this, v});
 		}
 		
 		public virtual void set_name(object old)
 		{
 			object v = getDefinedPropterty("name");
-			Dbg.DEBUG_MSG(classtype + "::set_name: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_name: " + old + " => " + v); 
 			Event.fire("set_name", new object[]{this, v});
 		}
 		
 		public virtual void set_state(object old)
 		{
 			object v = getDefinedPropterty("state");
-			Dbg.DEBUG_MSG(classtype + "::set_state: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_state: " + old + " => " + v); 
 			Event.fire("set_state", new object[]{this, v});
 		}
 		
@@ -224,21 +246,21 @@ namespace KBEngine
 		public virtual void set_moveSpeed(object old)
 		{
 			object v = getDefinedPropterty("moveSpeed");
-			Dbg.DEBUG_MSG(classtype + "::set_moveSpeed: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_moveSpeed: " + old + " => " + v); 
 			Event.fire("set_moveSpeed", new object[]{this, v});
 		}
 		
 		public virtual void set_modelScale(object old)
 		{
 			object v = getDefinedPropterty("modelScale");
-			Dbg.DEBUG_MSG(classtype + "::set_modelScale: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_modelScale: " + old + " => " + v); 
 			Event.fire("set_modelScale", new object[]{this, v});
 		}
 		
 		public virtual void set_modelID(object old)
 		{
 			object v = getDefinedPropterty("modelID");
-			Dbg.DEBUG_MSG(classtype + "::set_modelID: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_modelID: " + old + " => " + v); 
 			Event.fire("set_modelID", new object[]{this, v});
 		}
 		
@@ -247,26 +269,90 @@ namespace KBEngine
 			Dbg.DEBUG_MSG(classtype + "::set_forbids: " + getDefinedPropterty("forbids")); 
 		}
 		
-		public void set_position(object old)
+		public virtual void set_position(object old)
 		{
 			Vector3 v = (Vector3)getDefinedPropterty("position");
 			position = v;
-			Dbg.DEBUG_MSG(classtype + "::set_position: " + v); 
+			Dbg.DEBUG_MSG(classtype + "::set_position: " + old + " => " + v); 
+			
+			if(isPlayer())
+				KBEngineApp.app.entityServerPos = position;
+			
 			Event.fire("set_position", new object[]{this});
 		}
 
-		public void set_direction(object old)
+		public virtual void set_direction(object old)
 		{
 			Vector3 v = (Vector3)getDefinedPropterty("direction");
+			
+			v.x = v.x * 360 / ((float)System.Math.PI * 2);
+			v.y = v.y * 360 / ((float)System.Math.PI * 2);
+			v.z = v.z * 360 / ((float)System.Math.PI * 2);
+			
 			direction = v;
-			Dbg.DEBUG_MSG(classtype + "::set_direction: " + v); 
+			
+			Dbg.DEBUG_MSG(classtype + "::set_direction: " + old + " => " + v); 
 			Event.fire("set_direction", new object[]{this});
 		}
 		
-		public void recvDamage(Int32 attackerID, Int32 skillID, Int32 damageType, Int32 damage)
+		public virtual void recvDamage(Int32 attackerID, Int32 skillID, Int32 damageType, Int32 damage)
 		{
 			Dbg.DEBUG_MSG(classtype + "::recvDamage: attackerID=" + attackerID + ", skillID=" + skillID + ", damageType=" + damageType + ", damage=" + damage);
+			
+			Entity entity = KBEngineApp.app.findEntity(attackerID);
+
+			Event.fire("recvDamage", new object[]{this, entity, skillID, damageType, damage});
+		}
+		
+		public virtual void onJump()
+		{
+			Dbg.DEBUG_MSG(classtype + "::onJump: " + id);
+			Event.fire("otherAvatarOnJump", new object[]{this});
+		}
+		
+		public virtual void onAddSkill(Int32 skillID)
+		{
+			Dbg.DEBUG_MSG(classtype + "::onAddSkill(" + skillID + ")"); 
+			Event.fire("onAddSkill", new object[]{this});
+			
+			Skill skill = new Skill();
+			skill.id = skillID;
+			skill.name = skillID + " ";
+			switch(skillID)
+			{
+				case 1:
+					break;
+				case 1000101:
+					skill.canUseDistMax = 20f;
+					break;
+				case 2000101:
+					skill.canUseDistMax = 20f;
+					break;
+				case 3000101:
+					skill.canUseDistMax = 20f;
+					break;
+				case 4000101:
+					skill.canUseDistMax = 20f;
+					break;
+				case 5000101:
+					skill.canUseDistMax = 20f;
+					break;
+				case 6000101:
+					skill.canUseDistMax = 20f;
+					break;
+				default:
+					break;
+			};
+
+			SkillBox.inst.add(skill);
+		}
+		
+		public virtual void onRemoveSkill(Int32 skillID)
+		{
+			Dbg.DEBUG_MSG(classtype + "::onRemoveSkill(" + skillID + ")"); 
+			Event.fire("onRemoveSkill", new object[]{this});
+			SkillBox.inst.remove(skillID);
 		}
     }
     
-} 
+}

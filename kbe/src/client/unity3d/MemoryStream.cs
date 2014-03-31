@@ -250,7 +250,7 @@ namespace KBEngine
 		public void writeBlob(byte[] v)
 		{
 			UInt32 size = (UInt32)v.Length;
-			if(size + 4> fillfree())
+			if(size + 4 > fillfree())
 			{
 				Dbg.ERROR_MSG("memorystream::writeBlob: no free!");
 				return;
@@ -262,8 +262,6 @@ namespace KBEngine
 			{
 				datas_[wpos++] = v[i];
 			}
-			
-			this.wpos += v.Length;
 		}
 		
 		public void writeString(string v)

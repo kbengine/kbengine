@@ -37,7 +37,7 @@ namespace KBEngine
 		{
 			if(msgtype.msglen != -1)
 				return;
-			
+
 			if(stream.opsize() >= messageLength)
 			{
 				int idx = (int)stream.opsize() - messageLength - 2;

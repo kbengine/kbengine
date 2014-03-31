@@ -349,12 +349,12 @@ namespace KBEngine
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
-			return stream.readBlob();
+			return System.Text.Encoding.UTF8.GetString(stream.readBlob());
 		}
 		
 		public override void addToStream(Bundle stream, object v)
 		{
-			stream.writeBlob((byte[])v);
+			stream.writeBlob(System.Text.Encoding.UTF8.GetBytes((string)v));
 		}
 		
 		public override object parseDefaultValStr(string v)

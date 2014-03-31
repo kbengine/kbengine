@@ -7,6 +7,7 @@ namespace KBEngine
 	using System.Collections; 
 	using System.Collections.Generic;
 	using System.Text;
+	using System.Threading;
 	
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;
@@ -19,6 +20,7 @@ namespace KBEngine
         private KBEngineApp app_ = null;
 		private List<MemoryStream> packets_ = null;
 		private MessageReader msgReader = new MessageReader();
+		private static ManualResetEvent TimeoutObject = new ManualResetEvent(false);
 		
         public NetworkInterface(KBEngineApp app)
         {
@@ -35,6 +37,12 @@ namespace KBEngine
 			socket_ = null;
 			msgReader = new MessageReader();
 			packets_.Clear();
+			TimeoutObject.Set();
+		}
+		
+		public Socket sock()
+		{
+			return socket_;
 		}
 		
 		public bool valid()
@@ -56,11 +64,20 @@ namespace KBEngine
 			}
 		}
 		
+		private static void connectCB(IAsyncResult asyncresult)
+		{
+			if(KBEngineApp.app.networkInterface().valid())
+				KBEngineApp.app.networkInterface().sock().EndConnect(asyncresult);
+			
+			TimeoutObject.Set();
+		}
+	    
 		public bool connect(string ip, int port) 
 		{
 			int count = 0;
 __RETRY:
 			reset();
+			TimeoutObject.Reset();
 			
 			// Security.PrefetchSocketPolicy(ip, 843);
 			socket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); 
@@ -69,22 +86,31 @@ __RETRY:
             { 
                 IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(ip), port); 
                 
-				socket_.Connect(endpoint);
+				socket_.BeginConnect(endpoint, new AsyncCallback(connectCB), socket_);
+				
+		        if (TimeoutObject.WaitOne(10000))
+		        {
+		        }
+		        else
+		        {
+		        	reset();
+		        }
+        
             } 
             catch (Exception e) 
             {
-                MonoBehaviour.print(e.ToString());
+                Dbg.WARNING_MSG(e.ToString());
                 
                 if(count < 3)
                 {
-                	Dbg.WARNING_MSG("connect(" + ip + ":" + port + ") is error, try=" + count + "!");
+                	Dbg.WARNING_MSG("connect(" + ip + ":" + port + ") is error, try=" + (count++) + "!");
                 	goto __RETRY;
            		 }
             
 				return false;
             } 
 			
-			return true;
+			return valid();
 		}
         
         public void close()
