@@ -1380,7 +1380,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 	
-	NavigateHandler* pNavigateHandler = new NavigateHandler(p, destination, velocity, 
+	new NavigateHandler(p, destination, velocity, 
 		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
 
 	bool ret = pControllers_->add(p);
@@ -1436,7 +1436,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 
-	MoveToPointHandler* pMoveToPointHandler = new MoveToPointHandler(p, destination, velocity, 
+	new MoveToPointHandler(p, destination, velocity, 
 		0.0f, faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
@@ -1491,7 +1491,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 
-	MoveToEntityHandler* pMoveToEntityHandler = new MoveToEntityHandler(p, targetID, velocity, range,
+	new MoveToEntityHandler(p, targetID, velocity, range,
 		faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
@@ -2022,8 +2022,6 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			4.2: 当前entity有base部分， 那么我们需要改变base所映射的cell部分(并且在未正式切换关系时baseapp上所有送达cell的消息都应该不被丢失)， 为了安全我们需要做一些工作
 	*/
 
-	SPACE_ID lastSpaceID = this->getSpaceID();
-
 	// 如果为None则是entity自己想在本space上跳转到某位置
 	if(nearbyMBRef == Py_None)
 	{
@@ -2033,8 +2031,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 	else
 	{
 		//EntityMailbox* mb = NULL;
-		SPACE_ID spaceID = 0;
-		
+
 		// 如果是entity则一定是在本cellapp上， 可以直接进行操作
 		if(PyObject_TypeCheck(nearbyMBRef, Entity::getScriptType()))
 		{
