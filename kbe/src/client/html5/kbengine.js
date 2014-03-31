@@ -1369,7 +1369,7 @@ function KBEDATATYPE_ARRAY()
 		stream.writeUint32(v.length);
 		for(var i=0; i<v.length; i++)
 		{
-			this.type.addToStream(stream, v[i]]);
+			this.type.addToStream(stream, v[i]);
 		}
 	}
 	
@@ -1449,7 +1449,7 @@ g_datatypes["BLOB"] = new KBEDATATYPE_BLOB();
 -----------------------------------------------------------------------------------------*/
 function KBENGINE()
 {
-	this.username = " 3603661@qq.com";
+	this.username = " testhtml5";
 	this.password = "123456";
 	this.loginappMessageImported = false;
 	this.baseappMessageImported = false;
@@ -1470,6 +1470,7 @@ function KBENGINE()
 		this.entity_id = 0;
 		this.entity_type = "";
 		this.entities = {};
+		this.spacedata = {};
 		var dateObject = new Date();
 		this.lastticktime = dateObject.getTime();
 		this.spaceID = 0;
@@ -2364,12 +2365,47 @@ function KBENGINE()
 		bundle.send(g_kbengine);
 	}
 	
-	this.Client_addSpaceGeometryMapping = function(spaceID, respath)
+	this.addSpaceGeometryMapping = function(spaceID, respath)
 	{
-		console.info("KBENGINE::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
+		console.info("KBENGINE::addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
 		
 		g_kbengine.spaceID = spaceID;
 		g_kbengine.spaceResPath = respath;
+	}
+
+	this.Client_initSpaceData = function(stream)
+	{
+		var spaceID = stream.readInt32();
+		while(stream.opsize() > 0)
+		{
+			var key = stream.readString();
+			var value = stream.readString();
+			g_kbengine.Client_setSpaceData(spaceID, key, value);
+		}
+		
+		console.info("KBENGINE::Client_initSpaceData: spaceID(" + spaceID + "), datas(" + g_kbengine.spacedata + ")!");
+	}
+	
+	this.Client_setSpaceData = function(spaceID, key, value)
+	{
+		console.info("KBENGINE::Client_setSpaceData: spaceID(" + spaceID + "), key(" + key + "), value(" + value + ")!");
+		
+		g_kbengine.spacedata[key] = value;
+		
+		if(key == "_mapping")
+			g_kbengine.addSpaceGeometryMapping(spaceID, value);
+	}
+	
+	this.Client_delSpaceData = function(spaceID, key)
+	{
+		console.info("KBENGINE::Client_delSpaceData: spaceID(" + spaceID + "), key(" + key + ")!");
+		
+		delete g_kbengine.spacedata[key];
+	}
+	
+	this.Client_getSpaceData = function(spaceID, key)
+	{
+		return g_kbengine.spacedata[key];
 	}
 	
 	this.Client_onUpdateBasePos = function(stream)
