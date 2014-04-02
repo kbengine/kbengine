@@ -30,6 +30,11 @@
 			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
 			<Persistent>		true				</Persistent>
 		</level>
+
+		<own_val>
+			<Type>			UINT16				</Type>
+			<Flags>			OWN_CLIENT			</Flags>
+		</own_val>
 	</Properties>
 
 	<BaseMethods>

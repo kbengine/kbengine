@@ -301,7 +301,7 @@ bool EntityApp<E>::installEntityDef()
 
 	// 初始化所有扩展模块
 	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, componentType_)){
+	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
 		return false;
 	}
 
@@ -323,48 +323,51 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	if(Resmgr::getSingleton().respaths().size() <= 0)
+	if(Resmgr::getSingleton().respaths().size() <= 0 || 
+		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
+		Resmgr::getSingleton().getPySysResPath().size() == 0)
 	{
 		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
-	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	std::wstring user_res_path = L"";
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserResPath().c_str()));
 	if(tbuf != NULL)
 	{
-		root_path += tbuf;
+		user_res_path += tbuf;
 		free(tbuf);
 	}
 	else
 	{
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
 		return false;
 	}
 
-	std::wstring pyPaths = root_path + L"res/scripts/common;";
-	pyPaths += root_path + L"res/scripts/data;";
-	pyPaths += root_path + L"res/scripts/user_type;";
+	std::wstring pyPaths = user_res_path + L"scripts/common;";
+	pyPaths += user_res_path + L"scripts/data;";
+	pyPaths += user_res_path + L"scripts/user_type;";
 
 	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/base;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/base;";
 		break;
 	case CELLAPP_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/cell;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/cell;";
 		break;
 	case DBMGR_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/db;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/db;";
 		break;
 	default:
-		pyPaths += root_path + L"res/scripts/client;";
+		pyPaths += user_res_path + L"scripts/client;";
 		break;
 	};
 	
-	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
+	std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
 	kbe_res_path += "scripts/common";
 
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));

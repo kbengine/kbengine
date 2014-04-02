@@ -84,6 +84,7 @@ public:
 	}
 
 	std::string getPySysResPath();
+	std::string getPyUserResPath();
 
 	ResourceObjectPtr openResource(const char* res, const char* model, 
 		uint32 flags = RESOURCE_NORMAL);

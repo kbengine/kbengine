@@ -128,7 +128,7 @@ public:
 
 		if(!txdoc_->LoadFile())
 		{
-			ERROR_MSG(boost::format("load xml from %1% is error!\n") % pathbuf);
+			ERROR_MSG(boost::format("TiXmlNode::openXML: %1%, is error!\n") % pathbuf);
 			return NULL;
 		}
 

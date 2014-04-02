@@ -212,12 +212,35 @@ std::string Resmgr::matchPath(const char* path)
 //-------------------------------------------------------------------------------------
 std::string Resmgr::getPySysResPath()
 {
-	if(respaths_.size() > 0)
+	static std::string respath = "";
+
+	if(respath == "")
 	{
-		return respaths_[0];
+		respath = matchRes("server/kbengine_defs.xml");
+		std::vector<std::string> tmpvec;
+		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defs.xml");
+		if(tmpvec.size() > 1)
+			respath = tmpvec[0];
 	}
 
-	return "";
+	return respath;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::getPyUserResPath()
+{
+	static std::string respath = "";
+
+	if(respath == "")
+	{
+		respath = matchRes("server/kbengine.xml");
+		std::vector<std::string> tmpvec;
+		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml");
+		if(tmpvec.size() > 1)
+			respath = tmpvec[0];
+	}
+
+	return respath;
 }
 
 //-------------------------------------------------------------------------------------

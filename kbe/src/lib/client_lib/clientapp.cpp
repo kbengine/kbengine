@@ -170,7 +170,7 @@ bool ClientApp::installEntityDef()
 
 	// 初始化所有扩展模块
 	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, g_componentType)){
+	if(!EntityDef::initialize(scriptBaseTypes_, g_componentType)){
 		return false;
 	}
 

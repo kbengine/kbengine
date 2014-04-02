@@ -123,7 +123,7 @@ void EntityDef::reload(bool fullReload)
 		bool ret = finalise(true);
 		KBE_ASSERT(ret && "EntityDef::reload: finalise is error!");
 
-		ret = initialize(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
+		ret = initialize(EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
 		KBE_ASSERT(ret && "EntityDef::reload: initialize is error!");
 	}
 	else
@@ -135,13 +135,13 @@ void EntityDef::reload(bool fullReload)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::initialize(const std::string entitiesPath, 
-						   std::vector<PyTypeObject*>& scriptBaseTypes, 
+bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes, 
 						   COMPONENT_TYPE loadComponentType)
 {
 	__loadComponentType = loadComponentType;
-	__entitiesPath = entitiesPath;
 	__scriptBaseTypes = scriptBaseTypes;
+
+	__entitiesPath = Resmgr::getSingleton().getPyUserResPath() + "scripts/";
 
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
@@ -150,9 +150,10 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	g_entityFlagMapping["BASE_AND_CLIENT"]						= ED_FLAG_BASE_AND_CLIENT;
 	g_entityFlagMapping["BASE"]									= ED_FLAG_BASE;
 	g_entityFlagMapping["OTHER_CLIENTS"]						= ED_FLAG_OTHER_CLIENTS;
+	g_entityFlagMapping["OWN_CLIENT"]							= ED_FLAG_OWN_CLIENT;
 
-	std::string entitiesFile = entitiesPath + "entities.xml";
-	std::string defFilePath = entitiesPath + "entity_defs/";
+	std::string entitiesFile = __entitiesPath + "entities.xml";
+	std::string defFilePath = __entitiesPath + "entity_defs/";
 	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 初始化数据类别
@@ -211,7 +212,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllScriptModule(entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return loadAllScriptModule(__entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------

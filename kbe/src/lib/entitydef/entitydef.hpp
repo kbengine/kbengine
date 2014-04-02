@@ -58,8 +58,7 @@ public:
 	/** 
 		≥ı ºªØ
 	*/
-	static bool initialize(const std::string entitiesPath, 
-		std::vector<PyTypeObject*>& scriptBaseTypes, 
+	static bool initialize(std::vector<PyTypeObject*>& scriptBaseTypes, 
 		COMPONENT_TYPE loadComponentType);
 
 	static bool finalise(bool isReload = false);

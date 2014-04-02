@@ -39,34 +39,37 @@ inline void START_MSG(const char * name, uint64 appuid)
 
 inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE componentType)
 {
-	if(Resmgr::getSingleton().respaths().size() <= 0)
+	if(Resmgr::getSingleton().respaths().size() <= 0 || 
+		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
+		Resmgr::getSingleton().getPySysResPath().size() == 0)
 	{
-		ERROR_MSG("installPyScript: KBE_RES_PATH is error!\n");
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
-	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	std::wstring user_res_path = L"";
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserResPath().c_str()));
 	if(tbuf != NULL)
 	{
-		root_path += tbuf;
+		user_res_path += tbuf;
 		free(tbuf);
 	}
 	else
 	{
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
 		return false;
 	}
 
-	std::wstring pyPaths = root_path + L"res/scripts/common;";
-	pyPaths += root_path + L"res/scripts/data;";
-	pyPaths += root_path + L"res/scripts/user_type;";
+	std::wstring pyPaths = user_res_path + L"scripts/common;";
+	pyPaths += user_res_path + L"scripts/data;";
+	pyPaths += user_res_path + L"scripts/user_type;";
 
 	if(componentType == CLIENT_TYPE)
-		pyPaths += root_path + L"res/scripts/client;";
+		pyPaths += user_res_path + L"scripts/client;";
 	else
-		pyPaths += root_path + L"res/scripts/bots;";
+		pyPaths += user_res_path + L"scripts/bots;";
 
-	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
+	std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
 	kbe_res_path += "scripts/common";
 
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
