@@ -76,6 +76,13 @@ class Avatar(GameObject,
 		"""
 		pass
 		
+	def set_own_val(self, oldValue):
+		"""
+		Property method.
+		服务器设置了属性
+		"""
+		DEBUG_MSG("%s::set_own_val: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.own_val))
+		
 class PlayerAvatar(Avatar, EventHandler):
 	def __init__(self): # 这里引擎不会自动调用
 		EventHandler.__init__(self)

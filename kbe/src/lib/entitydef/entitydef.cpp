@@ -567,7 +567,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount entity the flags[%1%] in %2%.\n") % 
+					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") % 
 						strFlags.c_str() % name.c_str());
 
 					return false;
@@ -588,7 +588,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount entity the flags[%1%] in %2%.\n") %
+					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") %
 						strFlags.c_str() % name.c_str());
 					return false;
 				}
