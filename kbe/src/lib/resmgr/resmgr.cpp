@@ -109,12 +109,15 @@ bool Resmgr::initialize()
 	char splitFlag = ';';
 	strutil::kbe_split<char>(tbuf, splitFlag, respaths_);
 
+	// windows用户不能分割冒号， 可能会把盘符给分割了
+#if KBE_PLATFORM != PLATFORM_WIN32
 	if(respaths_.size() < 2)
 	{
 		respaths_.clear();
 		splitFlag = ':';
 		strutil::kbe_split<char>(tbuf, splitFlag, respaths_);
 	}
+#endif
 
 	kb_env_.res_path = "";
 	std::vector<std::string>::iterator iter = respaths_.begin();
