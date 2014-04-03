@@ -247,6 +247,8 @@ std::string Resmgr::getPyUserResPath()
 		else
 			if(respaths_.size() > 1)
 				respath = respaths_[1];
+			else if(respaths_.size() > 0)
+				respath = respaths_[0];
 	}
 
 	return respath;
