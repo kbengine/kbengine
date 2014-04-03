@@ -221,6 +221,9 @@ std::string Resmgr::getPySysResPath()
 		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defs.xml");
 		if(tmpvec.size() > 1)
 			respath = tmpvec[0];
+		else
+			if(respaths_.size() > 0)
+				respath = respaths_[0];
 	}
 
 	return respath;
@@ -238,6 +241,9 @@ std::string Resmgr::getPyUserResPath()
 		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml");
 		if(tmpvec.size() > 1)
 			respath = tmpvec[0];
+		else
+			if(respaths_.size() > 1)
+				respath = respaths_[1];
 	}
 
 	return respath;
