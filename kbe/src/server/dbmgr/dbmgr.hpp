@@ -108,7 +108,7 @@ public:
 		dbmgr广播global数据的改变
 	*/
 	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		请求创建账号
@@ -223,8 +223,8 @@ protected:
 	// globalData
 	GlobalDataServer*									pGlobalData_;								
 
-	// globalBases
-	GlobalDataServer*									pGlobalBases_;								
+	// baseAppData
+	GlobalDataServer*									pBaseAppData_;								
 
 	// cellAppData
 	GlobalDataServer*									pCellAppData_;														

@@ -218,7 +218,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastBaseAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		注册将要登录的账号, 注册后则允许登录到此网关
@@ -414,7 +414,7 @@ public:
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
-	GlobalDataClient*										pGlobalBases_;								// globalBases
+	GlobalDataClient*										pBaseAppData_;								// globalBases
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr											pendingLoginMgr_;

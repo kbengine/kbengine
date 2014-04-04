@@ -56,7 +56,7 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	mainProcessTimer_(),
 	idServer_(1, 1024),
 	pGlobalData_(NULL),
-	pGlobalBases_(NULL),
+	pBaseAppData_(NULL),
 	pCellAppData_(NULL),
 	bufferedDBTasks_(),
 	dbThreadPool_(),
@@ -176,13 +176,13 @@ bool Dbmgr::initializeEnd()
 	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
-	// 添加globalData, globalBases, cellAppData支持
+	// 添加globalData, baseAppData, cellAppData支持
 	pGlobalData_ = new GlobalDataServer(GlobalDataServer::GLOBAL_DATA);
-	pGlobalBases_ = new GlobalDataServer(GlobalDataServer::GLOBAL_BASES);
+	pBaseAppData_ = new GlobalDataServer(GlobalDataServer::BASEAPP_DATA);
 	pCellAppData_ = new GlobalDataServer(GlobalDataServer::CELLAPP_DATA);
 	pGlobalData_->addConcernComponentType(CELLAPP_TYPE);
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
-	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
+	pBaseAppData_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
 
 	INFO_MSG(boost::format("Dbmgr::initializeEnd: digest(%1%)\n") % 
@@ -255,7 +255,7 @@ bool Dbmgr::initDB()
 void Dbmgr::finalise()
 {
 	SAFE_RELEASE(pGlobalData_);
-	SAFE_RELEASE(pGlobalBases_);
+	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);
 
 	dbThreadPool_.finalise();
@@ -400,7 +400,7 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 {
 	if(BASEAPP_TYPE == componentType)
 	{
-		pGlobalBases_->onGlobalDataClientLogon(pChannel, componentType);
+		pBaseAppData_->onGlobalDataClientLogon(pChannel, componentType);
 		pGlobalData_->onGlobalDataClientLogon(pChannel, componentType);
 	}
 	else if(CELLAPP_TYPE == componentType)
@@ -416,7 +416,7 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	uint8 dataType;
 	std::string key, value;
@@ -443,11 +443,11 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 		else
 			pGlobalData_->write(pChannel, componentType, key, value);
 		break;
-	case GlobalDataServer::GLOBAL_BASES:
+	case GlobalDataServer::BASEAPP_DATA:
 		if(isDelete)
-			pGlobalBases_->del(pChannel, componentType, key);
+			pBaseAppData_->del(pChannel, componentType, key);
 		else
-			pGlobalBases_->write(pChannel, componentType, key, value);
+			pBaseAppData_->write(pChannel, componentType, key, value);
 		break;
 	case GlobalDataServer::CELLAPP_DATA:
 		if(isDelete)

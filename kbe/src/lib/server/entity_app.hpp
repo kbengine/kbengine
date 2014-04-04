@@ -156,7 +156,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
@@ -807,7 +807,7 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 template<class E>
-void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string key, value;
 	bool isDelete;
@@ -823,7 +823,7 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
 	{
-		ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has key!\n");
+		ERROR_MSG("EntityApp::onBroadcastGlobalDataChanged: no has key!\n");
 		return;
 	}
 
@@ -843,7 +843,7 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		PyObject * pyValue = script::Pickler::unpickle(value);
 		if(pyValue == NULL)
 		{
-			ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has value!\n");
+			ERROR_MSG("EntityApp::onBroadcastGlobalDataChanged: no has value!\n");
 			Py_DECREF(pyKey);
 			return;
 		}

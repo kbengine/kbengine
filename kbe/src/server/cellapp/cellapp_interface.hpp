@@ -98,8 +98,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									std::string,							digest)
 
 	// global数据改变
-	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,				MERCURY_VARIABLE_MESSAGE)
-	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,			MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChanged,			MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChanged,			MERCURY_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
 	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateInNewSpaceFromBaseapp,			MERCURY_VARIABLE_MESSAGE)

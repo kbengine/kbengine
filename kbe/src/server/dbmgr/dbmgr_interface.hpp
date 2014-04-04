@@ -75,7 +75,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 								COMPONENT_ID,						componentID)
 
 	// global数据改变
-	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChanged,		MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,

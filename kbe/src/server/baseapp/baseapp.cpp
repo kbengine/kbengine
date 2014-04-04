@@ -119,7 +119,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	EntityApp<Base>(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
-	pGlobalBases_(NULL),
+	pBaseAppData_(NULL),
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
 	pBackupSender_(),
@@ -265,8 +265,8 @@ bool Baseapp::installPyModules()
 void Baseapp::onInstallPyModules()
 {
 	// 添加globalData, globalBases支持
-	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
-	registerPyObjectToScript("globalBases", pGlobalBases_);
+	pBaseAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::BASEAPP_DATA);
+	registerPyObjectToScript("baseAppData", pBaseAppData_);
 
 	if(PyModule_AddIntMacro(this->getScript().getModule(), LOG_ON_REJECT))
 	{
@@ -297,8 +297,8 @@ bool Baseapp::uninstallPyModules()
 		script::PyProfile::remove("kbengine");
 	}
 
-	unregisterPyObjectToScript("globalBases");
-	S_RELEASE(pGlobalBases_); 
+	unregisterPyObjectToScript("baseAppData");
+	S_RELEASE(pBaseAppData_); 
 
 	Base::uninstallScript();
 	Proxy::uninstallScript();
@@ -1807,7 +1807,7 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::onBroadcastBaseAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1827,7 +1827,7 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
 	{
-		ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has key!\n");
+		ERROR_MSG("Baseapp::onBroadcastBaseAppDataChanged: no has key!\n");
 		return;
 	}
 
@@ -1835,12 +1835,12 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 	if(isDelete)
 	{
-		if(pGlobalBases_->del(pyKey))
+		if(pBaseAppData_->del(pyKey))
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 			// 通知脚本
-			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalBasesDel"), 
+			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppDataDel"), 
 				const_cast<char*>("O"), pyKey);
 		}
 	}
@@ -1849,19 +1849,19 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		PyObject * pyValue = script::Pickler::unpickle(value);
 		if(pyValue == NULL)
 		{
-			ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has value!\n");
+			ERROR_MSG("Baseapp::onBroadcastBaseAppDataChanged: no has value!\n");
 			Py_DECREF(pyKey);
 			return;
 		}
 
 		Py_INCREF(pyValue);
 
-		if(pGlobalBases_->write(pyKey, pyValue))
+		if(pBaseAppData_->write(pyKey, pyValue))
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 			// 通知脚本
-			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalBases"), 
+			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onBaseAppData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
 

@@ -122,7 +122,7 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 		
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		
-		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChange);
+		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChanged);
 		
 		(*pBundle) << dataType;
 		(*pBundle) << isDelete;

@@ -611,7 +611,7 @@ void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Cellapp::onBroadcastCellAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 
 	std::string key, value;
@@ -628,7 +628,7 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
 	{
-		ERROR_MSG("Cellapp::onBroadcastCellAppDataChange: no has key!\n");
+		ERROR_MSG("Cellapp::onBroadcastCellAppDataChanged: no has key!\n");
 		return;
 	}
 
@@ -651,7 +651,7 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 
 		if(pyValue == NULL)
 		{
-			ERROR_MSG("Cellapp::onBroadcastCellAppDataChange: no has value!\n");
+			ERROR_MSG("Cellapp::onBroadcastCellAppDataChanged: no has value!\n");
 			Py_DECREF(pyKey);
 			return;
 		}

@@ -116,7 +116,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastCellAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
