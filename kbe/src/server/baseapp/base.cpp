@@ -168,7 +168,7 @@ void Base::createCellData(void)
 		{
 			if(!scriptModule_->hasCell())
 			{
-				WARNING_MSG(boost::format("%1%::createCellData: cellData no create, cellapp not found[%2%].\n") % 
+				WARNING_MSG(boost::format("%1%::createCellData: cellData no create, not from the cellapp found script(%2%)!\n") % 
 					scriptModule_->getName() % scriptModule_->getName());
 			}
 		}
