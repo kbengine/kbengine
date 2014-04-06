@@ -9,10 +9,10 @@ https://sourceforge.net/projects/kbengine/files/
 
 ##什么是KBEngine?
 
-KBEngine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 cocos2d、html5等作为前端表现。
+KBEngine是一款开源mmog服务端引擎， 使用统一协议能够轻松与前端对接，能轻松使用unity3d、 ogre、 cocos2d、 html5等作为前端表现。
 
-底层框架由c++编写， 逻辑层使用python脚本， 开发者无需重复实现一些通用的底层服务端技术，
-使开发者能够真正集中精力到游戏开发上来， 快速并且保证效率的打造各种类型的游戏。
+底层框架由c++编写， 逻辑层使用python， 开发者无需重复实现一些通用的底层服务端技术，
+使开发者能够真正集中精力到游戏开发上来， 快速打造各种游戏。
 
 简单的介绍一下引擎的各个主要组件部分:
 
@@ -48,7 +48,7 @@ KBEngine是一款开源mmog服务端引擎， 能够使用unity3d、 ogre、 coc
 	· client:
 	客户端我们将提供基础框架，这个框架不包括渲染部分和输入输出部分的具体实现, 
 	我们将提供一个lib文件和一套API接口，开发者可以选择使用自己比较适合的图形渲染引擎与输入输出控制部分， 
-	(目前支持unity3d、ogre、html5)
+	(目前已实现的ClientSDK版本: Unity3d、Ogre、Html5)
 
 
 	· kbmachine:
