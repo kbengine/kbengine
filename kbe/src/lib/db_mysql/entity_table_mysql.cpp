@@ -85,7 +85,8 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%).\n") % tablename % itemname % datatype % dbi->getstrerror());
+			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%)\n lastQuery:%5%.\n") % 
+				tablename % itemname % datatype % dbi->getstrerror() % dbi->lastquery());
 			return false;
 		}
 	}
