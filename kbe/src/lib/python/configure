@@ -15396,7 +15396,7 @@ then
 fi
 
 echo "creating Modules/Setup.local"
-if test ! -f Modules/Setup.local 
+if test ! -f Modules/Setup.local
 then
 	echo "# Edit this file for local setup changes" >Modules/Setup.local
 fi
