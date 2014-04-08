@@ -86,7 +86,7 @@ bool sync_item_to_db(DBInterface* dbi,
 		catch(...)
 		{
 			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%)\n lastQuery:%5%.\n") % 
-				tablename % itemname % datatype % dbi->getstrerror() % dbi->lastquery());
+				tablename % itemname % datatype % dbi->getstrerror() % static_cast<DBInterfaceMysql*>(dbi)->lastquery());
 			return false;
 		}
 	}
