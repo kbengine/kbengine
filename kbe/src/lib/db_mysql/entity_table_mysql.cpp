@@ -1473,7 +1473,9 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 
-	pSotvs->extraDatas = tbuf;
+	pSotvs->extraDatas = "\"";
+	pSotvs->extraDatas += tbuf;
+	pSotvs->extraDatas += "\"";
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
@@ -1521,7 +1523,9 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 
-	pSotvs->extraDatas = tbuf;
+	pSotvs->extraDatas = "\"";
+	pSotvs->extraDatas += tbuf;
+	pSotvs->extraDatas += "\"";
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
