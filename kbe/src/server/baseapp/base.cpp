@@ -279,8 +279,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py=%4%) is error.\n") %
-						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name);
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
+						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
 				}
 				else
 				{
@@ -295,8 +295,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py=%4%) is error.\n") %
-						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name);
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
+						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
 				}
 				else
 				{
