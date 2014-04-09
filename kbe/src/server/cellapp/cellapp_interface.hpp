@@ -149,6 +149,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 开始profile
 	CELLAPP_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
 
+	// 请求teleport到当前cellapp上进行确认
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherValidation,				MERCURY_VARIABLE_MESSAGE)
+
+	// 请求teleport到当前cellapp上进行确认后的应答
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherAck,						MERCURY_VARIABLE_MESSAGE)
+
 	// 请求teleport到当前cellapp上
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
 

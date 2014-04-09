@@ -2357,6 +2357,74 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel, 
+												KBEngine::MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+	
+	ENTITY_ID eid;
+	s >> eid;
+
+	Base* base = pEntities_->find(eid);
+	if(base == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: entityID %1% not found.\n") % eid);
+		s.opfini();
+		return;
+	}
+
+	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getCellMailbox());
+	if(mailbox == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: "
+			"is error(not found cellMailbox)! entityID=%1%.\n") % 
+			eid);
+
+		s.opfini();
+		return;
+	}
+	
+	if(s.opsize() <= 0)
+		return;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).append(s);
+	mailbox->postMail((*pBundle));
+	
+	if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+	{
+		Mercury::MessageID fmsgid = 0;
+		s >> fmsgid;
+		Mercury::MessageHandler* pMessageHandler = CellappInterface::messageHandlers.find(fmsgid);
+		bool isprint = true;
+
+		if(pMessageHandler)
+		{
+			(*pBundle).pCurrMsgHandler(pMessageHandler);
+			std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+													Mercury::g_trace_packet_disables.end(),				
+														pMessageHandler->name);							
+																											
+			if(iter != Mercury::g_trace_packet_disables.end())												
+			{																								
+				isprint = false;																			
+			}																								
+		}
+
+		if(isprint)
+		{
+			DEBUG_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: %1%(msgid=%2%).\n") %
+				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+		}
+	}
+
+	s.read_skip(s.opsize());
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
 {
 	return new BaseRemoteMethod(md, pMailbox);

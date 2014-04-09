@@ -90,7 +90,7 @@ public:
 	/** 
 		通过entityID销毁一个entity 
 	*/
-	virtual bool destroyEntity(ENTITY_ID entityID);
+	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript = true);
 
 	/**
 		由mailbox来尝试获取一个entity的实例
@@ -643,12 +643,12 @@ void EntityApp<E>::handleGameTick()
 }
 
 template<class E>
-bool EntityApp<E>::destroyEntity(ENTITY_ID entityID)
+bool EntityApp<E>::destroyEntity(ENTITY_ID entityID, bool callScript = true)
 {
 	PyObjectPtr entity = pEntities_->erase(entityID);
 	if(entity != NULL)
 	{
-		static_cast<E*>(entity.get())->destroy();
+		static_cast<E*>(entity.get())->destroy(callScript);
 		return true;
 	}
 

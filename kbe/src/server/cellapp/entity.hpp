@@ -78,7 +78,7 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void onDestroy(void);
+	void onDestroy(bool callScript);
 	
 	/**
 		销毁场景
@@ -199,6 +199,7 @@ public:
 	void teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
 	void teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir);
 	void teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
 
 	/**
 		传送成功和失败相关回调
@@ -206,6 +207,7 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
+	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID);
 
 	/**
 		进入离开cell等回调

@@ -118,7 +118,7 @@ public:
 	/** 
 		Ïú»ÙÕâ¸öentity 
 	*/
-	void onDestroy(void){};
+	void onDestroy(bool callScript){};
 
 	void onEnterWorld();
 	void onLeaveWorld();

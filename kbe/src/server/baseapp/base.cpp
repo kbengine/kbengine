@@ -94,11 +94,13 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onDestroy(void)																					
+void Base::onDestroy(bool callScript)																					
 {
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+	if(callScript)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+	}
 
 	if(this->hasDB())
 	{

@@ -219,6 +219,8 @@ public:
 		网络接口
 		另一个cellapp的entity要teleport到本cellapp上的space中
 	*/
+	void reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s);
 	void reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s);
 
 protected:

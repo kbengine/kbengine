@@ -630,12 +630,12 @@ public:																										\
 																											\
 	void writeToDB(void* data);																				\
 																											\
-	void destroy()																							\
+	void destroy(bool callScript = true)																	\
 	{																										\
 		if(!isDestroyed_)																					\
 		{																									\
 			isDestroyed_ = true;																			\
-			onDestroy();																					\
+			onDestroy(callScript);																			\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\

@@ -308,6 +308,11 @@ public:
 	*/
 	void forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		cellapp转发entity消息给某个baseEntity的cellEntity
+	*/
+	void forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
 	/**
 		获取游戏时间
 	*/

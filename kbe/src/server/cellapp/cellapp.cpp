@@ -1314,18 +1314,109 @@ PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	COMPONENT_ID cellComponentID = 0;
+	s >> teleportEntityID >> nearbyMBRefID >> cellComponentID;
+
+	Entity* entity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
+	SPACE_ID spaceID = 0;
+
+	if(entity)
+	{
+		Space* space = Spaces::findSpace(entity->getSpaceID());
+		if(space == NULL || (space->creatorID() == entity->getID() && entity->isDestroyed()))
+		{
+			spaceID = 0;
+		}
+		else
+		{
+			spaceID = space->getID();
+		}
+	}
+
+	Mercury::Channel* pCellappChannel = Components::getSingleton().findComponent(cellComponentID)->pChannel;
+
+	if(pCellappChannel == NULL)
+	{
+		ERROR_MSG(boost::format("Cellapp::reqTeleportOtherValidation: not found cellapp(%1%)!\n") % cellComponentID);
+		return;
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::reqTeleportOtherAck);
+	(*pBundle) << teleportEntityID;
+	(*pBundle) << nearbyMBRefID;
+	(*pBundle) << spaceID;
+
+	pBundle->send(this->getNetworkInterface(), pCellappChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	SPACE_ID spaceID = 0;
+
+	s >> teleportEntityID >> nearbyMBRefID >> spaceID;
+	
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+
+	if(entity)
+	{
+		entity->onReqTeleportOtherAck(pChannel, nearbyMBRefID, spaceID);
+	}
+	else
+	{
+		ERROR_MSG(boost::format("Cellapp::reqTeleportOtherAck: not found reqTeleportEntity(%1%)!\n") % teleportEntityID);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	Position3D pos;
 	Direction3D dir;
+	std::string entityType;
+	SPACE_ID spaceID = 0, lastSpaceID = 0;
 
-	s >> nearbyMBRefID >> teleportEntityID;
+	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID >> spaceID;
+	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
-	// 读取entity的celldata并且创建entity
+	Space* space = Spaces::findSpace(spaceID);
+	if(space == NULL)
+	{
+		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: not found space(%1%),  reqTeleportEntity(%2%)!\n") % spaceID % teleportEntityID);
+		s.opfini();
+		return;
+	}
 
+	// 创建entity
+	Entity* e = createEntityCommon(entityType.c_str(), NULL, false, teleportEntityID, false);
+	if(e == NULL)
+	{
+		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: create reqTeleportEntity(%1%) is error!\n") % teleportEntityID);
+		s.opfini();
+		return;
+	}
+
+	e->setSpaceID(space->getID());
+	e->setPositionAndDirection(pos, dir);
+
+	// 读取entity的celldata并且创建entity
+	PyObject* cellData = e->createCellDataFromStream(&s);
+	e->createNamespace(cellData);
+	Py_XDECREF(cellData);
+	
+	space->addEntityAndEnterWorld(e);
+
+	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
+	e->onTeleportSuccess(nearbyMBRef, lastSpaceID);
 }
 
 //-------------------------------------------------------------------------------------

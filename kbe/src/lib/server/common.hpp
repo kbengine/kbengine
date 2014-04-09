@@ -47,6 +47,13 @@ namespace KBEngine {
 	FORWARDBUNDLE.finish(true);																											\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
+// cellapp转发消息给cellapp
+#define MERCURY_ENTITY_MESSAGE_FORWARD_CELLAPP(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
+	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);															\
+	SENDBUNDLE << ENTITYID;																												\
+	FORWARDBUNDLE.finish(true);																											\
+	SENDBUNDLE.append(FORWARDBUNDLE);	
+
 // cellapp转发消息给客户端开始
 #define MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(ENTITYID, SENDBUNDLE)																\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\

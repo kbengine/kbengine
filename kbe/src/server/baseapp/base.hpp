@@ -201,7 +201,7 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void onDestroy(void);
+	void onDestroy(bool callScript);
 
 	/**
 		销毁base内部通知
