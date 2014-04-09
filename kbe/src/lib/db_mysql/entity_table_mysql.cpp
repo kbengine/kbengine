@@ -60,8 +60,9 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	DEBUG_MSG(boost::format("syncToDB(): %1%->%2%(%3%).\n") % tablename % itemname % datatype);
 
-	char __sql_str__[MAX_BUF];	
-	kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s add %s %s;",
+	char __sql_str__[MAX_BUF];
+
+	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` ADD `%s` %s;",
 		tablename, itemname, datatype);	
 
 	bool ret = false;
@@ -76,8 +77,9 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	if(dbi->getlasterror() == 1060)	
 	{
-		kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s %s;",	
+		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` MODIFY COLUMN `%s` %s;",	
 			tablename, itemname, datatype);
+
 		try
 		{
 			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
@@ -85,8 +87,9 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%)\n lastQuery:%5%.\n") % 
-				tablename % itemname % datatype % dbi->getstrerror() % static_cast<DBInterfaceMysql*>(dbi)->lastquery());
+			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%: %5%)\n lastQuery: %6%.\n") % 
+				tablename % itemname % datatype % dbi->getlasterror() % dbi->getstrerror() % static_cast<DBInterfaceMysql*>(dbi)->lastquery());
+
 			return false;
 		}
 	}
