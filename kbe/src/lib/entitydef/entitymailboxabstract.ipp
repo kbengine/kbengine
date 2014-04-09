@@ -35,9 +35,21 @@ INLINE bool EntityMailboxAbstract::isCell()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool EntityMailboxAbstract::isCellReal()const
+{
+	return type_ == MAILBOX_TYPE_CELL;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE bool EntityMailboxAbstract::isBase()const
 {
 	return type_ == MAILBOX_TYPE_BASE || type_ == MAILBOX_TYPE_BASE_VIA_CELL;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool EntityMailboxAbstract::isBaseReal()const
+{
+	return type_ == MAILBOX_TYPE_BASE;
 }
 
 //-------------------------------------------------------------------------------------

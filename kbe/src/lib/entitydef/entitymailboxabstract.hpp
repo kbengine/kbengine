@@ -106,8 +106,10 @@ public:
 
 	INLINE bool isClient()const;
 	INLINE bool isCell()const;
+	INLINE bool isCellReal()const;
 	INLINE bool isCellViaBase()const;
 	INLINE bool isBase()const;
+	INLINE bool isBaseReal()const;
 	INLINE bool isBaseViaCell()const;
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
