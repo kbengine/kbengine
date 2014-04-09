@@ -304,6 +304,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\entitymailboxabstract.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\method.ipp"
 			>
 		</File>
