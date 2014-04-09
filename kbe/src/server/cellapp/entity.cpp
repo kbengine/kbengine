@@ -1935,6 +1935,23 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		// 否则为当前cellapp上的space， 那么我们也能够直接执行操作
 		Space* currspace = Spaces::findSpace(this->getSpaceID());
 		Space* space = Spaces::findSpace(spaceID);
+
+		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
+		if(space == NULL || (space->creatorID() == entity->getID() && entity->isDestroyed()))
+		{
+			if(space != NULL)
+			{
+				ERROR_MSG("Entity::teleport: nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n");
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Entity::teleport: not found space(%1%)!\n") % spaceID);
+			}
+
+			onTeleportFailure();
+			return;
+		}
+
 		currspace->removeEntity(this);
 		this->setPositionAndDirection(pos, dir);
 		space->addEntityAndEnterWorld(this);
@@ -2054,6 +2071,12 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 				{
 					teleportRefMailbox(mb, pos, dir);
 				}
+			}
+			else
+			{
+				// 如果不是entity， 也不是mailbox同时也不是None? 那肯定是输入错误
+				ERROR_MSG("Entity::teleport: nearbyRef is error!\n");
+				onTeleportFailure();
 			}
 		}
 	}
