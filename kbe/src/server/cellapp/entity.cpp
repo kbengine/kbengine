@@ -546,7 +546,20 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 			// DEBUG_MSG(boost::format("Entity::addCellDataToStream: %1%.\n") % propertyDescription->getName());
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 			(*mstream) << propertyDescription->getUType();
-			propertyDescription->getDataType()->addToStream(mstream, pyVal);
+
+			if(!propertyDescription->getDataType()->isSameType(pyVal))
+			{
+				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->getScriptName() % 
+					propertyDescription->getName() % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+				
+				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
+				propertyDescription->getDataType()->addToStream(mstream, pydefval);
+				Py_DECREF(pydefval);
+			}
+			else
+			{
+				propertyDescription->getDataType()->addToStream(mstream, pyVal);
+			}
 
 			if (PyErr_Occurred())
  			{	
@@ -1975,6 +1988,9 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 	if(this->getBaseMailbox() != NULL)
 	{
 		this->backupCellData();
+
+		// 告诉baseapp， cell正在迁移, 迁移完毕需要设置this->transferCompleted();
+		// this->transferStart();
 	}
 	else
 	{

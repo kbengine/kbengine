@@ -154,7 +154,8 @@ public:																						\
 	static int __py_readonly_descr(PyObject* self, void* closure)							\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
-		"Sorry, this attribute in " #CLASS " is read-only");								\
+		"Sorry, this attribute in %s is read-only", (self != NULL ? self->ob_type->tp_name	\
+		: #CLASS));																			\
 		PyErr_PrintEx(0);																	\
 		return 0;																			\
 	}																						\
@@ -164,7 +165,8 @@ public:																						\
 	static int __py_writeonly_descr(PyObject* self, PyObject* value, void* closure)			\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
-		"Sorry, this attribute in " #CLASS " is write-only");								\
+		"Sorry, this attribute in %s is write-only", (self != NULL ? self->ob_type->tp_name	\
+		: #CLASS));																			\
 		PyErr_PrintEx(0);																	\
 		return 0;																			\
 	}																						\

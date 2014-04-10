@@ -232,8 +232,20 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			(*s) << propertyDescription->getUType();
-
-			propertyDescription->getDataType()->addToStream(s, pyVal);
+			
+			if(!propertyDescription->getDataType()->isSameType(pyVal))
+			{
+				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->getScriptName() % 
+					propertyDescription->getName() % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+				
+				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
+				propertyDescription->getDataType()->addToStream(s, pydefval);
+				Py_DECREF(pydefval);
+			}
+			else
+			{
+				propertyDescription->getDataType()->addToStream(s, pyVal);
+			}
 
 			if (PyErr_Occurred())
  			{	
