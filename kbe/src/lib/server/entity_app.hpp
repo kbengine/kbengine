@@ -410,18 +410,6 @@ bool EntityApp<E>::installPyModules()
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
 
-	if(entryScriptFileName != NULL)
-	{
-		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
-		S_RELEASE(entryScriptFileName);
-
-		if(entryScript_.get() == NULL)
-		{
-			return false;
-		}
-	}
-
 	// Ìí¼ÓpywatcherÖ§³Ö
 	if(!initializePyWatcher(&this->getScript()))
 		return false;
@@ -474,6 +462,18 @@ bool EntityApp<E>::installPyModules()
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
 	
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	onInstallPyModules();
 	return true;
 }
