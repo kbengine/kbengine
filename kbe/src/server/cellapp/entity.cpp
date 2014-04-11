@@ -2027,8 +2027,6 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 		Py_INCREF(nearbyMBRef);
 	}
 	
-	COMPONENT_ID targetCellappID = nearbyMBRef->getComponentID();
-	
 	if(nearbyMBRef->isCellReal())
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
