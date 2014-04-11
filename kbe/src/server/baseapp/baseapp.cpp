@@ -74,6 +74,17 @@ PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityTyp
 
 		const char* attrname = propertyDescription->getName();
 		PyObject* pyVal = propertyDescription->createFromStream(&s);
+
+		if(!propertyDescription->getDataType()->isSameType(pyVal))
+		{
+			if(pyVal)
+			{
+				Py_DECREF(pyVal);
+			}
+
+			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+		}
+
 		PyDict_SetItemString(pyDict, attrname, pyVal);
 		Py_DECREF(pyVal);
 	}
