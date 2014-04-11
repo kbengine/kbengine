@@ -387,6 +387,10 @@ void DebugHelper::error_msg(std::string s)
 #endif
 
 	onMessage(KBELOG_ERROR, s.c_str(), s.size());
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("ERROR: %s", s.c_str());
+#endif
 }
 
 //-------------------------------------------------------------------------------------
