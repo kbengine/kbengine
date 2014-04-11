@@ -300,6 +300,16 @@ void Proxy::giveClientTo(Proxy* proxy)
 		proxy->onGiveClientTo(lpChannel);
 		setClientMailbox(NULL);
 		addr(Mercury::Address::NONE);
+		
+		if(proxy->getClientMailbox() != NULL)
+		{
+			// 通知client销毁当前entity
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
+			(*pBundle) << this->getID();
+			proxy->getClientMailbox()->postMail((*pBundle));
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		}
 	}
 }
 
