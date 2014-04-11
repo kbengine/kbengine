@@ -53,7 +53,7 @@ ClientApp::ClientApp(Mercury::EventDispatcher& dispatcher,
 					 Mercury::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
-ClientObjectBase(ninterface),
+ClientObjectBase(ninterface, getScriptType()),
 TimerHandler(),
 Mercury::ChannelTimeOutHandler(),
 scriptBaseTypes_(),
@@ -174,12 +174,11 @@ bool ClientApp::installEntityDef()
 		return false;
 	}
 
-	// 注册创建entity的方法到py
-	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,	__py_fireEvent,			METH_VARARGS,	0)
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,		__py_getPlayer,			METH_VARARGS,	0)
-	
+	// 注册一些接口到kbengine
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,			__py_fireEvent,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,				__py_getPlayer,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getSpaceData,		__py_GetSpaceData,								METH_VARARGS,	0)
 	return true;
 }
 

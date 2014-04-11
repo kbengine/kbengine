@@ -152,6 +152,10 @@ public:
 	*/
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
 
+	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_GetSpaceData(&ClientApp::getSingleton(), args);	
+	}
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

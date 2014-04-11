@@ -323,8 +323,6 @@ public:
 	ENTITY_ID getTargetID()const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
-	
-
 	/** 网络接口
 		space相关操作接口
 		服务端添加了某个space的几何映射
@@ -344,7 +342,7 @@ public:
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
 protected:				
-	int32 appID_;
+	int32													appID_;
 
 	// 服务端网络通道
 	Mercury::Channel*										pServerChannel_;
@@ -355,35 +353,35 @@ protected:
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 
-	ENTITY_ID entityID_;
-	SPACE_ID spaceID_;
+	ENTITY_ID												entityID_;
+	SPACE_ID												spaceID_;
 
-	Position3D entityPos_;
-	Direction3D entityDir_;
+	Position3D												entityPos_;
+	Direction3D												entityDir_;
 
-	DBID dbid_;
+	DBID													dbid_;
 
-	std::string ip_;
-	uint16 port_;
+	std::string												ip_;
+	uint16													port_;
 
-	uint64 lastSentActiveTickTime_;
-	uint64 lastSentUpdateDataTime_;
+	uint64													lastSentActiveTickTime_;
+	uint64													lastSentUpdateDataTime_;
 
-	bool connectedGateway_;
-	bool canReset_;
+	bool													connectedGateway_;
+	bool													canReset_;
 
-	std::string name_;
-	std::string password_;
-	std::string extradatas_;
+	std::string												name_;
+	std::string												password_;
+	std::string												extradatas_;
 
-	CLIENT_CTYPE typeClient_;
+	CLIENT_CTYPE											typeClient_;
 
 	typedef std::map<ENTITY_ID, KBEShared_ptr<MemoryStream> > BUFFEREDMESSAGE;
 	BUFFEREDMESSAGE											bufferedCreateEntityMessage_;
 
 	EventHandler											eventHandler_;
 
-	Mercury::NetworkInterface& ninterface_;
+	Mercury::NetworkInterface&								ninterface_;
 
 	// 当前客户端所选择的目标
 	ENTITY_ID												targetID_;

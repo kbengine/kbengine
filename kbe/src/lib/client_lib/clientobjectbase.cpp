@@ -1422,6 +1422,9 @@ void ClientObjectBase::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::hasSpaceData(const std::string& key)
 {
+	if(key.size() == 0)
+		return false;
+
 	SPACE_DATA::iterator iter = spacedatas_.find(key);
 	if(iter == spacedatas_.end())
 		return false;
