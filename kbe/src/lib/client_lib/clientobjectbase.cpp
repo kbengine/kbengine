@@ -176,7 +176,7 @@ void ClientObjectBase::tickSend()
 }
 
 //-------------------------------------------------------------------------------------	
-bool ClientObjectBase::destroyEntity(ENTITY_ID entityID)
+bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 {
 	return pEntities_->erase(entityID) != NULL;
 }

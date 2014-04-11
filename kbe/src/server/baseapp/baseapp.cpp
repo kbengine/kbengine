@@ -207,7 +207,7 @@ void Baseapp::onShutdown(bool first)
 			if(static_cast<Base*>(iter->second.get())->hasDB() && 
 				static_cast<Base*>(iter->second.get())->getCellMailbox() == NULL)
 			{
-				this->destroyEntity(static_cast<Base*>(iter->second.get())->getID());
+				this->destroyEntity(static_cast<Base*>(iter->second.get())->getID(), true);
 
 				count--;
 				done = true;

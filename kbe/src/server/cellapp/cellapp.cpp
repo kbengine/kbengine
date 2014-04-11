@@ -110,7 +110,7 @@ void Cellapp::onShutdown(bool first)
 			if(static_cast<Entity*>(iter->second.get())->getBaseMailbox() != NULL && 
 				static_cast<Entity*>(iter->second.get())->getScriptModule()->isPersistent())
 			{
-				this->destroyEntity(static_cast<Entity*>(iter->second.get())->getID());
+				this->destroyEntity(static_cast<Entity*>(iter->second.get())->getID(), true);
 
 				count--;
 				done = true;
@@ -977,7 +977,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid)
 {
 	// DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
-	destroyEntity(eid);
+	destroyEntity(eid, true);
 }
 
 //-------------------------------------------------------------------------------------

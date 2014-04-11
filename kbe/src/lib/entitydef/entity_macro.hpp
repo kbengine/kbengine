@@ -709,7 +709,7 @@ public:																										\
 																											\
 	void CLASS::destroyEntity()																				\
 	{																										\
-		APP::getSingleton().destroyEntity(id_);																\
+		APP::getSingleton().destroyEntity(id_, true);														\
 	}																										\
 																											\
 	PyObject* CLASS::pyGetIsDestroyed()																		\

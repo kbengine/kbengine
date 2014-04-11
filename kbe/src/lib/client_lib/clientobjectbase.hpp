@@ -76,7 +76,7 @@ public:
 	/**
 		通过entityID销毁一个entity 
 	*/
-	virtual bool destroyEntity(ENTITY_ID entityID);
+	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript);
 
 	void tickSend();
 	
