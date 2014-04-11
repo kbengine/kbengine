@@ -1280,6 +1280,24 @@ START_RUN:
 			
 			return val;
 		}
+
+		public void Client_onEntityDestroyed(Int32 eid)
+		{
+			Dbg.DEBUG_MSG("KBEngine::Client_onEntityDestroyed: entity(" + eid + ")");
+			
+			Entity entity = null;
+			
+			if(!entities.TryGetValue(eid, out entity))
+			{
+				Dbg.ERROR_MSG("KBEngine::Client_onEntityDestroyed: entity(" + eid + ") not found!");
+				return;
+			}
+			
+			if(entity.inWorld)
+				entity.leaveWorld();
+			
+			entities.Remove(eid);
+		}
 		
 		public void Client_onUpdateBasePos(MemoryStream stream)
 		{

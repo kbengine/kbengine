@@ -2293,6 +2293,22 @@ function KBENGINE()
 			entity.leaveWorld();
 		delete g_kbengine.entities[eid];
 	}
+
+	this.Client_onEntityDestroyed = function(eid)
+	{
+		console.info("KBENGINE::Client_onEntityDestroyed: entity(" + eid + ")!");
+		
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onEntityDestroyed: entity(" + eid + ") not found!");
+			return;
+		}
+
+		if(entity.inWorld)
+			entity.leaveWorld();
+		delete g_kbengine.entities[eid];
+	}
 	
 	this.Client_onEntityEnterSpace = function(spaceID, eid)
 	{
