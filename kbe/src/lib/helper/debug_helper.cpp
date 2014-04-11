@@ -389,7 +389,7 @@ void DebugHelper::error_msg(std::string s)
 	onMessage(KBELOG_ERROR, s.c_str(), s.size());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	printf("ERROR: %s", s.c_str());
+	printf("[ERROR]: %s", s.c_str());
 #endif
 }
 
@@ -429,6 +429,11 @@ void DebugHelper::script_msg(std::string s)
 #endif
 
 	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
+		printf("[S_ERROR]: %s", s.c_str());
+#endif
 }
 
 //-------------------------------------------------------------------------------------
