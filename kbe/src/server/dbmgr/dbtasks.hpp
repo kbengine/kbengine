@@ -181,6 +181,28 @@ protected:
 };
 
 /**
+	从数据库中删除entity
+*/
+class DBTaskDeleteBaseByDBID : public DBTask
+{
+public:
+	DBTaskDeleteBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid);
+
+	virtual ~DBTaskDeleteBaseByDBID();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	COMPONENT_ID componentID_;
+	CALLBACK_ID callbackID_;
+	DBID entityDBID_;
+	ENTITY_SCRIPT_UID sid_;
+	bool success_;
+	ENTITY_ID entityID_;
+	COMPONENT_ID entityInAppID_;
+};
+
+/**
 	创建一个账号到数据库
 */
 class DBTaskCreateAccount : public DBTask

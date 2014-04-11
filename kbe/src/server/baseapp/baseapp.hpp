@@ -401,6 +401,18 @@ public:
 	*/
 	static PyObject* __py_address(PyObject* self, PyObject* args);
 
+	/**
+		通过dbid从数据库中删除一个实体
+
+		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的mailbox， 其他任何原因都返回false.
+	*/
+	static PyObject* __py_deleteBaseByDBID(PyObject* self, PyObject* args);
+
+	/** 网络接口
+		通过dbid从数据库中删除一个实体的回调
+	*/
+	void deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/** 网络接口
 		请求绑定email
 	*/

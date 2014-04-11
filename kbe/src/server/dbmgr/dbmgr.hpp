@@ -160,6 +160,11 @@ public:
 	void removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		通过dbid从数据库中删除一个实体的回调
+	*/
+	void deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
 	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
