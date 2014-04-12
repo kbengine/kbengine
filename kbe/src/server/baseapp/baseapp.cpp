@@ -2869,7 +2869,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			const ScriptDefModule::METHODDESCRIPTION_MAP& methods1 = iter->get()->getBaseExposedMethodDescriptions();
 			const ScriptDefModule::METHODDESCRIPTION_MAP& methods2 = iter->get()->getCellExposedMethodDescriptions();
 
-			if(propers.size() == 0 && methods.size() == 0)
+			if(!iter->get()->hasClient())
 				continue;
 
 			uint16 size = propers.size() + 3/*pos, dir, spaceID*/;
