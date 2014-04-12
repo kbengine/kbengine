@@ -343,8 +343,8 @@ void Proxy::giveClientTo(Proxy* proxy)
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 			(*pBundle) << this->getID();
-			proxy->getClientMailbox()->postMail((*pBundle));
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
+			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 }
