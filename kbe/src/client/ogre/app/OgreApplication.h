@@ -34,6 +34,8 @@ public:
 
 	void changeSpace(Space* space);
 
+	virtual void windowClosed(Ogre::RenderWindow* rw);
+
 protected:
 	virtual bool setup();
     virtual void setupResources();
