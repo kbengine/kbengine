@@ -7,8 +7,9 @@ from KBEDebug import *
 from interfaces.NPCObject import NPCObject
 from interfaces.Motion import Motion
 
-class NPC(NPCObject, Motion):
+class NPC(KBEngine.Entity, NPCObject, Motion):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		NPCObject.__init__(self)
 		Motion.__init__(self)
 

@@ -13,7 +13,8 @@ from interfaces.Flags import Flags
 from interfaces.AI import AI
 from interfaces.NPCObject import NPCObject
 
-class Monster(NPCObject, 
+class Monster(KBEngine.Entity,
+			NPCObject, 
 			Flags,
 			State,
 			Motion, 
@@ -21,6 +22,7 @@ class Monster(NPCObject,
 			Spell, 
 			AI):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		NPCObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 

@@ -2,9 +2,9 @@
 import KBEngine
 from KBEDebug import *
 
-class GameObject(KBEngine.Base):
+class GameObject:
 	def __init__(self):
-		KBEngine.Base.__init__(self)
+		pass
 
 	def getScriptName(self):
 		return self.__class__.__name__

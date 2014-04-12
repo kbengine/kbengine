@@ -11,8 +11,9 @@ import d_spaces
 import d_spaces_spawns
 import xml.etree.ElementTree as etree 
 
-class Space(GameObject):
+class Space(KBEngine.Base, GameObject):
 	def __init__(self):
+		KBEngine.Base.__init__(self)
 		GameObject.__init__(self)
 		self.createInNewSpace(None)
 		

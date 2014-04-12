@@ -8,9 +8,9 @@ from KBEDebug import *
 import d_entities
 import d_avatar_inittab
 
-class GameObject(KBEngine.Entity):
+class GameObject:
 	def __init__(self):
-		KBEngine.Entity.__init__(self)
+		pass
 
 	def initEntity(self):
 		"""

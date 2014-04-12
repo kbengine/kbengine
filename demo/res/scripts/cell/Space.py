@@ -5,8 +5,9 @@ from interfaces.GameObject import GameObject
 
 import d_spaces
 
-class Space(GameObject):
+class Space(KBEngine.Entity, GameObject):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		GameObject.__init__(self)
 		
 		resPath = d_spaces.datas.get(self.spaceUType)['resPath']

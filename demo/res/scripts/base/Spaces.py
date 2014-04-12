@@ -7,9 +7,11 @@ from SpaceAlloc import *
 import d_spaces
 import wtimer
 
-class Spaces(GameObject):
+class Spaces(KBEngine.Base, GameObject):
 	def __init__(self):
+		KBEngine.Base.__init__(self)
 		GameObject.__init__(self)
+		
 		self._spaceAllocs = {}
 		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
 		self.initAlloc()
