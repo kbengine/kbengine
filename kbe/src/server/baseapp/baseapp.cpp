@@ -2017,7 +2017,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 			accountName.c_str() % ptinfos->entityID);
 
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
-		if(base == NULL)
+		if(base == NULL || base->isDestroyed())
 		{
 			loginGatewayFailed(pChannel, accountName, SERVER_ERR_BUSY);
 			return;

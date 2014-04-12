@@ -294,6 +294,18 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
+		if(proxy->getID() == this->getID())
+		{
+			char err[255];																				
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is self.", 
+				getScriptName(), proxy->getID());			
+
+			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_PrintEx(0);	
+			onGiveClientToFailure();
+			return;
+		}
+
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
