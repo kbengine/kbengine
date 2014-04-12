@@ -256,6 +256,18 @@ void Proxy::onGiveClientToFailure()
 //-------------------------------------------------------------------------------------
 void Proxy::giveClientTo(Proxy* proxy)
 {
+	if(isDestroyed())
+	{
+		char err[255];																				
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: %d is destroyed.", 
+			getScriptName(), getID());			
+
+		PyErr_SetString(PyExc_TypeError, err);														
+		PyErr_PrintEx(0);	
+		onGiveClientToFailure();
+		return;
+	}
+
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
 		char err[255];																				
@@ -270,6 +282,18 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 	if(proxy)
 	{
+		if(proxy->isDestroyed())
+		{
+			char err[255];																				
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.", 
+				getScriptName(), proxy->getID());			
+
+			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_PrintEx(0);	
+			onGiveClientToFailure();
+			return;
+		}
+
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
