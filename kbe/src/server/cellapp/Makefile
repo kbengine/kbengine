@@ -43,8 +43,7 @@ MY_LIBS =		\
 	pyscript	\
 	network		\
 	navigation	\
-	thread		\
-	tmxparser
+	thread
 	
 
 BUILD_TIME_FILE = main
@@ -59,6 +58,8 @@ endif
 
 #HAS_PCH = 1
 CPPFLAGS += -DKBE_CELLAPP
+
+LDLIBS += -ltmxparser
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
