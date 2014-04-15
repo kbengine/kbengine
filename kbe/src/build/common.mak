@@ -249,6 +249,7 @@ CPPFLAGS += -DUSE_JWSMTP
 endif
 
 LDLIBS += -ltinyxml
+LDLIBS += -ljsoncpp
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1
