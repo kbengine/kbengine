@@ -39,6 +39,7 @@ all install clean full:
 	cd third_party/g3dlite && $(MAKE) $@
 	cd third_party/tinyxml && $(MAKE) $@
 	cd third_party/sigar/linux && $(MAKE) $@
+	cd third_party/jsoncpp/src/lib_json && $(MAKE) $@
 
 UNITTEST_LIBS = cstdkbe \
 				entitydef \
@@ -49,6 +50,8 @@ UNITTEST_LIBS = cstdkbe \
 				thread \
 				network \
 				thread	\
+				jsoncpp	\
+
 
 unit_tests: unit_tests_build unit_tests_run
 

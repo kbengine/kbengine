@@ -144,6 +144,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/json/include
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E
