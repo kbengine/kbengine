@@ -45,6 +45,10 @@
 				Name="VCCLCompilerTool"
 				PreprocessorDefinitions="Py_NO_ENABLE_SHARED"
 				RuntimeLibrary="1"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)_d\"
+				ObjectFile="../../../_objs\$(ProjectName)_d\"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName)_d.pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)_d\"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -102,6 +106,10 @@
 				Name="VCCLCompilerTool"
 				PreprocessorDefinitions="Py_NO_ENABLE_SHARED"
 				RuntimeLibrary="0"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
+				ObjectFile="../../../_objs\$(ProjectName)\"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName).pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)\"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

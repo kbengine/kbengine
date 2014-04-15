@@ -47,7 +47,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
+				AssemblerListingLocation="../../../_objs/Hybrid/$(ProjectName)_d\"
+				ObjectFile="../../../_objs/Hybrid/$(ProjectName)_d\"
+				ProgramDataBaseFileName="../../../../bin/Hybrid/$(ProjectName)_d.pdb"
+				XMLDocumentationFileName="../../../_objs/Hybrid/$(ProjectName)_d\"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -126,7 +129,10 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
+				AssemblerListingLocation="../../../_objs/Hybrid/$(ProjectName)\"
+				ObjectFile="../../../_objs/Hybrid/$(ProjectName)\"
+				ProgramDataBaseFileName="../../../../bin/Hybrid/$(ProjectName).pdb"
+				XMLDocumentationFileName="../../../_objs/Hybrid/$(ProjectName)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>

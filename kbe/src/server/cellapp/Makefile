@@ -43,7 +43,8 @@ MY_LIBS =		\
 	pyscript	\
 	network		\
 	navigation	\
-	thread
+	thread		\
+	tmxparser
 	
 
 BUILD_TIME_FILE = main

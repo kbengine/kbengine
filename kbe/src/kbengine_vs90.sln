@@ -265,6 +265,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "expat", "lib\third_party\ap
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_json", "lib\third_party\jsoncpp\makefiles\vs71\lib_json.vcproj", "{B84F7231-16CE-41D8-8C08-7B523FF4225B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tmxparser", "lib\third_party\tmxparser\tmxparser\tmxparser.vcproj", "{42FC1F89-7136-45E8-94E3-594C173C2937}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Consumer_Release_Indie|Win32 = Consumer_Release_Indie|Win32
@@ -1960,6 +1962,44 @@ Global
 		{B84F7231-16CE-41D8-8C08-7B523FF4225B}.Release9x|Win32.Build.0 = Release|Win32
 		{B84F7231-16CE-41D8-8C08-7B523FF4225B}.Static_Release|Win32.ActiveCfg = Release|Win32
 		{B84F7231-16CE-41D8-8C08-7B523FF4225B}.Static_Release|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Consumer_Release_Indie|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Consumer_Release_Indie|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Consumer_Release|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Consumer_Release|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Debug|Win32.ActiveCfg = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Debug|Win32.Build.0 = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Debug9x|Win32.ActiveCfg = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Debug9x|Win32.Build.0 = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.dummy|Win32.ActiveCfg = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.dummy|Win32.Build.0 = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Debug|Win32.ActiveCfg = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Debug|Win32.Build.0 = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Hybrid_Indie|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Hybrid_Indie|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Hybrid|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Editor_Hybrid|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Evaluation|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Evaluation|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Exporter_Debug|Win32.ActiveCfg = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Exporter_Debug|Win32.Build.0 = Debug|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Exporter_Release|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Exporter_Release|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Hybrid|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Hybrid|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PGInstrument|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PGInstrument|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PGUpdate|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PGUpdate|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PyModule_Hybrid|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.PyModule_Hybrid|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release_Indie|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release_Indie|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release9x|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Release9x|Win32.Build.0 = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Static_Release|Win32.ActiveCfg = Release|Win32
+		{42FC1F89-7136-45E8-94E3-594C173C2937}.Static_Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2009,5 +2049,6 @@ Global
 		{561FA9F7-14D0-4D94-822C-AAE9B08AACEF} = {8BF90F4F-766B-4B4D-B7F3-BF4189A29F4E}
 		{7E8F0CA1-081E-42B2-94D9-74AE146A47AF} = {8BF90F4F-766B-4B4D-B7F3-BF4189A29F4E}
 		{B84F7231-16CE-41D8-8C08-7B523FF4225B} = {8BF90F4F-766B-4B4D-B7F3-BF4189A29F4E}
+		{42FC1F89-7136-45E8-94E3-594C173C2937} = {8BF90F4F-766B-4B4D-B7F3-BF4189A29F4E}
 	EndGlobalSection
 EndGlobal

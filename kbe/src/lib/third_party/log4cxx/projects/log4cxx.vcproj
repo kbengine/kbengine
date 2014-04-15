@@ -53,9 +53,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug/log4cxx.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
+				AssemblerListingLocation="..\..\..\..\_objs\$(ProjectName)_d\"
+				ObjectFile="..\..\..\..\_objs\$(ProjectName)_d\"
 				ProgramDataBaseFileName="..\..\..\..\libs\$(ProjectName)_d.pdb"
+				XMLDocumentationFileName="..\..\..\..\_objs\$(ProjectName)_d\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -133,9 +134,10 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/log4cxx.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
+				AssemblerListingLocation="..\..\..\..\_objs\$(ProjectName)\"
+				ObjectFile="..\..\..\..\_objs\$(ProjectName)\"
 				ProgramDataBaseFileName="..\..\..\..\libs\$(ProjectName).pdb"
+				XMLDocumentationFileName="..\..\..\..\_objs\$(ProjectName)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

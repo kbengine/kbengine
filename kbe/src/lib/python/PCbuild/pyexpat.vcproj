@@ -46,6 +46,10 @@
 				AdditionalIncludeDirectories=".\..\Modules\expat"
 				PreprocessorDefinitions="Py_NO_ENABLE_SHARED;PYEXPAT_EXPORTS;HAVE_EXPAT_H;XML_NS;XML_DTD;BYTEORDER=1234;XML_CONTEXT_BYTES=1024;XML_STATIC;HAVE_MEMMOVE"
 				RuntimeLibrary="1"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)_d/"
+				ObjectFile="../../../_objs\$(ProjectName)_d/"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName)_d.pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)_d/"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -104,6 +108,10 @@
 				AdditionalIncludeDirectories=".\..\Modules\expat"
 				PreprocessorDefinitions="Py_NO_ENABLE_SHARED;PYEXPAT_EXPORTS;HAVE_EXPAT_H;XML_NS;XML_DTD;BYTEORDER=1234;XML_CONTEXT_BYTES=1024;XML_STATIC;HAVE_MEMMOVE"
 				RuntimeLibrary="0"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)/"
+				ObjectFile="../../../_objs\$(ProjectName)/"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName).pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)/"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

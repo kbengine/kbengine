@@ -48,7 +48,10 @@
 				AdditionalIncludeDirectories="..\Python;..\Modules\zlib"
 				PreprocessorDefinitions="_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32"
 				RuntimeLibrary="0"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
+				ObjectFile="../../../_objs\$(ProjectName)\"
 				ProgramDataBaseFileName="../../../libs\python32.pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)\"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -118,7 +121,10 @@
 				AdditionalIncludeDirectories="..\Python;..\Modules\zlib"
 				PreprocessorDefinitions="_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32"
 				RuntimeLibrary="1"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)_d\"
+				ObjectFile="../../../_objs\$(ProjectName)_d\"
 				ProgramDataBaseFileName="../../../libs\python32_d.pdb"
+				XMLDocumentationFileName="../../../_objs\$(ProjectName)_d\"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

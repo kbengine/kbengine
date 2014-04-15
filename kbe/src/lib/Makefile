@@ -40,6 +40,7 @@ all install clean full:
 	cd third_party/tinyxml && $(MAKE) $@
 	cd third_party/sigar/linux && $(MAKE) $@
 	cd third_party/jsoncpp/src/lib_json && $(MAKE) $@
+	cd third_party/tmxparser && $(MAKE) $@
 
 UNITTEST_LIBS = cstdkbe \
 				entitydef \
