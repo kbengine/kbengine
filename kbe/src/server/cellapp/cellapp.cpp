@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "server/telnet_server.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
-#include "navigation/navmeshex.hpp"
+#include "navigation/navigation.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -48,7 +48,7 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Cellapp);
 
-NavMeshEx g_navmeshs;
+Navigation g_navigation;
 
 //-------------------------------------------------------------------------------------
 Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher, 

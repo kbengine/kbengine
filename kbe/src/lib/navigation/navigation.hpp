@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __KBE_NAVMESHEX_HPP__
-#define __KBE_NAVMESHEX_HPP__
+#ifndef __KBE_NAVIGATION_HPP__
+#define __KBE_NAVIGATION_HPP__
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -53,11 +53,11 @@ public:
 /*
 	navmesh
 */
-class NavMeshEx : public Singleton<NavMeshEx>
+class Navigation : public Singleton<Navigation>
 {
 public:
-	NavMeshEx();
-	virtual ~NavMeshEx();
+	Navigation();
+	virtual ~Navigation();
 	
 	NavMeshHandle* loadNavmesh(std::string name);
 

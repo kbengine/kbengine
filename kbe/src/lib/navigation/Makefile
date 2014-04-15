@@ -15,7 +15,7 @@ SRCS =					\
 	DetourProximityGrid		\
 	DetourTileCache			\
 	DetourTileCacheBuilder		\
-	navmeshex			\
+	navigation			\
 	Recast				\
 	RecastAlloc			\
 	RecastArea			\

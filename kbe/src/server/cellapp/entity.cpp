@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/fixed_messages.hpp"
 #include "client_lib/client_interface.hpp"
 #include "server/eventhistory_stats.hpp"
-#include "navigation/navmeshex.hpp"
+#include "navigation/navigation.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/cellapp/cellapp_interface.hpp"

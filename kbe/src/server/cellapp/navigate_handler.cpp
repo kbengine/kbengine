@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "entity.hpp"
 #include "navigate_handler.hpp"	
-#include "navigation/navmeshex.hpp"
+#include "navigation/navigation.hpp"
 
 namespace KBEngine{	
 

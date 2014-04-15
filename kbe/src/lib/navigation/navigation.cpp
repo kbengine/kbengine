@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "navmeshex.hpp"
+#include "navigation.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
 
 namespace KBEngine{
 
-KBE_SINGLETON_INIT(NavMeshEx);
+KBE_SINGLETON_INIT(Navigation);
 
 const long RCN_NAVMESH_VERSION = 1;
 #define INVALID_POLYREF   0
@@ -171,14 +171,14 @@ int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float
 }
 
 //-------------------------------------------------------------------------------------
-NavMeshEx::NavMeshEx():
+Navigation::Navigation():
 navmeshs_(),
 mutex_()
 {
 }
 
 //-------------------------------------------------------------------------------------
-NavMeshEx::~NavMeshEx()
+Navigation::~Navigation()
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.begin();
@@ -189,14 +189,14 @@ NavMeshEx::~NavMeshEx()
 		dtFreeNavMesh(pNavMeshHandle->navmesh);
 		delete pNavMeshHandle;
 
-		DEBUG_MSG(boost::format("NavMeshEx::~NavMeshEx(): (%1%) is destroyed!\n") % iter->first);
+		DEBUG_MSG(boost::format("Navigation::~Navigation(): (%1%) is destroyed!\n") % iter->first);
 	}
 
 	navmeshs_.clear();
 }
 
 //-------------------------------------------------------------------------------------
-bool NavMeshEx::removeNavmesh(std::string name)
+bool Navigation::removeNavmesh(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
@@ -208,7 +208,7 @@ bool NavMeshEx::removeNavmesh(std::string name)
 		navmeshs_.erase(iter);
 		delete pNavMeshHandle;
 
-		DEBUG_MSG(boost::format("NavMeshEx::removeNavmesh: (%1%) is destroyed!\n") % name);
+		DEBUG_MSG(boost::format("Navigation::removeNavmesh: (%1%) is destroyed!\n") % name);
 		return true;
 	}
 
@@ -216,7 +216,7 @@ bool NavMeshEx::removeNavmesh(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-NavMeshHandle* NavMeshEx::findNavmesh(std::string name)
+NavMeshHandle* Navigation::findNavmesh(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
@@ -229,14 +229,14 @@ NavMeshHandle* NavMeshEx::findNavmesh(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool NavMeshEx::hasNavmesh(std::string name)
+bool Navigation::hasNavmesh(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	return navmeshs_.find(name) != navmeshs_.end();
 }
 
 //-------------------------------------------------------------------------------------
-NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
+NavMeshHandle* Navigation::loadNavmesh(std::string name)
 {
 	if(name == "")
 		return NULL;
@@ -252,7 +252,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	FILE* fp = fopen(path.c_str(), "rb");
 	if (!fp)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%) is error!\n") % path);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%) is error!\n") % path);
 		return NULL;
 	}
 
@@ -267,7 +267,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	uint8* data = new uint8[flen];
 	if(data == NULL)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -276,7 +276,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 	size_t readsize = fread(data, 1, flen, fp);
 	if(readsize != flen)
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -284,7 +284,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 
     if (readsize < sizeof(NavMeshSetHeader))
 	{
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -297,7 +297,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 
     if (header.version != RCN_NAVMESH_VERSION)
     {
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % RCN_NAVMESH_VERSION);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % RCN_NAVMESH_VERSION);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
         return NULL;
@@ -306,7 +306,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
     dtNavMesh* mesh = dtAllocNavMesh();
     if (!mesh)
     {
-		ERROR_MSG("NavMeshEx::loadNavmesh: dtAllocNavMesh is failed!\n");
+		ERROR_MSG("Navigation::loadNavmesh: dtAllocNavMesh is failed!\n");
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
         return NULL;
@@ -315,7 +315,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
     dtStatus status = mesh->init(&header.params);
     if (dtStatusFailed(status))
     {
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh: mesh init is error(%1%)!\n") % status);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: mesh init is error(%1%)!\n") % status);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 	    return NULL;
@@ -367,7 +367,7 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
 
     if (!success)
     {
-		ERROR_MSG(boost::format("NavMeshEx::loadNavmesh:  error(%1%)!\n") % status);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh:  error(%1%)!\n") % status);
         dtFreeNavMesh(mesh);
 		return NULL;
     }
@@ -402,10 +402,10 @@ NavMeshHandle* NavMeshEx::loadNavmesh(std::string name)
         triVertCount += tile->header->detailVertCount;
         dataSize += tile->dataSize;
 
-		// DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
+		// DEBUG_MSG(boost::format("Navigation::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
     }
 
-	DEBUG_MSG(boost::format("NavMeshEx::loadNavmesh: (%1%)\n") % name);
+	DEBUG_MSG(boost::format("Navigation::loadNavmesh: (%1%)\n") % name);
 	DEBUG_MSG(boost::format("\t==> tiles loaded: %1%\n") % tileCount);
 	DEBUG_MSG(boost::format("\t==> BVTree nodes: %1%\n") % nodeCount);
     DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);

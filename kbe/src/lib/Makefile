@@ -52,6 +52,7 @@ UNITTEST_LIBS = cstdkbe \
 				network \
 				thread	\
 				jsoncpp	\
+				tmxparser \
 
 
 unit_tests: unit_tests_build unit_tests_run

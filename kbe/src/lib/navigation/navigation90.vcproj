@@ -232,7 +232,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\navmeshex.cpp"
+				RelativePath=".\navigation.cpp"
 				>
 			</File>
 			<File
@@ -345,7 +345,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\navmeshex.hpp"
+				RelativePath=".\navigation.hpp"
 				>
 			</File>
 			<File
