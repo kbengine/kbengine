@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "space.hpp"	
 #include "entity.hpp"
 #include "witness.hpp"	
-#include "navigation/navmeshex.hpp"
+#include "navigation/navigation.hpp"
 #include "loadnavmesh_threadtasks.hpp"
 #include "entitydef/entities.hpp"
 #include "client_lib/client_interface.hpp"
