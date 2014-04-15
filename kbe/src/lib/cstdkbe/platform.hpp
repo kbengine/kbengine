@@ -26,7 +26,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h> 
 #include <math.h>
 #include <assert.h> 
-#include <iostream>  
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>  

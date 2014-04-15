@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/jsoncpp/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_RESOURCEMGR"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="Version.lib netapi32.lib resmgr_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib ws2_32.lib"
+				AdditionalDependencies="jsoncpp_d.lib Version.lib netapi32.lib resmgr_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid/$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../libs;../../lib/third_party/vld"
@@ -121,7 +121,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/jsoncpp/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_RESOURCEMGR"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -142,7 +142,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="Version.lib netapi32.lib resmgr.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib ws2_32.lib"
+				AdditionalDependencies="jsoncpp.lib Version.lib netapi32.lib resmgr.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../libs"
