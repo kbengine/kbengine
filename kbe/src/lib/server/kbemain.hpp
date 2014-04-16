@@ -160,6 +160,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	}
 	
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: %s", (boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType)).str().c_str());
+#endif
 
 	int ret = app.run();
 
