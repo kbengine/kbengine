@@ -43,6 +43,21 @@ struct NavMeshTileHeader
 };
 
 //-------------------------------------------------------------------------------------
+NavMeshHandle::NavMeshHandle():
+NavigationHandle()
+{
+}
+
+//-------------------------------------------------------------------------------------
+NavMeshHandle::~NavMeshHandle()
+{
+	dtFreeNavMeshQuery(navmeshQuery);
+	dtFreeNavMesh(navmesh);
+
+	DEBUG_MSG(boost::format("NavMeshHandle::~NavMeshHandle(): (%1%) is destroyed!\n") % name);
+}
+
+//-------------------------------------------------------------------------------------
 int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	float spos[3];
@@ -172,7 +187,7 @@ int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float
 
 //-------------------------------------------------------------------------------------
 Navigation::Navigation():
-navmeshs_(),
+navhandles_(),
 mutex_()
 {
 }
@@ -181,34 +196,29 @@ mutex_()
 Navigation::~Navigation()
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.begin();
-	for(; iter != navmeshs_.end(); iter++)
+	KBEUnordered_map<std::string, NavigationHandle*>::iterator iter = navhandles_.begin();
+	for(; iter != navhandles_.end(); iter++)
 	{
-		NavMeshHandle* pNavMeshHandle = (NavMeshHandle*)iter->second;
-		dtFreeNavMeshQuery(pNavMeshHandle->navmeshQuery);
-		dtFreeNavMesh(pNavMeshHandle->navmesh);
-		delete pNavMeshHandle;
-
-		DEBUG_MSG(boost::format("Navigation::~Navigation(): (%1%) is destroyed!\n") % iter->first);
+		delete iter->second;
 	}
 
-	navmeshs_.clear();
+	navhandles_.clear();
 }
 
 //-------------------------------------------------------------------------------------
-bool Navigation::removeNavmesh(std::string name)
+bool Navigation::removeNavigation(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
-	if(navmeshs_.find(name) != navmeshs_.end())
+	KBEUnordered_map<std::string, NavigationHandle*>::iterator iter = navhandles_.find(name);
+	if(navhandles_.find(name) != navhandles_.end())
 	{
 		NavMeshHandle* pNavMeshHandle = (NavMeshHandle*)iter->second;
 		dtFreeNavMeshQuery(pNavMeshHandle->navmeshQuery);
 		dtFreeNavMesh(pNavMeshHandle->navmesh);
-		navmeshs_.erase(iter);
+		navhandles_.erase(iter);
 		delete pNavMeshHandle;
 
-		DEBUG_MSG(boost::format("Navigation::removeNavmesh: (%1%) is destroyed!\n") % name);
+		DEBUG_MSG(boost::format("Navigation::removeNavigation: (%1%) is destroyed!\n") % name);
 		return true;
 	}
 
@@ -216,11 +226,11 @@ bool Navigation::removeNavmesh(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-NavMeshHandle* Navigation::findNavmesh(std::string name)
+NavigationHandle* Navigation::findNavigation(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	KBEUnordered_map<std::string, NavMeshHandle*>::iterator iter = navmeshs_.find(name);
-	if(navmeshs_.find(name) != navmeshs_.end())
+	KBEUnordered_map<std::string, NavigationHandle*>::iterator iter = navhandles_.find(name);
+	if(navhandles_.find(name) != navhandles_.end())
 	{
 		return iter->second;
 	}
@@ -229,10 +239,17 @@ NavMeshHandle* Navigation::findNavmesh(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool Navigation::hasNavmesh(std::string name)
+bool Navigation::hasNavigation(std::string name)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	return navmeshs_.find(name) != navmeshs_.end();
+	return navhandles_.find(name) != navhandles_.end();
+}
+
+//-------------------------------------------------------------------------------------
+NavigationHandle* Navigation::loadNavigation(std::string name)
+{
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	return loadNavmesh(name);
 }
 
 //-------------------------------------------------------------------------------------
@@ -241,10 +258,9 @@ NavMeshHandle* Navigation::loadNavmesh(std::string name)
 	if(name == "")
 		return NULL;
 
-	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh_srv");
+	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh");
 
-	if(navmeshs_.find(name) != navmeshs_.end())
+	if(navhandles_.find(name) != navhandles_.end())
 	{
 		return NULL;
 	}
@@ -377,7 +393,7 @@ NavMeshHandle* Navigation::loadNavmesh(std::string name)
 	pNavMeshHandle->navmeshQuery = new dtNavMeshQuery();
 	pNavMeshHandle->navmeshQuery->init(mesh, 1024);
 	pNavMeshHandle->name = name;
-	navmeshs_[name] = pNavMeshHandle;
+	navhandles_[name] = pNavMeshHandle;
 
     uint32 tileCount = 0;
     uint32 nodeCount = 0;

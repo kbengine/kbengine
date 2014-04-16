@@ -34,13 +34,13 @@ NavigateHandler::NavigateHandler(Controller* pController, const Position3D& dest
 MoveToPointHandler(pController, pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
-pNavMeshHandle_(NULL),
+pNavHandle_(NULL),
 maxMoveDistance_(maxMoveDistance),
 maxDistance_(maxDistance),
 girth_(girth)
 {
 	Entity* pEntity = pController->pEntity();
-	if(pNavMeshHandle_ == NULL)
+	if(pNavHandle_ == NULL)
 	{
 		Space* pSpace = Spaces::findSpace(pEntity->getSpaceID());
 		if(pSpace == NULL)
@@ -52,12 +52,12 @@ girth_(girth)
 		}
 		else
 		{
-			pNavMeshHandle_ = pSpace->pNavMeshHandle();
+			pNavHandle_ = pSpace->pNavHandle();
 
-			if(pNavMeshHandle_)
+			if(pNavHandle_)
 			{
 				Position3D currpos = pEntity->getPosition();
-				pNavMeshHandle_->findStraightPath(currpos, destPos, paths_);
+				static_cast<NavMeshHandle*>(pNavHandle_)->findStraightPath(currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
 					pController_ = NULL;
@@ -68,7 +68,7 @@ girth_(girth)
 			{
 				pController_ = NULL;
 
-				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navmesh!\n") % 
+				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navhandle!\n") % 
 					pEntity->getSpaceID() % pEntity->getID());
 			}
 		}

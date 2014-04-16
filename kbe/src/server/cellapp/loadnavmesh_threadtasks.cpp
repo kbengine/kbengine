@@ -30,14 +30,14 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 bool LoadNavmeshTask::process()
 {
-	Navigation::getSingleton().loadNavmesh(name_);
+	Navigation::getSingleton().loadNavigation(name_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 {
-	NavMeshHandle* pNavMeshHandle = Navigation::getSingleton().findNavmesh(name_);
+	NavigationHandle* pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
 	
 	Space* pSpace = Spaces::findSpace(spaceID_);
 	if(pSpace == NULL)
@@ -47,7 +47,7 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 	}
 	else
 	{
-		pSpace->onLoadedSpaceGeometryMapping(pNavMeshHandle);
+		pSpace->onLoadedSpaceGeometryMapping(pNavigationHandle);
 	}
 	
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 

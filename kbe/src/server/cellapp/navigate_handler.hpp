@@ -39,7 +39,7 @@ public:
 protected:
 	int destPosIdx_;
 	std::vector<Position3D> paths_;
-	NavMeshHandle* pNavMeshHandle_;
+	NavigationHandle* pNavHandle_;
 
 	float maxMoveDistance_;
 	float maxDistance_;

@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Entity;
-class NavMeshHandle;
+class NavigationHandle;
 typedef SmartPointer<Entity> EntityPtr;
 typedef std::vector<EntityPtr> SPACE_ENTITIES;
 
@@ -90,10 +90,10 @@ public:
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
 	const std::string& getGeometryPath();
 	void setGeometryPath(const std::string& path);
-	void onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle);
+	void onLoadedSpaceGeometryMapping(NavigationHandle* pNavHandle);
 	void onAllSpaceGeometryLoaded();
 	
-	NavMeshHandle* pNavMeshHandle()const{ return pNavMeshHandle_; }
+	NavigationHandle* pNavHandle()const{ return pNavHandle_; }
 
 	/**
 		spaceData相关操作接口
@@ -128,7 +128,7 @@ protected:
 
 	RangeList rangeList_;
 
-	NavMeshHandle* pNavMeshHandle_;
+	NavigationHandle* pNavHandle_;
 
 	// spaceData, 只能存储字符串资源， 这样能比较好的兼容客户端。
 	// 开发者可以将其他类型转换成字符串进行传输

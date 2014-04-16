@@ -42,7 +42,7 @@ entities_(),
 hasGeometry_(false),
 pCell_(NULL),
 rangeList_(),
-pNavMeshHandle_(NULL)
+pNavHandle_(NULL)
 {
 }
 
@@ -167,7 +167,7 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 //-------------------------------------------------------------------------------------
 void Space::loadSpaceGeometry()
 {
-	KBE_ASSERT(pNavMeshHandle_ == NULL);
+	KBE_ASSERT(pNavHandle_ == NULL);
 	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->getID()));
 }
 
@@ -177,9 +177,9 @@ void Space::unLoadSpaceGeometry()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle)
+void Space::onLoadedSpaceGeometryMapping(NavigationHandle* pNavHandle)
 {
-	pNavMeshHandle_ = pNavMeshHandle;
+	pNavHandle_ = pNavHandle;
 	INFO_MSG(boost::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
 			getID() % getGeometryPath());
 
@@ -201,7 +201,7 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 void Space::update()
 {
-	if(pNavMeshHandle_ == NULL)
+	if(pNavHandle_ == NULL)
 		return;
 }
 

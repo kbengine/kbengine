@@ -1303,7 +1303,7 @@ int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPo
 		return -1;
 	}
 	
-	if(pSpace->pNavMeshHandle() == NULL)
+	if(pSpace->pNavHandle() == NULL)
 	{
 		ERROR_MSG(boost::format("Entity::raycast: space(%1%) not addSpaceGeometryMapping!\n") % 
 			getSpaceID() % getID());
@@ -1311,7 +1311,7 @@ int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPo
 		return -1;
 	}
 
-	return pSpace->pNavMeshHandle()->raycast(start, end, hitPos);
+	return static_cast<NavMeshHandle*>(pSpace->pNavHandle())->raycast(start, end, hitPos);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1384,7 +1384,7 @@ bool Entity::canNavigate()
 	if(pSpace == NULL)
 		return false;
 
-	if(pSpace->pNavMeshHandle() == NULL)
+	if(pSpace->pNavHandle() == NULL)
 		return false;
 
 	return true;

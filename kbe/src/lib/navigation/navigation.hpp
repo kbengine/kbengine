@@ -34,7 +34,30 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
-class NavMeshHandle
+class NavigationHandle
+{
+public:
+	enum NAV_TYPE
+	{
+		NAV_UNKNOWN = 0,
+		NAV_MESH = 1,
+		NAV_TILE_BASED = 2
+	};
+
+	NavigationHandle():name()
+	{
+	}
+
+	virtual ~NavigationHandle()
+	{
+	}
+
+	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
+
+	std::string name;
+};
+
+class NavMeshHandle : public NavigationHandle
 {
 public:
 	static const int MAX_POLYS = 256;
@@ -42,12 +65,16 @@ public:
 	static const int NAV_ERROR = -1;
 	static const int NAV_ERROR_NEARESTPOLY = -2;
 public:
+	NavMeshHandle();
+	virtual ~NavMeshHandle();
+
 	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
 	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
 
+	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
+
 	dtNavMesh* navmesh;
 	dtNavMeshQuery* navmeshQuery;
-	std::string name;
 };
 
 /*
@@ -59,15 +86,16 @@ public:
 	Navigation();
 	virtual ~Navigation();
 	
+	NavigationHandle* loadNavigation(std::string name);
 	NavMeshHandle* loadNavmesh(std::string name);
 
-	bool hasNavmesh(std::string name);
+	bool hasNavigation(std::string name);
 
-	bool removeNavmesh(std::string name);
+	bool removeNavigation(std::string name);
 
-	NavMeshHandle* findNavmesh(std::string name);
+	NavigationHandle* findNavigation(std::string name);
 private:
-	KBEUnordered_map<std::string, NavMeshHandle*> navmeshs_;
+	KBEUnordered_map<std::string, NavigationHandle*> navhandles_;
 	KBEngine::thread::ThreadMutex mutex_;
 };
 
