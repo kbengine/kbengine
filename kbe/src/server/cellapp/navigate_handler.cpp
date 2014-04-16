@@ -57,7 +57,7 @@ girth_(girth)
 			if(pNavHandle_)
 			{
 				Position3D currpos = pEntity->getPosition();
-				static_cast<NavMeshHandle*>(pNavHandle_)->findStraightPath(currpos, destPos, paths_);
+				pNavHandle_->findStraightPath(currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
 					pController_ = NULL;

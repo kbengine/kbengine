@@ -54,6 +54,9 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
 
+	virtual int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
+	virtual int raycast(const Position3D& start, const Position3D& end, float* hitPoint) = 0;
+
 	std::string name;
 };
 
