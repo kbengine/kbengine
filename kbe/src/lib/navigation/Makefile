@@ -16,6 +16,7 @@ SRCS =					\
 	DetourTileCache			\
 	DetourTileCacheBuilder		\
 	navigation			\
+	navigation_handle		\
 	Recast				\
 	RecastAlloc			\
 	RecastArea			\

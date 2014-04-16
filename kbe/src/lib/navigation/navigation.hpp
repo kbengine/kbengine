@@ -25,63 +25,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "math/math.hpp"
-
-#include "DetourNavMeshBuilder.h"
-#include "DetourNavMeshQuery.h"
-#include "DetourCommon.h"
-#include "DetourNavMesh.h"
+#include "navigation_handle.hpp"
 
 namespace KBEngine
 {
-
-class NavigationHandle
-{
-public:
-	enum NAV_TYPE
-	{
-		NAV_UNKNOWN = 0,
-		NAV_MESH = 1,
-		NAV_TILE_BASED = 2
-	};
-
-	NavigationHandle():name()
-	{
-	}
-
-	virtual ~NavigationHandle()
-	{
-	}
-
-	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
-
-	virtual int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
-	virtual int raycast(const Position3D& start, const Position3D& end, float* hitPoint) = 0;
-
-	std::string name;
-};
-
-class NavMeshHandle : public NavigationHandle
-{
-public:
-	static const int MAX_POLYS = 256;
-
-	static const int NAV_ERROR = -1;
-	static const int NAV_ERROR_NEARESTPOLY = -2;
-public:
-	NavMeshHandle();
-	virtual ~NavMeshHandle();
-
-	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
-	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
-
-	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
-
-	dtNavMesh* navmesh;
-	dtNavMeshQuery* navmeshQuery;
-};
-
 /*
-	navmesh
+	µº∫Ω¿‡
 */
 class Navigation : public Singleton<Navigation>
 {
