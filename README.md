@@ -203,7 +203,7 @@ Windows:
 	~.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
-	(注意: Windows版本仅用于测试， 由于使用select目前不支持大量连接。)
+	(注意: Windows版本仅用于测试， 由于使用select并发socket处理性能有限。)
 
 ##日志:
 
