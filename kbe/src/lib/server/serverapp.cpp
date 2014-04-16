@@ -101,6 +101,10 @@ void ServerApp::shutDown(float shutdowntime)
 //-------------------------------------------------------------------------------------
 void ServerApp::onShutdownBegin()
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: shutdown begin.\n");
+#endif
+
 	mainDispatcher_.setWaitBreakProcessing();
 	networkInterface_.dispatcher().setWaitBreakProcessing();
 }
@@ -257,6 +261,10 @@ void ServerApp::handleTimers()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::run(void)
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: app is running!\n");
+#endif
+
 	mainDispatcher_.processUntilBreak();
 	return true;
 }
