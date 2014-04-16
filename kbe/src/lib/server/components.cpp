@@ -256,7 +256,7 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 				printf("[WARNING]: %s.\n", (boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
-					COMPONENT_NAME_EX(componentType) % (*iter).cid).str());
+					COMPONENT_NAME_EX(componentType) % (*iter).cid).str().c_str());
 #endif
 				iter = components.erase(iter);
 				return;
