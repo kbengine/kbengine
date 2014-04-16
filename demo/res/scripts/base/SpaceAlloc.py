@@ -15,8 +15,8 @@ class SpaceAlloc:
 	def __init__(self, utype):
 		self._spaces = {}
 		self._utype = utype
-		self._pendingLogonEntities = []
-		self._pendingEnterEntityMBs = []
+		self._pendingLogonEntities = {}
+		self._pendingEnterEntityMBs = {}
 		
 	def init(self):
 		"""
@@ -61,13 +61,11 @@ class SpaceAlloc:
 		DEBUG_MSG("Spaces::onSpaceGetCell: space %i. entityID=%i, spaceKey=%i" % (self._utype, spaceMailbox.id, spaceKey))
 		self._spaces[spaceKey] = spaceMailbox
 
-		pendingLogonEntities = self._pendingLogonEntities
-		pendingEnterEntityMBs = self._pendingEnterEntityMBs
-		self._pendingLogonEntities = []
-		self._pendingEnterEntityMBs = []
+		pendingLogonEntities = self._pendingLogonEntities.pop(spaceKey, [])
+		pendingEnterEntityMBs = self._pendingEnterEntityMBs.pop(spaceKey, [])
 		
-		for e in pendingLogonEntities:
-			self.loginToSpace(e)
+		for e, context in pendingLogonEntities:
+			self.loginToSpace(e, context)
 		
 		for mb, pos, dir, context in pendingEnterEntityMBs:
 			self.teleportSpace(mb, pos, dir, context)
@@ -87,13 +85,18 @@ class SpaceAlloc:
 		virtual method.
 		某个玩家请求登陆到某个space中
 		"""
-		space = self.alloc({"spaceKey" : context.get("spaceKey", 0)})
+		spaceKey = context.get("spaceKey", 0)
+		space = self.alloc({"spaceKey" : spaceKey})
 		if space is None:
 			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed! spaces=%s" % (self._utype, self._spaces))
 			return
 		
 		if space == CONST_WAIT_CREATE:
-			self._pendingLogonEntities.append(avatarEntity)
+			if spaceKey not in self._pendingLogonEntities:
+				self._pendingLogonEntities[spaceKey] = [(avatarEntity, context)]
+			else:
+				self._pendingLogonEntities[spaceKey].append((avatarEntity, context))
+				
 			DEBUG_MSG("Spaces::loginToSpace: avatarEntity=%s add pending." % avatarEntity.id)
 			return
 		
@@ -111,7 +114,12 @@ class SpaceAlloc:
 			return
 		
 		if space == CONST_WAIT_CREATE:
-			self._pendingEnterEntityMBs.append((entityMailbox, position, direction, context))
+			spaceKey = context.get("spaceKey", 0)
+			if spaceKey not in self._pendingEnterEntityMBs:
+				self._pendingEnterEntityMBs[spaceKey] = [(entityMailbox, position, direction, context)]
+			else:
+				self._pendingEnterEntityMBs[spaceKey].append((entityMailbox, position, direction, context))
+
 			DEBUG_MSG("Spaces::teleportSpace: avatarEntity=%s add pending." % entityMailbox.id)
 			return
 			
