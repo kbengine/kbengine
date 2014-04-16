@@ -225,7 +225,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
     {
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % NavMeshHandle::RCN_NAVMESH_VERSION);
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % ((int)NavMeshHandle::RCN_NAVMESH_VERSION));
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
         return NULL;
