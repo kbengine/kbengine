@@ -92,8 +92,8 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			ERROR_MSG(boost::format("Components::checkComponents: uid:%1%, componentType=%2%, componentID:%3% exist.\n") %
-				uid % COMPONENT_NAME_EX(ct) % componentID);
+			//ERROR_MSG(boost::format("Components::checkComponents: uid:%1%, componentType=%2%, componentID:%3% exist.\n") %
+			//	uid % COMPONENT_NAME_EX(ct) % componentID);
 
 			// KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
