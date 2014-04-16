@@ -39,7 +39,6 @@ public:
 	virtual ~Navigation();
 	
 	NavigationHandle* loadNavigation(std::string name);
-	NavMeshHandle* loadNavmesh(std::string name);
 
 	bool hasNavigation(std::string name);
 

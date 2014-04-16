@@ -54,7 +54,7 @@ public:
 	{
 		NAV_UNKNOWN = 0,
 		NAV_MESH = 1,
-		NAV_TILE_BASED = 2
+		NAV_TILE = 2
 	};
 
 	NavigationHandle():name()
@@ -92,10 +92,26 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
+	static NavigationHandle* create(std::string name);
+
 	dtNavMesh* navmesh;
 	dtNavMeshQuery* navmeshQuery;
 };
- 
+
+class NavTileHandle : public NavigationHandle
+{
+public:
+	NavTileHandle();
+	virtual ~NavTileHandle();
+
+	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
+
+	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
+
+	static NavigationHandle* create(std::string name);
+};
+
 }
 #endif // __KBE_NAVIGATEHANDLE_HPP__
 

@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "navigation_handle.hpp"	
 #include "navigation/navigation.hpp"
+#include "resmgr/resmgr.hpp"
+#include "thread/threadguard.hpp"
 
 namespace KBEngine{	
 
@@ -164,6 +166,209 @@ int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float
 	}
 	
 	return 1;
+}
+
+//-------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+NavigationHandle* NavMeshHandle::create(std::string name)
+{
+	if(name == "")
+		return NULL;
+
+	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh");
+
+	FILE* fp = fopen(path.c_str(), "rb");
+	if (!fp)
+	{
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%) is error!\n") % path);
+		return NULL;
+	}
+
+	bool safeStorage = true;
+    int pos = 0;
+    int size = sizeof(NavMeshSetHeader);
+	
+	fseek(fp, 0, SEEK_END); 
+	size_t flen = ftell(fp); 
+	fseek(fp, 0, SEEK_SET); 
+
+	uint8* data = new uint8[flen];
+	if(data == NULL)
+	{
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return NULL;
+	}
+
+	size_t readsize = fread(data, 1, flen, fp);
+	if(readsize != flen)
+	{
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return NULL;
+	}
+
+    if (readsize < sizeof(NavMeshSetHeader))
+	{
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return NULL;
+	}
+
+    NavMeshSetHeader header;
+	memcpy(&header, data, size);
+
+    pos += size;
+
+	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
+    {
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % NavMeshHandle::RCN_NAVMESH_VERSION);
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+        return NULL;
+    }
+
+    dtNavMesh* mesh = dtAllocNavMesh();
+    if (!mesh)
+    {
+		ERROR_MSG("Navigation::loadNavmesh: dtAllocNavMesh is failed!\n");
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+        return NULL;
+    }
+
+    dtStatus status = mesh->init(&header.params);
+    if (dtStatusFailed(status))
+    {
+		ERROR_MSG(boost::format("Navigation::loadNavmesh: mesh init is error(%1%)!\n") % status);
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+	    return NULL;
+    }
+
+    // Read tiles.
+    bool success = true;
+    for (int i = 0; i < header.tileCount; ++i)
+    {
+	    NavMeshTileHeader tileHeader;
+        size = sizeof(NavMeshTileHeader);
+	    memcpy(&tileHeader, &data[pos], size);
+        pos += size;
+
+        size = tileHeader.dataSize;
+		if (!tileHeader.tileRef || !tileHeader.dataSize)
+        {
+            success = false;
+            status = DT_FAILURE + DT_INVALID_PARAM;
+		    break;
+        }
+		
+	    unsigned char* tileData = 
+            (unsigned char*)dtAlloc(size, DT_ALLOC_PERM);
+	    if (!tileData)
+        {
+            success = false;
+            status = DT_FAILURE + DT_OUT_OF_MEMORY;
+            break;
+        }
+        memcpy(tileData, &data[pos], size);
+        pos += size;
+
+	    status = mesh->addTile(tileData
+            , size
+			, (safeStorage ? DT_TILE_FREE_DATA : 0)
+            , tileHeader.tileRef
+            , 0);
+
+        if (dtStatusFailed(status))
+        {
+            success = false;
+            break;
+        }
+    }
+
+	fclose(fp);
+	SAFE_RELEASE_ARRAY(data);
+
+    if (!success)
+    {
+		ERROR_MSG(boost::format("Navigation::loadNavmesh:  error(%1%)!\n") % status);
+        dtFreeNavMesh(mesh);
+		return NULL;
+    }
+
+	NavMeshHandle* pNavMeshHandle = new NavMeshHandle();
+	pNavMeshHandle->navmesh = mesh;
+	pNavMeshHandle->navmeshQuery = new dtNavMeshQuery();
+	pNavMeshHandle->navmeshQuery->init(mesh, 1024);
+	pNavMeshHandle->name = name;
+
+    uint32 tileCount = 0;
+    uint32 nodeCount = 0;
+    uint32 polyCount = 0;
+    uint32 vertCount = 0;
+    uint32 triCount = 0;
+    uint32 triVertCount = 0;
+    uint32 dataSize = 0;
+
+	const dtNavMesh* navmesh = mesh;
+    for (int32 i = 0; i < navmesh->getMaxTiles(); ++i)
+    {
+        const dtMeshTile* tile = navmesh->getTile(i);
+        if (!tile || !tile->header)
+            continue;
+
+        tileCount ++;
+        nodeCount += tile->header->bvNodeCount;
+        polyCount += tile->header->polyCount;
+        vertCount += tile->header->vertCount;
+        triCount += tile->header->detailTriCount;
+        triVertCount += tile->header->detailVertCount;
+        dataSize += tile->dataSize;
+
+		// DEBUG_MSG(boost::format("Navigation::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
+    }
+
+	DEBUG_MSG(boost::format("Navigation::loadNavmesh: (%1%)\n") % name);
+	DEBUG_MSG(boost::format("\t==> tiles loaded: %1%\n") % tileCount);
+	DEBUG_MSG(boost::format("\t==> BVTree nodes: %1%\n") % nodeCount);
+    DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);
+    DEBUG_MSG(boost::format("\t==> %1% triangles (%2% vertices)\n") % triCount % triVertCount);
+    DEBUG_MSG(boost::format("\t==> %.2f MB of data (not including pointers)\n") % (((float)dataSize / sizeof(unsigned char)) / 1048576));
+	return pNavMeshHandle;
+}
+
+//-------------------------------------------------------------------------------------
+NavTileHandle::NavTileHandle():
+NavigationHandle()
+{
+}
+
+//-------------------------------------------------------------------------------------
+NavTileHandle::~NavTileHandle()
+{
+	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(): (%1%) is destroyed!\n") % name);
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+{
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::raycast(const Position3D& start, const Position3D& end, float* hitPoint)
+{
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+NavigationHandle* NavTileHandle::create(std::string name)
+{
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
