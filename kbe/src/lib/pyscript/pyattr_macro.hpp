@@ -128,8 +128,8 @@ namespace KBEngine{ namespace script{
 #define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)													PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
 #define TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyGetSetDef TEMPLATE_CLASS::_##CLASSNAME##_scriptGetSeters[] =	{
 #define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
+#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, NAME},
+#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, NAME},
 #define SCRIPT_GETSET_DECLARE_END()															{0, 0, 0, 0, 0}};
 
 //-----------------------------------------------------------------------------------------------------------
