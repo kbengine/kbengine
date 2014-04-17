@@ -52,6 +52,7 @@ public:
 	typedef KBEUnordered_map<std::string, MSGInfo> MSGINFO_MAP;
 private:
 	MSGINFO_MAP _infomap;
+	bool _loaded;
 };
 
 }

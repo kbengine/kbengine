@@ -101,8 +101,8 @@ namespace KBEngine{ namespace script{
 //-----------------------------------------------------------------------------------------------------------
 /** 定义暴露给脚本的方法宏
 */
-#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)													PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {
-#define TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyMethodDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMethods[] = {
+#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)													bool CLASS::_##CLASS##_py_installed = false; PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {
+#define TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER bool TEMPLATE_CLASS::_##CLASSNAME##_py_installed = false;  TEMPLATE_HEADER PyMethodDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMethods[] = {
 #define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)							{METHOD_NAME, (PyCFunction)&__py_##METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_DIRECT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_METHOD_DECLARE_END()															{0, 0, 0, 0}};

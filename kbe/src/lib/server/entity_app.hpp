@@ -286,7 +286,9 @@ void EntityApp<E>::finalise(void)
 	
 	pyCallbackMgr_.finalise();
 	ScriptTimers::finalise(*this);
-	pEntities_->finalise();
+
+	if(pEntities_)
+		pEntities_->finalise();
 	
 	uninstallPyScript();
 

@@ -63,7 +63,8 @@ PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 Script::Script():
 module_(NULL),
 extraModule_(NULL),
-pyStdouterr_(NULL)
+pyStdouterr_(NULL),
+pyStdouterrHook_(NULL)
 {
 }
 
@@ -253,17 +254,23 @@ bool Script::uninstall()
 	Uuid::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 
-	if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
-		ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+	if(pyStdouterr_)
+	{
+		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
+			ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+		}
+		else
+			Py_DECREF(pyStdouterr_);
 	}
-	else
-		Py_DECREF(pyStdouterr_);
-
-	if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
-		ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
+	
+	if(pyStdouterrHook_)
+	{
+		if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
+			ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
+		}
+		else
+			Py_DECREF(pyStdouterrHook_);
 	}
-	else
-		Py_DECREF(pyStdouterrHook_);
 
 	ScriptStdOutErr::uninstallScript();	
 	ScriptStdOutErrHook::uninstallScript();
@@ -324,6 +331,9 @@ int Script::registerToModule(const char* attrName, PyObject* pyObj)
 //-------------------------------------------------------------------------------------
 int Script::unregisterToModule(const char* attrName)
 {
+	if(module_ == NULL || attrName == NULL)
+		return 0;
+
 	return PyObject_DelAttrString(module_, attrName);
 }
 

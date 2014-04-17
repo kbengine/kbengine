@@ -149,6 +149,8 @@ public:																						\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\
 																							\
+	static bool _##CLASS##_py_installed;													\
+																							\
 	/** getsetµƒ÷ª∂¡ Ù–‘
 	*/																						\
 	static int __py_readonly_descr(PyObject* self, PyObject* value, void* closure)			\
@@ -330,6 +332,7 @@ public:																						\
 		}																					\
 																							\
 		SCRIPT_ERROR_CHECK();																\
+		_##CLASS##_py_installed = true;														\
 																							\
 	}																						\
 																							\
@@ -341,7 +344,9 @@ public:																						\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmembers);										\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpgetseters);											\
 		CLASS::onUninstallScript();															\
-		Py_DECREF(&_scriptType);															\
+																							\
+		if(_##CLASS##_py_installed)															\
+			Py_DECREF(&_scriptType);														\
 	}																						\
 
 

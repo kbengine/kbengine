@@ -30,7 +30,8 @@ namespace Mercury
 
 //-------------------------------------------------------------------------------------
 FixedMessages::FixedMessages():
-_infomap()
+_infomap(),
+_loaded(false)
 {
 	new Resmgr();
 	Resmgr::getSingleton().initialize();
@@ -45,13 +46,26 @@ FixedMessages::~FixedMessages()
 //-------------------------------------------------------------------------------------
 bool FixedMessages::loadConfig(std::string fileName)
 {
+	if(_loaded)
+		return true;
+
+	_loaded = true;
+
 	TiXmlNode* node = NULL, *rootNode = NULL;
 
 	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format(" FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str());
+#if KBE_PLATFORM == PLATFORM_WIN32
+		printf("%s", (boost::format("[ERROR]: FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str()).str().c_str());
+#endif
+
+		if(DebugHelper::isInit())
+		{
+			ERROR_MSG(boost::format("FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str());
+		}
+
 		SAFE_RELEASE(xml);
 		return false;
 	}

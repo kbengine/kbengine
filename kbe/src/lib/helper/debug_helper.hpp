@@ -111,6 +111,8 @@ public:
 
 	~DebugHelper();
 	
+	static bool isInit() { return getSingletonPtr() != 0; }
+
 	static void initHelper(COMPONENT_TYPE componentType);
 
 	void setFile(std::string funcname, std::string file, uint32 line){
