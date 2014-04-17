@@ -23,7 +23,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
 #include "tmxparser/Tmx.h"
-#include "tmxparser/TmxMap.h"
 
 namespace KBEngine{	
 
