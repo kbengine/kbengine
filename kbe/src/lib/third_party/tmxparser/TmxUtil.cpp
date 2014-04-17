@@ -26,8 +26,8 @@
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
-#include <zlib.h>
 
+#include "zip/zlib.h"
 #include "TmxUtil.h"
 #include "cstdkbe/base64.hpp"
 

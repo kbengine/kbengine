@@ -60,6 +60,7 @@ endif
 CPPFLAGS += -DKBE_CELLAPP
 
 LDLIBS += -ltmxparser
+LDLIBS += -lzip
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))

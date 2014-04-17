@@ -26,7 +26,6 @@
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
 #include <tinyxml.h>
-#include <zlib.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -34,6 +33,7 @@
 #include "TmxUtil.h"
 #include "TmxMap.h"
 #include "TmxTileset.h"
+#include "zip/zlib.h"
 
 namespace Tmx 
 {
