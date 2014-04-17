@@ -97,7 +97,22 @@ NavigationHandle* Navigation::loadNavigation(std::string name)
 	if(iter != navhandles_.end())
 		return iter->second;
 
-	NavigationHandle* pNavigationHandle_ = NavMeshHandle::create(name);
+	NavigationHandle* pNavigationHandle_ = NULL;
+	std::string path = "spaces/" + name + "/" + name;
+	
+	if(Resmgr::getSingleton().openRes(path + ".navmesh"))
+	{
+		pNavigationHandle_ = NavMeshHandle::create(name);
+	}
+	else if(Resmgr::getSingleton().openRes(path + ".tmx"))
+	{
+		pNavigationHandle_ = NavTileHandle::create(name);
+	}
+	else
+	{
+		return NULL;
+	}
+
 	navhandles_[name] = pNavigationHandle_;
 	return pNavigationHandle_;
 }

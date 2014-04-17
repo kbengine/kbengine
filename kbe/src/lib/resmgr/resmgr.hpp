@@ -66,6 +66,10 @@ public:
 	*/
 	std::string matchRes(std::string res);
 	std::string matchRes(const char* res);
+	
+	bool hasRes(std::string res);
+	
+	FILE* openRes(std::string res, const char* mode = "r");
 
 	/*
 		从资源路径中(环境变量中指定的)匹配到目录

@@ -178,7 +178,53 @@ std::string Resmgr::matchRes(const char* res)
 			return fpath;
 		}
 	}
+
 	return res;
+}
+
+//-------------------------------------------------------------------------------------
+bool Resmgr::hasRes(std::string res)
+{
+	std::vector<std::string>::iterator iter = respaths_.begin();
+
+	for(; iter != respaths_.end(); iter++)
+	{
+		std::string fpath = ((*iter) + res);
+
+		strutil::kbe_replace(fpath, "\\", "/");
+		strutil::kbe_replace(fpath, "//", "/");
+
+		FILE * f = fopen (fpath.c_str(), "r");
+		if(f != NULL)
+		{
+			fclose(f);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+FILE* Resmgr::openRes(std::string res, const char* mode)
+{
+	std::vector<std::string>::iterator iter = respaths_.begin();
+
+	for(; iter != respaths_.end(); iter++)
+	{
+		std::string fpath = ((*iter) + res);
+
+		strutil::kbe_replace(fpath, "\\", "/");
+		strutil::kbe_replace(fpath, "//", "/");
+
+		FILE * f = fopen (fpath.c_str(), mode);
+		if(f != NULL)
+		{
+			return f;
+		}
+	}
+
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------

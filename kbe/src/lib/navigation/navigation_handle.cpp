@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "navigation/navigation.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
+#include "tmxparser/Tmx.h"
 
 namespace KBEngine{	
 
@@ -169,18 +170,19 @@ int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float
 }
 
 //-------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------
 NavigationHandle* NavMeshHandle::create(std::string name)
 {
 	if(name == "")
 		return NULL;
 
-	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".navmesh");
+	std::string path = "spaces/" + name + "/" + name + ".navmesh";
 
-	FILE* fp = fopen(path.c_str(), "rb");
+	FILE* fp = Resmgr::getSingleton().openRes(path, "rb");
 	if (!fp)
 	{
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%) is error!\n") % path);
+		ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%) is error!\n") % 
+			Resmgr::getSingleton().matchRes(path));
+
 		return NULL;
 	}
 
@@ -195,7 +197,9 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 	uint8* data = new uint8[flen];
 	if(data == NULL)
 	{
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), memory(size=%2%) error!\n") % path % flen);
+		ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), memory(size=%2%) error!\n") % 
+			Resmgr::getSingleton().matchRes(path) % flen);
+
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -204,7 +208,9 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 	size_t readsize = fread(data, 1, flen, fp);
 	if(readsize != flen)
 	{
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), read(size=%2% != %3%) error!\n") % path % readsize % flen);
+		ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), read(size=%2% != %3%) error!\n") % 
+			Resmgr::getSingleton().matchRes(path) % readsize % flen);
+
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -212,7 +218,9 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
     if (readsize < sizeof(NavMeshSetHeader))
 	{
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: open(%1%), NavMeshSetHeader is error!\n") % path);
+		ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), NavMeshSetHeader is error!\n") % 
+			Resmgr::getSingleton().matchRes(path));
+
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 		return NULL;
@@ -225,7 +233,9 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
     {
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: version(%1%) is not match(%2%)!\n") % header.version % ((int)NavMeshHandle::RCN_NAVMESH_VERSION));
+		ERROR_MSG(boost::format("NavMeshHandle::create: version(%1%) is not match(%2%)!\n") % 
+			header.version % ((int)NavMeshHandle::RCN_NAVMESH_VERSION));
+
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
         return NULL;
@@ -234,7 +244,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
     dtNavMesh* mesh = dtAllocNavMesh();
     if (!mesh)
     {
-		ERROR_MSG("Navigation::loadNavmesh: dtAllocNavMesh is failed!\n");
+		ERROR_MSG("NavMeshHandle::create: dtAllocNavMesh is failed!\n");
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
         return NULL;
@@ -243,7 +253,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
     dtStatus status = mesh->init(&header.params);
     if (dtStatusFailed(status))
     {
-		ERROR_MSG(boost::format("Navigation::loadNavmesh: mesh init is error(%1%)!\n") % status);
+		ERROR_MSG(boost::format("NavMeshHandle::create: mesh init is error(%1%)!\n") % status);
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
 	    return NULL;
@@ -295,7 +305,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
     if (!success)
     {
-		ERROR_MSG(boost::format("Navigation::loadNavmesh:  error(%1%)!\n") % status);
+		ERROR_MSG(boost::format("NavMeshHandle::create:  error(%1%)!\n") % status);
         dtFreeNavMesh(mesh);
 		return NULL;
     }
@@ -329,10 +339,10 @@ NavigationHandle* NavMeshHandle::create(std::string name)
         triVertCount += tile->header->detailVertCount;
         dataSize += tile->dataSize;
 
-		// DEBUG_MSG(boost::format("Navigation::loadNavmesh: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
+		// DEBUG_MSG(boost::format("NavMeshHandle::create: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
     }
 
-	DEBUG_MSG(boost::format("Navigation::loadNavmesh: (%1%)\n") % name);
+	DEBUG_MSG(boost::format("NavMeshHandle::create: (%1%)\n") % name);
 	DEBUG_MSG(boost::format("\t==> tiles loaded: %1%\n") % tileCount);
 	DEBUG_MSG(boost::format("\t==> BVTree nodes: %1%\n") % nodeCount);
     DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);
@@ -368,7 +378,54 @@ int NavTileHandle::raycast(const Position3D& start, const Position3D& end, float
 //-------------------------------------------------------------------------------------
 NavigationHandle* NavTileHandle::create(std::string name)
 {
-	return NULL;
+	if(name == "")
+		return NULL;
+
+	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".tmx");
+
+	Tmx::Map *map = new Tmx::Map();
+	map->ParseFile(path.c_str());
+
+	if (map->HasError()) 
+	{
+		ERROR_MSG(boost::format("NavTileHandle::create: open(%1%) is error!\n") % path);
+		delete map;
+		return NULL;
+	}
+
+	// Iterate through the tilesets.
+	for (int i = 0; i < map->GetNumTilesets(); ++i) {
+		DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
+		DEBUG_MSG(boost::format("\t==> tileset %02d\n") % i);
+
+		// Get a tileset.
+		const Tmx::Tileset *tileset = map->GetTileset(i);
+
+		// Print tileset information.
+		DEBUG_MSG(boost::format("\t==> name = %1%\n") % tileset->GetName());
+		DEBUG_MSG(boost::format("\t==> margin = %1%\n") % tileset->GetMargin());
+		DEBUG_MSG(boost::format("\t==> spacing = %1%\n") % tileset->GetSpacing());
+		DEBUG_MSG(boost::format("\t==> image Width = %1%\n") % tileset->GetImage()->GetWidth());
+		DEBUG_MSG(boost::format("\t==> image Height = %1%\n") % tileset->GetImage()->GetHeight());
+		DEBUG_MSG(boost::format("\t==> image Source = %1%\n") % tileset->GetImage()->GetSource().c_str());
+		DEBUG_MSG(boost::format("\t==> transparent Color (hex) = %1%\n") % tileset->GetImage()->GetTransparentColor());
+
+		if (tileset->GetTiles().size() > 0) 
+		{
+			// Get a tile from the tileset.
+			const Tmx::Tile *tile = *(tileset->GetTiles().begin());
+
+			// Print the properties of a tile.
+			std::map< std::string, std::string > list = tile->GetProperties().GetList();
+			std::map< std::string, std::string >::iterator iter;
+			for (iter = list.begin(); iter != list.end(); ++iter) {
+				DEBUG_MSG(boost::format("\t==> %1% = %2%\n") % iter->first.c_str() % iter->second.c_str());
+			}
+		}
+	}
+
+	NavTileHandle* pNavTileHandle = new NavTileHandle();
+	return pNavTileHandle;
 }
 
 //-------------------------------------------------------------------------------------
