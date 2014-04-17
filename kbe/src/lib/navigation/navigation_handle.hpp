@@ -32,6 +32,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "DetourCommon.h"
 #include "DetourNavMesh.h"
 
+#include "tmxparser/Tmx.h"
+
 namespace KBEngine{
 
 struct NavMeshSetHeader

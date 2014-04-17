@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "navigation/navigation.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
-#include "tmxparser/Tmx.h"
 
 namespace KBEngine{	
 
