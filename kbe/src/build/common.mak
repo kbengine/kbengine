@@ -248,6 +248,21 @@ LDLIBS += -ljwsmtp
 CPPFLAGS += -DUSE_JWSMTP
 endif
 
+TMXPARSER_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/tmxparser
+KBE_INCLUDES += -I$(TMXPARSER_DIR)
+ifeq ($(USE_TMXPARSER),1)
+LDLIBS += -ltmxparser
+CPPFLAGS += -DUSE_TMXPARSER
+endif
+
+ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/zip
+KBE_INCLUDES += -I$(ZIP_DIR)
+ifeq ($(USE_ZIP),1)
+LDLIBS += -lzip
+CPPFLAGS += -DUSE_ZIP
+endif
+
+
 LDLIBS += -ltinyxml
 LDLIBS += -ljsoncpp
 

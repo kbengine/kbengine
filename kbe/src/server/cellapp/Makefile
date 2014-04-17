@@ -48,8 +48,10 @@ MY_LIBS =		\
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
-USE_G3DMATH=1
+USE_G3DMATH = 1
 USE_OPENSSL = 1
+USE_TMXPARSER = 1
+USE_ZIP = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0
@@ -58,9 +60,6 @@ endif
 
 #HAS_PCH = 1
 CPPFLAGS += -DKBE_CELLAPP
-
-LDLIBS += -ltmxparser
-LDLIBS += -lzip
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
