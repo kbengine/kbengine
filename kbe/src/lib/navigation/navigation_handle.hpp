@@ -110,6 +110,8 @@ public:
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
 	static NavigationHandle* create(std::string name);
+	
+	Tmx::Map *pTilemap;
 };
 
 }

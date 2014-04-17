@@ -353,7 +353,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle():
-NavigationHandle()
+NavigationHandle(),
+pTilemap(0)
 {
 }
 
@@ -425,6 +426,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 	}
 
 	NavTileHandle* pNavTileHandle = new NavTileHandle();
+	pNavTileHandle->pTilemap = map;
 	return pNavTileHandle;
 }
 
