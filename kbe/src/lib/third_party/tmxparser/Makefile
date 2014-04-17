@@ -1,6 +1,7 @@
 LIB =	tmxparser
 
 SRCS =				\
+	base64			\
 	TmxEllipse		\
 	TmxImage		\
 	TmxImageLayer		\
