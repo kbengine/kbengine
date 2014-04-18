@@ -133,6 +133,8 @@ protected:
 	// spaceData, 只能存储字符串资源， 这样能比较好的兼容客户端。
 	// 开发者可以将其他类型转换成字符串进行传输
 	SPACE_DATA datas_;
+
+
 };
 
 

@@ -1311,7 +1311,7 @@ int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPo
 		return -1;
 	}
 
-	return pSpace->pNavHandle()->raycast(start, end, hitPos);
+	return pSpace->pNavHandle()->raycast(0, start, end, hitPos);
 }
 
 //-------------------------------------------------------------------------------------

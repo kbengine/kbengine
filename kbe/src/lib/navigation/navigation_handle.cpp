@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadguard.hpp"
 
 namespace KBEngine{	
+NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
+int NavTileHandle::currentLayer = 0;
 
 //-------------------------------------------------------------------------------------
 NavMeshHandle::NavMeshHandle():
@@ -41,7 +43,7 @@ NavMeshHandle::~NavMeshHandle()
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	float spos[3];
 	spos[0] = start.x;
@@ -109,7 +111,7 @@ int NavMeshHandle::findStraightPath(const Position3D& start, const Position3D& e
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::raycast(const Position3D& start, const Position3D& end, float* hitPoint)
+int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint)
 {
 	float spos[3];
 	spos[0] = start.x;
@@ -361,17 +363,22 @@ pTilemap(0)
 NavTileHandle::~NavTileHandle()
 {
 	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(): (%1%) is destroyed!\n") % name);
+	SAFE_RELEASE(pTilemap);
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::raycast(const Position3D& start, const Position3D& end, float* hitPoint)
+int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint)
 {
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
 	return 0;
 }
 
@@ -433,6 +440,145 @@ NavigationHandle* NavTileHandle::create(std::string name)
 	NavTileHandle* pNavTileHandle = new NavTileHandle();
 	pNavTileHandle->pTilemap = map;
 	return pNavTileHandle;
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::getMap(int x, int y)
+{
+	if( x < 0 ||
+	    x >= pTilemap->GetWidth() ||
+		 y < 0 ||
+		 y >= pTilemap->GetHeight()
+	  )
+	{
+		return TILE_STATE_CLOSED;	 
+	}
+
+	return pTilemap->GetLayer(currentLayer)->GetTileId(x, y);
+}
+
+//-------------------------------------------------------------------------------------
+bool NavTileHandle::MapSearchNode::isSameState(MapSearchNode &rhs)
+{
+
+	// same state in a maze search is simply when (x,y) are the same
+	if( (x == rhs.x) &&
+		(y == rhs.y) )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void NavTileHandle::MapSearchNode::printNodeInfo()
+{
+	char str[100];
+	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", x,y );
+
+	DEBUG_MSG(str);
+}
+
+//-------------------------------------------------------------------------------------
+// Here's the heuristic function that estimates the distance from a Node
+// to the Goal. 
+
+float NavTileHandle::MapSearchNode::goalDistanceEstimate(MapSearchNode &nodeGoal)
+{
+	float xd = float(((float)x - (float)nodeGoal.x));
+	float yd = float(((float)y - (float)nodeGoal.y));
+
+	return xd + yd;
+}
+
+//-------------------------------------------------------------------------------------
+bool NavTileHandle::MapSearchNode::isGoal(MapSearchNode &nodeGoal)
+{
+
+	if( (x == nodeGoal.x) &&
+		(y == nodeGoal.y) )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+// This generates the successors to the given Node. It uses a helper function called
+// AddSuccessor to give the successors to the AStar class. The A* specific initialisation
+// is done for each node internally, so here you just set the state information that
+// is specific to the application
+bool NavTileHandle::MapSearchNode::getSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node)
+{
+
+	int parent_x = -1; 
+	int parent_y = -1; 
+
+	if( parent_node )
+	{
+		parent_x = parent_node->x;
+		parent_y = parent_node->y;
+	}
+	
+
+	MapSearchNode NewNode;
+
+	// push each possible move except allowing the search to go backwards
+
+	if( (NavTileHandle::pCurrNavTileHandle->getMap( x-1, y ) < TILE_STATE_CLOSED) 
+		&& !((parent_x == x-1) && (parent_y == y))
+	  ) 
+	{
+		NewNode = MapSearchNode( x-1, y );
+		astarsearch->AddSuccessor( NewNode );
+	}	
+
+	if( (NavTileHandle::pCurrNavTileHandle->getMap( x, y-1 ) < TILE_STATE_CLOSED) 
+		&& !((parent_x == x) && (parent_y == y-1))
+	  ) 
+	{
+		NewNode = MapSearchNode( x, y-1 );
+		astarsearch->AddSuccessor( NewNode );
+	}	
+
+	if( (NavTileHandle::pCurrNavTileHandle->getMap( x+1, y ) < TILE_STATE_CLOSED)
+		&& !((parent_x == x+1) && (parent_y == y))
+	  ) 
+	{
+		NewNode = MapSearchNode( x+1, y );
+		astarsearch->AddSuccessor( NewNode );
+	}	
+
+		
+	if( (NavTileHandle::pCurrNavTileHandle->getMap( x, y+1 ) < TILE_STATE_CLOSED) 
+		&& !((parent_x == x) && (parent_y == y+1))
+		)
+	{
+		NewNode = MapSearchNode( x, y+1 );
+		astarsearch->AddSuccessor( NewNode );
+	}	
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+// given this node, what does it cost to move to successor. In the case
+// of our map the answer is the map terrain value at this node since that is 
+// conceptually where we're moving
+float NavTileHandle::MapSearchNode::getCost( MapSearchNode &successor )
+{
+	/*
+		一个tile寻路的性价比
+		每个tile都可以定义从0~5的性价比值， 值越大性价比越低
+		比如： 前方虽然能够通过但是前方是泥巴路， 行走起来非常费力， 
+		或者是前方为高速公路， 行走非常快。
+	*/
+	return (float) NavTileHandle::pCurrNavTileHandle->getMap( x, y );
+
 }
 
 //-------------------------------------------------------------------------------------

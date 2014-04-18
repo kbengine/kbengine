@@ -70,8 +70,8 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
 
-	virtual int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
-	virtual int raycast(const Position3D& start, const Position3D& end, float* hitPoint) = 0;
+	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
+	virtual int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint) = 0;
 
 	std::string name;
 };
@@ -90,8 +90,8 @@ public:
 	NavMeshHandle();
 	virtual ~NavMeshHandle();
 
-	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
-	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
+	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+	int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
@@ -104,17 +104,58 @@ public:
 class NavTileHandle : public NavigationHandle
 {
 public:
+	static NavTileHandle* pCurrNavTileHandle;
+	static int currentLayer;
+	
+	static void setMapLayer(int layer)
+	{ 
+		currentLayer = layer; 
+	}
+
+	enum TILE_STATE
+	{
+		TILE_STATE_OPENED_COST0 = 0, // 打开状态, 允许通过
+		TILE_STATE_OPENED_COST1 = 1, // 打开状态, 允许通过
+		TILE_STATE_OPENED_COST2 = 2, // 打开状态, 允许通过
+		TILE_STATE_OPENED_COST3 = 3, // 打开状态, 允许通过
+		TILE_STATE_OPENED_COST4 = 4, // 打开状态, 允许通过
+		TILE_STATE_OPENED_COST5 = 5, // 打开状态, 允许通过
+		TILE_STATE_CLOSED = 1  // 关闭状态
+	};
+
+	class MapSearchNode
+	{
+	public:
+		int x;	 // the (x,y) positions of the node
+		int y;	
+		
+
+		MapSearchNode() { x = y = 0; }
+		MapSearchNode(int px, int py) {x = px; y = py; }
+
+		float goalDistanceEstimate( MapSearchNode &nodeGoal );
+		bool isGoal( MapSearchNode &nodeGoal );
+		bool getSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node );
+		float getCost( MapSearchNode &successor );
+		bool isSameState( MapSearchNode &rhs );
+
+		void printNodeInfo(); 
+	};
+
+public:
 	NavTileHandle();
 	virtual ~NavTileHandle();
 
-	int findStraightPath(const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
-	int raycast(const Position3D& start, const Position3D& end, float* hitPoint);
+	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+	int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
 	static NavigationHandle* create(std::string name);
 	
 	Tmx::Map *pTilemap;
+
+	int getMap(int x, int y);
 };
 
 }

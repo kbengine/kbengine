@@ -83,9 +83,9 @@ public: // data
 			Node *parent; // used during the search to record the parent of successor nodes
 			Node *child; // used after the search for the application to view the search in reverse
 			
-			float g; // cost of this node + it's predecessors
-			float h; // heuristic estimate of distance to goal
-			float f; // sum of cumulative cost of predecessors and self and heuristic
+			float g; // cost of this node + it's predecessors 这个节点的成本性价比 + parent上累计的成本
+			float h; // heuristic estimate of distance to goal 距离目标启发式估计
+			float f; // sum of cumulative cost of predecessors and self and heuristic g和h累计的总和 + parent(g和h累计的总和)
 
 			Node() :
 				parent( 0 ),
