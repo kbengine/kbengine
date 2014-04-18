@@ -409,7 +409,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 		DEBUG_MSG(boost::format("\t==> image Height = %1%\n") % tileset->GetImage()->GetHeight());
 		DEBUG_MSG(boost::format("\t==> image Source = %1%\n") % tileset->GetImage()->GetSource().c_str());
 		DEBUG_MSG(boost::format("\t==> transparent Color (hex) = %1%\n") % tileset->GetImage()->GetTransparentColor());
-
+		DEBUG_MSG(boost::format("\t==> tiles Size = %1%\n") % tileset->GetTiles().size());
 		if (tileset->GetTiles().size() > 0) 
 		{
 			// Get a tile from the tileset.

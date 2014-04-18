@@ -30,10 +30,12 @@ class Space(KBEngine.Base, GameObject):
 	def createSpawnPointDatas(self):
 		"""
 		"""
-		if(len(self.spaceResName) == 0):
+		res = r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName
+		if(len(self.spaceResName) == 0 or not KBEngine.hasRes(res)):
 			return
 			
-		res = KBEngine.getResFullPath(r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName)
+		res = KBEngine.getResFullPath(res)
+			
 		tree = etree.parse(res) 
 		root = tree.getroot()
 		

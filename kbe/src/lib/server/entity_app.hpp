@@ -191,6 +191,11 @@ public:
 	static PyObject* __py_getResFullPath(PyObject* self, PyObject* args);
 
 	/**
+		通过相对路径判断资源是否存在
+	*/
+	static PyObject* __py_hasRes(PyObject* self, PyObject* args);
+
+	/**
 		open文件
 	*/
 	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
@@ -429,6 +434,9 @@ bool EntityApp<E>::installPyModules()
 	
 	// 获得资源全路径
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,	METH_VARARGS,	0);
+
+	// 获得资源全路径
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,			METH_VARARGS,	0);
 
 	// 文件操作
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,			METH_VARARGS,	0);
@@ -723,6 +731,29 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 
 	std::string fullpath = Resmgr::getSingleton().matchRes(respath);
 	return PyUnicode_FromString(fullpath.c_str());
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+
+	if(PyArg_ParseTuple(args, "s", &respath) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return PyBool_FromLong(Resmgr::getSingleton().hasRes(respath));
 }
 
 template<class E>
