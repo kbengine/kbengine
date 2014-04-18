@@ -368,6 +368,10 @@
 				RelativePath=".\RecastAssert.h"
 				>
 			</File>
+			<File
+				RelativePath=".\stlastar.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
