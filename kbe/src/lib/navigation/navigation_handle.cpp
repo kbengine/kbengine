@@ -393,9 +393,15 @@ NavigationHandle* NavTileHandle::create(std::string name)
 		return NULL;
 	}
 
+	DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
+	DEBUG_MSG(boost::format("\t==> map Width = %1%\n") % map->GetWidth());
+	DEBUG_MSG(boost::format("\t==> map Height = %1%\n") % map->GetHeight());
+	DEBUG_MSG(boost::format("\t==> tile Width = %1% px\n") % map->GetTileWidth());
+	DEBUG_MSG(boost::format("\t==> tile Height = %1% px\n") % map->GetTileHeight());
+
 	// Iterate through the tilesets.
 	for (int i = 0; i < map->GetNumTilesets(); ++i) {
-		DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
+
 		DEBUG_MSG(boost::format("\t==> tileset %02d\n") % i);
 
 		// Get a tileset.
