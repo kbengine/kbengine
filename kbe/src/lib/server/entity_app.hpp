@@ -329,7 +329,7 @@ bool EntityApp<E>::installPyScript()
 		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
 		Resmgr::getSingleton().getPySysResPath().size() == 0)
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
@@ -342,7 +342,7 @@ bool EntityApp<E>::installPyScript()
 	}
 	else
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
+		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
 		return false;
 	}
 
