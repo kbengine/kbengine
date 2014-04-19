@@ -339,11 +339,9 @@ bool Space::destroy(ENTITY_ID entityID)
 	}
 
 	iter = entitieslog.begin();
-	for(; iter != entitieslog.end(); )
+	for(; iter != entitieslog.end(); iter++)
 	{
-		EntityPtr entity = (*iter);
-		iter = entitieslog.erase(iter);
-		entity->destroyEntity();
+		(*iter)->destroyEntity();
 	}
 
 	// 最后销毁创建者
