@@ -38,15 +38,15 @@ public:
 	Navigation();
 	virtual ~Navigation();
 	
-	NavigationHandle* loadNavigation(std::string name);
+	NavigationHandlePtr loadNavigation(std::string name);
 
 	bool hasNavigation(std::string name);
 
 	bool removeNavigation(std::string name);
 
-	NavigationHandle* findNavigation(std::string name);
+	NavigationHandlePtr findNavigation(std::string name);
 private:
-	KBEUnordered_map<std::string, NavigationHandle*> navhandles_;
+	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;
 	KBEngine::thread::ThreadMutex mutex_;
 };
 

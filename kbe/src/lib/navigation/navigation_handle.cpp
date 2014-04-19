@@ -27,6 +27,9 @@ namespace KBEngine{
 NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
 int NavTileHandle::currentLayer = 0;
 
+#define DEBUG_LISTS 0
+#define DEBUG_LIST_LENGTHS_ONLY 0
+
 //-------------------------------------------------------------------------------------
 NavMeshHandle::NavMeshHandle():
 NavigationHandle()
@@ -355,14 +358,24 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle():
 NavigationHandle(),
-pTilemap(0)
+pTilemap(0),
+astarsearch()
 {
+}
+
+//-------------------------------------------------------------------------------------
+NavTileHandle::NavTileHandle(const KBEngine::NavTileHandle & navTileHandle):
+NavigationHandle(),
+pTilemap(0),
+astarsearch()
+{
+	pTilemap = new Tmx::Map(*navTileHandle.pTilemap);
 }
 
 //-------------------------------------------------------------------------------------
 NavTileHandle::~NavTileHandle()
 {
-	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(): (%1%) is destroyed!\n") % name);
+	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(%2%, pTilemap=%3%): (%1%) is destroyed!\n") % name % this % pTilemap);
 	SAFE_RELEASE(pTilemap);
 }
 
@@ -371,6 +384,106 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
+
+	// Create a start state
+	MapSearchNode nodeStart;
+	nodeStart.x = int(start.x / pTilemap->GetTileWidth());
+	nodeStart.y = int(start.z / pTilemap->GetTileHeight()); 
+
+	// Define the goal state
+	MapSearchNode nodeEnd;
+	nodeEnd.x = int(end.x / pTilemap->GetTileWidth());				
+	nodeEnd.y = int(end.z / pTilemap->GetTileHeight()); 
+
+	//DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: start(%1%, %2%), end(%3%, %4%)\n") % 
+	//	nodeStart.x % nodeStart.y % nodeEnd.x % nodeEnd.y);
+
+	// Set Start and goal states
+	astarsearch.SetStartAndGoalStates(nodeStart, nodeEnd);
+
+	unsigned int SearchState;
+	unsigned int SearchSteps = 0;
+
+	do
+	{
+		SearchState = astarsearch.SearchStep();
+
+		SearchSteps++;
+
+#if DEBUG_LISTS
+
+		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Steps: %1%\n") % SearchSteps);
+
+		int len = 0;
+
+		DEBUG_MSG("NavTileHandle::findStraightPath: Open:\n");
+		MapSearchNode *p = astarsearch.GetOpenListStart();
+		while( p )
+		{
+			len++;
+#if !DEBUG_LIST_LENGTHS_ONLY			
+			((MapSearchNode *)p)->printNodeInfo();
+#endif
+			p = astarsearch.GetOpenListNext();
+			
+		}
+		
+		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Open list has %1% nodes\n") % len);
+
+		len = 0;
+
+		DEBUG_MSG("NavTileHandle::findStraightPath: Closed:\n");
+		p = astarsearch.GetClosedListStart();
+		while( p )
+		{
+			len++;
+#if !DEBUG_LIST_LENGTHS_ONLY			
+			p->printNodeInfo();
+#endif			
+			p = astarsearch.GetClosedListNext();
+		}
+
+		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Closed list has %1% nodes\n") % len);
+#endif
+
+	}
+	while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
+
+	if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED )
+	{
+		//DEBUG_MSG("NavTileHandle::findStraightPath: Search found goal state\n");
+		MapSearchNode *node = astarsearch.GetSolutionStart();
+
+		int steps = 0;
+
+		//node->printNodeInfo();
+		for( ;; )
+		{
+			node = astarsearch.GetSolutionNext();
+
+			if( !node )
+			{
+				break;
+			}
+
+			//node->printNodeInfo();
+			steps ++;
+			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
+		};
+
+		// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Solution steps %1%\n") % steps);
+		// Once you're done with the solution you can free the nodes up
+		astarsearch.FreeSolutionNodes();
+	}
+	else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
+	{
+		DEBUG_MSG("NavTileHandle::findStraightPath: Search terminated. Did not find goal state\n");
+	}
+
+	// Display the number of loops the search went through
+	// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: SearchSteps: %1%\n") % SearchSteps);
+	astarsearch.EnsureMemoryFreed();
+
 	return 0;
 }
 

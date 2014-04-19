@@ -37,7 +37,7 @@ bool LoadNavmeshTask::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 {
-	NavigationHandle* pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
+	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
 	
 	Space* pSpace = Spaces::findSpace(spaceID_);
 	if(pSpace == NULL)

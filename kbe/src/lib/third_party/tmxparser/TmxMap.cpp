@@ -60,6 +60,36 @@ namespace Tmx
 		, error_text()
 	{}
 
+	Map::Map(const Map &_map)
+		: file_name(_map.file_name)
+		, file_path(_map.file_path)
+		, version(_map.version)
+		, orientation(_map.orientation)
+		, width(_map.width)
+		, height(_map.height)
+		, tile_width(_map.tile_width)
+		, tile_height(_map.tile_height)
+		, layers()
+		, object_groups()
+		, tilesets() 
+		, has_error(_map.has_error)
+		, error_code(_map.error_code)
+		, error_text(_map.error_text)
+	{
+		std::vector< Tmx::Layer* >::const_iterator iter = _map.layers.begin();
+		for(; iter != _map.layers.end(); iter++)
+		{
+			layers.push_back(new Tmx::Layer(*(*iter)));
+		}
+
+		std::vector< Tmx::Tileset* >::const_iterator iter1 = _map.tilesets.begin();
+		for(; iter1 != _map.tilesets.end(); iter1++)
+		{
+			tilesets.push_back(new Tmx::Tileset(*(*iter1)));
+		}
+
+	}
+
 	Map::~Map() 
 	{
 		// Iterate through all of the object groups and delete each of them.

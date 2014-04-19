@@ -45,6 +45,20 @@ namespace Tmx
 		, spacing(0)
 		, image(NULL)
 		, tiles()
+		, properties()
+	{
+	}
+
+	Tileset::Tileset(const Tileset& _tileset)
+		: first_gid(_tileset.first_gid)
+		, name(_tileset.name)
+		, tile_width(_tileset.tile_width)
+		, tile_height(_tileset.tile_height)
+		, margin(_tileset.margin)
+		, spacing(_tileset.spacing)
+		, image(NULL)
+		, tiles()
+		, properties(_tileset.properties)
 	{
 	}
 

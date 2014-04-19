@@ -40,6 +40,7 @@ namespace Tmx
 	class PropertySet 
 	{
 	public:
+		PropertySet(const PropertySet& _propertySet);
 		PropertySet();
 		~PropertySet();
 

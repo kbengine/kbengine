@@ -64,11 +64,8 @@ namespace Tmx
 	//-------------------------------------------------------------------------
 	class Layer 
 	{
-	private:
-		// Prevent copy constructor.
-		Layer(const Layer &_layer);
-
 	public:
+		Layer(const Layer &_layer);
 		Layer(const Tmx::Map *_map);
 		~Layer();
 

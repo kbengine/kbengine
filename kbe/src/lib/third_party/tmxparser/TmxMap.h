@@ -77,8 +77,7 @@ namespace Tmx
 	//-------------------------------------------------------------------------
 	class Map 
 	{
-	private:
-		// Prevent copy constructor.
+	public:
 		Map(const Map &_map);
 
 	public:

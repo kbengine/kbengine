@@ -47,6 +47,7 @@ namespace Tmx
 	class Tileset 
 	{
 	public:
+		Tileset(const Tileset& _tileset);
 		Tileset();
 		~Tileset();
 

@@ -53,6 +53,23 @@ namespace Tmx
 		tile_map = NULL;
 	}
 
+	Layer::Layer(const Layer &_layer) 
+		: map(_layer.map)
+		, name(_layer.name) 
+		, width(_layer.width) 
+		, height(_layer.height) 
+		, opacity(_layer.opacity)
+		, visible(_layer.visible)
+		, zOrder(_layer.zOrder)
+		, properties(_layer.properties)
+		, encoding(_layer.encoding)
+		, compression(_layer.compression)
+	{
+		// Set the map to null to specify that it is not yet allocated.
+		tile_map = new MapTile[width * height];
+		memcpy(tile_map, _layer.tile_map, sizeof(int) * width * height);
+	}
+
 	Layer::~Layer() 
 	{
 		// If the tile map is allocated, delete it from the memory.

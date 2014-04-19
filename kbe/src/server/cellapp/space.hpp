@@ -27,11 +27,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
+#include "navigation/navigation_handle.hpp"
 
 namespace KBEngine{
 
 class Entity;
-class NavigationHandle;
 typedef SmartPointer<Entity> EntityPtr;
 typedef std::vector<EntityPtr> SPACE_ENTITIES;
 
@@ -90,10 +90,10 @@ public:
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
 	const std::string& getGeometryPath();
 	void setGeometryPath(const std::string& path);
-	void onLoadedSpaceGeometryMapping(NavigationHandle* pNavHandle);
+	void onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle);
 	void onAllSpaceGeometryLoaded();
 	
-	NavigationHandle* pNavHandle()const{ return pNavHandle_; }
+	NavigationHandlePtr pNavHandle()const{ return pNavHandle_; }
 
 	/**
 		spaceData相关操作接口
@@ -108,6 +108,8 @@ public:
 	static PyObject* __py_DelSpaceData(PyObject* self, PyObject* args);
 
 	RangeList* pRangeList(){ return &rangeList_; }
+
+	bool isDestroyed()const{ return destroyed_; }
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
 protected:
@@ -128,13 +130,13 @@ protected:
 
 	RangeList rangeList_;
 
-	NavigationHandle* pNavHandle_;
+	NavigationHandlePtr pNavHandle_;
 
 	// spaceData, 只能存储字符串资源， 这样能比较好的兼容客户端。
 	// 开发者可以将其他类型转换成字符串进行传输
 	SPACE_DATA datas_;
 
-
+	bool destroyed_;
 };
 
 

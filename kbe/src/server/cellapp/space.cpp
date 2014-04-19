@@ -42,7 +42,8 @@ entities_(),
 hasGeometry_(false),
 pCell_(NULL),
 rangeList_(),
-pNavHandle_(NULL)
+pNavHandle_(),
+destroyed_(false)
 {
 }
 
@@ -50,6 +51,7 @@ pNavHandle_(NULL)
 Space::~Space()
 {
 	SAFE_RELEASE(pCell_);
+	entities_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -177,7 +179,7 @@ void Space::unLoadSpaceGeometry()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::onLoadedSpaceGeometryMapping(NavigationHandle* pNavHandle)
+void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 {
 	pNavHandle_ = pNavHandle;
 	INFO_MSG(boost::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
@@ -253,6 +255,11 @@ void Space::removeEntity(Entity* pEntity)
 	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityRangeNode
 	pEntity->uninstallRangeNodes(&rangeList_);
 
+	if(pEntity->getID() == this->creatorID())
+	{
+		DEBUG_MSG(boost::format("Space::removeEntity: lose creator(%1%).\n") % this->creatorID());
+	}
+
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
 	// 这个entity通常是spaceEntity
 	if(entities_.empty())
@@ -308,6 +315,11 @@ void Space::onLeaveWorld(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 bool Space::destroy(ENTITY_ID entityID)
 {
+	if(destroyed_)
+		return true;
+
+	destroyed_ = true;
+
 	if(this->entities().size() == 0)
 		return true;
 
@@ -327,9 +339,10 @@ bool Space::destroy(ENTITY_ID entityID)
 	}
 
 	iter = entitieslog.begin();
-	for(; iter != entitieslog.end(); iter++)
+	for(; iter != entitieslog.end(); )
 	{
-		Entity* entity = const_cast<Entity*>((*iter).get());
+		EntityPtr entity = (*iter);
+		iter = entitieslog.erase(iter);
 		entity->destroyEntity();
 	}
 
@@ -337,6 +350,8 @@ bool Space::destroy(ENTITY_ID entityID)
 	if(creator)
 		creator->destroyEntity();
 
+	pNavHandle_.clear();
+	entities_.clear();
 	return true;
 }
 

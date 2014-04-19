@@ -50,7 +50,7 @@ struct NavMeshTileHeader
 	int dataSize;
 };
 
-class NavigationHandle
+class NavigationHandle : public RefCountable
 {
 public:
 	enum NAV_TYPE
@@ -75,6 +75,8 @@ public:
 
 	std::string name;
 };
+
+typedef SmartPointer<NavigationHandle> NavigationHandlePtr;
 
 class NavMeshHandle : public NavigationHandle
 {
@@ -114,13 +116,13 @@ public:
 
 	enum TILE_STATE
 	{
-		TILE_STATE_OPENED_COST0 = 0, // 打开状态, 允许通过
-		TILE_STATE_OPENED_COST1 = 1, // 打开状态, 允许通过
-		TILE_STATE_OPENED_COST2 = 2, // 打开状态, 允许通过
-		TILE_STATE_OPENED_COST3 = 3, // 打开状态, 允许通过
-		TILE_STATE_OPENED_COST4 = 4, // 打开状态, 允许通过
-		TILE_STATE_OPENED_COST5 = 5, // 打开状态, 允许通过
-		TILE_STATE_CLOSED = 1  // 关闭状态
+		TILE_STATE_OPENED_COST0 = 0,	// 打开状态, 允许通过
+		TILE_STATE_OPENED_COST1 = 1,	// 打开状态, 允许通过
+		TILE_STATE_OPENED_COST2 = 2,	// 打开状态, 允许通过
+		TILE_STATE_OPENED_COST3 = 3,	// 打开状态, 允许通过
+		TILE_STATE_OPENED_COST4 = 4,	// 打开状态, 允许通过
+		TILE_STATE_OPENED_COST5 = 5,	// 打开状态, 允许通过
+		TILE_STATE_CLOSED = 9			// 关闭状态
 	};
 
 	class MapSearchNode
@@ -144,6 +146,8 @@ public:
 
 public:
 	NavTileHandle();
+	NavTileHandle(const KBEngine::NavTileHandle & navTileHandle);
+
 	virtual ~NavTileHandle();
 
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
@@ -153,9 +157,11 @@ public:
 
 	static NavigationHandle* create(std::string name);
 	
-	Tmx::Map *pTilemap;
-
 	int getMap(int x, int y);
+
+public:
+	Tmx::Map *pTilemap;
+	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
 };
 
 }

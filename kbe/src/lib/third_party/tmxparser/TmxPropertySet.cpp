@@ -38,6 +38,15 @@ namespace Tmx
 	PropertySet::PropertySet() : properties()  
 	{}
 
+	PropertySet::PropertySet(const PropertySet& _propertySet) : properties()  
+	{
+		std::map< std::string, std::string >::const_iterator iter = _propertySet.properties.begin();
+		for(; iter != _propertySet.properties.end(); iter++)
+		{
+			properties[iter->first] = iter->second;
+		}
+	}
+
 	PropertySet::~PropertySet()
 	{
 		properties.clear();
