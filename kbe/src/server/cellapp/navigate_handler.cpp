@@ -88,6 +88,7 @@ bool NavigateHandler::requestMoveOver()
 	else
 		destPos_ = paths_[destPosIdx_++];
 
+	pNavHandle_->onPassedNode(layer_, paths_[destPosIdx_-1], destPos_);
 	return false;
 }
 

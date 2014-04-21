@@ -53,6 +53,8 @@ struct NavMeshTileHeader
 class NavigationHandle : public RefCountable
 {
 public:
+	static const int NAV_ERROR = -1;
+
 	enum NAV_TYPE
 	{
 		NAV_UNKNOWN = 0,
@@ -72,6 +74,7 @@ public:
 
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
+	virtual void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos) = 0;
 
 	std::string name;
 };
@@ -82,8 +85,6 @@ class NavMeshHandle : public NavigationHandle
 {
 public:
 	static const int MAX_POLYS = 256;
-
-	static const int NAV_ERROR = -1;
 	static const int NAV_ERROR_NEARESTPOLY = -2;
 
 	static const long RCN_NAVMESH_VERSION = 1;
@@ -98,6 +99,8 @@ public:
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
 	static NavigationHandle* create(std::string name);
+
+	void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos);
 
 	dtNavMesh* navmesh;
 	dtNavMeshQuery* navmeshQuery;
@@ -161,6 +164,8 @@ public:
 	
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
+
+	void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos);
 public:
 	Tmx::Map *pTilemap;
 };

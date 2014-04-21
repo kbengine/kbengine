@@ -48,6 +48,7 @@ namespace Tmx
 			, flippedHorizontally(false)
 			, flippedVertically(false)
 			, flippedDiagonally(false)
+			, isBlocked(false)
 		{}
 
 		// Will take a gid and read the attributes from the first
@@ -58,6 +59,7 @@ namespace Tmx
 			, flippedHorizontally((_gid & FlippedHorizontallyFlag) != 0)
 			, flippedVertically((_gid & FlippedVerticallyFlag) != 0)
 			, flippedDiagonally((_gid & FlippedDiagonallyFlag) != 0)
+			, isBlocked(false)
 		{
 			id -= _tilesetFirstGid;
 		}
@@ -76,5 +78,7 @@ namespace Tmx
 
 		// True when the tile should be drawn flipped diagonally.
 		bool flippedDiagonally;
+
+		bool isBlocked;
 	};
 };

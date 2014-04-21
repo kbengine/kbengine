@@ -116,7 +116,7 @@ namespace Tmx
 		int GetTileHeight() const { return tile_height; }
 
 		// Get the layer at a certain index.
-		const Tmx::Layer *GetLayer(int index) const { return layers.at(index); }
+		Tmx::Layer *GetLayer(int index) { return layers.at(index); }
 
 		// Get the amount of layers.
 		int GetNumLayers() const { return layers.size(); }

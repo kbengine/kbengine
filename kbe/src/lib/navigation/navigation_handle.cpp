@@ -115,6 +115,11 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
+void NavMeshHandle::onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos)
+{
+}
+
+//-------------------------------------------------------------------------------------
 int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	float hitPoint[3];
@@ -387,6 +392,12 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
 
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(boost::format("NavTileHandle::findStraightPath: not found layer(%1%)\n") %  layer);
+		return NAV_ERROR;
+	}
+
 	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
 
 	// Create a start state
@@ -492,6 +503,34 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
+void NavTileHandle::onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos)
+{
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(boost::format("NavTileHandle::onPassedNode: not found layer(%1%)\n") %  layer);
+		return;
+	}
+
+	MapSearchNode nodeOld;
+	nodeOld.x = int(oldPos.x / pTilemap->GetTileWidth());
+	nodeOld.y = int(oldPos.z / pTilemap->GetTileHeight()); 
+
+	MapSearchNode nodeNew;
+	nodeNew.x = int(newPos.x / pTilemap->GetTileWidth());				
+	nodeNew.y = int(newPos.z / pTilemap->GetTileHeight()); 
+
+	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
+
+	if(nodeOld.x != nodeNew.x || nodeOld.y != nodeNew.y)
+		pLayer->GetTile(nodeOld.x, nodeOld.y).isBlocked = false;
+
+	pLayer->GetTile(nodeNew.x, nodeNew.y).isBlocked = true;
+}
+
+//-------------------------------------------------------------------------------------
 void swap(int& a, int& b) 
 {
 	int c = a;
@@ -551,6 +590,12 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(boost::format("NavTileHandle::raycast: not found layer(%1%)\n") %  layer);
+		return NAV_ERROR;
+	}
 
 	// Create a start state
 	MapSearchNode nodeStart;
@@ -632,7 +677,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 			std::map< std::string, std::string > list = tile->GetProperties().GetList();
 			std::map< std::string, std::string >::iterator iter;
 			for (iter = list.begin(); iter != list.end(); ++iter) {
-				DEBUG_MSG(boost::format("\t==> %1% = %2%\n") % iter->first.c_str() % iter->second.c_str());
+				DEBUG_MSG(boost::format("\t==> property: %1% = %2%\n") % iter->first.c_str() % iter->second.c_str());
 			}
 		}
 	}
@@ -654,7 +699,11 @@ int NavTileHandle::getMap(int x, int y)
 		return TILE_STATE_CLOSED;	 
 	}
 
-	return (int)pTilemap->GetLayer(currentLayer)->GetTileId(x, y);
+	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
+	if(mapTile.isBlocked)
+		return TILE_STATE_CLOSED;	
+
+	return (int)mapTile.id;
 }
 
 //-------------------------------------------------------------------------------------
