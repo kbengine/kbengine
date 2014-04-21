@@ -71,7 +71,7 @@ public:
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
 
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
-	virtual int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint) = 0;
+	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
 
 	std::string name;
 };
@@ -93,7 +93,7 @@ public:
 	virtual ~NavMeshHandle();
 
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
-	int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint);
+	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
@@ -151,14 +151,16 @@ public:
 	virtual ~NavTileHandle();
 
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
-	int raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint);
+	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
 	static NavigationHandle* create(std::string name);
 	
 	int getMap(int x, int y);
-
+	
+	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
+	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
 public:
 	Tmx::Map *pTilemap;
 	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;

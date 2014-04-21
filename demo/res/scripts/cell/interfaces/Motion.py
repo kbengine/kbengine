@@ -121,7 +121,7 @@ class Motion:
 		speed = self.moveSpeed * 0.1
 		
 		if self.canNavigate():
-			self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0.5, None)
+			self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0, None)
 		else:
 			self.moveToPoint(tuple(position), speed, None, 1, 1)
 
@@ -136,7 +136,7 @@ class Motion:
 		
 		lastPos = self.position + vv;
 		
-		pos = self.raycast(self.position, vv)
+		pos = self.raycast(0, self.position, vv)
 		if pos == None:
 			pos = lastPos
 			

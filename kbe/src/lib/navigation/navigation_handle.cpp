@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "navigation/navigation.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
+#include "math/math.hpp"
 
 namespace KBEngine{	
 NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
@@ -114,8 +115,10 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint)
+int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
+	float hitPoint[3];
+
 	float spos[3];
 	spos[0] = start.x;
 	spos[1] = start.y;
@@ -170,6 +173,7 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 		}
 	}
 	
+	hitPointVec.push_back(Position3D(hitPoint[0], hitPoint[1], hitPoint[2]));
 	return 1;
 }
 
@@ -488,11 +492,94 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D& end, float* hitPoint)
+void swap(int& a, int& b) 
+{
+	int c = a;
+	a = b;
+	b = c;
+}
+
+//-------------------------------------------------------------------------------------
+void NavTileHandle::bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results)
+{
+	bresenhamLine(p0.x, p0.y, p1.x, p1.y, results);
+}
+
+//-------------------------------------------------------------------------------------
+void NavTileHandle::bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results)
+{
+	// Optimization: it would be preferable to calculate in
+	// advance the size of "result" and to use a fixed-size array
+	// instead of a list.
+
+	bool steep = abs(y1 - y0) > abs(x1 - x0);
+	if (steep) {
+		swap(x0, y0);
+		swap(x1, y1);
+	}
+	if (x0 > x1) {
+		swap(x0, x1);
+		swap(y0, y1);
+	}
+
+	int deltax = x1 - x0;
+	int deltay = abs(y1 - y0);
+	int error = 0;
+	int ystep;
+	int y = y0;
+
+	if (y0 < y1) ystep = 1; 
+		else ystep = -1;
+
+	for (int x = x0; x <= x1; x++) 
+	{
+		if (steep) 
+			results.push_back(MapSearchNode(y, x));
+		else 
+			results.push_back(MapSearchNode(x, y));
+
+		error += deltay;
+		if (2 * error >= deltax) {
+			y += ystep;
+			error -= deltax;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
-	return 0;
+
+	// Create a start state
+	MapSearchNode nodeStart;
+	nodeStart.x = int(start.x / pTilemap->GetTileWidth());
+	nodeStart.y = int(start.z / pTilemap->GetTileHeight()); 
+
+	// Define the goal state
+	MapSearchNode nodeEnd;
+	nodeEnd.x = int(end.x / pTilemap->GetTileWidth());				
+	nodeEnd.y = int(end.z / pTilemap->GetTileHeight()); 
+
+	std::vector<MapSearchNode> vec;
+	bresenhamLine(nodeStart, nodeEnd, vec);
+	
+	if(vec.size() > 0)
+	{
+		vec.erase(vec.begin());
+	}
+
+	std::vector<MapSearchNode>::iterator iter = vec.begin();
+	for(; iter != vec.end(); iter++)
+	{
+		if(getMap((*iter).x, (*iter).y) == TILE_STATE_CLOSED)
+			break;
+
+		hitPointVec.push_back(Position3D(float((*iter).x * pTilemap->GetTileWidth()), start.y, float((*iter).y * pTilemap->GetTileWidth())));
+	}
+
+	return 1;
 }
 
 //-------------------------------------------------------------------------------------

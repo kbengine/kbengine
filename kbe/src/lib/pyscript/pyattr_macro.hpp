@@ -74,6 +74,11 @@ namespace KBEngine{ namespace script{
 #define PY_METHOD_ARG_int16_ARG							int16
 #define PY_METHOD_ARG_int16_PYARGTYPE					"h"
 
+#define PY_METHOD_ARG_int								int32
+#define PY_METHOD_ARG_int								int32
+#define PY_METHOD_ARG_int_ARG							int32
+#define PY_METHOD_ARG_int_PYARGTYPE						"i"
+
 #define PY_METHOD_ARG_int32								int32
 #define PY_METHOD_ARG_int32_ARG							int32
 #define PY_METHOD_ARG_int32_PYARGTYPE					"i"

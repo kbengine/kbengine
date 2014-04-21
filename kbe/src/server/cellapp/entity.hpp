@@ -255,8 +255,8 @@ public:
 	/** 
 		射线 
 	*/
-	int raycast(const Position3D& start, const Position3D& end, float* hitPos);
-	DECLARE_PY_MOTHOD_ARG2(pyRaycast, PyObject_ptr, PyObject_ptr);
+	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
+	DECLARE_PY_MOTHOD_ARG3(pyRaycast, int, PyObject_ptr, PyObject_ptr);
 
 	/** 
 		entity移动导航 
@@ -264,11 +264,11 @@ public:
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float range,
 					float maxMoveDistance, float maxDistance, 
-					bool faceMovement, float girth, PyObject* userData);
+					bool faceMovement, int layer, PyObject* userData);
 
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
-	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int, PyObject_ptr);
 
 	/** 
 		entity移动到某个点 

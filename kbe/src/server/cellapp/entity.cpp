@@ -1292,7 +1292,7 @@ bool Entity::stopMove()
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPos)
+int Entity::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
 {
 	Space* pSpace = Spaces::findSpace(getSpaceID());
 	if(pSpace == NULL)
@@ -1311,11 +1311,11 @@ int Entity::raycast(const Position3D& start, const Position3D& end, float* hitPo
 		return -1;
 	}
 
-	return pSpace->pNavHandle()->raycast(0, start, end, hitPos);
+	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyRaycast(PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
+PyObject* Entity::pyRaycast(int layer, PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
 {
 	if(!PySequence_Check(pyStartPos))
 	{
@@ -1347,19 +1347,28 @@ PyObject* Entity::pyRaycast(PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
 
 	Position3D startPos;
 	Position3D endPos;
-	float hitPos[3];
+	std::vector<Position3D> hitPosVec;
+	//float hitPos[3];
 
 	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
 	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
-	if(raycast(startPos, endPos, hitPos) <= 0)
+	if(raycast(layer, startPos, endPos, hitPosVec) <= 0)
 	{
 		S_Return;
 	}
 
-	PyObject* pyHitpos = PyTuple_New(3);
-	PyTuple_SetItem(pyHitpos, 0, ::PyFloat_FromDouble(hitPos[0]));
-	PyTuple_SetItem(pyHitpos, 1, ::PyFloat_FromDouble(hitPos[1]));
-	PyTuple_SetItem(pyHitpos, 2, ::PyFloat_FromDouble(hitPos[2]));
+	int idx = 0;
+	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
+	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); iter++)
+	{
+		PyObject* pyHitposItem = PyTuple_New(3);
+		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
+		PyTuple_SetItem(pyHitposItem, 1, ::PyFloat_FromDouble((*iter).y));
+		PyTuple_SetItem(pyHitposItem, 2, ::PyFloat_FromDouble((*iter).z));
+
+		PyTuple_SetItem(pyHitpos, idx++, pyHitposItem);
+	}
+
 	return pyHitpos;
 }
 
@@ -1392,7 +1401,7 @@ bool Entity::canNavigate()
 
 //-------------------------------------------------------------------------------------
 uint32 Entity::navigate(const Position3D& destination, float velocity, float range, float maxMoveDistance, float maxDistance, 
-	bool faceMovement, float girth, PyObject* userData)
+	bool faceMovement, int layer, PyObject* userData)
 {
 	stopMove();
 
@@ -1401,7 +1410,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 	
 	new NavigateHandler(p, destination, velocity, 
-		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
+		range, faceMovement, maxMoveDistance, maxDistance, layer, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1412,7 +1421,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
-								 int8 faceMovement, float girth, PyObject_ptr userData)
+								 int8 faceMovement, int layer, PyObject_ptr userData)
 {
 	if(this->isDestroyed())
 	{
@@ -1443,7 +1452,7 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float r
 	Py_INCREF(userData);
 
 	return PyLong_FromLong(navigate(destination, velocity, range, maxMoveDistance, 
-		maxDistance, faceMovement > 0, girth, userData));
+		maxDistance, faceMovement > 0, layer, userData));
 }
 
 //-------------------------------------------------------------------------------------
