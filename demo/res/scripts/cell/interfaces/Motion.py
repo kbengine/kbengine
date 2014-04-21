@@ -136,7 +136,7 @@ class Motion:
 		
 		lastPos = self.position + vv;
 		
-		pos = self.raycast(0, self.position, vv)
+		pos = self.raycast(self.position, vv)
 		if pos == None:
 			pos = lastPos
 			
