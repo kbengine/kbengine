@@ -71,7 +71,7 @@
 	<baseapps> 1 </baseapps>
 	
 	<channelCommon> 
-		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 -->
+		<!-- 通道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 -->
 		<timeout> 
 			<internal> 60.0 </internal>
 			<external> 60.0 </external>
@@ -87,7 +87,7 @@
 			<external>	0			</external>				<!-- 系统默认 -->
 		</writeBufferSize>
 		
-		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
+		<!-- 一个tick内channel接收窗口溢出值 0无限制-->
 		<receiveWindowOverflow>
 			<messages>
 				<critical>	32			</critical>
