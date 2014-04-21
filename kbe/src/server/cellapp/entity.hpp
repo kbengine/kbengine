@@ -256,7 +256,7 @@ public:
 		…‰œﬂ 
 	*/
 	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
-	DECLARE_PY_MOTHOD_ARG3(pyRaycast, int, PyObject_ptr, PyObject_ptr);
+	static PyObject* __py_pyRaycast(PyObject* self, PyObject* args);
 
 	/** 
 		entity“∆∂Øµº∫Ω 

@@ -1315,8 +1315,47 @@ int Entity::raycast(int layer, const Position3D& start, const Position3D& end, s
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyRaycast(int layer, PyObject_ptr pyStartPos, PyObject_ptr pyEndPos)
+PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 {
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	int layer = 0;
+	PyObject* pyStartPos = NULL;
+	PyObject* pyEndPos = NULL;
+
+	if(pobj->isDestroyed())
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: entity is destroyed!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(currargsSize == 2)
+	{
+		if(PyArg_ParseTuple(args, "OO", &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "OOi", &pyStartPos, &pyEndPos, &layer) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(!PySequence_Check(pyStartPos))
 	{
 		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) not is PySequence!");
@@ -1352,7 +1391,7 @@ PyObject* Entity::pyRaycast(int layer, PyObject_ptr pyStartPos, PyObject_ptr pyE
 
 	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
 	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
-	if(raycast(layer, startPos, endPos, hitPosVec) <= 0)
+	if(pobj->raycast(layer, startPos, endPos, hitPosVec) <= 0)
 	{
 		S_Return;
 	}
