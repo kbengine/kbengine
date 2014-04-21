@@ -67,7 +67,7 @@ namespace Tmx
 	{
 		// Set the map to null to specify that it is not yet allocated.
 		tile_map = new MapTile[width * height];
-		memcpy(tile_map, _layer.tile_map, sizeof(int) * width * height);
+		memcpy(tile_map, _layer.tile_map, sizeof(MapTile) * width * height);
 	}
 
 	Layer::~Layer() 

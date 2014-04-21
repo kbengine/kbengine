@@ -362,16 +362,14 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle():
 NavigationHandle(),
-pTilemap(0),
-astarsearch()
+pTilemap(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle(const KBEngine::NavTileHandle & navTileHandle):
 NavigationHandle(),
-pTilemap(0),
-astarsearch()
+pTilemap(0)
 {
 	pTilemap = new Tmx::Map(*navTileHandle.pTilemap);
 }
@@ -388,6 +386,8 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
+
+	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
 
 	// Create a start state
 	MapSearchNode nodeStart;
@@ -460,7 +460,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 		int steps = 0;
 
-		//node->printNodeInfo();
+		node->PrintNodeInfo();
 		for( ;; )
 		{
 			node = astarsearch.GetSolutionNext();
@@ -470,7 +470,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 				break;
 			}
 
-			//node->printNodeInfo();
+			node->PrintNodeInfo();
 			steps ++;
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
@@ -654,11 +654,11 @@ int NavTileHandle::getMap(int x, int y)
 		return TILE_STATE_CLOSED;	 
 	}
 
-	return pTilemap->GetLayer(currentLayer)->GetTileId(x, y);
+	return (int)pTilemap->GetLayer(currentLayer)->GetTileId(x, y);
 }
 
 //-------------------------------------------------------------------------------------
-bool NavTileHandle::MapSearchNode::isSameState(MapSearchNode &rhs)
+bool NavTileHandle::MapSearchNode::IsSameState(MapSearchNode &rhs)
 {
 
 	// same state in a maze search is simply when (x,y) are the same
@@ -674,7 +674,7 @@ bool NavTileHandle::MapSearchNode::isSameState(MapSearchNode &rhs)
 }
 
 //-------------------------------------------------------------------------------------
-void NavTileHandle::MapSearchNode::printNodeInfo()
+void NavTileHandle::MapSearchNode::PrintNodeInfo()
 {
 	char str[100];
 	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", x,y );
@@ -686,7 +686,7 @@ void NavTileHandle::MapSearchNode::printNodeInfo()
 // Here's the heuristic function that estimates the distance from a Node
 // to the Goal. 
 
-float NavTileHandle::MapSearchNode::goalDistanceEstimate(MapSearchNode &nodeGoal)
+float NavTileHandle::MapSearchNode::GoalDistanceEstimate(MapSearchNode &nodeGoal)
 {
 	float xd = float(((float)x - (float)nodeGoal.x));
 	float yd = float(((float)y - (float)nodeGoal.y));
@@ -695,7 +695,7 @@ float NavTileHandle::MapSearchNode::goalDistanceEstimate(MapSearchNode &nodeGoal
 }
 
 //-------------------------------------------------------------------------------------
-bool NavTileHandle::MapSearchNode::isGoal(MapSearchNode &nodeGoal)
+bool NavTileHandle::MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
 {
 
 	if( (x == nodeGoal.x) &&
@@ -712,7 +712,7 @@ bool NavTileHandle::MapSearchNode::isGoal(MapSearchNode &nodeGoal)
 // AddSuccessor to give the successors to the AStar class. The A* specific initialisation
 // is done for each node internally, so here you just set the state information that
 // is specific to the application
-bool NavTileHandle::MapSearchNode::getSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node)
+bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node)
 {
 
 	int parent_x = -1; 
@@ -769,7 +769,7 @@ bool NavTileHandle::MapSearchNode::getSuccessors(AStarSearch<MapSearchNode> *ast
 // given this node, what does it cost to move to successor. In the case
 // of our map the answer is the map terrain value at this node since that is 
 // conceptually where we're moving
-float NavTileHandle::MapSearchNode::getCost( MapSearchNode &successor )
+float NavTileHandle::MapSearchNode::GetCost( MapSearchNode &successor )
 {
 	/*
 		一个tile寻路的性价比
