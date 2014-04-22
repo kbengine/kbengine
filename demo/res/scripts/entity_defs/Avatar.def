@@ -3,6 +3,8 @@
 		<position/>
 		<yaw/>
 		<!--<pitch> 20 </pitch>-->
+		<pitch/>
+		<roll/>
 	</Volatile>
 
 	<Implements>

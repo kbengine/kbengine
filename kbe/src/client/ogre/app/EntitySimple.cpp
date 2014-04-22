@@ -88,6 +88,8 @@ void EntitySimple::setupBody(SceneManager* sceneMgr)
 		modelName_ = "dwarf.mesh";
 	else if(modelID_ == 1003)
 		modelName_ = "Ogre.mesh";
+	//else if(modelID_ == 90000001) // 目前机制不能由程序驱动Sinbad.mesh先用ogrehead代替
+	//	modelName_ = "Sinbad.mesh";
 	else
 		modelName_ = "ogrehead.mesh";
 
@@ -97,6 +99,9 @@ void EntitySimple::setupBody(SceneManager* sceneMgr)
 //-------------------------------------------------------------------------------------
 void EntitySimple::setupAnimations()
 {
+	if(modelName_ == "ogrehead.mesh")
+		return;
+
 	Ogre::AnimationStateSet* aniStetes = mBodyEnt->getAllAnimationStates();
 	if(aniStetes != NULL)
 	{
@@ -144,6 +149,9 @@ void EntitySimple::setupAnimations()
 //-------------------------------------------------------------------------------------
 void EntitySimple::playAnimation(Ogre::String name)
 {
+	if(modelName_ == "ogrehead.mesh")
+		return;
+
 	if(name != "Die" && mState == 1)
 		name = "Die";
 

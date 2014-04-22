@@ -372,6 +372,10 @@ void EntityComplex::updateBody(Real deltaTime)
 			mTimer = 0;
 		}
 	}
+
+	mGoalDirection.x = Ogre::Real(mBodyNode->_getDerivedOrientation().getYaw().valueDegrees() / 360 * 6.283185307179586);
+	mGoalDirection.y = 0.f;
+	mGoalDirection.z = 0.f;
 }
 
 //-------------------------------------------------------------------------------------
