@@ -257,7 +257,7 @@ public:
 	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
 	
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, float pitch, float yaw);
 
 	/** 
 		更新玩家到服务端 
@@ -323,7 +323,7 @@ public:
 	ENTITY_ID getTargetID()const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
-	/** 网络接口
+	/** 
 		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/

@@ -854,7 +854,7 @@ void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, y, p, r);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -873,7 +873,7 @@ void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, y, p, FLT_MAX);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -892,7 +892,7 @@ void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, y, FLT_MAX, r);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -911,7 +911,7 @@ void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, r);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
@@ -927,7 +927,7 @@ void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, y, FLT_MAX, FLT_MAX);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -959,7 +959,7 @@ void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, r);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
@@ -997,7 +997,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, y, p, r);
+	_updateVolatileData(eid, x, 0.f, z, r, p, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1018,12 +1018,12 @@ void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, y, p, FLT_MAX);
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y);
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
-										   float yaw, float pitch, float roll)
+										   float roll, float pitch, float yaw)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
@@ -1085,7 +1085,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, y, FLT_MAX, r);
+	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1106,7 +1106,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, r);
+	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1124,7 +1124,7 @@ void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStrea
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, y, FLT_MAX, FLT_MAX);
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1160,7 +1160,7 @@ void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStrea
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, r);
+	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1201,7 +1201,7 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemorySt
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, yaw, p, r);
+	_updateVolatileData(eid, x, y, z, r, p, yaw);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1225,7 +1225,7 @@ void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, yaw, p, FLT_MAX);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1249,7 +1249,7 @@ void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, yaw, FLT_MAX, r);
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1273,7 +1273,7 @@ void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, p, r);
+	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1294,7 +1294,7 @@ void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	yaw = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, yaw, FLT_MAX, FLT_MAX);
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1336,7 +1336,7 @@ void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, r);
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------
