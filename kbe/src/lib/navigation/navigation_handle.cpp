@@ -473,7 +473,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 		int steps = 0;
 
-		node->PrintNodeInfo();
+		//node->PrintNodeInfo();
 		for( ;; )
 		{
 			node = astarsearch.GetSolutionNext();
@@ -483,7 +483,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 				break;
 			}
 
-			node->PrintNodeInfo();
+			//node->PrintNodeInfo();
 			steps ++;
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
@@ -682,7 +682,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 			std::map< std::string, std::string > list = tile->GetProperties().GetList();
 			std::map< std::string, std::string >::iterator iter;
 			for (iter = list.begin(); iter != list.end(); ++iter) {
-				DEBUG_MSG(boost::format("\t==> property: %1% = %2%\n") % iter->first.c_str() % iter->second.c_str());
+				DEBUG_MSG(boost::format("\t==> property: %1% : %2%\n") % iter->first.c_str() % iter->second.c_str());
 			}
 		}
 	}
