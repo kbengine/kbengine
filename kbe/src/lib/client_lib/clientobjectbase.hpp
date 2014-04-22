@@ -314,7 +314,7 @@ public:
 	*/
 	client::Entity* pPlayer();
 	void setPlayerPosition(float x, float y, float z){ entityPos_ = Position3D(x, y, z); }
-	void setPlayerDirection(float yaw, float pitch, float roll){ entityDir_ = Direction3D(roll, pitch, yaw); }
+	void setPlayerDirection(float roll, float pitch, float yaw){ entityDir_ = Direction3D(roll, pitch, yaw); }
 
 	void setTargetID(ENTITY_ID id){ 
 		targetID_ = id; 
