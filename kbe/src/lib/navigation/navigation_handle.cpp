@@ -365,16 +365,18 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-NavTileHandle::NavTileHandle():
+NavTileHandle::NavTileHandle(bool dir):
 NavigationHandle(),
-pTilemap(0)
+pTilemap(0),
+direction8_(dir)
 {
 }
 
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle(const KBEngine::NavTileHandle & navTileHandle):
 NavigationHandle(),
-pTilemap(0)
+pTilemap(0),
+direction8_(navTileHandle.direction8_)
 {
 	pTilemap = new Tmx::Map(*navTileHandle.pTilemap);
 }
@@ -644,12 +646,15 @@ NavigationHandle* NavTileHandle::create(std::string name)
 		delete map;
 		return NULL;
 	}
+	
+	bool mapdir = map->GetProperties().HasProperty("direction8");
 
 	DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
-	DEBUG_MSG(boost::format("\t==> map Width = %1%\n") % map->GetWidth());
-	DEBUG_MSG(boost::format("\t==> map Height = %1%\n") % map->GetHeight());
-	DEBUG_MSG(boost::format("\t==> tile Width = %1% px\n") % map->GetTileWidth());
-	DEBUG_MSG(boost::format("\t==> tile Height = %1% px\n") % map->GetTileHeight());
+	DEBUG_MSG(boost::format("\t==> map Width : %1%\n") % map->GetWidth());
+	DEBUG_MSG(boost::format("\t==> map Height : %1%\n") % map->GetHeight());
+	DEBUG_MSG(boost::format("\t==> tile Width : %1% px\n") % map->GetTileWidth());
+	DEBUG_MSG(boost::format("\t==> tile Height : %1% px\n") % map->GetTileHeight());
+	DEBUG_MSG(boost::format("\t==> findpath direction : %1%\n") % (mapdir ? 8 : 4));
 
 	// Iterate through the tilesets.
 	for (int i = 0; i < map->GetNumTilesets(); ++i) {
@@ -660,14 +665,14 @@ NavigationHandle* NavTileHandle::create(std::string name)
 		const Tmx::Tileset *tileset = map->GetTileset(i);
 
 		// Print tileset information.
-		DEBUG_MSG(boost::format("\t==> name = %1%\n") % tileset->GetName());
-		DEBUG_MSG(boost::format("\t==> margin = %1%\n") % tileset->GetMargin());
-		DEBUG_MSG(boost::format("\t==> spacing = %1%\n") % tileset->GetSpacing());
-		DEBUG_MSG(boost::format("\t==> image Width = %1%\n") % tileset->GetImage()->GetWidth());
-		DEBUG_MSG(boost::format("\t==> image Height = %1%\n") % tileset->GetImage()->GetHeight());
-		DEBUG_MSG(boost::format("\t==> image Source = %1%\n") % tileset->GetImage()->GetSource().c_str());
-		DEBUG_MSG(boost::format("\t==> transparent Color (hex) = %1%\n") % tileset->GetImage()->GetTransparentColor());
-		DEBUG_MSG(boost::format("\t==> tiles Size = %1%\n") % tileset->GetTiles().size());
+		DEBUG_MSG(boost::format("\t==> name : %1%\n") % tileset->GetName());
+		DEBUG_MSG(boost::format("\t==> margin : %1%\n") % tileset->GetMargin());
+		DEBUG_MSG(boost::format("\t==> spacing : %1%\n") % tileset->GetSpacing());
+		DEBUG_MSG(boost::format("\t==> image Width : %1%\n") % tileset->GetImage()->GetWidth());
+		DEBUG_MSG(boost::format("\t==> image Height : %1%\n") % tileset->GetImage()->GetHeight());
+		DEBUG_MSG(boost::format("\t==> image Source : %1%\n") % tileset->GetImage()->GetSource().c_str());
+		DEBUG_MSG(boost::format("\t==> transparent Color (hex) : %1%\n") % tileset->GetImage()->GetTransparentColor());
+		DEBUG_MSG(boost::format("\t==> tiles Size : %1%\n") % tileset->GetTiles().size());
 		if (tileset->GetTiles().size() > 0) 
 		{
 			// Get a tile from the tileset.
@@ -682,7 +687,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 		}
 	}
 
-	NavTileHandle* pNavTileHandle = new NavTileHandle();
+	NavTileHandle* pNavTileHandle = new NavTileHandle(mapdir);
 	pNavTileHandle->pTilemap = map;
 	return pNavTileHandle;
 }
@@ -811,6 +816,43 @@ bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *ast
 		astarsearch->AddSuccessor( NewNode );
 	}	
 
+	// 如果是8方向移动
+	if(NavTileHandle::pCurrNavTileHandle->direction8())
+	{
+		if( (NavTileHandle::pCurrNavTileHandle->getMap( x + 1, y + 1 ) < TILE_STATE_CLOSED) 
+			&& !((parent_x == x + 1) && (parent_y == y + 1))
+		  ) 
+		{
+			NewNode = MapSearchNode( x + 1, y + 1 );
+			astarsearch->AddSuccessor( NewNode );
+		}	
+
+		if( (NavTileHandle::pCurrNavTileHandle->getMap( x + 1, y-1 ) < TILE_STATE_CLOSED) 
+			&& !((parent_x == x + 1) && (parent_y == y-1))
+		  ) 
+		{
+			NewNode = MapSearchNode( x + 1, y-1 );
+			astarsearch->AddSuccessor( NewNode );
+		}	
+
+		if( (NavTileHandle::pCurrNavTileHandle->getMap( x - 1, y + 1) < TILE_STATE_CLOSED)
+			&& !((parent_x == x - 1) && (parent_y == y + 1))
+		  ) 
+		{
+			NewNode = MapSearchNode( x - 1, y + 1);
+			astarsearch->AddSuccessor( NewNode );
+		}	
+
+			
+		if( (NavTileHandle::pCurrNavTileHandle->getMap( x - 1, y - 1 ) < TILE_STATE_CLOSED) 
+			&& !((parent_x == x - 1) && (parent_y == y - 1))
+			)
+		{
+			NewNode = MapSearchNode( x - 1, y - 1 );
+			astarsearch->AddSuccessor( NewNode );
+		}	
+	}
+
 	return true;
 }
 
@@ -826,6 +868,28 @@ float NavTileHandle::MapSearchNode::GetCost( MapSearchNode &successor )
 		比如： 前方虽然能够通过但是前方是泥巴路， 行走起来非常费力， 
 		或者是前方为高速公路， 行走非常快。
 	*/
+	
+	/*
+		计算代价：
+		通常用公式表示为：f = g + h.
+		g就是从起点到当前点的代价.
+		h是当前点到终点的估计代价，是通过估价函数计算出来的.
+
+		对于一个不再边上的节点，他周围会有8个节点，可以看成他到周围8个点的代价都是1。
+		精确点，到上下左右4个点的代价是1，到左上左下右上右下的1.414就是“根号2”，这个值就是前面说的g.
+		2.8  2.4  2  2.4  2.8
+		2.4  1.4  1  1.4  2.4
+		2    1    0    1    2
+		2.4  1.4  1  1.4  2.4
+		2.8  2.4  2  2.4  2.8
+	*/
+	if(NavTileHandle::pCurrNavTileHandle->direction8())
+	{
+		if (x != successor.x && y != successor.y) {
+			return (float) (NavTileHandle::pCurrNavTileHandle->getMap( x, y ) + 0.41421356/* 本身有至少1的值 */); //sqrt(2)
+		}
+	}
+
 	return (float) NavTileHandle::pCurrNavTileHandle->getMap( x, y );
 
 }

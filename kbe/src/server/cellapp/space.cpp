@@ -97,7 +97,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount < 3 || argCount > 4)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize != 4) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 4) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" width="10" height="10" tilewidth="32" tileheight="32">
+ <properties>
+  <property name="direction8" value="1"/>
+ </properties>
  <tileset firstgid="1" name="tmw_desert_spacing" tilewidth="32" tileheight="32">
   <image source="tmw_desert_spacing.png" width="265" height="199"/>
   <tile id="0">

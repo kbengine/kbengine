@@ -148,7 +148,7 @@ public:
 	};
 
 public:
-	NavTileHandle();
+	NavTileHandle(bool dir);
 	NavTileHandle(const KBEngine::NavTileHandle & navTileHandle);
 
 	virtual ~NavTileHandle();
@@ -166,8 +166,11 @@ public:
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
 
 	void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos);
+
+	bool direction8()const{ return direction8_; }
 public:
 	Tmx::Map *pTilemap;
+	bool direction8_;
 };
 
 }
