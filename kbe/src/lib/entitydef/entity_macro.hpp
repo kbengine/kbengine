@@ -635,6 +635,7 @@ public:																										\
 		if(!isDestroyed_)																					\
 		{																									\
 			isDestroyed_ = true;																			\
+			scriptTimers_.cancelAll();																		\
 			onDestroy(callScript);																			\
 			Py_DECREF(this);																				\
 		}																									\
