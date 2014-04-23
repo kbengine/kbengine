@@ -504,7 +504,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	}
 	else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
 	{
-		DEBUG_MSG("NavTileHandle::findStraightPath: Search terminated. Did not find goal state\n");
+		ERROR_MSG("NavTileHandle::findStraightPath: Search terminated. Did not find goal state\n");
 	}
 
 	// Display the number of loops the search went through
@@ -544,8 +544,8 @@ void NavTileHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D
 			Tmx::MapTile& oldMapTile = pLayer->GetTile(nodeOld.x, nodeOld.y);
 			oldMapTile.delObj(entityID);
 
-			DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: leave[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
-				entityID % nodeOld.x % nodeOld.y % layer % oldMapTile.objs.size());
+			//DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: leave[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
+			//	entityID % nodeOld.x % nodeOld.y % layer % oldMapTile.objs.size());
 		}
 	}
 
@@ -554,8 +554,8 @@ void NavTileHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D
 		Tmx::MapTile& newMapTile = pLayer->GetTile(nodeNew.x, nodeNew.y);
 		newMapTile.addObj(entityID, g_kbetime);
 
-		DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: enter[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
-			entityID % nodeNew.x % nodeNew.y % layer % newMapTile.objs.size());
+		//DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: enter[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
+		//	entityID % nodeNew.x % nodeNew.y % layer % newMapTile.objs.size());
 	}
 }
 
@@ -583,8 +583,8 @@ void NavTileHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3
 
 		mapTile.addObj(entityID, g_kbetime);
 
-		DEBUG_MSG(boost::format("NavTileHandle::onEnterObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
-			entityID % node.x % node.y % layer % mapTile.objs.size());
+		//DEBUG_MSG(boost::format("NavTileHandle::onEnterObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
+		//	entityID % node.x % node.y % layer % mapTile.objs.size());
 	}
 }
 
@@ -610,8 +610,8 @@ void NavTileHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3
 	{
 		Tmx::MapTile& mapTile = pLayer->GetTile(node.x, node.y);
 
-		DEBUG_MSG(boost::format("NavTileHandle::onLeaveObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
-			entityID % node.x % node.y % layer % mapTile.objs.size());
+		//DEBUG_MSG(boost::format("NavTileHandle::onLeaveObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
+		//	entityID % node.x % node.y % layer % mapTile.objs.size());
 
 		mapTile.delObj(entityID);
 	}
@@ -799,7 +799,10 @@ int NavTileHandle::getMap(int x, int y)
 		return TILE_STATE_CLOSED;	 
 
 	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
-
+	
+	// 如果是起始点或者是目的地上已经有对象占有了， 我们仍然让astar能够起作用
+	// 至于是否能够移动可以交给其他层进行判定， 如在移动途中前方tile被占是否要重新寻路还是采用另一种算法绕开
+	// 还是停止
 	if((x != nodeStart.x || nodeStart.y != y) && (x != nodeGoal.x || nodeGoal.y != y))
 	{
 		if(mapTile.minTime > 3)
@@ -810,10 +813,10 @@ int NavTileHandle::getMap(int x, int y)
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::hasMapObj(int x, int y)
+bool NavTileHandle::hasMapObj(int x, int y)
 {
 	if(!validTile(x, y))
-		return 0;	 
+		return false;	 
 
 	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
 	return mapTile.minTime > 0;

@@ -174,7 +174,7 @@ public:
 	static NavigationHandle* create(std::string name);
 	
 	int getMap(int x, int y);
-	int hasMapObj(int x, int y);
+	bool hasMapObj(int x, int y);
 
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
