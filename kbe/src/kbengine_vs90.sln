@@ -249,7 +249,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "lib\third_party
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "lib\third_party\openssl\vcbuild\ssleay32\ssleay32.vcproj", "{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{89F7F2F7-EB4D-4810-AA06-A96D592678E6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "srv-apps", "srv-apps", "{89F7F2F7-EB4D-4810-AA06-A96D592678E6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apr", "lib\third_party\apr\apr.vcproj", "{C6C836E6-2899-458A-90BA-184192342D30}"
 EndProject

@@ -879,7 +879,6 @@ bool NavTileHandle::MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
 // is specific to the application
 bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node)
 {
-
 	int parent_x = -1; 
 	int parent_y = -1; 
 
@@ -889,7 +888,6 @@ bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *ast
 		parent_y = parent_node->y;
 	}
 	
-
 	MapSearchNode NewNode;
 
 	// push each possible move except allowing the search to go backwards
@@ -916,8 +914,7 @@ bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *ast
 	{
 		NewNode = MapSearchNode( x+1, y );
 		astarsearch->AddSuccessor( NewNode );
-	}	
-
+	}
 		
 	if( (NavTileHandle::pCurrNavTileHandle->getMap( x, y+1 ) < TILE_STATE_CLOSED) 
 		&& !((parent_x == x) && (parent_y == y+1))
@@ -954,7 +951,6 @@ bool NavTileHandle::MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *ast
 			astarsearch->AddSuccessor( NewNode );
 		}	
 
-			
 		if( (NavTileHandle::pCurrNavTileHandle->getMap( x - 1, y - 1 ) < TILE_STATE_CLOSED) 
 			&& !((parent_x == x - 1) && (parent_y == y - 1))
 			)
