@@ -77,6 +77,7 @@ SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,				0,							0)
 SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,							0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
+SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
@@ -91,6 +92,7 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
+lastpos_(),
 position_(),
 pPyPosition_(NULL),
 direction_(),
@@ -109,7 +111,8 @@ pEntityRangeNode_(NULL),
 pControllers_(new Controllers()),
 pMoveController_(NULL),
 pyPositionChangedCallback_(),
-pyDirectionChangedCallback_()
+pyDirectionChangedCallback_(),
+layer_(0)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -1065,6 +1068,8 @@ void Entity::onPyPositionChanged()
 
 	if(this->pEntityRangeNode())
 		this->pEntityRangeNode()->update();
+
+	updateLastPos();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1076,6 +1081,21 @@ void Entity::onPositionChanged()
 	posChangedTime_ = g_kbetime;
 	if(this->pEntityRangeNode())
 		this->pEntityRangeNode()->update();
+
+	updateLastPos();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::updateLastPos()
+{
+	Space* pSpace =  Spaces::findSpace(this->getSpaceID());
+	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
+	if(pNavHandle_)
+	{
+		pNavHandle_->onPassedNode(layer(), getID(), lastpos_, this->getPosition(), NavigationHandle::NAV_OBJECT_STATE_MOVING);
+	}
+
+	lastpos_ = this->getPosition();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1160,6 +1180,35 @@ void Entity::onResetWitness(Mercury::Channel* pChannel)
 {
 	INFO_MSG(boost::format("%1%::onResetWitness: %2%.\n") % 
 		this->getScriptName() % this->getID());
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetLayer(PyObject *value)
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(!PyLong_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set layer value is not int!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;	
+	}
+
+	layer_ = (int8)PyLong_AsLong(value);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetLayer()
+{
+	return PyLong_FromLong(layer_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1320,7 +1369,7 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
-	int layer = 0;
+	int layer = pobj->layer();
 	PyObject* pyStartPos = NULL;
 	PyObject* pyEndPos = NULL;
 
@@ -1440,7 +1489,7 @@ bool Entity::canNavigate()
 
 //-------------------------------------------------------------------------------------
 uint32 Entity::navigate(const Position3D& destination, float velocity, float range, float maxMoveDistance, float maxDistance, 
-	bool faceMovement, int layer, PyObject* userData)
+	bool faceMovement, float girth, PyObject* userData)
 {
 	stopMove();
 
@@ -1449,7 +1498,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 	
 	new NavigateHandler(p, destination, velocity, 
-		range, faceMovement, maxMoveDistance, maxDistance, layer, userData);
+		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1460,7 +1509,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
-								 int8 faceMovement, int layer, PyObject_ptr userData)
+								 int8 faceMovement, float layer, PyObject_ptr userData)
 {
 	if(this->isDestroyed())
 	{
@@ -1504,7 +1553,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
 
-	new MoveToPointHandler(p, destination, velocity, 
+	new MoveToPointHandler(p, layer(), destination, velocity, 
 		0.0f, faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
@@ -1586,7 +1635,7 @@ PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onMove(uint32 controllerId, PyObject* userarg)
+void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
 {
 	if(this->isDestroyed())
 		return;
@@ -1597,7 +1646,7 @@ void Entity::onMove(uint32 controllerId, PyObject* userarg)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
+void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
 {
 	if(this->isDestroyed())
 		return;
@@ -2256,6 +2305,28 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterSpace(Space* pSpace)
+{
+	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
+
+	if(pNavHandle_)
+	{
+		pNavHandle_->onEnterObject(layer_, getID(), this->getPosition());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveSpace(Space* pSpace)
+{
+	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
+
+	if(pNavHandle_)
+	{
+		pNavHandle_->onLeaveObject(layer_, getID(), this->getPosition());
+	}
 }
 
 //-------------------------------------------------------------------------------------

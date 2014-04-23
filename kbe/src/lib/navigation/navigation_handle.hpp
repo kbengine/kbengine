@@ -62,6 +62,12 @@ public:
 		NAV_TILE = 2
 	};
 
+	enum NAV_OBJECT_STATE
+	{
+		NAV_OBJECT_STATE_MOVING = 1,	// 移动中
+		NAV_OBJECT_STATE_MOVEOVER = 2,	// 移动已经结束了
+	};
+
 	NavigationHandle():name()
 	{
 	}
@@ -74,7 +80,10 @@ public:
 
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
-	virtual void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos) = 0;
+	virtual void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state) = 0;
+
+	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
+	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
 
 	std::string name;
 };
@@ -100,7 +109,10 @@ public:
 
 	static NavigationHandle* create(std::string name);
 
-	void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos);
+	void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state);
+
+	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
+	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 
 	dtNavMesh* navmesh;
 	dtNavMeshQuery* navmeshQuery;
@@ -111,7 +123,7 @@ class NavTileHandle : public NavigationHandle
 public:
 	static NavTileHandle* pCurrNavTileHandle;
 	static int currentLayer;
-	
+
 	static void setMapLayer(int layer)
 	{ 
 		currentLayer = layer; 
@@ -146,7 +158,8 @@ public:
 
 		void PrintNodeInfo(); 
 	};
-
+	
+	static MapSearchNode nodeGoal, nodeStart;
 public:
 	NavTileHandle(bool dir);
 	NavTileHandle(const KBEngine::NavTileHandle & navTileHandle);
@@ -161,13 +174,19 @@ public:
 	static NavigationHandle* create(std::string name);
 	
 	int getMap(int x, int y);
-	
+	int hasMapObj(int x, int y);
+
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
 
-	void onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos);
+	void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state);
+
+	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
+	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 
 	bool direction8()const{ return direction8_; }
+	
+	bool validTile(int x, int y)const;
 public:
 	Tmx::Map *pTilemap;
 	bool direction8_;

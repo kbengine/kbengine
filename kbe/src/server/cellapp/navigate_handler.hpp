@@ -29,11 +29,11 @@ class NavigateHandler : public MoveToPointHandler
 {
 public:
 	NavigateHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
-		float maxMoveDistance, float maxDistance, int layer,
+		float maxMoveDistance, float maxDistance, float girth,
 		PyObject* userarg);
 	virtual ~NavigateHandler();
 	
-	virtual bool requestMoveOver();
+	virtual bool requestMoveOver(const Position3D& oldPos);
 
 	virtual bool isOnGround(){ return true; }
 protected:
@@ -43,7 +43,6 @@ protected:
 
 	float maxMoveDistance_;
 	float maxDistance_;
-	int layer_;
 };
  
 }

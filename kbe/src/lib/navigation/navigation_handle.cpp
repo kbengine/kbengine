@@ -27,6 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
 int NavTileHandle::currentLayer = 0;
+NavTileHandle::MapSearchNode NavTileHandle::nodeGoal;
+NavTileHandle::MapSearchNode NavTileHandle::nodeStart;
 
 #define DEBUG_LISTS 0
 #define DEBUG_LIST_LENGTHS_ONLY 0
@@ -115,7 +117,17 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-void NavMeshHandle::onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos)
+void NavMeshHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void NavMeshHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void NavMeshHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
 {
 }
 
@@ -403,20 +415,18 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
 
 	// Create a start state
-	MapSearchNode nodeStart;
 	nodeStart.x = int(start.x / pTilemap->GetTileWidth());
 	nodeStart.y = int(start.z / pTilemap->GetTileHeight()); 
 
 	// Define the goal state
-	MapSearchNode nodeEnd;
-	nodeEnd.x = int(end.x / pTilemap->GetTileWidth());				
-	nodeEnd.y = int(end.z / pTilemap->GetTileHeight()); 
+	nodeGoal.x = int(end.x / pTilemap->GetTileWidth());				
+	nodeGoal.y = int(end.z / pTilemap->GetTileHeight()); 
 
 	//DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: start(%1%, %2%), end(%3%, %4%)\n") % 
-	//	nodeStart.x % nodeStart.y % nodeEnd.x % nodeEnd.y);
+	//	nodeStart.x % nodeStart.y % nodeGoal.x % nodeGoal.y);
 
 	// Set Start and goal states
-	astarsearch.SetStartAndGoalStates(nodeStart, nodeEnd);
+	astarsearch.SetStartAndGoalStates(nodeStart, nodeGoal);
 
 	unsigned int SearchState;
 	unsigned int SearchSteps = 0;
@@ -473,7 +483,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 		int steps = 0;
 
-		//node->PrintNodeInfo();
+		node->PrintNodeInfo();
 		for( ;; )
 		{
 			node = astarsearch.GetSolutionNext();
@@ -483,7 +493,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 				break;
 			}
 
-			//node->PrintNodeInfo();
+			node->PrintNodeInfo();
 			steps ++;
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
@@ -505,7 +515,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-void NavTileHandle::onPassedNode(int layer, const Position3D& oldPos, const Position3D& newPos)
+void NavTileHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state)
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
@@ -526,10 +536,85 @@ void NavTileHandle::onPassedNode(int layer, const Position3D& oldPos, const Posi
 
 	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
 
+	
 	if(nodeOld.x != nodeNew.x || nodeOld.y != nodeNew.y)
-		pLayer->GetTile(nodeOld.x, nodeOld.y).isBlocked = false;
+	{
+		if(pCurrNavTileHandle->validTile(nodeOld.x, nodeOld.y))
+		{
+			Tmx::MapTile& oldMapTile = pLayer->GetTile(nodeOld.x, nodeOld.y);
+			oldMapTile.delObj(entityID);
 
-	pLayer->GetTile(nodeNew.x, nodeNew.y).isBlocked = true;
+			DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: leave[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
+				entityID % nodeOld.x % nodeOld.y % layer % oldMapTile.objs.size());
+		}
+	}
+
+	if(pCurrNavTileHandle->validTile(nodeNew.x, nodeNew.y))
+	{
+		Tmx::MapTile& newMapTile = pLayer->GetTile(nodeNew.x, nodeNew.y);
+		newMapTile.addObj(entityID, g_kbetime);
+
+		DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: enter[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
+			entityID % nodeNew.x % nodeNew.y % layer % newMapTile.objs.size());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void NavTileHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
+{
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
+
+	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(boost::format("NavTileHandle::onEnterObject: not found layer(%1%)\n") %  layer);
+		return;
+	}
+
+	MapSearchNode node;
+	node.x = int(currPos.x / pTilemap->GetTileWidth());
+	node.y = int(currPos.z / pTilemap->GetTileHeight()); 
+
+	if(pCurrNavTileHandle->validTile(node.x, node.y))
+	{
+		Tmx::MapTile& mapTile = pLayer->GetTile(node.x, node.y);
+
+		mapTile.addObj(entityID, g_kbetime);
+
+		DEBUG_MSG(boost::format("NavTileHandle::onEnterObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
+			entityID % node.x % node.y % layer % mapTile.objs.size());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void NavTileHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
+{
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
+
+	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(boost::format("NavTileHandle::onLeaveObject: not found layer(%1%)\n") %  layer);
+		return;
+	}
+
+	MapSearchNode node;
+	node.x = int(currPos.x / pTilemap->GetTileWidth());
+	node.y = int(currPos.z / pTilemap->GetTileHeight()); 
+
+	if(pCurrNavTileHandle->validTile(node.x, node.y))
+	{
+		Tmx::MapTile& mapTile = pLayer->GetTile(node.x, node.y);
+
+		DEBUG_MSG(boost::format("NavTileHandle::onLeaveObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
+			entityID % node.x % node.y % layer % mapTile.objs.size());
+
+		mapTile.delObj(entityID);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -693,7 +778,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::getMap(int x, int y)
+bool NavTileHandle::validTile(int x, int y)const
 {
 	if( x < 0 ||
 	    x >= pTilemap->GetWidth() ||
@@ -701,14 +786,37 @@ int NavTileHandle::getMap(int x, int y)
 		 y >= pTilemap->GetHeight()
 	  )
 	{
-		return TILE_STATE_CLOSED;	 
+		return false;	 
 	}
 
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::getMap(int x, int y)
+{
+	if(!validTile(x, y))
+		return TILE_STATE_CLOSED;	 
+
 	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
-	if(mapTile.isBlocked)
-		return TILE_STATE_CLOSED;	
+
+	if((x != nodeStart.x || nodeStart.y != y) && (x != nodeGoal.x || nodeGoal.y != y))
+	{
+		if(mapTile.minTime > 3)
+			return TILE_STATE_CLOSED;	
+	}
 
 	return (int)mapTile.id;
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::hasMapObj(int x, int y)
+{
+	if(!validTile(x, y))
+		return 0;	 
+
+	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
+	return mapTile.minTime > 0;
 }
 
 //-------------------------------------------------------------------------------------

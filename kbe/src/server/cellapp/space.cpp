@@ -198,6 +198,13 @@ void Space::onAllSpaceGeometryLoaded()
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onAllSpaceGeometryLoaded"), 
 		const_cast<char*>("Iis"), this->getID(), true, getGeometryPath().c_str());
+
+
+	SPACE_ENTITIES::iterator iter = entities_.begin();
+	for(; iter != entities_.end(); iter++)
+	{
+		pNavHandle_->onEnterObject(iter->get()->layer(), iter->get()->getID(), iter->get()->getPosition());
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -221,6 +228,7 @@ void Space::addEntity(Entity* pEntity)
 	pEntity->setSpaceID(this->id_);
 	pEntity->spaceEntityIdx(entities_.size());
 	entities_.push_back(pEntity);
+	pEntity->onEnterSpace(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -254,6 +262,7 @@ void Space::removeEntity(Entity* pEntity)
 
 	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityRangeNode
 	pEntity->uninstallRangeNodes(&rangeList_);
+	pEntity->onLeaveSpace(this);
 
 	if(pEntity->getID() == this->creatorID())
 	{

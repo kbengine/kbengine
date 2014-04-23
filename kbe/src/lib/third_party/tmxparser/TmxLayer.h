@@ -106,7 +106,10 @@ namespace Tmx
 		{ return tile_map[y * width + x].flippedDiagonally; }
 
 		// Get a tile specific to the map.
-		Tmx::MapTile& GetTile(int x, int y)  { return tile_map[y * width + x]; }
+		Tmx::MapTile& GetTile(int x, int y)  
+		{
+			return tile_map[y * width + x]; 
+		}
 
 		// Get the type of encoding that was used for parsing the layer data.
 		// See: LayerEncodingType

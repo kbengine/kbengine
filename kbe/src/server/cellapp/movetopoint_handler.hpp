@@ -32,14 +32,14 @@ class MoveToPointHandler : public Updatable
 public:
 	virtual std::string c_str(){ return "MoveToPointHandler"; }
 
-	MoveToPointHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
+	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 	virtual ~MoveToPointHandler();
 	
 	virtual bool update();
 
 	virtual const Position3D& destPos(){ return destPos_; }
-	virtual bool requestMoveOver();
+	virtual bool requestMoveOver(const Position3D& oldPos);
 
 	virtual bool isOnGround(){ return false; }
 		
@@ -52,6 +52,7 @@ protected:
 	PyObject* pyuserarg_;
 	float range_;
 	Controller* pController_;
+	int layer_;
 };
  
 }

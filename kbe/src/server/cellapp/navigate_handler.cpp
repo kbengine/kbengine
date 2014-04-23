@@ -29,15 +29,14 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 NavigateHandler::NavigateHandler(Controller* pController, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
-											 float maxMoveDistance, float maxDistance, int layer,
+											 float maxMoveDistance, float maxDistance, float girth,
 											PyObject* userarg):
-MoveToPointHandler(pController, pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
+MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
 pNavHandle_(NULL),
 maxMoveDistance_(maxMoveDistance),
-maxDistance_(maxDistance),
-layer_(layer)
+maxDistance_(maxDistance)
 {
 	Entity* pEntity = pController->pEntity();
 	if(pNavHandle_ == NULL)
@@ -57,7 +56,7 @@ layer_(layer)
 			if(pNavHandle_)
 			{
 				Position3D currpos = pEntity->getPosition();
-				pNavHandle_->findStraightPath(layer, currpos, destPos, paths_);
+				pNavHandle_->findStraightPath(pController->pEntity()->layer(), currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
 					pController_ = NULL;
@@ -81,14 +80,13 @@ NavigateHandler::~NavigateHandler()
 }
 
 //-------------------------------------------------------------------------------------
-bool NavigateHandler::requestMoveOver()
+bool NavigateHandler::requestMoveOver(const Position3D& oldPos)
 {
 	if(destPosIdx_ == ((int)paths_.size()))
-		return MoveToPointHandler::requestMoveOver();
+		return MoveToPointHandler::requestMoveOver(oldPos);
 	else
 		destPos_ = paths_[destPosIdx_++];
 
-	pNavHandle_->onPassedNode(layer_, paths_[destPosIdx_-1], destPos_);
 	return false;
 }
 

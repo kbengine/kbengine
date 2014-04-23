@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointHandler::MoveToPointHandler(Controller* pController, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, 
 											 float velocity, float range, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
@@ -36,7 +36,8 @@ faceMovement_(faceMovement),
 moveVertically_(moveVertically),
 pyuserarg_(userarg),
 range_(range),
-pController_(pController)
+pController_(pController),
+layer_(layer)
 {
 	static_cast<MoveController*>(pController)->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
@@ -54,12 +55,12 @@ MoveToPointHandler::~MoveToPointHandler()
 }
 
 //-------------------------------------------------------------------------------------
-bool MoveToPointHandler::requestMoveOver()
+bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 {
 	if(pController_)
 	{
 		if(pController_->pEntity())
-			pController_->pEntity()->onMoveOver(pController_->id(), pyuserarg_);
+			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
 		pController_->destroy();
 	}
 
@@ -78,6 +79,7 @@ bool MoveToPointHandler::update()
 	Entity* pEntity = pController_->pEntity();
 	const Position3D& dstPos = destPos();
 	Position3D currpos = pEntity->getPosition();
+	Position3D currpos_backup = currpos;
 	Direction3D direction = pEntity->getDirection();
 
 	Vector3 movement = dstPos - currpos;
@@ -127,12 +129,12 @@ bool MoveToPointHandler::update()
 
 	// 通知脚本
 	if(pController_)
-		pEntity->onMove(pController_->id(), pyuserarg_);
+		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true
 	if(!ret)
 	{
-		return !requestMoveOver();
+		return !requestMoveOver(currpos_backup);
 	}
 
 	return true;

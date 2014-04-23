@@ -56,6 +56,7 @@ class RangeList;
 class EntityRangeNode;
 class Controller;
 class Controllers;
+class Space;
 
 namespace Mercury
 {
@@ -160,6 +161,8 @@ public:
 	
 	void onPyPositionChanged();
 	void onPyDirectionChanged();
+	
+	void updateLastPos();
 
 	bool checkMoveForTopSpeed(const Position3D& position);
 
@@ -217,6 +220,12 @@ public:
 	void onLeavingCell();
 	void onLeftCell();
 	
+	/**
+		进入离开space等回调
+	*/
+	void onEnterSpace(Space* pSpace);
+	void onLeaveSpace(Space* pSpace);
+
 	/** 
 		当cellapp意外终止后， baseapp如果能找到合适的cellapp则将其恢复后
 		会调用此方法
@@ -253,6 +262,12 @@ public:
 	void onWriteToDB();
 
 	/** 
+		脚本获取和设置entity的position 
+	*/
+	INLINE int8 layer()const;
+	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
+
+	/** 
 		射线 
 	*/
 	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
@@ -264,11 +279,11 @@ public:
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float range,
 					float maxMoveDistance, float maxDistance, 
-					bool faceMovement, int layer, PyObject* userData);
+					bool faceMovement, float girth, PyObject* userData);
 
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
-	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
 
 	/** 
 		entity移动到某个点 
@@ -422,12 +437,12 @@ public:
 	/** 
 		entity的一次移动完成 
 	*/
-	void onMove(uint32 controllerId, PyObject* userarg);
+	void onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
 
 	/** 
 		entity的移动完成 
 	*/
-	void onMoveOver(uint32 controllerId, PyObject* userarg);
+	void onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
 
 	/** 
 		entity移动失败
@@ -470,6 +485,7 @@ protected:
 	EntityMailbox*											baseMailbox_;						
 
 	// entity的当前位置
+	Position3D												lastpos_;	
 	Position3D												position_;							
 	script::ScriptVector3*									pPyPosition_;	
 
@@ -518,6 +534,10 @@ protected:
 
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
+	
+	// entity层， 可以做任意表示， 基于tile的游戏可以表示为海陆空等层， 纯3d也可以表示各种层
+	// 在脚本层做搜索的时候可以按层搜索.
+	int8													layer_;
 };
 
 }
