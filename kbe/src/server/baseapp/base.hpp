@@ -208,6 +208,11 @@ public:
 	*/
 	void onDestroyEntity(bool deleteFromDB, bool writeToDB);
 
+	/**
+		从db擦除在线log
+	*/
+	void eraseEntityLog();
+
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/

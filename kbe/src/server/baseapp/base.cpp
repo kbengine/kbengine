@@ -107,11 +107,17 @@ void Base::onDestroy(bool callScript)
 		onCellWriteToDBCompleted(0);
 	}
 	
+	eraseEntityLog();
+}
+
+//-------------------------------------------------------------------------------------
+void Base::eraseEntityLog()
+{
+	// 这里没有使用hasDB()来进行判断
 	// 用户可能destroy( writeToDB = False ), 这个操作会导致hasDB为false， 因此这里
-	// 需要判断dbid是否大于0， 如果大于0则应该要去擦出在线等记录情况.
+	// 需要判断dbid是否大于0， 如果大于0则应该要去擦除在线等记录情况.
 	if(this->getDBID() > 0)
 	{
-		// 擦除DB中的在线纪录
 		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
 		(*(*bundleptr)) << this->getDBID();
