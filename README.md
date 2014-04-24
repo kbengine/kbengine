@@ -88,7 +88,8 @@ Linux: (假设kbe被放置在~/目录下)
 
 	[root@localhost ~]# vim /etc/passwd
 	
-	修改kbe的uid必须唯一, uid用来区分不同的服务端组， 如果二台硬件维护一组服务端那么二台硬件上的uid必须一致, 值需大于0。
+	修改kbe的uid必须唯一, uid用来区分不同的服务端组， 如果二台硬件维护一组服务端那么二台硬件上的uid必须一致, 
+	值需大于0。
 Windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
@@ -170,7 +171,7 @@ windows:
 		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
 
-	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
+	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml重载修改)。
 		如果mysql端口不是3306， 请在kbengine.xml中的dbmgr段加入<port>端口号</port>。
 
 
@@ -186,8 +187,8 @@ Linux:
 
 	sh kill.sh
 
-	(注意: 如有防火墙限制请设置防火墙规则对外开放这些TCP端口: loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
-	以及UDP广播端口:20086-20088)
+	(注意: 如有防火墙限制请设置防火墙规则对外开放这些TCP端口: loginapp登录端口、 baseapp登录端口具体请看
+	kbengine.xml|kbengine_defs.xml。 以及UDP广播端口:20086-20088)
 	(注意: 如果有二块网卡, 例如: eth0(公网ip)、eth1(局域网ip)
 	请设置kbengine.xml|kbengine_defs.xml除baseapp|loginapp|billingsystem的externalInterface设置为eth0以外, 
 	其他相关{internal|external}Interface为局域网ip的那块网卡(eth1), 并设置使用局域网ip来接收udp广播:
