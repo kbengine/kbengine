@@ -372,6 +372,10 @@
 				RelativePath=".\stlastar.h"
 				>
 			</File>
+			<File
+				RelativePath=".\stlstarfsa.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
