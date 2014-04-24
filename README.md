@@ -207,4 +207,4 @@ Windows:
 
 ##日志:
 
-	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用GUIConsole来查看。
+	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息"logs\*.log"。 也可以使用GUIConsole来查看， 但必须开启messagelog。
