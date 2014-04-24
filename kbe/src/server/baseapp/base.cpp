@@ -105,7 +105,12 @@ void Base::onDestroy(bool callScript)
 	if(this->hasDB())
 	{
 		onCellWriteToDBCompleted(0);
-
+	}
+	
+	// 用户可能destroy( writeToDB = False ), 这个操作会导致hasDB为false， 因此这里
+	// 需要判断dbid是否大于0， 如果大于0则应该要去擦出在线等记录情况.
+	if(this->getDBID() > 0)
+	{
 		// 擦除DB中的在线纪录
 		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
@@ -468,7 +473,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 		// 这种情况需要返回给用户一个错误， 用户可以继续尝试这个操作
 		if(pobj->hasDB() && pobj->getDBID() == 0)
 		{
-			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, but not dbid. "
+			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, current dbid is 0. "
 				"please wait for dbmgr to processing!\n", 
 				pobj->getScriptName(), pobj->getID());
 			PyErr_PrintEx(0);
