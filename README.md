@@ -171,7 +171,8 @@ windows:
 		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
 
-	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml重载修改)。
+	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数
+		(推荐在demo\res\server\kbengine.xml重载修改)。
 		如果mysql端口不是3306， 请在kbengine.xml中的dbmgr段加入<port>端口号</port>。
 
 
