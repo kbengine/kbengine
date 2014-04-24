@@ -160,6 +160,7 @@ public:
 	};
 	
 	static MapSearchNode nodeGoal, nodeStart;
+	static AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
 public:
 	NavTileHandle(bool dir);
 	NavTileHandle(const KBEngine::NavTileHandle & navTileHandle);

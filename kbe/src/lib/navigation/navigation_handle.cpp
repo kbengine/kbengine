@@ -29,6 +29,7 @@ NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
 int NavTileHandle::currentLayer = 0;
 NavTileHandle::MapSearchNode NavTileHandle::nodeGoal;
 NavTileHandle::MapSearchNode NavTileHandle::nodeStart;
+AStarSearch<NavTileHandle::MapSearchNode> NavTileHandle::astarsearch;
 
 #define DEBUG_LISTS 0
 #define DEBUG_LIST_LENGTHS_ONLY 0
@@ -412,8 +413,6 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 		return NAV_ERROR;
 	}
 
-	AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
-
 	// Create a start state
 	nodeStart.x = int(start.x / pTilemap->GetTileWidth());
 	nodeStart.y = int(start.z / pTilemap->GetTileHeight()); 
@@ -483,7 +482,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 		int steps = 0;
 
-		node->PrintNodeInfo();
+		//node->PrintNodeInfo();
 		for( ;; )
 		{
 			node = astarsearch.GetSolutionNext();
@@ -493,7 +492,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 				break;
 			}
 
-			node->PrintNodeInfo();
+			//node->PrintNodeInfo();
 			steps ++;
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
