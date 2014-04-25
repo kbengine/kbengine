@@ -174,8 +174,6 @@ void Entity::uninstallRangeNodes(RangeList* pRangeList)
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	stopMove();
-	
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -194,6 +192,8 @@ void Entity::onDestroy(bool callScript)
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
+
+	stopMove();
 
 	// 将entity从场景中剔除
 	Space* space = Spaces::findSpace(this->getSpaceID());
