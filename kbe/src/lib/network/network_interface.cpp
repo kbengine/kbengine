@@ -292,7 +292,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->setnodelay(true);
 	pEP->addr(address);
 	
-#ifdef KBE_SERVER
 	if(rbuffer > 0)
 	{
 		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
@@ -311,7 +310,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 				pEndPointName % pEP->getBufferSize(SO_SNDBUF) % wbuffer);
 		}
 	}
-#endif
 
 	int backlog = Mercury::g_SOMAXCONN;
 	if(backlog < 5)
