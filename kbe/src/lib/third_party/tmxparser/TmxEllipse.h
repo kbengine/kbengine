@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_ELLIPSE_H__
+#define __TMX_ELLIPSE_H__
 
 #include <vector>
 
@@ -62,3 +63,5 @@ namespace Tmx
 		int radiusY;
 	};
 };
+
+#endif

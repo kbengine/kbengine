@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_H__
+#define __TMX_H__
 
 #include "TmxMap.h"
 #include "TmxTileset.h"
@@ -40,3 +41,5 @@
 #include "TmxPropertySet.h"
 #include "TmxUtil.h"
 #include "TmxImageLayer.h"
+
+#endif

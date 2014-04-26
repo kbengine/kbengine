@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_IMAGE_H__
+#define __TMX_IMAGE_H__
 
 #include <string>
 
@@ -65,3 +66,6 @@ namespace Tmx
 		std::string transparent_color;
 	};
 };
+
+#endif
+

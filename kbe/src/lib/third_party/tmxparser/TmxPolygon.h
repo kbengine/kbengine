@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_POLYGON_H__
+#define __TMX_POLYGON_H__
 
 #include <vector>
 
@@ -56,3 +57,6 @@ namespace Tmx
 		std::vector< Tmx::Point > points;
 	};
 };
+
+#endif
+

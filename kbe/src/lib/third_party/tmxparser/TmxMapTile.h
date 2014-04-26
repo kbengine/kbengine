@@ -25,9 +25,10 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_MAPTILE_H__
+#define __TMX_MAPTILE_H__
 
-#include <list>
+#include "cstdkbe/cstdkbe.hpp"
 
 namespace Tmx 
 {
@@ -41,8 +42,9 @@ namespace Tmx
 	//-------------------------------------------------------------------------
 	// Struct to store information about a specific tile in the map layer.
 	//-------------------------------------------------------------------------
-	struct MapTile 
+	class MapTile 
 	{
+	public:
 		// Default constructor.
 		MapTile()
 			: tilesetId(0)
@@ -133,3 +135,6 @@ namespace Tmx
 		unsigned minTime;
 	};
 };
+
+#endif
+

@@ -25,8 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
-
+#ifndef __TMX_UTIL_H__
+#define __TMX_UTIL_H__
 #include <string>
 
 namespace Tmx 
@@ -41,3 +41,6 @@ namespace Tmx
 		static char* DecompressGZIP(const char *data, int dataSize, int expectedSize);
 	};
 };
+
+#endif
+

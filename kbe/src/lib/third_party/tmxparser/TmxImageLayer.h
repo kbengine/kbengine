@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_IMAGELAYER_H__
+#define __TMX_IMAGELAYER_H__
 
 #include <string>
 #include <vector>
@@ -95,3 +96,6 @@ namespace Tmx
 		Tmx::PropertySet properties;
 	};
 };
+
+#endif
+

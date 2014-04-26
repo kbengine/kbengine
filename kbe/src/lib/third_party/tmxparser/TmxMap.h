@@ -25,7 +25,8 @@
 //
 // Author: Tamir Atias
 //-----------------------------------------------------------------------------
-#pragma once
+#ifndef __TMX_MAP_H__
+#define __TMX_MAP_H__
 
 #include <vector>
 #include <string>
@@ -193,3 +194,6 @@ namespace Tmx
 		Tmx::PropertySet properties;
 	};
 };
+
+#endif
+
