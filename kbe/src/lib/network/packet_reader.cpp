@@ -267,6 +267,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 	{
 		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), opsize);
 		pFragmentDatasRemain_ -= opsize;
+		pFragmentDatasWpos_ += opsize;
 		pPacket->rpos(pPacket->rpos() + opsize);
 
 		DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
