@@ -67,7 +67,17 @@ namespace Tmx
 	{
 		// Set the map to null to specify that it is not yet allocated.
 		tile_map = new MapTile[width * height];
-		memcpy(tile_map, _layer.tile_map, sizeof(MapTile) * width * height);
+		for(int i=0; i<width * height; i++)
+		{
+			MapTile& pMapTile = _layer.tile_map[i];
+			MapTile& pMapTile1 = tile_map[i];
+
+			pMapTile1.flippedDiagonally = pMapTile.flippedDiagonally;
+			pMapTile1.flippedVertically = pMapTile.flippedVertically;
+			pMapTile1.flippedHorizontally = pMapTile.flippedHorizontally;
+			pMapTile1.tilesetId = pMapTile.tilesetId;
+			pMapTile1.id = pMapTile.id;
+		}
 	}
 
 	Layer::~Layer() 
