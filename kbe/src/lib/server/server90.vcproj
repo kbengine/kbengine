@@ -364,6 +364,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\serverconfig.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\telnet_handler.ipp"
 			>
 		</File>

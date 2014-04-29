@@ -24,6 +24,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
 
+#ifndef CODE_INLINE
+#include "serverconfig.ipp"
+#endif
+
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
@@ -418,6 +422,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_cellAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "optimizedClientEntityID");
+		if(node != NULL){
+			_cellAppInfo.optimizedClientEntityID = (xml->getValStr(node) == "true");
 		}
 
 		node = xml->enterNode(rootNode, "ghostDistance");
@@ -1081,104 +1090,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	SAFE_RELEASE(xml);
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getCellApp(void)
-{
-	return _cellAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getBaseApp(void)
-{
-	return _baseAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getDBMgr(void)
-{
-	return _dbmgrInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getLoginApp(void)
-{
-	return _loginAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getCellAppMgr(void)
-{
-	return _cellAppMgrInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getBaseAppMgr(void)
-{
-	return _baseAppMgrInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getKBMachine(void)
-{
-	return _kbMachineInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getKBCenter(void)
-{
-	return _kbCenterInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
-{
-	return _botsInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getResourcemgr(void)
-{
-	return _resourcemgrInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
-{
-	return _messagelogInfo;
-}
-
-//-------------------------------------------------------------------------------------	
-ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
-{
-	switch(componentType)
-	{
-	case DBMGR_TYPE:
-		return getDBMgr();
-	case LOGINAPP_TYPE:
-		return getLoginApp();
-	case BASEAPPMGR_TYPE:
-		return getBaseAppMgr();
-	case CELLAPPMGR_TYPE:
-		return getCellAppMgr();
-	case CELLAPP_TYPE:
-		return getCellApp();
-	case BASEAPP_TYPE:
-		return getBaseApp();
-	case MACHINE_TYPE:
-		return getKBMachine();
-	case CENTER_TYPE:
-		return getKBCenter();
-	case RESOURCEMGR_TYPE:
-		return getResourcemgr();
-	case MESSAGELOG_TYPE:
-		return getMessagelog();
-	default:
-		return getCellApp();
-	};
-
-	return getBaseApp();	
 }
 
 //-------------------------------------------------------------------------------------	

@@ -36,7 +36,11 @@ channelInternalTimeout_(60.0f),
 channelExternalTimeout_(60.0f),
 encrypt_login_(0),
 fileName_(),
-useLastAccountName_(false)
+useLastAccountName_(false),
+telnet_port(0),
+telnet_passwd(),
+telnet_deflayer(),
+optimizedClientEntityID_(false)
 {
 }
 
@@ -228,6 +232,12 @@ bool Config::loadConfig(std::string fileName)
 		encrypt_login_ = xml->getValInt(rootNode);
 	}
 	
+	rootNode = xml->getRootNode("optimizedClientEntityID");
+	if(rootNode != NULL)
+	{
+		optimizedClientEntityID_ = (xml->getValStr(rootNode) == "true");
+	}
+
 	SAFE_RELEASE(xml);
 	return true;
 }

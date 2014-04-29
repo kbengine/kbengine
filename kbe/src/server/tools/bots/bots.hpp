@@ -229,6 +229,7 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateOtherEntityPropertys(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新avatar基础位置

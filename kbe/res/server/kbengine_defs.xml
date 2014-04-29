@@ -201,6 +201,9 @@
 			<hysteresisArea> 5.0 </hysteresisArea>
 		</defaultAoIRadius>
 		
+		<!-- 优化EntityID，aoi范围内小于255个, EntityID传输到client时使用1字节别名ID -->
+		<optimizedClientEntityID> true </optimizedClientEntityID>
+		
 		<internalInterface>  </internalInterface>
 		
 		<ids>

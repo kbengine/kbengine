@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "entity.hpp"
+#include "config.hpp"
 #include "clientobjectbase.hpp"
 #include "network/channel.hpp"
 #include "network/fixed_messages.hpp"
@@ -259,10 +260,37 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	eventdata.pEntity = entity->getAspect();
 	eventHandler_.fire(&eventdata);
 	
-	if(entityID_ > 0 && entityID_ != eid)
-		pEntityIDAliasIDList_.push_back(eid);
-
 	return entity;
+}
+
+//-------------------------------------------------------------------------------------
+ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
+{
+	if(id <= 255 && Config::getSingleton().optimizedClientEntityID() && pEntityIDAliasIDList_.size() <= 255)
+	{
+		return pEntityIDAliasIDList_[id];
+	}
+
+	return id;
+}
+
+//-------------------------------------------------------------------------------------
+ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
+{
+	ENTITY_ID id = 0;
+	if(Config::getSingleton().optimizedClientEntityID() && 
+		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
+	{
+		uint8 aliasID = 0;
+		s >> aliasID;
+		id = pEntityIDAliasIDList_[aliasID];
+	}
+	else
+	{
+		s >> id;
+	}
+
+	return id;
 }
 
 //-------------------------------------------------------------------------------------
@@ -505,6 +533,9 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
+	if(eid != entityID_ && entityID_ > 0)
+		pEntityIDAliasIDList_.push_back(eid);
+
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
@@ -596,7 +627,29 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	pEntities_->erase(eid);
 
 	if(entityID_ != eid)
+	{
+		std::string sss;
+		std::vector<ENTITY_ID>::iterator iter = pEntityIDAliasIDList_.begin();
+		for(; iter != pEntityIDAliasIDList_.end(); iter++)
+		{
+			char a[12];
+			sprintf(a, "%d ", (*iter));
+			sss += a;
+		}
+		sss+= "\n";
+		DEBUG_MSG(sss);
 		pEntityIDAliasIDList_.erase(std::remove(pEntityIDAliasIDList_.begin(), pEntityIDAliasIDList_.end(), eid), pEntityIDAliasIDList_.end());
+sss="";
+iter = pEntityIDAliasIDList_.begin();
+		for(; iter != pEntityIDAliasIDList_.end(); iter++)
+		{
+			char a[12];
+			sprintf(a, "%d ", (*iter));
+			sss += a;
+		}
+		sss+= "\n";
+		DEBUG_MSG(sss);
+	}
 }
 
 //-------------------------------------------------------------------------------------	
@@ -657,7 +710,7 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
 {
-	ENTITY_ID eid;
+	ENTITY_ID eid = 0; // getAoiEntityIDFromStream(s);
 	s >> eid;
 
 	client::Entity* entity = pEntities_->find(eid);
@@ -671,12 +724,25 @@ void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine:
 	entity->onRemoteMethodCall(this->pServerChannel(), s);
 }
 
+
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
+	ENTITY_ID eid = 0;
 	s >> eid;
+	onUpdatePropertys_(eid, s);
+}
 
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateOtherEntityPropertys(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	onUpdatePropertys_(eid, s);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
+{
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
@@ -824,8 +890,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -838,8 +903,7 @@ void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float y, p, r;
 
@@ -860,8 +924,7 @@ void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float y, p;
 
@@ -879,8 +942,7 @@ void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float y, r;
 
@@ -898,8 +960,7 @@ void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float p, r;
 
@@ -917,8 +978,7 @@ void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float y;
 
@@ -933,8 +993,7 @@ void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float p;
 
@@ -949,8 +1008,7 @@ void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float r;
 
@@ -965,8 +1023,7 @@ void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x,z;
 
@@ -979,8 +1036,7 @@ void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y, p, r;
 	
@@ -1003,8 +1059,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x,z, y, p;
 
@@ -1070,8 +1125,7 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y,  r;
 	
@@ -1091,8 +1145,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, p, r;
 	
@@ -1112,8 +1165,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1130,8 +1182,7 @@ void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, p;
 	
@@ -1148,8 +1199,7 @@ void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, r;
 	
@@ -1166,8 +1216,7 @@ void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1180,8 +1229,7 @@ void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1207,8 +1255,7 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1231,8 +1278,7 @@ void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1255,8 +1301,7 @@ void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1279,8 +1324,7 @@ void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1300,8 +1344,7 @@ void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1321,8 +1364,7 @@ void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid;
-	s >> eid;
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	float x, z, y;
 	

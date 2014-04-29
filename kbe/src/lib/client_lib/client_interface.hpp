@@ -98,13 +98,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 远程呼叫entity方法
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)
-
+	
 	// 被踢出服务器
 	CLIENT_MESSAGE_DECLARE_ARGS1(onKicked,									MERCURY_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 服务器更新entity属性
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,						MERCURY_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateOtherEntityPropertys,				MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器强制设置entity的位置与朝向
 	CLIENT_MESSAGE_DECLARE_STREAM(onSetEntityPosAndDir,						MERCURY_VARIABLE_MESSAGE)

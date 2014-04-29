@@ -35,6 +35,8 @@ class Entity;
 class EntityRef
 {
 public:
+	typedef std::vector<EntityRef*> AOI_ENTITIES;
+
 	EntityRef(Entity* pEntity);
 	~EntityRef();
 	

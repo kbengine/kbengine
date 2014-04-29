@@ -131,6 +131,8 @@ typedef struct EngineComponentInfo
 	bool use_coordinate_system;								// 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护
 	bool rangelist_hasY;									// 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 但y轴的管理会带来一定的消耗
 
+	bool optimizedClientEntityID;							// 优化EntityID，aoi范围内小于255个EntityID传输到client时使用1字节伪ID 
+
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
@@ -198,38 +200,37 @@ public:
 	
 	bool loadConfig(std::string fileName);
 	
-	ENGINE_COMPONENT_INFO& getCellApp(void);
-	ENGINE_COMPONENT_INFO& getBaseApp(void);
-	ENGINE_COMPONENT_INFO& getDBMgr(void);
-	ENGINE_COMPONENT_INFO& getLoginApp(void);
-	ENGINE_COMPONENT_INFO& getCellAppMgr(void);
-	ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
-	ENGINE_COMPONENT_INFO& getKBMachine(void);
-	ENGINE_COMPONENT_INFO& getKBCenter(void);
-	ENGINE_COMPONENT_INFO& getBots(void);
-	ENGINE_COMPONENT_INFO& getResourcemgr(void);
-	ENGINE_COMPONENT_INFO& getMessagelog(void);
-	ENGINE_COMPONENT_INFO& getBilling(void);
+	INLINE ENGINE_COMPONENT_INFO& getCellApp(void);
+	INLINE ENGINE_COMPONENT_INFO& getBaseApp(void);
+	INLINE ENGINE_COMPONENT_INFO& getDBMgr(void);
+	INLINE ENGINE_COMPONENT_INFO& getLoginApp(void);
+	INLINE ENGINE_COMPONENT_INFO& getCellAppMgr(void);
+	INLINE ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
+	INLINE ENGINE_COMPONENT_INFO& getKBMachine(void);
+	INLINE ENGINE_COMPONENT_INFO& getKBCenter(void);
+	INLINE ENGINE_COMPONENT_INFO& getBots(void);
+	INLINE ENGINE_COMPONENT_INFO& getResourcemgr(void);
+	INLINE ENGINE_COMPONENT_INFO& getMessagelog(void);
+	INLINE ENGINE_COMPONENT_INFO& getBilling(void);
 
-	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
+	INLINE ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
  	
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	
-	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
-
-	inline Mercury::Address billingSystemAddr(void)const { return billingSystemAddr_;}
+	INLINE int16 gameUpdateHertz(void)const;
+	INLINE Mercury::Address billingSystemAddr(void)const;
 	
-	inline const char* billingSystemAccountType()const { return billingSystem_accountType_.c_str(); }
-	inline const char* billingSystemChargeType()const { return billingSystem_chargeType_.c_str(); }
+	INLINE const char* billingSystemAccountType()const;
+	INLINE const char* billingSystemChargeType()const;
 
-	inline const char* billingSystemThirdpartyAccountServiceAddr()const { return billingSystem_thirdpartyAccountServiceAddr_.c_str(); }
-	inline uint16 billingSystemThirdpartyAccountServicePort()const { return billingSystem_thirdpartyAccountServicePort_; }
+	INLINE const char* billingSystemThirdpartyAccountServiceAddr()const;
+	INLINE uint16 billingSystemThirdpartyAccountServicePort()const;
 
-	inline const char* billingSystemThirdpartyChargeServiceAddr()const { return billingSystem_thirdpartyChargeServiceAddr_.c_str(); }
-	inline uint16 billingSystemThirdpartyChargeServicePort()const { return billingSystem_thirdpartyChargeServicePort_; }
+	INLINE const char* billingSystemThirdpartyChargeServiceAddr()const;
+	INLINE uint16 billingSystemThirdpartyChargeServicePort()const;
 
-	inline uint16 billingSystemThirdpartyServiceCBPort()const { return billingSystem_thirdpartyServiceCBPort_; }
+	INLINE uint16 billingSystemThirdpartyServiceCBPort()const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -286,4 +287,9 @@ public:
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()
 }
+
+
+#ifdef CODE_INLINE
+#include "serverconfig.ipp"
+#endif
 #endif

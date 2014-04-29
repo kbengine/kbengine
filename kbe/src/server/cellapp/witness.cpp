@@ -93,7 +93,7 @@ void Witness::detach(Entity* pEntity)
 	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).\n") % 
 		pEntity->getScriptName() % pEntity->getID());
 
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); iter++)
 	{
 		if((*iter)->pEntity())
@@ -162,7 +162,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 void Witness::onEnterAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
+	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
 		findif_vector_entityref_exist_by_entity_handler(pEntity));
 
 	if(iter != aoiEntities_.end())
@@ -193,7 +193,7 @@ void Witness::onEnterAOI(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
+	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
 		findif_vector_entityref_exist_by_entityid_handler(pEntity->getID()));
 
 	if(iter == aoiEntities_.end())
@@ -290,9 +290,94 @@ Witness::Bundles* Witness::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID)
+void Witness::addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
 {
-	(*mstream) << entityID;
+	if(!g_kbeSrvConfig.getCellApp().optimizedClientEntityID)
+	{
+		(*mstream) << entityRef->id();
+	}
+	else
+	{
+		if(aoiEntities_.size() > 255)
+			(*mstream) << entityRef->id();
+		else
+			(*mstream) << entityID2AliasID(entityRef->id());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef)
+{
+	if(!g_kbeSrvConfig.getCellApp().optimizedClientEntityID)
+	{
+		(*pBundle) << entityRef->id();
+	}
+	else
+	{
+		if(aoiEntities_.size() > 255)
+			(*pBundle) << entityRef->id();
+		else
+			(*pBundle) << entityID2AliasID(entityRef->id());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+uint8 Witness::entityID2AliasID(ENTITY_ID id)const
+{
+	uint8 aliasID = 0;
+	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); iter++)
+	{
+		if((*iter)->id() == id)
+		{
+			break;
+		}
+
+		aliasID++;
+	}
+
+	return aliasID;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID)
+{
+	if(!g_kbeSrvConfig.getCellApp().optimizedClientEntityID)
+	{
+		(*pBundle) << entityID;
+	}
+	else
+	{
+		if(aoiEntities_.size() > 255)
+		{
+			(*pBundle) << entityID;
+		}
+		else
+		{
+			(*pBundle) << entityID2AliasID(entityID);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle)
+{
+	if(!g_kbeSrvConfig.getCellApp().optimizedClientEntityID)
+	{
+		(*pBundle) << pEntity_->getID();
+	}
+	else
+	{
+		if(aoiEntities_.size() > 255)
+		{
+			(*pBundle) << pEntity_->getID();
+		}
+		else
+		{
+			uint8 aliasID = 0;
+			(*pBundle) << aliasID;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -319,6 +404,7 @@ bool Witness::update()
 	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
 	int currPacketSize = pChannel->bundlesLength();
 	int remainPacketSize = PACKET_MAX_SIZE_TCP - currPacketSize;
+
 	if(remainPacketSize > 0)
 	{
 		SPACE_ID spaceID = pEntity_->getSpaceID();
@@ -330,7 +416,7 @@ bool Witness::update()
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->getID(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
 
-			AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+			EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 			for(; iter != aoiEntities_.end(); )
 			{
 				if(remainPacketSize <= 0)
@@ -407,7 +493,7 @@ bool Witness::update()
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					
-					addAOIEntityIDToStream(s1, otherEntity->getID());
+					addAOIEntityIDToStream(s1, (*iter));
 					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity));
 
 					(*pForwardBundle).append(*s1);

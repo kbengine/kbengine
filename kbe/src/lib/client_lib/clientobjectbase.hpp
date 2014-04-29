@@ -215,6 +215,8 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateOtherEntityPropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	void onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
@@ -322,6 +324,9 @@ public:
 	}
 	ENTITY_ID getTargetID()const{ return targetID_; }
 	virtual void onTargetChanged(){}
+
+	ENTITY_ID getAoiEntityID(ENTITY_ID id);
+	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& s);
 
 	/** 
 		space相关操作接口

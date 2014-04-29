@@ -125,8 +125,12 @@ public:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置
 	*/
-	void addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID);
-	
+	void addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
+	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
+	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
+	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle);
+	uint8 entityID2AliasID(ENTITY_ID id)const;
+
 	/**
 		使用何种协议来更新客户端
 	*/
@@ -142,9 +146,7 @@ public:
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
-	typedef std::vector<EntityRef*> AOI_ENTITIES;
-
-	AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
+	EntityRef::AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
 
 private:
 	Entity*									pEntity_;
@@ -154,7 +156,7 @@ private:
 
 	AOITrigger*								pAOITrigger_;
 
-	AOI_ENTITIES							aoiEntities_;
+	EntityRef::AOI_ENTITIES					aoiEntities_;
 
 	Position3D								lastBasePos;
 

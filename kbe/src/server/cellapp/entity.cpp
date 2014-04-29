@@ -382,8 +382,8 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-				(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
-				(*pForwardBundle) << getID();
+				(*pForwardBundle).newMessage(ClientInterface::onUpdateOtherEntityPropertys);
+				pEntity->pWitness()->addAOIEntityIDToBundle(pForwardBundle, getID());
 				pForwardBundle->append(*mstream);
 				
 				// 记录这个事件产生的数据量大小
@@ -394,7 +394,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
-				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
+				pEntity->pWitness()->sendToClient(ClientInterface::onUpdateOtherEntityPropertys, pSendBundle);
 				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 			}
 		}
@@ -1679,7 +1679,7 @@ void Entity::debugAOI()
 	INFO_MSG(boost::format("%1%::debugAOI: %2% size=%3%\n") % getScriptName() % this->getID() % 
 		pWitness_->aoiEntities().size());
 
-	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
 	for(; iter != pWitness_->aoiEntities().end(); iter++)
 	{
 		Entity* pEntity = (*iter)->pEntity();
@@ -1731,7 +1731,7 @@ PyObject* Entity::pyEntitiesInAOI()
 
 	PyObject* pyList = PyList_New(pWitness_->aoiEntities().size());
 
-	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
 	int i = 0;
 	for(; iter != pWitness_->aoiEntities().end(); iter++)
 	{
