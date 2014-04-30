@@ -628,27 +628,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	if(entityID_ != eid)
 	{
-		std::string sss;
-		std::vector<ENTITY_ID>::iterator iter = pEntityIDAliasIDList_.begin();
-		for(; iter != pEntityIDAliasIDList_.end(); iter++)
-		{
-			char a[12];
-			sprintf(a, "%d ", (*iter));
-			sss += a;
-		}
-		sss+= "\n";
-		DEBUG_MSG(sss);
 		pEntityIDAliasIDList_.erase(std::remove(pEntityIDAliasIDList_.begin(), pEntityIDAliasIDList_.end(), eid), pEntityIDAliasIDList_.end());
-sss="";
-iter = pEntityIDAliasIDList_.begin();
-		for(; iter != pEntityIDAliasIDList_.end(); iter++)
-		{
-			char a[12];
-			sprintf(a, "%d ", (*iter));
-			sss += a;
-		}
-		sss+= "\n";
-		DEBUG_MSG(sss);
 	}
 }
 
