@@ -378,7 +378,7 @@ public:																										\
 		SCRIPT_ERROR_CHECK();																				\
 	}																										\
 																											\
-	void addClientDataToStream(MemoryStream* s)																\
+	void addClientDataToStream(MemoryStream* s, bool otherClient = false)									\
 	{																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
@@ -388,6 +388,12 @@ public:																										\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
+			if(otherClient)																					\
+			{																								\
+				if((propertyDescription->getFlags() & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) <= 0)			\
+					continue;																				\
+			}																								\
+																											\
 			PyObject *key = PyUnicode_FromString(propertyDescription->getName());							\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\

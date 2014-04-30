@@ -442,7 +442,7 @@ bool Witness::update()
 
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					otherEntity->addPositionAndDirectionToStream(*s1);
-					otherEntity->addClientDataToStream(s1);
+					otherEntity->addClientDataToStream(s1, true);
 
 					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
 					(*pForwardBundle1) << otherEntity->getID();
