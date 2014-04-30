@@ -205,20 +205,8 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 
 			return false;
 		}
-
-		if(g_debugEntity)
-		{
-			DEBUG_MSG(boost::format("EntityDef::loadAllDefDescription: [%1%], cellPropertys=%2%, basePropertys=%2%, clientPropertys=%4%, cellMethods=%5%(%6%), baseMethods=%7%(%8%), clientMethods=%9%\n") %
-				moduleName % 
-				scriptModule->getCellPropertyDescriptions().size() % 
-				scriptModule->getBasePropertyDescriptions().size() % 
-				scriptModule->getClientPropertyDescriptions().size() % 
-				scriptModule->getCellMethodDescriptions().size() % 
-				scriptModule->getCellExposedMethodDescriptions().size() % 
-				scriptModule->getBaseMethodDescriptions().size() % 
-				scriptModule->getBaseExposedMethodDescriptions().size() % 
-				scriptModule->getClientMethodDescriptions().size());
-		}
+		
+		scriptModule->onLoaded();
 	}
 	XML_FOR_END(node);
 
@@ -710,12 +698,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 															dataType, isIdentifier, 
 															databaseLength, defaultStr, 
 															detailLevel);
-			
-			if(g_debugEntity)
-			{
-				DEBUG_MSG(boost::format("EntityDef::loadDefPropertys: %1%.%2% uid=%3%, flags=%4%.\n") % 
-					moduleName % name % propertyDescription->getUType() % strFlags);
-			}
 
 			bool ret = true;
 			// 添加到模块中
@@ -822,12 +804,6 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				methodDescription->setUType(muid);
 			}
 
-			if(g_debugEntity)
-			{
-				DEBUG_MSG(boost::format("EntityDef::loadDefCellMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
-					moduleName % methodDescription->getName() % methodDescription->getUType() % methodDescription->getArgSize());
-			}
-
 			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
@@ -916,12 +892,6 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				methodDescription->setUType(muid);
 			}
 
-			if(g_debugEntity)
-			{
-				DEBUG_MSG(boost::format("EntityDef::loadDefBaseMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
-					moduleName % methodDescription->getName() % methodDescription->getUType() % methodDescription->getArgSize());
-			}
-
 			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
@@ -1003,12 +973,6 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 				}
 
 				methodDescription->setUType(muid);
-			}
-
-			if(g_debugEntity)
-			{
-				DEBUG_MSG(boost::format("EntityDef::loadDefClientMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
-					moduleName % methodDescription->getName() % methodDescription->getUType() % methodDescription->getArgSize());
 			}
 
 			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);

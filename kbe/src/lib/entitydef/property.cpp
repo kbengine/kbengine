@@ -54,7 +54,8 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 	databaseLength_(databaseLength),
 	utype_(utype),
 	defaultValStr_(defaultStr),
-	detailLevel_(detailLevel)
+	detailLevel_(detailLevel),
+	aliasID_(-1)
 {
 	dataType_->incRef();
 

@@ -96,6 +96,150 @@ void ScriptDefModule::finalise(void)
 }
 
 //-------------------------------------------------------------------------------------
+void ScriptDefModule::onLoaded(void)
+{
+	int aliasID = 0;
+	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
+	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	{
+		if(iter1->second->hasClient())
+		{
+			iter1->second->aliasID(aliasID++);
+		}
+	}
+
+	iter1 = basePropertyDescr_.begin();
+	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	{
+		if(iter1->second->hasClient())
+		{
+			iter1->second->aliasID(aliasID++);
+		}
+	}
+
+	iter1 = clientPropertyDescr_.begin();
+	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	{
+		if(iter1->second->hasClient())
+		{
+			iter1->second->aliasID(aliasID++);
+		}
+	}
+	
+	if(aliasID > 255)
+	{
+		iter1 = cellPropertyDescr_.begin();
+		for(; iter1 != cellPropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				iter1->second->aliasID(-1);
+			}
+		}
+
+		iter1 = basePropertyDescr_.begin();
+		for(; iter1 != basePropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				iter1->second->aliasID(-1);
+			}
+		}
+
+		iter1 = clientPropertyDescr_.begin();
+		for(; iter1 != clientPropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				iter1->second->aliasID(-1);
+			}
+		}
+	}
+
+	aliasID = 0;
+
+	METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
+	for(; iter2 != methodClientDescr_.end(); iter2++)
+	{
+		iter2->second->aliasID(aliasID++);
+	}
+
+	if(aliasID > 255)
+	{
+		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
+		for(; iter2 != methodClientDescr_.end(); iter2++)
+		{
+			iter2->second->aliasID(-1);
+		}
+	}
+
+	if(g_debugEntity)
+	{
+		c_str();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptDefModule::c_str()
+{
+	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
+	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	iter1 = basePropertyDescr_.begin();
+	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	iter1 = clientPropertyDescr_.begin();
+	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
+	for(; iter2 != methodCellDescr_.end(); iter2++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.CellMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
+			getName() % iter2->second->getName() % iter2->second->getUType() % 
+			iter2->second->getArgSize() % iter2->second->aliasID() % (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
+	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.BaseMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
+			getName() % iter3->second->getName() % iter3->second->getUType() % 
+			iter3->second->getArgSize() % iter3->second->aliasID() % (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
+	for(; iter4 != methodClientDescr_.end(); iter4++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.ClientMethod %2% uid=%3%, argssize=%4%, aliasID=%5%.\n") % 
+			getName() % iter4->second->getName() % iter4->second->getUType() % iter4->second->getArgSize() % iter4->second->aliasID());
+	}
+
+	DEBUG_MSG(boost::format("ScriptDefModule::c_str: [%1%], cellPropertys=%2%, basePropertys=%2%, "
+		"clientPropertys=%4%, cellMethods=%5%(%6%), baseMethods=%7%(%8%), clientMethods=%9%\n") %
+		getName() % 
+		getCellPropertyDescriptions().size() % 
+		getBasePropertyDescriptions().size() % 
+		getClientPropertyDescriptions().size() % 
+		getCellMethodDescriptions().size() % 
+		getCellExposedMethodDescriptions().size() % 
+		getBaseMethodDescriptions().size() % 
+		getBaseExposedMethodDescriptions().size() % 
+		getClientMethodDescriptions().size());
+}
+
+//-------------------------------------------------------------------------------------
 void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
 { 
 	uType_ = utype; 

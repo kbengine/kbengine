@@ -50,6 +50,8 @@ enum EntityDataFlags
 	ED_FLAG_OTHER_CLIENTS											= 0x00000080, // cell广播和其他客户端
 };
 
+std::string entityDataFlagsToString(uint32 flags);
+
 #define ED_FLAG_ALL  ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS \
 	| ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT |	\
 	ED_FLAG_BASE_AND_CLIENT | ED_FLAG_BASE | ED_FLAG_OTHER_CLIENTS

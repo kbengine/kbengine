@@ -39,7 +39,8 @@ name_(name),
 utype_(utype),
 argTypes_(),
 isExposed_(isExposed),
-currCallerID_(0)
+currCallerID_(0),
+aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;
 

@@ -59,6 +59,7 @@ public:
 	~ScriptDefModule();	
 
 	void finalise(void);
+	void onLoaded(void);
 
 	ENTITY_SCRIPT_UID getUType(void);
 	void setUType(ENTITY_SCRIPT_UID utype);
@@ -137,6 +138,8 @@ public:
 	void autoMatchCompOwn();
 
 	INLINE bool isPersistent()const;
+
+	void c_str();
 protected:
 	// ½Å±¾Àà±ð
 	PyTypeObject*						scriptType_;	
