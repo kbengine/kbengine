@@ -524,13 +524,10 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 			md->call(pyFunc, pyargs);
 			Py_XDECREF(pyargs);
 		}
-		else
-		{
-			SCRIPT_ERROR_CHECK();
-		}
 	}
 	
 	Py_XDECREF(pyFunc);
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------

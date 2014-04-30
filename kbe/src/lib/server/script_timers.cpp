@@ -352,10 +352,9 @@ private:
 		PyObject * pResult =
 			PyObject_CallFunction( pObject, const_cast<char*>("ik"), id, uintptr( pUser ) );
 
-		SCRIPT_ERROR_CHECK();
 		Py_XDECREF( pResult );
-
 		Py_DECREF( pObject );
+		SCRIPT_ERROR_CHECK();
 	}
 
 	virtual void onRelease( TimerHandle handle, void * /*pUser*/ )
@@ -394,6 +393,8 @@ PyObject * py_addTimer( PyObject * args )
 		{
 			PyErr_SetString( PyExc_TypeError,
 					"Callback function is not callable" );
+
+			SCRIPT_ERROR_CHECK();
 			return NULL;
 		}
 
@@ -411,11 +412,13 @@ PyObject * py_addTimer( PyObject * args )
 	if (id == 0)
 	{
 		PyErr_SetString( PyExc_ValueError, "Unable to add timer" );
+		SCRIPT_ERROR_CHECK();
 		delete pHandler;
 
 		return NULL;
 	}
 
+	SCRIPT_ERROR_CHECK();
 	return PyLong_FromLong( id );
 }
 

@@ -148,6 +148,7 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	}
 	
 	Py_XDECREF(pyFunc);
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
@@ -246,6 +247,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
+		SCRIPT_ERROR_CHECK();
 	}
 }
 
