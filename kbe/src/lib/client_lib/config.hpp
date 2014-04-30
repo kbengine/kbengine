@@ -59,7 +59,7 @@ public:
 
 	int8 encryptLogin()const { return encrypt_login_; }
 
-	bool optimizedClientEntityID()const{ return optimizedClientEntityID_; }
+	bool aliasEntityID()const{ return aliasEntityID_; }
 public:
 	int16 gameUpdateHertz_;
 
@@ -85,7 +85,7 @@ public:
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
 
-	bool optimizedClientEntityID_;
+	bool aliasEntityID_;
 };
 
 #define g_kbeConfig Config::getSingleton()

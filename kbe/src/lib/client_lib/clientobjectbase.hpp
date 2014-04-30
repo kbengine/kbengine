@@ -205,6 +205,8 @@ public:
 		远程调用entity的方法 
 	*/
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onRemoteOtherEntityMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口
 	   被踢出服务器

@@ -115,6 +115,6 @@
 	 -->
 	<encrypt_login> 2 </encrypt_login>
 	
-		<!-- 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节别名ID -->
-		<optimizedClientEntityID> true </optimizedClientEntityID>
+	<!-- 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节别名ID -->
+	<aliasEntityID> true </aliasEntityID>
 </root>

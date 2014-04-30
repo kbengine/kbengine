@@ -424,9 +424,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_cellAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
-		node = xml->enterNode(rootNode, "optimizedClientEntityID");
+		node = xml->enterNode(rootNode, "aliasEntityID");
 		if(node != NULL){
-			_cellAppInfo.optimizedClientEntityID = (xml->getValStr(node) == "true");
+			_cellAppInfo.aliasEntityID = (xml->getValStr(node) == "true");
 		}
 
 		node = xml->enterNode(rootNode, "ghostDistance");

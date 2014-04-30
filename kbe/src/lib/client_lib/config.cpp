@@ -40,7 +40,7 @@ useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
 telnet_deflayer(),
-optimizedClientEntityID_(false)
+aliasEntityID_(false)
 {
 }
 
@@ -232,10 +232,10 @@ bool Config::loadConfig(std::string fileName)
 		encrypt_login_ = xml->getValInt(rootNode);
 	}
 	
-	rootNode = xml->getRootNode("optimizedClientEntityID");
+	rootNode = xml->getRootNode("aliasEntityID");
 	if(rootNode != NULL)
 	{
-		optimizedClientEntityID_ = (xml->getValStr(rootNode) == "true");
+		aliasEntityID_ = (xml->getValStr(rootNode) == "true");
 	}
 
 	SAFE_RELEASE(xml);

@@ -202,7 +202,7 @@
 		</defaultAoIRadius>
 		
 		<!-- 优化EntityID，aoi范围内小于255个, EntityID传输到client时使用1字节别名ID -->
-		<optimizedClientEntityID> true </optimizedClientEntityID>
+		<aliasEntityID> true </aliasEntityID>
 		
 		<internalInterface>  </internalInterface>
 		

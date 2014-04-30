@@ -563,6 +563,16 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 	}
 }
 
+//-------------------------------------------------------------------------------------
+void Bots::onRemoteOtherEntityMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onRemoteOtherEntityMethodCall(pChannel, s);
+	}
+}
+
 //-------------------------------------------------------------------------------------	
 void Bots::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {

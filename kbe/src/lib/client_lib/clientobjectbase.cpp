@@ -266,7 +266,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 //-------------------------------------------------------------------------------------
 ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 {
-	if(id <= 255 && Config::getSingleton().optimizedClientEntityID() && pEntityIDAliasIDList_.size() <= 255)
+	if(id <= 255 && Config::getSingleton().aliasEntityID() && pEntityIDAliasIDList_.size() <= 255)
 	{
 		return pEntityIDAliasIDList_[id];
 	}
@@ -278,7 +278,7 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
-	if(Config::getSingleton().optimizedClientEntityID() && 
+	if(Config::getSingleton().aliasEntityID() && 
 		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
 	{
 		uint8 aliasID = 0;
@@ -708,11 +708,23 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onRemoteOtherEntityMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	onRemoteMethodCall_(eid, s);
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
 {
-	ENTITY_ID eid = 0; // getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = 0;
 	s >> eid;
+	onRemoteMethodCall_(eid, s);
+}
 
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream& s)
+{
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
@@ -723,7 +735,6 @@ void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine:
 
 	entity->onRemoteMethodCall(this->pServerChannel(), s);
 }
-
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStream& s)

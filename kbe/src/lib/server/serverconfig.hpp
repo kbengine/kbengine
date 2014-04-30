@@ -131,7 +131,7 @@ typedef struct EngineComponentInfo
 	bool use_coordinate_system;								// 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护
 	bool rangelist_hasY;									// 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 但y轴的管理会带来一定的消耗
 
-	bool optimizedClientEntityID;							// 优化EntityID，aoi范围内小于255个EntityID传输到client时使用1字节伪ID 
+	bool aliasEntityID;										// 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
