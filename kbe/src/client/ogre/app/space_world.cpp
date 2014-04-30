@@ -204,6 +204,9 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		ENTITIES::iterator iter = mEntities.begin();
 		for(; iter != mEntities.end(); iter++)
 		{
+			if(!iter->second->inWorld())
+				continue;
+
 			iter->second->addTime(evt.timeSinceLastFrame);
 		}
 		

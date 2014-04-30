@@ -800,7 +800,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(currargsSize != 1)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::cancel: args require 1 args, gived %d! is script[%s].\n",								
+		PyErr_Format(PyExc_AssertionError, "%s::cancel: args require 1 args(controllerID|int or \"Movement\"|str), gived %d! is script[%s].\n",								
 			pobj->getScriptName(), currargsSize);														
 																																
 		PyErr_PrintEx(0);																										
@@ -809,14 +809,14 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID or \"Movement\") is error!", pobj->getScriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 	
 	if(pyargobj == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID or \"Movement\") is error!", pobj->getScriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -847,7 +847,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	{
 		if(!PyLong_Check(pyargobj))
 		{
-			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID) is error!", pobj->getScriptName());
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}

@@ -536,8 +536,17 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 
-	(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
-	s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z);
+	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
+	{
+		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
+		s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z);
+	}
+	else
+	{
+		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePosXZ);
+		s1->appendPackAnyXZ(bpos.x, bpos.z);
+	}
+
 	(*pForwardBundle).append(*s1);
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);

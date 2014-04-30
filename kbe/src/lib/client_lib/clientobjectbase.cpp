@@ -858,6 +858,19 @@ void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	float x, z;
+	s >> x >> z;
+	
+	client::Entity* pEntity = pPlayer();
+	if(pEntity)
+	{
+		pEntity->setServerPosition(Position3D(x, pEntity->getServerPosition().y, z));
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;

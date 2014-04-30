@@ -609,6 +609,17 @@ public:
         *this << x << y << z;
     }
 
+    void appendPackAnyXZ(float x, float z, const float epsilon = 0.5f)
+    {
+		if(epsilon > 0.f)
+		{
+			x = floorf(x + epsilon);
+			z = floorf(z + epsilon);
+		}
+
+        *this << x << z;
+    }
+
     void appendPackXYZ(float x, float y, float z, float minf = -256.f)
     {
 		x -= minf;

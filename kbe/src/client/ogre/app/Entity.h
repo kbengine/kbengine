@@ -211,6 +211,8 @@ public:
 			onLeaveWorld();
 	}
 
+	bool inWorld()const{ return inWorld_; }
+
 	virtual void onEnterWorld()
 	{
 	}

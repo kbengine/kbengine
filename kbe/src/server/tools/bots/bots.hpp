@@ -236,6 +236,7 @@ public:
 		服务器更新avatar基础位置
 	*/
 	virtual void onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
