@@ -1470,6 +1470,7 @@ function KBENGINE()
 		this.entity_id = 0;
 		this.entity_type = "";
 		this.entities = {};
+		this.entityIDAliasIDList = [];
 		this.spacedata = {};
 		var dateObject = new Date();
 		this.lastticktime = dateObject.getTime();
@@ -2174,9 +2175,23 @@ function KBENGINE()
 		entity.__init__();
 	}
 	
-	this.Client_onUpdatePropertys = function(stream)
+	this.getAoiEntityIDFromStream = function(stream)
 	{
-		var eid = stream.readInt32();
+		var id = 0;
+		if(g_kbengine.entityIDAliasIDList.Length > 255)
+		{
+			id = stream.readInt32();
+		}
+		else
+		{
+			id = g_kbengine.entityIDAliasIDList[stream.readUint8()];
+		}
+		
+		return id;
+	}
+	
+	this.onUpdatePropertys_ = function(eid, stream)
+	{
 		var entity = g_kbengine.entities[eid];
 		
 		if(entity == undefined)
@@ -2212,9 +2227,20 @@ function KBENGINE()
 		}
 	}
 
-	this.Client_onRemoteMethodCall = function(stream)
+	this.Client_onUpdateOtherEntityPropertys = function(stream)
+	{
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
+		g_kbengine.onUpdatePropertys_(eid, stream);
+	}
+	
+	this.Client_onUpdatePropertys = function(stream)
 	{
 		var eid = stream.readInt32();
+		g_kbengine.onUpdatePropertys_(eid, stream);
+	}
+
+	this.onRemoteMethodCall_ = function(eid, stream)
+	{
 		var entity = g_kbengine.entities[eid];
 		
 		if(entity == undefined)
@@ -2234,9 +2260,24 @@ function KBENGINE()
 		
 		entity[methoddata[1]].apply(entity, args);
 	}
-		
+	
+	this.Client_onRemoteOtherEntityMethodCall = function(stream)
+	{
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
+		g_kbengine.onRemoteMethodCall_(eid, stream);
+	}
+	
+	this.Client_onRemoteMethodCall = function(stream)
+	{
+		var eid = stream.readInt32();
+		g_kbengine.onRemoteMethodCall_(eid, stream);
+	}
+	
 	this.Client_onEntityEnterWorld = function(eid, entityType, spaceID)
 	{
+		if(g_kbengine.entity_id > 0 && eid != g_kbengine.entity_id)
+			g_kbengine.entityIDAliasIDList.push(eid)
+			
 		entityType = g_moduledefs[entityType].name;
 		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
 		
@@ -2291,7 +2332,20 @@ function KBENGINE()
 		
 		if(entity.inWorld)
 			entity.leaveWorld();
+		
 		delete g_kbengine.entities[eid];
+		
+		if(g_kbengine.entity_id > 0 && eid != g_kbengine.entity_id)
+		{
+			var newArray = [];
+			for(var i=0; i<g_kbengine.entityIDAliasIDList.length; i++){
+			    if(g_kbengine.entityIDAliasIDList[i] != eid){
+			       newArray.push(g_kbengine.entityIDAliasIDList[i]);
+			     }
+			}
+			
+			g_kbengine.entityIDAliasIDList = newArray
+		}
 	}
 
 	this.Client_onEntityDestroyed = function(eid)
@@ -2432,9 +2486,16 @@ function KBENGINE()
 		pos[2] = stream.readFloat();
 	}
 	
+	this.Client_onUpdateBasePosXZ = function(stream)
+	{
+		var pos = Array(3);
+		pos[0] = stream.readFloat();
+		pos[2] = stream.readFloat();
+	}
+	
 	this.Client_onUpdateData = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		var entity = g_kbengine.entities[eid];
 		if(entity == undefined)
 		{
@@ -2445,7 +2506,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_ypr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var p = stream.readInt8();
@@ -2456,7 +2517,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_yp = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var p = stream.readInt8();
@@ -2466,7 +2527,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_yr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var r = stream.readInt8();
@@ -2476,7 +2537,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_pr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var p = stream.readInt8();
 		var r = stream.readInt8();
@@ -2486,7 +2547,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_y = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var y = stream.readPackY();
 		
@@ -2495,7 +2556,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_p = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var p = stream.readInt8();
 		
@@ -2504,7 +2565,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_r = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var r = stream.readInt8();
 		
@@ -2513,7 +2574,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		
@@ -2522,7 +2583,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_ypr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2535,7 +2596,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_yp = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2547,7 +2608,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_yr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2559,7 +2620,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_pr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2571,7 +2632,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_y = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2582,7 +2643,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_p = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2593,7 +2654,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xz_r = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -2604,7 +2665,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2614,7 +2675,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_ypr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2628,7 +2689,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_yp = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2641,7 +2702,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_yr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2654,7 +2715,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_pr = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2667,7 +2728,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_y = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2679,7 +2740,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_p = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -2691,7 +2752,7 @@ function KBENGINE()
 	
 	this.Client_onUpdateData_xyz_r = function(stream)
 	{
-		var eid = stream.readInt32();
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
