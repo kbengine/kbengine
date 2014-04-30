@@ -796,7 +796,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	Entity* pobj = static_cast<Entity*>(self);
 	
 	uint32 id = 0;
-	PyObject* pystr = NULL;
+	PyObject* pyargobj = NULL;
 
 	if(currargsSize != 1)
 	{
@@ -807,22 +807,36 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		return 0;																								
 	}
 
-	if(PyArg_ParseTuple(args, "I", &id) == -1 || PyArg_ParseTuple(args, "O", &pystr) == -1)
+	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args is error!", pobj->getScriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID or \"Movement\") is error!", pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	if(pyargobj == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID or \"Movement\") is error!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	if(pystr && PyUnicode_Check(pystr))
+	if(PyUnicode_Check(pyargobj))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr, NULL);
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
 		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
 		
 		if(strcmp(s, "Movement") == 0)
 		{
 			pobj->stopMove();
+		}
+		else
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->getScriptName());
+			PyErr_PrintEx(0);
+			free(s);
+			return 0;
 		}
 
 		free(s);
@@ -831,12 +845,14 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		if(!PyLong_Check(pystr))
+		if(!PyLong_Check(pyargobj))
 		{
-			PyErr_Format(PyExc_TypeError, "%s::cancel: args is error!", pobj->getScriptName());
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID) is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
+
+		id = PyLong_AsLong(pyargobj);
 	}
 
 	pobj->cancelController(id);
