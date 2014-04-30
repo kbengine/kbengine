@@ -104,7 +104,7 @@ class Motion:
 			return
 
 		self.isMoving = True
-		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, None)
+		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, None, True, 1)
 		
 	def gotoPosition(self, position, dist = 0.0):
 		"""

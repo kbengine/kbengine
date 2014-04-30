@@ -697,6 +697,12 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 															databaseLength, defaultStr, 
 															detailLevel);
 			
+			if(g_debugEntity)
+			{
+				DEBUG_MSG(boost::format("EntityDef::loadDefPropertys: %1%.%2% uid=%3%, flags=%4%.\n") % 
+					moduleName % name % propertyDescription->getUType() % strFlags);
+			}
+
 			bool ret = true;
 			// 添加到模块中
 			if(hasCellFlags > 0)
@@ -778,6 +784,12 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefCellMethods: Utype overflow!\n");
 
 						methodDescription->setUType(muid);
+					}
+
+					if(g_debugEntity)
+					{
+						DEBUG_MSG(boost::format("EntityDef::loadDefCellMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
+							moduleName % name % methodDescription->getUType() % methodDescription->getArgSize());
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -867,6 +879,12 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 
 						methodDescription->setUType(muid);
 					}
+
+					if(g_debugEntity)
+					{
+						DEBUG_MSG(boost::format("EntityDef::loadDefBaseMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
+							moduleName % name % methodDescription->getUType() % methodDescription->getArgSize());
+					}
 				}
 				XML_FOR_END(argNode);		
 			}
@@ -949,6 +967,12 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefClientMethods: Utype overflow!\n");
 
 						methodDescription->setUType(muid);
+					}
+
+					if(g_debugEntity)
+					{
+						DEBUG_MSG(boost::format("EntityDef::loadDefClientMethods: %1%.%2% uid=%3%, argssize=%4%.\n") % 
+							moduleName % name % methodDescription->getUType() % methodDescription->getArgSize());
 					}
 				}
 				XML_FOR_END(argNode);		

@@ -56,7 +56,7 @@
 		</disables>
 	</trace_packet>
 	
-	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
+	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息， 以及def信息 -->
 	<debugEntity>0</debugEntity>
 
 	<!-- apps发布状态, 可在脚本中获取该值
