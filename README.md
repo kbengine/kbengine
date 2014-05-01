@@ -10,6 +10,9 @@ http://www.kbengine.org
 ##Release: 
 https://sourceforge.net/projects/kbengine/files/
 
+##unity3d demo sourcecode:
+https://bitbucket.org/kbengine/warring.git
+
 ##什么是KBEngine?
 
 KBEngine是一款开源mmog服务端引擎， 使用统一协议能够轻松与前端对接，能轻松使用unity3d、 ogre、 cocos2d、 html5等作为前端表现。
