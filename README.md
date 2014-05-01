@@ -4,9 +4,6 @@ KBEngine
 ##官方网站:
 http://www.kbengine.org
 
-## QQ交流群
-16535321
-
 ##Release: 
 https://sourceforge.net/projects/kbengine/files/
 
@@ -18,6 +15,9 @@ https://sourceforge.net/projects/kbengine/files/
 
 	html5	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
+
+## QQ交流群
+16535321
 
 ##什么是KBEngine?
 
