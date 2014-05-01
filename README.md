@@ -10,8 +10,10 @@ http://www.kbengine.org
 ##Release: 
 https://sourceforge.net/projects/kbengine/files/
 
-##unity3d demo:
-https://bitbucket.org/kbengine/warring.git
+##Demos Sources:
+unity3d  : https://bitbucket.org/kbengine/warring.git
+ogre      : kbengine/kbe/src/client/ogre
+html5     : kbengine/kbe/src/client/html5
 
 ##什么是KBEngine?
 
