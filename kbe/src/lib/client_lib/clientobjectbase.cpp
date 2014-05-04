@@ -365,7 +365,7 @@ Mercury::Channel* ClientObjectBase::initBaseappChannel()
 	{
 		ERROR_MSG("ClientObjectBase::initBaseappChannel: couldn't create a socket\n");
 		delete pEndpoint;
-		return false;
+		return NULL;
 	}
 	
 	u_int32_t address;
