@@ -572,14 +572,17 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 
 	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
+		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
+	
+	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
+		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
 	std::string str = Resmgr::getSingleton().getEnv().hybrid_path;
-	str += COMPONENT_NAME[componentType];
+	str += COMPONENT_NAME_EX(componentType);
 	str += ".exe";
 
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
@@ -652,7 +655,10 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 
 	INFO_MSG(boost::format("Machine::stopserver: request uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
+		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
+
+	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
+		return;
 
 	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
 	Components::COMPONENTS::iterator iter = components.begin();
