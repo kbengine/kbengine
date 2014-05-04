@@ -65,11 +65,9 @@ bool sync_item_to_db(DBInterface* dbi,
 	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` ADD `%s` %s;",
 		tablename, itemname, datatype);	
 
-	bool ret = false;
-
 	try
 	{
-		ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
+		dbi->query(__sql_str__, strlen(__sql_str__), false);	
 	}
 	catch(...)
 	{
