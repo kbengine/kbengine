@@ -140,6 +140,9 @@ public:
 	INLINE bool isPersistent()const;
 
 	void c_str();
+
+	INLINE bool usePropertyDescrAlias()const;
+	INLINE bool	useMethodDescrAlias()const;
 protected:
 	// 脚本类别
 	PyTypeObject*						scriptType_;	
@@ -191,7 +194,10 @@ protected:
 	VolatileInfo						volatileinfo_;
 
 	// 这个模块的名称
-	std::string							name_;									
+	std::string							name_;		
+
+	bool								usePropertyDescrAlias_;
+	bool								useMethodDescrAlias_;
 };
 
 

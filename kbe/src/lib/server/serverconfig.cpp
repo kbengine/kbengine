@@ -429,6 +429,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_cellAppInfo.aliasEntityID = (xml->getValStr(node) == "true");
 		}
 
+		node = xml->enterNode(rootNode, "entitydefAliasID");
+		if(node != NULL){
+			_cellAppInfo.entitydefAliasID = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "ghostDistance");
 		if(node != NULL){
 			_cellAppInfo.ghostDistance = (float)xml->getValFloat(node);

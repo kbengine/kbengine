@@ -147,4 +147,14 @@ INLINE bool ScriptDefModule::isPersistent()const
 	return persistentPropertyDescr_uidmap_.size() > 0;
 }
 
+INLINE bool ScriptDefModule::usePropertyDescrAlias()const
+{
+	return usePropertyDescrAlias_;
+}
+
+INLINE bool ScriptDefModule::useMethodDescrAlias()const
+{
+	return useMethodDescrAlias_;
+}
+
 }

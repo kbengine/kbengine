@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "resmgr/resmgr.hpp"
 #include "pyscript/script.hpp"
+#include "server/serverconfig.hpp"
 
 #ifndef CODE_INLINE
 #include "scriptdef_module.ipp"
@@ -43,7 +44,9 @@ hasCell_(false),
 hasBase_(false),
 hasClient_(false),
 volatileinfo_(),
-name_(name)
+name_(name),
+usePropertyDescrAlias_(false),
+useMethodDescrAlias_(false)
 {
 	EntityDef::md5().append((void*)name.c_str(), name.size());
 }
@@ -98,42 +101,15 @@ void ScriptDefModule::finalise(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::onLoaded(void)
 {
-	int aliasID = 0;
-	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	if(ServerConfig::getSingleton().getCellApp().entitydefAliasID)
 	{
-		if(iter1->second->hasClient())
-		{
-			iter1->second->aliasID(aliasID++);
-		}
-	}
-
-	iter1 = basePropertyDescr_.begin();
-	for(; iter1 != basePropertyDescr_.end(); iter1++)
-	{
-		if(iter1->second->hasClient())
-		{
-			iter1->second->aliasID(aliasID++);
-		}
-	}
-
-	iter1 = clientPropertyDescr_.begin();
-	for(; iter1 != clientPropertyDescr_.end(); iter1++)
-	{
-		if(iter1->second->hasClient())
-		{
-			iter1->second->aliasID(aliasID++);
-		}
-	}
-	
-	if(aliasID > 255)
-	{
-		iter1 = cellPropertyDescr_.begin();
+		int aliasID = 0;
+		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 		for(; iter1 != cellPropertyDescr_.end(); iter1++)
 		{
 			if(iter1->second->hasClient())
 			{
-				iter1->second->aliasID(-1);
+				iter1->second->aliasID(aliasID++);
 			}
 		}
 
@@ -142,7 +118,7 @@ void ScriptDefModule::onLoaded(void)
 		{
 			if(iter1->second->hasClient())
 			{
-				iter1->second->aliasID(-1);
+				iter1->second->aliasID(aliasID++);
 			}
 		}
 
@@ -151,25 +127,63 @@ void ScriptDefModule::onLoaded(void)
 		{
 			if(iter1->second->hasClient())
 			{
-				iter1->second->aliasID(-1);
+				iter1->second->aliasID(aliasID++);
 			}
 		}
-	}
+		
+		if(aliasID > 255)
+		{
+			iter1 = cellPropertyDescr_.begin();
+			for(; iter1 != cellPropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
 
-	aliasID = 0;
+			iter1 = basePropertyDescr_.begin();
+			for(; iter1 != basePropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
 
-	METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
-	for(; iter2 != methodClientDescr_.end(); iter2++)
-	{
-		iter2->second->aliasID(aliasID++);
-	}
+			iter1 = clientPropertyDescr_.begin();
+			for(; iter1 != clientPropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
+		}
+		else
+		{
+			usePropertyDescrAlias_ = true;
+		}
 
-	if(aliasID > 255)
-	{
+		aliasID = 0;
+
 		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
 		for(; iter2 != methodClientDescr_.end(); iter2++)
 		{
-			iter2->second->aliasID(-1);
+			iter2->second->aliasID(aliasID++);
+		}
+
+		if(aliasID > 255)
+		{
+			METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
+			for(; iter2 != methodClientDescr_.end(); iter2++)
+			{
+				iter2->second->aliasID(-1);
+			}
+		}
+		else
+		{
+			useMethodDescrAlias_ = true;
 		}
 	}
 
