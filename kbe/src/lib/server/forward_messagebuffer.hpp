@@ -50,6 +50,7 @@ class ForwardMessageOverHandler
 {
 public:
 	virtual void process() = 0;
+	virtual ~ForwardMessageOverHandler(){}
 };
 
 struct ForwardItem
@@ -66,7 +67,7 @@ class ForwardComponent_MessageBuffer : public Task,
 {
 public:
 	ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface);
-	~ForwardComponent_MessageBuffer();
+	virtual ~ForwardComponent_MessageBuffer();
 
 	Mercury:: EventDispatcher & dispatcher();
 
@@ -91,7 +92,7 @@ class ForwardAnywhere_MessageBuffer : public Task,
 {
 public:
 	ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
-	~ForwardAnywhere_MessageBuffer();
+	virtual ~ForwardAnywhere_MessageBuffer();
 
 	Mercury:: EventDispatcher & dispatcher();
 
