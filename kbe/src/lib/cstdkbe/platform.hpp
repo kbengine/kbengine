@@ -232,7 +232,7 @@ typedef unsigned __int16										uint16;
 typedef unsigned __int8											uint8;
 typedef INT_PTR													intptr;
 typedef UINT_PTR        										uintptr;
-#define KBE_PRI64												"lld"
+#define PRI64													"lld"
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
@@ -276,7 +276,6 @@ typedef uint64													uintptr;
 #endif
 
 #else
-
 typedef int32													intptr;
 typedef uint32													uintptr;
 
