@@ -88,6 +88,8 @@ class TimeBase
 public:
 	TimeBase(TimersBase &owner, TimerHandler* pHandler, 
 		void* pUserData);
+	
+	virtual ~TimeBase(){}
 
 	void cancel();
 
@@ -122,7 +124,7 @@ public:
 	typedef TIME_STAMP TimeStamp;
 
 	TimersT();
-	~TimersT();
+	virtual ~TimersT();
 	
 	inline uint32 size() const	{ return timeQueue_.size(); }
 	inline bool empty() const	{ return timeQueue_.empty(); }
