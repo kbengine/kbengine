@@ -7,7 +7,7 @@ http://www.kbengine.org
 ##Release: 
 https://sourceforge.net/projects/kbengine/files/
 
-##Demos Sources:
+##Demo sources:
 
 	unity3d	: https://bitbucket.org/kbengine/warring.git
 	ogre	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
