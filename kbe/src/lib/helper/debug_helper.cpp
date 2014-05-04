@@ -301,8 +301,9 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 			lid = LOG_INFO;
 			break;
 		};
-
-		syslog( LOG_CRIT, "%s", str );
+		
+		if(lid == KBELOG_ERROR || lid == KBELOG_CRITICAL)
+			syslog( LOG_CRIT, "%s", str );
 	}
 #endif
 
