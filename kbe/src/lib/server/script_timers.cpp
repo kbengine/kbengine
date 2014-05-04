@@ -206,7 +206,7 @@ void ScriptTimers::readFromStream(MemoryStream & stream, uint32 numTimers,
 		stream >> timerID >> time >> interval >> userData;
 
 		map_[ timerID ] = g_pApp->timers().add(
-			time, interval, pHandler, (void *)userData );
+			time, interval, pHandler, (void *)(intptr_t)userData );
 	}
 }
 
