@@ -150,7 +150,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 		while((arow = mysql_fetch_row(pResult)) != NULL)
 		{
 			StringConv::str2value(entitylog.entityID, arow[0]);
-			kbe_snprintf(entitylog.ip, MAX_IP, arow[1]);
+			kbe_snprintf(entitylog.ip, MAX_IP, "%s", arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
 			break;
