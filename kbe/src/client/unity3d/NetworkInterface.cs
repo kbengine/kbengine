@@ -81,6 +81,7 @@ __RETRY:
 			
 			// Security.PrefetchSocketPolicy(ip, 843);
 			socket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); 
+			socket_.SetSocketOption (System.Net.Sockets.SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, MemoryStream.BUFFER_MAX);
 			
             try 
             { 
