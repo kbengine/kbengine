@@ -204,7 +204,11 @@ namespace Tmx
 #ifdef USE_SDL2_LOAD
 		file->read(file, fileText, 1, fileSize);
 #else
-		fread(fileText, 1, fileSize, file);
+		if (fread(fileText, 1, fileSize, file) < 1)
+		{
+			error_text = "Error in reading or end of file.\n";
+			return;
+		}
 #endif
 
 #ifdef USE_SDL2_LOAD
