@@ -232,7 +232,7 @@ typedef unsigned __int16										uint16;
 typedef unsigned __int8											uint8;
 typedef INT_PTR													intptr;
 typedef UINT_PTR        										uintptr;
-#define PRI64													"lld"
+#define KBE_PRI64												"lld"
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
@@ -254,19 +254,52 @@ typedef uint32_t												DWORD;
 #ifdef _LP64
 typedef int64													intptr;
 typedef uint64													uintptr;
+
+#ifndef PRI64
 #define PRI64													"ld"
+#endif
+
+#ifndef PRIu64
 #define PRIu64													"lu"
+#endif
+
+#ifndef PRIx64
 #define PRIx64													"lx"
+#endif
+
+#ifndef PRIX64
 #define PRIX64													"lX"
+#endif
+
+#ifndef PRTime
 #define PRTime													PRI64
+#endif
+
 #else
+
 typedef int32													intptr;
 typedef uint32													uintptr;
+
+#ifndef PRI64
 #define PRI64													"lld"
+#endif
+
+#ifndef PRIu64
 #define PRIu64													"llu"
+#endif
+
+#ifndef PRIx64
 #define PRIx64													"llx"
+#endif
+
+#ifndef PRIX64
 #define PRIX64													"llX"
+#endif
+
+#ifndef PRTime
 #define PRTime													"ld"
+#endif
+
 #endif
 
 #ifndef PRIzd
