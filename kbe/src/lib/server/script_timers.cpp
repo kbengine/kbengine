@@ -87,7 +87,7 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 
 	TimerHandle timerHandle = g_pApp->timers().add(
 			initialTicks, repeatTicks,
-			pHandler, (void *)userArg );
+			pHandler, (void *)(intptr_t)userArg );
 
 	if (timerHandle.isSet())
 	{
