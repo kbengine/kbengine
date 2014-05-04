@@ -82,7 +82,7 @@ bool g_shouldWriteToSyslog = false;
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
 	boost::format s = (boost::format("assertion failed: %1%, file %2%, line %3%, at: %4%\n") % exp % file % line % func);
-	printf((std::string("[ASSERT]: ") + s.str()).c_str());
+	printf("%s", (std::string("[ASSERT]: ") + s.str()).c_str());
 	dbghelper.print_msg(s);
     abort();
 }
