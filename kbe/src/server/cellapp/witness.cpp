@@ -405,8 +405,6 @@ bool Witness::update()
 
 	if(remainPacketSize > 0)
 	{
-		SPACE_ID spaceID = pEntity_->getSpaceID();
-
 		Mercury::Bundle* pSendBundle = NEW_BUNDLE();
 		if(aoiEntities_.size() > 0)
 		{
