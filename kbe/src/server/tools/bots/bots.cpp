@@ -504,22 +504,22 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-							  ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
+							  ENTITY_SCRIPT_UID scriptType)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterWorld(pChannel, eid, scriptType, spaceID);
+		pClient->onEntityEnterWorld(pChannel, eid, scriptType);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveWorld(pChannel, eid, spaceID);
+		pClient->onEntityLeaveWorld(pChannel, eid);
 	}
 }
 

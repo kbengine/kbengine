@@ -101,7 +101,11 @@ void ScriptDefModule::finalise(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::onLoaded(void)
 {
-	if(ServerConfig::getSingleton().getCellApp().entitydefAliasID)
+	bool entitydefAliasID = false;
+	if(ServerConfig::getSingletonPtr())
+		entitydefAliasID = ServerConfig::getSingleton().getCellApp().entitydefAliasID;
+
+	if(entitydefAliasID)
 	{
 		int aliasID = 0;
 		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();

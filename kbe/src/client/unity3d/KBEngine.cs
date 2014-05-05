@@ -1126,13 +1126,13 @@ START_RUN:
 			methoddata.handler.Invoke(entity, args);
 		}
 			
-		public void Client_onEntityEnterWorld(Int32 eid, UInt16 uentityType, UInt32 spaceID)
+		public void Client_onEntityEnterWorld(Int32 eid, UInt16 uentityType)
 		{
 			if(entity_id > 0 && entity_id != eid)
 				entityIDAliasIDList.Add(eid);
 			
 			string entityType = EntityDef.idmoduledefs[uentityType].name;
-			Dbg.DEBUG_MSG("KBEngine::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + KBEngineApp.app.spaceID + ")!");
 			
 			Entity entity = null;
 			
@@ -1180,7 +1180,7 @@ START_RUN:
 			}
 		}
 		
-		public void Client_onEntityLeaveWorld(Int32 eid, UInt32 spaceID)
+		public void Client_onEntityLeaveWorld(Int32 eid)
 		{
 			Entity entity = null;
 			

@@ -238,7 +238,6 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 	(*pForwardBundle) << pEntity_->getID();
 	(*pForwardBundle) << pEntity_->getScriptModule()->getUType();
-	(*pForwardBundle) << pSpace->getID();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->getClientMailbox()->postMail(*pSendBundle);
@@ -265,7 +264,6 @@ void Witness::onLeaveSpace(Space* pSpace)
 
 	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 	(*pForwardBundle) << pEntity_->getID();
-	(*pForwardBundle) << pSpace->getID();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->getClientMailbox()->postMail(*pSendBundle);
@@ -452,7 +450,6 @@ bool Witness::update()
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->getID();
 					(*pForwardBundle2) << otherEntity->getScriptModule()->getUType();
-					(*pForwardBundle2) << spaceID;
 
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
@@ -471,7 +468,6 @@ bool Witness::update()
 
 					(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 					(*pForwardBundle) << (*iter)->id();
-					(*pForwardBundle) << spaceID;
 
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);

@@ -17,6 +17,8 @@ namespace KBEngine
     	public int wpos = 0;
     	private byte[] datas_ = new byte[BUFFER_MAX]; 
     	
+    	private static System.Text.ASCIIEncoding _converter = new System.Text.ASCIIEncoding();
+    	
 		[StructLayout(LayoutKind.Explicit, Size = 4)]
 		struct PackFloatXType
 		{
@@ -101,21 +103,12 @@ namespace KBEngine
 		
 		public string readString()
 		{
-			string s = "";
-			
-			while(true)
+			int offset = rpos;
+			while(datas_[rpos++] != 0)
 			{
-				byte v = datas_[rpos++];
-				if(v == 0)
-				{
-					break;
-				}
-				
-				char c = System.Convert.ToChar(v);
-				s += c;
 			}
-			
-			return s;
+
+			return _converter.GetString(datas_, offset, rpos - offset - 1);
 		}
 	
 		public byte[] readBlob()

@@ -1386,7 +1386,6 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 	bundle.newMessage(ClientInterface::onEntityEnterWorld);
 	bundle << base->getID();
 	bundle << base->getScriptModule()->getUType();
-	bundle << base->getSpaceID();
 	base->getClientMailbox()->postMail(bundle);
 	*/
 }
@@ -2249,8 +2248,7 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
-		ClientInterface::onEntityEnterWorldArgs3::staticAddToBundle((*pBundle), entityID, base->getScriptModule()->getUType(),
-			base->getSpaceID());
+		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle((*pBundle), entityID, base->getScriptModule()->getUType());
 
 		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
 		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -2275,8 +2273,7 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel,
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 
-		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle((*pBundle), entityID, 
-			base->getSpaceID());
+		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle((*pBundle), entityID);
 
 		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
 		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);

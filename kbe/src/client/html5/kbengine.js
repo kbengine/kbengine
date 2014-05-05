@@ -2273,13 +2273,13 @@ function KBENGINE()
 		g_kbengine.onRemoteMethodCall_(eid, stream);
 	}
 	
-	this.Client_onEntityEnterWorld = function(eid, entityType, spaceID)
+	this.Client_onEntityEnterWorld = function(eid, entityType)
 	{
 		if(g_kbengine.entity_id > 0 && eid != g_kbengine.entity_id)
 			g_kbengine.entityIDAliasIDList.push(eid)
 			
 		entityType = g_moduledefs[entityType].name;
-		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
+		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + this.spaceID + ")!");
 		
 		var entity = g_kbengine.entities[eid];
 		if(entity == undefined)
@@ -2321,7 +2321,7 @@ function KBENGINE()
 		}
 	}
 	
-	this.Client_onEntityLeaveWorld = function(eid, spaceID)
+	this.Client_onEntityLeaveWorld = function(eid)
 	{
 		var entity = g_kbengine.entities[eid];
 		if(entity == undefined)

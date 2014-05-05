@@ -531,7 +531,7 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
+void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType)
 {
 	if(eid != entityID_ && entityID_ > 0)
 		pEntityIDAliasIDList_.push_back(eid);
@@ -582,7 +582,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 		entity->getScriptName() % eid);
 
 	EventData_EnterWorld eventdata;
-	eventdata.spaceID = spaceID;
+	eventdata.spaceID = spaceID_;
 	eventdata.pEntity = entity->getAspect();
 	eventdata.x = entity->getPosition().x;
 	eventdata.y = entity->getPosition().y;
@@ -604,7 +604,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -616,11 +616,11 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%(%2%).\n") % 
 		entity->getScriptName() % eid);
 
-	entity->onLeaveWorld();
-
 	EventData_LeaveWorld eventdata;
-	eventdata.spaceID = spaceID;
+	eventdata.spaceID = entity->getSpaceID();
 	eventdata.pEntity = entity->getAspect();
+
+	entity->onLeaveWorld();
 
 	eventHandler_.fire(&eventdata);
 
