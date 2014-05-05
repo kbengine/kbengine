@@ -2321,7 +2321,7 @@ function KBENGINE()
 		}
 	}
 
-	this.onEntityLeaveWorldAliasID = function(stream)
+	this.Client_onEntityLeaveWorldAliasID = function(stream)
 	{
 		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		Client_onEntityLeaveWorld(eid);

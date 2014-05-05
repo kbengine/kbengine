@@ -1180,7 +1180,7 @@ START_RUN:
 			}
 		}
 
-		public void onEntityLeaveWorldAliasID(MemoryStream stream)
+		public void Client_onEntityLeaveWorldAliasID(MemoryStream stream)
 		{
 			Int32 eid = getAoiEntityIDFromStream(stream);
 			KBEngineApp.app.Client_onEntityLeaveWorld(eid);
