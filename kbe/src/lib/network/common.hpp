@@ -132,6 +132,7 @@ enum Reason
 	REASON_CHANNEL_LOST = -11,		 ///< Corresponds to channel lost
 	REASON_SHUTTING_DOWN = -12,		 ///< Corresponds to shutting down app.
 	REASON_HTML5_ERROR = -13,		 ///< html5 error.
+	REASON_CHANNEL_CONDEMN = -14,	 ///< condemn error.
 };
 
 inline

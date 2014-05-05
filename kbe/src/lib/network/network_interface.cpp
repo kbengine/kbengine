@@ -601,6 +601,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 	if(pChannel->isExternal())
 	{
 		pChannel->condemn();
+		reason = REASON_CHANNEL_CONDEMN;
 	}
 
 	return reason;
