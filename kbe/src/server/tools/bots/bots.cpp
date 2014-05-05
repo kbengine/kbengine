@@ -524,6 +524,16 @@ void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------	
+void Bots::onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityLeaveWorldAliasID(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
 {
 	ClientObject* pClient = findClient(pChannel);

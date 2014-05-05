@@ -294,6 +294,12 @@ ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+ENTITY_ID ClientObjectBase::getAoiEntityIDByAliasID(uint8 id)
+{
+	return pEntityIDAliasIDList_[id];
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientObjectBase::registerEventHandle(EventHandle* pEventHandle)
 {
 	return eventHandler_.registerHandle(pEventHandle);
@@ -601,6 +607,12 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 
 	entity->onEnterWorld();
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	onEntityLeaveWorld(pChannel, getAoiEntityIDFromStream(s));
 }
 
 //-------------------------------------------------------------------------------------	

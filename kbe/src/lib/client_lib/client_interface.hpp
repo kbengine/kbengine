@@ -50,16 +50,16 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 服务端hello返回。
-	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,								MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,								MERCURY_VARIABLE_MESSAGE)
 
 	// 创建账号失败。
-	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,					MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,					MERCURY_VARIABLE_MESSAGE)
 
 	// 登录成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,						MERCURY_VARIABLE_MESSAGE)
 
 	// 登录失败。
-	CLIENT_MESSAGE_DECLARE_STREAM(onLoginFailed,							MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onLoginFailed,							MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
 	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,							MERCURY_VARIABLE_MESSAGE,
@@ -79,6 +79,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 服务器上的entity已经离开游戏世界了。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,						MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,								eid)
+
+	// 服务器上的entity已经离开游戏世界了。
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityLeaveWorldAliasID,				MERCURY_VARIABLE_MESSAGE)
 
 	// 告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,							MERCURY_FIXED_MESSAGE,

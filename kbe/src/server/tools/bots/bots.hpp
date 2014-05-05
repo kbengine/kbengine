@@ -199,6 +199,7 @@ public:
 		服务器上的entity已经离开游戏世界了
 	*/
 	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+	virtual void onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld

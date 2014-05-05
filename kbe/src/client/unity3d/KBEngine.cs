@@ -1179,6 +1179,12 @@ START_RUN:
 				}
 			}
 		}
+
+		public void onEntityLeaveWorldAliasID(MemoryStream stream)
+		{
+			Int32 eid = getAoiEntityIDFromStream(stream);
+			KBEngineApp.app.Client_onEntityLeaveWorld(eid);
+		}
 		
 		public void Client_onEntityLeaveWorld(Int32 eid)
 		{

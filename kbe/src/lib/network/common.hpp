@@ -153,7 +153,8 @@ const char * reasonToString(Reason reason)
 		"REASON_TRANSMIT_QUEUE_FULL",
 		"REASON_CHANNEL_LOST",
 		"REASON_SHUTTING_DOWN",
-		"REASON_HTML5_ERROR"
+		"REASON_HTML5_ERROR",
+		"REASON_CHANNEL_CONDEMN"
 	};
 
 	unsigned int index = -reason;

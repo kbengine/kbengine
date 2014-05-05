@@ -2320,6 +2320,12 @@ function KBENGINE()
 			}
 		}
 	}
+
+	this.onEntityLeaveWorldAliasID = function(stream)
+	{
+		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
+		Client_onEntityLeaveWorld(eid);
+	}
 	
 	this.Client_onEntityLeaveWorld = function(eid)
 	{
