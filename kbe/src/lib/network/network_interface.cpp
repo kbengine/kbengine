@@ -563,7 +563,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 	}
 
 	// 尝试发送的次数
-	int retries = 0;
+	uint32 retries = 0;
 	Reason reason;
 	
 	pPacket->sentSize = 0;
