@@ -585,25 +585,30 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		}
 
 		// 如果系统发送缓冲已经满了，则我们等待10ms
-		if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK) 
-			&& (pChannel->isInternal() || retries <= 3))
+		if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
 		{
+			if(pChannel->isInternal())
+			{
+				if(g_intReSendRetries > 0 && retries > g_intReSendRetries)
+				{
+					pChannel->condemn();
+					break;
+				}
+			}
+			else
+			{
+				if(g_extReSendRetries > 0 && retries > g_extReSendRetries)
+				{
+					pChannel->condemn();
+					break;
+				}
+			}
+
 			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%1%)\n") %
 				retries );
 			
-			/* 这个做法导致很多意外问题
-			int fd = *pChannel->endpoint();
-			this->pDispatcher_->processNetwork(false);
-			
-			// 有可能会在processNetwork处理时被强制关闭通道而造成崩溃， 所以此处需要检查一下
-			if(this->findChannel(fd) == NULL)
-				return REASON_CHANNEL_LOST;
-			*/
-
-			if(retries > 256)
-				break;
-
+			KBEngine::sleep(pChannel->isInternal() ? g_intReSendInterval : g_extReSendInterval);
 			continue;
 		}
 
@@ -612,14 +617,6 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 
 	// 其他错误退出尝试
 	ERROR_MSG(boost::format("NetworkInterface::basicSendWithRetries: packet discarded(reason=%1%).\n") % (reasonToString(reason)));
-
-	// 如果是外部通道， 那么此时后续包都将出错， 没有必要继续和其通讯了
-	if(pChannel->isExternal())
-	{
-		pChannel->condemn();
-		reason = REASON_CHANNEL_CONDEMN;
-	}
-
 	return reason;
 }
 

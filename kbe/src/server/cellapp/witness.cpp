@@ -501,6 +501,11 @@ bool Witness::update()
 				++iter;
 			}
 		}
+		
+		if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
+		{
+			WARNING_MSG(boost::format("Witness::update(%1%): updateClientSend size = %2%\n") % pEntity_->getID() % pSendBundle->packetsLength());
+		}
 
 		if(!pSendBundle->isEmpty())
 			pChannel->bundles().push_back(pSendBundle);

@@ -70,6 +70,18 @@
 			<external> 60.0 </external>
 		</timeout>
 		
+		<!-- 通道send数据重试时间次数 -->
+		<resend> 
+			<internal> 
+				<interval> 10 </interval>					<!-- 毫秒 -->
+				<retries> 0 </retries>						<!-- 重试次数, 0无限 -->
+			</internal>
+			<external>
+				<interval> 10 </interval>					<!-- 毫秒 -->
+				<retries> 3 </retries>						<!-- 重试次数, 0无限 -->
+			</external>
+		</resend>
+		
 		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
 		<receiveWindowOverflow>
 			<messages>

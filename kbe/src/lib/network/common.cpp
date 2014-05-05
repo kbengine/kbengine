@@ -53,6 +53,12 @@ uint32						g_extReceiveWindowMessagesOverflow = 256;
 uint32						g_intReceiveWindowBytesOverflow = 0;
 uint32						g_extReceiveWindowBytesOverflow = 65535;
 
+// 通道发送超时重试
+uint32						g_intReSendInterval = 10;
+uint32						g_intReSendRetries = 0;
+uint32						g_extReSendInterval = 10;
+uint32						g_extReSendRetries = 3;
+
 bool initializeWatcher()
 {
 	WATCH_OBJECT("network/numPacketsSent", g_numPacketsSent);

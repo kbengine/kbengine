@@ -135,6 +135,42 @@ bool Config::loadConfig(std::string fileName)
 			}
 		}
 
+		childnode = xml->enterNode(rootNode, "resend");
+		if(childnode)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+				}
+			}
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+				}
+			}
+		}
+
 		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
 		if(childnode)
 		{

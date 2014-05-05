@@ -77,6 +77,10 @@ struct ChannelCommon
 	uint32 extWriteBufferSize;
 	uint32 intReadBufferSize;
 	uint32 intWriteBufferSize;
+	uint32 intReSendInterval;
+	uint32 intReSendRetries;
+	uint32 extReSendInterval;
+	uint32 extReSendRetries;
 };
 
 struct EmailServerInfo
