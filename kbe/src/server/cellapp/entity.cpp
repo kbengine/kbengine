@@ -382,8 +382,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-				(*pForwardBundle).newMessage(ClientInterface::onUpdateOtherEntityPropertys);
-				pEntity->pWitness()->addAOIEntityIDToBundle(pForwardBundle, getID());
+
+				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
+					ClientInterface::onUpdateOtherEntityPropertys, getID());
+
 				pForwardBundle->append(*mstream);
 				
 				// 记录这个事件产生的数据量大小

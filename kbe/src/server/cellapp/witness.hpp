@@ -129,6 +129,10 @@ public:
 	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
 	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
 	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle);
+
+	void addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
+		const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
+
 	uint8 entityID2AliasID(ENTITY_ID id)const;
 
 	/**

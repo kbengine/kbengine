@@ -320,6 +320,32 @@ void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entity
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
+											   const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
+{
+	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	{
+		(*pBundle).newMessage(normalMsgHandler);
+		(*pBundle) << entityID;
+	}
+	else
+	{
+		if(aoiEntities_.size() > 255)
+		{
+			(*pBundle).newMessage(normalMsgHandler);
+			(*pBundle) << entityID;
+		}
+		else
+		{
+			(*pBundle).newMessage(optimizedMsgHandler);
+
+			uint8 aliasID = entityID2AliasID(entityID);
+			(*pBundle) << aliasID;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 uint8 Witness::entityID2AliasID(ENTITY_ID id)const
 {
 	uint8 aliasID = 0;

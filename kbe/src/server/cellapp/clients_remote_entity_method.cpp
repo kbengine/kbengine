@@ -158,10 +158,10 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
-			pForwardBundle->newMessage(ClientInterface::onRemoteOtherEntityMethodCall);
-			pAoiEntity->pWitness()->addAOIEntityIDToBundle(pForwardBundle, pEntity->getID());
 			
+			pAoiEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
+					ClientInterface::onRemoteOtherEntityMethodCall, pEntity->getID());
+
 			if(mstream->wpos() > 0)
 				(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
