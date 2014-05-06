@@ -3373,6 +3373,10 @@
 			Name="Public Header Files"
 			>
 			<File
+				RelativePath=".\include\apr.h"
+				>
+			</File>
+			<File
 				RelativePath="include\apr.h.in"
 				>
 				<FileConfiguration
@@ -3511,6 +3515,10 @@
 			<File
 				RelativePath="include\apr_escape.h"
 				>
+			</File>
+			<File
+				RelativePath="include\apr_escape.h"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
 					>
@@ -3553,7 +3561,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="include\apr_escape.h"
+				RelativePath=".\include\apr_escape_test_char.h"
 				>
 			</File>
 			<File
