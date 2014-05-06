@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cstdkbe", "lib\cstdkbe\cstdkbe90.vcproj", "{A04109A7-46C9-42F9-AB29-8E3D84450172}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C6C836E6-2899-458A-90BA-184192342D30} = {C6C836E6-2899-458A-90BA-184192342D30}
+		{7CDBBFFF-3B84-413E-BA1A-47CB8D454A46} = {7CDBBFFF-3B84-413E-BA1A-47CB8D454A46}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entitydef", "lib\entitydef\entitydef90.vcproj", "{44FA54E8-0A60-4A6C-A449-118872E75502}"
 EndProject
@@ -255,6 +259,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apr", "lib\third_party\apr\apr.vcproj", "{C6C836E6-2899-458A-90BA-184192342D30}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aprutil", "lib\third_party\apr-util\aprutil.vcproj", "{7CDBBFFF-3B84-413E-BA1A-47CB8D454A46}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C6C836E6-2899-458A-90BA-184192342D30} = {C6C836E6-2899-458A-90BA-184192342D30}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log4cxx", "lib\third_party\log4cxx\projects\log4cxx.vcproj", "{561FA9F7-14D0-4D94-822C-AAE9B08AACEF}"
 	ProjectSection(ProjectDependencies) = postProject
