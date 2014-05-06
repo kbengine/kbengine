@@ -3373,10 +3373,6 @@
 			Name="Public Header Files"
 			>
 			<File
-				RelativePath=".\include\apr.h"
-				>
-			</File>
-			<File
 				RelativePath="include\apr.h.in"
 				>
 				<FileConfiguration
