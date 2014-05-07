@@ -119,7 +119,8 @@ pTelnetServer_(pTelnetServer),
 state_(defstate),
 currPos_(0),
 pProfileHandler_(NULL),
-pNetworkInterface_(pNetworkInterface)
+pNetworkInterface_(pNetworkInterface),
+getingHistroyCmd_(false)
 {
 }
 
@@ -248,6 +249,7 @@ void TelnetHandler::onRecvInput()
 		switch(c)
 		{
 		case '\r':
+			getingHistroyCmd_ = false;
 			if(buffer_.size() > 0)
 			{
 				int cc = (unsigned char)buffer_.front();
@@ -303,6 +305,13 @@ bool TelnetHandler::checkUDLR()
 		std::string startstr = getInputStartString();
 		pEndPoint_->send(startstr.c_str(), startstr.size());
 		resetStartPosition();
+
+		if(!getingHistroyCmd_)
+		{
+			++historyCommandIndex_;
+			getingHistroyCmd_ = true;
+		}
+
 		std::string s = getHistoryCommand(false);
 		pEndPoint_->send(s.c_str(), s.size());
 		command_ = s;
@@ -317,6 +326,13 @@ bool TelnetHandler::checkUDLR()
 		std::string startstr = getInputStartString();
 		pEndPoint_->send(startstr.c_str(), startstr.size());
 		resetStartPosition();
+
+		if(!getingHistroyCmd_)
+		{
+			--historyCommandIndex_;
+			getingHistroyCmd_ = true;
+		}
+
 		std::string s = getHistoryCommand(true);
 		pEndPoint_->send(s.c_str(), s.size());
 		command_ = s;

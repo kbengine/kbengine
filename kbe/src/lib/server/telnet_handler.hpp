@@ -112,6 +112,8 @@ private:
 	TelnetProfileHandler* pProfileHandler_;
 
 	Mercury::NetworkInterface* pNetworkInterface_;
+
+	bool getingHistroyCmd_;
 };
 
 
