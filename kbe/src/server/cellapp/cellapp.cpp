@@ -1077,7 +1077,7 @@ void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine:
 	// 这个方法呼叫如果不是这个proxy自己的方法则必须呼叫的entity和proxy的cellEntity在一个space中。
 	try
 	{
-		e->onRemoteMethodCall(pChannel, s);
+		e->onRemoteCallMethodFromClient(pChannel, s);
 	}catch(MemoryStreamException &)
 	{
 		ERROR_MSG(boost::format("Cellapp::onRemoteCallMethodFromClient: message is error! entityID:%1%.\n") % 

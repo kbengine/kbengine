@@ -134,6 +134,13 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	if(md != NULL)
 	{
 		free(ccattr);
+
+		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
+		{
+			if(!md->isExposed())
+				return ScriptObject::onScriptGetAttribute(attr);
+		}
+
 		return createRemoteMethod(md);
 	}
 

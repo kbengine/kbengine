@@ -93,7 +93,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		
 		static_cast<Proxy*>(pEntity)->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 	
