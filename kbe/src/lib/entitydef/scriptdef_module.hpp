@@ -54,6 +54,8 @@ public:
 	typedef std::map<std::string, MethodDescription*> METHODDESCRIPTION_MAP;
 	typedef std::map<ENTITY_PROPERTY_UID, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
 	typedef std::map<ENTITY_METHOD_UID, MethodDescription*> METHODDESCRIPTION_UIDMAP;
+	typedef std::map<ENTITY_DEF_ALIASID, PropertyDescription*> PROPERTYDESCRIPTION_ALIASMAP;
+	typedef std::map<ENTITY_DEF_ALIASID, MethodDescription*> METHODDESCRIPTION_ALIASMAP;
 
 	ScriptDefModule(std::string name);
 	~ScriptDefModule();	
@@ -85,14 +87,16 @@ public:
 	PropertyDescription* findBasePropertyDescription(const char* attrName);
 	PropertyDescription* findClientPropertyDescription(const char* attrName);
 	PropertyDescription* findPersistentPropertyDescription(const char* attrName);
+	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
 
 	PropertyDescription* findCellPropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findBasePropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findClientPropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findPersistentPropertyDescription(ENTITY_PROPERTY_UID utype);
-
-	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
 	PropertyDescription* findPropertyDescription(ENTITY_PROPERTY_UID utype, COMPONENT_TYPE componentType);
+
+	PropertyDescription* findAliasPropertyDescription(ENTITY_DEF_ALIASID aliasID);
+	MethodDescription* findAliasMethodDescription(ENTITY_DEF_ALIASID aliasID);
 
 	INLINE PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions();
 	INLINE PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(int8 detailLevel);
@@ -171,6 +175,9 @@ protected:
 	PROPERTYDESCRIPTION_UIDMAP			basePropertyDescr_uidmap_;				
 	PROPERTYDESCRIPTION_UIDMAP			clientPropertyDescr_uidmap_;			
 	
+	// 这个脚本所拥有的属性描述aliasID映射	
+	PROPERTYDESCRIPTION_ALIASMAP		propertyDescr_aliasmap_;		
+
 	// 这个脚本所拥有的方法描述
 	METHODDESCRIPTION_MAP				methodCellDescr_;						
 	METHODDESCRIPTION_MAP				methodBaseDescr_;						
@@ -183,7 +190,9 @@ protected:
 	METHODDESCRIPTION_UIDMAP			methodCellDescr_uidmap_;				
 	METHODDESCRIPTION_UIDMAP			methodBaseDescr_uidmap_;				
 	METHODDESCRIPTION_UIDMAP			methodClientDescr_uidmap_;				
-	
+			
+	METHODDESCRIPTION_ALIASMAP			methodDescr_aliasmap_;		
+
 	// 是否有cell部分等
 	bool								hasCell_;								
 	bool								hasBase_;								

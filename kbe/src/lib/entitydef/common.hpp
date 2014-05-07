@@ -100,6 +100,7 @@ typedef uint16 ENTITY_METHOD_UID;
 typedef uint16 ENTITY_SCRIPT_UID;
 typedef uint16 DATATYPE_UID;
 typedef uint8  DATATYPE;
+typedef uint8  ENTITY_DEF_ALIASID;
 
 #define DATA_TYPE_UNKONWN		0
 #define DATA_TYPE_FIXEDARRAY	1

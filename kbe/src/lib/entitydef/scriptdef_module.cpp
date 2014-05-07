@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "pyscript/script.hpp"
 #include "server/serverconfig.hpp"
+#include "client_lib/config.hpp"
 
 #ifndef CODE_INLINE
 #include "scriptdef_module.ipp"
@@ -40,6 +41,24 @@ namespace KBEngine{
 ScriptDefModule::ScriptDefModule(std::string name):
 scriptType_(NULL),
 uType_(0),
+persistentPropertyDescr_(),
+cellPropertyDescr_(),
+basePropertyDescr_(),
+clientPropertyDescr_(),
+persistentPropertyDescr_uidmap_(),
+cellPropertyDescr_uidmap_(),
+basePropertyDescr_uidmap_(),
+clientPropertyDescr_uidmap_(),
+propertyDescr_aliasmap_(),
+methodCellDescr_(),
+methodBaseDescr_(),
+methodClientDescr_(),
+methodBaseExposedDescr_(),
+methodCellExposedDescr_(),
+methodCellDescr_uidmap_(),
+methodBaseDescr_uidmap_(),
+methodClientDescr_uidmap_(),
+methodDescr_aliasmap_(),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
@@ -101,11 +120,7 @@ void ScriptDefModule::finalise(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::onLoaded(void)
 {
-	bool entitydefAliasID = false;
-	if(ServerConfig::getSingletonPtr())
-		entitydefAliasID = ServerConfig::getSingleton().getCellApp().entitydefAliasID;
-
-	if(entitydefAliasID)
+	if(EntityDef::entitydefAliasID())
 	{
 		int aliasID = 0;
 		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
@@ -113,6 +128,7 @@ void ScriptDefModule::onLoaded(void)
 		{
 			if(iter1->second->hasClient())
 			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -122,6 +138,7 @@ void ScriptDefModule::onLoaded(void)
 		{
 			if(iter1->second->hasClient())
 			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -131,6 +148,7 @@ void ScriptDefModule::onLoaded(void)
 		{
 			if(iter1->second->hasClient())
 			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -163,6 +181,8 @@ void ScriptDefModule::onLoaded(void)
 					iter1->second->aliasID(-1);
 				}
 			}
+
+			propertyDescr_aliasmap_.clear();
 		}
 		else
 		{
@@ -174,6 +194,7 @@ void ScriptDefModule::onLoaded(void)
 		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
 		for(; iter2 != methodClientDescr_.end(); iter2++)
 		{
+			methodDescr_aliasmap_[aliasID] = iter2->second;
 			iter2->second->aliasID(aliasID++);
 		}
 
@@ -183,6 +204,7 @@ void ScriptDefModule::onLoaded(void)
 			for(; iter2 != methodClientDescr_.end(); iter2++)
 			{
 				iter2->second->aliasID(-1);
+				methodDescr_aliasmap_.clear();
 			}
 		}
 		else
@@ -285,6 +307,7 @@ PyObject* ScriptDefModule::createObject(void)
 		PyErr_Print();
 		ERROR_MSG("ScriptDefModule::createObject: GenericAlloc is failed.\n");
 	}
+
 	return pObject;
 }
 
@@ -592,6 +615,7 @@ MethodDescription* ScriptDefModule::findCellMethodDescription(const char* attrNa
 		//ERROR_MSG("ScriptDefModule::findCellMethodDescription: [%s] not found!\n", attrName);
 		return NULL;
 	}
+
 	return iter->second;
 }
 
@@ -604,6 +628,34 @@ MethodDescription* ScriptDefModule::findCellMethodDescription(ENTITY_METHOD_UID 
 		//ERROR_MSG("ScriptDefModule::findCellMethodDescription: [%ld] not found!\n", utype);
 		return NULL;
 	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptDefModule::findAliasPropertyDescription(ENTITY_DEF_ALIASID aliasID)
+{
+	PROPERTYDESCRIPTION_ALIASMAP::iterator iter = propertyDescr_aliasmap_.find(aliasID);
+
+	if(iter == propertyDescr_aliasmap_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findAliasPropertyDescription: [%ld] not found!\n", aliasID);
+		return NULL;
+	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+MethodDescription* ScriptDefModule::findAliasMethodDescription(ENTITY_DEF_ALIASID aliasID)
+{
+	METHODDESCRIPTION_ALIASMAP::iterator iter = methodDescr_aliasmap_.find(aliasID);
+	if(iter == methodDescr_aliasmap_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findAliasMethodDescription: [%s] not found!\n", aliasID);
+		return NULL;
+	}
+
 	return iter->second;
 }
 

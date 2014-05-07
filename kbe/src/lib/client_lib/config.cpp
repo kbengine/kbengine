@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
+#include "entitydef/entitydef.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
@@ -272,6 +273,11 @@ bool Config::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		aliasEntityID_ = (xml->getValStr(rootNode) == "true");
+	}
+
+	rootNode = xml->getRootNode("entitydefAliasID");
+	if(rootNode != NULL){
+		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
 
 	SAFE_RELEASE(xml);

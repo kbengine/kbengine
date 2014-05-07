@@ -88,6 +88,6 @@ public:
 	bool aliasEntityID_;
 };
 
-#define g_kbeConfig Config::getSingleton()
+#define g_kbeConfig KBEngine::Config::getSingleton()
 }
 #endif
