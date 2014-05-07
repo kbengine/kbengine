@@ -486,32 +486,75 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 //-------------------------------------------------------------------------------------
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	if(isDestroyed())																				
-	{																										
-		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
-			getScriptName() % getID());
-
-		s.read_skip(s.opsize());
-		return;																							
-	}
-
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
-	
+
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
-	
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
-		id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
 
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") 
-			% utype % id_);
+		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n")
+			% utype % id_ % this->getScriptName());
 
 		return;
 	}
+
+	onRemoteMethodCall_(md, s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_METHOD_UID utype = 0;
+	s >> utype;
+
+	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
+	if(md)
+	{
+		if(!md->isExposed())
+		{
+			ERROR_MSG(boost::format("%3%::onRemoteMethodCall: %1% not is exposed, call is illegal! entityID:%2%.\n") %
+				md->getName() % this->getID() % this->getScriptName());
+
+			s.opfini();
+			return;
+		}
+	}
+	else
+	{
+		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n")
+			% utype % id_ % this->getScriptName());
+
+		return;
+	}
+
+	onRemoteMethodCall_(md, s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	if (isDestroyed())
+	{
+		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %
+			getScriptName() % getID());
+
+		s.read_skip(s.opsize());
+		return;
+	}
+
+	if(md == NULL)
+	{
+		ERROR_MSG(boost::format("%2%::onRemoteMethodCall: can't found method, callerID:%1%.\n")
+			% id_ % this->getScriptName());
+
+		return;
+	}
+
+	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") %
+		id_ % md->getName() % md->getUType() % this->getScriptName());
 
 	md->currCallerID(this->getID());
 

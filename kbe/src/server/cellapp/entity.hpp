@@ -336,6 +336,8 @@ public:
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* md, MemoryStream& s);
 
 	/**
 		观察者

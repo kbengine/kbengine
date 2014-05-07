@@ -663,20 +663,6 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	// 如果是外部通道调用则判断来源性
-	if(pChannel->isExternal())
-	{
-		ENTITY_ID srcEntityID = pChannel->proxyID();
-		if(srcEntityID <= 0 || srcEntityID != this->getID())
-		{
-			WARNING_MSG(boost::format("Base::onRemoteMethodCall: srcEntityID:%1% != thisEntityID:%2%.\n") % 
-				srcEntityID % this->getID());
-
-			s.opfini();
-			return;
-		}
-	}
-
 	if(isDestroyed())																				
 	{																										
 		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
@@ -692,10 +678,33 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Base::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_);
+		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
+			utype % id_ % this->getScriptName());
 
 		return;
+	}
+
+	// 如果是外部通道调用则判断来源性
+	if (pChannel->isExternal())
+	{
+		ENTITY_ID srcEntityID = pChannel->proxyID();
+		if (srcEntityID <= 0 || srcEntityID != this->getID())
+		{
+			WARNING_MSG(boost::format("%3%::onRemoteMethodCall: srcEntityID:%1% != thisEntityID:%2%.\n") %
+				srcEntityID % this->getID() % this->getScriptName());
+
+			s.opfini();
+			return;
+		}
+
+		if(!md->isExposed())
+		{
+			ERROR_MSG(boost::format("%3%::onRemoteMethodCall: %1% not is exposed, call is illegal! srcEntityID:%2%.\n") %
+				md->getName() % srcEntityID % this->getScriptName());
+
+			s.opfini();
+			return;
+		}
 	}
 
 	DEBUG_MSG(boost::format("Base::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
