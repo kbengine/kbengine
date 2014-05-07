@@ -2743,7 +2743,7 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 {
-	Mercury::Bundle bundle;
+	static Mercury::Bundle bundle;
 
 	if(bundle.packets().size() == 0)
 	{
