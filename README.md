@@ -169,17 +169,23 @@ windows:
 		[mysqld]
 		lower_case_table_names=0
 
-	2: 记得重启mysql服务， 否则不生效(命令行输入):
+	2: 记得重启mysql服务， 否则不生效(命令行cmd输入):
 		net stop mysql
 		net start mysql
 
 	3: 新建一个数据库， 假设数据库名为"kbe"
-		create database kbe;
+		mysql> create database kbe;
 
 	4: 创建一个数据库账户， 假设用户名密码都为"kbe"
-		grant all privileges on *.* to kbe@'%' identified by 'kbe';
-		grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
-		FLUSH PRIVILEGES;
+	    先删除匿名用户
+		mysql> use mysql 
+		mysql> delete from user where user=''; 
+		mysql> FLUSH PRIVILEGES;
+
+	    创建kbe用户
+		mysql> grant all privileges on *.* to kbe@'%' identified by 'kbe';
+		mysql> grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
+		mysql> FLUSH PRIVILEGES;
 
 	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数
 		(推荐在demo\res\server\kbengine.xml重载修改)。
