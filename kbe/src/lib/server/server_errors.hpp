@@ -56,7 +56,8 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_ACCOUNT_LOCK						15			// 账号被冻结。
 #define SERVER_ERR_ACCOUNT_DEADLINE					16			// 账号已过期。
 #define SERVER_ERR_ACCOUNT_NOT_ACTIVATED			17			// 账号未激活。
-#define SERVER_ERR_FAILED							18			// 操作失败。
+#define SERVER_ERR_VERSION_NOT_MATCH				18			// 账号未激活。
+#define SERVER_ERR_FAILED							19			// 操作失败。
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -77,6 +78,7 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_ACCOUNT_LOCK",
 	"SERVER_ERR_ACCOUNT_DEADLINE",
 	"SERVER_ERR_ACCOUNT_NOT_ACTIVATED",
+	"SERVER_ERR_VERSION_NOT_MATCH",
 	"SERVER_ERR_FAILED"
 };
 
