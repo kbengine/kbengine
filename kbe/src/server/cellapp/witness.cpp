@@ -230,7 +230,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 	(*pForwardPosDirBundle) << pEntity_->getID();
-	pEntity_->addPositionAndDirectionToStream(*s1);
+	pEntity_->addPositionAndDirectionToStream(*s1, true);
 	(*pForwardPosDirBundle).append(*s1);
 	MemoryStream::ObjPool().reclaimObject(s1);
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardPosDirBundle));
@@ -463,7 +463,7 @@ bool Witness::update()
 					Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
 
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-					otherEntity->addPositionAndDirectionToStream(*s1);
+					otherEntity->addPositionAndDirectionToStream(*s1, true);
 					otherEntity->addClientDataToStream(s1, true);
 
 					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);

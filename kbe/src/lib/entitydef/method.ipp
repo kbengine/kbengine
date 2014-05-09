@@ -61,6 +61,11 @@ INLINE int16 MethodDescription::aliasID()const
 	return aliasID_; 
 }
 
+INLINE uint8 MethodDescription::aliasIDAsUint8()const 
+{ 
+	return (uint8)aliasID_; 
+}
+
 INLINE void MethodDescription::aliasID(int16 v)
 { 
 	aliasID_ = v; 

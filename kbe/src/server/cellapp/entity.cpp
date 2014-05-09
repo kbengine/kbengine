@@ -344,11 +344,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		return;
 
 	const uint32& flags = propertyDescription->getFlags();
-	ENTITY_PROPERTY_UID utype = propertyDescription->getUType();
 
 	// 首先创建一个需要广播的模板流
 	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
-	(*mstream) << utype;
+
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
 	// 判断是否需要广播给其他的cellapp, 这个还需一个前提是entity必须拥有ghost实体
@@ -385,6 +384,11 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdateOtherEntityPropertys, getID());
+
+				if(scriptModule_->usePropertyDescrAlias())
+					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
+				else
+					(*pForwardBundle) << propertyDescription->getUType();
 
 				pForwardBundle->append(*mstream);
 				
@@ -463,6 +467,12 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pForwardBundle) << getID();
+
+		if(scriptModule_->usePropertyDescrAlias())
+			(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
+		else
+			(*pForwardBundle) << propertyDescription->getUType();
+
 		pForwardBundle->append(*mstream);
 		
 		// 记录这个事件产生的数据量大小
@@ -576,13 +586,15 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
 					scriptModule_->getCellPropertyDescriptions();
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -590,7 +602,15 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 		{
 			// DEBUG_MSG(boost::format("Entity::addCellDataToStream: %1%.\n") % propertyDescription->getName());
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
-			(*mstream) << propertyDescription->getUType();
+
+			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			{
+				(*mstream) << propertyDescription->aliasIDAsUint8();
+			}
+			else
+			{
+				(*mstream) << propertyDescription->getUType();
+			}
 
 			if(!propertyDescription->getDataType()->isSameType(pyVal))
 			{

@@ -103,6 +103,7 @@ public:
 		我们不使用utype而使用1字节的aliasID来传输
 	*/
 	INLINE int16 aliasID()const;
+	INLINE uint8 aliasIDAsUint8()const;
 	INLINE void aliasID(int16 v);
 
 	/** 

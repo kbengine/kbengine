@@ -47,6 +47,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_POSITION_FORCE 15
 #define CLIENT_EVENT_DIRECTION_FORCE 16
 #define CLIENT_EVENT_ADDSPACEGEOMAPPING 17
+#define CLIENT_EVENT_VERSION_NOT_MATCH 18
 
 struct EventData
 {
@@ -299,7 +300,16 @@ struct EventData_AddSpaceGEOMapping : public EventData
 	std::string respath;
 };
 
+struct EventData_VersionNotMatch : public EventData
+{
+	EventData_VersionNotMatch():
+	EventData(CLIENT_EVENT_VERSION_NOT_MATCH)
+	{
+	}
 
+	std::string verInfo;
+	std::string serVerInfo;
+};
 
 inline EventData* newKBEngineEvent(EventID v)
 {
@@ -355,6 +365,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_ADDSPACEGEOMAPPING:
 			return new EventData_AddSpaceGEOMapping();
+			break;
+		case CLIENT_EVENT_VERSION_NOT_MATCH:
+			return new EventData_VersionNotMatch();
 			break;
 		default:
 			break;
@@ -436,6 +449,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_ADDSPACEGEOMAPPING:
 			peventdata = new EventData_AddSpaceGEOMapping();
 			(*static_cast<EventData_AddSpaceGEOMapping*>(peventdata)) = (*static_cast<const EventData_AddSpaceGEOMapping*>(lpEventData));
+			break;
+		case CLIENT_EVENT_VERSION_NOT_MATCH:
+			peventdata = new EventData_VersionNotMatch();
+			(*static_cast<EventData_VersionNotMatch*>(peventdata)) = (*static_cast<const EventData_VersionNotMatch*>(lpEventData));
 			break;
 		default:
 			break;

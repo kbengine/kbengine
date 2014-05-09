@@ -425,6 +425,21 @@ void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
 	onHelloCB_(pChannel, verInfo, ctype);
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string verInfo;
+	s >> verInfo;
+	
+	INFO_MSG(boost::format("ClientObjectBase::onVersionNotMatch: verInfo=%1% not match(server:%2%)\n") % 
+		KBEVersion::versionString() % verInfo);
+
+	EventData_VersionNotMatch eventdata;
+	eventdata.verInfo = KBEVersion::versionString();
+	eventdata.serVerInfo = verInfo;
+	eventHandler_.fire(&eventdata);
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {

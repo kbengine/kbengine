@@ -2869,36 +2869,45 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			if(!iter->get()->hasClient())
 				continue;
 
-			uint16 size = propers.size() + 3/*pos, dir, spaceID*/;
+			uint16 size = propers.size() + 3 /* pos, dir, spaceID */;
 			uint16 size1 = methods.size();
 			uint16 size2 = methods1.size();
 			uint16 size3 = methods2.size();
 
 			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
-			bundle << posuid << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
-			bundle << diruid << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
-			bundle << spaceuid << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
+			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+			bundle << posuid << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+
+			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+			bundle << diruid << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+
+			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+			bundle << spaceuid << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); piter++)
 			{
 				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
+				int16 aliasID = piter->second->aliasID();
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
-				bundle << properUtype << name << defaultValStr << piter->second->getDataType()->id();
+
+				bundle << properUtype << aliasID << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
 			for(; miter != methods.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -2911,12 +2920,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			for(; miter != methods1.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -2929,12 +2940,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			for(; miter != methods2.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -3312,6 +3325,18 @@ void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID en
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
 	bundle.send(this->getNetworkInterface(), base->getClientMailbox()->getChannel());
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onVersionNotMatch);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

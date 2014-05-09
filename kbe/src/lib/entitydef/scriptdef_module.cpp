@@ -122,7 +122,7 @@ void ScriptDefModule::onLoaded(void)
 {
 	if(EntityDef::entitydefAliasID())
 	{
-		int aliasID = 0;
+		int aliasID = ENTITY_BASE_PROPERTY_ALIASID_MAX;
 		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 		for(; iter1 != cellPropertyDescr_.end(); iter1++)
 		{

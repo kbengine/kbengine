@@ -42,7 +42,6 @@ START_RUN:
 			
 			MonoBehaviour.print("KBEThread::end()");
         }
-
     }
 
 	public class KBEngineApp
@@ -80,7 +79,7 @@ START_RUN:
 		private byte[] serverdatas_ = new byte[0];
 		private byte[] clientdatas_ = new byte[0];
 		private string serverVersion_ = "";
-		private string clientVersion_ = "0.0.1";
+		private string clientVersion_ = "0.1.4";
 		
 		public UInt64 entity_uuid = 0;
 		public Int32 entity_id = 0;
@@ -154,7 +153,6 @@ START_RUN:
 			serverdatas_ = new byte[0];
 			clientdatas_ = new byte[0];
 			serverVersion_ = "";
-			clientVersion_ = "0.0.1";
 			
 			entity_uuid = 0;
 			entity_id = 0;
@@ -283,6 +281,14 @@ START_RUN:
 			bundle.writeString(clientVersion_);
 			bundle.writeBlob(clientdatas_);
 			bundle.send(networkInterface_);
+		}
+
+		public void Client_onVersionNotMatch(MemoryStream stream)
+		{
+			serverVersion_ = stream.readString();
+			Dbg.DEBUG_MSG("Client_onVersionNotMatch: verInfo=" + clientVersion_ + " not match(server: " + serverVersion_ + ")");
+			
+			Event.fire("onVersionNotMatch", new object[]{clientVersion_, serverVersion_});
 		}
 		
 		public void Client_onImportMercuryErrorsDescr(MemoryStream stream)
@@ -590,6 +596,7 @@ START_RUN:
 					propertysize--;
 					
 					UInt16 properUtype = stream.readUint16();
+					Int16 ialiasID = stream.readInt16();
 					string name = stream.readString();
 					string defaultValStr = stream.readString();
 					KBEDATATYPE_BASE utype = EntityDef.iddatatypes[stream.readUint16()];
@@ -604,13 +611,24 @@ START_RUN:
 					Property savedata = new Property();
 					savedata.name = name;
 					savedata.properUtype = properUtype;
+					savedata.aliasID = ialiasID;
 					savedata.defaultValStr = defaultValStr;
 					savedata.utype = utype;
 					savedata.setmethod = setmethod;
 					
 					module.propertys[name] = savedata;
-					module.idpropertys[properUtype] = savedata;
-				
+					
+					if(ialiasID >= 0)
+					{
+						module.usePropertyDescrAlias = true;
+						module.idpropertys[(UInt16)ialiasID] = savedata;
+					}
+					else
+					{
+						module.usePropertyDescrAlias = false;
+						module.idpropertys[properUtype] = savedata;
+					}
+
 					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + "/" + properUtype + ").");
 				};
 				
@@ -619,6 +637,7 @@ START_RUN:
 					methodsize--;
 					
 					UInt16 methodUtype = stream.readUint16();
+					Int16 ialiasID = stream.readInt16();
 					string name = stream.readString();
 					Byte argssize = stream.readUint8();
 					List<KBEDATATYPE_BASE> args = new List<KBEDATATYPE_BASE>();
@@ -632,13 +651,25 @@ START_RUN:
 					Method savedata = new Method();
 					savedata.name = name;
 					savedata.methodUtype = methodUtype;
+					savedata.aliasID = ialiasID;
 					savedata.args = args;
 					
 					if(Class != null)
 						savedata.handler = Class.GetMethod(name);
 							
 					module.methods[name] = savedata;
-					module.idmethods[methodUtype] = savedata;
+					
+					if(ialiasID >= 0)
+					{
+						module.useMethodDescrAlias = true;
+						module.idmethods[(UInt16)ialiasID] = savedata;
+					}
+					else
+					{
+						module.useMethodDescrAlias = false;
+						module.idmethods[methodUtype] = savedata;
+					}
+					
 					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
 				};
 	
@@ -647,6 +678,7 @@ START_RUN:
 					base_methodsize--;
 					
 					UInt16 methodUtype = stream.readUint16();
+					Int16 ialiasID = stream.readInt16();
 					string name = stream.readString();
 					Byte argssize = stream.readUint8();
 					List<KBEDATATYPE_BASE> args = new List<KBEDATATYPE_BASE>();
@@ -660,6 +692,7 @@ START_RUN:
 					Method savedata = new Method();
 					savedata.name = name;
 					savedata.methodUtype = methodUtype;
+					savedata.aliasID = ialiasID;
 					savedata.args = args;
 					
 					module.base_methods[name] = savedata;
@@ -673,6 +706,7 @@ START_RUN:
 					cell_methodsize--;
 					
 					UInt16 methodUtype = stream.readUint16();
+					Int16 ialiasID = stream.readInt16();
 					string name = stream.readString();
 					Byte argssize = stream.readUint8();
 					List<KBEDATATYPE_BASE> args = new List<KBEDATATYPE_BASE>();
@@ -686,6 +720,7 @@ START_RUN:
 					Method savedata = new Method();
 					savedata.name = name;
 					savedata.methodUtype = methodUtype;
+					savedata.aliasID = ialiasID;
 					savedata.args = args;
 				
 					module.cell_methods[name] = savedata;
@@ -705,6 +740,7 @@ START_RUN:
 					Property newp = new Property();
 					newp.name = infos.name;
 					newp.properUtype = infos.properUtype;
+					newp.aliasID = infos.aliasID;
 					newp.utype = infos.utype;
 					newp.val = infos.utype.parseDefaultValStr(infos.defaultValStr);
 					newp.setmethod = infos.setmethod;
@@ -1069,11 +1105,24 @@ START_RUN:
 				return;
 			}
 			
-			Dictionary<UInt16, Property> pdatas = EntityDef.moduledefs[entity.classtype].idpropertys;
+			ScriptModule sm = EntityDef.moduledefs[entity.classtype];
+			Dictionary<UInt16, Property> pdatas = sm.idpropertys;
+
 			while(stream.opsize() > 0)
 			{
-				UInt16 utype = stream.readUint16();
+				UInt16 utype = 0;
+				
+				if(sm.usePropertyDescrAlias)
+				{
+					utype = stream.readUint8();
+				}
+				else
+				{
+					utype = stream.readUint16();
+				}
+			
 				Property propertydata = pdatas[utype];
+				utype = propertydata.properUtype;
 				System.Reflection.MethodInfo setmethod = propertydata.setmethod;
 				
 				object val = propertydata.utype.createFromStream(stream);
@@ -1111,7 +1160,13 @@ START_RUN:
 				return;
 			}
 			
-			UInt16 methodUtype = stream.readUint16();
+			UInt16 methodUtype = 0;
+
+			if(EntityDef.moduledefs[entity.classtype].useMethodDescrAlias)
+				methodUtype = stream.readUint8();
+			else
+				methodUtype = stream.readUint16();
+			
 			Method methoddata = EntityDef.moduledefs[entity.classtype].idmethods[methodUtype];
 			
 			Dbg.DEBUG_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.classtype + "." + methoddata.name);

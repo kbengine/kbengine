@@ -156,7 +156,16 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
-	(*mstream) << utype_;
+	// 这里如果aliasID_大于0则采用一个优化的办法， 使用1字节传输
+	if(aliasID_ < 0)
+	{
+		(*mstream) << utype_;
+	}
+	else
+	{
+		uint8 utype = (uint8)aliasID_;
+		(*mstream) << utype;
+	}
 
 	// 如果是exposed方法则先将entityID打包进去
 	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())

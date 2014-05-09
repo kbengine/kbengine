@@ -115,6 +115,14 @@ void SpaceLogin::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 	case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
 		MessageBox( NULL, "SpaceLogin::kbengine_onEvent loginGateway is failed!", "warning!", MB_OK);
 		break;
+	case CLIENT_EVENT_VERSION_NOT_MATCH:
+		{
+			const KBEngine::EventData_VersionNotMatch* info = static_cast<const KBEngine::EventData_VersionNotMatch*>(lpEventData);
+			char str[256];
+			sprintf(str, "SpaceLogin::kbengine_onEvent: verInfo=%s not match(server:%s)", info->verInfo.c_str(), info->serVerInfo.c_str());
+			MessageBox( NULL, str, "error!", MB_OK);
+		}
+		break;
 	default:
 		break;
 	};

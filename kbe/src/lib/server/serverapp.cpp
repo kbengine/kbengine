@@ -471,13 +471,21 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%\n") % 
 		verInfo % buf % pChannel->c_str());
 
-	onHello(pChannel, verInfo, encryptedKey);
+	if(verInfo != KBEVersion::versionString())
+		onVersionNotMatch(pChannel);
+	else
+		onHello(pChannel, verInfo, encryptedKey);
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
 						const std::string& encryptedKey)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onVersionNotMatch(Mercury::Channel* pChannel)
 {
 }
 

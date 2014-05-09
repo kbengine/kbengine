@@ -616,6 +616,12 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onVersionNotMatch(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);

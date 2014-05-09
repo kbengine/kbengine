@@ -891,6 +891,18 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onVersionNotMatch(Mercury::Channel* pChannel)
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onVersionNotMatch);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 {
 	static Mercury::Bundle bundle;

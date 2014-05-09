@@ -81,6 +81,11 @@ INLINE int16 PropertyDescription::aliasID()const
 	return aliasID_; 
 }
 
+INLINE uint8 PropertyDescription::aliasIDAsUint8()const 
+{ 
+	return (uint8)aliasID_; 
+}
+
 INLINE void PropertyDescription::aliasID(int16 v)
 { 
 	aliasID_ = v; 

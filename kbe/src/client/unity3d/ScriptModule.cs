@@ -8,6 +8,8 @@ namespace KBEngine
     public class ScriptModule
     {
 		public string name;
+		public bool usePropertyDescrAlias;
+		public bool useMethodDescrAlias;
 		
 		public Dictionary<string, Property> propertys = new Dictionary<string, Property>();
 		public Dictionary<UInt16, Property> idpropertys = new Dictionary<UInt16, Property>();
@@ -26,6 +28,8 @@ namespace KBEngine
 		{
 			name = modulename;
 			script = Type.GetType("KBEngine." + modulename);
+			usePropertyDescrAlias = false;
+			useMethodDescrAlias = false;
 		}
     }
     

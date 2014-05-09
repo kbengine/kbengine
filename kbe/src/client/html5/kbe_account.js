@@ -19,8 +19,11 @@ KBEAccount.prototype.onCreateAvatarResult = function(retcode, info)
 	if(retcode == 0)
 	{
 		this.avatars[info.dbid] = info;
+		this.avatars.values.push(info);
 		console.info("KBEAccount::onCreateAvatarResult: name=" + info.name);
 	}
+	
+	console.info("KBEAccount::onCreateAvatarResult: avatarsize=" + this.avatars.values.length);
 }
 
 KBEAccount.prototype.onReqAvatarList = function(infos)

@@ -837,7 +837,7 @@ function KBEENTITY()
 		
 		var method = g_moduledefs[this.classtype].base_methods[arguments[0]];
 		var methodID = method[0];
-		var args = method[2];
+		var args = method[3];
 		
 		if(arguments.length - 1 != args.length)
 		{
@@ -875,7 +875,7 @@ function KBEENTITY()
 		
 		var method = g_moduledefs[this.classtype].cell_methods[arguments[0]];
 		var methodID = method[0];
-		var args = method[2];
+		var args = method[3];
 		
 		if(arguments.length - 1 != args.length)
 		{
@@ -1449,7 +1449,7 @@ g_datatypes["BLOB"] = new KBEDATATYPE_BLOB();
 -----------------------------------------------------------------------------------------*/
 function KBENGINE()
 {
-	this.username = " testhtml5";
+	this.username = " testhtml51";
 	this.password = "123456";
 	this.loginappMessageImported = false;
 	this.baseappMessageImported = false;
@@ -1465,7 +1465,7 @@ function KBENGINE()
 		this.serverdatas = "";
 		this.clientdatas = "";
 		this.serverVersion = "";
-		this.clientVersion = "0.0.1";
+		this.clientVersion = "0.1.4";
 		this.entity_uuid = null;
 		this.entity_id = 0;
 		this.entity_type = "";
@@ -1754,17 +1754,18 @@ function KBENGINE()
 					"clientMethods(" + methodsize + "), baseMethods(" + base_methodsize + "), cellMethods(" + cell_methodsize + ")!");
 			
 			g_moduledefs[scriptmethod_name] = {};
-			g_moduledefs[scriptmethod_name]["name"] = scriptmethod_name;
-			g_moduledefs[scriptmethod_name]["propertys"] = {};
-			g_moduledefs[scriptmethod_name]["methods"] = {};
-			g_moduledefs[scriptmethod_name]["base_methods"] = {};
-			g_moduledefs[scriptmethod_name]["cell_methods"] = {};
-			g_moduledefs[scriptUtype] = g_moduledefs[scriptmethod_name];
+			var currModuleDefs = g_moduledefs[scriptmethod_name];
+			currModuleDefs["name"] = scriptmethod_name;
+			currModuleDefs["propertys"] = {};
+			currModuleDefs["methods"] = {};
+			currModuleDefs["base_methods"] = {};
+			currModuleDefs["cell_methods"] = {};
+			g_moduledefs[scriptUtype] = currModuleDefs;
 			
-			var self_propertys = g_moduledefs[scriptmethod_name]["propertys"];
-			var self_methods = g_moduledefs[scriptmethod_name]["methods"];
-			var self_base_methods = g_moduledefs[scriptmethod_name]["base_methods"];
-			var self_cell_methods= g_moduledefs[scriptmethod_name]["cell_methods"];
+			var self_propertys = currModuleDefs["propertys"];
+			var self_methods = currModuleDefs["methods"];
+			var self_base_methods = currModuleDefs["base_methods"];
+			var self_cell_methods= currModuleDefs["cell_methods"];
 			
 			try
 			{
@@ -1780,6 +1781,7 @@ function KBENGINE()
 				propertysize--;
 				
 				var properUtype = stream.readUint16();
+				var aliasID = stream.readInt16();
 				var name = stream.readString();
 				var defaultValStr = stream.readString();
 				var utype = g_datatypes[stream.readUint16()];
@@ -1791,9 +1793,20 @@ function KBENGINE()
 						setmethod = null;
 				}
 				
-				var savedata = [properUtype, name, defaultValStr, utype, setmethod];
+				var savedata = [properUtype, aliasID, name, defaultValStr, utype, setmethod];
 				self_propertys[name] = savedata;
-				self_propertys[properUtype] = savedata;
+				
+				if(aliasID >= 0)
+				{
+					self_propertys[aliasID] = savedata;
+					currModuleDefs["usePropertyDescrAlias"] = true;
+				}
+				else
+				{
+					self_propertys[properUtype] = savedata;
+					currModuleDefs["usePropertyDescrAlias"] = false;
+				}
+				
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + "/" + properUtype + ").");
 			};
 			
@@ -1802,6 +1815,7 @@ function KBENGINE()
 				methodsize--;
 				
 				var methodUtype = stream.readUint16();
+				var aliasID = stream.readInt16();
 				var name = stream.readString();
 				var argssize = stream.readUint8();
 				var args = [];
@@ -1812,9 +1826,20 @@ function KBENGINE()
 					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
-				var savedata = [methodUtype, name, args];
+				var savedata = [methodUtype, aliasID, name, args];
 				self_methods[name] = savedata;
-				self_methods[methodUtype] = savedata;
+				
+				if(aliasID >= 0)
+				{
+					self_methods[aliasID] = savedata;
+					currModuleDefs["useMethodDescrAlias"] = true;
+				}
+				else
+				{
+					self_methods[methodUtype] = savedata;
+					currModuleDefs["useMethodDescrAlias"] = false;
+				}
+				
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
 			};
 
@@ -1823,6 +1848,7 @@ function KBENGINE()
 				base_methodsize--;
 				
 				var methodUtype = stream.readUint16();
+				var aliasID = stream.readInt16();
 				var name = stream.readString();
 				var argssize = stream.readUint8();
 				var args = [];
@@ -1833,7 +1859,7 @@ function KBENGINE()
 					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
-				self_base_methods[name] = [methodUtype, name, args];
+				self_base_methods[name] = [methodUtype, aliasID, name, args];
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), base_method(" + name + ").");
 			};
 			
@@ -1842,6 +1868,7 @@ function KBENGINE()
 				cell_methodsize--;
 				
 				var methodUtype = stream.readUint16();
+				var aliasID = stream.readInt16();
 				var name = stream.readString();
 				var argssize = stream.readUint8();
 				var args = [];
@@ -1852,7 +1879,7 @@ function KBENGINE()
 					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
-				self_cell_methods[name] = [methodUtype, name, args];
+				self_cell_methods[name] = [methodUtype, aliasID, name, args];
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
 			};
 			
@@ -1866,24 +1893,26 @@ function KBENGINE()
 				defmethod = undefined;
 			}
 			
-			for(name in g_moduledefs[scriptmethod_name].propertys)
+			for(name in currModuleDefs.propertys)
 			{
-				var infos = g_moduledefs[scriptmethod_name].propertys[name];
+				var infos = currModuleDefs.propertys[name];
 				var properUtype = infos[0];
-				var name = infos[1];
-				var defaultValStr = infos[2];
-				var utype = infos[3];
+				var aliasID = infos[1];
+				var name = infos[2];
+				var defaultValStr = infos[3];
+				var utype = infos[4];
 
 				if(defmethod != undefined)
 					defmethod.prototype[name] = utype.parseDefaultValStr(defaultValStr);
 			};
 
-			for(name in g_moduledefs[scriptmethod_name].methods)
+			for(name in currModuleDefs.methods)
 			{
-				var infos = g_moduledefs[scriptmethod_name].methods[name];
+				var infos = currModuleDefs.methods[name];
 				var properUtype = infos[0];
-				var name = infos[1];
-				var args = infos[2];
+				var aliasID = infos[1];
+				var name = infos[2];
+				var args = infos[3];
 				
 				if(defmethod != undefined && defmethod.prototype[name] == undefined)
 				{
@@ -1895,6 +1924,12 @@ function KBENGINE()
 		g_kbengine.onImportEntityDefCompleted();
 	}
 
+	this.Client_onVersionNotMatch = function(stream)
+	{
+		this.serverVersion = stream.readString();
+		console.error("Client_onVersionNotMatch: verInfo=" + g_kbengine.clientVersion + " not match(server: " + this.serverVersion + ")");
+	}
+		
 	this.onImportEntityDefCompleted = function()
 	{
 		console.info("KBENGINE::onImportEntityDefCompleted: successfully!");
@@ -2210,16 +2245,22 @@ function KBENGINE()
 			return;
 		}
 		
-		var pdatas = g_moduledefs[entity.classtype].propertys;
+		var currModule = g_moduledefs[entity.classtype];
+		var pdatas = currModule.propertys;
 		while(stream.opsize() > 0)
 		{
-			var utype = stream.readUint16();
+			var utype = 0;
+			if(currModule.usePropertyDescrAlias)
+				utype = stream.readUint8();
+			else
+				utype = stream.readUint16();
+		
 			var propertydata = pdatas[utype];
-			var setmethod = propertydata[4];
-			var val = propertydata[3].createFromStream(stream);
+			var setmethod = propertydata[5];
+			var val = propertydata[4].createFromStream(stream);
 			var oldval = entity[utype];
-			console.info("KBENGINE::Client_onUpdatePropertys: " + entity.classtype + "(id=" + eid  + " " + propertydata[1] + ", val=" + val + ")!");
-			entity[propertydata[1]] = val;
+			console.info("KBENGINE::Client_onUpdatePropertys: " + entity.classtype + "(id=" + eid  + " " + propertydata[2] + ", val=" + val + ")!");
+			entity[propertydata[2]] = val;
 			if(setmethod != null)
 			{
 				setmethod.apply(entity, oldval);
@@ -2249,16 +2290,21 @@ function KBENGINE()
 			return;
 		}
 		
-		var methodUtype = stream.readUint16();
+		var methodUtype = 0;
+		if(g_moduledefs[entity.classtype].useMethodDescrAlias)
+			methodUtype = stream.readUint8();
+		else
+			methodUtype = stream.readUint16();
+		
 		var methoddata = g_moduledefs[entity.classtype].methods[methodUtype];
 		var args = [];
-		var argsdata = methoddata[2];
+		var argsdata = methoddata[3];
 		for(var i=0; i<argsdata.length; i++)
 		{
 			args.push(argsdata[i].createFromStream(stream));
 		}
 		
-		entity[methoddata[1]].apply(entity, args);
+		entity[methoddata[2]].apply(entity, args);
 	}
 	
 	this.Client_onRemoteOtherEntityMethodCall = function(stream)

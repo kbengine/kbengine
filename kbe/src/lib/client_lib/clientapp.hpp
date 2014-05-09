@@ -139,6 +139,11 @@ public:
 		COMPONENT_TYPE componentType);
 
 	/** 网络接口
+		和服务端的版本不匹配
+	*/
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口

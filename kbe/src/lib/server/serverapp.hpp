@@ -178,6 +178,9 @@ public:
 		const std::string& verInfo, 
 		const std::string& encryptedKey);
 
+	// 引擎版本不匹配
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

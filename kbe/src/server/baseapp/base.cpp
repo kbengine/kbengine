@@ -232,18 +232,27 @@ void Base::createCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
+void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 {
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		if(flags == 0 || (flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
-			(*s) << propertyDescription->getUType();
-			
+
+			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			{
+				(*s) << propertyDescription->aliasIDAsUint8();
+			}
+			else
+			{
+				(*s) << propertyDescription->getUType();
+			}
+
 			if(!propertyDescription->getDataType()->isSameType(pyVal))
 			{
 				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->getScriptName() % 

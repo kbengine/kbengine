@@ -359,6 +359,9 @@ public:
 		const std::string& verInfo, 
 		const std::string& encryptedKey);
 
+	// 引擎版本不匹配
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+
 	/**
 		一个cell的entity都恢复完毕
 	*/

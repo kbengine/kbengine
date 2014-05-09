@@ -451,6 +451,16 @@ void Bots::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
 	}
 }
 
+//-------------------------------------------------------------------------------------	
+void Bots::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onVersionNotMatch(pChannel, s);
+	}
+}
+
 //-------------------------------------------------------------------------------------
 void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {

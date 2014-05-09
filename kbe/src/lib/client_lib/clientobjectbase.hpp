@@ -134,6 +134,12 @@ public:
 	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		和服务端的版本不匹配
+	*/
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+	
+
+	/** 网络接口
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 

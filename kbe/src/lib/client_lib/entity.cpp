@@ -122,13 +122,22 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
-	s >> utype;
 	
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
+	MethodDescription* md = NULL;
 	
-	MethodDescription* md = scriptModule_->findClientMethodDescription(utype);
-	
+	if(scriptModule_->useMethodDescrAlias())
+	{
+		ENTITY_DEF_ALIASID aliasID;
+		s >> aliasID;
+		md = scriptModule_->findAliasMethodDescription(aliasID);
+		utype = aliasID;
+	}
+	else
+	{
+		s >> utype;
+		md = scriptModule_->findClientMethodDescription(utype);
+	}
+
 	if(md == NULL)
 	{
 		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
@@ -136,6 +145,9 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 		return;
 	}
+
+	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
+				id_ % utype);
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName()));
@@ -158,24 +170,43 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
-	Mercury::FixedMessages::MSGInfo* msgInfo =
-				Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+	if(!scriptModule_->usePropertyDescrAlias())
+	{
+		Mercury::FixedMessages::MSGInfo* msgInfo =
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
 
-	if(msgInfo != NULL)
-		posuid = msgInfo->msgid;
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
-	if(msgInfo != NULL)
-		diruid = msgInfo->msgid;
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+			diruid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
-	if(msgInfo != NULL)
-		spaceuid = msgInfo->msgid;
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if(msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+	else
+	{
+		posuid = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+		diruid = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+		spaceuid = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+	}
 
 	while(s.opsize() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
-		s >> uid;
+		uint8 aliasID = 0;
+
+		if(scriptModule_->usePropertyDescrAlias())
+		{
+			s >> aliasID;
+			uid = aliasID;
+		}
+		else
+		{
+			s >> uid;
+		}
 
 		// 如果是位置或者朝向信息则
 		if(uid == posuid)
@@ -227,7 +258,13 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			continue;
 		}
 
-		PropertyDescription* pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+		PropertyDescription* pPropertyDescription = NULL;
+		
+		if(scriptModule_->usePropertyDescrAlias())
+			pPropertyDescription = getScriptModule()->findAliasPropertyDescription(aliasID);
+		else
+			pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+
 		if(pPropertyDescription == NULL)
 		{
 			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
@@ -390,7 +427,7 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
 }
 

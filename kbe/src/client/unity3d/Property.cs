@@ -8,6 +8,7 @@ namespace KBEngine
 		public string name = "";
     	public KBEDATATYPE_BASE utype = null;
 		public UInt16 properUtype = 0;
+		public Int16 aliasID = -1;
 		
 		public string defaultValStr = "";
 		public System.Reflection.MethodInfo setmethod = null;

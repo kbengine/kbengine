@@ -162,6 +162,9 @@ public:
 		错误码描述导出
 	*/
 	void importMercuryErrorsDescr(Mercury::Channel* pChannel);
+
+	// 引擎版本不匹配
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 
