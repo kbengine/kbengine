@@ -15,7 +15,8 @@ https://sourceforge.net/projects/kbengine/files/
 
 
 ## QQ交流群
-16535321
+群1: 16535321
+群2: 367555003
 
 ##什么是KBEngine?
 
