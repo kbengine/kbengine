@@ -215,6 +215,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client_entity.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client_entity_method.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\clients_remote_entity_method.cpp"
 				>
 			</File>
@@ -364,6 +372,14 @@
 			</File>
 			<File
 				RelativePath=".\cells.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client_entity.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client_entity_method.hpp"
 				>
 			</File>
 			<File

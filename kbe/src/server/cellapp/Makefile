@@ -9,6 +9,8 @@ SRCS =						\
 	clients_remote_entity_method		\
 	controller				\
 	controllers				\
+	client_entity				\
+	client_entity_method			\
 	forward_message_over_handler		\
 	entity					\
 	entityref				\

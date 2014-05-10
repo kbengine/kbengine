@@ -401,6 +401,11 @@ public:
 	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, int32);
 
 	/** 
+		添加一个范围触发器  
+	*/
+	DECLARE_PY_MOTHOD_ARG1(pyClientEntity, ENTITY_ID);
+
+	/** 
 		恢复所有的范围触发器 
 		在teleport时会出现这样的情况
 	*/

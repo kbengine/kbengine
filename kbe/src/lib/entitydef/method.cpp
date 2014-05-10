@@ -235,15 +235,18 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	}
 	else
 	{
-		if(checkArgs(args))
-			pyResult = PyObject_CallObject(func, args);
+		if(args == NULL)
+		{
+			pyResult = PyObject_CallObject(func, NULL);
+		}
+		else
+		{
+			if(checkArgs(args))
+				pyResult = PyObject_CallObject(func, args);
+		}
 	}
 
- 	if (PyErr_Occurred())
- 	{
-		PyErr_PrintEx(0);
-	}
-
+ 	SCRIPT_ERROR_CHECK();
 	return pyResult;
 }
 

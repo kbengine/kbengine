@@ -725,15 +725,22 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(md != NULL)
 	{
-		PyObject* pyargs = md->createFromStream(&s);
-		if(pyargs)
+		if(md->getArgSize() == 0)
 		{
-			md->call(pyFunc, pyargs);
-			Py_XDECREF(pyargs);
+			md->call(pyFunc, NULL);
 		}
 		else
 		{
-			SCRIPT_ERROR_CHECK();
+			PyObject* pyargs = md->createFromStream(&s);
+			if(pyargs)
+			{
+				md->call(pyFunc, pyargs);
+				Py_XDECREF(pyargs);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
 		}
 	}
 	

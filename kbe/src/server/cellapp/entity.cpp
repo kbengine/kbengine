@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.hpp"
 #include "space.hpp"
 #include "all_clients.hpp"
+#include "client_entity.hpp"
 #include "controllers.hpp"	
 #include "entity_range_node.hpp"
 #include "proximity_controller.hpp"
@@ -54,6 +55,7 @@ ENTITY_METHOD_DECLARE_BEGIN(Cellapp, Entity)
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
@@ -573,11 +575,22 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 
 	if(md != NULL)
 	{
-		PyObject* pyargs = md->createFromStream(&s);
-		if(pyargs)
+		if(!md->isExposed() && md->getArgSize() == 0)
 		{
-			md->call(pyFunc, pyargs);
-			Py_XDECREF(pyargs);
+			md->call(pyFunc, NULL);
+		}
+		else
+		{
+			PyObject* pyargs = md->createFromStream(&s);
+			if(pyargs)
+			{
+				md->call(pyFunc, pyargs);
+				Py_XDECREF(pyargs);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
 		}
 	}
 	
@@ -834,6 +847,20 @@ PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	return PyLong_FromLong(addProximity(range_xz, range_y, userarg));
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyClientEntity(ENTITY_ID entityID)
+{
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return new ClientEntity(getID(), entityID);
 }
 
 //-------------------------------------------------------------------------------------
