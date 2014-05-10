@@ -14,6 +14,12 @@ https://sourceforge.net/projects/kbengine/files/
 	html5	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
+## 文档
+	API	: https://github.com/kbengine/kbengine/tree/master/kbe/doc
+	教程	: https://github.com/kbengine/kbengine/tree/master/tutorial
+	在线教程: http://www.kbengine.org/docs/
+
+
 ## QQ交流群
 群1: 16535321
 群2: 367555003
@@ -24,6 +30,10 @@ KBEngine是一款开源mmog服务端引擎， 使用统一协议能够轻松与�
 
 底层框架由c++编写， 逻辑层使用python， 开发者无需重复实现一些通用的底层服务端技术，
 使开发者能够真正集中精力到游戏开发上来， 快速打造各种游戏。
+
+(附加语：经常被问到承载上限, kbengine底层架构被设计为多进程分布式动态负载均衡方案， 理论上只需要不断扩展硬件就能够不断增加承载上限, 
+单台机器的承载上限取决于游戏逻辑本身的复杂度。)
+
 
 简单的介绍一下引擎的各个主要组件部分:
 
