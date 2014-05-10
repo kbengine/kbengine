@@ -1,0 +1,1178 @@
+<html>
+<head>
+<title>KBEngine - KBEngine base 文档</title>
+<link href="../../style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr><td align=left style="background:#0F5286"> <img src="../../logo.png"> </td></tr>
+</table> <hr>
+<h1>模块 KBEngine</h1>
+模块<a href="KBEngine.html">KBEngine</a>提供了可以访问<a href="../Classes/Base.html">Base</a>的python脚本，特别是它提供了定时器的注册和移除，
+以及<a href="../Classes/Base.html">Base</a>的创建。
+<h2><a href="#" onClick="obj=document.getElementById( 'classes' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">类</a></h2>
+<table id="classes" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="class_list"><a href="../Classes/Base.html" class="class_list" >Base</a></span>
+</td></tr>
+
+<tr><td>
+<span class="class_list"><a href="../Classes/Proxy.html" class="class_list" >Proxy</a></span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'functions' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">成员函数</a></h2>
+<table id="functions" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="function_list">def <a href="#addWatcher" class="function_list" >addWatcher</a>( path, getFunction, setFunction ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#address" class="function_list" >address</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#charge" class="function_list" >charge</a>( ordersID, dbid, byteDatas, pycallback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createBase" class="function_list" >createBase</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createBaseAnywhere" class="function_list" >createBaseAnywhere</a>( entityType, *params, callback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createBaseFromDBID" class="function_list" >createBaseFromDBID</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createBaseLocally" class="function_list" >createBaseLocally</a>( entityType, *params ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createEntity" class="function_list" >createEntity</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#delWatcher" class="function_list" >delWatcher</a>( path ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#deregisterFileDescriptor" class="function_list" >deregisterFileDescriptor</a>( fileDescriptor ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#deregisterWriteFileDescriptor" class="function_list" >deregisterWriteFileDescriptor</a>( fileDescriptor ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#executeRawDatabaseCommand" class="function_list" >executeRawDatabaseCommand</a>( command, callback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#genUUID64" class="function_list" >genUUID64</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#getResFullPath" class="function_list" >getResFullPath</a>( res ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#isShuttingDown" class="function_list" >isShuttingDown</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#open" class="function_list" >open</a>( res, mode ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#publish" class="function_list" >publish</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#quantumPassedPercent" class="function_list" >quantumPassedPercent</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#registerFileDescriptor" class="function_list" >registerFileDescriptor</a>( fileDescriptor, callback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#registerWriteFileDescriptor" class="function_list" >registerWriteFileDescriptor</a>( fileDescriptor, callback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#reloadScript" class="function_list" >reloadScript</a>( fullReload ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#scriptLogType" class="function_list" >scriptLogType</a>( logType ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#time" class="function_list" >time</a>(  ):</span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'callbacks' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">回调函数</a></h2>
+<table id="callbacks" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="function_list">def <a href="#onBaseAppReady" class="function_list" >onBaseAppReady</a>( bootstrapIdx ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onBaseAppShutDown" class="function_list" >onBaseAppShutDown</a>( state ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onCellAppDeath" class="function_list" >onCellAppDeath</a>( addr ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onFini" class="function_list" >onFini</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onGlobalBases" class="function_list" >onGlobalBases</a>( key, value ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onGlobalBasesDel" class="function_list" >onGlobalBasesDel</a>( key ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onGlobalData" class="function_list" >onGlobalData</a>( key, value ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onGlobalDataDel" class="function_list" >onGlobalDataDel</a>( key ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onInit" class="function_list" >onInit</a>( isReload ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onLoseChargeCB" class="function_list" >onLoseChargeCB</a>( orderID, dbid, success, datas ):</span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'attributes' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">属性</a></h2>
+<table id="attributes" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><a href="#LOG_ON_ACCEPT" class="attribute_list" >LOG_ON_ACCEPT</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_ON_REJECT" class="attribute_list" >LOG_ON_REJECT</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_ON_WAIT_FOR_DESTROY" class="attribute_list" >LOG_ON_WAIT_FOR_DESTROY</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_DBG" class="attribute_list" >LOG_TYPE_DBG</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_ERR" class="attribute_list" >LOG_TYPE_ERR</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_INFO" class="attribute_list" >LOG_TYPE_INFO</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_NORMAL" class="attribute_list" >LOG_TYPE_NORMAL</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_WAR" class="attribute_list" >LOG_TYPE_WAR</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#NEXT_ONLY" class="attribute_list" >NEXT_ONLY</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#component" class="attribute_list" >component</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#entities" class="attribute_list" >entities</a></td><td>&nbsp; <a href="Entities.html">Entities</a>
+</td></tr>
+
+<tr valign=top><td><a href="#globalBases" class="attribute_list" >globalBases</a></td><td>&nbsp; <a href="GlobalBases.html">GlobalBases</a>
+</td></tr>
+
+<tr valign=top><td><a href="#globalData" class="attribute_list" >globalData</a></td><td>&nbsp; </td></tr>
+
+</table>
+
+<hr>
+<h2>成员函数文档</h2>
+
+<a name="addWatcher"></a><p class="function_definition">
+<span class="function_definition">def addWatcher( <i>path, getFunction, setFunction</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数与观察者调试系统交互，允许观察者变量的创建。
+<br><br>
+该函数在Python里允许一个特别的观察者变量的创建。
+例：
+<br><br>
+
+<pre>>>> maxBandwidth = 20000
+>>> def getMaxBps( ):
+>>>     return str(maxBandwidth)
+>>> def setMaxBps( bps ):
+>>>     maxBandwidth = int(bps)
+>>>     setBandwidthPerSecond( int(bps) )
+>>>
+>>> <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#addWatcher>addWatcher</a>( "Comms/Max bandwidth per second", getMaxBps, setMaxBps )
+</pre>
+<br><br>
+这个函数添加一个观察者变量在"Comms"观察树之下。函数getMaxBps是获取观察者的值调用，函数setMaxBps是当观察者的值有变化时调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>path</i></span></td><td><span class="function_parameter_description">
+创建观察者的路径。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>getFunction</i></span></td><td><span class="function_parameter_description">
+这个函数当检索该观察者变量时调用。
+这个函数不带参数返回一个代表观察者变量值的字符串。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>setFunction</i></span></td><td><span class="function_parameter_description">
+（可选的）这个函数是当设置观察者变量时调用的。该函数带有一个字符串参数作为观察者变量的最新值。
+这个函数没有返回值。如果这个函数不存在则创建出来的观察者是一个只读的观察者变量。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="address"></a><p class="function_definition">
+<span class="function_definition">def address( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数返回内部网络接口的地址。
+</div>
+
+<a name="charge"></a><p class="function_definition">
+<span class="function_definition">def charge( <i>ordersID, dbid, byteDatas, pycallback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+计费接口。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>ordersID</i></span></td><td><span class="function_parameter_description">
+string，订单ID。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>dbid</i></span></td><td><span class="function_parameter_description">
+uint64，通常为entity的dbid。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>byteDatas</i></span></td><td><span class="function_parameter_description">
+bytes|BLOB，附带数据。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>pycallback</i></span></td><td><span class="function_parameter_description">
+计费回调。<br>
+计费回调原型:<br>
+def onXXXChargeCB(self, orderID, dbid, success, datas):<br>
+ordersID：string，订单ID<br>
+dbid：uint64，通常为entity的dbid<br>
+success：bool，是否成功<br>
+datas：bytes|BLOB，返回信息<br>
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="createBase"></a><p class="function_definition">
+<span class="function_definition">def createBase( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createBaseLocally>createBaseLocally</a>的别名.
+</div>
+
+<a name="createBaseAnywhere"></a><p class="function_definition">
+<span class="function_definition">def createBaseAnywhere( <i>entityType, *params, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数在<a href="KBEngine.html">KBEngine</a>服务系统创建一个新的Base实体，
+服务端可能选择任何的BaseApp来创建<a href="../Classes/Base.html">Base</a>实体。
+<br><br>
+这个方法应作为<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createBaseLocally>createBaseLocally</a>的首选，
+这样服务端会灵活地选择一个合适的BaseApp来创建实体。
+<br><br>
+这个函数带有要创建的实体的类型名字，还有一个Python字典或者关键字作为参数来初始化实体的值。
+<br><br>
+没有提供的变量值默认为实体定义文件".def"提供的默认值。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>entityType</i></span></td><td><span class="function_parameter_description">
+指定要创建的base实体的类型。它必须是一个指定实体类型名字的字符串类型。有效的实体类型在<res>/scripts/entities.xml列出。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>*params</i></span></td><td><span class="function_parameter_description">
+剩下的可选的的参数。这些参数可以是Python字典，关键字参数，或者是一个<a href="DataSection.html">DataSection</a>。
+如果一个指定的键是一个<a href="../Classes/Base.html">Base</a>属性，他的值会用来初始化这个<a href="../Classes/Base.html">Base</a>实体的属性。
+如果这个键是一个<a href="Cell.html">Cell</a>属性，它会被添加到base实体的'cellData'属性，这个'cellData'属性是一个Python字典，
+然后在后面会用来初始化cell实体的属性。
+<br><br>
+如果同样的属性通过一个<a href="DataSection.html">DataSection</a>，字典或者关键字多次提供，关键字参数拥有优先权而
+其它参数依次从左到右。
+<br><br>
+注意：如果最后一个参数是回调函数，它不应该包含在*params里。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+callback是一个可选的回调函数，当实体完成创建时被调用。回调函数带有一个参数，当成功的时候是base实体的mailbox，失败时是None。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+<a href="../Classes/Base.html">Base</a>实体的mailbox。
+</td></tr>
+</table>
+</p>
+
+<a name="createBaseFromDBID"></a><p class="function_definition">
+<span class="function_definition">def createBaseFromDBID( <i>entityType, dbID, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数从数据库里加载数据创建一个<a href="../Classes/Base.html">Base</a>实体。
+这个新的Base实体会在调用这个函数的BaseApp上创建。
+如果该实体已经存在，那么将返回这个存在的<a href="../Classes/Base.html">Base</a>实体的引用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>entityType</i></span></td><td><span class="function_parameter_description">
+这是一个指定要加载的<a href="../Classes/Base.html">Base</a>实体的字符串。实体类型在<res>/scripts/entities.xml列出。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>dbID</i></span></td><td><span class="function_parameter_description">
+这是一个指定要创建的实体的数据库ID。这个实体的数据库ID存储在该实体的databaseID属性。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+这是一个可选的回调函数，当操作完成的时候它会被调用。这个回调函数带有3个参数：baseRef，databaseID和wasActive。
+如果操作成功，baseRef会是一个mailbox或者是新创建的base实体的直接引用，databaseID会是实体的数据库ID，无论该实体是否已经激活
+wasActive都会有所指示，如果wasActive是true则baseRef是已经存在的实体的引用。如果操作失败，baseRef会是None，databaseID会是0，
+wasActive会是false。失败最常见的原因是实体在数据库里不存在，但偶尔也会出现其它错误比如说超时或者是分配ID失败。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="createBaseLocally"></a><p class="function_definition">
+<span class="function_definition">def createBaseLocally( <i>entityType, *params</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+该函数在<a href="KBEngine.html">KBEngine</a>服务端里创建一个新的<a href="../Classes/Base.html">Base</a>实体。这个函数带有实体类型的名字，
+还有可选参数Python字典，<a href="DataSection.html">DataSection</a>数据，关键字，用来初始化实体的值。
+<br><br>
+任何没有提供的值将会默认用到".def"文件里提供的实体的默认值。
+<br><br>
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createBaseAnywhere>createBaseAnywhere</a>应该作为这个方法的首选，因为服务端可以灵活地
+在合适的BaseApp上创建实体。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>entityType</i></span></td><td><span class="function_parameter_description">
+指定要创建的base实体的类型。它必须是一个指定实体类型名字的字符串类型。有效的实体类型在<res>/scripts/entities.xml列出。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>*params</i></span></td><td><span class="function_parameter_description">
+剩下的可选的的参数。这些参数可以是Python字典，关键字参数，或者是一个<a href="DataSection.html">DataSection</a>。
+如果一个指定的键是一个<a href="../Classes/Base.html">Base</a>属性，他的值会用来初始化这个<a href="../Classes/Base.html">Base</a>实体的属性。
+如果这个键是一个<a href="Cell.html">Cell</a>属性，它会被添加到base实体的'cellData'属性，这个'cellData'属性是一个Python字典，
+然后在后面会用来初始化cell实体的属性。
+<br><br>
+如果在".def"文件里没有指定，该属性会作为一个普通属性添加到base实体。这个行为将无效。你应该把这些值添加到".def"文件里。
+<br><br>
+如果同样的属性通过一个<a href="DataSection.html">DataSection</a>，字典或者关键字多次提供，关键字参数拥有优先权而
+其它参数依次从左到右。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>新创建的base实体（参考<a href="../Classes/Base.html">Base</a>）
+</td></tr>
+</table>
+</p>
+
+<a name="createEntity"></a><p class="function_definition">
+<span class="function_definition">def createEntity( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createBaseLocally>createBaseLocally</a>的别名.
+</div>
+
+<a name="delWatcher"></a><p class="function_definition">
+<span class="function_definition">def delWatcher( <i>path</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+该函数与观察者调试系统交互，允许观察者变量的删除。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>path</i></span></td><td><span class="function_parameter_description">
+要删除的观察者的路径。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="deregisterFileDescriptor"></a><p class="function_definition">
+<span class="function_definition">def deregisterFileDescriptor( <i>fileDescriptor</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数注销已经通过<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#registerFileDescriptor>registerFileDescriptor</a>注册
+的回调。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fileDescriptor</i></span></td><td><span class="function_parameter_description">
+socket描述符/文件描述符。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="deregisterWriteFileDescriptor"></a><p class="function_definition">
+<span class="function_definition">def deregisterWriteFileDescriptor( <i>fileDescriptor</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数注销已经通过<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#registerWriteFileDescriptor>registerWriteFileDescriptor</a>注册
+的回调。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fileDescriptor</i></span></td><td><span class="function_parameter_description">
+socket描述符/文件描述符。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="executeRawDatabaseCommand"></a><p class="function_definition">
+<span class="function_definition">def executeRawDatabaseCommand( <i>command, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个脚本函数在数据库上执行原始数据库命令。该命令不被解析——它直接传到相关的数据库。
+它的特性是不支持XML数据库。
+<br><br>
+请注意数据库里的实体数据可能不会更新，尤其是当第二次数据库还可以被写入的时候。
+强烈不推荐这个函数用于读取或修改实体数据。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>command</i></span></td><td><span class="function_parameter_description">
+这个字符串命令具体到当前数据库层。对于MySQL数据库它是一个SQL查询语句。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+带有命令执行结果的回调对象（比如说是一个函数）。这个回调带有3个参数：结果集合，影响的行数和错误信息。
+<br><br>
+这个结果集合参数是一个行列表。每一行是一个包含字段值的字符串列表。命令执行没有返回结果集合（比如说是DELETE命令），或者
+命令执行有错误时这个结果集合为None。
+<br><br>
+这个数字是命令执行受影响的行数。这个参数只和不返回结果结合的命令（如DELETE）相关。
+如果有结果集合返回或者命令执行有错误时这个参数为None。
+<br><br>
+命令执行有错误时这个错误信息参数是一个描述错误的字符串。命令执行没有发生错误时这个参数为None。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="genUUID64"></a><p class="function_definition">
+<span class="function_definition">def genUUID64( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+该函数生成一个64位的唯一ID。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+返回一个64位的integer。
+</td></tr>
+</table>
+</p>
+
+<a name="getResFullPath"></a><p class="function_definition">
+<span class="function_definition">def getResFullPath( <i>res</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+获取资源的绝对路径。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>res</i></span></td><td><span class="function_parameter_description">
+string，资源的相对路径。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+string，资源的绝对路径。
+</td></tr>
+</table>
+</p>
+
+<a name="isShuttingDown"></a><p class="function_definition">
+<span class="function_definition">def isShuttingDown( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+返回服务端是否正在关闭中。在onBaseAppShuttingDown回调函数被调用后，这个函数返回True。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+系统正在关闭返回True，否则返回False。
+</td></tr>
+</table>
+</p>
+
+<a name="open"></a><p class="function_definition">
+<span class="function_definition">def open( <i>res, mode</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+使用这个接口可以使用相对路径来打开相关资源。
+注意：资源必须在KBE_RES_PATH之下才可以访问到。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>res</i></span></td><td><span class="function_parameter_description">
+string，资源的相对路径。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>mode</i></span></td><td><span class="function_parameter_description">
+string，文件操作模式：<br>
+w     以写方式打开，<br>
+a     以追加模式打开 (从 EOF 开始, 必要时创建新文件)<br>
+r+     以读写模式打开<br>
+w+     以读写模式打开 (参见 w )<br>
+a+     以读写模式打开 (参见 a )<br>
+rb     以二进制读模式打开<br>
+wb     以二进制写模式打开 (参见 w )<br>
+ab     以二进制追加模式打开 (参见 a )<br>
+rb+    以二进制读写模式打开 (参见 r+ )<br>
+wb+    以二进制读写模式打开 (参见 w+ )<br>
+ab+    以二进制读写模式打开 (参见 a+ )<br>
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="publish"></a><p class="function_definition">
+<span class="function_definition">def publish( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个接口返回当前服务端发行模式。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+int8，0：debug，1：release，其它可自定义。
+</td></tr>
+</table>
+</p>
+
+<a name="quantumPassedPercent"></a><p class="function_definition">
+<span class="function_definition">def quantumPassedPercent( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数返回取得当前tick占用一个时钟周期的百分比。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+返回取得当前tick占用一个时钟周期的百分比。
+</td></tr>
+</table>
+</p>
+
+<a name="registerFileDescriptor"></a><p class="function_definition">
+<span class="function_definition">def registerFileDescriptor( <i>fileDescriptor, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数注册一个回调函数，这个回调函数当有数据从这文件描述中读取时被调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fileDescriptor</i></span></td><td><span class="function_parameter_description">
+socket描述符/文件描述符。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+一个回调函数，socket描述符/文件描述符作为它的唯一参数。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="registerWriteFileDescriptor"></a><p class="function_definition">
+<span class="function_definition">
+def registerWriteFileDescriptor( <i>fileDescriptor, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数注册一个回调函数，这个回调函数当socket描述符/文件描述符可写时被调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fileDescriptor</i></span></td><td><span class="function_parameter_description">
+socket描述符/文件描述符。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+一个回调函数，socket描述符/文件描述符作为它的唯一参数。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="reloadScript"></a><p class="function_definition">
+<span class="function_definition">def reloadScript( <i>fullReload</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数重新加载与实体和自定义数据类型相关的Python模块。当前实体类会设置为新加载的类。
+这个方法应该只用于开发模式，对于产品模式不合适。下面几点应该注意：
+<br><br>
+1）重载脚本仅仅能在baseapp上执行， 用户应该确保所有的服务端组件加载完成。
+<br><br>
+2）自定义类型在脚本重载后应该确保内存中已经实例化的对象也被更新，下面是一个例子:
+<br><br>
+
+<pre>for e in <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#entities>entities</a>.values():
+   if type( e ) is Avatar.Avatar:
+      e.customData.__class__ = CustomClass
+</pre>
+当这个方法完成时 <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onInit>onInit</a>( True ) 被调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fullReload</i></span></td><td><span class="function_parameter_description">
+可选的boolean参数，指定是否同时重新加载实体定义。如果这个参数为False，则实体定义不会被重新加载。默认为True。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>重新加载成功返回True，否则返回False。
+</td></tr>
+</table>
+</p>
+
+<a name="scriptLogType"></a><p class="function_definition">
+<span class="function_definition">def scriptLogType( <i>logType</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个接口设置当前python.print输出的信息为什么级别的log。
+</div>
+
+<a name="time"></a><p class="function_definition">
+<span class="function_definition">def time( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个方法返回当前游戏的时间（周期数）。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+uint32，当前游戏的时间，这里指周期数，周期受频率影响，频率由配置文件kbengine.xml或者kbengine_defs.xml->gameUpdateHertz决定。
+</td></tr>
+</table>
+</p>
+
+<hr>
+<h2>回调函数文档</h2>
+
+<a name="onBaseAppReady"></a><p class="function_definition">
+<span class="function_definition">def onBaseAppReady( <i>bootstrapIdx</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+当前baseapp进程已经准备好的时候回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>bootstrapIdx</i></span></td><td><span class="function_parameter_description">
+当前进程在多个baseapp中的启动顺序（从1开始计数）。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onBaseAppShutDown"></a><p class="function_definition">
+<span class="function_definition">def onBaseAppShutDown( <i>state</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个baseapp被关闭前回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>state</i></span></td><td><span class="function_parameter_description">
+如果state为0，意指在断开所有客户端之前，如果state为1，意指在将所有entity写入数据库之前，如果state为2，意指在所有entity被写入数据库之后。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onCellAppDeath"></a><p class="function_definition">
+<span class="function_definition">def onCellAppDeath( <i>addr</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+某个cellapp死亡。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>addr</i></span></td><td><span class="function_parameter_description">
+死亡的cellapp地址。<br>
+tuple:(ip, port) 网络字节序
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onFini"></a><p class="function_definition">
+<span class="function_definition">def onFini( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+引擎正式关闭后回调此函数。
+</div>
+
+<a name="onGlobalBases"></a><p class="function_definition">
+<span class="function_definition">def onGlobalBases( <i>key, value</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+KBEngine.globalBases有改变时回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>key</i></span></td><td><span class="function_parameter_description">
+被改变数据的键。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>value</i></span></td><td><span class="function_parameter_description">
+被改变数据的值。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onGlobalBasesDel"></a><p class="function_definition">
+<span class="function_definition">def onGlobalBasesDel( <i>key</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+KBEngine.globalBases有删除的时候回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>key</i></span></td><td><span class="function_parameter_description">
+被删除数据的键。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onGlobalData"></a><p class="function_definition">
+<span class="function_definition">def onGlobalData( <i>key, value</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+KBEngine.globalData有改变的时候回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>key</i></span></td><td><span class="function_parameter_description">
+被改变数据的键。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>value</i></span></td><td><span class="function_parameter_description">
+被改变数据的值。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onGlobalDataDel"></a><p class="function_definition">
+<span class="function_definition">def onGlobalDataDel( <i>key</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+KBEngine.globalData有删除的时候回调此函数。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>key</i></span></td><td><span class="function_parameter_description">
+被删除数据的键。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onInit"></a><p class="function_definition">
+<span class="function_definition">def onInit( <i>isReload</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+当引擎启动后初始化完所有的脚本后这个接口被调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>isReload</i></span></td><td><span class="function_parameter_description">
+bool，是否是被重写加载脚本后触发的。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="onLoseChargeCB"></a><p class="function_definition">
+<span class="function_definition">def onLoseChargeCB( <i>orderID, dbid, success, datas</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+当一个订单丢失或者不明订单被处理会收到此回调通知。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>ordersID</i></span></td><td><span class="function_parameter_description">
+string，订单ID。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>dbid</i></span></td><td><span class="function_parameter_description">
+uint64，实体的数据库ID。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>success</i></span></td><td><span class="function_parameter_description">
+bool，是否成功。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>datas</i></span></td><td><span class="function_parameter_description">
+[bytes|BLOB]，附带信息。
+</span></td></tr>
+
+</table>
+</p>
+
+<hr>
+<h2>属性文档</h2>
+
+<a name="LOG_ON_ACCEPT"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_ON_ACCEPT</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个常量应由onLogOnAttempt返回，意指允许允许新的client连接<a href="Proxy.html">Proxy</a>。
+</div>
+
+<a name="LOG_ON_REJECT"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_ON_REJECT</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个常量应由onLogOnAttempt返回，意指拒绝登陆。
+</div>
+
+<a name="LOG_ON_WAIT_FOR_DESTROY"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_ON_WAIT_FOR_DESTROY</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+如果当前登陆应该等待直到当前<a href="Proxy.html">Proxy</a>完成登出，
+这个常量应由<a href="Proxy.html">Proxy</a>.<a href=Proxy.html#onLogOnAttempt>onLogOnAttempt</a>返回。在这返回之前
+<a href="Proxy.html">Proxy</a>.<a href=Proxy.html#destroy>destroy</a>或者<a href="Proxy.html">Proxy</a>.<a href=Proxy.html#destroyCellEntity>destroyCellEntity</a>
+应该被调用。
+</div>
+
+<a name="LOG_TYPE_DBG"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_DBG</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-调试类型。
+</div>
+
+<a name="LOG_TYPE_ERR"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_ERR</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-错误类型。
+</div>
+
+<a name="LOG_TYPE_INFO"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_INFO</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-常规信息类型。
+</div>
+
+<a name="LOG_TYPE_NORMAL"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_NORMAL</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-常规类型。
+</div>
+
+<a name="LOG_TYPE_WAR"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_WAR</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-警告类型。
+</div>
+
+<a name="NEXT_ONLY"></a><p class="attribute_definition">
+<span class="attribute_definition">NEXT_ONLY</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个常量用于Base.shouldAutoBackup和Base.shouldAutoArchive属性。这个值意指在下一次认为可以的时候自动备份该实体，然后这个属性自动设为False（0）。
+</div>
+
+<a name="component"></a><p class="attribute_definition">
+<span class="attribute_definition">component</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这是正运行在当前python环境的组件。（至今为止）可能值有'cell', 'base', 'client', 'database', 'bot' 和 'editor'。
+</div>
+
+<a name="entities"></a><p class="attribute_definition">
+<span class="attribute_definition">entities</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+entities包含驻留在该base上所有实体组成的一个列表。
+</div>
+
+<p>
+<span class="attribute_type">类型：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td><a href="Entities.html">Entities</a>
+</td></tr>
+</table>
+</p>
+
+<a name="globalBases"></a><p class="attribute_definition">
+<span class="attribute_definition">globalBases</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+globalBases是一个字典，这个字典对应base或者base mailbox的字符串。
+</div>
+
+<p>
+<span class="attribute_type">类型：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td><a href="GlobalBases.html">GlobalBases</a>
+</td></tr>
+</table>
+</p>
+
+<a name="globalData"></a><p class="attribute_definition">
+<span class="attribute_definition">globalData</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个属性包含一个类字典的对象，这个对象会在所有的BaseApp和CellApp之间自动复制。
+当字典的一个值被修改，这个修改会广播到所有的BaseApp和CellApp。CellAppMgr解决竞争条件，保证信息复制的权威性。
+<br><br>
+例子：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "hello" ] = "there"
+</pre>
+<br><br>
+其余CellApp或者BaseApp可以访问下面的：
+
+<pre>print <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "hello" ]
+</pre>
+<br><br>
+键和值可以是任意类型，但这些类型必须在所有目标组件上能够被封装和被拆封。
+<br><br>
+当一个值被改变或被删除，一个回调函数会在所有组件被调用。
+参看：<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onGlobalData>onGlobalData</a>和<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onGlobalDataDel>onGlobalDataDel</a>。
+<br><br>
+注意：只有顶层的值才会被广播，如果你有一个易变的值（比如一个列表），它改变了内部的值（比如只是改变一个数），这个信息不会被广播。
+<br><br>
+不要进行下面的操作：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "list" ] = [1, 2, 3]
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "list" ][1] = 7
+</pre>
+这样，本地访问是[1, 7, 3]，远程访问是[1, 2, 3]。
+</div>
+
+<hr>
+<p class="copyrightFooter">版权归KBEngine所有。</p>
+</body>
+</html>
