@@ -4,7 +4,7 @@ KBEngine
 ##官方网站:
 http://www.kbengine.org
 
-##Release:
+##Releases:
 	sources	: https://github.com/kbengine/kbengine/releases 
 	binarys	: https://sourceforge.net/projects/kbengine/files/
 
@@ -15,7 +15,7 @@ http://www.kbengine.org
 	html5	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
-## 文档
+##Docs
 	API	: https://github.com/kbengine/kbengine/tree/master/kbe/doc
 	教程	: https://github.com/kbengine/kbengine/tree/master/tutorial
 	在线教程: http://www.kbengine.org/docs/
