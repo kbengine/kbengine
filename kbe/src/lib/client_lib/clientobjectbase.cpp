@@ -266,7 +266,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 //-------------------------------------------------------------------------------------
 ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 {
-	if(id <= 255 && Config::getSingleton().aliasEntityID() && pEntityIDAliasIDList_.size() <= 255)
+	if(id <= 255 && EntityDef::entityAliasID() && pEntityIDAliasIDList_.size() <= 255)
 	{
 		return pEntityIDAliasIDList_[id];
 	}
@@ -278,7 +278,7 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
-	if(Config::getSingleton().aliasEntityID() && 
+	if(EntityDef::entityAliasID() && 
 		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
 	{
 		uint8 aliasID = 0;
@@ -337,7 +337,6 @@ Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 		return NULL;
 	}
 	
-
 	u_int32_t address;
 	pEndpoint->convertAddress(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
@@ -776,6 +775,7 @@ void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
 		{
 			ERROR_MSG(boost::format("ClientObjectBase::onUpdatePropertys: not found entity(%1%).\n") % eid);
 		}
+
 		return;
 	}
 

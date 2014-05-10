@@ -58,8 +58,6 @@ public:
 	bool useLastAccountName()const{ return useLastAccountName_; }
 
 	int8 encryptLogin()const { return encrypt_login_; }
-
-	bool aliasEntityID()const{ return aliasEntityID_; }
 public:
 	int16 gameUpdateHertz_;
 
@@ -84,8 +82,6 @@ public:
 	uint32 telnet_port;
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
-
-	bool aliasEntityID_;
 };
 
 #define g_kbeConfig KBEngine::Config::getSingleton()

@@ -100,6 +100,9 @@ void Bots::finalise()
 //-------------------------------------------------------------------------------------
 bool Bots::installEntityDef()
 {
+	EntityDef::entityAliasID(ServerConfig::getSingleton().getCellApp().aliasEntityID);
+	EntityDef::entitydefAliasID(ServerConfig::getSingleton().getCellApp().entitydefAliasID);
+
 	return ClientApp::installEntityDef();
 }
 

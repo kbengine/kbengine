@@ -290,7 +290,7 @@ Witness::Bundles* Witness::pBundles()
 //-------------------------------------------------------------------------------------
 void Witness::addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
 {
-	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	if(!EntityDef::entityAliasID())
 	{
 		(*mstream) << entityRef->id();
 	}
@@ -306,7 +306,7 @@ void Witness::addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef
 //-------------------------------------------------------------------------------------
 void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef)
 {
-	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	if(!EntityDef::entityAliasID())
 	{
 		(*pBundle) << entityRef->id();
 	}
@@ -323,7 +323,7 @@ void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entity
 void Witness::addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
 											   const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
 {
-	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	if(!EntityDef::entityAliasID())
 	{
 		(*pBundle).newMessage(normalMsgHandler);
 		(*pBundle) << entityID;
@@ -366,7 +366,7 @@ uint8 Witness::entityID2AliasID(ENTITY_ID id)const
 //-------------------------------------------------------------------------------------
 void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID)
 {
-	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	if(!EntityDef::entityAliasID())
 	{
 		(*pBundle) << entityID;
 	}
@@ -386,7 +386,7 @@ void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityI
 //-------------------------------------------------------------------------------------
 void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle)
 {
-	if(!g_kbeSrvConfig.getCellApp().aliasEntityID)
+	if(!EntityDef::entityAliasID())
 	{
 		(*pBundle) << pEntity_->getID();
 	}

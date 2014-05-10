@@ -40,8 +40,7 @@ fileName_(),
 useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
-telnet_deflayer(),
-aliasEntityID_(false)
+telnet_deflayer()
 {
 }
 
@@ -272,7 +271,7 @@ bool Config::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("aliasEntityID");
 	if(rootNode != NULL)
 	{
-		aliasEntityID_ = (xml->getValStr(rootNode) == "true");
+		EntityDef::entityAliasID((xml->getValStr(rootNode) == "true"));
 	}
 
 	rootNode = xml->getRootNode("entitydefAliasID");

@@ -47,8 +47,8 @@ KBE_MD5 EntityDef::__md5;
 bool EntityDef::_isInit = false;
 bool g_isReload = false;
 
+bool EntityDef::__entityAliasID = false;
 bool EntityDef::__entitydefAliasID = false;
-
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -1272,18 +1272,6 @@ bool EntityDef::uninstallScript()
 bool EntityDef::initializeWatcher()
 {
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void EntityDef::entitydefAliasID(bool v)
-{ 
-	__entitydefAliasID = v; 
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityDef::entitydefAliasID()
-{ 
-	return __entitydefAliasID; 
 }
 
 //-------------------------------------------------------------------------------------

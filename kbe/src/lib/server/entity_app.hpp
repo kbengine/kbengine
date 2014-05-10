@@ -303,7 +303,9 @@ void EntityApp<E>::finalise(void)
 template<class E>
 bool EntityApp<E>::installEntityDef()
 {
+	EntityDef::entityAliasID(ServerConfig::getSingleton().getCellApp().aliasEntityID);
 	EntityDef::entitydefAliasID(ServerConfig::getSingleton().getCellApp().entitydefAliasID);
+	
 	if(!EntityDef::installScript(this->getScript().getModule()))
 		return false;
 

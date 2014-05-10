@@ -160,8 +160,25 @@ public:
 
 	static bool initializeWatcher();
 
-	static void entitydefAliasID(bool v);
-	static bool entitydefAliasID();
+	static void entitydefAliasID(bool v)
+	{ 
+		__entitydefAliasID = v; 
+	}
+
+	static bool entitydefAliasID()
+	{ 
+		return __entitydefAliasID; 
+	}
+
+	static void entityAliasID(bool v)
+	{ 
+		__entityAliasID = v; 
+	}
+
+	static bool entityAliasID()
+	{ 
+		return __entityAliasID; 
+	}
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 	static SCRIPT_MODULES __oldScriptModules;									// reload时旧的模块会放到这里用于判断
@@ -177,6 +194,7 @@ private:
 
 	static bool _isInit;
 
+	static bool __entityAliasID;												// 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	static bool __entitydefAliasID;												// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
 };
 
