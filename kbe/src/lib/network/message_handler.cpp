@@ -182,7 +182,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	{
 		if(msgLen == 0)
 		{
-			msgHandler->msgLen = args->msgsize();
+			msgHandler->msgLen = args->dataSize();
 
 			if(msgHandler->type() == MERCURY_MESSAGE_TYPE_ENTITY)
 			{

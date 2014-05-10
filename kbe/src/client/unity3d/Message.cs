@@ -14,19 +14,21 @@ namespace KBEngine
 		public Int16 msglen = -1;
 		public System.Reflection.MethodInfo handler = null;
 		public System.Reflection.MethodInfo[] argtypes = null;
-		
+		public sbyte argsType = 0;
+			
 		public static Dictionary<MessageID, Message> loginappMessages = new Dictionary<MessageID, Message>();
 		public static Dictionary<MessageID, Message> baseappMessages = new Dictionary<MessageID, Message>();
 		public static Dictionary<MessageID, Message> clientMessages = new Dictionary<MessageID, Message>();
 		
 		public static Dictionary<string, Message> messages = new Dictionary<string, Message>();
 		
-		public Message(MessageID msgid, string msgname, Int16 length, List<Byte> msgargtypes, System.Reflection.MethodInfo msghandler)
+		public Message(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes, System.Reflection.MethodInfo msghandler)
 		{
 			id = msgid;
 			name = msgname;
 			msglen = length;
 			handler = msghandler;
+			argsType = argstype;
 			
 			argtypes = new System.Reflection.MethodInfo[msgargtypes.Count];
 			for(int i=0; i<msgargtypes.Count; i++)
@@ -60,9 +62,16 @@ namespace KBEngine
 		public void handleMessage(MemoryStream msgstream)
 		{
 			if(argtypes.Length <= 0)
-				handler.Invoke(KBEngineApp.app, new object[]{msgstream});
+			{
+				if(argsType < 0)
+					handler.Invoke(KBEngineApp.app, new object[]{msgstream});
+				else
+					handler.Invoke(KBEngineApp.app, new object[]{});
+			}
 			else
+			{
 				handler.Invoke(KBEngineApp.app, createFromStream(msgstream));
+			}
 		}
     }
 } 

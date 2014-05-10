@@ -921,7 +921,8 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 				info.id = iter->first;
 				info.name = pMessageHandler->name;
 				info.msgLen = pMessageHandler->msgLen;
-				
+				info.argsType = (int8)pMessageHandler->pArgs->type();
+
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
@@ -964,7 +965,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 		for(; iter != clientMessages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
-			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
 			for(; argiter != iter->second.argsTypes.end(); argiter++)
@@ -977,7 +978,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 		for(; iter != messages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
-			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
 			for(; argiter != iter->second.argsTypes.end(); argiter++)

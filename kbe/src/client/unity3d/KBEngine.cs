@@ -801,6 +801,7 @@ START_RUN:
 				Int16 msglen = stream.readInt16();
 				
 				string msgname = stream.readString();
+				sbyte argstype = stream.readInt8();
 				Byte argsize = stream.readUint8();
 				List<Byte> argstypes = new List<Byte>();
 				
@@ -830,7 +831,7 @@ START_RUN:
 				
 				if(msgname.Length > 0)
 				{
-					Message.messages[msgname] = new Message(msgid, msgname, msglen, argstypes, handler);
+					Message.messages[msgname] = new Message(msgid, msgname, msglen, argstype, argstypes, handler);
 					
 					if(!isClientMethod)
 						Dbg.DEBUG_MSG(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 
@@ -850,7 +851,7 @@ START_RUN:
 				}
 				else
 				{
-					Message msg = new Message(msgid, msgname, msglen, argstypes, handler);
+					Message msg = new Message(msgid, msgname, msglen, argstype, argstypes, handler);
 					
 					if(!isClientMethod)
 						Dbg.DEBUG_MSG(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 

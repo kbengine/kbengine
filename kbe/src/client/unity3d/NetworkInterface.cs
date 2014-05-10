@@ -54,11 +54,11 @@ namespace KBEngine
 		{
 			if(Message.messages.Count == 0)
 			{
-				Message.messages["Loginapp_importClientMessages"] = new Message(5, "importClientMessages", 0, new List<Byte>(), null);
-				Message.messages["Baseapp_importClientMessages"] = new Message(207, "importClientMessages", 0, new List<Byte>(), null);
-				Message.messages["Baseapp_importClientEntityDef"] = new Message(208, "importClientMessages", 0, new List<Byte>(), null);
+				Message.messages["Loginapp_importClientMessages"] = new Message(5, "importClientMessages", 0, 0, new List<Byte>(), null);
+				Message.messages["Baseapp_importClientMessages"] = new Message(207, "importClientMessages", 0, 0, new List<Byte>(), null);
+				Message.messages["Baseapp_importClientEntityDef"] = new Message(208, "importClientMessages", 0, 0, new List<Byte>(), null);
 				
-				Message.messages["Client_onImportClientMessages"] = new Message(518, "Client_onImportClientMessages", -1, new List<Byte>(), 
+				Message.messages["Client_onImportClientMessages"] = new Message(518, "Client_onImportClientMessages", -1, -1, new List<Byte>(), 
 					this.app_.GetType().GetMethod("Client_onImportClientMessages"));
 				Message.clientMessages[Message.messages["Client_onImportClientMessages"].id] = Message.messages["Client_onImportClientMessages"];
 			}

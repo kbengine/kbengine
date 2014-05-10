@@ -756,12 +756,13 @@ bindReader = function(argType)
 	}
 }
 	
-function KBE_MESSAGE(id, name, length, args, handler)
+function KBE_MESSAGE(id, name, length, argstype, args, handler)
 {
 	this.id = id;
 	this.name = name;
 	this.length = length;
-
+	this.argsType = argstype;
+	
 	// °ó¶¨Ö´ÐÐ
 	for(i=0; i<args.length; i++)
 	{
@@ -794,9 +795,16 @@ function KBE_MESSAGE(id, name, length, args, handler)
 		}
 
 		if(this.args.length <= 0)
-			this.handler(msgstream);
+		{
+			if(this.argsType < 0)
+				this.handler(msgstream);
+			else
+				this.handler();
+		}
 		else
+		{
 			this.handler.apply(g_kbengine, this.createFromStream(msgstream));
+		}
 	}
 }
 
@@ -806,10 +814,10 @@ g_messages["loginapp"] = {};
 g_messages["baseapp"] = {};
 var g_clientmessages = {};
 
-g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMessages", 0, new Array(), null);
-g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, new Array(), null);
-g_messages["Baseapp_importClientEntityDef"] = new KBE_MESSAGE(208, "importClientEntityDef", 0, new Array(), null);
-g_messages["onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, new Array(), null);
+g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMessages", 0, 0, new Array(), null);
+g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, 0, new Array(), null);
+g_messages["Baseapp_importClientEntityDef"] = new KBE_MESSAGE(208, "importClientEntityDef", 0, 0, new Array(), null);
+g_messages["onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, -1, new Array(), null);
 
 g_bufferedCreateEntityMessage = {};
 
@@ -1956,6 +1964,7 @@ function KBENGINE()
 				msgid = stream.readUint16();
 				msglen = stream.readInt16();
 				var msgname = stream.readString();
+				var argtype = stream.readInt8();
 				var argsize = stream.readUint8();
 				var argstypes = new Array(argsize);
 				
@@ -1982,7 +1991,7 @@ function KBENGINE()
 			
 				if(msgname.length > 0)
 				{
-					g_messages[msgname] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
+					g_messages[msgname] = new KBE_MESSAGE(msgid, msgname, msglen, argtype, argstypes, handler);
 					
 					if(isClientMethod)
 						g_clientmessages[msgid] = g_messages[msgname];
@@ -1991,7 +2000,7 @@ function KBENGINE()
 				}
 				else
 				{
-					g_messages[g_kbengine.currserver][msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
+					g_messages[g_kbengine.currserver][msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argtype, argstypes, handler);
 				}
 			};
 

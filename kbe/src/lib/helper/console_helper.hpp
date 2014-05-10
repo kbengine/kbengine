@@ -54,7 +54,7 @@ namespace ConsoleInterface{
 		{
 			s.appendBlob(init_strarg);			
 		}
-		virtual int32 msgsize(void)				
+		virtual int32 dataSize(void)				
 		{
 			return MERCURY_VARIABLE_MESSAGE;			
 		}
@@ -101,10 +101,15 @@ namespace ConsoleInterface{
 		ConsoleLogMessageHandlerArgsStream():Mercury::MessageArgs(){}				
 		~ConsoleLogMessageHandlerArgsStream(){}	
 	
-		virtual int32 msgsize(void)				
+		virtual int32 dataSize(void)				
 		{
 			return MERCURY_VARIABLE_MESSAGE;			
 		}		
+
+		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
+		{														
+			return MESSAGE_ARGS_TYPE_VARIABLE;					
+		}												
 
 		virtual int32 msglenMax()
 		{ 
@@ -147,10 +152,15 @@ namespace ConsoleInterface{
 		ConsoleWatcherCBHandlerMessageArgsStream():Mercury::MessageArgs(){}				
 		~ConsoleWatcherCBHandlerMessageArgsStream(){}	
 	
-		virtual int32 msgsize(void)				
+		virtual int32 dataSize(void)				
 		{
 			return MERCURY_VARIABLE_MESSAGE;			
 		}		
+
+		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
+		{														
+			return MESSAGE_ARGS_TYPE_VARIABLE;					
+		}													
 
 		virtual int32 msglenMax()
 		{ 
@@ -193,10 +203,15 @@ namespace ConsoleInterface{
 		ConsoleProfileHandlerArgsStream():Mercury::MessageArgs(){}				
 		~ConsoleProfileHandlerArgsStream(){}	
 	
-		virtual int32 msgsize(void)				
+		virtual int32 dataSize(void)				
 		{
 			return MERCURY_VARIABLE_MESSAGE;			
 		}		
+
+		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
+		{														
+			return MESSAGE_ARGS_TYPE_VARIABLE;					
+		}												
 
 		virtual int32 msglenMax()
 		{ 

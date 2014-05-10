@@ -35,11 +35,18 @@ class Channel;
 class MessageArgs
 {
 public:
+	enum MESSAGE_ARGS_TYPE
+	{
+		MESSAGE_ARGS_TYPE_VARIABLE = -1,		// 可变参数长度
+		MESSAGE_ARGS_TYPE_FIXED = 0				// 固定参数长度
+	};
+
 	MessageArgs():strArgsTypes(){};
 	virtual ~MessageArgs(){};
 	virtual void createFromStream(MemoryStream& s) = 0;
 	virtual void addToStream(MemoryStream& s) = 0;
-	virtual int32 msgsize(void) = 0;
+	virtual int32 dataSize(void) = 0;
+	virtual MessageArgs::MESSAGE_ARGS_TYPE type(void){ return MESSAGE_ARGS_TYPE_FIXED; }
 
 	std::vector<std::string> strArgsTypes;
 };
@@ -49,7 +56,7 @@ struct ExposedMessageInfo
 	std::string name;
 	Mercury::MessageID id;
 	int16 msgLen; // 对外消息不会超过1500
-
+	int8 argsType;
 	std::vector<uint8> argsTypes;
 };
 

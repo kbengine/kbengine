@@ -148,9 +148,13 @@ namespace Mercury
 		NAME##Args_stream():Mercury::MessageArgs(){}				\
 		~NAME##Args_stream(){}										\
 																	\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return MERCURY_VARIABLE_MESSAGE;						\
+		}															\
+		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)			\
+		{															\
+			return MESSAGE_ARGS_TYPE_VARIABLE;						\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -187,7 +191,7 @@ namespace Mercury
 		static void staticAddToStream(MemoryStream& s)				\
 		{															\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return 0;												\
 		}															\
@@ -236,7 +240,7 @@ namespace Mercury
 		{															\
 			s << init_##ARG_NAME1;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return sizeof(ARG_TYPE1);								\
 		}															\
@@ -304,7 +308,7 @@ namespace Mercury
 			s << init_##ARG_NAME1;									\
 			s << init_##ARG_NAME2;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2);								\
@@ -388,7 +392,7 @@ namespace Mercury
 			s << init_##ARG_NAME2;									\
 			s << init_##ARG_NAME3;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -489,7 +493,7 @@ namespace Mercury
 			s << init_##ARG_NAME3;									\
 			s << init_##ARG_NAME4;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -606,7 +610,7 @@ namespace Mercury
 			s << init_##ARG_NAME4;									\
 			s << init_##ARG_NAME5;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -738,7 +742,7 @@ namespace Mercury
 			s << init_##ARG_NAME5;									\
 			s << init_##ARG_NAME6;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -886,7 +890,7 @@ namespace Mercury
 			s << init_##ARG_NAME6;									\
 			s << init_##ARG_NAME7;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -1050,7 +1054,7 @@ namespace Mercury
 			s << init_##ARG_NAME7;									\
 			s << init_##ARG_NAME8;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -1231,7 +1235,7 @@ namespace Mercury
 			s << init_##ARG_NAME8;									\
 			s << init_##ARG_NAME9;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -1428,7 +1432,7 @@ namespace Mercury
 			s << init_##ARG_NAME9;									\
 			s << init_##ARG_NAME10;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -1643,7 +1647,7 @@ namespace Mercury
 			s << init_##ARG_NAME10;									\
 			s << init_##ARG_NAME11;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -1874,7 +1878,7 @@ namespace Mercury
 			s << init_##ARG_NAME11;									\
 			s << init_##ARG_NAME12;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -2122,7 +2126,7 @@ namespace Mercury
 			s << init_##ARG_NAME12;									\
 			s << init_##ARG_NAME13;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -2384,7 +2388,7 @@ namespace Mercury
 			s << init_##ARG_NAME13;									\
 			s << init_##ARG_NAME14;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -2661,7 +2665,7 @@ namespace Mercury
 			s << init_##ARG_NAME14;									\
 			s << init_##ARG_NAME15;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -2955,7 +2959,7 @@ namespace Mercury
 			s << init_##ARG_NAME15;									\
 			s << init_##ARG_NAME16;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -3265,7 +3269,7 @@ namespace Mercury
 			s << init_##ARG_NAME16;									\
 			s << init_##ARG_NAME17;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -3591,7 +3595,7 @@ namespace Mercury
 			s << init_##ARG_NAME17;									\
 			s << init_##ARG_NAME18;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -3933,7 +3937,7 @@ namespace Mercury
 			s << init_##ARG_NAME18;									\
 			s << init_##ARG_NAME19;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -4291,7 +4295,7 @@ namespace Mercury
 			s << init_##ARG_NAME19;									\
 			s << init_##ARG_NAME20;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
@@ -4666,7 +4670,7 @@ namespace Mercury
 			s << init_##ARG_NAME20;									\
 			s << init_##ARG_NAME21;									\
 		}															\
-		virtual int32 msgsize(void)									\
+		virtual int32 dataSize(void)								\
 		{															\
 			return	sizeof(ARG_TYPE1) +								\
 					sizeof(ARG_TYPE2) +								\
