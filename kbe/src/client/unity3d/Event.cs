@@ -24,6 +24,7 @@ namespace KBEngine
     	public static Dictionary<string, List<Pair>> events = new Dictionary<string, List<Pair>>();
 		
 		public static List<EventObj> firedEvents = new List<EventObj>();
+		private static List<EventObj> doingEvents = new List<EventObj>();
 		
 		public Event()
 		{
@@ -136,10 +137,22 @@ __RESTART_REMOVE:
 		public static void processEventsMainThread()
 		{
 			Monitor.Enter(events);
-			
-			for(int i=0; i<firedEvents.Count; i++)
+
+			if(firedEvents.Count > 0)
 			{
-				EventObj eobj = firedEvents[i];
+				foreach(EventObj evt in firedEvents)
+				{
+					doingEvents.Add(evt);
+				}
+
+				firedEvents.Clear();
+			}
+
+			Monitor.Exit(events);
+			
+			for(int i=0; i<doingEvents.Count; i++)
+			{
+				EventObj eobj = doingEvents[i];
 				
 				//Debug.Log("processEventsMainThread:" + eobj.info.funcname + "(" + eobj.info + ")");
 				//foreach(object v in eobj.args)
@@ -150,8 +163,7 @@ __RESTART_REMOVE:
 				eobj.info.method.Invoke(eobj.info.obj, eobj.args);
 			}
 			
-			firedEvents.Clear();
-			Monitor.Exit(events);
+			doingEvents.Clear();
 		}
     }
     
