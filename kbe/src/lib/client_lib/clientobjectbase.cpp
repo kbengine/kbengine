@@ -625,7 +625,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	onEntityLeaveWorld(pChannel, getAoiEntityIDFromStream(s));
 }
@@ -715,7 +715,7 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onRemoteOtherEntityMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+void ClientObjectBase::onRemoteMethodCallOptimized(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onRemoteMethodCall_(eid, s);
@@ -752,7 +752,7 @@ void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateOtherEntityPropertys(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdatePropertysOptimized(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onUpdatePropertys_(eid, s);

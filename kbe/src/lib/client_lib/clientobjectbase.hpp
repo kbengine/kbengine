@@ -191,7 +191,7 @@ public:
 		服务器上的entity已经离开游戏世界了
 	*/
 	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
-	virtual void onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
@@ -212,7 +212,7 @@ public:
 		远程调用entity的方法 
 	*/
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
-	virtual void onRemoteOtherEntityMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onRemoteMethodCallOptimized(Mercury::Channel* pChannel, MemoryStream& s);
 	void onRemoteMethodCall_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口
@@ -224,7 +224,7 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
-	virtual void onUpdateOtherEntityPropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdatePropertysOptimized(Mercury::Channel* pChannel, MemoryStream& s);
 	void onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口

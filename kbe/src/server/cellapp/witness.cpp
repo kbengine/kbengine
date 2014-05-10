@@ -490,7 +490,7 @@ bool Witness::update()
 
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-					(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldAliasID);
+					(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
 					addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
 
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));

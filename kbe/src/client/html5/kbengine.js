@@ -2268,7 +2268,7 @@ function KBENGINE()
 		}
 	}
 
-	this.Client_onUpdateOtherEntityPropertys = function(stream)
+	this.Client_onUpdatePropertysOptimized = function(stream)
 	{
 		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		g_kbengine.onUpdatePropertys_(eid, stream);
@@ -2307,7 +2307,7 @@ function KBENGINE()
 		entity[methoddata[2]].apply(entity, args);
 	}
 	
-	this.Client_onRemoteOtherEntityMethodCall = function(stream)
+	this.Client_onRemoteMethodCallOptimized = function(stream)
 	{
 		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		g_kbengine.onRemoteMethodCall_(eid, stream);
@@ -2367,7 +2367,7 @@ function KBENGINE()
 		}
 	}
 
-	this.Client_onEntityLeaveWorldAliasID = function(stream)
+	this.Client_onEntityLeaveWorldOptimized = function(stream)
 	{
 		var eid = g_kbengine.getAoiEntityIDFromStream(stream);
 		Client_onEntityLeaveWorld(eid);

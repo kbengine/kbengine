@@ -534,12 +534,12 @@ void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityLeaveWorldAliasID(Mercury::Channel * pChannel, MemoryStream& s)
+void Bots::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveWorldAliasID(pChannel, s);
+		pClient->onEntityLeaveWorldOptimized(pChannel, s);
 	}
 }
 
@@ -584,12 +584,12 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onRemoteOtherEntityMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Bots::onRemoteMethodCallOptimized(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onRemoteOtherEntityMethodCall(pChannel, s);
+		pClient->onRemoteMethodCallOptimized(pChannel, s);
 	}
 }
 
@@ -614,12 +614,12 @@ void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onUpdateOtherEntityPropertys(Mercury::Channel* pChannel, MemoryStream& s)
+void Bots::onUpdatePropertysOptimized(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdateOtherEntityPropertys(pChannel, s);
+		pClient->onUpdatePropertysOptimized(pChannel, s);
 	}
 }
 

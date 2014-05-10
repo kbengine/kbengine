@@ -385,7 +385,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
-					ClientInterface::onUpdateOtherEntityPropertys, getID());
+					ClientInterface::onUpdatePropertysOptimized, getID());
 
 				if(scriptModule_->usePropertyDescrAlias())
 					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
@@ -402,7 +402,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
-				pEntity->pWitness()->sendToClient(ClientInterface::onUpdateOtherEntityPropertys, pSendBundle);
+				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
 				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 			}
 		}

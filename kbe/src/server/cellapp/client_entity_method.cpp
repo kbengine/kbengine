@@ -122,7 +122,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 
 		srcEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
-				ClientInterface::onRemoteOtherEntityMethodCall, clientEntityID_);
+				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
 
 		if(mstream->wpos() > 0)
 			(*pForwardBundle).append(mstream->data(), mstream->wpos());
@@ -154,7 +154,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(srcEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
-		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteOtherEntityMethodCall, pSendBundle);
+		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
 		// 记录这个事件产生的数据量大小
 		g_publicClientEventHistoryStats.trackEvent(srcEntity->getScriptName(), 

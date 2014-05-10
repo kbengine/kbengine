@@ -1072,7 +1072,7 @@ START_RUN:
 			return id;
 		}
 		
-		public void Client_onUpdateOtherEntityPropertys(MemoryStream stream)
+		public void Client_onUpdatePropertysOptimized(MemoryStream stream)
 		{
 			Int32 eid = getAoiEntityIDFromStream(stream);
 			onUpdatePropertys_(eid, stream);
@@ -1138,7 +1138,7 @@ START_RUN:
 			}
 		}
 
-		public void Client_onRemoteOtherEntityMethodCall(MemoryStream stream)
+		public void Client_onRemoteMethodCallOptimized(MemoryStream stream)
 		{
 			Int32 eid = getAoiEntityIDFromStream(stream);
 			onRemoteMethodCall_(eid, stream);
@@ -1235,7 +1235,7 @@ START_RUN:
 			}
 		}
 
-		public void Client_onEntityLeaveWorldAliasID(MemoryStream stream)
+		public void Client_onEntityLeaveWorldOptimized(MemoryStream stream)
 		{
 			Int32 eid = getAoiEntityIDFromStream(stream);
 			KBEngineApp.app.Client_onEntityLeaveWorld(eid);
