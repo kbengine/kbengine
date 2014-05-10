@@ -4,8 +4,9 @@ KBEngine
 ##官方网站:
 http://www.kbengine.org
 
-##Release: 
-https://sourceforge.net/projects/kbengine/files/
+##Release:
+	sources	: https://github.com/kbengine/kbengine/releases 
+	binarys	: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources:
 
