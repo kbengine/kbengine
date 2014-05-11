@@ -236,7 +236,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	PyProfile::initialize(this);
 	PyStruct::initialize();
 	Copy::initialize();
-	Uuid::initialize();
+	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
 	INFO_MSG("Script::install is successfully!\n");
@@ -251,7 +251,6 @@ bool Script::uninstall()
 	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
-	Uuid::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 
 	if(pyStdouterr_)

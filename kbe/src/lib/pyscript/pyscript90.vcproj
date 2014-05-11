@@ -215,10 +215,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\uuid.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\vector2.cpp"
 				>
 			</File>
@@ -310,10 +306,6 @@
 			</File>
 			<File
 				RelativePath=".\sequence.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\uuid.hpp"
 				>
 			</File>
 			<File
