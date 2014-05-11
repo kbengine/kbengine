@@ -24,7 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pickler.hpp"
 #include "pyprofile.hpp"
 #include "copy.hpp"
-#include "uuid.hpp"
 #include "pystruct.hpp"
 #include "install_py_dlls.hpp"
 #include "resmgr/resmgr.hpp"
