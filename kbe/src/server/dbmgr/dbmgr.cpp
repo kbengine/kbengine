@@ -252,12 +252,11 @@ bool Dbmgr::initDB()
 
 	if(!dbThreadPool_.isInitialize())
 	{
-		dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
+		ret = dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
 			dbcfg.db_numConnections, dbcfg.db_numConnections);
-		return false;
 	}
 
-	return true;
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
