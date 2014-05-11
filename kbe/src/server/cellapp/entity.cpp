@@ -378,8 +378,12 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(pChannel == NULL)
 				continue;
 
+			if(!pEntity->pWitness()->entityInAOI(getID()))
+				continue;
+
 			const Position3D& targetPos = pEntity->getPosition();
 			Position3D lengthPos = targetPos - basePos;
+
 			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();

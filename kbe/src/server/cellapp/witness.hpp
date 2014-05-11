@@ -152,6 +152,11 @@ public:
 
 	EntityRef::AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
 
+	/** 获得aoientity的引用 */
+	INLINE EntityRef* getAOIEntityRef(ENTITY_ID entityID);
+
+	/** entityID是否在aoi内 */
+	INLINE bool entityInAOI(ENTITY_ID entityID);
 private:
 	Entity*									pEntity_;
 

@@ -97,7 +97,8 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	for(; iter != srcEntity->pWitness()->aoiEntities().end(); iter++)
 	{
-		if((*iter)->id() == clientEntityID_ && ((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0)
+		if((*iter)->id() == clientEntityID_ && ((*iter)->flags() & 
+			(ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) <= 0)
 		{
 			e = (*iter)->pEntity();
 			break;
@@ -107,8 +108,10 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	if(e == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not found entity(%d), srcEntityID(%d).\n",		
-			srcEntity->getScriptName(), methodDescription_->getName(), clientEntityID_, srcEntity->getID());		
+			srcEntity->getScriptName(), methodDescription_->getName(), clientEntityID_, srcEntity->getID());	
+
 		PyErr_PrintEx(0);
+
 		return 0;
 	}
 

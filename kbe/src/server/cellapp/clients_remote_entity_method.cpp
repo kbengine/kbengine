@@ -156,6 +156,9 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(pChannel == NULL)
 				continue;
 
+			if(!pAoiEntity->pWitness()->entityInAOI(pEntity->getID()))
+				continue;
+
 			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 			
