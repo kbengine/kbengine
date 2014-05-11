@@ -81,6 +81,11 @@ public:
 	bool hasLostConnection() const		{ return hasLostConnection_; }
 	void hasLostConnection( bool v )	{ hasLostConnection_ = v; }
 
+	/**
+		¼ì²é»·¾³
+	*/
+	virtual bool checkEnvironment();
+	
 	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
 
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);

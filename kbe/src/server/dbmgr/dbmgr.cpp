@@ -238,17 +238,26 @@ bool Dbmgr::initDB()
 	}
 
 	bool ret = DBUtil::initInterface(pDBInterface);
+	
+	if(ret)
+	{
+		ret = pDBInterface->checkEnvironment();
+	}
+	
 	pDBInterface->detach();
 	SAFE_RELEASE(pDBInterface);
+
+	if(!ret)
+		return false;
 
 	if(!dbThreadPool_.isInitialize())
 	{
 		dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
 			dbcfg.db_numConnections, dbcfg.db_numConnections);
-		return ret;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

@@ -47,6 +47,11 @@ public:
 	virtual ~DBInterface(){};
 
 	/**
+		检查环境
+	*/
+	virtual bool checkEnvironment() = 0;
+	
+	/**
 		与某个数据库关联
 	*/
 	virtual bool attach(const char* databaseName) = 0;

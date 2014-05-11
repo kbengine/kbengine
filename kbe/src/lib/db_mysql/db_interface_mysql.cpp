@@ -229,6 +229,47 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 }
 
 //-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::checkEnvironment()
+{
+	std::string querycmd = "SHOW VARIABLES LIKE \"%lower_case_table_names%\"";
+	if(!query(querycmd.c_str(), querycmd.size(), true))
+	{
+		ERROR_MSG(boost::format("DBInterfaceMysql::checkEnvironment: %1%, query is error!\n") % querycmd);
+		return false;
+	}
+
+	bool lower_case_table_names = false;
+	MYSQL_RES * pResult = mysql_store_result(mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			std::string s = arow[0];
+			std::string v = arow[1];
+			
+			if(s == "lower_case_table_names")
+			{
+				if(v != "1")
+				{
+					lower_case_table_names = true;
+				}
+				else
+				{
+					CRITICAL_MSG(boost::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 0, curr=%1%!\n") % v);
+				}
+			}
+			
+			break;
+		}
+
+		mysql_free_result(pResult);
+	}
+	
+	return lower_case_table_names;
+}
+
+//-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::reattach()
 {
 	detach();
