@@ -199,6 +199,11 @@ windows:
 		mysql> grant select,insert,update,delete,create,drop on *.* to kbe@'%' identified by 'kbe';
 		mysql> FLUSH PRIVILEGES;
 
+	    在CMD中测试一下是否能使用这个账号登陆mysql(请注意默认mysql端口为3306， 如不一致请修改kbengine_defs.xml->dbmgr-><port>330x</port>)， 
+	    如果没有提示错误则账号配置完毕， 有错误请google
+	    进入你的mysql安装目录找到mysql.exe所在目录, 然后cmd进入这个目录中执行如下语句:
+	    C:\mysql\bin> mysql -ukbe -pkbe -hlocalhost -P3306
+
 	5: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数
 		(推荐在demo\res\server\kbengine.xml重载修改)。
 		如果mysql端口不是3306， 请在kbengine.xml中的dbmgr段加入<port>端口号</port>。
