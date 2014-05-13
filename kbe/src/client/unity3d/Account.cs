@@ -16,6 +16,7 @@ namespace KBEngine
 		
 		public override void __init__()
 		{
+			Event.fire("onLoginSuccessfully", new object[]{KBEngineApp.app.entity_uuid, id, this});
 			baseCall("reqAvatarList", new object[0]);
 		}
 		

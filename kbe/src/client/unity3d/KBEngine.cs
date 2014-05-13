@@ -1034,15 +1034,6 @@ START_RUN:
 			entities[eid] = entity;
 			
 			entity.__init__();
-			
-			if(entityType == "Account")
-			{
-				Event.fire("onLoginSuccessfully", new object[]{rndUUID, eid, ((Account)entity)});
-			}
-			else
-			{
-				Event.fire("onAvatarEnterWorld", new object[]{rndUUID, eid, ((Avatar)entity)});
-			}
 		}
 		
 		public Entity findEntity(Int32 entityID)
@@ -1263,7 +1254,8 @@ START_RUN:
 				entity.leaveWorld();
 			
 			entities.Remove(eid);
-			
+			entity.destroy();
+				
 			if(entity_id != eid)
 				entityIDAliasIDList.Remove(eid);
 		}
@@ -1727,7 +1719,7 @@ START_RUN:
 			_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, r);
 		}
 		
-		public void _updateVolatileData(Int32 entityID, float x, float y, float z, float yaw, float pitch, float roll)
+		private void _updateVolatileData(Int32 entityID, float x, float y, float z, float yaw, float pitch, float roll)
 		{
 			Entity entity = null;
 

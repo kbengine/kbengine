@@ -15,6 +15,7 @@ namespace KBEngine
 		
 		public override void __init__()
 		{
+			Event.fire("onAvatarEnterWorld", new object[]{KBEngineApp.app.entity_uuid, id, this});
 			combat = new CombatImpl(this);
 		}
 		

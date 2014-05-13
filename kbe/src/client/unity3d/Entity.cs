@@ -47,6 +47,10 @@ namespace KBEngine
 			}
 		}
 		
+		public virtual void destroy ()
+		{
+		}
+		
 		public bool isPlayer()
 		{
 			return id == KBEngineApp.app.entity_id;

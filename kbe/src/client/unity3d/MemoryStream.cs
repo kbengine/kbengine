@@ -328,7 +328,9 @@ namespace KBEngine
 		public string toString()
 		{
 			string s = "";
+
 			byte[] buf = getbuffer();
+
 			for(int i=0; i<buf.Length; i++)
 			{
 				s += buf[i];
