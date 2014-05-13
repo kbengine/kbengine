@@ -121,6 +121,8 @@ public:
 		_currFuncName = funcname;
 	}
 	
+	std::string getLogName();
+
 	void lockthread();
 	void unlockthread();
 

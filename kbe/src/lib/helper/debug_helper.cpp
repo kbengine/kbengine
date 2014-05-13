@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/net/socketappender.h"
+#include "log4cxx/fileappender.h"
 #include "log4cxx/helpers/inetaddress.h"
 #include "log4cxx/propertyconfigurator.h"
 #include "log4cxx/patternlayout.h"
@@ -129,6 +130,26 @@ DebugHelper::~DebugHelper()
 void DebugHelper::shouldWriteToSyslog(bool v)
 {
 	g_shouldWriteToSyslog = v;
+}
+
+//-------------------------------------------------------------------------------------
+std::string DebugHelper::getLogName()
+{
+#ifndef NO_USE_LOG4CXX
+	/*
+	log4cxx::FileAppenderPtr appender = (log4cxx::FileAppenderPtr)g_logger->getAppender(log4cxx::LogString(L"R"));
+	if(appender->getFile().size() == 0 || appender == NULL)
+		return "";
+
+	char* ccattr = strutil::wchar2char(appender->getFile().c_str());
+	std::string path = ccattr;
+	free(ccattr);
+
+	return path;
+	*/
+#endif
+
+	return "";
 }
 
 //-------------------------------------------------------------------------------------
