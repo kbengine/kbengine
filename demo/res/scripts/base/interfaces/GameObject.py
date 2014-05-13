@@ -57,7 +57,8 @@ class GameObject:
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
-		DEBUG_MSG("%s::onGetCell: %i" % (self.getScriptName(), self.id))
+		#DEBUG_MSG("%s::onGetCell: %i" % (self.getScriptName(), self.id))
+		pass
 		
 	def onLoseCell(self):
 		"""

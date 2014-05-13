@@ -54,7 +54,8 @@ pEntity_(NULL),
 aoiRadius_(0.0f),
 aoiHysteresisArea_(5.0f),
 pAOITrigger_(NULL),
-aoiEntities_()
+aoiEntities_(),
+clientAOISize_(0)
 {
 }
 
@@ -107,6 +108,7 @@ void Witness::detach(Entity* pEntity)
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 5.0f;
+	clientAOISize_ = 0;
 	SAFE_RELEASE(pAOITrigger_);
 
 	aoiEntities_.clear();
@@ -129,6 +131,12 @@ Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
 //-------------------------------------------------------------------------------------
 void Witness::onReclaimObject()
 {
+}
+
+//-------------------------------------------------------------------------------------
+const Position3D&  Witness::getBasePos()
+{
+	return pEntity()->getPosition();
 }
 
 //-------------------------------------------------------------------------------------
@@ -211,8 +219,8 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);
 	//aoiEntities_.erase(iter);
-
-	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~ENTITYREF_FLAG_ENTER_CLIENT_PENDING));
+	
+	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~(ENTITYREF_FLAG_ENTER_CLIENT_PENDING)));
 
 	if(pEntityRef->pEntity())
 		pEntityRef->pEntity()->delWitnessed(pEntity_);
@@ -288,7 +296,36 @@ Witness::Bundles* Witness::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
+void Witness::_addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID)
+{
+	if(!EntityDef::entityAliasID())
+	{
+		(*pBundle) << entityID;
+	}
+	else
+	{
+		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
+		if(clientAOISize_ > 255)
+		{
+			(*pBundle) << entityID;
+		}
+		else
+		{
+			uint8 aliasID = 0;
+			if(entityID2AliasID(entityID, aliasID))
+			{
+				(*pBundle) << aliasID;
+			}
+			else
+			{
+				(*pBundle) << entityID;
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::_addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -296,15 +333,28 @@ void Witness::addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef
 	}
 	else
 	{
-		if(aoiEntities_.size() > 255)
+		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
+		if(clientAOISize_ > 255)
+		{
 			(*mstream) << entityRef->id();
+		}
 		else
-			(*mstream) << entityID2AliasID(entityRef->id());
+		{
+			uint8 aliasID = 0;
+			if(entityID2AliasID(entityRef->id(), aliasID))
+			{
+				(*mstream) << aliasID;
+			}
+			else
+			{
+				(*mstream) << entityRef->id();
+			}
+		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef)
+void Witness::_addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -312,10 +362,21 @@ void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entity
 	}
 	else
 	{
-		if(aoiEntities_.size() > 255)
+		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
+		if(clientAOISize_ > 255)
+		{
 			(*pBundle) << entityRef->id();
+		}
 		else
-			(*pBundle) << entityID2AliasID(entityRef->id());
+		{
+			uint8 aliasID = 0;
+			if(entityID2AliasID(entityRef->id(), aliasID))
+				(*pBundle) << aliasID;
+			else
+			{
+				(*pBundle) << entityRef->id();
+			}
+		}
 	}
 }
 
@@ -337,77 +398,41 @@ void Witness::addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const M
 		}
 		else
 		{
-			(*pBundle).newMessage(optimizedMsgHandler);
-
-			uint8 aliasID = entityID2AliasID(entityID);
-			(*pBundle) << aliasID;
+			uint8 aliasID = 0;
+			if(entityID2AliasID(entityID, aliasID))
+			{
+				(*pBundle).newMessage(optimizedMsgHandler);
+				(*pBundle) << aliasID;
+			}
+			else
+			{
+				(*pBundle).newMessage(normalMsgHandler);
+				(*pBundle) << entityID;
+			}
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-uint8 Witness::entityID2AliasID(ENTITY_ID id)const
+bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)const
 {
-	uint8 aliasID = 0;
+	aliasID = 0;
 	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); iter++)
 	{
-		if((*iter)->id() == id)
+		EntityRef* pEntityRef = (*iter);
+		if(pEntityRef->id() == id)
 		{
+			if((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) <= 0)
+				return false;
+
 			break;
 		}
 
 		aliasID++;
 	}
 
-	return aliasID;
-}
-
-//-------------------------------------------------------------------------------------
-void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID)
-{
-	if(!EntityDef::entityAliasID())
-	{
-		(*pBundle) << entityID;
-	}
-	else
-	{
-		if(aoiEntities_.size() > 255)
-		{
-			(*pBundle) << entityID;
-		}
-		else
-		{
-			(*pBundle) << entityID2AliasID(entityID);
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Witness::addAOIEntityIDToBundle(Mercury::Bundle* pBundle)
-{
-	if(!EntityDef::entityAliasID())
-	{
-		(*pBundle) << pEntity_->getID();
-	}
-	else
-	{
-		if(aoiEntities_.size() > 255)
-		{
-			(*pBundle) << pEntity_->getID();
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			(*pBundle) << aliasID;
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-const Position3D&  Witness::getBasePos()
-{
-	return pEntity()->getPosition();
+	return aliasID <= 255;
 }
 
 //-------------------------------------------------------------------------------------
@@ -483,18 +508,27 @@ bool Witness::update()
 
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle1);
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
+
+					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
+					++clientAOISize_;
+					KBE_ASSERT(clientAOISize_ <= 65535);
 				}
 				else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 				{
 					(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 
-					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+					if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+					{
+						Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-					(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
-					addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
+						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
+						_addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
 
-					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+						MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+						Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+						--clientAOISize_;
+					}
 
 					delete (*iter);
 					iter = aoiEntities_.erase(iter);
@@ -509,11 +543,13 @@ bool Witness::update()
 						iter = aoiEntities_.erase(iter);
 						continue;
 					}
+					
+					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
 
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					
-					addAOIEntityIDToStream(s1, (*iter));
+					_addAOIEntityIDToStream(s1, (*iter));
 					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity));
 
 					(*pForwardBundle).append(*s1);

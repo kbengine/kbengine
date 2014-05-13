@@ -424,8 +424,27 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		if(startGroupOrder_ == 1)
+		{
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+		}
+		else
+		{
+			Components::COMPONENTS::iterator iter = loginapps.begin();
+			for(; iter != loginapps.end(); iter++)
+			{
+				if((*iter).groupOrderid == 1)
+				{
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+				}
+			}
+		}
+
 		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost, 
+			http_host, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
@@ -540,8 +559,27 @@ void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::stri
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		if(startGroupOrder_ == 1)
+		{
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+		}
+		else
+		{
+			Components::COMPONENTS::iterator iter = loginapps.begin();
+			for(; iter != loginapps.end(); iter++)
+			{
+				if((*iter).groupOrderid == 1)
+				{
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+				}
+			}
+		}
+
 		threadPool_.addTask(new SendResetPasswordEMailTask(email, code, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost,  
+			http_host,  
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 }

@@ -54,15 +54,21 @@ INLINE EntityRef* Witness::getAOIEntityRef(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-bool Witness::entityInAOI(ENTITY_ID entityID)
+INLINE bool Witness::entityInAOI(ENTITY_ID entityID)
 {
 	EntityRef* pEntityRef = getAOIEntityRef(entityID);
 
-	if(pEntityRef == NULL || pEntityRef->pEntity() == NULL || 
+	if(pEntityRef == NULL || pEntityRef->pEntity() == NULL || pEntityRef->flags() == ENTITYREF_FLAG_UNKONWN || 
 		(pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) > 0)
 		return false;
 		
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE EntityRef::AOI_ENTITIES& Witness::aoiEntities()
+{ 
+	return aoiEntities_; 
 }
 
 //-------------------------------------------------------------------------------------

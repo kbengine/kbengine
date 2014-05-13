@@ -3226,8 +3226,20 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID enti
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		Components::COMPONENTS::iterator iter = loginapps.begin();
+		for(; iter != loginapps.end(); iter++)
+		{
+			if((*iter).groupOrderid == 1)
+			{
+				http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+			}
+		}
+
 		threadPool_.addTask(new SendBindEMailTask(email, code, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost, 
+			http_host, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 

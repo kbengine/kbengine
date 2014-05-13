@@ -122,18 +122,11 @@ public:
 	*/
 	uint32 addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity);
 	
-	/**
-		如果aoi中entity数量小于256则只发送索引位置
-	*/
-	void addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
-	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
-	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
-	void addAOIEntityIDToBundle(Mercury::Bundle* pBundle);
 
 	void addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
 		const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
 
-	uint8 entityID2AliasID(ENTITY_ID id)const;
+	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID)const;
 
 	/**
 		使用何种协议来更新客户端
@@ -150,13 +143,20 @@ public:
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
-	EntityRef::AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
+	INLINE EntityRef::AOI_ENTITIES& aoiEntities();
 
 	/** 获得aoientity的引用 */
 	INLINE EntityRef* getAOIEntityRef(ENTITY_ID entityID);
 
 	/** entityID是否在aoi内 */
 	INLINE bool entityInAOI(ENTITY_ID entityID);
+private:
+	/**
+		如果aoi中entity数量小于256则只发送索引位置
+	*/
+	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
 private:
 	Entity*									pEntity_;
 
@@ -168,6 +168,8 @@ private:
 	EntityRef::AOI_ENTITIES					aoiEntities_;
 
 	Position3D								lastBasePos;
+
+	uint16									clientAOISize_;
 
 };
 
