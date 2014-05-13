@@ -1385,7 +1385,7 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onEntityEnterWorld);
 	bundle << base->getID();
-	bundle << base->getScriptModule()->getUType();
+	base->getScriptModule()->addSmartUTypeToBundle(bundle);
 	base->getClientMailbox()->postMail(bundle);
 	*/
 }
@@ -2247,8 +2247,8 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onEntityEnterWorld);
-
-		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle((*pBundle), entityID, base->getScriptModule()->getUType());
+		(*pBundle) << entityID;
+		base->getScriptModule()->addSmartUTypeToBundle(pBundle);
 
 		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
 		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);

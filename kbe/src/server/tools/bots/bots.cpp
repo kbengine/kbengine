@@ -516,13 +516,12 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-							  ENTITY_SCRIPT_UID scriptType)
+void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterWorld(pChannel, eid, scriptType);
+		pClient->onEntityEnterWorld(pChannel, s);
 	}
 }
 

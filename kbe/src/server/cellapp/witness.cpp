@@ -245,7 +245,7 @@ void Witness::onEnterSpace(Space* pSpace)
 
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 	(*pForwardBundle) << pEntity_->getID();
-	(*pForwardBundle) << pEntity_->getScriptModule()->getUType();
+	pEntity_->getScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->getClientMailbox()->postMail(*pSendBundle);
@@ -498,7 +498,7 @@ bool Witness::update()
 			
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->getID();
-					(*pForwardBundle2) << otherEntity->getScriptModule()->getUType();
+					otherEntity->getScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
 
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
@@ -564,7 +564,7 @@ bool Witness::update()
 		
 		if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
 		{
-			WARNING_MSG(boost::format("Witness::update(%1%): updateClientSend size = %2%\n") % pEntity_->getID() % pSendBundle->packetsLength());
+			WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % pEntity_->getID() % pSendBundle->packetsLength());
 		}
 
 		if(!pSendBundle->isEmpty())

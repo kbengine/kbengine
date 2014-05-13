@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/script.hpp"
 #include "server/serverconfig.hpp"
 #include "client_lib/config.hpp"
+#include "network/bundle.hpp"
 
 #ifndef CODE_INLINE
 #include "scriptdef_module.ipp"
@@ -287,15 +288,21 @@ void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
 }
 
 //-------------------------------------------------------------------------------------
-ENTITY_SCRIPT_UID ScriptDefModule::getUType(void)
+void ScriptDefModule::addSmartUTypeToStream(MemoryStream* pStream)
 {
-	return uType_;
+	if(EntityDef::scriptModuleAliasID())
+		(*pStream) << getAliasID();
+	else
+		(*pStream) << getUType();
 }
 
 //-------------------------------------------------------------------------------------
-PyTypeObject* ScriptDefModule::getScriptType(void)
+void ScriptDefModule::addSmartUTypeToBundle(Mercury::Bundle* pBundle)
 {
-	return scriptType_;
+	if(EntityDef::scriptModuleAliasID())
+		(*pBundle) << getAliasID();
+	else
+		(*pBundle) << getUType();
 }
 
 //-------------------------------------------------------------------------------------

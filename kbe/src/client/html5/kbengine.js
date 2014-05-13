@@ -2328,13 +2328,20 @@ function KBENGINE()
 		g_kbengine.onRemoteMethodCall_(eid, stream);
 	}
 	
-	this.Client_onEntityEnterWorld = function(eid, entityType)
+	this.Client_onEntityEnterWorld = function(stream)
 	{
+		var eid = stream.readInt32();
 		if(g_kbengine.entity_id > 0 && eid != g_kbengine.entity_id)
 			g_kbengine.entityIDAliasIDList.push(eid)
-			
+		
+		var entityType;
+		if(g_moduledefs.Length > 255)
+			entityType = stream.readUint16();
+		else
+			entityType = stream.readUint8();
+		
 		entityType = g_moduledefs[entityType].name;
-		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + this.spaceID + ")!");
+		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + g_kbengine.spaceID + ")!");
 		
 		var entity = g_kbengine.entities[eid];
 		if(entity == undefined)
@@ -2507,6 +2514,7 @@ function KBENGINE()
 	this.Client_initSpaceData = function(stream)
 	{
 		var spaceID = stream.readInt32();
+		g_kbengine.spaceID = spaceID;
 		while(stream.opsize() > 0)
 		{
 			var key = stream.readString();

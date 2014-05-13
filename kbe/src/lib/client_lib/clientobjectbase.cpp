@@ -551,8 +551,24 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType)
+void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s)
 {
+	ENTITY_ID eid = 0;
+	ENTITY_SCRIPT_UID scriptType;
+	
+	s >> eid;
+
+	if(EntityDef::scriptModuleAliasID())
+	{
+		ENTITY_DEF_ALIASID aliasID;
+		s >> aliasID;
+		scriptType = aliasID;
+	}
+	else
+	{
+		s >> scriptType;
+	}
+
 	if(eid != entityID_ && entityID_ > 0)
 		pEntityIDAliasIDList_.push_back(eid);
 

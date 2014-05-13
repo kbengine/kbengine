@@ -1182,10 +1182,17 @@ START_RUN:
 			methoddata.handler.Invoke(entity, args);
 		}
 			
-		public void Client_onEntityEnterWorld(Int32 eid, UInt16 uentityType)
+		public void Client_onEntityEnterWorld(MemoryStream stream)
 		{
+			Int32 eid = stream.readInt32();
 			if(entity_id > 0 && entity_id != eid)
 				entityIDAliasIDList.Add(eid);
+			
+			UInt16 uentityType;
+			if(EntityDef.idmoduledefs.Count > 255)
+				uentityType = stream.readUint16();
+			else
+				uentityType = stream.readUint8();
 			
 			string entityType = EntityDef.idmoduledefs[uentityType].name;
 			Dbg.DEBUG_MSG("KBEngine::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + KBEngineApp.app.spaceID + ")!");
@@ -1350,6 +1357,7 @@ START_RUN:
 		{
 			spacedatas.Clear();
 			UInt32 spaceID = stream.readUint32();
+			KBEngineApp.app.spaceID = spaceID;
 			
 			while(stream.opsize() > 0)
 			{

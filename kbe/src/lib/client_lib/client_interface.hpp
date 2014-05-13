@@ -75,9 +75,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 服务器上的entity已经进入游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterWorld,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									ENTITY_SCRIPT_UID,						scriptType)
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterWorld,						MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开游戏世界了。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,						MERCURY_FIXED_MESSAGE,

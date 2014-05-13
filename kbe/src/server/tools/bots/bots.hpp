@@ -196,8 +196,7 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-		ENTITY_SCRIPT_UID scriptType);
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s);
 
 
 	/** 网络接口

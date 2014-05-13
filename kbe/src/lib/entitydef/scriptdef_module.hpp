@@ -63,10 +63,14 @@ public:
 	void finalise(void);
 	void onLoaded(void);
 
-	ENTITY_SCRIPT_UID getUType(void);
+	void addSmartUTypeToStream(MemoryStream* pStream);
+	void addSmartUTypeToBundle(Mercury::Bundle* pBundle);
+
+	INLINE ENTITY_SCRIPT_UID getUType(void);
+	INLINE ENTITY_DEF_ALIASID getAliasID(void);
 	void setUType(ENTITY_SCRIPT_UID utype);
 
-	PyTypeObject* getScriptType(void);
+	INLINE PyTypeObject* getScriptType(void);
 	INLINE void setScriptType(PyTypeObject* scriptType);
 
 	INLINE DetailLevel& getDetailLevel(void);
