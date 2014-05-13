@@ -205,7 +205,7 @@ __RETRY:
 					Dbg.ERROR_MSG(string.Format("NetworkInterface::recv(): socket error!"));
 				}
 				
-				msgReader.process(datas, (MessageLength)successReceiveBytes);
+				msgReader.process(_datas, (MessageLength)successReceiveBytes);
             }
 		}
 		
