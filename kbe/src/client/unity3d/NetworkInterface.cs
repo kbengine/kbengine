@@ -21,6 +21,7 @@ namespace KBEngine
 		private List<MemoryStream> packets_ = null;
 		private MessageReader msgReader = new MessageReader();
 		private static ManualResetEvent TimeoutObject = new ManualResetEvent(false);
+		private static byte[] _datas = new byte[MemoryStream.BUFFER_MAX];
 		
         public NetworkInterface(KBEngineApp app)
         {
@@ -167,13 +168,11 @@ __RETRY:
 					return;
 	            }
 				
-				byte[] datas = new byte[MemoryStream.BUFFER_MAX];
-				
 				int successReceiveBytes = 0;
 				
 				try
 				{
-					successReceiveBytes = socket_.Receive(datas, MemoryStream.BUFFER_MAX, 0);
+					successReceiveBytes = socket_.Receive(_datas, MemoryStream.BUFFER_MAX, 0);
 				}
 				catch (SocketException err)
 				{
