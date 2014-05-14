@@ -233,9 +233,9 @@ Windows:
 
 	cd KBE_HYBRID_PATH
 
-	!.bat
+	!(win)fixedstart.bat
 
-	~.bat
+	!(win)kill.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
 	(注意: Windows版本仅用于测试， 由于使用select并发socket处理性能有限。)
