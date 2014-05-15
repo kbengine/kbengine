@@ -10,7 +10,7 @@ http://www.kbengine.org
 
 ##Demo sources:
 
-	unity3d	: https://bitbucket.org/kbengine/warring.git
+	unity3d	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/unity3d
 	ogre	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
 	html5	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
