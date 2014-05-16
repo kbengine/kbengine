@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp_interface.hpp"
 #include "base_remotemethod.hpp"
 #include "archiver.hpp"
-#include "backup_sender.hpp"
+#include "backuper.hpp"
 #include "restore_entity_handler.hpp"
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
@@ -133,7 +133,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pBaseAppData_(NULL),
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
-	pBackupSender_(),
+	pBackuper_(),
 	load_(0.f),
 	numProxices_(0),
 	pTelnetServer_(NULL),
@@ -453,7 +453,7 @@ void Baseapp::handleGameTick()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleBackup()
 {
-	pBackupSender_->tick();
+	pBackuper_->tick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -484,7 +484,7 @@ bool Baseapp::initializeEnd()
 			Resmgr::respool_checktick);
 	}
 
-	pBackupSender_.reset(new BackupSender());
+	pBackuper_.reset(new Backuper());
 	pArchiver_.reset(new Archiver());
 
 	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());

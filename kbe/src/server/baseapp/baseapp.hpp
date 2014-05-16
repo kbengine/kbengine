@@ -45,7 +45,7 @@ namespace Mercury{
 }
 
 class Proxy;
-class BackupSender;
+class Backuper;
 class Archiver;
 class TelnetServer;
 class RestoreEntityHandler;
@@ -442,7 +442,7 @@ protected:
 	ForwardComponent_MessageBuffer							forward_messagebuffer_;
 
 	// 备份存档相关
-	KBEShared_ptr< BackupSender >							pBackupSender_;	
+	KBEShared_ptr< Backuper >								pBackuper_;	
 	KBEShared_ptr< Archiver >								pArchiver_;	
 
 	float													load_;

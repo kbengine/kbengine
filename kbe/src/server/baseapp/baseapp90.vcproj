@@ -195,10 +195,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\backup_sender.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\base.cpp"
 				>
 			</File>
@@ -275,7 +271,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\backup_sender.hpp"
+				RelativePath=".\backuper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\backuper.hpp"
 				>
 			</File>
 			<File

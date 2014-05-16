@@ -4,7 +4,7 @@ SRCS =						\
 	base					\
 	baseapp					\
 	baseapp_interface			\
-	backup_sender				\
+	backuper				\
 	data_download				\
 	data_downloads				\
 	base_remotemethod			\
