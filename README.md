@@ -1,40 +1,52 @@
 KBEngine
 ========
 
-##官方网站:
+##Homepage:
 http://www.kbengine.org
 
 ##Releases:
-	sources	: https://github.com/kbengine/kbengine/releases 
-	binarys	: https://sourceforge.net/projects/kbengine/files/
+	sources		: https://github.com/kbengine/kbengine/releases 
+	binarys		: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources:
 
-	unity3d	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/unity3d
-	ogre	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
-	html5	: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
+	unity3d		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/unity3d
+	ogre		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
+	html5		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
 ##Docs
-	API	: https://github.com/kbengine/kbengine/tree/master/kbe/doc
-	教程	: https://github.com/kbengine/kbengine/tree/master/tutorial
-	在线教程: http://www.kbengine.org/docs/
-
+	API		: https://github.com/kbengine/kbengine/tree/master/kbe/doc
+	tutorial	: https://github.com/kbengine/kbengine/tree/master/tutorial
+	online_docs	: http://www.kbengine.org/docs/
 
 ## QQ交流群
-群1: 16535321
-群2: 367555003
+	群1		: 16535321
+	群2		: 367555003
 
-##什么是KBEngine?
+##What is KBEngine?
 
-KBEngine是一款开源mmog服务端引擎， 使用统一协议能够轻松与前端对接，能轻松使用unity3d、 ogre、 cocos2d、 html5等作为前端表现。
+An open source mmog server engine, Using a simple protocol will be able to make the client and server interaction,
+The plugins can easily use KBEngine and (unity3d, ogre, cocos2d, html5, etc.) Technologies combine 
+to form a complete client. 
 
-底层框架由c++编写， 逻辑层使用python， 开发者无需重复实现一些通用的底层服务端技术，
-使开发者能够真正集中精力到游戏开发上来， 快速打造各种游戏。
+Engine framework written using c + +, Game logic layer using Python, 
+developers do not need to re-implement some common server-side technology,
+Allows developers to concentrate on the game logic development, quickly create a variety of games.
 
-(经常被问到承载上限, kbengine底层架构被设计为多进程分布式动态负载均衡方案， 理论上只需要不断扩展硬件就能够不断增加承载上限, 
-单台机器的承载上限取决于游戏逻辑本身的复杂度。)
+(Frequently asked load limit, kbengine is designed to be multi-process distributed dynamic load balancing scheme, 
+In theory only need to expand hardware can increase load limit, The complexity of the single machine 
+load limit depends on the logic of the game itself.)
 
+## 什么是KBEngine?
+KBEngine是一款开源的游戏服务端引擎，使用简单的约定协议就能够使客户端与服务端进行交互，
+使用KBEngine插件能够快速与(unity3d, ogre, cocos2d, html5, 等等.)技术结合形成一个完整的客户端。
+
+服务端底层框架使用c++编写， 游戏逻辑层使用Python， 开发者无需重复的实现一些游戏服务端通用的底层技术，
+将精力真正集中到游戏开发层面上来，快速的打造各种网络游戏。
+
+(经常被问到承载上限, kbengine底层架构被设计为多进程分布式动态负载均衡方案， 理论上只需要不断扩展硬件就能够
+不断增加承载上限, 单台机器的承载上限取决于游戏逻辑本身的复杂度。)
 
 简单的介绍一下引擎的各个主要组件部分:
 
@@ -244,3 +256,4 @@ Windows:
 
 	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息"logs\*.log"。 
 	也可以使用GUIConsole来查看， 但必须开启messagelog。
+
