@@ -1,30 +1,30 @@
 KBEngine
 ========
 
-##Homepage:
+##Homepage
 http://www.kbengine.org
 
-##Releases:
+##Releases
 	sources		: https://github.com/kbengine/kbengine/releases 
 	binarys		: https://sourceforge.net/projects/kbengine/files/
 
-##Demo sources:
+##Demo sources
 
 	unity3d		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/unity3d
 	ogre		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
 	html5		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
-##Docs:
+##Docs
 	API		: https://github.com/kbengine/kbengine/tree/master/kbe/doc
 	tutorial	: https://github.com/kbengine/kbengine/tree/master/tutorial
 	online_docs	: http://www.kbengine.org/docs/
 
-##Support:
+##Support
 	Email		: admin@kbengine.org
 	Maillist	: https://groups.google.com/forum/#!forum/kbengine_maillist
 
-## QQ交流群:
+## QQ交流群
 	群1		: 16535321
 	群2		: 367555003
 
