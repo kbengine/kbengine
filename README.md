@@ -1,4 +1,4 @@
-KBEngine
+KBEngine -- open source mmog server engine.
 ========
 
 ##Homepage
