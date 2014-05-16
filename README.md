@@ -15,12 +15,16 @@ http://www.kbengine.org
 	html5		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
-##Docs
+##Docs:
 	API		: https://github.com/kbengine/kbengine/tree/master/kbe/doc
 	tutorial	: https://github.com/kbengine/kbengine/tree/master/tutorial
 	online_docs	: http://www.kbengine.org/docs/
 
-## QQ交流群
+##Support:
+	Email		: admin@kbengine.org
+	Maillist	: https://groups.google.com/forum/#!forum/kbengine_maillist
+
+## QQ交流群:
 	群1		: 16535321
 	群2		: 367555003
 
