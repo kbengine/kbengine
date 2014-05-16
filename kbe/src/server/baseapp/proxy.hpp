@@ -45,7 +45,7 @@ namespace Mercury
 class Channel;
 }
 
-class ProxySender;
+class ProxyForwarder;
 
 #define LOG_ON_REJECT  0
 #define LOG_ON_ACCEPT  1
@@ -175,7 +175,7 @@ protected:
 	// 通信加密key 默认blowfish
 	std::string encryptionKey;
 
-	ProxySender* pProxySender_;
+	ProxyForwarder* pProxyForwarder_;
 
 	COMPONENT_CLIENT_TYPE clientComponentType_;
 };

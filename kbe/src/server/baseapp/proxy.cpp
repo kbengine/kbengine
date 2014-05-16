@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.hpp"
 #include "proxy.hpp"
-#include "proxy_sender.hpp"
+#include "proxy_forwarder.hpp"
 #include "profile.hpp"
 #include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
@@ -64,12 +64,12 @@ dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
 encryptionKey(),
-pProxySender_(NULL),
+pProxyForwarder_(NULL),
 clientComponentType_(UNKNOWN_CLIENT_COMPONENT_TYPE)
 {
 	Baseapp::getSingleton().incProxicesCount();
 
-	pProxySender_ = new ProxySender(this);
+	pProxyForwarder_ = new ProxyForwarder(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ Proxy::~Proxy()
 		pChannel->condemn();
 	}
 
-	SAFE_RELEASE(pProxySender_);
+	SAFE_RELEASE(pProxyForwarder_);
 }
 
 //-------------------------------------------------------------------------------------

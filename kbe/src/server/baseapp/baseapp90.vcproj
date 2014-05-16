@@ -239,7 +239,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\proxy_sender.cpp"
+				RelativePath=".\proxy_forwarder.cpp"
 				>
 			</File>
 			<File
@@ -323,11 +323,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\proxy_interface_macros.hpp"
+				RelativePath=".\proxy_forwarder.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\proxy_sender.hpp"
+				RelativePath=".\proxy_interface_macros.hpp"
 				>
 			</File>
 			<File

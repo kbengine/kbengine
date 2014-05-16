@@ -13,7 +13,7 @@ SRCS =						\
 	sync_entitystreamtemplate_handler	\
 	main					\
 	proxy					\
-	proxy_sender				\
+	proxy_forwarder				\
 	py_file_descriptor			\
 	profile
 
