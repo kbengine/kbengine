@@ -340,8 +340,6 @@
 		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 		
-		<allowUnencryptedLogins> false </allowUnencryptedLogins>		<!-- Type: Boolean -->
-		
 		<!-- 加密登录信息
 			可选加密:
 				0: 无加密
