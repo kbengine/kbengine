@@ -21,8 +21,8 @@ http://www.kbengine.org
 	online_docs	: http://www.kbengine.org/docs/
 
 ##Support
-	Email		: admin@kbengine.org
-	Maillist	: https://groups.google.com/forum/#!forum/kbengine_maillist
+	Email		: kbengine_maillist@googlegroups.com
+	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
 ## QQ交流群
 	群1		: 16535321
