@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;../../lib/third_party/jwsmtp/jwsmtp/jwsmtp"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jwsmtp/jwsmtp/jwsmtp"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;ENABLE_WATCHERS;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -111,7 +111,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;../../lib/third_party/jwsmtp/jwsmtp/jwsmtp"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jwsmtp/jwsmtp/jwsmtp"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;ENABLE_WATCHERS;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

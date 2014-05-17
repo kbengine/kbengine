@@ -210,7 +210,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "resourcemgr", "server\resou
 		{2992ABDB-0853-4C43-B9E2-98D4211192EE} = {2992ABDB-0853-4C43-B9E2-98D4211192EE}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zip", "lib\third_party\zip\zip2008.vcproj", "{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zip", "lib\dependencies\zip\zip2008.vcproj", "{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "billingsystem", "server\tools\billing_system\billingsystem90.vcproj", "{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -242,7 +242,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "lib\python\P
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyexpat", "lib\python\PCbuild\pyexpat.vcproj", "{D06B6426-4762-44CC-8BAD-D79052507F2F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jwsmtp", "lib\third_party\jwsmtp\jwsmtp.vcproj", "{45A08C1B-D249-42C4-932C-615ED3924CBB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jwsmtp", "lib\dependencies\jwsmtp\jwsmtp.vcproj", "{45A08C1B-D249-42C4-932C-615ED3924CBB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "navigation", "lib\navigation\navigation90.vcproj", "{9085A36E-CAF8-4E86-93AF-373D2554026B}"
 EndProject
@@ -250,30 +250,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dependencies", "dependencie
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{C57D8946-CC54-4360-89FA-DAC04E93423A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "lib\third_party\openssl\vcbuild\libeay32\libeay32.vcproj", "{26195A87-700C-42D6-A271-20B6CACC6249}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay32", "lib\dependencies\openssl\vcbuild\libeay32\libeay32.vcproj", "{26195A87-700C-42D6-A271-20B6CACC6249}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "lib\third_party\openssl\vcbuild\ssleay32\ssleay32.vcproj", "{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay32", "lib\dependencies\openssl\vcbuild\ssleay32\ssleay32.vcproj", "{678E55F0-E0F7-4E52-82E4-9AD50F0753B8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "srv-apps", "srv-apps", "{89F7F2F7-EB4D-4810-AA06-A96D592678E6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apr", "lib\third_party\apr\apr.vcproj", "{C6C836E6-2899-458A-90BA-184192342D30}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apr", "lib\dependencies\apr\apr.vcproj", "{C6C836E6-2899-458A-90BA-184192342D30}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aprutil", "lib\third_party\apr-util\aprutil.vcproj", "{7CDBBFFF-3B84-413E-BA1A-47CB8D454A46}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aprutil", "lib\dependencies\apr-util\aprutil.vcproj", "{7CDBBFFF-3B84-413E-BA1A-47CB8D454A46}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C6C836E6-2899-458A-90BA-184192342D30} = {C6C836E6-2899-458A-90BA-184192342D30}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log4cxx", "lib\third_party\log4cxx\projects\log4cxx.vcproj", "{561FA9F7-14D0-4D94-822C-AAE9B08AACEF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log4cxx", "lib\dependencies\log4cxx\projects\log4cxx.vcproj", "{561FA9F7-14D0-4D94-822C-AAE9B08AACEF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C6C836E6-2899-458A-90BA-184192342D30} = {C6C836E6-2899-458A-90BA-184192342D30}
 		{7CDBBFFF-3B84-413E-BA1A-47CB8D454A46} = {7CDBBFFF-3B84-413E-BA1A-47CB8D454A46}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "expat", "lib\third_party\apr-util\xml\expat\lib\expat.vcproj", "{7E8F0CA1-081E-42B2-94D9-74AE146A47AF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "expat", "lib\dependencies\apr-util\xml\expat\lib\expat.vcproj", "{7E8F0CA1-081E-42B2-94D9-74AE146A47AF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_json", "lib\third_party\jsoncpp\makefiles\vs71\lib_json.vcproj", "{B84F7231-16CE-41D8-8C08-7B523FF4225B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_json", "lib\dependencies\jsoncpp\makefiles\vs71\lib_json.vcproj", "{B84F7231-16CE-41D8-8C08-7B523FF4225B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tmxparser", "lib\third_party\tmxparser\tmxparser\tmxparser.vcproj", "{42FC1F89-7136-45E8-94E3-594C173C2937}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tmxparser", "lib\dependencies\tmxparser\tmxparser\tmxparser.vcproj", "{42FC1F89-7136-45E8-94E3-594C173C2937}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

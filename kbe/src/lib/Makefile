@@ -35,12 +35,12 @@ all install clean full:
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
 	cd xmlplus && $(MAKE) $@
-	cd third_party/zip && $(MAKE) $@
-	cd third_party/g3dlite && $(MAKE) $@
-	cd third_party/tinyxml && $(MAKE) $@
-	cd third_party/sigar/linux && $(MAKE) $@
-	cd third_party/jsoncpp/src/lib_json && $(MAKE) $@
-	cd third_party/tmxparser && $(MAKE) $@
+	cd dependencies/zip && $(MAKE) $@
+	cd dependencies/g3dlite && $(MAKE) $@
+	cd dependencies/tinyxml && $(MAKE) $@
+	cd dependencies/sigar/linux && $(MAKE) $@
+	cd dependencies/jsoncpp/src/lib_json && $(MAKE) $@
+	cd dependencies/tmxparser && $(MAKE) $@
 
 UNITTEST_LIBS = cstdkbe \
 				entitydef \

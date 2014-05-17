@@ -221,7 +221,7 @@ PROFILE_TASK=	$(srcdir)/Tools/pybench/pybench.py -n 2 --with-gc --with-syscheck
 
 LOCALMODLIBS=                  -L$(SSL)/lib -lssl -lcrypto 
 BASEMODLIBS=
-SSL=$(KBE_ROOT)/kbe/src/lib/third_party/openssl
+SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 PYTHONPATH=$(COREPYTHONPATH)
 COREPYTHONPATH=$(DESTPATH)$(SITEPATH)$(TESTPATH)$(MACHDEPPATH)$(EXTRAMACHDEPPATH)
 EXTRAMACHDEPPATH=

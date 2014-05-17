@@ -71,7 +71,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
-#include "third_party/tinyxml/tinyxml.h"
+#include "dependencies/tinyxml/tinyxml.h"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

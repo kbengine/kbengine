@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../third_party/g3dlite;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../dependencies/g3dlite;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -119,7 +119,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../third_party/g3dlite;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../dependencies/g3dlite;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

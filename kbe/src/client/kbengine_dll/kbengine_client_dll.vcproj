@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include"
 				PreprocessorDefinitions="KBE_CLIENT;USE_OPENSSL;WIN32;_DEBUG;_WINDOWS;_USRDLL;CLIENT_DLL_EXPORTS;ENABLE_WATCHERS;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include"
 				PreprocessorDefinitions="KBE_CLIENT;USE_OPENSSL;WIN32;NDEBUG;_WINDOWS;_USRDLL;CLIENT_DLL_EXPORTS;ENABLE_WATCHERS;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_CLIENT"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

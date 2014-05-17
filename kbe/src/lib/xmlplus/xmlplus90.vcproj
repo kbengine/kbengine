@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;__LIB_DLLAPI__;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -110,7 +110,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -171,27 +171,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\third_party\tinyxml\tinystr.cpp"
+				RelativePath="..\dependencies\tinyxml\tinystr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\third_party\tinyxml\tinystr.h"
+				RelativePath="..\dependencies\tinyxml\tinystr.h"
 				>
 			</File>
 			<File
-				RelativePath="..\third_party\tinyxml\tinyxml.cpp"
+				RelativePath="..\dependencies\tinyxml\tinyxml.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\third_party\tinyxml\tinyxml.h"
+				RelativePath="..\dependencies\tinyxml\tinyxml.h"
 				>
 			</File>
 			<File
-				RelativePath="..\third_party\tinyxml\tinyxmlerror.cpp"
+				RelativePath="..\dependencies\tinyxml\tinyxmlerror.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\third_party\tinyxml\tinyxmlparser.cpp"
+				RelativePath="..\dependencies\tinyxml\tinyxmlparser.cpp"
 				>
 			</File>
 			<File

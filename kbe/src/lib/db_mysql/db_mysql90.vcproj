@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../third_party/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql;../../lib/third_party;../../lib/third_party/openssl/include"
+				AdditionalIncludeDirectories="../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -110,7 +110,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../third_party/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql;../../lib/third_party;../../lib/third_party/openssl/include"
+				AdditionalIncludeDirectories="../dependencies/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/dependencies/log4cxx/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
