@@ -1,4 +1,4 @@
-KBEngine -- open source mmog server engine.
+KBEngine -- open source MMOG server engine.
 ========
 
 ##Homepage
@@ -30,8 +30,8 @@ http://www.kbengine.org
 
 ##What is KBEngine?
 
-An open source mmog server engine, Using a simple protocol will be able to make the client and server interaction,
-To use the KBEngine plugin quick combine with (unity3d, ogre, cocos2d, html5, etc..) to form a complete client.
+An open source MMOG server engine, Using a simple protocol will be able to make the client and server interaction,
+To use the KBEngine plugin quick combine with (Unity3D, OGRE, Cocos2d, HTML5, etc.) to form a complete client.
 
 Engine framework written using c + +, Game logic layer using Python, 
 developers do not need to re-implement some common server-side technology,
@@ -43,7 +43,7 @@ load limit depends on the logic of the game itself.)
 
 ## 什么是KBEngine?
 KBEngine是一款开源的游戏服务端引擎，使用简单的约定协议就能够使客户端与服务端进行交互，
-使用KBEngine插件能够快速与(unity3d, ogre, cocos2d, html5, 等等.)技术结合形成一个完整的客户端。
+使用KBEngine插件能够快速与(Unity3D, OGRE, Cocos2d, HTML5, 等等)技术结合形成一个完整的客户端。
 
 服务端底层框架使用c++编写， 游戏逻辑层使用Python， 开发者无需重复的实现一些游戏服务端通用的底层技术，
 将精力真正集中到游戏开发层面上来，快速的打造各种网络游戏。
