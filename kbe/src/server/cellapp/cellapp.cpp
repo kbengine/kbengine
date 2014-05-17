@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "space.hpp"
 #include "profile.hpp"
 #include "witness.hpp"
-#include "range_node.hpp"
+#include "coordinate_node.hpp"
 #include "aoi_trigger.hpp"
 #include "cellapp_interface.hpp"
 #include "entity_remotemethod.hpp"

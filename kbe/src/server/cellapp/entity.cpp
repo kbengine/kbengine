@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "all_clients.hpp"
 #include "client_entity.hpp"
 #include "controllers.hpp"	
-#include "entity_range_node.hpp"
+#include "entity_coordinate_node.hpp"
 #include "proximity_controller.hpp"
 #include "move_controller.hpp"	
 #include "movetopoint_handler.hpp"	

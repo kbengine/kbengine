@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "witness.hpp"
 #include "entity.hpp"
 #include "aoi_trigger.hpp"
-#include "entity_range_node.hpp"
+#include "entity_coordinate_node.hpp"
 
 namespace KBEngine{	
 
