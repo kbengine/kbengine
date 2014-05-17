@@ -18,30 +18,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_RANGE_NODE_HPP__
-#define __KBE_RANGE_NODE_HPP__
+#ifndef __KBE_COORDINATE_NODE_HPP__
+#define __KBE_COORDINATE_NODE_HPP__
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"	
 
 namespace KBEngine{
 
-#define RANGENODE_FLAG_UNKNOWN				0x00000000
-#define RANGENODE_FLAG_ENTITY				0x00000001		// 一个Entity节点
-#define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
-#define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
-#define RANGENODE_FLAG_REMOVEING			0x00000008		// 删除节点
-#define RANGENODE_FLAG_REMOVED				0x00000010		// 删除节点
-#define RANGENODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
+#define COORDINATE_NODE_FLAG_UNKNOWN				0x00000000
+#define COORDINATE_NODE_FLAG_ENTITY					0x00000001		// 一个Entity节点
+#define COORDINATE_NODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
+#define COORDINATE_NODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
+#define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除节点
+#define COORDINATE_NODE_FLAG_REMOVED				0x00000010		// 删除节点
+#define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
 
-#define RANGENODE_FLAG_HIDE_OR_REMOVED		(RANGENODE_FLAG_REMOVED | RANGENODE_FLAG_HIDE)
+#define COORDINATE_NODE_FLAG_HIDE_OR_REMOVED		(COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_HIDE)
 
-class RangeList;
-class RangeNode
+class CoordinateSystem;
+class CoordinateNode
 {
 public:
-	RangeNode(RangeList* pRangeList = NULL);
-	virtual ~RangeNode();
+	CoordinateNode(CoordinateSystem* pCoordinateSystem = NULL);
+	virtual ~CoordinateNode();
 	
 	INLINE void flags(uint32 v);
 	INLINE uint32 flags()const;
@@ -86,43 +86,43 @@ public:
 	void debugY();
 	void debugZ();
 
-	INLINE void pRangeList(RangeList* p);
-	INLINE RangeList* pRangeList()const;
+	INLINE void pCoordinateSystem(CoordinateSystem* p);
+	INLINE CoordinateSystem* pCoordinateSystem()const;
 
 	/**
 		获取链表的前后端指针
 	*/
-	INLINE RangeNode* pPrevX()const;
-	INLINE RangeNode* pNextX()const;
-	INLINE RangeNode* pPrevY()const;
-	INLINE RangeNode* pNextY()const;
-	INLINE RangeNode* pPrevZ()const;
-	INLINE RangeNode* pNextZ()const;
+	INLINE CoordinateNode* pPrevX()const;
+	INLINE CoordinateNode* pNextX()const;
+	INLINE CoordinateNode* pPrevY()const;
+	INLINE CoordinateNode* pNextY()const;
+	INLINE CoordinateNode* pPrevZ()const;
+	INLINE CoordinateNode* pNextZ()const;
 
 	/**
 		设置链表的前后端指针
 	*/
-	INLINE void pPrevX(RangeNode* pNode);
-	INLINE void pNextX(RangeNode* pNode);
-	INLINE void pPrevY(RangeNode* pNode);
-	INLINE void pNextY(RangeNode* pNode);
-	INLINE void pPrevZ(RangeNode* pNode);
-	INLINE void pNextZ(RangeNode* pNode);
+	INLINE void pPrevX(CoordinateNode* pNode);
+	INLINE void pNextX(CoordinateNode* pNode);
+	INLINE void pPrevY(CoordinateNode* pNode);
+	INLINE void pNextY(CoordinateNode* pNode);
+	INLINE void pPrevZ(CoordinateNode* pNode);
+	INLINE void pNextZ(CoordinateNode* pNode);
 
 	/**
 		某个节点变动经过了本节点
 		@isfront: 向前移动还是向后移动
 	*/
-	virtual void onNodePassX(RangeNode* pNode, bool isfront);
-	virtual void onNodePassY(RangeNode* pNode, bool isfront);
-	virtual void onNodePassZ(RangeNode* pNode, bool isfront);
+	virtual void onNodePassX(CoordinateNode* pNode, bool isfront);
+	virtual void onNodePassY(CoordinateNode* pNode, bool isfront);
+	virtual void onNodePassZ(CoordinateNode* pNode, bool isfront);
 
 	virtual void onRemove();
 
 	/**
 		父节点删除
 	*/
-	virtual void onParentRemove(RangeNode* pParentNode){}
+	virtual void onParentRemove(CoordinateNode* pParentNode){}
 
 	/**
 		当节点有变动时，需要更新它在list中的
@@ -140,14 +140,14 @@ public:
 
 protected:
 	// 链表的前端和后端
-	RangeNode* pPrevX_;
-	RangeNode* pNextX_;
-	RangeNode* pPrevY_;
-	RangeNode* pNextY_;
-	RangeNode* pPrevZ_;
-	RangeNode* pNextZ_;
+	CoordinateNode* pPrevX_;
+	CoordinateNode* pNextX_;
+	CoordinateNode* pPrevY_;
+	CoordinateNode* pNextY_;
+	CoordinateNode* pPrevZ_;
+	CoordinateNode* pNextZ_;
 
-	RangeList* pRangeList_;
+	CoordinateSystem* pCoordinateSystem_;
 
 	float x_, y_, z_;
 	float old_xx_, old_yy_, old_zz_;
@@ -162,6 +162,6 @@ protected:
 }
 
 #ifdef CODE_INLINE
-#include "range_node.ipp"
+#include "coordinate_node.ipp"
 #endif
 #endif

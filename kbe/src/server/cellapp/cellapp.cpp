@@ -240,7 +240,7 @@ bool Cellapp::initializeEnd()
 	pWitnessedTimeoutHandler_ = new WitnessedTimeoutHandler();
 
 	//  «∑Òπ‹¿ÌY÷·
-	RangeList::hasY = g_kbeSrvConfig.getCellApp().rangelist_hasY;
+	CoordinateSystem::hasY = g_kbeSrvConfig.getCellApp().coordinateSystem_hasY;
 
 	mainDispatcher_.clearSpareTime();
 

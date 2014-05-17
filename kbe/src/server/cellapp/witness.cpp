@@ -158,7 +158,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 	{
 		if(pAOITrigger_ == NULL)
 		{
-			pAOITrigger_ = new AOITrigger((RangeNode*)pEntity_->pEntityRangeNode(), aoiRadius_, aoiRadius_);
+			pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
 		}
 		else
 		{
@@ -256,7 +256,7 @@ void Witness::onEnterSpace(Space* pSpace)
 
 	if(pAOITrigger_)
 	{
-		pAOITrigger_->origin((RangeNode*)pEntity_->pEntityRangeNode());
+		pAOITrigger_->origin((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		pAOITrigger_->install();
 	}
 }

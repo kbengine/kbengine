@@ -18,51 +18,51 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_RANGE_LIST_HPP__
-#define __KBE_RANGE_LIST_HPP__
+#ifndef __KBE_COORDINATE_SYSTEM_HPP__
+#define __KBE_COORDINATE_SYSTEM_HPP__
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"	
 
 namespace KBEngine{
 
-class RangeNode;
+class CoordinateNode;
 
-class RangeList
+class CoordinateSystem
 {
 public:
-	RangeList();
-	~RangeList();
+	CoordinateSystem();
+	~CoordinateSystem();
 
 	/**
 		向list中插入节点
 	*/
-	bool insert(RangeNode* pNode);
+	bool insert(CoordinateNode* pNode);
 
 	/**
 		将节点从list中移除
 	*/
-	bool remove(RangeNode* pNode);
-	bool removeReal(RangeNode* pNode);
+	bool remove(CoordinateNode* pNode);
+	bool removeReal(CoordinateNode* pNode);
 	void removeDelNodes();
 	
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
 	*/
-	void update(RangeNode* pNode);
-	void update(RangeNode* pNode, RangeNode& tmpNode, bool isMove);
+	void update(CoordinateNode* pNode);
+	void update(CoordinateNode* pNode, CoordinateNode& tmpNode, bool isMove);
 
 	/**
 		移动节点
 	*/
-	void moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode);
-	void moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode);
-	void moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode);
+	void moveNodeX(CoordinateNode* pNode, float px, CoordinateNode* pCurrNode);
+	void moveNodeY(CoordinateNode* pNode, float py, CoordinateNode* pCurrNode);
+	void moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode* pCurrNode);
 
-	INLINE RangeNode * pFirstXNode()const;
-	INLINE RangeNode * pFirstYNode()const;
-	INLINE RangeNode * pFirstZNode()const;
+	INLINE CoordinateNode * pFirstXNode()const;
+	INLINE CoordinateNode * pFirstYNode()const;
+	INLINE CoordinateNode * pFirstZNode()const;
 
 	INLINE bool isEmpty()const;
 
@@ -73,17 +73,17 @@ private:
 	uint32 size_;
 
 	// 链表的首尾指针
-	RangeNode* first_x_rangeNode_;
-	RangeNode* first_y_rangeNode_;
-	RangeNode* first_z_rangeNode_;
+	CoordinateNode* first_x_coordinateNode_;
+	CoordinateNode* first_y_coordinateNode_;
+	CoordinateNode* first_z_coordinateNode_;
 
-	std::list<RangeNode*> dels_;
+	std::list<CoordinateNode*> dels_;
 	int updating_;
 };
 
 }
 
 #ifdef CODE_INLINE
-#include "range_list.ipp"
+#include "coordinate_system.ipp"
 #endif
 #endif

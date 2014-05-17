@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "trap_trigger.hpp"
 #include "entity.hpp"
 #include "proximity_controller.hpp"	
-#include "entity_range_node.hpp"
+#include "entity_coordinate_node.hpp"
 
 namespace KBEngine{	
 
@@ -31,7 +31,7 @@ ProximityController::ProximityController(Entity* pEntity, float xz, float y, int
 Controller(CONTROLLER_TYPE_PROXIMITY, pEntity, userarg, id),
 pTrapTrigger_(NULL)
 {
-	pTrapTrigger_ = new TrapTrigger(static_cast<EntityRangeNode*>(pEntity->pEntityRangeNode()), 
+	pTrapTrigger_ = new TrapTrigger(static_cast<EntityCoordinateNode*>(pEntity->pEntityCoordinateNode()), 
 								this, xz, y);
 
 	pTrapTrigger_->install();
@@ -45,9 +45,9 @@ ProximityController::~ProximityController()
 }
 
 //-------------------------------------------------------------------------------------
-bool ProximityController::reinstall(RangeNode* pRangeNode)
+bool ProximityController::reinstall(CoordinateNode* pCoordinateNode)
 {
-	return pTrapTrigger_->reinstall(pRangeNode);
+	return pTrapTrigger_->reinstall(pCoordinateNode);
 }
 
 //-------------------------------------------------------------------------------------

@@ -17,41 +17,41 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "range_node.hpp"
-#include "range_list.hpp"
+#include "coordinate_node.hpp"
+#include "coordinate_system.hpp"
 #include "profile.hpp"
 
 #ifndef CODE_INLINE
-#include "range_list.ipp"
+#include "coordinate_system.ipp"
 #endif
 
 namespace KBEngine{	
 
-bool RangeList::hasY = false;
+bool CoordinateSystem::hasY = false;
 
 //-------------------------------------------------------------------------------------
-RangeList::RangeList():
+CoordinateSystem::CoordinateSystem():
 size_(0),
-first_x_rangeNode_(NULL),
-first_y_rangeNode_(NULL),
-first_z_rangeNode_(NULL),
+first_x_coordinateNode_(NULL),
+first_y_coordinateNode_(NULL),
+first_z_coordinateNode_(NULL),
 dels_(),
 updating_(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
-RangeList::~RangeList()
+CoordinateSystem::~CoordinateSystem()
 {
 	dels_.clear();
 
-	if(first_x_rangeNode_)
+	if(first_x_coordinateNode_)
 	{
-		RangeNode* pNode = first_x_rangeNode_;
+		CoordinateNode* pNode = first_x_coordinateNode_;
 		while(pNode != NULL)
 		{
-			RangeNode* pNextNode = pNode->pNextX();
-			pNode->pRangeList(NULL);
+			CoordinateNode* pNextNode = pNode->pNextX();
+			pNode->pCoordinateSystem(NULL);
 			pNode->pPrevX(NULL);
 			pNode->pNextX(NULL);
 			pNode->pPrevY(NULL);
@@ -64,23 +64,23 @@ RangeList::~RangeList()
 			pNode = pNextNode;
 		}
 
-		delete first_x_rangeNode_;
-		first_x_rangeNode_ = NULL;
+		delete first_x_coordinateNode_;
+		first_x_coordinateNode_ = NULL;
 	}
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeList::insert(RangeNode* pNode)
+bool CoordinateSystem::insert(CoordinateNode* pNode)
 {
 	// 如果链表是空的, 初始第一个和最后一个xz节点为该节点
 	if(isEmpty())
 	{
-		first_x_rangeNode_ = pNode;
+		first_x_coordinateNode_ = pNode;
 
-		if(RangeList::hasY)
-			first_y_rangeNode_ = pNode;
+		if(CoordinateSystem::hasY)
+			first_y_coordinateNode_ = pNode;
 
-		first_z_rangeNode_ = pNode;
+		first_z_coordinateNode_ = pNode;
 
 		pNode->pPrevX(NULL);
 		pNode->pNextX(NULL);
@@ -91,7 +91,7 @@ bool RangeList::insert(RangeNode* pNode)
 		pNode->x(pNode->xx());
 		pNode->y(pNode->yy());
 		pNode->z(pNode->zz());
-		pNode->pRangeList(this);
+		pNode->pCoordinateSystem(this);
 
 		size_ = 1;
 		
@@ -104,25 +104,25 @@ bool RangeList::insert(RangeNode* pNode)
 	pNode->old_yy(-FLT_MAX);
 	pNode->old_zz(-FLT_MAX);
 
-	pNode->x(first_x_rangeNode_->x());
-	first_x_rangeNode_->pPrevX(pNode);
-	pNode->pNextX(first_x_rangeNode_);
-	first_x_rangeNode_ = pNode;
+	pNode->x(first_x_coordinateNode_->x());
+	first_x_coordinateNode_->pPrevX(pNode);
+	pNode->pNextX(first_x_coordinateNode_);
+	first_x_coordinateNode_ = pNode;
 
-	if(RangeList::hasY)
+	if(CoordinateSystem::hasY)
 	{
-		pNode->y(first_y_rangeNode_->y());
-		first_y_rangeNode_->pPrevY(pNode);
-		pNode->pNextY(first_y_rangeNode_);
-		first_y_rangeNode_ = pNode;
+		pNode->y(first_y_coordinateNode_->y());
+		first_y_coordinateNode_->pPrevY(pNode);
+		pNode->pNextY(first_y_coordinateNode_);
+		first_y_coordinateNode_ = pNode;
 	}
 	
-	pNode->z(first_z_rangeNode_->z());
-	first_z_rangeNode_->pPrevZ(pNode);
-	pNode->pNextZ(first_z_rangeNode_);
-	first_z_rangeNode_ = pNode;
+	pNode->z(first_z_coordinateNode_->z());
+	first_z_coordinateNode_->pPrevZ(pNode);
+	pNode->pNextZ(first_z_coordinateNode_);
+	first_z_coordinateNode_ = pNode;
 
-	pNode->pRangeList(this);
+	pNode->pCoordinateSystem(this);
 	++size_;
 
 	update(pNode);
@@ -130,16 +130,16 @@ bool RangeList::insert(RangeNode* pNode)
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeList::remove(RangeNode* pNode)
+bool CoordinateSystem::remove(CoordinateNode* pNode)
 {
-	pNode->flags(pNode->flags() | RANGENODE_FLAG_REMOVEING);
+	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
 	pNode->onRemove();
 	update(pNode);
 	
-	pNode->flags(pNode->flags() | RANGENODE_FLAG_REMOVED);
-	if((pNode->flags() & RANGENODE_FLAG_PENDING) > 0)
+	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
+	if((pNode->flags() & COORDINATE_NODE_FLAG_PENDING) > 0)
 	{
-		std::list<RangeNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
+		std::list<CoordinateNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
 		if(iter == dels_.end())
 			dels_.push_back(pNode);
 	}
@@ -152,12 +152,12 @@ bool RangeList::remove(RangeNode* pNode)
 }
 
 //-------------------------------------------------------------------------------------
-void RangeList::removeDelNodes()
+void CoordinateSystem::removeDelNodes()
 {
 	if(dels_.size() == 0)
 		return;
 
-	std::list<RangeNode*>::iterator iter = dels_.begin();
+	std::list<CoordinateNode*>::iterator iter = dels_.begin();
 	for(; iter != dels_.end(); iter++)
 	{
 		removeReal((*iter));
@@ -167,21 +167,21 @@ void RangeList::removeDelNodes()
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeList::removeReal(RangeNode* pNode)
+bool CoordinateSystem::removeReal(CoordinateNode* pNode)
 {
-	if(pNode->pRangeList() == NULL)
+	if(pNode->pCoordinateSystem() == NULL)
 	{
 		return true;
 	}
 
 	// 如果是第一个节点
-	if(first_x_rangeNode_ == pNode)
+	if(first_x_coordinateNode_ == pNode)
 	{
-		first_x_rangeNode_ = first_x_rangeNode_->pNextX();
+		first_x_coordinateNode_ = first_x_coordinateNode_->pNextX();
 
-		if(first_x_rangeNode_)
+		if(first_x_coordinateNode_)
 		{
-			first_x_rangeNode_->pPrevX(NULL);
+			first_x_coordinateNode_->pPrevX(NULL);
 		}
 	}
 	else
@@ -192,16 +192,16 @@ bool RangeList::removeReal(RangeNode* pNode)
 			pNode->pNextX()->pPrevX(pNode->pPrevX());
 	}
 
-	if(RangeList::hasY)
+	if(CoordinateSystem::hasY)
 	{
 		// 如果是第一个节点
-		if(first_y_rangeNode_ == pNode)
+		if(first_y_coordinateNode_ == pNode)
 		{
-			first_y_rangeNode_ = first_y_rangeNode_->pNextY();
+			first_y_coordinateNode_ = first_y_coordinateNode_->pNextY();
 
-			if(first_y_rangeNode_)
+			if(first_y_coordinateNode_)
 			{
-				first_y_rangeNode_->pPrevY(NULL);
+				first_y_coordinateNode_->pPrevY(NULL);
 			}
 		}
 		else
@@ -214,13 +214,13 @@ bool RangeList::removeReal(RangeNode* pNode)
 	}
 
 	// 如果是第一个节点
-	if(first_z_rangeNode_ == pNode)
+	if(first_z_coordinateNode_ == pNode)
 	{
-		first_z_rangeNode_ = first_z_rangeNode_->pNextZ();
+		first_z_coordinateNode_ = first_z_coordinateNode_->pNextZ();
 
-		if(first_z_rangeNode_)
+		if(first_z_coordinateNode_)
 		{
-			first_z_rangeNode_->pPrevZ(NULL);
+			first_z_coordinateNode_->pPrevZ(NULL);
 		}
 	}
 	else
@@ -237,30 +237,30 @@ bool RangeList::removeReal(RangeNode* pNode)
 	pNode->pNextY(NULL);
 	pNode->pPrevZ(NULL);
 	pNode->pNextZ(NULL);
-	pNode->pRangeList(NULL);
+	pNode->pCoordinateSystem(NULL);
 
 	--size_;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void RangeList::moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode)
+void CoordinateSystem::moveNodeX(CoordinateNode* pNode, float px, CoordinateNode* pCurrNode)
 {
 	if(pCurrNode != NULL)
 	{
 		if(pCurrNode->x() > px)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevX();
+			CoordinateNode* pPreNode = pCurrNode->pPrevX();
 			pCurrNode->pPrevX(pNode);
 			if(pPreNode)
 			{
 				pPreNode->pNextX(pNode);
-				if(pNode == first_x_rangeNode_ && pNode->pNextX())
-					first_x_rangeNode_ = pNode->pNextX();
+				if(pNode == first_x_coordinateNode_ && pNode->pNextX())
+					first_x_coordinateNode_ = pNode->pNextX();
 			}
 			else
 			{
-				first_x_rangeNode_ = pNode;
+				first_x_coordinateNode_ = pNode;
 			}
 
 			if(pNode->pPrevX())
@@ -274,7 +274,7 @@ void RangeList::moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode)
 		}
 		else
 		{
-			RangeNode* pNextNode = pCurrNode->pNextX();
+			CoordinateNode* pNextNode = pCurrNode->pNextX();
 			if(pNextNode != pNode)
 			{
 				pCurrNode->pNextX(pNode);
@@ -288,8 +288,8 @@ void RangeList::moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode)
 				{
 					pNode->pNextX()->pPrevX(pNode->pPrevX());
 				
-					if(pNode == first_x_rangeNode_)
-						first_x_rangeNode_ = pNode->pNextX();
+					if(pNode == first_x_coordinateNode_)
+						first_x_coordinateNode_ = pNode->pNextX();
 				}
 
 				pNode->pPrevX(pCurrNode);
@@ -300,23 +300,23 @@ void RangeList::moveNodeX(RangeNode* pNode, float px, RangeNode* pCurrNode)
 }
 
 //-------------------------------------------------------------------------------------
-void RangeList::moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode)
+void CoordinateSystem::moveNodeY(CoordinateNode* pNode, float py, CoordinateNode* pCurrNode)
 {
 	if(pCurrNode != NULL)
 	{
 		if(pCurrNode->y() > py)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevY();
+			CoordinateNode* pPreNode = pCurrNode->pPrevY();
 			pCurrNode->pPrevY(pNode);
 			if(pPreNode)
 			{
 				pPreNode->pNextY(pNode);
-				if(pNode == first_y_rangeNode_ && pNode->pNextY())
-					first_y_rangeNode_ = pNode->pNextY();
+				if(pNode == first_y_coordinateNode_ && pNode->pNextY())
+					first_y_coordinateNode_ = pNode->pNextY();
 			}
 			else
 			{
-				first_y_rangeNode_ = pNode;
+				first_y_coordinateNode_ = pNode;
 			}
 
 			if(pNode->pPrevY())
@@ -330,7 +330,7 @@ void RangeList::moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode)
 		}
 		else
 		{
-			RangeNode* pNextNode = pCurrNode->pNextY();
+			CoordinateNode* pNextNode = pCurrNode->pNextY();
 			if(pNextNode != pNode)
 			{
 				pCurrNode->pNextY(pNode);
@@ -344,8 +344,8 @@ void RangeList::moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode)
 				{
 					pNode->pNextY()->pPrevY(pNode->pPrevY());
 				
-					if(pNode == first_y_rangeNode_)
-						first_y_rangeNode_ = pNode->pNextY();
+					if(pNode == first_y_coordinateNode_)
+						first_y_coordinateNode_ = pNode->pNextY();
 				}
 
 				pNode->pPrevY(pCurrNode);
@@ -356,23 +356,23 @@ void RangeList::moveNodeY(RangeNode* pNode, float py, RangeNode* pCurrNode)
 }
 
 //-------------------------------------------------------------------------------------
-void RangeList::moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode)
+void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode* pCurrNode)
 {
 	if(pCurrNode != NULL)
 	{
 		if(pCurrNode->z() > pz)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevZ();
+			CoordinateNode* pPreNode = pCurrNode->pPrevZ();
 			pCurrNode->pPrevZ(pNode);
 			if(pPreNode)
 			{
 				pPreNode->pNextZ(pNode);
-				if(pNode == first_z_rangeNode_ && pNode->pNextZ())
-					first_z_rangeNode_ = pNode->pNextZ();
+				if(pNode == first_z_coordinateNode_ && pNode->pNextZ())
+					first_z_coordinateNode_ = pNode->pNextZ();
 			}
 			else
 			{
-				first_z_rangeNode_ = pNode;
+				first_z_coordinateNode_ = pNode;
 			}
 
 			if(pNode->pPrevZ())
@@ -386,7 +386,7 @@ void RangeList::moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode)
 		}
 		else
 		{
-			RangeNode* pNextNode = pCurrNode->pNextZ();
+			CoordinateNode* pNextNode = pCurrNode->pNextZ();
 			if(pNextNode != pNode)
 			{
 				pCurrNode->pNextZ(pNode);
@@ -400,8 +400,8 @@ void RangeList::moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode)
 				{
 					pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
 				
-					if(pNode == first_z_rangeNode_)
-						first_z_rangeNode_ = pNode->pNextZ();
+					if(pNode == first_z_coordinateNode_)
+						first_z_coordinateNode_ = pNode->pNextZ();
 				}
 
 				pNode->pPrevZ(pCurrNode);
@@ -412,19 +412,19 @@ void RangeList::moveNodeZ(RangeNode* pNode, float pz, RangeNode* pCurrNode)
 }
 
 //-------------------------------------------------------------------------------------
-void RangeList::update(RangeNode* pNode)
+void CoordinateSystem::update(CoordinateNode* pNode)
 {
-	AUTO_SCOPED_PROFILE("rangeListUpdates");
+	AUTO_SCOPED_PROFILE("coordinateSystemUpdates");
 
-	// DEBUG_MSG(boost::format("RangeList::update:[%1%]:  (%2%  %3%  %4%)\n") % pNode % pNode->xx() % pNode->yy() % pNode->zz());
-	pNode->flags(pNode->flags() | RANGENODE_FLAG_PENDING);
+	// DEBUG_MSG(boost::format("CoordinateSystem::update:[%1%]:  (%2%  %3%  %4%)\n") % pNode % pNode->xx() % pNode->yy() % pNode->zz());
+	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
 	++updating_;
 
 	if(pNode->xx() != pNode->old_xx())
 	{
 		while(true)
 		{
-			RangeNode* pCurrNode = pNode->pPrevX();
+			CoordinateNode* pCurrNode = pNode->pPrevX();
 			while(pCurrNode && pCurrNode != pNode && pCurrNode->x() > pNode->xx())
 			{
 				pNode->x(pCurrNode->x());
@@ -432,10 +432,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -443,7 +443,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassX(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassX(pCurrNode, false);
 
 				if(pCurrNode->pPrevX() == NULL)
@@ -460,10 +460,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -471,7 +471,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassX(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassX(pCurrNode, false);
 
 				if(pCurrNode->pNextX() == NULL)
@@ -489,11 +489,11 @@ void RangeList::update(RangeNode* pNode)
 		}
 	}
 
-	if(RangeList::hasY && pNode->yy() != pNode->old_yy())
+	if(CoordinateSystem::hasY && pNode->yy() != pNode->old_yy())
 	{
 		while(true)
 		{
-			RangeNode* pCurrNode = pNode->pPrevY();
+			CoordinateNode* pCurrNode = pNode->pPrevY();
 			while(pCurrNode && pCurrNode != pNode && pCurrNode->y() > pNode->yy())
 			{
 				pNode->y(pCurrNode->y());
@@ -501,10 +501,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->yy(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -512,7 +512,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassY(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassY(pCurrNode, false);
 
 				if(pCurrNode->pPrevY() == NULL)
@@ -529,10 +529,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->yy(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -540,7 +540,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassY(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassY(pCurrNode, false);
 
 				if(pCurrNode->pNextY() == NULL)
@@ -562,7 +562,7 @@ void RangeList::update(RangeNode* pNode)
 	{
 		while(true)
 		{
-			RangeNode* pCurrNode = pNode->pPrevZ();
+			CoordinateNode* pCurrNode = pNode->pPrevZ();
 			while(pCurrNode && pCurrNode != pNode && pCurrNode->z() > pNode->zz())
 			{
 				pNode->z(pCurrNode->z());
@@ -570,10 +570,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -581,7 +581,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassZ(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassZ(pCurrNode, false);
 
 				if(pCurrNode->pPrevZ() == NULL)
@@ -598,10 +598,10 @@ void RangeList::update(RangeNode* pNode)
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
 
-				if((pNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 						pNode % pCurrNode);
 					*/
@@ -609,7 +609,7 @@ void RangeList::update(RangeNode* pNode)
 					pCurrNode->onNodePassZ(pNode, true);
 				}
 
-				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 					pNode->onNodePassZ(pCurrNode, false);
 
 				if(pCurrNode->pNextZ() == NULL)
@@ -629,18 +629,18 @@ void RangeList::update(RangeNode* pNode)
 
 
 	pNode->resetOld();
-	pNode->flags(pNode->flags() & ~RANGENODE_FLAG_PENDING);
+	pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
 
 	if(updating_ == 0)
 		removeDelNodes();
 
-//	DEBUG_MSG(boost::format("RangeList::update[ x ]:[%1%]\n") % pNode);
-//	first_x_rangeNode_->debugX();
-//	DEBUG_MSG(boost::format("RangeList::update[ y ]:[%1%]\n") % pNode);
-//	if(first_y_rangeNode_)first_y_rangeNode_->debugY();
-//	DEBUG_MSG(boost::format("RangeList::update[ z ]:[%1%]\n") % pNode);
-//	first_z_rangeNode_->debugZ();
+//	DEBUG_MSG(boost::format("CoordinateSystem::update[ x ]:[%1%]\n") % pNode);
+//	first_x_coordinateNode_->debugX();
+//	DEBUG_MSG(boost::format("CoordinateSystem::update[ y ]:[%1%]\n") % pNode);
+//	if(first_y_coordinateNode_)first_y_coordinateNode_->debugY();
+//	DEBUG_MSG(boost::format("CoordinateSystem::update[ z ]:[%1%]\n") % pNode);
+//	first_z_coordinateNode_->debugZ();
 }
 
 //-------------------------------------------------------------------------------------

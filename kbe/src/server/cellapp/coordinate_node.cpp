@@ -18,24 +18,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "range_node.hpp"
-#include "range_list.hpp"
+#include "coordinate_node.hpp"
+#include "coordinate_system.hpp"
 
 #ifndef CODE_INLINE
-#include "range_node.ipp"
+#include "coordinate_node.ipp"
 #endif
 
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-RangeNode::RangeNode(RangeList* pRangeList):
+CoordinateNode::CoordinateNode(CoordinateSystem* pCoordinateSystem):
 pPrevX_(NULL),
 pNextX_(NULL),
 pPrevY_(NULL),
 pNextY_(NULL),
 pPrevZ_(NULL),
 pNextZ_(NULL),
-pRangeList_(pRangeList),
+pCoordinateSystem_(pCoordinateSystem),
 x_(-FLT_MAX),
 y_(-FLT_MAX),
 z_(-FLT_MAX),
@@ -45,33 +45,33 @@ old_zz_(-FLT_MAX),
 #ifdef _DEBUG
 descr_(),
 #endif
-flags_(RANGENODE_FLAG_UNKNOWN)
+flags_(COORDINATE_NODE_FLAG_UNKNOWN)
 {
 }
 
 //-------------------------------------------------------------------------------------
-RangeNode::~RangeNode()
+CoordinateNode::~CoordinateNode()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::update()
+void CoordinateNode::update()
 {
-	if(pRangeList_)
-		pRangeList_->update(this);
+	if(pCoordinateSystem_)
+		pCoordinateSystem_->update(this);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::c_str()
+void CoordinateNode::c_str()
 {
-	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
+	DEBUG_MSG(boost::format("CoordinateNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
 		this % x() % y() % z() %
 		old_xx_ % old_yy_ % old_zz_ %
 		pPrevX_ % pNextX_ % pPrevZ_ % pNextZ_ % descr());
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugX()
+void CoordinateNode::debugX()
 {
 	c_str();
 
@@ -81,13 +81,13 @@ void RangeNode::debugX()
 
 		if(this->pNextX_->x() < x())
 		{
-			ERROR_MSG(boost::format("RangeNode::debugX():: %1% > %2%\n") % this % pNextX_);
+			ERROR_MSG(boost::format("CoordinateNode::debugX():: %1% > %2%\n") % this % pNextX_);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugY()
+void CoordinateNode::debugY()
 {
 	c_str();
 
@@ -97,13 +97,13 @@ void RangeNode::debugY()
 
 		if(this->pNextY_->y() < y())
 		{
-			ERROR_MSG(boost::format("RangeNode::debugY():: %1% > %2%\n") % this % pNextY_);
+			ERROR_MSG(boost::format("CoordinateNode::debugY():: %1% > %2%\n") % this % pNextY_);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::debugZ()
+void CoordinateNode::debugZ()
 {
 	c_str();
 
@@ -113,28 +113,28 @@ void RangeNode::debugZ()
 
 		if(this->pNextZ_->z() < z())
 		{
-			ERROR_MSG(boost::format("RangeNode::debugZ():: %1% > %2%\n") % this % pNextZ_);
+			ERROR_MSG(boost::format("CoordinateNode::debugZ():: %1% > %2%\n") % this % pNextZ_);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassX(RangeNode* pNode, bool isfront)
+void CoordinateNode::onNodePassX(CoordinateNode* pNode, bool isfront)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassY(RangeNode* pNode, bool isfront)
+void CoordinateNode::onNodePassY(CoordinateNode* pNode, bool isfront)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassZ(RangeNode* pNode, bool isfront)
+void CoordinateNode::onNodePassZ(CoordinateNode* pNode, bool isfront)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onRemove()
+void CoordinateNode::onRemove()
 {
 	x_ = -FLT_MAX;
 }

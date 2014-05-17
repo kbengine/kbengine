@@ -235,11 +235,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\coordinate_node.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\coordinate_system.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity_range_node.cpp"
+				RelativePath=".\entity_coordinate_node.cpp"
 				>
 			</File>
 			<File
@@ -288,14 +296,6 @@
 			</File>
 			<File
 				RelativePath=".\proximity_controller.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\range_list.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\range_node.cpp"
 				>
 			</File>
 			<File
@@ -395,15 +395,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\coordinate_node.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\coordinate_system.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity_interface_macros.hpp"
+				RelativePath=".\entity_coordinate_node.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity_range_node.hpp"
+				RelativePath=".\entity_interface_macros.hpp"
 				>
 			</File>
 			<File
@@ -455,14 +463,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\range_list.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\range_node.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\range_trigger.hpp"
 				>
 			</File>
@@ -504,15 +504,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\coordinate_node.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\coordinate_system.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\entity.ipp"
-			>
-		</File>
-		<File
-			RelativePath=".\range_list.ipp"
-			>
-		</File>
-		<File
-			RelativePath=".\range_node.ipp"
 			>
 		</File>
 		<File

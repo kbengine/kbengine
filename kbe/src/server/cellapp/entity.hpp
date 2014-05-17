@@ -52,8 +52,8 @@ class EntityMailbox;
 class Cellapp;
 class Witness;
 class AllClients;
-class RangeList;
-class EntityRangeNode;
+class CoordinateSystem;
+class EntityCoordinateNode;
 class Controller;
 class Controllers;
 class Space;
@@ -465,13 +465,13 @@ public:
 	/**
 		获取entity所在节点
 	*/
-	INLINE EntityRangeNode* pEntityRangeNode()const;
+	INLINE EntityCoordinateNode* pEntityCoordinateNode()const;
 
 	/**
 		安装卸载节点
 	*/
-	void installRangeNodes(RangeList* pRangeList);
-	void uninstallRangeNodes(RangeList* pRangeList);
+	void installCoordinateNodes(CoordinateSystem* pCoordinateSystem);
+	void uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem);
 
 	/**
 		获取entity位置朝向在某时间是否改变过
@@ -530,7 +530,7 @@ protected:
 	AllClients*												otherClients_;
 
 	// entity节点
-	EntityRangeNode*										pEntityRangeNode_;					
+	EntityCoordinateNode*									pEntityCoordinateNode_;					
 
 	// 控制器管理器
 	Controllers*											pControllers_;						

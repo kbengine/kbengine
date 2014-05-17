@@ -109,7 +109,7 @@ witnesses_(),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
-pEntityRangeNode_(NULL),
+pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers()),
 pMoveController_(NULL),
 pyPositionChangedCallback_(),
@@ -125,7 +125,7 @@ layer_(0)
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
-		pEntityRangeNode_ = new EntityRangeNode(this);
+		pEntityCoordinateNode_ = new EntityCoordinateNode(this);
 	}
 }
 
@@ -147,7 +147,7 @@ Entity::~Entity()
 	}
 
 	SAFE_RELEASE(pControllers_);
-	SAFE_RELEASE(pEntityRangeNode_);
+	SAFE_RELEASE(pEntityCoordinateNode_);
 
 	Py_DECREF(pPyPosition_);
 	pPyPosition_ = NULL;
@@ -157,19 +157,19 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::installRangeNodes(RangeList* pRangeList)
+void Entity::installCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-		pRangeList->insert((KBEngine::RangeNode*)pEntityRangeNode());
+		pCoordinateSystem->insert((KBEngine::CoordinateNode*)pEntityCoordinateNode());
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::uninstallRangeNodes(RangeList* pRangeList)
+void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
-		pRangeList->remove((KBEngine::RangeNode*)pEntityRangeNode());
-		pEntityRangeNode_ = new EntityRangeNode(this);
+		pCoordinateSystem->remove((KBEngine::CoordinateNode*)pEntityCoordinateNode());
+		pEntityCoordinateNode_ = new EntityCoordinateNode(this);
 	}
 }
 
@@ -808,7 +808,7 @@ void Entity::restoreProximitys()
 		if(iter->second->type() == Controller::CONTROLLER_TYPE_PROXIMITY)
 		{
 			ProximityController* pProximityController = static_cast<ProximityController*>(iter->second.get());
-			pProximityController->reinstall(static_cast<RangeNode*>(this->pEntityRangeNode()));
+			pProximityController->reinstall(static_cast<CoordinateNode*>(this->pEntityCoordinateNode()));
 		}
 	}
 }
@@ -816,7 +816,7 @@ void Entity::restoreProximitys()
 //-------------------------------------------------------------------------------------
 uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 {
-	if(range_xz <= 0.0f || (RangeList::hasY && range_y <= 0.0f))
+	if(range_xz <= 0.0f || (CoordinateSystem::hasY && range_y <= 0.0f))
 	{
 		ERROR_MSG(boost::format("Entity::addProximity: range(xz=%1%, y=%2%) <= 0.0f! entity[%3%:%4%]\n") % 
 			range_xz % range_y % getScriptName() % getID());
@@ -824,7 +824,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 		return 0;
 	}
 	
-	if(this->pEntityRangeNode() == NULL || this->pEntityRangeNode()->pRangeList() == NULL)
+	if(this->pEntityCoordinateNode() == NULL || this->pEntityCoordinateNode()->pCoordinateSystem() == NULL)
 	{
 		ERROR_MSG(boost::format("Entity::addProximity: %1%(%2%) not in world!\n") % 
 			getScriptName() % getID());
@@ -1175,8 +1175,8 @@ void Entity::onPyPositionChanged()
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
 	onDefDataChanged(&positionDescription, pPyPosition_);
 
-	if(this->pEntityRangeNode())
-		this->pEntityRangeNode()->update();
+	if(this->pEntityCoordinateNode())
+		this->pEntityCoordinateNode()->update();
 
 	updateLastPos();
 }
@@ -1188,8 +1188,8 @@ void Entity::onPositionChanged()
 		return;
 
 	posChangedTime_ = g_kbetime;
-	if(this->pEntityRangeNode())
-		this->pEntityRangeNode()->update();
+	if(this->pEntityCoordinateNode())
+		this->pEntityCoordinateNode()->update();
 
 	updateLastPos();
 }
@@ -1965,7 +1965,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	std::vector<Entity*> findentities;
 
 	// 用户总是期望在entity附近搜寻， 因此我们从身边搜索
-	EntityRangeNode::entitiesInRange(findentities,  pobj->pEntityRangeNode(), originpos, radius, entityUType);
+	EntityCoordinateNode::entitiesInRange(findentities,  pobj->pEntityCoordinateNode(), originpos, radius, entityUType);
 
 	PyObject* pyList = PyList_New(findentities.size());
 
@@ -2310,9 +2310,9 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	// 本地跳转在未来需要考虑space被分割为多cell的情况， 当前直接操作
 	SPACE_ID lastSpaceID = this->getSpaceID();
 
-	// 先要从rangelist中删除entity节点
+	// 先要从CoordinateSystem中删除entity节点
 	Space* currspace = Spaces::findSpace(this->getSpaceID());
-	this->uninstallRangeNodes(currspace->pRangeList());
+	this->uninstallCoordinateNodes(currspace->pCoordinateSystem());
 
 	// 此时不会扰动ranglist
 	this->setPositionAndDirection(pos, dir);

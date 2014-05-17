@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::isInXRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInXRange(CoordinateNode * pNode)
 {
 	float originX = pRangeTrigger_->origin()->xx();
 
@@ -32,7 +32,7 @@ INLINE bool RangeTriggerNode::isInXRange(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::isInYRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInYRange(CoordinateNode * pNode)
 {
 	float originY = pRangeTrigger_->origin()->yy();
 
@@ -42,7 +42,7 @@ INLINE bool RangeTriggerNode::isInYRange(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::isInZRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInZRange(CoordinateNode * pNode)
 {
 	float originZ = pRangeTrigger_->origin()->zz();
 
@@ -52,7 +52,7 @@ INLINE bool RangeTriggerNode::isInZRange(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::wasInXRange(CoordinateNode * pNode)
 {
 	float originX = old_xx() - old_range_xz_;
 
@@ -62,7 +62,7 @@ INLINE bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::wasInZRange(CoordinateNode * pNode)
 {
 	float originZ = old_zz() - old_range_xz_;
 

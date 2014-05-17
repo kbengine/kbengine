@@ -26,9 +26,9 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-AOITrigger::AOITrigger(RangeNode* origin, float xz, float y):
+AOITrigger::AOITrigger(CoordinateNode* origin, float xz, float y):
 RangeTrigger(origin, xz, y),
-pWitness_(static_cast<EntityRangeNode*>(origin)->pEntity()->pWitness())
+pWitness_(static_cast<EntityCoordinateNode*>(origin)->pEntity()->pWitness())
 {
 }
 
@@ -38,13 +38,13 @@ AOITrigger::~AOITrigger()
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onEnter(RangeNode * pNode)
+void AOITrigger::onEnter(CoordinateNode * pNode)
 {
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
 
-	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
-	Entity* pEntity = pEntityRangeNode->pEntity();
+	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
+	Entity* pEntity = pEntityCoordinateNode->pEntity();
 	if(!pEntity->getScriptModule()->hasClient())
 		return;
 
@@ -52,13 +52,13 @@ void AOITrigger::onEnter(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onLeave(RangeNode * pNode)
+void AOITrigger::onLeave(CoordinateNode * pNode)
 {
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
 
-	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
-	Entity* pEntity = pEntityRangeNode->pEntity();
+	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
+	Entity* pEntity = pEntityCoordinateNode->pEntity();
 	if(!pEntity->getScriptModule()->hasClient())
 		return;
 

@@ -497,7 +497,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "rangemgr_y");
 			if(childnode)
 			{
-				_cellAppInfo.rangelist_hasY = (xml->getValStr(childnode) == "true");
+				_cellAppInfo.coordinateSystem_hasY = (xml->getValStr(childnode) == "true");
 			}
 		}
 

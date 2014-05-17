@@ -169,9 +169,9 @@ INLINE void Entity::pWitness(Witness* w)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityRangeNode* Entity::pEntityRangeNode()const
+INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
 {
-	return pEntityRangeNode_;
+	return pEntityCoordinateNode_;
 }
 
 //-------------------------------------------------------------------------------------

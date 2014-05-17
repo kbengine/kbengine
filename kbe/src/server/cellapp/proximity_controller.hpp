@@ -37,7 +37,7 @@ public:
 	ProximityController(Entity* pEntity, float xz, float y, int32 userarg, uint32 id = 0);
 	~ProximityController();
 	
-	bool reinstall(RangeNode* pRangeNode);
+	bool reinstall(CoordinateNode* pCoordinateNode);
 
 	void onEnter(Entity* pEntity, float xz, float y);
 	void onLeave(Entity* pEntity, float xz, float y);

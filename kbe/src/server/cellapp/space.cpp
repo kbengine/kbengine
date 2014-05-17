@@ -41,7 +41,7 @@ id_(spaceID),
 entities_(),
 hasGeometry_(false),
 pCell_(NULL),
-rangeList_(),
+coordinateSystem_(),
 pNavHandle_(),
 destroyed_(false)
 {
@@ -236,7 +236,7 @@ void Space::addEntity(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::addEntityToNode(Entity* pEntity)
 {
-	pEntity->installRangeNodes(&rangeList_);
+	pEntity->installCoordinateNodes(&coordinateSystem_);
 
 	// 如果身上有trap等触发器还得重新添加进去
 	pEntity->restoreProximitys();
@@ -262,8 +262,8 @@ void Space::removeEntity(Entity* pEntity)
 
 	onLeaveWorld(pEntity);
 
-	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityRangeNode
-	pEntity->uninstallRangeNodes(&rangeList_);
+	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityCoordinateNode
+	pEntity->uninstallCoordinateNodes(&coordinateSystem_);
 	pEntity->onLeaveSpace(this);
 
 	if(pEntity->getID() == this->creatorID())
