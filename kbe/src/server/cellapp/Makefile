@@ -15,7 +15,7 @@ SRCS =						\
 	entity					\
 	entityref				\
 	entity_remotemethod			\
-	entity_range_node			\
+	entity_coordinate_node			\
 	history_event				\
 	loadnavmesh_threadtasks			\
 	main					\
@@ -27,8 +27,8 @@ SRCS =						\
 	navigate_handler			\
 	profile					\
 	proximity_controller			\
-	range_node				\
-	range_list				\
+	coordinate_node				\
+	coordinate_system			\
 	range_trigger				\
 	range_trigger_node			\
 	trap_trigger				\
