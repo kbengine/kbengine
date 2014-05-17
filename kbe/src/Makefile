@@ -6,7 +6,6 @@ endif
 all clean unit_tests unit_tests_clean unit_tests_run:
 	$(MAKE) -C lib $@
 	$(MAKE) -C server $@
-	$(MAKE) -C tools $@
 
 ARCH=
 ifeq ($(shell uname -m),x86_64)
