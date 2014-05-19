@@ -54,8 +54,6 @@ bool Navigation::removeNavigation(std::string name)
 	if(navhandles_.find(name) != navhandles_.end())
 	{
 		NavMeshHandle* pNavMeshHandle = (NavMeshHandle*)iter->second.get();
-		dtFreeNavMeshQuery(pNavMeshHandle->navmeshQuery);
-		dtFreeNavMesh(pNavMeshHandle->navmesh);
 		navhandles_.erase(iter);
 		iter->second->decRef();
 
