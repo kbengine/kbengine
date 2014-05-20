@@ -53,7 +53,6 @@ bool Navigation::removeNavigation(std::string name)
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
 	if(navhandles_.find(name) != navhandles_.end())
 	{
-		NavMeshHandle* pNavMeshHandle = (NavMeshHandle*)iter->second.get();
 		navhandles_.erase(iter);
 		iter->second->decRef();
 
