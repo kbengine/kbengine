@@ -295,7 +295,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 
 					for(size_t ext = 0; ext < extendNames.size(); ext++)
 					{
-						if(extendNames[ext].size() > 0 vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
+						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
 						{
 							results.push_back(path + wstr);
 						}
