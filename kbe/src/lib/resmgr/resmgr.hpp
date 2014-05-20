@@ -64,17 +64,22 @@ public:
 	/*
 		从资源路径中(环境变量中指定的)匹配到完整的资源地址
 	*/
-	std::string matchRes(std::string res);
+	std::string matchRes(const std::string& res);
 	std::string matchRes(const char* res);
 	
-	bool hasRes(std::string res);
+	bool hasRes(const std::string& res);
 	
 	FILE* openRes(std::string res, const char* mode = "r");
 
 	/*
+		列出目录下所有的资源文件
+	*/
+	bool listPathRes(std::wstring path, const std::wstring& extendName, std::vector<std::wstring>& results);
+
+	/*
 		从资源路径中(环境变量中指定的)匹配到目录
 	*/
-	std::string matchPath(std::string path);
+	std::string matchPath(const std::string& path);
 	std::string matchPath(const char* path);
 
 	const std::vector<std::string>& respaths() { 

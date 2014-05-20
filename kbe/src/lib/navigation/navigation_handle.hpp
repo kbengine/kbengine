@@ -114,8 +114,8 @@ public:
 	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 
-	dtNavMesh* navmesh;
-	dtNavMeshQuery* navmeshQuery;
+	std::vector<dtNavMesh*> navmesh_layers;
+	std::vector<dtNavMeshQuery*> navmeshQuery_layers;
 };
 
 class NavTileHandle : public NavigationHandle

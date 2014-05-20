@@ -199,6 +199,16 @@ public:
 		open文件
 	*/
 	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
+
+	/**
+		列出目录下所有文件
+	*/
+	static PyObject* __py_listPathRes(PyObject* self, PyObject* args);
+
+	/**
+		匹配相对路径获得全路径 
+	*/
+	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -438,11 +448,17 @@ bool EntityApp<E>::installPyModules()
 	// 获得资源全路径
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,	METH_VARARGS,	0);
 
-	// 获得资源全路径
+	// 是否存在某个资源
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,			METH_VARARGS,	0);
 
-	// 文件操作
+	// 打开一个文件
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,			METH_VARARGS,	0);
+
+	// 列出目录下所有文件
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	listPathRes,		__py_listPathRes,		METH_VARARGS,	0);
+
+	// 匹配相对路径获得全路径
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,			METH_VARARGS,	0);
 
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
@@ -783,9 +799,161 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
 
 	PyObject *ioMod = PyImport_ImportModule("io");
-	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), const_cast<char*>("ss"), const_cast<char*>(sfullpath.c_str()), fargs);
+
+	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), 
+		const_cast<char*>("ss"), 
+		const_cast<char*>(sfullpath.c_str()), 
+		fargs);
+
 	Py_DECREF(ioMod);
 	return openedFile;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+
+	if(PyArg_ParseTuple(args, "s", &respath) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::string path = Resmgr::getSingleton().matchPath(respath);
+	return PyUnicode_FromStringAndSize(path.c_str(), path.size());
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount < 1 || argCount > 2)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::wstring wExtendName = L"*";
+	PyObject* pathobj = NULL;
+	PyObject* path_argsobj = NULL;
+
+	if(argCount == 1)
+	{
+		if(PyArg_ParseTuple(args, "O", &pathobj) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		if(PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+		
+		if(PyUnicode_Check(path_argsobj))
+		{
+			wchar_t* fargs = NULL;
+			fargs = PyUnicode_AsWideCharString(path_argsobj, NULL);
+			wExtendName = fargs;
+			PyMem_Free(fargs);
+		}
+		else
+		{
+			if(PySequence_Check(path_argsobj))
+			{
+				wExtendName = L"";
+				Py_ssize_t size = PySequence_Size(path_argsobj);
+				for(int i=0; i<size; i++)
+				{
+					PyObject* pyobj = PySequence_GetItem(path_argsobj, i);
+					if(!PyUnicode_Check(pyobj))
+					{
+						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+						PyErr_PrintEx(0);
+						return 0;
+					}
+					
+					wchar_t* wtemp = NULL;
+					wtemp = PyUnicode_AsWideCharString(pyobj, NULL);
+					wExtendName += wtemp;
+					wExtendName += L"|";
+					PyMem_Free(wtemp);
+				}
+			}
+			else
+			{
+				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is error!");
+				PyErr_PrintEx(0);
+				return 0;
+			}
+		}
+	}
+
+	if(!PyUnicode_Check(pathobj))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(wExtendName.size() == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is NULL!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(wExtendName[0] == '.')
+		wExtendName.erase(wExtendName.begin());
+
+	if(wExtendName.size() == 0)
+		wExtendName = L"*";
+
+	wchar_t* respath = PyUnicode_AsWideCharString(pathobj, NULL);
+	if(respath == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* cpath = strutil::wchar2char(respath);
+	std::string foundPath = Resmgr::getSingleton().matchPath(cpath);
+	free(cpath);
+	PyMem_Free(respath);
+
+	respath = strutil::char2wchar(foundPath.c_str());
+
+	std::vector<std::wstring> results;
+	Resmgr::getSingleton().listPathRes(respath, wExtendName, results);
+	PyObject* pyresults = PyTuple_New(results.size());
+
+	std::vector<std::wstring>::iterator iter = results.begin();
+	int i = 0;
+
+	for(; iter != results.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyresults, i++, PyUnicode_FromUnicode((*iter).c_str(), (*iter).size()));
+	}
+
+	free(respath);
+	return pyresults;
 }
 
 template<class E>
