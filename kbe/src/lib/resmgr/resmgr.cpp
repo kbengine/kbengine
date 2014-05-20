@@ -275,7 +275,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 		if(S_ISDIR(s.st_mode))
 		{
 			wchar_t* wstr = strutil::char2wchar(pathstrtmp);
-			listPathRes(wstr, results);
+			listPathRes(wstr, extendName, results);
 			free(wstr);
 		}
 		else
