@@ -949,7 +949,7 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 
 	for(; iter != results.end(); iter++)
 	{
-		PyTuple_SET_ITEM(pyresults, i++, PyUnicode_FromUnicode((*iter).c_str(), (*iter).size()));
+		PyTuple_SET_ITEM(pyresults, i++, PyUnicode_FromUnicode((const Py_UNICODE*)(*iter).c_str(), (*iter).size()));
 	}
 
 	free(respath);
