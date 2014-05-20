@@ -109,20 +109,31 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name)
 	}
 
 	NavigationHandle* pNavigationHandle_ = NULL;
-	std::string path = "spaces/" + name + "/" + name;
-	
-	if(Resmgr::getSingleton().openRes(path + ".navmesh"))
-	{
-		pNavigationHandle_ = NavMeshHandle::create(name);
-	}
-	else if(Resmgr::getSingleton().openRes(path + ".tmx"))
+
+	std::string path = "spaces/" + name;
+
+	if(Resmgr::getSingleton().openRes(path + "/" + name + ".tmx"))
 	{
 		pNavigationHandle_ = NavTileHandle::create(name);
 	}
-	else
+	else 	
 	{
-		return NULL;
+		path = Resmgr::getSingleton().matchPath(path);
+		wchar_t* wpath = strutil::char2wchar(path.c_str());
+		std::wstring wspath = wpath;
+		free(wpath);
+
+		std::vector<std::wstring> results;
+		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
+
+		if(results.size() == 0)
+		{
+			return NULL;
+		}
+
+		pNavigationHandle_ = NavMeshHandle::create(name);
 	}
+
 
 	navhandles_[name] = NavigationHandlePtr(pNavigationHandle_);
 	return pNavigationHandle_;
