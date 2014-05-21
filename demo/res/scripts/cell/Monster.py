@@ -30,7 +30,10 @@ class Monster(KBEngine.Entity,
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		AI.__init__(self) 
-
+		
+		if self.modelID == 20002001:
+			self.layer = 1 # entity所在的层，可以设置多个不同的navmesh层来寻路
+			
 	def initEntity(self):
 		"""
 		virtual method.
