@@ -46,3 +46,5 @@ class SkillAttack(SkillInitiative):
 			receiver.recvDamage(caster.id, self.getID(), 0, random.randint(0, 100))
 		elif self.getID() == 6000101:
 			receiver.recvDamage(caster.id, self.getID(), 0, random.randint(0, 100))
+		elif self.getID() == 7000101:
+			receiver.recvDamage(caster.id, self.getID(), 0, random.randint(0, 10))
