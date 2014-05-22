@@ -79,7 +79,7 @@ START_RUN:
 		private byte[] serverdatas_ = new byte[0];
 		private byte[] clientdatas_ = new byte[0];
 		private string serverVersion_ = "";
-		private string clientVersion_ = "0.1.5";
+		private string clientVersion_ = "0.1.6";
 		
 		public UInt64 entity_uuid = 0;
 		public Int32 entity_id = 0;
