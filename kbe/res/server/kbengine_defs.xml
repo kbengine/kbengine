@@ -7,7 +7,7 @@
 	<!-- 每秒发送到客户端的带宽限制(bit) 
 		(The data sent to the client, the second bandwidth limit (bit))
 	-->
-	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient> <!-- Type: Integer -->
+	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient>				<!-- Type: Integer -->
 	
 	<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
 	什么样的包不带长度信息? 所有能够预先计算出包大小的且永远不变的包不带长度信息， 
@@ -405,38 +405,68 @@
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
 		
-		<!-- 谁是观察者? 玩家就是观察者，观察到的信息会同步给客户端 
-			(Who is witness? Player is witness, The observed information will be synchronized to the client)
+		<!-- 谁是观察者? 玩家就是观察者，观察到的信息会同步给客户端。
+			开发者可以设计为NPC/Monster在被观察时才激活AI，这样可以减少服务端的CPU消耗。参考Entity.onWitnessed
+			(Who is witness? Player is witness, The observed information will be synchronized to the client.
+			Developers can be designed to: Activation (NPC / Monster) AI was observed when, This can reduce server CPU consumption.
+			see also: Entity.onWitnessed.
+			)
 		-->
 		<witness>
-			<!-- 观察者已经离开一个实体时，在timeout(秒)时间范围内没有再次被观察则状态恢复 -->
+			<!-- 当一个实体不再被观察者观察之后，实体并不会马上恢复为未被观察状态，在timeout(秒)时间范围内没有再次被观察则重置状态 
+				(When the observer to stop observing entity, Entity does not recovery immediately to the initial-state,
+				Not observed before timeout again, the recovery state.)
+			-->
 			<timeout> 15 </timeout>										<!-- Type: Integer -->
 		</witness>
 	</cellapp>
 	
 	<baseapp>
+		<!-- 入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
 		<entryScriptFile> kbengine </entryScriptFile>
-		
+
 		<!-- 接口网卡的名称
 			（Name of the interface(NIC)） 
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
-		
+
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the client port range） 
+		-->
 		<externalPorts_min> 20015 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 20019 </externalPorts_max>					<!-- Type: Integer -->
-		
+
+		<!-- 自动存档的时间周期
+			（Automatic archiving time period） 
+		-->
 		<archivePeriod> 100 </archivePeriod> 							<!-- Type: Float -->
+		
+		<!-- 自动备份的时间
+			（Automatic backup time period） 
+		-->
 		<backupPeriod> 10 </backupPeriod>								<!-- Type: Float -->
+		
+		<!-- 是否备份未定义的属性
+			（Whether backup undefined property） 
+		-->
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>		<!-- Type: Boolean -->
-		
+
+		<!-- 负载平衡滤波器指标值
+			（Load balancing Smoothing Bias value） 
+		-->
 		<loadSmoothingBias> 0.01 </loadSmoothingBias>
-		
+
+		<!-- 资源下载带宽限制
+			（Download bandwidth limits） 
+		-->
 		<downloadStreaming>
 			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
 			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
-		
+
 		<!-- entityID分配器，进入溢出范围则请求获取新的ID资源 
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
@@ -444,11 +474,19 @@
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
-		<!-- 当灾难发生后， baseapp进行灾难恢复时， 每次恢复entity的数量 -->
+		<!-- 当灾难发生后，baseapp进行灾难恢复时，每次恢复entity的数量 
+			(When after the disaster, When baseapp recovery, Each time the number of recovery entity's)
+		-->
 		<entityRestoreSize> 32 </entityRestoreSize>
 		
+		<!-- 程序的性能分析
+			（Analysis of program performance） 
+		-->
 		<profiles>
-			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 退出时导出一份记录 -->
+			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 进程退出后将导出一份报告 
+				(if is true, Engine start is completed, start to record profile information, 
+				Process exit will export a report.)
+			-->
 			<cprofile> false </cprofile>
 			<pyprofile> false </pyprofile>
 			<eventprofile> false </eventprofile>
@@ -460,11 +498,15 @@
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- 如果被占用则向后尝试40001.. -->
+		<!-- Telnet服务, 如果端口被占用则向后尝试40001.. 
+			(Telnet service, if the port is occupied backwards to try 40001)
+		-->
 		<telnet_service>
 			<port> 40000 </port>
 			<password> kbe </password>
-			<!-- 命令默认层 -->
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
 		
@@ -479,13 +521,20 @@
 		</shutdown>
 		
 		<respool>
-			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 -->
+			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 
+				(Buffer size is equal to the size of resources, 
+				Less than the buffer resources before they can enter the resource pool)
+			-->
 			<buffer_size> 1024 </buffer_size>
 			
-			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) 
+			(Resources have not been accessed overtime will be destroyed (s))
+			-->
 			<timeout> 600 </timeout>
 			
-			<!-- 资源池检查tick(秒) -->
+			<!-- 资源池检查tick(秒) 
+				(Resource pool check tick (secs))
+			-->
 			<checktick>60</checktick>
 		</respool>
 	</baseapp>
@@ -511,6 +560,9 @@
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the client port range） 
+		-->
 		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 		
@@ -529,19 +581,24 @@
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- 账号的类型
-			1: 普通账号
-			2: email账号(需要激活)
-			3: 智能账号(自动识别Email， 普通号码等) 
+		<!-- 账号的类型								(Account types)
+			1: 普通账号								(Normal Account)
+			2: email账号(需要激活)					(Email Account, Note: activation required.)
+			3: 智能账号(自动识别Email， 普通号码等)	(Smart Account (Email or Normal, etc.))
 		-->
 		<account_type> 3 </account_type>
 		
-		<!-- 用户http回调接口，处理认证、密码重置等 -->
+		<!-- http回调接口，处理认证、密码重置等 
+			(Http-callback interface, handling authentication, password reset, etc.)
+		-->
 		<http_cbhost> localhost </http_cbhost>
 		<http_cbport> 21103 </http_cbport>
 	</loginapp>		
 	
 	<kbmachine>
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the tools port range） 
+		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 	</kbmachine>
@@ -559,15 +616,16 @@
 		<port> 20013 </port>											<!-- Type: Integer -->
 		
 		
-		<!-- 默认启动进程后自动添加这么多个bots 
-			totalcount： 添加总数量
-			ticktime： 每次添加所用时间(s)
-			tickcount： 每次添加数量
+		<!-- 默认启动进程后自动添加这么多个机器人 
+			(After starting the process, automatically add some robots)
+			totalcount	： 添加总数量			(Add the total-number)
+			ticktime	： 每次添加所用时间(s)	(Interval time-secs)
+			tickcount	： 每次添加数量			(Each time you add the number of)
 		-->
 		<defaultAddBots> 
-			<totalcount> 10  </totalcount> <!-- Type: Integer -->
-			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
-			<tickcount> 2  </tickcount> <!-- Type: Integer -->
+			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
+			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
+			<tickcount> 2  </tickcount>									<!-- Type: Integer -->
 		</defaultAddBots>							
 	</bots>
 	
@@ -595,13 +653,20 @@
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
 		<respool>
-			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 -->
+			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 
+				(Buffer size is equal to the size of resources, 
+				Less than the buffer resources before they can enter the resource pool)
+			-->
 			<buffer_size> 1024 </buffer_size>
 			
-			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) 
+			(Resources have not been accessed overtime will be destroyed (s))
+			-->
 			<timeout> 600 </timeout>
 			
-			<!-- 资源池检查tick(秒) -->
+			<!-- 资源池检查tick(秒) 
+				(Resource pool check tick (secs))
+			-->
 			<checktick>60</checktick>
 		</respool>
 	</resourcemgr>
