@@ -22,6 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
 
+#include "navigation_tile_handle.hpp"
+#include "navigation_mesh_handle.hpp"
+
 namespace KBEngine{
 
 KBE_SINGLETON_INIT(Navigation);
