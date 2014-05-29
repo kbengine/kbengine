@@ -106,9 +106,9 @@
 	<ip> localhost </ip>
 	<port> 20013 </port>
 
-	<!-- 如果被占用则向后尝试50001.. -->
+	<!-- 如果被占用则向后尝试51001.. -->
 	<telnet_service>
-		<port> 50000 </port>
+		<port> 51000 </port>
 		<password> kbe </password>
 		<!-- 命令默认层 -->
 		<default_layer> python </default_layer>
