@@ -240,6 +240,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\navigation_mesh_handle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\navigation_tile_handle.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Recast.cpp"
 				>
 			</File>
@@ -354,6 +362,14 @@
 			</File>
 			<File
 				RelativePath=".\navigation_handle.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\navigation_mesh_handle.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\navigation_tile_handle.hpp"
 				>
 			</File>
 			<File
