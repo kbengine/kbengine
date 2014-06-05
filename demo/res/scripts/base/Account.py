@@ -25,7 +25,7 @@ class Account(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
+		INFO_MSG("account[%i] entities enable. mailbox:%s, clientType(%i)" % (self.id, self.client, self.getClientType()))
 		
 		# 如果一个在线的账号被一个客户端登陆并且onLogOnAttempt返回允许
 		# 那么会挤掉之前的客户端， 并且onEntitiesEnabled会再次触发
@@ -97,6 +97,7 @@ class Account(KBEngine.Proxy):
 		CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
 		CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
 		CLIENT_TYPE_BOTS				= 4,	// bots
+		CLIENT_TYPE_MINI				= 5,	// 微型客户端
 		"""
 		spawnPos = (0,0,0)
 		spaceUType = 1
@@ -104,6 +105,9 @@ class Account(KBEngine.Proxy):
 		if self.getClientType() == 2:
 			spaceUType = 2
 			spawnPos = (-97.9299, 0, -158.922)
+		elif self.getClientType() == 5:
+			spaceUType = 3
+			spawnPos = (-97.9299, 1.5, -158.922)
 		else:
 			spaceUType = 1
 			spawnPos = (771.5861, 211.0021, 776.5501)

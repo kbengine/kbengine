@@ -637,7 +637,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && ctype != CLIENT_TYPE_BROWSER)
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && ctype != CLIENT_TYPE_MINI))
 	{
 		std::string clientDigest;
 

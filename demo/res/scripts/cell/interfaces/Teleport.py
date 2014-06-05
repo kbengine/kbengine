@@ -32,7 +32,6 @@ class Teleport:
 		
 		self.getCurrSpaceBase().onLeave(self.id)
 		self.teleport(spaceCellMailbox, position, direction)
-		self.spaceUType = spaceUType
 		
 	def onTeleportSuccess(self, nearbyEntity):
 		"""
@@ -40,6 +39,6 @@ class Teleport:
 		"""
 		DEBUG_MSG("Teleport::onTeleportSuccess: %s" % (nearbyEntity))
 		self.getCurrSpaceBase().onEnter(self.base)
-		
+		self.spaceUType = self.getCurrSpace().spaceUType
 		
 Teleport._timermap = {}
