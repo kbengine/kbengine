@@ -499,6 +499,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				_cellAppInfo.coordinateSystem_hasY = (xml->getValStr(childnode) == "true");
 			}
+
+			childnode = xml->enterNode(node, "entity_posdir_additional_updates");
+			if(childnode)
+			{
+				_cellAppInfo.entity_posdir_additional_updates = xml->getValInt(childnode);
+			}
 		}
 
 		node = xml->enterNode(rootNode, "telnet_service");
