@@ -606,12 +606,12 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
 	{
 		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
-		s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z);
+		s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
 	}
 	else
 	{
 		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePosXZ);
-		s1->appendPackAnyXZ(bpos.x, bpos.z);
+		s1->appendPackAnyXZ(bpos.x, bpos.z, 0.f);
 	}
 
 	(*pForwardBundle).append(*s1);
@@ -758,15 +758,13 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	Position3D relativePos = otherEntity->getPosition() - this->pEntity()->getPosition();
-	const Direction3D& dir = otherEntity->getDirection();
-
 	const VolatileInfo& volatileInfo = otherEntity->getScriptModule()->getVolatileInfo();
 	
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	
 	if((volatileInfo.position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
+		Position3D relativePos = otherEntity->getPosition() - this->pEntity()->getPosition();
 		mstream->appendPackXZ(relativePos.x, relativePos.z);
 
 		if(!otherEntity->isOnGround())
@@ -782,6 +780,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
+		const Direction3D& dir = otherEntity->getDirection();
 		if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
