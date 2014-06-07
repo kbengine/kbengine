@@ -428,11 +428,15 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)const
 
 			break;
 		}
-
-		aliasID++;
+		
+		// ½«ÒªÒç³ö
+		if(aliasID == 255)
+			return false;
+		
+		++aliasID;
 	}
 
-	return aliasID <= 255;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -510,8 +514,9 @@ bool Witness::update()
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
 
 					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
+					
+					KBE_ASSERT(clientAOISize_ == 65535);
 					++clientAOISize_;
-					KBE_ASSERT(clientAOISize_ <= 65535);
 				}
 				else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 				{
