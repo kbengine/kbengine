@@ -9,4 +9,4 @@ TodoList:
   2. do some tech test. 
   3. implement and test client connection with server.
   4. implement a chat client with cocso2dx.
-  5. do more works to implement a base game framework.
+  5. do more works to implement a base game framework or demos.
