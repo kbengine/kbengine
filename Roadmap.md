@@ -1,0 +1,2 @@
+2014-06-07  i decide to write a wrapper for which can be used in cocos2dx. cocos2dx implement client, kbe work as server. this project implement the wrapper libaray.
+first, it is windows version. the roadmap will include ios platform. soon is andriod platform.
