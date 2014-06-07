@@ -515,7 +515,11 @@ bool Witness::update()
 
 					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
 					
-					KBE_ASSERT(clientAOISize_ == 65535);
+					if(clientAOISize_ == 65535)
+					{
+						KBE_ASSERT(false);
+					}
+
 					++clientAOISize_;
 				}
 				else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
