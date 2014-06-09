@@ -137,9 +137,13 @@ class ClusterControllerHandler:
 		self.writePacket("H", MachineInterface_onQueryAllInterfaceInfos)
 		self.writePacket("H", 6 + len(getpass.getuser().encode()) + 1)
 		self.writePacket("i", self.uid)
+
 		for x in getpass.getuser().encode():
-			self.writePacket("B", x)
-			
+			if type(x) == str:
+				self.writePacket("B", ord(x))
+			else:
+				self.writePacket("B", x)
+                           
 		self.writePacket("B", 0)
 		self.sendto()
 		
@@ -148,21 +152,28 @@ class ClusterControllerHandler:
 			return
 		
 		count = 0
-		
+
 		while(count < len(self.recvDatas)):
 			i = 4
 			uid = struct.unpack("i", self.recvDatas[count][0:i])[0]
 			
 			ii = i
 			for x in self.recvDatas[count][i:]:
-				if x == 0:
-					break
-					
+				if type(x) == str:
+					if ord(x) == 0:
+						break
+				else:
+					if x == 0:
+						break
+
 				ii += 1
-			
-			username = self.recvDatas[count][i: ii].decode()
+
+			username = self.recvDatas[count][i: ii];
+			if type(username) == 'bytes':
+				username = username.decode()
+                                
 			ii += 1
-			
+
 			componentType = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
 			ii += 1
 			
@@ -511,10 +522,7 @@ def getDefaultUID():
 	return uid
 	
 if __name__ == "__main__":
-	if sys.version[0] != "3":
-		print("Version does not match, Require the use of python3.x!")
-		return
-		
+
 	clusterHandler = None
 
 	if len(sys.argv)  >= 2:
