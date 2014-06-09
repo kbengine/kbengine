@@ -511,6 +511,10 @@ def getDefaultUID():
 	return uid
 	
 if __name__ == "__main__":
+	if sys.version[0] != "3":
+		print("Version does not match, Require the use of python3.x!")
+		return
+		
 	clusterHandler = None
 
 	if len(sys.argv)  >= 2:
