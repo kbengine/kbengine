@@ -149,6 +149,7 @@ public:
 	*/
 	INLINE void isOnGround(bool v);
 	INLINE bool isOnGround()const;
+	DECLARE_PY_GET_MOTHOD(pyGetIsOnGround);
 
 	/** 
 		设置entity方向和位置 

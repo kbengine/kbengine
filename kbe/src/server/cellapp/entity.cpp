@@ -79,6 +79,7 @@ SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,				0,							0)
 SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,							0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
+SCRIPT_GET_DECLARE("isOnGround",					pyGetIsOnGround,				0,							0)
 SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
@@ -87,7 +88,7 @@ SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,
 SCRIPT_GETSET_DECLARE("shouldAutoBackup",			pyGetShouldAutoBackup,			pySetShouldAutoBackup,		0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
-	
+
 //-------------------------------------------------------------------------------------
 Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule):
 ScriptObject(getScriptType(), true),
@@ -310,6 +311,12 @@ PyObject* Entity::pyGetOtherClients()
 
 	Py_INCREF(clients);
 	return clients; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetIsOnGround()
+{ 
+	return PyBool_FromLong(isOnGround());
 }
 
 //-------------------------------------------------------------------------------------
