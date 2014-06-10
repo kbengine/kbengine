@@ -1,5 +1,16 @@
-1. Read Unity code . setup a demo server. use unity client to track msg and confirm something.
-2. Port some base class. MemoryStream, Bundle ,NetworkInterface , KBEngine
-3. Port some helper class: 
-    Dict, DebugLog
-4. Do some small task.  login connect handle.
+This is my plan of port kbe packet for cocos2dx. The project is to develop a network framework wrapper of kbe. 
+This project finally will be a library which can be used by cocos2dx. with this, you can do some thing under KBE Protocol.
+More like that mmorpg engine. 
+
+1. Read KBE code . Setup a demo server. use unity client to track msg and confirm something.
+2. Get the ported list , write some base utility class. MemoryStream, Bundle ,NetworkInterface , KBEngine singleton.
+3. Port other debug helper class: 
+    Dict Data Type Accessor , DebugInfo DebugError,
+4. Do some small task.  
+   eg: packet generate and decode. 
+5. login connect test. (send login packet to kbe server. and check the response. parse packet and decode it) 
+
+6. Q&A  
+    How to forward or handle client method call?  
+    How to find the correct inject place for our logic? 
+    How to give kbeengine a chance to update? thread or only update ?
