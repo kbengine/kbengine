@@ -64,8 +64,7 @@ CoordinateSystem::~CoordinateSystem()
 			pNode = pNextNode;
 		}
 
-		delete first_x_coordinateNode_;
-		first_x_coordinateNode_ = NULL;
+		SAFE_RELEASE(first_x_coordinateNode_);
 	}
 }
 
