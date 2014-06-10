@@ -1,6 +1,6 @@
 This is my plan of port kbe packet for cocos2dx. The project is to develop a network framework wrapper of kbe. 
 This project finally will be a library which can be used by cocos2dx. with this, you can do some thing under KBE Protocol.
-More like that mmorpg engine. 
+Same with that famious mmorpg engine. 
 
 1. Read KBE code . Setup a demo server. use unity client to track msg and confirm something.
 2. Get the ported list , write some base utility class. MemoryStream, Bundle ,NetworkInterface , KBEngine singleton.
