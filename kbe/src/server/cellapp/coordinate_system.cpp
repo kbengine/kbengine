@@ -501,7 +501,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				pNode->y(pCurrNode->y());
 
 				// 先把节点移动过去
-				moveNodeX(pNode, pNode->yy(), pCurrNode);
+				moveNodeY(pNode, pNode->yy(), pCurrNode);
 
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
@@ -529,7 +529,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				pNode->y(pCurrNode->y());
 
 				// 先把节点移动过去
-				moveNodeX(pNode, pNode->yy(), pCurrNode);
+				moveNodeY(pNode, pNode->yy(), pCurrNode);
 
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
