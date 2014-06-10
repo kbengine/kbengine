@@ -1,3 +1,5 @@
-1. Read Unity code.
-2. Port some base class. MemoryStream Bundle NetworkInterface KBEngine
-3. 
+1. Read Unity code . setup a demo server. use unity client to track msg and confirm something.
+2. Port some base class. MemoryStream, Bundle ,NetworkInterface , KBEngine
+3. Port some helper class: 
+    Dict, DebugLog
+4. Do some small task.  login connect handle.
