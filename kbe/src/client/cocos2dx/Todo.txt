@@ -14,3 +14,4 @@ Same with that famious mmorpg engine.
     How to forward or handle client method call?  
     How to find the correct inject place for our logic? 
     How to give kbeengine a chance to update? thread or only update ?
+    various datatype convert : guid,char,uint8,float,xxxx string 
