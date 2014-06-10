@@ -601,6 +601,9 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		if(!entity->isEnterword())
 		{
 			KBE_ASSERT(entity->getCellMailbox() == NULL);
+			
+			// 初始化一下服务端当前的位置
+			entity->setServerPosition(entity->getPosition());
 
 			// 设置entity的cellMailbox
 			EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
