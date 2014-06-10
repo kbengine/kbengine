@@ -598,8 +598,6 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	lastBasePos = bpos;
-
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 
@@ -618,6 +616,8 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	MemoryStream::ObjPool().reclaimObject(s1);
+
+	lastBasePos = bpos;
 }
 
 //-------------------------------------------------------------------------------------

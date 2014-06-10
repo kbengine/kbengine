@@ -152,6 +152,8 @@ void ClientObjectBase::tickSend()
 			eventHandler_.fire(&eventdata);
 			connectedGateway_ = false;
 			canReset_ = true;
+
+			DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
 		}
 
 		return;
