@@ -35,6 +35,10 @@ Spaces::~Spaces()
 //-------------------------------------------------------------------------------------
 void Spaces::finalise()
 {
+	SPACES::iterator iter = spaces_.begin();
+	for(;iter != spaces_.end(); iter++)
+		iter->second->destroy(0);
+
 	spaces_.clear();
 }
 
