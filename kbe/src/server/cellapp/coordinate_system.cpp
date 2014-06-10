@@ -63,8 +63,55 @@ CoordinateSystem::~CoordinateSystem()
 
 			pNode = pNextNode;
 		}
+		
+		// 上面已经销毁过
+		first_x_coordinateNode_ = NULL;
+	}
 
-		SAFE_RELEASE(first_x_coordinateNode_);
+	if(first_y_coordinateNode_)
+	{
+		CoordinateNode* pNode = first_y_coordinateNode_;
+		while(pNode != NULL)
+		{
+			CoordinateNode* pNextNode = pNode->pNextY();
+			pNode->pCoordinateSystem(NULL);
+			pNode->pPrevX(NULL);
+			pNode->pNextX(NULL);
+			pNode->pPrevY(NULL);
+			pNode->pNextY(NULL);
+			pNode->pPrevZ(NULL);
+			pNode->pNextZ(NULL);
+
+			delete pNode;
+
+			pNode = pNextNode;
+		}
+		
+		// 上面已经销毁过
+		first_y_coordinateNode_ = NULL;
+	}
+
+	if(first_z_coordinateNode_)
+	{
+		CoordinateNode* pNode = first_z_coordinateNode_;
+		while(pNode != NULL)
+		{
+			CoordinateNode* pNextNode = pNode->pNextZ();
+			pNode->pCoordinateSystem(NULL);
+			pNode->pPrevX(NULL);
+			pNode->pNextX(NULL);
+			pNode->pPrevY(NULL);
+			pNode->pNextY(NULL);
+			pNode->pPrevZ(NULL);
+			pNode->pNextZ(NULL);
+
+			delete pNode;
+
+			pNode = pNextNode;
+		}
+		
+		// 上面已经销毁过
+		first_z_coordinateNode_ = NULL;
 	}
 }
 
