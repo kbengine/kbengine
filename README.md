@@ -10,8 +10,8 @@ http://www.kbengine.org
 
 ##Demo sources
 
-	unity3d		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/unity3d
-	ogre		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/ogre
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo
+	ogre		: https://github.com/kbengine/kbengine_ogre_demo
 	html5		: https://github.com/kbengine/kbengine/tree/master/kbe/src/client/html5
 
 
