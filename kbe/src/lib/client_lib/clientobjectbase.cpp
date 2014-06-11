@@ -557,7 +557,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 {
 	ENTITY_ID eid = 0;
 	ENTITY_SCRIPT_UID scriptType;
-	
+	int8 isOnGound = 0;
+
 	s >> eid;
 
 	if(EntityDef::scriptModuleAliasID())
@@ -570,6 +571,9 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	{
 		s >> scriptType;
 	}
+
+	if(s.opsize() > 0)
+		s >> isOnGound;
 
 	if(eid != entityID_ && entityID_ > 0)
 		pEntityIDAliasIDList_.push_back(eid);
@@ -619,8 +623,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		}
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
+		entity->getScriptName() % eid  % isOnGound);
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
@@ -632,6 +636,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	eventdata.roll = entity->getDirection().roll();
 	eventdata.yaw = entity->getDirection().yaw();
 	eventdata.speed = entity->getMoveSpeed();
+	eventdata.isOnGound = isOnGound > 0;
 	eventHandler_.fire(&eventdata);
 
 	if(entityID_ == eid)
@@ -640,7 +645,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		entityPos_ = entity->getPosition();
 		entityDir_ = entity->getDirection();
 	}
-
+	
+	entity->isOnGound(isOnGound > 0);
 	entity->onEnterWorld();
 }
 
@@ -831,7 +837,7 @@ ENTITY_ID ClientObjectBase::readEntityIDFromStream(MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::updatePlayerToServer()
 {
-	if (timestamp() - lastSentUpdateDataTime_ < uint64( stampsPerSecond() * 0.01 ))
+	if (timestamp() - lastSentUpdateDataTime_ < uint64(stampsPerSecond() * 0.01))
 	{
 		return;
 	}
@@ -970,7 +976,7 @@ void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -988,7 +994,7 @@ void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1006,7 +1012,7 @@ void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1024,7 +1030,7 @@ void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1039,7 +1045,7 @@ void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1054,7 +1060,7 @@ void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, FLT_MAX);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1069,7 +1075,7 @@ void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX);
+	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1082,7 +1088,7 @@ void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream&
 	s.readPackXZ(x, z);
 
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, FLT_MAX);
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1105,7 +1111,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, y);
+	_updateVolatileData(eid, x, 0.f, z, r, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1125,12 +1131,271 @@ void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y);
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y,  r;
+	
+	s.readPackXZ(x, z);
+
+	int8 angle;
+
+	s >> angle;
+	y = int82angle(angle);
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, p, r;
+	
+	s.readPackXZ(x, z);
+
+	int8 angle;
+
+	s >> angle;
+	p = int82angle(angle);
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+
+	int8 angle;
+
+	s >> angle;
+	y = int82angle(angle);
+
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, p;
+	
+	s.readPackXZ(x, z);
+
+	int8 angle;
+
+	s >> angle;
+	p = int82angle(angle);
+
+	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, FLT_MAX, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, r;
+	
+	s.readPackXZ(x, z);
+
+	int8 angle;
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX, 1);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, FLT_MAX, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float yaw, p, r;
+
+	int8 angle;
+
+	s >> angle;
+	yaw = int82angle(angle);
+
+	s >> angle;
+	p = int82angle(angle);
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, r, p, yaw, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float yaw, p;
+
+	int8 angle;
+
+	s >> angle;
+	yaw = int82angle(angle);
+
+	s >> angle;
+	p = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float yaw, r;
+
+	int8 angle;
+
+	s >> angle;
+	yaw = int82angle(angle);
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float p, r;
+
+	int8 angle;
+
+	s >> angle;
+	p = int82angle(angle);
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float yaw;
+
+	int8 angle;
+
+	s >> angle;
+	yaw = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float p;
+
+	int8 angle;
+
+	s >> angle;
+	p = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, FLT_MAX, p, FLT_MAX, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+
+	float x, z, y;
+	
+	s.readPackXZ(x, z);
+	s.readPackY(y);
+
+	float r;
+
+	int8 angle;
+
+	s >> angle;
+	r = int82angle(angle);
+
+	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX, 0);
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
-										   float roll, float pitch, float yaw)
+										   float roll, float pitch, float yaw, int8 isOnGound)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
@@ -1145,6 +1410,10 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		ERROR_MSG(boost::format("ClientObjectBase::_updateVolatileData: not found player(%1%).\n") % entityID_);
 		return;
 	}
+
+	// 小于0不设置
+	if(isOnGound >= 0)
+		entity->isOnGound(isOnGound > 0);
 
 	if(!almostEqual(x + y + z, 0.f, 0.000001f))
 	{
@@ -1172,265 +1441,6 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		dir.roll(roll);
 
 	entity->setDirection(dir);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y,  r;
-	
-	s.readPackXZ(x, z);
-
-	int8 angle;
-
-	s >> angle;
-	y = int82angle(angle);
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, p, r;
-	
-	s.readPackXZ(x, z);
-
-	int8 angle;
-
-	s >> angle;
-	p = int82angle(angle);
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-
-	int8 angle;
-
-	s >> angle;
-	y = int82angle(angle);
-
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, p;
-	
-	s.readPackXZ(x, z);
-
-	int8 angle;
-
-	s >> angle;
-	p = int82angle(angle);
-
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, r;
-	
-	s.readPackXZ(x, z);
-
-	int8 angle;
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float yaw, p, r;
-
-	int8 angle;
-
-	s >> angle;
-	yaw = int82angle(angle);
-
-	s >> angle;
-	p = int82angle(angle);
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, r, p, yaw);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float yaw, p;
-
-	int8 angle;
-
-	s >> angle;
-	yaw = int82angle(angle);
-
-	s >> angle;
-	p = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, FLT_MAX, p, yaw);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float yaw, r;
-
-	int8 angle;
-
-	s >> angle;
-	yaw = int82angle(angle);
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, r, FLT_MAX, yaw);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float p, r;
-
-	int8 angle;
-
-	s >> angle;
-	p = int82angle(angle);
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, r, p, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float yaw;
-
-	int8 angle;
-
-	s >> angle;
-	yaw = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, FLT_MAX, FLT_MAX, yaw);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float p;
-
-	int8 angle;
-
-	s >> angle;
-	p = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, FLT_MAX, p, FLT_MAX);
-}
-
-//-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
-
-	float x, z, y;
-	
-	s.readPackXZ(x, z);
-	s.readPackY(y);
-
-	float r;
-
-	int8 angle;
-
-	s >> angle;
-	r = int82angle(angle);
-
-	_updateVolatileData(eid, x, y, z, r, FLT_MAX, FLT_MAX);
 }
 
 //-------------------------------------------------------------------------------------

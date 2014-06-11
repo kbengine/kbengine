@@ -1380,14 +1380,6 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 void Baseapp::onClientEntityEnterWorld(Proxy* base)
 {
 	base->initClientCellPropertys();
-
-	/*
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onEntityEnterWorld);
-	bundle << base->getID();
-	base->getScriptModule()->addSmartUTypeToBundle(bundle);
-	base->getClientMailbox()->postMail(bundle);
-	*/
 }
 
 //-------------------------------------------------------------------------------------
@@ -2220,81 +2212,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		accountName % base->rndUUID() % base->getID() % flags % deadline);
 
 	SAFE_RELEASE(ptinfos);
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID)
-{
-	if(pChannel->isExternal())
-		return;
-
-	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
-	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
-	// KBE_ASSERT(base != NULL);
-	
-	if(base == NULL)
-	{
-		ERROR_MSG(boost::format("Baseapp::onEntityEnterWorldFromCellapp: not found entity %d.\n") % entityID);
-
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
-		CellappInterface::onDestroyCellEntityFromBaseappArgs1::staticAddToBundle((*pBundle), entityID);
-		base->sendToClient(CellappInterface::onDestroyCellEntityFromBaseapp, pBundle);
-	}
-
-	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
-	if(pClientChannel)
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onEntityEnterWorld);
-		(*pBundle) << entityID;
-		base->getScriptModule()->addSmartUTypeToBundle(pBundle);
-
-		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		base->sendToClient(ClientInterface::onEntityEnterWorld, pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID)
-{
-	if(pChannel->isExternal())
-		return;
-
-	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
-	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
-	KBE_ASSERT(base != NULL);
-
-	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
-	if(pClientChannel)
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-
-		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle((*pBundle), entityID);
-
-		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		base->sendToClient(ClientInterface::onEntityLeaveWorld, pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID, SPACE_ID spaceID)
-{
-	if(pChannel->isExternal())
-		return;
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID, SPACE_ID spaceID)
-{
-	if(pChannel->isExternal())
-		return;
 }
 
 //-------------------------------------------------------------------------------------

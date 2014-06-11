@@ -268,7 +268,8 @@ public:
 	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
 	
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, float pitch, float yaw);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, 
+		float pitch, float yaw, int8 isOnGound);
 
 	/** 
 		更新玩家到服务端 

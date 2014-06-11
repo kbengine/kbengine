@@ -116,14 +116,22 @@ class Motion:
 
 		if self.position.distTo(position) <= 0.05:
 			return
+		
+		if dist > 0.0:
+			destPos = Math.Vector3(position) - self.position
+			destPos.normalise()
+			destPos *= dist
+			destPos = position - destPos
+		else:
+			destPos = Math.Vector3(position)
 			
 		self.isMoving = True
 		speed = self.moveSpeed * 0.1
 		
 		if self.canNavigate():
-			self.navigate(tuple(position), speed, dist, speed, 512.0, 1, 0.5, None)
+			self.navigate(destPos, speed, dist, speed, 512.0, 1, 0.5, None)
 		else:
-			self.moveToPoint(tuple(position), speed, None, 1, 1)
+			self.moveToPoint(destPos, speed, None, 1, 1)
 
 	def getStopPoint(self, yaw = None, rayLength = 100.0):
 		"""

@@ -250,31 +250,11 @@ public:
 		从dbmgr获取到账号Entity信息
 	*/
 	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-
-	/** 网络接口
-		通知客户端进入了cell（世界或者AOI)
-	*/
-	void onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
 	
 	/**
 		客户端自身进入世界了
 	*/
 	void onClientEntityEnterWorld(Proxy* base);
-
-	/** 网络接口
-		通知客户端离开了cell（世界或者AOI)
-	*/
-	void onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
-
-	/** 网络接口
-		通知客户端进入了某个space
-	*/
-	void onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
-
-	/** 网络接口
-		通知客户端离开了某个space
-	*/
-	void onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
 
 	/** 网络接口
 		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走

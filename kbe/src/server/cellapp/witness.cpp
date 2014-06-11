@@ -44,6 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define UPDATE_FLAG_YAW_PITCH			0x00000040
 #define UPDATE_FLAG_YAW_ROLL			0x00000080
 #define UPDATE_FLAG_PITCH_ROLL			0x00000100
+#define UPDATE_FLAG_ONGOUND				0x00000200
 
 namespace KBEngine{	
 
@@ -246,6 +247,8 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 	(*pForwardBundle) << pEntity_->getID();
 	pEntity_->getScriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	if(!pEntity_->isOnGround())
+		(*pForwardBundle) << pEntity_->isOnGround();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->getClientMailbox()->postMail(*pSendBundle);
@@ -503,6 +506,8 @@ bool Witness::update()
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->getID();
 					otherEntity->getScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					if(!otherEntity->isOnGround())
+						(*pForwardBundle2) << otherEntity->isOnGround();
 
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));

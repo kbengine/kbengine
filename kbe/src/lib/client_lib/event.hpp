@@ -140,6 +140,7 @@ struct EventData_EnterWorld : public EventData
 	float x, y, z;
 	float pitch, roll, yaw;
 	float speed;
+	bool isOnGound;
 };
 
 struct EventData_LeaveWorld : public EventData

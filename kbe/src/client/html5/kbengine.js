@@ -1473,7 +1473,7 @@ function KBENGINE()
 		this.serverdatas = "";
 		this.clientdatas = "";
 		this.serverVersion = "";
-		this.clientVersion = "0.1.6";
+		this.clientVersion = "0.1.7";
 		this.entity_uuid = null;
 		this.entity_id = 0;
 		this.entity_type = "";
@@ -2340,8 +2340,13 @@ function KBENGINE()
 		else
 			entityType = stream.readUint8();
 		
+		var isOnGound = true;
+		
+		if(stream.opsize() > 0)
+			isOnGound = stream.readInt8();
+		
 		entityType = g_moduledefs[entityType].name;
-		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + g_kbengine.spaceID + ")!");
+		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + g_kbengine.spaceID + "), isOnGound(" + isOnGound + ")!");
 		
 		var entity = g_kbengine.entities[eid];
 		if(entity == undefined)
