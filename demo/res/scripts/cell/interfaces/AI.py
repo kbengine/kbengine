@@ -159,6 +159,7 @@ class AI:
 			attackMaxDist = 20.0
 			
 		entity = KBEngine.entities.get(self.targetID)
+
 		if entity.position.distTo(self.position) > attackMaxDist:
 			runSpeed = self.getDatas()["runSpeed"]
 			if runSpeed != self.moveSpeed:
