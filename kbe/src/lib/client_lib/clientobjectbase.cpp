@@ -1482,9 +1482,24 @@ void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::stri
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onSpaceChanged()
+{
+	pEntityIDAliasIDList_.clear();
+	spacedatas_.clear();
+
+	std::vector<ENTITY_ID> excludes;
+	excludes.push_back(entityID_);
+	pEntities_->clear(true);
+
+	isLoadedGeometry_ = false;
+	spaceID_ = 0;
+	targetID_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	spacedatas_.clear();
+	onSpaceChanged();
 
 	s >> spaceID_;
 	std::string key, value;
