@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>libnetwork</ProjectName>
+    <ProjectGuid>{5EF24499-4F74-4AF6-8048-650BE7BD7808}</ProjectGuid>
+    <RootNamespace>network</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>../../_objs\$(ProjectName)_d\</AssemblerListingLocation>
+      <ObjectFileName>../../_objs\$(ProjectName)_d\</ObjectFileName>
+      <ProgramDataBaseFileName>../../libs\$(ProjectName)_d.pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>../../_objs\$(ProjectName)_d\</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../libs\$(ProjectName)_d.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>../../_objs\$(ProjectName)\</AssemblerListingLocation>
+      <ObjectFileName>../../_objs\$(ProjectName)\</ObjectFileName>
+      <ProgramDataBaseFileName>../../libs\$(ProjectName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>../../_objs\$(ProjectName)\</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../libs\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="address.cpp" />
+    <ClCompile Include="bundle.cpp" />
+    <ClCompile Include="bundle_broadcast.cpp" />
+    <ClCompile Include="channel.cpp" />
+    <ClCompile Include="common.cpp" />
+    <ClCompile Include="delayed_channels.cpp" />
+    <ClCompile Include="encryption_filter.cpp" />
+    <ClCompile Include="endpoint.cpp" />
+    <ClCompile Include="error_reporter.cpp" />
+    <ClCompile Include="event_dispatcher.cpp" />
+    <ClCompile Include="event_poller.cpp" />
+    <ClCompile Include="fixed_messages.cpp" />
+    <ClCompile Include="html5_packet_filter.cpp" />
+    <ClCompile Include="html5_packet_reader.cpp" />
+    <ClCompile Include="interface_defs.cpp" />
+    <ClCompile Include="listener_receiver.cpp" />
+    <ClCompile Include="mercurystats.cpp" />
+    <ClCompile Include="message_handler.cpp" />
+    <ClCompile Include="network_interface.cpp" />
+    <ClCompile Include="packet_filter.cpp" />
+    <ClCompile Include="packet_reader.cpp" />
+    <ClCompile Include="packet_receiver.cpp" />
+    <ClCompile Include="packet_sender.cpp" />
+    <ClCompile Include="tcp_packet.cpp" />
+    <ClCompile Include="tcp_packet_receiver.cpp" />
+    <ClCompile Include="udp_packet.cpp" />
+    <ClCompile Include="udp_packet_receiver.cpp" />
+    <ClCompile Include="websocket_protocol.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="address.hpp" />
+    <ClInclude Include="bundle.hpp" />
+    <ClInclude Include="bundle_broadcast.hpp" />
+    <ClInclude Include="channel.hpp" />
+    <ClInclude Include="circular_buffer.hpp" />
+    <ClInclude Include="common.hpp" />
+    <ClInclude Include="delayed_channels.hpp" />
+    <ClInclude Include="encryption_filter.hpp" />
+    <ClInclude Include="endpoint.hpp" />
+    <ClInclude Include="error_reporter.hpp" />
+    <ClInclude Include="event_dispatcher.hpp" />
+    <ClInclude Include="event_poller.hpp" />
+    <ClInclude Include="fixed_messages.hpp" />
+    <ClInclude Include="html5_packet_filter.hpp" />
+    <ClInclude Include="html5_packet_reader.hpp" />
+    <ClInclude Include="http_utility.hpp" />
+    <ClInclude Include="interface_defs.hpp" />
+    <ClInclude Include="interfaces.hpp" />
+    <ClInclude Include="listener_receiver.hpp" />
+    <ClInclude Include="mercurystats.hpp" />
+    <ClInclude Include="message_handler.hpp" />
+    <ClInclude Include="network_interface.hpp" />
+    <ClInclude Include="nub_exception.hpp" />
+    <ClInclude Include="packet.hpp" />
+    <ClInclude Include="packet_filter.hpp" />
+    <ClInclude Include="packet_reader.hpp" />
+    <ClInclude Include="packet_receiver.hpp" />
+    <ClInclude Include="packet_sender.hpp" />
+    <ClInclude Include="tcp_packet.hpp" />
+    <ClInclude Include="tcp_packet_receiver.hpp" />
+    <ClInclude Include="udp_packet.hpp" />
+    <ClInclude Include="udp_packet_receiver.hpp" />
+    <ClInclude Include="websocket_protocol.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="broadcast_handler.ipp" />
+    <None Include="bundle.ipp" />
+    <None Include="bundle_broadcast.ipp" />
+    <None Include="channel.ipp" />
+    <None Include="endpoint.ipp" />
+    <None Include="error_reporter.ipp" />
+    <None Include="event_dispatcher.ipp" />
+    <None Include="listener_receiver.ipp" />
+    <None Include="network_interface.ipp" />
+    <None Include="packet_filter.ipp" />
+    <None Include="packet_receiver.ipp" />
+    <None Include="packet_sender.ipp" />
+    <None Include="ReadMe.txt" />
+    <None Include="tcp_packet.ipp" />
+    <None Include="tcp_packet_receiver.ipp" />
+    <None Include="udp_packet.ipp" />
+    <None Include="udp_packet_receiver.ipp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

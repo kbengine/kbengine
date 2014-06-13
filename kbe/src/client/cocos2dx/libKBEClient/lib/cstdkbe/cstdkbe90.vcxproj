@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>libcstdkbe</ProjectName>
+    <ProjectGuid>{A04109A7-46C9-42F9-AB29-8E3D84450172}</ProjectGuid>
+    <RootNamespace>cstdkbe</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;C:\cocos2d-x-2.2.3\projects\kbedemo\libs\kbengine\src\cstdkbe;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>../../_objs\$(ProjectName)_d\</AssemblerListingLocation>
+      <ObjectFileName>../../_objs\$(ProjectName)_d\</ObjectFileName>
+      <ProgramDataBaseFileName>../../libs\$(ProjectName)_d.pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>../../_objs\$(ProjectName)_d\</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../libs\$(ProjectName)_d.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>../../_objs\$(ProjectName)\</AssemblerListingLocation>
+      <ObjectFileName>../../_objs\$(ProjectName)\</ObjectFileName>
+      <ProgramDataBaseFileName>../../libs\$(ProjectName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>../../_objs\$(ProjectName)\</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../libs\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="base64.cpp" />
+    <ClCompile Include="blowfish.cpp" />
+    <ClCompile Include="cstdkbe.cpp" />
+    <ClCompile Include="kbekey.cpp" />
+    <ClCompile Include="kbeversion.cpp" />
+    <ClCompile Include="md5.cpp" />
+    <ClCompile Include="memorystream.cpp" />
+    <ClCompile Include="rsa.cpp" />
+    <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="strutil.cpp" />
+    <ClCompile Include="tasks.cpp" />
+    <ClCompile Include="timer.cpp" />
+    <ClCompile Include="timestamp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="base64.hpp" />
+    <ClInclude Include="blowfish.hpp" />
+    <ClInclude Include="cstdkbe.hpp" />
+    <ClInclude Include="deadline.hpp" />
+    <ClInclude Include="kbekey.hpp" />
+    <ClInclude Include="kbemalloc.hpp" />
+    <ClInclude Include="kbeversion.hpp" />
+    <ClInclude Include="md5.hpp" />
+    <ClInclude Include="memorystream.hpp" />
+    <ClInclude Include="memorystream_converter.hpp" />
+    <ClInclude Include="objectpool.hpp" />
+    <ClInclude Include="platform.hpp" />
+    <ClInclude Include="refcountable.hpp" />
+    <ClInclude Include="rsa.hpp" />
+    <ClInclude Include="sha1.hpp" />
+    <ClInclude Include="singleton.hpp" />
+    <ClInclude Include="smartpointer.hpp" />
+    <ClInclude Include="stdfindif_handers.hpp" />
+    <ClInclude Include="stringconv.hpp" />
+    <ClInclude Include="strutil.hpp" />
+    <ClInclude Include="task.hpp" />
+    <ClInclude Include="tasks.hpp" />
+    <ClInclude Include="timer.hpp" />
+    <ClInclude Include="timestamp.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="timer.ipp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\third_party\apr-util\aprutil.vcxproj">
+      <Project>{7cdbbfff-3b84-413e-ba1a-47cb8d454a46}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\third_party\apr\apr.vcxproj">
+      <Project>{c6c836e6-2899-458a-90ba-184192342d30}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

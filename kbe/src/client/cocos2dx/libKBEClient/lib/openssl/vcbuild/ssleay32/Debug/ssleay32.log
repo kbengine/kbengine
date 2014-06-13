@@ -1,0 +1,187 @@
+﻿Build started 2014/6/11 18:30:26.
+     1>Project "C:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\vcbuild\ssleay32\ssleay32.vcxproj" on node 2 (rebuild target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\ssleay32.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\include /I..\..\crypto /I..\..\crypto\modes /I..\..\ /I"C:\Program Files (x86)\Visual Leak Detector\include" /ZI /nologo /W3 /WX- /Od /Oy- /D _LIB /D WIN32 /D _DEBUG /D DSO_WIN32 /D OPENSSL_THREADS /D OPENSSL_SYSNAME_WIN32 /D WIN32_LEAN_AND_MEAN /D L_ENDIAN /D _CRT_SECURE_NO_DEPRECATE /D OPENSSL_USE_APPLINK /D OPENSSL_NO_RC5 /D OPENSSL_NO_MD2 /D OPENSSL_NO_KRB5 /D OPENSSL_NO_JPAKE /D OPENSSL_NO_STATIC_ENGINE /D _WINDLL /D OPENSSL_BUILD_SHLIBSSL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"..\..\..\..\..\_objs\ssleay32_d\\" /Fd"..\..\..\..\..\libs\ssleay32_d.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\ssl\bio_ssl.c ..\..\ssl\d1_both.c ..\..\ssl\d1_clnt.c ..\..\ssl\d1_enc.c ..\..\ssl\d1_lib.c ..\..\ssl\d1_meth.c ..\..\ssl\d1_pkt.c ..\..\ssl\d1_srvr.c ..\..\ssl\kssl.c ..\..\ssl\s23_clnt.c ..\..\ssl\s23_lib.c ..\..\ssl\s23_meth.c ..\..\ssl\s23_pkt.c ..\..\ssl\s23_srvr.c ..\..\ssl\s2_clnt.c ..\..\ssl\s2_enc.c ..\..\ssl\s2_lib.c ..\..\ssl\s2_meth.c ..\..\ssl\s2_pkt.c ..\..\ssl\s2_srvr.c ..\..\ssl\s3_both.c ..\..\ssl\s3_clnt.c ..\..\ssl\s3_enc.c ..\..\ssl\s3_lib.c ..\..\ssl\s3_meth.c ..\..\ssl\s3_pkt.c ..\..\ssl\s3_srvr.c ..\..\ssl\ssl_algs.c ..\..\ssl\ssl_asn1.c ..\..\ssl\ssl_cert.c ..\..\ssl\ssl_ciph.c ..\..\ssl\ssl_err.c ..\..\ssl\ssl_err2.c ..\..\ssl\ssl_lib.c ..\..\ssl\ssl_rsa.c ..\..\ssl\ssl_sess.c ..\..\ssl\ssl_stat.c ..\..\ssl\ssl_txt.c ..\..\ssl\t1_clnt.c ..\..\ssl\t1_enc.c ..\..\ssl\t1_lib.c ..\..\ssl\t1_meth.c ..\..\ssl\t1_srvr.c
+         t1_srvr.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         t1_meth.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         t1_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         t1_enc.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         t1_clnt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_txt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_stat.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_sess.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_rsa.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_err2.c
+         ssl_err.c
+         ssl_ciph.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_cert.c
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156) : see previous definition of 'EADDRINUSE'
+         ssl_asn1.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         ssl_algs.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_srvr.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_pkt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_meth.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         Generating Code...
+         Compiling...
+         s3_enc.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_clnt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s3_both.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_srvr.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_pkt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_meth.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_enc.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s2_clnt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s23_srvr.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s23_pkt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s23_meth.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s23_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         s23_clnt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         kssl.c
+         d1_srvr.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         d1_pkt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         d1_meth.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         d1_lib.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         d1_enc.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         Generating Code...
+         Compiling...
+         d1_clnt.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         d1_both.c
+     1>c:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\e_os.h(156): warning C4005: 'EADDRINUSE' : macro redefinition
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\errno.h(92) : see previous definition of 'EADDRINUSE'
+         bio_ssl.c
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(C:\kbengine_0.1.5_src\kbengine\kbe\src\Debug\ssleay32.lib) does not match the Library's OutputFile property value (C:\kbengine_0.1.5_src\kbengine\kbe\src\libs\ssleay32_d.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1153,5): warning MSB8012: TargetName(ssleay32) does not match the Library's OutputFile property value (ssleay32_d). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"..\..\..\..\..\libs\ssleay32_d.lib" /LIBPATH:"C:\Program Files (x86)\Visual Leak Detector\lib\Win32" /NOLOGO ..\..\..\..\..\_objs\ssleay32_d\bio_ssl.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_both.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_clnt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_enc.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_meth.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_pkt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\d1_srvr.obj
+         ..\..\..\..\..\_objs\ssleay32_d\kssl.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s23_clnt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s23_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s23_meth.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s23_pkt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s23_srvr.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_clnt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_enc.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_meth.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_pkt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s2_srvr.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_both.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_clnt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_enc.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_meth.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_pkt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\s3_srvr.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_algs.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_asn1.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_cert.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_ciph.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_err.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_err2.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_rsa.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_sess.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_stat.obj
+         ..\..\..\..\..\_objs\ssleay32_d\ssl_txt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\t1_clnt.obj
+         ..\..\..\..\..\_objs\ssleay32_d\t1_enc.obj
+         ..\..\..\..\..\_objs\ssleay32_d\t1_lib.obj
+         ..\..\..\..\..\_objs\ssleay32_d\t1_meth.obj
+         ..\..\..\..\..\_objs\ssleay32_d\t1_srvr.obj
+         ssleay32.vcxproj -> C:\kbengine_0.1.5_src\kbengine\kbe\src\Debug\ssleay32.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug\ssleay32.unsuccessfulbuild".
+         Touching "Debug\ssleay32.lastbuildstate".
+     1>Done Building Project "C:\kbengine_0.1.5_src\kbengine\kbe\src\lib\third_party\openssl\vcbuild\ssleay32\ssleay32.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:40.92
