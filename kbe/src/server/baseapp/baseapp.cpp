@@ -2227,7 +2227,43 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+		if(s.opsize() > 0)
+		{
+			if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+			{
+				Mercury::MessageID fmsgid = 0;
+				s >> fmsgid;
+				Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+				bool isprint = true;
+
+				if(pMessageHandler)
+				{
+					std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+															Mercury::g_trace_packet_disables.end(),				
+																pMessageHandler->name);							
+																													
+					if(iter != Mercury::g_trace_packet_disables.end())												
+					{																								
+						isprint = false;																			
+					}																								
+				}
+
+				if(isprint)
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found, %2%(msgid=%3%).\n") % 
+						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+				}
+				else
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+			}
+		}
+
 		s.opfini();
 		return;
 	}
@@ -2235,9 +2271,47 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
 	if(mailbox == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-			"is error(not found clientMailbox)! entityID=%1%.\n") % 
-			eid);
+		if(s.opsize() > 0)
+		{
+			if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+			{
+				Mercury::MessageID fmsgid = 0;
+				s >> fmsgid;
+				Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+				bool isprint = true;
+
+				if(pMessageHandler)
+				{
+					std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+															Mercury::g_trace_packet_disables.end(),				
+																pMessageHandler->name);							
+																													
+					if(iter != Mercury::g_trace_packet_disables.end())												
+					{																								
+						isprint = false;																			
+					}																								
+				}
+
+				if(isprint)
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID=%1%, %2%(msgid=%3%).\n") % 
+						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+				}
+				else
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID=%1%.\n") % 
+						eid);
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+					"is error(not found clientMailbox)! entityID=%1%.\n") % 
+					eid);
+			}
+		}
 
 		s.opfini();
 		return;
