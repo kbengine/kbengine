@@ -181,7 +181,15 @@ void ClientObjectBase::tickSend()
 //-------------------------------------------------------------------------------------	
 bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 {
-	return pEntities_->erase(entityID) != NULL;
+	PyObjectPtr entity = pEntities_->erase(entityID);
+	if(entity != NULL)
+	{
+		static_cast<client::Entity*>(entity.get())->destroy(callScript);
+		return true;
+	}
+
+	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
+	return false;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -624,7 +632,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-		entity->getScriptName() % eid  % isOnGound);
+		entity->getScriptName() % eid  % (int)isOnGound);
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
@@ -677,7 +685,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	eventHandler_.fire(&eventdata);
 
-	pEntities_->erase(eid);
+	destroyEntity(eid, false);
 
 	if(entityID_ != eid)
 	{
@@ -737,7 +745,7 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%(%2%).\n") % 
 		entity->getScriptName() % eid);
 
-	pEntities_->erase(eid);
+	destroyEntity(eid, false);
 }
 
 //-------------------------------------------------------------------------------------
