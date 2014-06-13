@@ -1489,7 +1489,7 @@ void ClientObjectBase::onSpaceChanged()
 
 	std::vector<ENTITY_ID> excludes;
 	excludes.push_back(entityID_);
-	pEntities_->clear(true);
+	pEntities_->clear(true, excludes);
 
 	isLoadedGeometry_ = false;
 	spaceID_ = 0;
