@@ -10,12 +10,19 @@ if you have any suggestion, mail me. cnsoft#gmail.com. i am always here.
 RoadMap: 
   Step1: do some r&d.  
     1. read code find the enterpoint. 
+    
     2. do some tech test. 
-    3. read kbe source code and get familier with its protocol design. since we will woring on it. 
-  Step2: do small demo.    
+    
+    3. read kbe source code and get familier with its protocol design. since we will work on it. 
+    
+  Step2: do small demo.
+  
     3. implement and test client connection with server. 
+    
     4. implement a chat client with cocso2dx.
+    
   Step3: write much more bigger demo.
+  
     5. do more works to implement a base game framework or demos.
 
 
