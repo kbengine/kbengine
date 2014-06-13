@@ -118,4 +118,10 @@ KBE_DLL_API PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const c
 */
 KBE_DLL_API void kbe_fireEvent(const char *eventID, PyObject *args); 
 
+
+/**
+	获得用户脚本资源根目录
+*/
+KBE_DLL_API const char* kbe_getPyUserResPath();
+
 #endif // __KBENGINE_DLL__

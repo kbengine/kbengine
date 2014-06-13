@@ -345,6 +345,13 @@ KBEngine::uint32 kbe_getSystemTime()
 }
 
 //-------------------------------------------------------------------------------------
+const char* kbe_getPyUserResPath()
+{
+	static std::string s = KBEngine::Resmgr::getSingleton().getPyUserResPath();
+	return s.c_str();
+}
+
+//-------------------------------------------------------------------------------------
 bool kbe_login(const char* accountName, const char* passwd, const char* ip, KBEngine::uint32 port)
 {
 	if(ip == NULL || port == 0)
