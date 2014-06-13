@@ -336,7 +336,7 @@ void Entity::onPositionChanged()
 	eventdata.z = position_.z;
 	eventdata.speed = velocity_;
 	
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -390,7 +390,7 @@ void Entity::onDirectionChanged()
 	eventdata.yaw = direction_.yaw();
 	eventdata.pitch = direction_.pitch();
 	eventdata.roll = direction_.roll();
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -413,7 +413,7 @@ void Entity::onMoveSpeedChanged()
 {
 	EventData_MoveSpeedChanged eventdata;
 	eventdata.speed = velocity_;
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }

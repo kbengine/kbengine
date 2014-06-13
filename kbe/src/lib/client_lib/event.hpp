@@ -115,13 +115,15 @@ struct EventData_CreatedEntity : public EventData
 {
 	EventData_CreatedEntity():
 	EventData(CLIENT_EVENT_CREATEDENTITY),
-	pEntity(NULL),
-	res()
+	entityID(0),
+//	modelres(),
+	modelScale(0.f)
 	{
 	}
 
-	const EntityAspect* pEntity;
-	std::string res;
+	ENTITY_ID entityID;
+	//std::string modelres;
+	float modelScale;	
 };
 
 struct EventData_EnterWorld : public EventData
@@ -129,13 +131,13 @@ struct EventData_EnterWorld : public EventData
 	EventData_EnterWorld():
 	EventData(CLIENT_EVENT_ENTERWORLD),
 	spaceID(0),
-	pEntity(NULL),
+	entityID(0),
 	res()
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 	std::string res;
 	float x, y, z;
 	float pitch, roll, yaw;
@@ -147,13 +149,13 @@ struct EventData_LeaveWorld : public EventData
 {
 	EventData_LeaveWorld():
 	EventData(CLIENT_EVENT_LEAVEWORLD),
-	spaceID(0),
-	pEntity(NULL)
+	entityID(0),
+	spaceID(0)
 	{
 	}
 
+	ENTITY_ID entityID;
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
 };
 
 struct EventData_EnterSpace : public EventData
@@ -161,12 +163,12 @@ struct EventData_EnterSpace : public EventData
 	EventData_EnterSpace():
 	EventData(CLIENT_EVENT_ENTERSPACE),
 	spaceID(0),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_LeaveSpace : public EventData
@@ -174,12 +176,12 @@ struct EventData_LeaveSpace : public EventData
 	EventData_LeaveSpace():
 	EventData(CLIENT_EVENT_LEAVESPACE),
 	spaceID(0),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_Script : public EventData
@@ -213,13 +215,13 @@ struct EventData_PositionChanged : public EventData
 	y(0.f),
 	z(0.f),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float x, y, z;
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_PositionForce : public EventData
@@ -230,13 +232,13 @@ struct EventData_PositionForce : public EventData
 	y(0.f),
 	z(0.f),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float x, y, z;
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_DirectionForce : public EventData
@@ -246,12 +248,12 @@ struct EventData_DirectionForce : public EventData
 	yaw(0.f),
 	pitch(0.f),
 	roll(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float yaw, pitch, roll;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_DirectionChanged : public EventData
@@ -261,12 +263,12 @@ struct EventData_DirectionChanged : public EventData
 	yaw(0.f),
 	pitch(0.f),
 	roll(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float yaw, pitch, roll;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_MoveSpeedChanged : public EventData
@@ -274,12 +276,12 @@ struct EventData_MoveSpeedChanged : public EventData
 	EventData_MoveSpeedChanged():
 	EventData(CLIENT_EVENT_MOVESPEED_CHANGED),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_ServerCloased : public EventData

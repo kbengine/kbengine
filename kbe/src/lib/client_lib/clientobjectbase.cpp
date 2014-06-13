@@ -267,7 +267,9 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	}
 
 	EventData_CreatedEntity eventdata;
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
+	//eventdata.modelres = entity->getAspect()->modelres();
+	eventdata.modelScale = entity->getAspect()->modelScale();
 	eventHandler_.fire(&eventdata);
 	
 	return entity;
@@ -636,7 +638,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
 	eventdata.x = entity->getPosition().x;
 	eventdata.y = entity->getPosition().y;
 	eventdata.z = entity->getPosition().z;
@@ -679,7 +681,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	EventData_LeaveWorld eventdata;
 	eventdata.spaceID = entity->getSpaceID();
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
 
 	entity->onLeaveWorld();
 
@@ -708,7 +710,7 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 
 	EventData_EnterSpace eventdata;
 	eventdata.spaceID = spaceID;
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
 
 	eventHandler_.fire(&eventdata);
 }
@@ -728,7 +730,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID;
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
 	eventHandler_.fire(&eventdata);
 }
 
@@ -942,14 +944,14 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	eventdata.x = pos.x;
 	eventdata.y = pos.y;
 	eventdata.z = pos.z;
-	eventdata.pEntity = entity->getAspect();
+	eventdata.entityID = entity->getID();
 	fireEvent(&eventdata);
 
 	EventData_DirectionForce direventData;
 	direventData.yaw = dir.yaw();
 	direventData.pitch = dir.pitch();
 	direventData.roll = dir.roll();
-	direventData.pEntity = entity->getAspect();
+	direventData.entityID = entity->getID();
 	fireEvent(&direventData);
 }
 
