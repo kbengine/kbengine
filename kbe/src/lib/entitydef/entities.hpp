@@ -295,7 +295,10 @@ void Entities<T>::clear(bool callScript, std::vector<ENTITY_ID> excludes)
 	for (;iter != _entities.end();)
 	{
 		if(std::find(excludes.begin(), excludes.end(), iter->first) != excludes.end())
+		{
+			iter++;
 			continue;
+		}
 
 		T* entity = (T*)iter->second.get();
 		entity->destroy(callScript);
