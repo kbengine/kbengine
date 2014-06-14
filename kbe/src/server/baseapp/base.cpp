@@ -699,8 +699,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if (srcEntityID <= 0 || srcEntityID != this->getID())
 		{
-			WARNING_MSG(boost::format("%3%::onRemoteMethodCall: srcEntityID:%1% != thisEntityID:%2%.\n") %
-				srcEntityID % this->getID() % this->getScriptName());
+			WARNING_MSG(boost::format("%3%::onRemoteMethodCall(%4%): srcEntityID:%1% != thisEntityID:%2%.\n") %
+				srcEntityID % this->getID() % this->getScriptName() % md->getName());
 
 			s.opfini();
 			return;
