@@ -2295,20 +2295,20 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 				if(isprint)
 				{
 					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID=%1%, %2%(msgid=%3%).\n") % 
+						"is error(not found clientMailbox)! entityID(%1%), %2%(msgid=%3%).\n") % 
 						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
 				}
 				else
 				{
 					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID=%1%.\n") % 
+						"is error(not found clientMailbox)! entityID(%1%).\n") % 
 						eid);
 				}
 			}
 			else
 			{
 				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-					"is error(not found clientMailbox)! entityID=%1%.\n") % 
+					"is error(not found clientMailbox)! entityID(%1%).\n") % 
 					eid);
 			}
 		}
