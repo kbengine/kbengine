@@ -406,12 +406,13 @@ protected:
 class DBTaskEntityOffline : public DBTask
 {
 public:
-	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid);
+	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	DBID dbid_;
+	ENTITY_SCRIPT_UID sid_;
 };
 
 

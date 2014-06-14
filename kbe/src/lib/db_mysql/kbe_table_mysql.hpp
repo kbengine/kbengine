@@ -49,7 +49,7 @@ public:
 
 	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
-	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid);
+	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType);
 protected:
 	
 };

@@ -163,13 +163,17 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid)
+bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType)
 {
 	std::string sqlstr = "delete from kbe_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	sqlstr += tbuf;
+
+	sqlstr += " and entityType=";
+	kbe_snprintf(tbuf, MAX_BUF, "%u", entityType);
 	sqlstr += tbuf;
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))

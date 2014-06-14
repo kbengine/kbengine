@@ -549,9 +549,9 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid)
+void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid)
 {
-	dbThreadPool_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid));
+	dbThreadPool_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
 }
 
 //-------------------------------------------------------------------------------------

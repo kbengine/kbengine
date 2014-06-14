@@ -107,8 +107,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									ENTITY_ID,						entityID)
 		
 	// baseapp上entity下线。
-	DBMGR_MESSAGE_DECLARE_ARGS1(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
-									DBID,							dbid)
+	DBMGR_MESSAGE_DECLARE_ARGS2(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
+									DBID,							dbid,
+									uint16,							sid)
 
 	// 请求擦除客户端请求任务。
 	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,

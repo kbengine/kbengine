@@ -121,7 +121,7 @@ void Base::eraseEntityLog()
 		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
 		(*(*bundleptr)) << this->getDBID();
-
+		(*(*bundleptr)) << this->getScriptModule()->getUType();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;

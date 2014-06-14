@@ -142,7 +142,7 @@ public:
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid);
+	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
 
 	/** 网络接口
 		执行数据库查询

@@ -399,7 +399,7 @@ bool DBTaskRemoveEntity::db_thread_process()
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
-	pELTable->eraseEntityLog(pdbi_, entityDBID_);
+	pELTable->eraseEntityLog(pdbi_, entityDBID_, sid_);
 
 	EntityTables::getSingleton().removeEntity(pdbi_, entityDBID_, EntityDef::findScriptModule(sid_));
 	return false;
@@ -1302,9 +1302,10 @@ thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskEntityOffline::DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid):
+DBTaskEntityOffline::DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid):
 DBTask(addr),
-dbid_(dbid)
+dbid_(dbid),
+sid_(sid)
 {
 }
 
@@ -1319,14 +1320,14 @@ bool DBTaskEntityOffline::db_thread_process()
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
-	pELTable->eraseEntityLog(pdbi_, dbid_);
+	pELTable->eraseEntityLog(pdbi_, dbid_, sid_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%.\n") % dbid_);
+	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%, entityType=%2%.\n") % dbid_ % sid_);
 	return DBTask::presentMainThread();
 }
 
