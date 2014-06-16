@@ -209,23 +209,23 @@ enum COMPONENT_CLIENT_TYPE
 	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
 
 	// 移动类，手机，平板电脑
-	// Mobile(Phone, Pad)
+	// Mobile, Phone, Pad(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
 	CLIENT_TYPE_MOBILE				= 1,
 
 	// 独立的Windows/Linux/Mac应用程序(包含python脚本，entitydefs解析与检查entitydefs的MD5，原生的)
 	// Windows/Linux/Mac Application program (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
 	CLIENT_TYPE_PC					= 2,	
 
-	// 不包含python脚本，entitydefs协议可使用网络导入
-	// Web, HTML5,Flash
+	// 不包含Python脚本，entitydefs协议可使用网络导入
+	// Web, HTML5, Flash
 	CLIENT_TYPE_BROWSER				= 3,	
 
 	// 包含Python脚本，entitydefs解析与检查entitydefs的MD5，原生的
-	// bots	 (Check entitydefs-MD5)
+	// bots	 (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
 	CLIENT_TYPE_BOTS				= 4,	
 
 	// 轻端类, 可不包含python脚本，entitydefs协议可使用网络导入
-	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported from network-protocol)
+	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
 	CLIENT_TYPE_MINI				= 5,	
 
 	// End
