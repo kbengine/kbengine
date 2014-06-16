@@ -203,16 +203,33 @@ const COMPONENT_TYPE ALL_GAME_SERVER_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLA
 #define VALID_COMPONENT(C_TYPE) ((C_TYPE) > 0 && (C_TYPE) < COMPONENT_END_TYPE)
 
 
-// 前端应用的类别
+// 前端应用的类别, All client type
 enum COMPONENT_CLIENT_TYPE
 {
 	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
-	CLIENT_TYPE_MOBILE				= 1,	// 手机类
-	CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
-	CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
-	CLIENT_TYPE_BOTS				= 4,	// bots
-	CLIENT_TYPE_MINI				= 5,	// 微型客户端
-	CLIENT_TYPE_END					= 6		// end
+
+	// 移动类，手机，平板电脑
+	// Mobile(Phone, Pad)
+	CLIENT_TYPE_MOBILE				= 1,
+
+	// 独立的Windows/Linux/Mac应用程序(包含python脚本，entitydefs解析与检查entitydefs的MD5，原生的)
+	// Windows/Linux/Mac Application program (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
+	CLIENT_TYPE_PC					= 2,	
+
+	// 不包含python脚本，entitydefs协议可使用网络导入
+	// Web, HTML5,Flash
+	CLIENT_TYPE_BROWSER				= 3,	
+
+	// 包含Python脚本，entitydefs解析与检查entitydefs的MD5，原生的
+	// bots	 (Check entitydefs-MD5)
+	CLIENT_TYPE_BOTS				= 4,	
+
+	// 轻端类, 可不包含python脚本，entitydefs协议可使用网络导入
+	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported from network-protocol)
+	CLIENT_TYPE_MINI				= 5,	
+
+	// End
+	CLIENT_TYPE_END					= 6		
 };
 
 /** 定义前端应用的类别名称 */
