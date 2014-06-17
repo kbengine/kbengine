@@ -46,14 +46,14 @@
 		<descr>	操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。</descr>
 	</SERVER_ERR_BUSY>
 	
-	<SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE>
+	<SERVER_ERR_ACCOUNT_LOGIN_ANOTHER>
 		<id>9</id>
 		<descr>	当前账号在另一处登录了。</descr>
-	</SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE>
+	</SERVER_ERR_ACCOUNT_LOGIN_ANOTHER>
 	
 	<SERVER_ERR_ACCOUNT_IS_ONLINE>
 		<id>10</id>
-		<descr>	你已经登录了， 服务器拒绝再次登录。</descr>
+		<descr>	账号已登陆。</descr>
 	</SERVER_ERR_ACCOUNT_IS_ONLINE>
 
 	<SERVER_ERR_PROXY_DESTROYED>
@@ -63,7 +63,7 @@
 	
 	<SERVER_ERR_ENTITYDEFS_NOT_MATCH>
 		<id>12</id>
-		<descr>	entityDefs不匹配。</descr>
+		<descr>	EntityDefs不匹配。</descr>
 	</SERVER_ERR_ENTITYDEFS_NOT_MATCH>
 	
 	<SERVER_ERR_SERVER_IN_SHUTTINGDOWN>
@@ -73,7 +73,7 @@
 	
 	<SERVER_ERR_NAME_MAIL>
 		<id>14</id>
-		<descr>	email地址错误。</descr>
+		<descr>	Email地址错误。</descr>
 	</SERVER_ERR_NAME_MAIL>
 	
 	<SERVER_ERR_ACCOUNT_LOCK>

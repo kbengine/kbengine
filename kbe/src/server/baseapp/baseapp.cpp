@@ -2030,7 +2030,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
 						pOldClientChannel->c_str());
 					
-					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE);
+					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
 					pOldClientChannel->proxyID(0);
 					pOldClientChannel->condemn();
 				}
