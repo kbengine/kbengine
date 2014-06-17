@@ -24,12 +24,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_exception.hpp"
 #include "thread/threadguard.hpp"
 #include "helper/watcher.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
 KBEngine::thread::ThreadMutex logMutex;
 KBEUnordered_map< std::string, uint32 > g_querystatistics;
 bool _g_installedWatcher = false;
+bool _g_debug = false;
 
 void querystatistics(const char* strCommand, uint32 size)
 {
@@ -126,6 +128,8 @@ void initializeWatcher()
 		return;
 
 	_g_installedWatcher = true;
+	_g_debug = g_kbeSrvConfig.getDBMgr().debugDBMgr;
+
 	WATCH_OBJECT("db_querys/select", &KBEngine::watcher_select);
 	WATCH_OBJECT("db_querys/delete", &KBEngine::watcher_delete);
 	WATCH_OBJECT("db_querys/insert", &KBEngine::watcher_insert);
@@ -360,7 +364,14 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 	querystatistics(strCommand, size);
 
 	lastquery_ = strCommand;
+
+	if(_g_debug)
+	{
+		DEBUG_MSG(boost::format("DBInterfaceMysql::query: %1%\n") % lastquery_);
+	}
+
     int nResult = mysql_real_query(pMysql_, strCommand, size);  
+
     if(nResult != 0)  
     {  
 		if(showexecinfo)

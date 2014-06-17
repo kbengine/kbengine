@@ -110,6 +110,7 @@ typedef struct EngineComponentInfo
 		notFoundAccountAutoCreate = false;
 		use_coordinate_system = true;
 		account_type = 3;
+		debugDBMgr = false;
 	}
 
 	~EngineComponentInfo()
@@ -196,6 +197,8 @@ typedef struct EngineComponentInfo
 	
 	std::string http_cbhost;
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
+
+	bool debugDBMgr;										// debug模式下可输出读写操作信息
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
