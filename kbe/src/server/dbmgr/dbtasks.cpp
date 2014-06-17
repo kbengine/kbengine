@@ -607,7 +607,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_ACCOUNT_CREATE;
+		failedcode = SERVER_ERR_ACCOUNT_CREATE_FAILED;
 
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
@@ -737,7 +737,7 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_ACCOUNT_CREATE;
+		failedcode = SERVER_ERR_ACCOUNT_CREATE_FAILED;
 
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
@@ -851,7 +851,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << accountName_;
 	(*pBundle) << email_;
@@ -969,7 +969,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << entityID_; 
 	(*pBundle) << accountName_;
@@ -1107,7 +1107,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << entityID_;
 	(*pBundle) << accountName_;

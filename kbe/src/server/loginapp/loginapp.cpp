@@ -227,7 +227,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		SERVER_ERROR_CODE retcode = SERVER_ERR_SHUTTINGDOWN;
+		SERVER_ERROR_CODE retcode = SERVER_ERR_IN_SHUTTINGDOWN;
 		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
@@ -650,7 +650,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 				loginName % clientDigest % digest_);
 
 			datas = "";
-			_loginFailed(pChannel, loginName, SERVER_ERR_DIGEST, datas, true);
+			_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
 			return;
 		}
 	}
@@ -681,7 +681,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		INFO_MSG(boost::format("Loginapp::login: shutting down, %1% login failed!\n") % loginName);
 
 		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_SHUTTINGDOWN, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
 		return;
 	}
 
@@ -1039,12 +1039,12 @@ void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/mercury_errors.xml").c_str());
+		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
 
 		if(!xml->isGood())
 		{
 			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-				"server/mercury_errors.xml");
+				"server/server_errors.xml");
 
 			SAFE_RELEASE(xml);
 			return;

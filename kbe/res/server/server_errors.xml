@@ -1,0 +1,104 @@
+<root>
+	<!-- 错误码类别为:uint16 -->
+	
+	<SUCCESS>
+		<id>0</id>
+		<descr>	成功。</descr>
+	</SUCCESS>
+	
+	<SERVER_ERR_SRV_NO_READY>
+		<id>1</id>
+		<descr>	服务器没有准备好。</descr>
+	</SERVER_ERR_SRV_NO_READY>
+
+	<SERVER_ERR_SRV_OVERLOAD>
+		<id>2</id>
+		<descr>	服务器负载过重。</descr>
+	</SERVER_ERR_SRV_OVERLOAD>
+	
+	<SERVER_ERR_ILLEGAL_LOGIN>
+		<id>3</id>
+		<descr>	非法登录。</descr>
+	</SERVER_ERR_ILLEGAL_LOGIN>
+	
+	<SERVER_ERR_NAME_PASSWORD>
+		<id>4</id>
+		<descr>	用户名或者密码不正确。</descr>
+	</SERVER_ERR_NAME_PASSWORD>
+	
+	<SERVER_ERR_NAME>
+		<id>5</id>
+		<descr>	用户名不正确。</descr>
+	</SERVER_ERR_NAME>
+	
+	<SERVER_ERR_PASSWORD>
+		<id>6</id>
+		<descr>	密码不正确。</descr>
+	</SERVER_ERR_PASSWORD>
+	
+	<SERVER_ERR_ACCOUNT_CREATE_FAILED>
+		<id>7</id>
+		<descr>	创建账号失败（已经存在一个相同的账号）。</descr>
+	</SERVER_ERR_ACCOUNT_CREATE_FAILED>
+	
+	<SERVER_ERR_BUSY>
+		<id>8</id>
+		<descr>	操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。</descr>
+	</SERVER_ERR_BUSY>
+	
+	<SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE>
+		<id>9</id>
+		<descr>	当前账号在另一处登录了。</descr>
+	</SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE>
+	
+	<SERVER_ERR_ACCOUNT_IS_ONLINE>
+		<id>10</id>
+		<descr>	你已经登录了， 服务器拒绝再次登录。</descr>
+	</SERVER_ERR_ACCOUNT_IS_ONLINE>
+
+	<SERVER_ERR_PROXY_DESTROYED>
+		<id>11</id>
+		<descr>	与客户端关联的proxy在服务器上已经销毁。</descr>
+	</SERVER_ERR_PROXY_DESTROYED>
+	
+	<SERVER_ERR_ENTITYDEFS_NOT_MATCH>
+		<id>12</id>
+		<descr>	entityDefs不匹配。</descr>
+	</SERVER_ERR_ENTITYDEFS_NOT_MATCH>
+	
+	<SERVER_ERR_SERVER_IN_SHUTTINGDOWN>
+		<id>13</id>
+		<descr>	服务器正在关闭中。</descr>
+	</SERVER_ERR_SERVER_IN_SHUTTINGDOWN>
+	
+	<SERVER_ERR_NAME_MAIL>
+		<id>14</id>
+		<descr>	email地址错误。</descr>
+	</SERVER_ERR_NAME_MAIL>
+	
+	<SERVER_ERR_ACCOUNT_LOCK>
+		<id>15</id>
+		<descr>	账号被冻结。</descr>
+	</SERVER_ERR_ACCOUNT_LOCK>
+	
+	<SERVER_ERR_ACCOUNT_DEADLINE>
+		<id>16</id>
+		<descr>	账号已过期。</descr>
+	</SERVER_ERR_ACCOUNT_DEADLINE>
+	
+	<SERVER_ERR_ACCOUNT_NOT_ACTIVATED>
+		<id>17</id>
+		<descr>	账号未激活。</descr>
+	</SERVER_ERR_ACCOUNT_NOT_ACTIVATED>
+	
+	<SERVER_ERR_VERSION_NOT_MATCH>
+		<id>18</id>
+		<descr>	与服务端的版本不匹配。</descr>
+	</SERVER_ERR_VERSION_NOT_MATCH>
+	
+	<SERVER_ERR_OP_FAILED>
+		<id>19</id>
+		<descr>	操作失败。</descr>
+	</SERVER_ERR_OP_FAILED>
+	
+</root>

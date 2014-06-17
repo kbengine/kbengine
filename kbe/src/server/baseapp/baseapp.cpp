@@ -2030,7 +2030,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
 						pOldClientChannel->c_str());
 					
-					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ANOTHER_LOGON);
+					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ACCOUNT_LOGIN_SOMEWHERE_ELSE);
 					pOldClientChannel->proxyID(0);
 					pOldClientChannel->condemn();
 				}
@@ -2062,7 +2062,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		case LOG_ON_WAIT_FOR_DESTROY:
 		default:
 			INFO_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
-			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_ONLINE);
+			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
 			return;
 		};
 	}
