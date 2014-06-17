@@ -1030,7 +1030,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
+void Loginapp::importServerErrorsDescr(Mercury::Channel* pChannel)
 {
 	static Mercury::Bundle bundle;
 	
@@ -1061,14 +1061,16 @@ void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
 
 		SAFE_RELEASE(xml);
 
-		bundle.newMessage(ClientInterface::onImportMercuryErrorsDescr);
+		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
 		uint16 size = errsDescrs.size();
 
 		bundle << size;
 		for(; iter != errsDescrs.end(); iter++)
 		{
-			bundle << iter->first << iter->second.first << iter->second.second;
+			bundle << iter->first;
+			bundle.appendBlob(iter->second.first.data(), iter->second.first.size());
+			bundle.appendBlob(iter->second.second.data(), iter->second.second.size());
 		}
 	}
 

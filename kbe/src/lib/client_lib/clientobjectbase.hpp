@@ -304,7 +304,7 @@ public:
 	/** 网络接口
 		错误码描述导出(通常是web等才会应用到)
 	*/
-	virtual void onImportMercuryErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
+	virtual void onImportServerErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
 
 	/** 网络接口
 		重置账号密码请求返回
