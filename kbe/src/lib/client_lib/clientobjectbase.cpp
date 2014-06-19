@@ -757,11 +757,17 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	eventHandler_.fire(&eventdata);
 
-	destroyEntity(eid, false);
-
+	// 如果不是玩家
 	if(entityID_ != eid)
 	{
+		destroyEntity(eid, false);
 		pEntityIDAliasIDList_.erase(std::remove(pEntityIDAliasIDList_.begin(), pEntityIDAliasIDList_.end(), eid), pEntityIDAliasIDList_.end());
+	}
+	else
+	{
+		pEntityIDAliasIDList_.clear();
+		Py_DECREF(entity->getCellMailbox());
+		entity->setCellMailbox(NULL);
 	}
 }
 
