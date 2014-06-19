@@ -765,7 +765,8 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 	else
 	{
-		pEntityIDAliasIDList_.clear();
+		clearSpace();
+
 		Py_DECREF(entity->getCellMailbox());
 		entity->setCellMailbox(NULL);
 	}
@@ -1560,7 +1561,7 @@ void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::stri
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onSpaceChanged()
+void ClientObjectBase::clearSpace()
 {
 	pEntityIDAliasIDList_.clear();
 	spacedatas_.clear();
@@ -1577,7 +1578,7 @@ void ClientObjectBase::onSpaceChanged()
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	onSpaceChanged();
+	clearSpace();
 
 	s >> spaceID_;
 	std::string key, value;

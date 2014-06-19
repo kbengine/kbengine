@@ -362,7 +362,7 @@ public:
 	bool hasSpaceData(const std::string& key);
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
-	void onSpaceChanged();
+	void clearSpace();
 
 	Timers & timers() { return timers_; }
 	void handleTimers();
