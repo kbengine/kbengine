@@ -21,10 +21,8 @@ class Spaces(KBEngine.Base, GameObject):
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
 			spaceData = d_spaces.datas.get(utype)
-			if spaceData["entityType"] == "SpaceCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
-			elif spaceData["entityType"] == "SpaceFightCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
+			if spaceData["entityType"] == "SpaceDuplicate":
+				self._spaceAllocs[utype] = SpaceAllocDuplicate(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
 				
@@ -62,6 +60,7 @@ class Spaces(KBEngine.Base, GameObject):
 		define method.
 		请求进入某个space中
 		"""
+		DEBUG_MSG("=================%d---" % (spaceUType))
 		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, context)
 
 	def onSpaceLoseCell(self, spaceUType, spaceKey):

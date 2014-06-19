@@ -924,7 +924,7 @@ ENTITY_ID ClientObjectBase::readEntityIDFromStream(MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::updatePlayerToServer()
 {
-	if (timestamp() - lastSentUpdateDataTime_ < uint64(stampsPerSecond() * 0.01))
+	if (timestamp() - lastSentUpdateDataTime_ < uint64(stampsPerSecond() * 0.01) || this->spaceID_ == 0)
 	{
 		return;
 	}

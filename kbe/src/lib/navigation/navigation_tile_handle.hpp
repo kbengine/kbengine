@@ -85,15 +85,9 @@ public:
 	static NavigationHandle* create(std::string name);
 	
 	int getMap(int x, int y);
-	bool hasMapObj(int x, int y);
 
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
-
-	void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state);
-
-	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
-	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 
 	bool direction8()const{ return direction8_; }
 	

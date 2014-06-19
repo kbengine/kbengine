@@ -26,8 +26,8 @@ class Teleport:
 		defined.
 		baseapp返回teleportSpace的回调
 		"""
-		DEBUG_MSG("Teleport::onTeleportSpaceCB: %i mb=%s, spaceUType=%i, pos=%s, dir=%s." % \
-					(self.id, spaceCellMailbox, spaceUType, position, direction))
+		DEBUG_MSG("Teleport::onTeleportSpaceCB: %i spaceID=%s, spaceUType=%i, pos=%s, dir=%s." % \
+					(self.id, spaceCellMailbox.id, spaceUType, position, direction))
 		
 		
 		self.getCurrSpaceBase().onLeave(self.id)

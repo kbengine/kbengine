@@ -62,11 +62,6 @@ public:
 
 	static NavigationHandle* create(std::string name);
 
-	void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state);
-
-	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
-	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
-
 	std::vector<dtNavMesh*> navmesh_layers;
 	std::vector<dtNavMeshQuery*> navmeshQuery_layers;
 };

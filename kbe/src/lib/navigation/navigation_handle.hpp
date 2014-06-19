@@ -60,10 +60,6 @@ public:
 
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
-	virtual void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state) = 0;
-
-	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
-	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
 
 	std::string name;
 };

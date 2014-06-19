@@ -68,6 +68,17 @@ def funcTupleInt(mapDict, dctData, chilidDict, data):
 
 	return tuple([int(e) for e in data.split(",") if len(e) > 0])
 
+def funcTupleFloat(mapDict, dctData, chilidDict, data):
+	"""
+	返回tuple数据
+	"""
+	if data is None or (type(data) == str and len(data) == 0):
+		return ()
+
+	data = str(data)
+
+	return tuple([float(e) for e in data.split(",") if len(e) > 0])
+	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
 	返回dict数据

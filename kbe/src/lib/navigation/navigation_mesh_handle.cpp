@@ -125,21 +125,6 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-void NavMeshHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void NavMeshHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void NavMeshHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-}
-
-//-------------------------------------------------------------------------------------
 int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	if(layer >= (int)navmeshQuery_layers.size())

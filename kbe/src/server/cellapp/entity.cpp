@@ -1204,13 +1204,6 @@ void Entity::onPositionChanged()
 //-------------------------------------------------------------------------------------
 void Entity::updateLastPos()
 {
-	Space* pSpace =  Spaces::findSpace(this->getSpaceID());
-	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
-	if(pNavHandle_)
-	{
-		pNavHandle_->onPassedNode(layer(), getID(), lastpos_, this->getPosition(), NavigationHandle::NAV_OBJECT_STATE_MOVING);
-	}
-
 	lastpos_ = this->getPosition();
 }
 
@@ -1353,6 +1346,9 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 //-------------------------------------------------------------------------------------
 void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 {
+	if(spaceID_ == 0 )
+		return;
+
 	Position3D pos;
 	Direction3D dir;
 	uint8 isOnGround = 0;
@@ -2426,23 +2422,11 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 //-------------------------------------------------------------------------------------
 void Entity::onEnterSpace(Space* pSpace)
 {
-	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
-
-	if(pNavHandle_)
-	{
-		pNavHandle_->onEnterObject(layer_, getID(), this->getPosition());
-	}
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveSpace(Space* pSpace)
 {
-	NavigationHandlePtr pNavHandle_ = pSpace->pNavHandle();
-
-	if(pNavHandle_)
-	{
-		pNavHandle_->onLeaveObject(layer_, getID(), this->getPosition());
-	}
 }
 
 //-------------------------------------------------------------------------------------

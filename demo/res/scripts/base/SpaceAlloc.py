@@ -126,7 +126,7 @@ class SpaceAlloc:
 		DEBUG_MSG("Spaces::teleportSpace: entityMailbox=%s" % entityMailbox)
 		space.teleportSpace(entityMailbox, position, direction, context)
 		
-class SpaceAllocCopy(SpaceAlloc):
+class SpaceAllocDuplicate(SpaceAlloc):
 	"""
 	副本分配器
 	"""

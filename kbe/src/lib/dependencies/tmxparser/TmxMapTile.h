@@ -52,8 +52,6 @@ namespace Tmx
 			, flippedHorizontally(false)
 			, flippedVertically(false)
 			, flippedDiagonally(false)
-			, objs()
-			, minTime(0)
 		{}
 
 		// Will take a gid and read the attributes from the first
@@ -64,56 +62,8 @@ namespace Tmx
 			, flippedHorizontally((_gid & FlippedHorizontallyFlag) != 0)
 			, flippedVertically((_gid & FlippedVerticallyFlag) != 0)
 			, flippedDiagonally((_gid & FlippedDiagonallyFlag) != 0)
-			, objs()
-			, minTime(0)
 		{
 			id -= _tilesetFirstGid;
-		}
-
-		void addObj(int iv, unsigned int t)
-		{
-			std::map<int, unsigned int>::iterator iter = objs.find(iv);
-			if(iter == objs.end())
-			{
-				objs.insert(std::pair<int, unsigned int>(iv, t));
-			}
-			else
-			{
-				unsigned int tt = iter->second;
-				iter->second = t;
-
-				if(tt == minTime)
-					updateMinTime();
-			}
-
-			if(minTime == 0)
-				minTime = t;
-		}
-
-		void delObj(int iv)
-		{
-			std::map<int, unsigned int>::iterator iter = objs.find(iv);
-			if(iter == objs.end())
-				return;
-			
-			unsigned int t = iter->second;
-			objs.erase(iter);
-
-			if(t == minTime)
-			{
-				updateMinTime();
-			}
-		}
-
-		void updateMinTime()
-		{
-			minTime = 0;
-			std::map<int, unsigned int>::iterator iter = objs.begin();
-			for(; iter != objs.end(); iter++)
-			{
-				if(minTime == 0 || minTime > iter->second)
-					minTime = iter->second;
-			}
 		}
 
 		// Tileset id.
@@ -130,9 +80,6 @@ namespace Tmx
 
 		// True when the tile should be drawn flipped diagonally.
 		bool flippedDiagonally;
-
-		std::map<int, unsigned int> objs;
-		unsigned minTime;
 	};
 };
 

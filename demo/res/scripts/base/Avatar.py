@@ -20,7 +20,7 @@ class Avatar(KBEngine.Proxy,
 		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
 		avatar_inittab = d_avatar_inittab.datas[self.roleType]
 
-		if "Copy" in spacedatas["entityType"]:
+		if "Duplicate" in spacedatas["entityType"]:
 			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
 			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
 			self.cellData["position"] = avatar_inittab["spawnPos"]

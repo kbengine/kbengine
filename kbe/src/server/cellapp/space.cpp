@@ -198,15 +198,6 @@ void Space::onAllSpaceGeometryLoaded()
 	// Í¨Öª½Å±¾
 	SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onAllSpaceGeometryLoaded"), 
 		const_cast<char*>("Iis"), this->getID(), true, getGeometryPath().c_str());
-
-	if(pNavHandle_)
-	{
-		SPACE_ENTITIES::iterator iter = entities_.begin();
-		for(; iter != entities_.end(); iter++)
-		{
-			pNavHandle_->onEnterObject(iter->get()->layer(), iter->get()->getID(), iter->get()->getPosition());
-		}
-	}
 }
 
 //-------------------------------------------------------------------------------------
