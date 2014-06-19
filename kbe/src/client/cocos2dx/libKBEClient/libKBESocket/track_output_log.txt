@@ -171,7 +171,7 @@ KBEngine::onLogin_loginapp: start importClientMessages ...
  
 
 
-KBEngine::login_loginapp(): connect 23.239.157.86:10013 is successfylly!
+KBEngine::login_loginapp(): connect 2.2.157.86:10013 is successfylly!
  
 
 
@@ -531,7 +531,7 @@ Client_onImportMercuryErrorsDescr: id=19, name=MERCURY_ERR_FAILED, descr=???????
  
 
 
-KBEngine::Client_onLoginSuccessfully: accountName(kbe123), addr(23.239.157.86:10016), datas(0)!
+KBEngine::Client_onLoginSuccessfully: accountName(kbe123), addr(2.2.157.86:10016), datas(0)!
  
 
 
@@ -539,7 +539,7 @@ KBEngine::onLogin_baseapp: start importClientMessages ...
  
 
 
-KBEngine::login_baseapp(): connect 23.239.157.86:10016 is successfylly!
+KBEngine::login_baseapp(): connect 2.2.157.86:10016 is successfylly!
  
 
 
