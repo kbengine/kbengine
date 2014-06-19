@@ -42,6 +42,9 @@
 			<level>
 				<Type>	UINT16	</Type>
 			</level>
+			<data>
+				<Type>	BLOB	</Type>
+			</data>
 		</Properties>
 	</AVATAR_INFOS>	
 	

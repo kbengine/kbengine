@@ -1112,7 +1112,7 @@ bool BlobType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PyObject_TypeCheck(pyValue, Blob::getScriptType()))
+	if(!PyBytes_Check(pyValue))
 	{
 		OUT_TYPE_ERROR("BLOB");
 		return false;
@@ -1124,30 +1124,23 @@ bool BlobType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
-	return new Blob(defaultVal);
+	return  PyBytes_FromStringAndSize(defaultVal.data(), defaultVal.size());
 }
 
 //-------------------------------------------------------------------------------------
 void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	Blob* pBlob = static_cast<Blob*>(pyValue);
-	pBlob->addToStream(mstream);
+	Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
+	char* datas = PyBytes_AsString(pyValue);
+	mstream->appendBlob(datas, datasize);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::createFromStream(MemoryStream* mstream)
 {
-	Blob* pBlob = new Blob();
-	pBlob->createFromStream(mstream);
-
-	if (pBlob && !PyErr_Occurred())
-	{
-		return pBlob;
-	}
-
-	OUT_TYPE_ERROR("BLOB");
-	S_RELEASE(pBlob);
-	return NULL;
+	std::string datas;
+	mstream->readBlob(datas);
+	return PyBytes_FromStringAndSize(datas.data(), datas.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -1875,6 +1868,15 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames[%3%]\n") % 
 				this->aliasName_ % iter->first % this->debugInfos());
 
+			// KBE_ASSERT(pyObject != NULL);
+			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
+			iter->second->dataType->addToStream(mstream, pobj);
+			Py_DECREF(pobj);
+			continue;
+		}
+		
+		if(!iter->second->dataType->isSameType(pyObject))
+		{
 			// KBE_ASSERT(pyObject != NULL);
 			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
 			iter->second->dataType->addToStream(mstream, pobj);

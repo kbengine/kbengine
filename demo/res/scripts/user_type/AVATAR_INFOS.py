@@ -21,6 +21,7 @@ class TAvatarInfosList(dict):
 				"name"			: val[0],
 				"roleType"		: val[1],
 				"level"			: val[2],
+				"data"			: val[3],
 			}
 			datas.append(data)
 			
@@ -28,7 +29,7 @@ class TAvatarInfosList(dict):
 
 	def createFromDict(self, dictData):
 		for data in dictData["values"]:
-			self[data["dbid"]] = [data["name"], data["roleType"], data["level"]]
+			self[data["dbid"]] = [data["name"], data["roleType"], data["level"], data["data"]]
 		return self
 		
 class AVATAR_INFOS_LIST_PICKLER:

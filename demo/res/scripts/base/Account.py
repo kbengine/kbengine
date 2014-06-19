@@ -77,7 +77,7 @@ class Account(KBEngine.Proxy):
 		exposed.
 		客户端请求创建一个角色
 		"""
-		avatarinfo = {"name": name, "dbid": 0, "roleType" : roleType, "level" : 0}
+		avatarinfo = {"name": name, "dbid": 0, "roleType" : roleType, "level" : 0, "data" : b'kbengine'}
 			
 		"""
 		if name in all_avatar_names:
@@ -146,10 +146,10 @@ class Account(KBEngine.Proxy):
 		新建角色写入数据库回调
 		"""
 		INFO_MSG('Account::_onCharacterSaved:(%i) create avatar state: %i, %s, %i' % (self.id, success, avatar.cellData["name"], avatar.databaseID))
-		avatarinfo = {"name": "", "dbid": 0, "roleType" : 0, "level" : 0}
+		avatarinfo = {"name": "", "dbid": 0, "roleType" : 0, "level" : 0, "data" : b''}
 		
 		if success:
-			self.characters[avatar.databaseID] = [avatar.cellData["name"], avatar.roleType, 1]
+			self.characters[avatar.databaseID] = [avatar.cellData["name"], avatar.roleType, 1, b'kbengine']
 			avatarinfo["dbid"] = avatar.databaseID
 			avatarinfo["name"] = avatar.cellData["name"]
 			avatarinfo["roleType"] = avatar.roleType
