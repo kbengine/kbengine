@@ -36,6 +36,8 @@ namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(ClientObjectBase)
 SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -76,7 +78,9 @@ bufferedCreateEntityMessage_(),
 eventHandler_(),
 ninterface_(ninterface),
 targetID_(0),
-isLoadedGeometry_(false)
+isLoadedGeometry_(false),
+timers_(),
+scriptCallbacks_(timers_)
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
@@ -159,6 +163,8 @@ void ClientObjectBase::tickSend()
 		return;
 	}
 
+	handleTimers();
+
 	// 向服务器发送tick
 	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
 	if (timestamp() - lastSentActiveTickTime_ > check)
@@ -210,6 +216,70 @@ void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 #else
 	::closesocket(*pChannel->endpoint());
 #endif
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::handleTimers()
+{
+	timers().process(g_kbetime);
+}
+
+//-------------------------------------------------------------------------------------	
+PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 2)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	float time = 0;
+	PyObject* pyCallback = NULL;
+
+	if(PyArg_ParseTuple(args, "f|O",  &time, &pyCallback) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PyCallable_Check(pyCallback))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: invalid pycallback!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+	Py_INCREF(pyCallback);
+	ScriptID id = pClientObjectBase->scriptCallbacks().addCallback(time, new ScriptCallbackHandler(pClientObjectBase->scriptCallbacks(), pyCallback));
+	return PyLong_FromLong(id);
+}
+
+//-------------------------------------------------------------------------------------	
+PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+
+	ScriptID id = 0;
+
+	if(PyArg_ParseTuple(args, "i",  &id) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	pClientObjectBase->scriptCallbacks().delCallback(id);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------	

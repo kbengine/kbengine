@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CLIENT_OBJECT_BASE_H__
 
 #include "event.hpp"
+#include "script_callbacks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
@@ -80,7 +81,8 @@ public:
 
 	void tickSend();
 	
-	virtual Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
+	virtual Mercury::Channel* initLoginappChannel(std::string accountName, 
+		std::string passwd, std::string ip, KBEngine::uint32 port);
 	virtual Mercury::Channel* initBaseappChannel();
 
 	bool createAccount();
@@ -113,6 +115,9 @@ public:
 		return PyLong_FromLong(pClientObjectBase->appID());	
 	}
 	
+	static PyObject* __py_callback(PyObject* self, PyObject* args);
+	static PyObject* __py_cancelCallback(PyObject* self, PyObject* args);
+
 	/**
 		如果entitiessize小于256
 		通过索引位置来获取entityID
@@ -358,6 +363,11 @@ public:
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
 	void onSpaceChanged();
+
+	Timers & timers() { return timers_; }
+	void handleTimers();
+
+	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
 protected:				
 	int32													appID_;
 
@@ -407,7 +417,12 @@ protected:
 	bool													isLoadedGeometry_;
 
 	SPACE_DATA												spacedatas_;
+
+	Timers													timers_;
+	ScriptCallbacks											scriptCallbacks_;
 };
+
+
 
 }
 #endif

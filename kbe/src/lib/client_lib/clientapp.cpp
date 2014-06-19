@@ -64,8 +64,6 @@ mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
 pBlowfishFilter_(NULL),
-time_(),
-timers_(),
 threadPool_(),
 entryScript_(),
 state_(C_STATE_INIT)
@@ -179,6 +177,8 @@ bool ClientApp::installEntityDef()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,			__py_fireEvent,									METH_VARARGS,	0)
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,				__py_getPlayer,									METH_VARARGS,	0)
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getSpaceData,		__py_GetSpaceData,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	callback,			__py_callback,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	cancelCallback,		__py_cancelCallback,							METH_VARARGS,	0)
 	return true;
 }
 

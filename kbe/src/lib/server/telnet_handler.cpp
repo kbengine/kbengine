@@ -596,6 +596,7 @@ void TelnetHandler::processPythonCommand(std::string command)
 	if(pTelnetServer_->pScript() == NULL || command.size() == 0)
 		return;
 	
+	command += "\n";
 	PyObject* pycmd = PyUnicode_DecodeUTF8(command.data(), command.size(), NULL);
 	if(pycmd == NULL)
 	{
@@ -635,9 +636,12 @@ void TelnetHandler::sendDelChar()
 {
 	if(command_.size() > 0)
 	{
-		command_.erase(currPos_ - 1, 1);
-		currPos_--;
-		pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
+		if(currPos_ > 0)
+		{
+			command_.erase(currPos_ - 1, 1);
+			currPos_--;
+			pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
+		}
 	}
 	else
 	{

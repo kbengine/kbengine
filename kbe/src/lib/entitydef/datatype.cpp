@@ -1875,7 +1875,11 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames[%3%]\n") % 
 				this->aliasName_ % iter->first % this->debugInfos());
 
-			KBE_ASSERT(pyObject != NULL);
+			// KBE_ASSERT(pyObject != NULL);
+			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
+			iter->second->dataType->addToStream(mstream, pobj);
+			Py_DECREF(pobj);
+			continue;
 		}
 
 		iter->second->dataType->addToStream(mstream, pyObject);

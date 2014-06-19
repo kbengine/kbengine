@@ -46,10 +46,6 @@ public:
 
 	void cancelAll();
 
-	void writeToStream(MemoryStream & stream ) const;
-	void readFromStream(MemoryStream & stream,
-			uint32 numTimers, TimerHandler * pHandler);
-
 	ScriptID getIDForHandle(TimerHandle handle) const;
 
 	bool isEmpty() const	{ return map_.empty(); }
@@ -73,10 +69,6 @@ namespace ScriptTimersUtil
 	bool delTimer( ScriptTimers * pTimers, ScriptID timerID );
 	void releaseTimer( ScriptTimers ** ppTimers, TimerHandle handle );
 	void cancelAll( ScriptTimers * pTimers );
-
-	void writeToStream( ScriptTimers * pTimers, MemoryStream & stream );
-	void readFromStream( ScriptTimers ** ppTimers, MemoryStream & stream,
-			TimerHandler * pHandler );
 
 	ScriptID getIDForHandle( ScriptTimers * pTimers,
 			TimerHandle handle );

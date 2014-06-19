@@ -192,6 +192,10 @@
 				RelativePath=".\profile.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\script_callbacks.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -240,6 +244,10 @@
 			</File>
 			<File
 				RelativePath=".\profile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\script_callbacks.hpp"
 				>
 			</File>
 		</Filter>

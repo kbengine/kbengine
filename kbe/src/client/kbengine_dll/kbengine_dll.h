@@ -1,6 +1,7 @@
 #ifndef __KBENGINE_DLL__
 #define __KBENGINE_DLL__
-
+#pragma warning(disable : 4217)
+#pragma warning(disable : 4049)
 #include "stdio.h"
 #include "stdlib.h"
 #include "cstdkbe/cstdkbe.hpp"

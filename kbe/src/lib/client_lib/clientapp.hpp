@@ -109,7 +109,7 @@ public:
 	bool login(std::string accountName, std::string passwd, 
 		std::string ip, KBEngine::uint32 port);
 
-	GAME_TIME time() const { return time_; }
+	GAME_TIME time() const { return g_kbetime; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
 	void handleTimers();
@@ -161,6 +161,16 @@ public:
 		
 		return ClientObjectBase::__py_GetSpaceData(&ClientApp::getSingleton(), args);	
 	}
+
+	static PyObject* __py_callback(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_callback(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_cancelCallback(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_cancelCallback(&ClientApp::getSingleton(), args);	
+	}
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -177,9 +187,6 @@ protected:
 	
 	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
 	Mercury::BlowfishFilter*								pBlowfishFilter_;
-
-	GAME_TIME												time_;
-	Timers													timers_;
 
 	// Ïß³Ì³Ø
 	thread::ThreadPool										threadPool_;

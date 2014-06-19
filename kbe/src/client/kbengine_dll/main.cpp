@@ -1,3 +1,5 @@
+#pragma warning(disable : 4049)
+#pragma warning(disable : 4217)
 #define KBE_DLL_API extern "C" _declspec(dllexport)
 #include "kbengine_dll.h"
 
