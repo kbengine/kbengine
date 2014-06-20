@@ -280,6 +280,21 @@ void Witness::onLeaveSpace(Space* pSpace)
 	pEntity_->getClientMailbox()->postMail(*pSendBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+	lastBasePos.z = -FLT_MAX;
+
+	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); iter++)
+	{
+		if((*iter)->pEntity())
+		{
+			(*iter)->pEntity()->delWitnessed(pEntity_);
+		}
+
+		delete (*iter);
+	}
+
+	aoiEntities_.clear();
 }
 
 //-------------------------------------------------------------------------------------
