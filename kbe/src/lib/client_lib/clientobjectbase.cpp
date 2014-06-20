@@ -1564,6 +1564,22 @@ void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::stri
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::clearSpace()
 {
+	Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
+	for(; iter != pEntities_->getEntities().end(); iter++)
+	{
+		client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
+		if(pEntity->getID() == this->entityID())
+			continue;
+
+		EventData_LeaveWorld eventdata;
+		eventdata.spaceID = pEntity->getSpaceID();
+		eventdata.entityID = pEntity->getID();
+
+		pEntity->onLeaveWorld();
+
+		eventHandler_.fire(&eventdata);
+	}
+
 	pEntityIDAliasIDList_.clear();
 	spacedatas_.clear();
 
