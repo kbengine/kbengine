@@ -60,7 +60,6 @@ class Spaces(KBEngine.Base, GameObject):
 		define method.
 		请求进入某个space中
 		"""
-		DEBUG_MSG("=================%d---" % (spaceUType))
 		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, context)
 
 	def onSpaceLoseCell(self, spaceUType, spaceKey):

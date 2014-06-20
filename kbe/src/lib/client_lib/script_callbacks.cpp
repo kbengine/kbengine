@@ -169,7 +169,7 @@ ScriptCallbacks::Map::const_iterator ScriptCallbacks::findCallback(TimerHandle h
 //-------------------------------------------------------------------------------------
 void ScriptCallbackHandler::handleTimeout( TimerHandle handle, void * pUser )
 {
-	int id = scriptCallbacks_.getIDForHandle( handle );
+	//int id = scriptCallbacks_.getIDForHandle(handle);
 
 	PyObject * pObject = pObject_;
 
