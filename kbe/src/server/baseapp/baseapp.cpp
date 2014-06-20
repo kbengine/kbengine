@@ -2563,8 +2563,12 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 		return;
 	}
 	
-	if(s.opsize() <= 0 || s.opsize() != (sizeof(float) * 6 + sizeof(uint8)))
+	static size_t datasize = (sizeof(float) * 6 + sizeof(uint8) + sizeof(uint32));
+	if(s.opsize() <= 0 || s.opsize() != datasize)
 	{
+		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: invalid data, size(%1% != %2%), srcEntityID=%3%.\n") %
+			datasize % s.opsize() % srcEntityID);
+
 		s.opfini();
 		return;
 	}

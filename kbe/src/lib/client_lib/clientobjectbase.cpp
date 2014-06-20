@@ -962,6 +962,7 @@ void ClientObjectBase::updatePlayerToServer()
 	(*pBundle) << dir.roll();
 
 	(*pBundle) << pEntity->isOnGound();
+	(*pBundle) << spaceID_;
 	pServerChannel_->pushBundle(pBundle);
 }
 

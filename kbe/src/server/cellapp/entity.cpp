@@ -1346,16 +1346,26 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 //-------------------------------------------------------------------------------------
 void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 {
-	if(spaceID_ == 0 )
+	if(spaceID_ == 0)
+	{
+		s.opfini();
 		return;
+	}
 
 	Position3D pos;
 	Direction3D dir;
 	uint8 isOnGround = 0;
 	float yaw, pitch, roll;
+	SPACE_ID currspace;
 
-	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll >> isOnGround;
+	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll >> isOnGround >> currspace;
 	isOnGround_ = isOnGround > 0;
+
+	if(spaceID_ != currspace)
+	{
+		s.opfini();
+		return;
+	}
 
 	dir.yaw(yaw);
 	dir.pitch(pitch);
