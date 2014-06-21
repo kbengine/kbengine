@@ -2,6 +2,7 @@
 import KBEngine
 import random
 import wtimer
+import time
 import d_spaces
 import d_avatar_inittab
 from KBEDebug import *
@@ -67,7 +68,7 @@ class Avatar(KBEngine.Proxy,
 			return
 			
 		# 如果帐号ENTITY存在 则也通知销毁它
-		if self.accountEntity != None:
+		if self.accountEntity != None and self.accountEntity.relogin - time.time() > 1:
 			self.accountEntity.activeCharacter = None
 			self.accountEntity.destroy()
 			self.accountEntity = None

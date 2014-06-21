@@ -176,10 +176,10 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("uku"), 
-		PyUnicode_FromString(addr), 
-		PyLong_FromLong(port),
-		PyUnicode_FromString(password)
+		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sks"), 
+		addr, 
+		port,
+		password
 	);
 	
 	int32 ret = LOG_ON_REJECT;

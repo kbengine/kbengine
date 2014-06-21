@@ -2015,7 +2015,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		}
 		
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
-		int32 ret = base->onLogOnAttempt(inet_ntoa((struct in_addr&)pChannel->addr().ip), 
+		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
 
 		switch(ret)
@@ -2030,9 +2030,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
 						pOldClientChannel->c_str());
 					
-					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
-					pOldClientChannel->proxyID(0);
-					pOldClientChannel->condemn();
+					kickChannel(pOldClientChannel, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
 				}
 				else
 				{
@@ -2127,6 +2125,25 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 			"entityID=%3%, ClientMailbox is exist.\n") %
 			accountName.c_str() % key % entityID);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode)
+{
+	if(pChannel == NULL)
+		return;
+
+	INFO_MSG(boost::format("Baseapp::kickChannel: pChannel=%1%, failedcode=%2%, proxyID=%3%.\n") %
+		pChannel->c_str() % failedcode % pChannel->proxyID());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onKicked);
+	ClientInterface::onKickedArgs1::staticAddToBundle((*pBundle), failedcode);
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	pChannel->proxyID(0);
+	pChannel->condemn();
 }
 
 //-------------------------------------------------------------------------------------

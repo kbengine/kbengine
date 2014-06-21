@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
+import time
 import d_spaces
 from AVATAR_INFOS import TAvatarInfosList
 from KBEDebug import *
@@ -10,6 +11,7 @@ class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		self.activeCharacter = None
+		self.relogin = time.time()
 		
 	def onTimer(self, id, userArg):
 		"""
@@ -26,20 +28,14 @@ class Account(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("account[%i] entities enable. mailbox:%s, clientType(%i)" % (self.id, self.client, self.getClientType()))
-		
-		# 如果一个在线的账号被一个客户端登陆并且onLogOnAttempt返回允许
-		# 那么会挤掉之前的客户端， 并且onEntitiesEnabled会再次触发
-		# 那么此时self.activeCharacter不为None
-		if self.activeCharacter:
-			self.giveClientTo(self.activeCharacter)
+		INFO_MSG("Account[%i]::onEntitiesEnabled:entities enable. mailbox:%s, clientType(%i), hasAvatar=%s" % (self.id, self.client, self.getClientType(), self.activeCharacter))
 			
 	def onLogOnAttempt(self, ip, port, password):
 		"""
 		KBEngine method.
 		客户端登陆失败时会回调到这里
 		"""
-		INFO_MSG(ip, port, password)
+		INFO_MSG("Account[%i]::onLogOnAttempt: ip=%s, port=%i, selfclient=%s" % (self.id, ip, port, self.client))
 		"""
 		if self.activeCharacter != None:
 			return KBEngine.LOG_ON_REJECT
@@ -49,8 +45,16 @@ class Account(KBEngine.Proxy):
 		else:
 			return KBEngine.LOG_ON_REJECT
 		"""
+		
+		# 如果一个在线的账号被一个客户端登陆并且onLogOnAttempt返回允许
+		# 那么会踢掉之前的客户端连接
+		# 那么此时self.activeCharacter可能不为None， 常规的流程是销毁这个角色等新客户端上来重新选择角色进入
 		if self.activeCharacter:
 			self.activeCharacter.giveClientTo(self)
+			self.relogin = time.time()
+			self.activeCharacter.destroySelf()
+			self.activeCharacter = None
+			
 		return KBEngine.LOG_ON_ACCEPT
 		
 	def onClientDeath(self):
