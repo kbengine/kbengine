@@ -209,6 +209,10 @@ void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 {
 	INFO_MSG(boost::format("ClientObjectBase::onKicked: code=%1%\n") % failedcode);
 
+	EventData_onKicked eventdata;
+	eventdata.failedcode = failedcode;
+	eventHandler_.fire(&eventdata);
+
 #ifdef unix
 	::close(*pChannel->endpoint());
 #elif defined(PLAYSTATION3)

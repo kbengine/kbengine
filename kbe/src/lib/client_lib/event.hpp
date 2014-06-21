@@ -48,6 +48,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_DIRECTION_FORCE 16
 #define CLIENT_EVENT_ADDSPACEGEOMAPPING 17
 #define CLIENT_EVENT_VERSION_NOT_MATCH 18
+#define CLIENT_EVENT_ON_KICKED 19
 
 struct EventData
 {
@@ -314,6 +315,17 @@ struct EventData_VersionNotMatch : public EventData
 	std::string serVerInfo;
 };
 
+struct EventData_onKicked : public EventData
+{
+	EventData_onKicked():
+	EventData(CLIENT_EVENT_ON_KICKED),
+	failedcode(0)
+	{
+	}
+
+	uint16 failedcode;
+};
+
 inline EventData* newKBEngineEvent(EventID v)
 {
 	switch(v)
@@ -371,6 +383,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			return new EventData_VersionNotMatch();
+			break;
+		case CLIENT_EVENT_ON_KICKED:
+			return new EventData_onKicked();
 			break;
 		default:
 			break;
@@ -456,6 +471,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			peventdata = new EventData_VersionNotMatch();
 			(*static_cast<EventData_VersionNotMatch*>(peventdata)) = (*static_cast<const EventData_VersionNotMatch*>(lpEventData));
+			break;
+		case CLIENT_EVENT_ON_KICKED:
+			peventdata = new EventData_onKicked();
+			(*static_cast<EventData_onKicked*>(peventdata)) = (*static_cast<const EventData_onKicked*>(lpEventData));
 			break;
 		default:
 			break;
