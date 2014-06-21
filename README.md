@@ -11,6 +11,7 @@ http://www.kbengine.org
 ##Demo sources
 
 	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring
 	ogre		: https://github.com/kbengine/kbengine_ogre_demo
 	html5		: https://github.com/kbengine/kbengine_html5_demo
 
