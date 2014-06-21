@@ -317,7 +317,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
-			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% have clientMailbox.\n") % 
+			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% has clientMailbox.\n") % 
 					getScriptName() %
 					getID() %
 					proxy->getScriptName() % 
