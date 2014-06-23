@@ -31,3 +31,6 @@ RoadMap:
 History:
   2014-06-13 compiled a ios library project. maybe it can't used . but it is a start point. after this , we can keep logic function, remove socket dependented source , replace with  cross platform socket works with cocos2d-x. 
   tip:  SOL_TCP is linux only. it seems we should choose  BSD Socket. 
+
+  2014-06-23  KBE packet encode library. 80% . auto login to loginapp , prepare system embed messages. (datatypes not done) next will debug login to base_gateway. (but, today my debug server offline .so faint) . 
+   
