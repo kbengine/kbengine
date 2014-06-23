@@ -276,6 +276,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tmxparser", "lib\dependencies\tmxparser\tmxparser\tmxparser.vcproj", "{42FC1F89-7136-45E8-94E3-594C173C2937}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client_dll", "client\kbengine_dll\kbengine_client_dll.vcproj", "{65D320D2-7E54-4903-828A-C48185059AA4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A04109A7-46C9-42F9-AB29-8E3D84450172} = {A04109A7-46C9-42F9-AB29-8E3D84450172}
+		{56D453A7-787B-49E3-84BC-465EED38DE8A} = {56D453A7-787B-49E3-84BC-465EED38DE8A}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
