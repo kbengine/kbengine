@@ -150,7 +150,9 @@ void ThreadPool::destroy()
 		KBEngine::sleep(300);
 		itry++;
 
+		std::string taskaddrs = "";
 		THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
 		int count = allThreadList_.size();
 		std::list<TPThread*>::iterator itr = allThreadList_.begin();
 		for(; itr != allThreadList_.end(); itr++)
@@ -158,21 +160,26 @@ void ThreadPool::destroy()
 			if((*itr))
 			{
 				if((*itr)->getState() != TPThread::THREAD_STATE_END)
+				{
 					(*itr)->sendCondSignal();
+					taskaddrs += (boost::format("%1%,") % (*itr)).str();
+				}
 				else
+				{
 					count--;
+				}
 			}
 		}
 
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-
+		
 		if(count <= 0)
 		{
 			break;
 		}
 		else
 		{
-			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
+			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%)[%2%], try=%3%\n") % count % taskaddrs % itry);
 		}
 	}
 
