@@ -89,7 +89,9 @@ Config* pconfig = NULL;
 KBEngine::script::PyThreadStateLock* g_pLock = NULL;
 KBEngine::script::PyThreadStateLock* g_pNewLock = NULL;
 TelnetServer* g_pTelnetServer = NULL;
+
 volatile bool g_inProcess = false;
+volatile bool g_break = false;
 volatile int targetID = -1;
 
 //-------------------------------------------------------------------------------------
@@ -131,7 +133,7 @@ public:
 	
 	virtual bool process()
 	{
-		while(g_pApp && !g_pApp->getMainDispatcher().isBreakProcessing())
+		while(g_pApp && !g_break)
 		{
 			g_pLock = new KBEngine::script::PyThreadStateLock;
 			
@@ -146,7 +148,8 @@ public:
 			g_inProcess = false;
 			SAFE_RELEASE(g_pLock);
 		}
-
+	
+		g_break = true;
 		return false;
 	}
 	
@@ -302,6 +305,7 @@ bool kbe_destroy()
 	g_pTelnetServer->stop();
 	SAFE_RELEASE(g_pTelnetServer);
 
+	g_break = true;
 	g_pApp->getMainDispatcher().breakProcessing();
 	g_pThreadPool->finalise();
 	KBEngine::sleep(100);
