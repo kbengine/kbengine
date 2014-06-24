@@ -54,6 +54,6 @@ load-limit depends on the logic of the game itself.)
 
 ## KBEngine-cocos2dx 
    会实现KBEngine Cocos2dx 版本. 重点是客户端框架封装. 提供和KBE相似的开发流程. 可能无python脚本.但用CPP写逻辑也不错吧.
-   地址在  client/cocos2dx 目录下.
+   地址在  https://github.com/cnsoft/kbengine-cocos2dx/tree/cocos2dx-cnsoft/kbe/src/client/cocos2dx 目录下.
 
 
