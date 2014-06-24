@@ -85,6 +85,33 @@ void Witness::attach(Entity* pEntity)
 	}
 
 	Cellapp::getSingleton().addUpdatable(this);
+
+	// 通知客户端enterworld
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	(*pForwardPosDirBundle) << pEntity_->getID();
+	pEntity_->addPositionAndDirectionToStream(*s1, true);
+	(*pForwardPosDirBundle).append(*s1);
+	MemoryStream::ObjPool().reclaimObject(s1);
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardPosDirBundle));
+	
+	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+
+	(*pForwardBundle) << pEntity_->getID();
+	pEntity_->getScriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	if(!pEntity_->isOnGround())
+		(*pForwardBundle) << pEntity_->isOnGround();
+
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
+	pEntity_->getClientMailbox()->postMail(*pSendBundle);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,6 +132,24 @@ void Witness::detach(Entity* pEntity)
 
 		delete (*iter);
 	}
+	
+	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
+	if(pChannel)
+	{
+		pChannel->send();
+
+		// 通知客户端leaveworld
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+		(*pForwardBundle) << pEntity_->getID();
+
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
+		pEntity_->getClientMailbox()->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
 
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
@@ -113,6 +158,7 @@ void Witness::detach(Entity* pEntity)
 	SAFE_RELEASE(pAOITrigger_);
 
 	aoiEntities_.clear();
+
 	Cellapp::getSingleton().removeUpdatable(this);
 }
 
@@ -243,10 +289,10 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pForwardPosDirBundle).append(*s1);
 	MemoryStream::ObjPool().reclaimObject(s1);
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardPosDirBundle));
+	
+	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 	(*pForwardBundle) << pEntity_->getID();
-	pEntity_->getScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
@@ -259,8 +305,7 @@ void Witness::onEnterSpace(Space* pSpace)
 
 	if(pAOITrigger_)
 	{
-		pAOITrigger_->origin((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-		pAOITrigger_->install();
+		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 }
 
@@ -273,7 +318,9 @@ void Witness::onLeaveSpace(Space* pSpace)
 	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+
+	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
+
 	(*pForwardBundle) << pEntity_->getID();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));

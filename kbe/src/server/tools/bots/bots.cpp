@@ -546,22 +546,22 @@ void Bots::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterSpace(pChannel, eid, spaceID);
+		pClient->onEntityEnterSpace(pChannel, s);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveSpace(pChannel, eid, spaceID);
+		pClient->onEntityLeaveSpace(pChannel, eid);
 	}
 }
 

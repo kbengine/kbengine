@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "witness.hpp"	
 #include "profile.hpp"
 #include "space.hpp"
+#include "range_trigger.hpp"
 #include "all_clients.hpp"
 #include "client_entity.hpp"
 #include "controllers.hpp"	
@@ -140,12 +141,7 @@ Entity::~Entity()
 	S_RELEASE(allClients_);
 	S_RELEASE(otherClients_);
 	
-	if(pWitness_)
-	{
-		pWitness_->detach(this);
-		Witness::ObjPool().reclaimObject(pWitness_);
-		pWitness_ = NULL;
-	}
+	KBE_ASSERT(pWitness_ == NULL);
 
 	SAFE_RELEASE(pControllers_);
 	SAFE_RELEASE(pEntityCoordinateNode_);
@@ -197,6 +193,13 @@ void Entity::onDestroy(bool callScript)
 	}
 
 	stopMove();
+
+	if(pWitness_)
+	{
+		pWitness_->detach(this);
+		Witness::ObjPool().reclaimObject(pWitness_);
+		pWitness_ = NULL;
+	}
 
 	// 将entity从场景中剔除
 	Space* space = Spaces::findSpace(this->getSpaceID());
@@ -808,6 +811,11 @@ PyObject* Entity::pyHasWitness()
 //-------------------------------------------------------------------------------------
 void Entity::restoreProximitys()
 {
+	if(this->pWitness() && this->pWitness()->pAOITrigger())
+	{
+		((RangeTrigger*)(this->pWitness()->pAOITrigger()))->reinstall(static_cast<CoordinateNode*>(this->pEntityCoordinateNode()));
+	}
+
 	Controllers::CONTROLLERS_MAP& objects = pControllers_->objects();
 	Controllers::CONTROLLERS_MAP::iterator iter = objects.begin();
 	for(; iter != objects.end(); iter++)
@@ -2424,6 +2432,9 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 	{
 		_sendBaseTeleportResult(this->getID(), mb->getComponentID(), this->getSpaceID(), lastSpaceID, true);
 	}
+
+	// 如果身上有trap等触发器还得重新添加进去
+	restoreProximitys();
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);

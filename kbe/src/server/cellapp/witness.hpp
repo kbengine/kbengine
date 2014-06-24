@@ -150,6 +150,8 @@ public:
 
 	/** entityID是否在aoi内 */
 	INLINE bool entityInAOI(ENTITY_ID entityID);
+
+	INLINE AOITrigger* pAOITrigger();
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置

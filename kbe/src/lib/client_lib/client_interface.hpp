@@ -89,14 +89,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,								eid)
 
 	// 服务器上的entity已经进入space了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterSpace,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterSpace,						MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开space了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityLeaveSpace,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveSpace,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								eid)
 
 	// 远程呼叫entity方法
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

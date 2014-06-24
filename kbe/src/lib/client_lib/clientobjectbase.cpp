@@ -679,6 +679,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
+			entity->isOnGound(isOnGound > 0);
 		}
 		else
 		{
@@ -688,23 +689,20 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	}
 	else
 	{
-		if(!entity->isEnterword())
-		{
-			KBE_ASSERT(entity->getCellMailbox() == NULL);
-			
-			// 初始化一下服务端当前的位置
-			entity->setServerPosition(entity->getPosition());
+		entity->isOnGound(isOnGound > 0);
+		entityPos_ = entity->getPosition();
+		entityDir_ = entity->getDirection();
 
-			// 设置entity的cellMailbox
-			EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
-				NULL, appID(), eid, MAILBOX_TYPE_CELL);
+		// 初始化一下服务端当前的位置
+		entity->setServerPosition(entity->getPosition());
 
-			entity->setCellMailbox(mailbox);
-		}
-		else
-		{
-			return;
-		}
+		KBE_ASSERT(!entity->isEnterword() && entity->getCellMailbox() == NULL);
+		
+		// 设置entity的cellMailbox
+		EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
+			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+
+		entity->setCellMailbox(mailbox);
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
@@ -726,11 +724,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	if(entityID_ == eid)
 	{
 		entity->onBecomePlayer();
-		entityPos_ = entity->getPosition();
-		entityDir_ = entity->getDirection();
 	}
 	
-	entity->isOnGound(isOnGound > 0);
 	entity->onEnterWorld();
 }
 
@@ -777,8 +772,16 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s)
 {
+	ENTITY_ID eid = 0;
+	int8 isOnGound = 0;
+
+	s >> eid;
+
+	if(s.opsize() > 0)
+		s >> isOnGound;
+
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
@@ -789,15 +792,32 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%(%2%).\n") % 
 		entity->getScriptName() % eid);
 
-	EventData_EnterSpace eventdata;
-	eventdata.spaceID = spaceID;
-	eventdata.entityID = entity->getID();
+	entity->isOnGound(isOnGound > 0);
 
+	entityPos_ = entity->getPosition();
+	entityDir_ = entity->getDirection();
+
+	// 初始化一下服务端当前的位置
+	entity->setServerPosition(entity->getPosition());
+
+	EventData_EnterSpace eventdata;
+	eventdata.spaceID = spaceID_;
+	eventdata.entityID = entity->getID();
+	eventdata.x = entity->getPosition().x;
+	eventdata.y = entity->getPosition().y;
+	eventdata.z = entity->getPosition().z;
+	eventdata.pitch = entity->getDirection().pitch();
+	eventdata.roll = entity->getDirection().roll();
+	eventdata.yaw = entity->getDirection().yaw();
+	eventdata.speed = entity->getMoveSpeed();
+	eventdata.isOnGound = isOnGound > 0;
 	eventHandler_.fire(&eventdata);
+
+	entity->onEnterSpace();
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -810,9 +830,11 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 		entity->getScriptName() % eid);
 
 	EventData_LeaveSpace eventdata;
-	eventdata.spaceID = spaceID;
+	eventdata.spaceID = spaceID_;
 	eventdata.entityID = entity->getID();
 	eventHandler_.fire(&eventdata);
+
+	entity->onLeaveSpace();
 }
 
 //-------------------------------------------------------------------------------------	

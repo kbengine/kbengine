@@ -423,7 +423,7 @@ void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -431,7 +431,21 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
 //-------------------------------------------------------------------------------------
