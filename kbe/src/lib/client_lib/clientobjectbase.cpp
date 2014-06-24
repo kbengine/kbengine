@@ -764,7 +764,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 	else
 	{
-		clearSpace();
+		clearSpace(true);
 
 		Py_DECREF(entity->getCellMailbox());
 		entity->setCellMailbox(NULL);
@@ -835,6 +835,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID
 	eventHandler_.fire(&eventdata);
 
 	entity->onLeaveSpace();
+	clearSpace(false);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -1588,30 +1589,49 @@ void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::stri
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::clearSpace()
+void ClientObjectBase::clearSpace(bool isAll)
 {
-	Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
-	for(; iter != pEntities_->getEntities().end(); iter++)
+	if(!isAll)
 	{
-		client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
-		if(pEntity->getID() == this->entityID())
-			continue;
+		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
+		for(; iter != pEntities_->getEntities().end(); iter++)
+		{
+			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
+			if(pEntity->getID() == this->entityID())
+				continue;
 
-		EventData_LeaveWorld eventdata;
-		eventdata.spaceID = pEntity->getSpaceID();
-		eventdata.entityID = pEntity->getID();
+			EventData_LeaveWorld eventdata;
+			eventdata.spaceID = pEntity->getSpaceID();
+			eventdata.entityID = pEntity->getID();
 
-		pEntity->onLeaveWorld();
+			pEntity->onLeaveWorld();
 
-		eventHandler_.fire(&eventdata);
+			eventHandler_.fire(&eventdata);
+		}
+
+		std::vector<ENTITY_ID> excludes;
+		excludes.push_back(entityID_);
+		pEntities_->clear(true, excludes);
+	}
+	else
+	{
+		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
+		for(; iter != pEntities_->getEntities().end(); iter++)
+		{
+			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
+
+			EventData_LeaveWorld eventdata;
+			eventdata.spaceID = pEntity->getSpaceID();
+			eventdata.entityID = pEntity->getID();
+
+			pEntity->onLeaveWorld();
+
+			eventHandler_.fire(&eventdata);
+		}
 	}
 
 	pEntityIDAliasIDList_.clear();
 	spacedatas_.clear();
-
-	std::vector<ENTITY_ID> excludes;
-	excludes.push_back(entityID_);
-	pEntities_->clear(true, excludes);
 
 	isLoadedGeometry_ = false;
 	spaceID_ = 0;
@@ -1621,7 +1641,7 @@ void ClientObjectBase::clearSpace()
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	clearSpace();
+	clearSpace(false);
 
 	s >> spaceID_;
 	std::string key, value;
