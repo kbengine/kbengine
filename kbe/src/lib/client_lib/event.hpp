@@ -164,12 +164,18 @@ struct EventData_EnterSpace : public EventData
 	EventData_EnterSpace():
 	EventData(CLIENT_EVENT_ENTERSPACE),
 	spaceID(0),
-	entityID(0)
+	entityID(0),
+	res()
 	{
 	}
 
 	SPACE_ID spaceID;
 	ENTITY_ID entityID;
+	std::string res;
+	float x, y, z;
+	float pitch, roll, yaw;
+	float speed;
+	bool isOnGound;
 };
 
 struct EventData_LeaveSpace : public EventData

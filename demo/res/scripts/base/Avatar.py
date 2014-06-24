@@ -68,11 +68,14 @@ class Avatar(KBEngine.Proxy,
 			return
 			
 		# 如果帐号ENTITY存在 则也通知销毁它
-		if self.accountEntity != None and self.accountEntity.relogin - time.time() > 1:
-			self.accountEntity.activeCharacter = None
-			self.accountEntity.destroy()
-			self.accountEntity = None
-			
+		if self.accountEntity != None:
+			if time.time() - self.accountEntity.relogin > 1:
+				self.accountEntity.activeCharacter = None
+				self.accountEntity.destroy()
+				self.accountEntity = None
+			else:
+				DEBUG_MSG("Avatar[%i].destroySelf: relogin =%i" % (self.id, time.time() - self.accountEntity.relogin))
+				
 		# 销毁base
 		self.destroy()
 
