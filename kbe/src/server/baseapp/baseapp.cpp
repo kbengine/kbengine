@@ -2833,14 +2833,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 		
-		const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
+		const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
 		uint16 aliassize = dataTypes.size();
 		bundle << aliassize;
 
-		DataTypes::DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
 		for(; dtiter != dataTypes.end(); dtiter++)
 		{
-			const DataType* datatype = dtiter->second.get();
+			const DataType* datatype = dtiter->second;
 
 			bundle << datatype->id();
 			bundle << dtiter->first;

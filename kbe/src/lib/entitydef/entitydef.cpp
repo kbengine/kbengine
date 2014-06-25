@@ -745,6 +745,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
 						methodDescription->setExposed();
@@ -762,7 +763,9 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -771,6 +774,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -832,6 +836,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
 						methodDescription->setExposed();
@@ -849,7 +854,9 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -858,6 +865,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -919,6 +927,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Arg")
 					{
 						DataType* dataType = NULL;
@@ -932,7 +941,9 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -941,6 +952,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")

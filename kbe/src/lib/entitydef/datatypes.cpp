@@ -169,10 +169,11 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	dataType->aliasName(name);
 	std::string lowername = name;
 	std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);	
+
 	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
 	if (iter != dataTypesLowerName_.end())
 	{ 
-		ERROR_MSG(boost::format("DataTypes::addDateType:exist a type %1%.\n") % name.c_str());
+		ERROR_MSG(boost::format("DataTypes::addDateType(name): name %1% exist.\n") % name.c_str());
 		return false;
 	}
 
@@ -181,6 +182,13 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	uid_dataTypes_[dataType->id()] = dataType;
 
 	//dataType->incRef();
+
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(boost::format("DataTypes::addDateType(name): %1% name=%2%, aliasName=%3%, uid=%4%.\n") % 
+			dataType % name % dataType->aliasName() % dataType->id());
+	}
+
 	return true;
 }
 
@@ -190,10 +198,18 @@ bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
 	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
 	if (iter != uid_dataTypes_.end())
 	{
+		ERROR_MSG(boost::format("DataTypes(uid)::addDateType: utype %1% exist.\n") % uid);
 		return false;
 	}
 
 	uid_dataTypes_[uid] = dataType;
+
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(boost::format("DataTypes::addDateType(uid): %1% aliasName=%2%, uid=%3%.\n") % 
+			dataType % dataType->aliasName() % uid);
+	}
+
 	return true;
 }
 
