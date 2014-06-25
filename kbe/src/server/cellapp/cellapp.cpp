@@ -895,6 +895,13 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	Space* space = Spaces::findSpace(spaceID);
 	if(space != NULL)
 	{
+		// 告知baseapp， entity的cell创建了
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		pBundle->newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
+		pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 		// 解包cellData信息.
 		PyObject* cellData = NULL;
 	
@@ -940,13 +947,6 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		}
 
 		Py_XDECREF(cellData);
-
-		// 告知baseapp， entity的cell创建了
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		pBundle->newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
-		pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		
 		// 这里增加一个引用， 因为可能在进入时被销毁
 		Py_INCREF(e);
