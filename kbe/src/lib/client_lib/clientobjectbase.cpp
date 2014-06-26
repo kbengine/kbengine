@@ -1545,7 +1545,7 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	}
 
 	Direction3D dir = entity->getDirection();
-
+	
 	if(yaw != FLT_MAX)
 		dir.yaw(yaw);
 
@@ -1555,7 +1555,8 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	if(roll != FLT_MAX)
 		dir.roll(roll);
 
-	entity->setDirection(dir);
+	if(yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
+		entity->setDirection(dir);
 }
 
 //-------------------------------------------------------------------------------------
