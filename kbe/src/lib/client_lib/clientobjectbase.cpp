@@ -40,6 +40,7 @@ SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			0,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -1913,6 +1914,40 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 
 	MemoryStream::ObjPool().reclaimObject(stream);
 	return pyval;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::vector<std::string> vec;
+	WatcherPaths::root().dirPath(path, vec);
+
+	PyObject* pyTuple = PyTuple_New(vec.size());
+	std::vector<std::string>::iterator iter = vec.begin();
+	int i = 0;
+	for(; iter != vec.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
+	}
+
+	return pyTuple;
 }
 
 //-------------------------------------------------------------------------------------		

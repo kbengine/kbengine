@@ -183,7 +183,8 @@ public:
 		获取watcher值
 	*/
 	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
-	
+	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
+
 	/**
 		重新导入所有的脚本
 	*/
@@ -467,6 +468,9 @@ bool EntityApp<E>::installPyModules()
 
 	// 获取watcher值
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,		METH_VARARGS,	0);
+
+	// 获取watcher目录
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,		METH_VARARGS,	0);
 
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
@@ -850,6 +854,40 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 
 	MemoryStream::ObjPool().reclaimObject(stream);
 	return pyval;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::vector<std::string> vec;
+	WatcherPaths::root().dirPath(path, vec);
+
+	PyObject* pyTuple = PyTuple_New(vec.size());
+	std::vector<std::string>::iterator iter = vec.begin();
+	int i = 0;
+	for(; iter != vec.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
+	}
+
+	return pyTuple;
 }
 
 template<class E>

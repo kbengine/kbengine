@@ -426,6 +426,7 @@ public:
 
 	void readWatchers(std::string path, MemoryStream* s);
 	void readChildPaths(std::string srcPath, std::string path, MemoryStream* s);
+	void dirPath(std::string path, std::vector<std::string>& vec);
 
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<WatcherPaths> > WATCHER_PATHS;
 

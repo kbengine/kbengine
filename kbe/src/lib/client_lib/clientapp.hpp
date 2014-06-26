@@ -176,6 +176,11 @@ public:
 		
 		return ClientObjectBase::__py_getWatcher(&ClientApp::getSingleton(), args);	
 	}
+
+	static PyObject* __py_getWatcherDir(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_getWatcherDir(&ClientApp::getSingleton(), args);	
+	}
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

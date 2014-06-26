@@ -448,6 +448,43 @@ void WatcherPaths::readWatchers(std::string path, MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
+void WatcherPaths::dirPath(std::string path, std::vector<std::string>& vec)
+{
+	if(path.size() == 0)
+	{
+		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
+		for(; iter != watcherPaths_.end(); iter++)
+		{
+			vec.push_back(iter->first);
+		}
+
+		Watchers::WATCHER_MAP& map = watchers_.watcherObjs();
+		Watchers::WATCHER_MAP::iterator mapiter = map.begin();
+		for(; mapiter != map.end(); mapiter++)
+		{
+			vec.push_back(mapiter->first);
+		}
+	}
+	else
+	{
+		std::vector<std::string> tvec;
+		KBEngine::strutil::kbe_split(path, '/', tvec);
+		
+		path.erase(0, tvec[0].size() + 1);
+
+		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
+		for(; iter != watcherPaths_.end(); iter++)
+		{
+			if(iter->first == tvec[0])
+			{
+				iter->second->dirPath(path, vec);
+				break;
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void WatcherPaths::readChildPaths(std::string srcPath, std::string path, MemoryStream* s)
 {
 	if(path.size() == 0)
