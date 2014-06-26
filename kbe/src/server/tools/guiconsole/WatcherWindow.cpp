@@ -492,7 +492,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 			KBEngine::WATCHER_ID id = 0;
 			s >> id;
 
-			KBEngine::WATCHERTYPE type;
+			KBEngine::WATCHER_VALUE_TYPE type;
 			s >> type;
 
 			KBEngine::WatcherObject* wo = watcherPaths.addWatcherFromStream(path, name, id, type, &s);

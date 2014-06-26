@@ -180,6 +180,11 @@ public:
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
 	/**
+		获取watcher值
+	*/
+	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
+	
+	/**
 		重新导入所有的脚本
 	*/
 	virtual void reloadScript(bool fullReload);
@@ -460,6 +465,9 @@ bool EntityApp<E>::installPyModules()
 	// 匹配相对路径获得全路径
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,			METH_VARARGS,	0);
 
+	// 获取watcher值
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,		METH_VARARGS,	0);
+
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
@@ -706,6 +714,145 @@ PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 }
 
 template<class E>
+PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	//DebugHelper::getSingleton().setScriptMsgType(type);
+
+	KBEShared_ptr< WatcherObject > pWobj = WatcherPaths::root().getWatcher(path);
+	if(pWobj.get() == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	WATCHER_VALUE_TYPE wtype = pWobj->getType();
+	PyObject* pyval = NULL;
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	pWobj->addToStream(stream);
+	WATCHER_ID id;
+	(*stream) >> id;
+
+	switch(wtype)
+	{
+	case WATCHER_VALUE_TYPE_UINT8:
+		{
+			uint8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT16:
+		{
+			uint16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT32:
+		{
+			uint32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT64:
+		{
+			uint64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT8:
+		{
+			int8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT16:
+		{
+			int16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT32:
+		{
+			int32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT64:
+		{
+			int64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_FLOAT:
+		{
+			float v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_DOUBLE:
+		{
+			double v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_CHAR:
+	case WATCHER_VALUE_TYPE_STRING:
+		{
+			std::string v;
+			(*stream) >> v;
+			pyval = PyUnicode_FromString(v.c_str());
+		}
+		break;
+	case WATCHER_VALUE_TYPE_BOOL:
+		{
+			bool v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_COMPONENT_TYPE:
+		{
+			COMPONENT_TYPE v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	MemoryStream::ObjPool().reclaimObject(stream);
+	return pyval;
+}
+
+template<class E>
 PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -722,6 +869,7 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
 		PyErr_PrintEx(0);
+		return 0;
 	}
 
 	DebugHelper::getSingleton().setScriptMsgType(type);

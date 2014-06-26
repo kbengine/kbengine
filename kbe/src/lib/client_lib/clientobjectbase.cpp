@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 #include "config.hpp"
 #include "clientobjectbase.hpp"
+#include "pyscript/pywatcher.hpp"
 #include "network/channel.hpp"
 #include "network/fixed_messages.hpp"
 #include "network/common.hpp"
@@ -38,6 +39,7 @@ SCRIPT_METHOD_DECLARE_BEGIN(ClientObjectBase)
 SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			0,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -1772,6 +1774,145 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	}
 
 	return PyUnicode_FromString(pClientObjectBase->getSpaceData(key).c_str());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	//DebugHelper::getSingleton().setScriptMsgType(type);
+
+	KBEShared_ptr< WatcherObject > pWobj = WatcherPaths::root().getWatcher(path);
+	if(pWobj.get() == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	WATCHER_VALUE_TYPE wtype = pWobj->getType();
+	PyObject* pyval = NULL;
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	pWobj->addToStream(stream);
+	WATCHER_ID id;
+	(*stream) >> id;
+
+	switch(wtype)
+	{
+	case WATCHER_VALUE_TYPE_UINT8:
+		{
+			uint8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT16:
+		{
+			uint16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT32:
+		{
+			uint32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT64:
+		{
+			uint64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT8:
+		{
+			int8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT16:
+		{
+			int16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT32:
+		{
+			int32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT64:
+		{
+			int64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_FLOAT:
+		{
+			float v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_DOUBLE:
+		{
+			double v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_CHAR:
+	case WATCHER_VALUE_TYPE_STRING:
+		{
+			std::string v;
+			(*stream) >> v;
+			pyval = PyUnicode_FromString(v.c_str());
+		}
+		break;
+	case WATCHER_VALUE_TYPE_BOOL:
+		{
+			bool v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_COMPONENT_TYPE:
+		{
+			COMPONENT_TYPE v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	MemoryStream::ObjPool().reclaimObject(stream);
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------		

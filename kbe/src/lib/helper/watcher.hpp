@@ -33,23 +33,23 @@ namespace Mercury{
 }
 
 typedef uint16 WATCHER_ID;
-typedef uint8 WATCHERTYPE;
+typedef uint8 WATCHER_VALUE_TYPE;
 
-#define WATCHER_TYPE_UNKNOWN			0
-#define WATCHER_TYPE_UINT8				1
-#define WATCHER_TYPE_UINT16				2
-#define WATCHER_TYPE_UINT32				3
-#define WATCHER_TYPE_UINT64				4
-#define WATCHER_TYPE_INT8				5
-#define WATCHER_TYPE_INT16				6
-#define WATCHER_TYPE_INT32				7
-#define WATCHER_TYPE_INT64				8
-#define WATCHER_TYPE_FLOAT				9
-#define WATCHER_TYPE_DOUBLE				10
-#define WATCHER_TYPE_CHAR				11
-#define WATCHER_TYPE_STRING				12
-#define WATCHER_TYPE_BOOL				13
-#define WATCHER_TYPE_COMPONENT_TYPE		14
+#define WATCHER_VALUE_TYPE_UNKNOWN				0
+#define WATCHER_VALUE_TYPE_UINT8				1
+#define WATCHER_VALUE_TYPE_UINT16				2
+#define WATCHER_VALUE_TYPE_UINT32				3
+#define WATCHER_VALUE_TYPE_UINT64				4
+#define WATCHER_VALUE_TYPE_INT8					5
+#define WATCHER_VALUE_TYPE_INT16				6
+#define WATCHER_VALUE_TYPE_INT32				7
+#define WATCHER_VALUE_TYPE_INT64				8
+#define WATCHER_VALUE_TYPE_FLOAT				9
+#define WATCHER_VALUE_TYPE_DOUBLE				10
+#define WATCHER_VALUE_TYPE_CHAR					11
+#define WATCHER_VALUE_TYPE_STRING				12
+#define WATCHER_VALUE_TYPE_BOOL					13
+#define WATCHER_VALUE_TYPE_COMPONENT_TYPE		14
 
 class Watchers;
 
@@ -74,7 +74,7 @@ public:
 	const char* name(){ return name_.c_str(); }
 
 	template <class T>
-	WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
+	WATCHER_VALUE_TYPE type()const{ return WATCHER_VALUE_TYPE_UNKNOWN; }
 
 	template <class T>
 	void updateStream(MemoryStream* s){
@@ -91,6 +91,10 @@ public:
 	int32 numWitness()const{ return numWitness_; }
 
 	const char* str()const{ return strval_.c_str(); }
+	
+	const char* getValue(){ return strval_.c_str(); }
+
+	virtual WATCHER_VALUE_TYPE getType(){ return WATCHER_VALUE_TYPE_UNKNOWN; }
 protected:
 	std::string path_, name_, strval_;
 	WATCHER_ID id_;
@@ -99,105 +103,105 @@ protected:
 };
 
 template <>
-inline WATCHERTYPE WatcherObject::type<uint8>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint8>()const
 {
-	return WATCHER_TYPE_UINT8;
+	return WATCHER_VALUE_TYPE_UINT8;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<uint16>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint16>()const
 {
-	return WATCHER_TYPE_UINT16;
+	return WATCHER_VALUE_TYPE_UINT16;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<uint32>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint32>()const
 {
-	return WATCHER_TYPE_UINT32;
+	return WATCHER_VALUE_TYPE_UINT32;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<uint64>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint64>()const
 {
-	return WATCHER_TYPE_UINT64;
+	return WATCHER_VALUE_TYPE_UINT64;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<int8>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int8>()const
 {
-	return WATCHER_TYPE_INT8;
+	return WATCHER_VALUE_TYPE_INT8;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<int16>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int16>()const
 {
-	return WATCHER_TYPE_INT16;
+	return WATCHER_VALUE_TYPE_INT16;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<int32>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int32>()const
 {
-	return WATCHER_TYPE_INT32;
+	return WATCHER_VALUE_TYPE_INT32;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<int64>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int64>()const
 {
-	return WATCHER_TYPE_INT64;
+	return WATCHER_VALUE_TYPE_INT64;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<float>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<float>()const
 {
-	return WATCHER_TYPE_FLOAT;
+	return WATCHER_VALUE_TYPE_FLOAT;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<double>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<double>()const
 {
-	return WATCHER_TYPE_DOUBLE;
+	return WATCHER_VALUE_TYPE_DOUBLE;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<bool>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<bool>()const
 {
-	return WATCHER_TYPE_BOOL;
+	return WATCHER_VALUE_TYPE_BOOL;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<char*>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<char*>()const
 {
-	return WATCHER_TYPE_STRING;
+	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<const char*>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<const char*>()const
 {
-	return WATCHER_TYPE_STRING;
+	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<std::string>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<std::string>()const
 {
-	return WATCHER_TYPE_STRING;
+	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<std::string&>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<std::string&>()const
 {
-	return WATCHER_TYPE_STRING;
+	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<const std::string&>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<const std::string&>()const
 {
-	return WATCHER_TYPE_STRING;
+	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHERTYPE WatcherObject::type<COMPONENT_TYPE>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<COMPONENT_TYPE>()const
 {
-	return WATCHER_TYPE_COMPONENT_TYPE;
+	return WATCHER_VALUE_TYPE_COMPONENT_TYPE;
 }
 
 template <>
@@ -267,6 +271,9 @@ public:
 		(*s) << id_ << watchVal_;
 	};
 
+	T getValue(){ return watchVal_; }
+
+	WATCHER_VALUE_TYPE getType(){ return type<T>(); }
 protected:
 	const T& watchVal_;
 	T val_;
@@ -299,6 +306,8 @@ public:
 		(*s) << id_ << (*func_)();
 	};
 
+	RETURN_TYPE getValue(){ return (*func_)(); }
+	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
 protected:
 	FUNC func_;
 };
@@ -331,6 +340,8 @@ public:
 		(*s) << id_ << (This_->*func_)();
 	};
 
+	RETURN_TYPE getValue(){ return (This_->*func_)(); }
+	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
 protected:
 	FUNC func_;
 	OBJ_TYPE* This_;
@@ -362,6 +373,8 @@ public:
 		(*s) << id_ << (This_->*func_)();
 	};
 
+	RETURN_TYPE getValue(){ return (This_->*func_)(); }
+	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
 protected:
 	FUNC func_;
 	OBJ_TYPE* This_;
@@ -385,9 +398,11 @@ public:
 	void readWatchers(MemoryStream* s);
 	typedef KBEUnordered_map<std::string, KBEShared_ptr< WatcherObject > > WATCHER_MAP;
 
-	bool addWatcher(std::string path, WatcherObject* pwo);
-	bool delWatcher(std::string name);
-	bool hasWatcher(std::string name);
+	bool addWatcher(const std::string& path, WatcherObject* pwo);
+	bool delWatcher(const std::string& name);
+	bool hasWatcher(const std::string& name);
+
+	KBEShared_ptr< WatcherObject > getWatcher(const std::string& name);
 
 	void updateStream(MemoryStream* s);
 
@@ -418,10 +433,11 @@ public:
 	bool _addWatcher(std::string path, WatcherObject* pwo);
 
 	WatcherObject* addWatcherFromStream(std::string path, std::string name, 
-		WATCHER_ID wid, WATCHERTYPE wtype, MemoryStream* s);
+		WATCHER_ID wid, WATCHER_VALUE_TYPE wtype, MemoryStream* s);
 
-	bool delWatcher(std::string fullpath);
-	bool hasWatcher(std::string fullpath);
+	bool delWatcher(const std::string& fullpath);
+	bool hasWatcher(const std::string& fullpath);
+	KBEShared_ptr< WatcherObject > getWatcher(const std::string& fullpath);
 
 	void updateStream(MemoryStream* s);
 
