@@ -1644,8 +1644,15 @@ void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s
 	clearSpace(false);
 
 	s >> spaceID_;
-	std::string key, value;
 
+	client::Entity* player = pPlayer();
+	if(player)
+	{
+		player->setSpaceID(spaceID_);
+	}
+
+	std::string key, value;
+	
 	while(s.opsize() > 0)
 	{
 		s >> key >> value;
