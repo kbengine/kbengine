@@ -113,7 +113,25 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 		}
 
 		for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
-			m_statusShow.SetItemText(ii, 1, m_status.GetItemText(0, ii));
+		{
+			CString s = m_status.GetItemText(0, ii);
+
+			LVCOLUMN lvcol;
+			WCHAR str[256];
+			memset(str, 0, 256);
+			lvcol.mask = LVCF_TEXT|LVCF_WIDTH;
+			lvcol.pszText = str;
+			lvcol.cchTextMax = 256;
+			lvcol.cx = ii;
+			m_status.GetColumn(ii, &lvcol);
+
+			for(int iix = 0; iix < m_statusShow.GetItemCount(); iix++)
+			{
+				CString ss = m_statusShow.GetItemText(iix, 0);
+				if(ss == lvcol.pszText)
+					m_statusShow.SetItemText(iix, 1, s);
+			}
+		}
 	}
 	else
 	{
@@ -159,7 +177,9 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
+				{
 					m_statusShow.SetItemText(i, ii, m_status.GetItemText(i, ii));
+				}
 			}
 		}
 	}
