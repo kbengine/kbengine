@@ -236,9 +236,16 @@ class ClusterControllerHandler:
 				componentInfos = []
 				self._interfaces[componentType] = componentInfos
 			
-			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
-								intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3))
+			found = False
+			for info in componentInfos:
+				if info[1] == componentID and info[13] == pid:
+					found = True
+					break
 			
+			if not found:
+				componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
+									intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3))
+				
 			count += 1
 		
 		self._interfaces_groups = {}
