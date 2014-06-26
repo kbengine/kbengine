@@ -73,12 +73,12 @@ Map(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData):
+FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(streamInitData);
+	initialize(streamInitData, isPersistentsStream);
 	
 //	DEBUG_MSG(boost::format("FixedDict::FixedDict(3): %1%---%2%\n") % this % 
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
@@ -135,16 +135,25 @@ void FixedDict::initialize(PyObject* pyDictInitData)
 }
 
 //-------------------------------------------------------------------------------------
-void FixedDict::initialize(MemoryStream* streamInitData)
+void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStream)
 {
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
 
 	for(; iter != keyTypes.end(); iter++)
 	{
-		PyObject* val1 = iter->second->dataType->createFromStream(streamInitData);
-		PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-		Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		if(isPersistentsStream && !iter->second->persistent)
+		{
+			PyObject* val1 = iter->second->dataType->parseDefaultStr("");
+			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		}
+		else
+		{
+			PyObject* val1 = iter->second->dataType->createFromStream(streamInitData);
+			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		}
 	}
 }
 

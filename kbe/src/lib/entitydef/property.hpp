@@ -148,7 +148,9 @@ public:
 
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
+
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
 	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 
@@ -191,6 +193,7 @@ public:
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
 	typedef std::vector<std::pair<std::string, KBEShared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
 protected:
@@ -217,6 +220,9 @@ public:
 		脚本请求设置这个属性的值 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 protected:	
 };
 

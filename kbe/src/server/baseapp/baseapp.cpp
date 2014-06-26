@@ -59,7 +59,7 @@ KBE_SINGLETON_INIT(Baseapp);
 
 uint64 Baseapp::_g_lastTimestamp = timestamp();
 
-PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityType)
+PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
 	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
@@ -73,7 +73,8 @@ PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityTyp
 		PropertyDescription* propertyDescription = iter->second;
 
 		const char* attrname = propertyDescription->getName();
-		PyObject* pyVal = propertyDescription->createFromStream(&s);
+
+		PyObject* pyVal = propertyDescription->createFromPersistentStream(&s);
 
 		if(!propertyDescription->getDataType()->isSameType(pyVal))
 		{
@@ -922,7 +923,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 		return;
 	}
 
-	PyObject* pyDict = create_celldatadict_from_stream(s, entityType.c_str());
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
@@ -2195,7 +2196,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	base->setDBID(dbid);
 	base->setClientType(ptinfos->ctype);
 
-	PyObject* pyDict = create_celldatadict_from_stream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 
 	PyObject* py__ACCOUNT_NAME__ = PyUnicode_FromString(accountName.c_str());
 	PyDict_SetItemString(pyDict, "__account_name__", py__ACCOUNT_NAME__);

@@ -1322,19 +1322,38 @@ PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	addToStreamEx(mstream, pyValue, false);
+}
+
+//-------------------------------------------------------------------------------------
+void FixedArrayType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents)
+{
 	ArraySize size = PySequence_Size(pyValue);
 	(*mstream) << size;
 
 	for(ArraySize i=0; i<size; i++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
-		dataType_->addToStream(mstream, pyVal);
+
+		if(dataType_->type() == DATA_TYPE_FIXEDDICT)
+			((FixedDictType*)dataType_)->addToStreamEx(mstream, pyVal, onlyPersistents);
+		else if(dataType_->type() == DATA_TYPE_FIXEDARRAY)
+			((FixedArrayType*)dataType_)->addToStreamEx(mstream, pyVal, onlyPersistents);
+		else
+			dataType_->addToStream(mstream, pyVal);
+
 		Py_DECREF(pyVal);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
+{
+	return createFromStreamEx(mstream, false);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
 {
 	ArraySize size;
 	FixedArray* arr = new FixedArray(this);
@@ -1354,7 +1373,15 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 				break;
 			}
 
-			PyObject* pyVal = dataType_->createFromStream(mstream);
+			PyObject* pyVal = NULL;
+			
+			if(dataType_->type() == DATA_TYPE_FIXEDDICT)
+				pyVal = ((FixedDictType*)dataType_)->createFromStreamEx(mstream, onlyPersistents);
+			else if(dataType_->type() == DATA_TYPE_FIXEDARRAY)
+				pyVal = ((FixedArrayType*)dataType_)->createFromStreamEx(mstream, onlyPersistents);
+			else
+				pyVal = dataType_->createFromStream(mstream);
+	
 			if(pyVal)
 			{
 				vals.push_back(pyVal);
@@ -1870,7 +1897,14 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 
 			// KBE_ASSERT(pyObject != NULL);
 			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
-			iter->second->dataType->addToStream(mstream, pobj);
+
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else
+				iter->second->dataType->addToStream(mstream, pobj);
+
 			Py_DECREF(pobj);
 			continue;
 		}
@@ -1879,12 +1913,24 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 		{
 			// KBE_ASSERT(pyObject != NULL);
 			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
-			iter->second->dataType->addToStream(mstream, pobj);
+
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else
+				iter->second->dataType->addToStream(mstream, pobj);
+
 			Py_DECREF(pobj);
 			continue;
 		}
 
-		iter->second->dataType->addToStream(mstream, pyObject);
+		if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+			((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pyObject, onlyPersistents);
+		else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+			((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pyObject, onlyPersistents);
+		else
+			iter->second->dataType->addToStream(mstream, pyObject);
 	}
 
 	if(hasImpl())
@@ -1896,7 +1942,13 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createFromStream(MemoryStream* mstream)
 {
-	FixedDict* pydict = new FixedDict(this, mstream);
+	return createFromStreamEx(mstream, false);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
+{
+	FixedDict* pydict = new FixedDict(this, mstream, onlyPersistents);
 
 	if(hasImpl())
 	{
