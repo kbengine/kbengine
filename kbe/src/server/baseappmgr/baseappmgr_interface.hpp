@@ -73,6 +73,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	// baseEntity请求创建在一个新的space中。
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhere,				MERCURY_VARIABLE_MESSAGE)
 
+	// baseEntity请求创建在一个新的space中。
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBID,		MERCURY_VARIABLE_MESSAGE)
+
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。	
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,						MERCURY_VARIABLE_MESSAGE)
 

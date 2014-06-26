@@ -229,6 +229,39 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseAnywhereFromDBID(Mercury::Channel* pChannel, MemoryStream& s) 
+{
+	Components::ComponentInfos* cinfos = 
+		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		ForwardItem* pFI = new ForwardItem();
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
+		(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
+		s.read_skip(s.opsize());
+
+		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
+		return;
+	}
+	
+	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: %s opsize=%d, selBaseappIdx=%d.\n", 
+	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
+
+	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	s.read_skip(s.opsize());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
 												 std::string& loginName, std::string& accountName, 
 												 std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,

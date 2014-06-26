@@ -167,7 +167,7 @@ public:
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口

@@ -138,6 +138,7 @@ public:
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
@@ -170,6 +171,23 @@ public:
 		createBaseFromDBID的回调。
 	*/
 	void onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 
+		从db获取信息创建一个entity
+	*/
+	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
+
+	/** 网络接口
+		createBaseFromDBID的回调。
+	*/
+	// 从数据库来的回调
+	void onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	// 请求在这个进程上创建这个entity
+	void createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	// 创建完毕后的回调
+	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
+	
 
 	/** 
 		baseapp 的createBaseAnywhere的回调 

@@ -1517,9 +1517,10 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID):
 EntityDBTask(addr, entityID, dbid),
+queryMode_(queryMode),
 entityType_(entityType),
 dbid_(dbid),
 componentID_(componentID),
@@ -1576,10 +1577,15 @@ bool DBTaskQueryEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%.\n") % entityType_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%, dbid=%2%, queryMode=%3%.\n") % entityType_ % dbid_ % ((int)queryMode_));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
+
+	if(queryMode_ == 0)
+		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
+	else if(queryMode_ == 1)
+		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDCallback);
+
 	(*pBundle) << entityType_;
 	(*pBundle) << dbid_;
 	(*pBundle) << callbackID_;

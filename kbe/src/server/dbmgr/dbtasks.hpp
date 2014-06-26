@@ -448,13 +448,14 @@ protected:
 class DBTaskQueryEntity : public EntityDBTask
 {
 public:
-	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+	DBTaskQueryEntity(const Mercury::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	virtual ~DBTaskQueryEntity();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
+	int8 queryMode_;
 	std::string entityType_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;

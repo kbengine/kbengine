@@ -131,8 +131,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS5(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
+	DBMGR_MESSAGE_DECLARE_ARGS6(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
 									COMPONENT_ID,					componentID,
+									int8,							queryMode,
 									DBID,							dbid, 
 									std::string,					entityType,
 									CALLBACK_ID,					callbackID,

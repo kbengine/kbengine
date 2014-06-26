@@ -621,10 +621,10 @@ void Dbmgr::deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8 queryMode, DBID dbid, 
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {
-	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), entityType, 
+	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), queryMode, entityType, 
 		dbid, componentID, callbackID, entityID));
 
 	numQueryEntity_++;

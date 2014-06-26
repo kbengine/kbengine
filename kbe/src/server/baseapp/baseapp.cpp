@@ -260,6 +260,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere,				__py_createBaseAnywhere,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,									METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhereFromDBID,		__py_createBaseAnywhereFromDBID,							METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,								METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		quantumPassedPercent,			__py_quantumPassedPercent,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		charge,							__py_charge,												METH_VARARGS,			0);
@@ -866,8 +867,8 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	ENTITY_ID entityID = idClient_.alloc();
 	KBE_ASSERT(entityID > 0);
 
-	DbmgrInterface::queryEntityArgs5::staticAddToBundle((*pBundle), 
-		g_componentID, dbid, entityType, callbackID, entityID);
+	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
+		g_componentID, 0, dbid, entityType, callbackID, entityID);
 	
 	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -919,7 +920,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 					callbackID);
 			}
 		}
-
+		
+		s.opfini();
 		return;
 	}
 
@@ -955,6 +957,308 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 		else
 		{
 			ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: can't found callback:%1%.\n") %
+				callbackID);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	PyObject* pyCallback = NULL;
+	wchar_t* wEntityType = NULL;
+	char* entityType = NULL;
+	int ret = -1;
+	DBID dbid;
+	PyObject* pyEntityType = NULL;
+
+	switch(argCount)
+	{
+	case 3:
+		ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyCallback);
+		break;
+	case 2:
+		ret = PyArg_ParseTuple(args, "O|K", &pyEntityType, &dbid);
+		break;
+	default:
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
+				__FUNCTION__, argCount);	
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	};
+
+	if(pyEntityType)
+	{
+		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
+		entityType = strutil::wchar2char(wEntityType);									
+		PyMem_Free(wEntityType);		
+	}
+
+	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args is error, entityType=%s!", entityType);
+		PyErr_PrintEx(0);
+
+		if(entityType)
+			free(entityType);
+
+		return NULL;
+	}
+
+	if(EntityDef::findScriptModule(entityType) == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: entityType is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	if(dbid <= 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: dbid is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	if(pyCallback && !PyCallable_Check(pyCallback))
+	{
+		pyCallback = NULL;
+
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: callback is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	Baseapp::getSingleton().createBaseAnywhereFromDBID(entityType, dbid, pyCallback);
+
+	free(entityType);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
+{
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: not found dbmgr!\n");
+		PyErr_PrintEx(0);
+		return;
+	}
+
+	CALLBACK_ID callbackID = 0;
+	if(pyCallback != NULL)
+	{
+		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pBundle->newMessage(DbmgrInterface::queryEntity);
+
+	ENTITY_ID entityID = idClient_.alloc();
+	KBE_ASSERT(entityID > 0);
+
+	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
+		g_componentID, 1, dbid, entityType, callbackID, entityID);
+	
+	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	size_t currpos = s.rpos();
+
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	bool success = false;
+	bool wasActive = false;
+	ENTITY_ID entityID;
+
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> success;
+	s >> entityID;
+	s >> wasActive;
+
+	if(!success)
+	{
+		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed.\n") % 
+			entityType.c_str() % dbid);
+
+		if(callbackID > 0)
+		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+			Py_INCREF(Py_None);
+			// baseRef, dbid, wasActive
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if(pyfunc != NULL)
+			{
+				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+													const_cast<char*>("OKi"), 
+													Py_None, dbid, wasActive);
+
+				if(pyResult != NULL)
+					Py_DECREF(pyResult);
+				else
+					SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: can't found callback:%1%.\n") %
+					callbackID);
+			}
+		}
+		
+		s.opfini();
+		return;
+	}
+
+	Mercury::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
+	if(pBaseappmgrChannel == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed, not found baseappmgr.\n") % 
+			entityType.c_str() % dbid);
+		return;
+	}
+
+	s.rpos(currpos);
+
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	(*stream) << g_componentID;
+	stream->append(s);
+	s.opfini();
+
+	// 通知baseappmgr在其他baseapp上创建entity
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBID);
+	pBundle->append((*stream));
+	pBundle->send(this->getNetworkInterface(), pBaseappmgrChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	MemoryStream::ObjPool().reclaimObject(stream);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	bool success = false;
+	bool wasActive = false;
+	ENTITY_ID entityID;
+	COMPONENT_ID sourceBaseappID;
+
+	s >> sourceBaseappID;
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> success;
+	s >> entityID;
+	s >> wasActive;
+
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
+	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
+	if(e)
+	{
+		static_cast<Base*>(e)->setDBID(dbid);
+		static_cast<Base*>(e)->initializeEntity(pyDict);
+		Py_DECREF(pyDict);
+	}
+
+	// 是否本地组件就是发起源， 如果是直接在本地调用回调
+	if(g_componentID == sourceBaseappID)
+	{
+		onCreateBaseAnywhereFromDBIDOtherBaseappCallback(pChannel, g_componentID, entityType, static_cast<Base*>(e)->getID(), callbackID, dbid);
+	}
+	else
+	{
+		// 通知baseapp, 创建好了
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDOtherBaseappCallback);
+
+
+		BaseappInterface::onCreateBaseAnywhereFromDBIDOtherBaseappCallbackArgs5::staticAddToBundle((*pBundle), 
+			g_componentID, entityType, static_cast<Base*>(e)->getID(), callbackID, dbid);
+
+		Components::ComponentInfos* baseappinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, sourceBaseappID);
+		if(baseappinfos == NULL || baseappinfos->pChannel == NULL || baseappinfos->cid == 0)
+		{
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = NULL;
+			pFI->pBundle = pBundle;
+			forward_messagebuffer_.push(sourceBaseappID, pFI);
+			WARNING_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found sourceBaseapp(%1%), message is buffered.\n") % sourceBaseappID);
+			return;
+		}
+		
+		pBundle->send(this->getNetworkInterface(), baseappinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
+{
+	if(callbackID > 0)
+	{
+		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
+		if(sm == NULL)
+		{
+			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback: not found entityType:%1%.\n") %
+				entityType.c_str());
+
+			return;
+		}
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		// baseRef, dbid, wasActive
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if(pyfunc != NULL)
+		{
+			Base* pbase = this->findEntity(createdEntityID);
+
+			PyObject* pyResult = NULL;
+			
+			if(pbase)
+			{
+				pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												pbase, dbid, 0);
+			}
+			else
+			{
+				PyObject* mb = static_cast<PyObject*>(new EntityMailbox(sm, NULL, createByBaseappID, createdEntityID, MAILBOX_TYPE_BASE));
+				pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												mb, dbid, 0);
+				Py_DECREF(mb);
+			}
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found callback:%1%.\n") %
 				callbackID);
 		}
 	}
