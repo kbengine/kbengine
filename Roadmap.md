@@ -34,3 +34,12 @@ History:
 
   2014-06-23  KBE packet encode library. 80% . auto login to loginapp , prepare system embed messages. (datatypes not done) next will debug login to base_gateway. (but, today my debug server offline .so faint) . 
    
+  2014-06-27  Let's summary the new progress of this week (30% on this project) . 
+      My debug server has not been fixed. so i have to setup a debug server on windows. it cost some out of planning time.
+      Port from CPP or C# version confuse me. i am not sure the percentage of each part. a mixture thing. 
+      System Level method call is handled almost done. some is only read and write stream of the socket packet data. 
+      After this week, we  have a client can connected to KBE server .  it can start reqCreateAvatar request, got response. 
+      Next step: write some hard code style to decode AvatarInfo data. so we can start port avatar feature , after that, almost 
+       
+      
+  
