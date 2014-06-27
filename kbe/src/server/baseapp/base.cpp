@@ -948,9 +948,6 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
 
-	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	addPersistentsDataToStream(ED_FLAG_ALL, s);
-
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
@@ -962,6 +959,9 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 		ERROR_MSG(boost::format("Base::onCellWriteToDBCompleted(%1%): not found dbmgr!\n") % this->getID());
 		return;
 	}
+
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::writeEntity);
