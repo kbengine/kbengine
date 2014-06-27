@@ -492,11 +492,13 @@ class ClusterStopHandler(ClusterControllerHandler):
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
 				
 				count = 0
-				for info in infos:
+				clist = []
+				for info in infos: 
 					if info[0] == self.uid:
 						count += 1
-
-				print("\t\t%s : %i" % (ctype, count))
+						clist.append(info[1])
+						
+				print("\t\t%s : %i%s" % (ctype, count, clist))
 				waitcount += count
 
 			if waitcount > 0:
