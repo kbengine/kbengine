@@ -455,11 +455,9 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
 			
-			count = 0
 			clist = []
 			for info in infos: 
 				if info[0] == self.uid:
-					count += 1
 					clist.append(info[1])
 						
 			interfacesCount[ctype] = count
@@ -474,7 +472,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			if ctype not in printed:
 				printed.append(ctype)
-				print("\t\t%s : %i%s" % (ctype, count, clist))
+				print("\t\t%s : %i%s" % (ctype, len(clist), clist))
 				
 			self.writePacket("H", MachineInterface_stopserver)
 			self.writePacket("H", 10)
@@ -499,14 +497,12 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
 				
-				count = 0
 				clist = []
 				for info in infos: 
 					if info[0] == self.uid:
-						count += 1
 						clist.append(info[1])
 						
-				print("\t\t%s : %i%s" % (ctype, count, clist))
+				print("\t\t%s : %i%s" % (ctype, len(clist), clist))
 				waitcount += count
 
 			if waitcount > 0:
@@ -517,13 +513,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 		print("[other-online-components:]")
 		for ctype in self._interfaces:
 			infos = self._interfaces.get(ctype, [])
-			count = 0
 			clist = []
 			for info in infos: 
 				if info[0] == self.uid:
-					count += 1
 					clist.append(info[1])
-			print("\t\t%s : %i%s" % (COMPONENT_NAME[ctype], count, clist))
+			print("\t\t%s : %i%s" % (COMPONENT_NAME[ctype], len(clist), clist))
 			
 		print("ClusterStopHandler::do: completed!")
 
