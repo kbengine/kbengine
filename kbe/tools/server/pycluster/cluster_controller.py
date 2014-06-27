@@ -472,7 +472,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			if ctype not in printed:
 				printed.append(ctype)
-				print("\t\t%s : %i%s" % (ctype, len(clist), clist))
+				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				
 			self.writePacket("H", MachineInterface_stopserver)
 			self.writePacket("H", 10)
@@ -502,7 +502,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 					if info[0] == self.uid:
 						clist.append(info[1])
 						
-				print("\t\t%s : %i%s" % (ctype, len(clist), clist))
+				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				waitcount += len(clist)
 
 			if waitcount > 0:
@@ -517,7 +517,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 			for info in infos: 
 				if info[0] == self.uid:
 					clist.append(info[1])
-			print("\t\t%s : %i%s" % (COMPONENT_NAME[ctype], len(clist), clist))
+			print("\t\t%s : %i\t%s" % (COMPONENT_NAME[ctype], len(clist), clist))
 			
 		print("ClusterStopHandler::do: completed!")
 
