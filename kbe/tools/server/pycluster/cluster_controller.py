@@ -460,7 +460,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 				if info[0] == self.uid:
 					clist.append(info[1])
 						
-			interfacesCount[ctype] = count
+			interfacesCount[ctype] = len(clist)
 
 			if ctype in interfacesCount1:
 				interfacesCount1[ctype] += 1
@@ -503,7 +503,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 						clist.append(info[1])
 						
 				print("\t\t%s : %i%s" % (ctype, len(clist), clist))
-				waitcount += count
+				waitcount += len(clist)
 
 			if waitcount > 0:
 				time.sleep(3)
