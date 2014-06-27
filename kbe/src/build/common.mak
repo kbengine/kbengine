@@ -277,11 +277,6 @@ else
 	ARCHFLAGS=-m32
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/CppUnitLite2/src/
-KBE_INCLUDES += -I$(CPPUNITLITE2_DIR)
-LDLIBS += -lCppUnitLite2
-endif
 
 # Use backwards compatible hash table style. This is because Fedora Core 6
 # defaults to using "gnu" style hash tables which produces incompatible
@@ -516,10 +511,6 @@ $(LIBDIR)/libssl.a: always
 	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_ssl
 endif
 
-ifdef USE_CPPUNITLITE2
-$(LIBDIR)/libCppUnitLite2.a: always
-	@$(MAKE) -C $(CPPUNITLITE2_DIR)
-endif
 
 # Strip the prefixed "lib" string. Be careful not to strip any _lib
 $(MY_LIBNAMES): always
@@ -643,14 +634,8 @@ else
 PYTHON_DEP =
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DEP = $(LIBDIR)/libCppUnitLite2.a
-else
-CPPUNITLITE2_DEP =
-endif
 
-
-$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP) $(CPPUNITLITE2_DEP)
+$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP)
 
 ifdef QUIET_BUILD
 	test -e $(MSG_FILE) && cat $(MSG_FILE); rm -f $(MSG_FILE)
