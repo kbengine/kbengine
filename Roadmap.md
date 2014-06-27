@@ -39,7 +39,17 @@ History:
       Port from CPP or C# version confuse me. i am not sure the percentage of each part. a mixture thing. 
       System Level method call is handled almost done. some is only read and write stream of the socket packet data. 
       After this week, we  have a client can connected to KBE server .  it can start reqCreateAvatar request, got response. 
-      Next step: write some hard code style to decode AvatarInfo data. so we can start port avatar feature , after that, almost 
+      
+      next step: write some hard code style to decode AvatarInfo data. so we can start port avatar feature , after that, i am planning to clean code after we can login server and enter world. my plan is draw some sprite in TMX map in cocos2dx part. of course, uniity client should see the avatar entity  from my cocos2dx client connection. 
+      
+
+Not done task :
+      Datatype unpickled. (FixedDict, Array ... balabala )
+      RemoteMethodCall to client's entity ,no reflection in cpp. now i use hard code to get paramter from stream. if we can find a better solution, we should do it. otherwise, we have to write each unpickled code by hand. (or we use code generateor (template? Marco ) ,the aim is to make the entity interface clear enough. no need care how to unpickile data.
+      Other idea for test aim:  write chat demo ? or  connected with unity client scene and see each other? 
+      
+      i want to publish a alpha version based on my works after implement these demos. take a look at it. 
+           
        
       
   
