@@ -48,7 +48,7 @@ Not done task :
       RemoteMethodCall to client's entity ,no reflection in cpp. now i use hard code to get paramter from stream. if we can find a better solution, we should do it. otherwise, we have to write each unpickled code by hand. (or we use code generateor (template? Marco ) ,the aim is to make the entity interface clear enough. no need care how to unpickile data.
       Other idea for test aim:  write chat demo ? or  connected with unity client scene and see each other? 
       
-      i want to publish a alpha version based on my works after implement these demos. take a look at it. 
+      i want to publish a alpha version based on my works after implement one or two demos. take a look at it. any suggestion , no hestiate tell me.
            
        
       
