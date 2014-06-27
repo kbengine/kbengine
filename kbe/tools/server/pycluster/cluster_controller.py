@@ -490,8 +490,14 @@ class ClusterStopHandler(ClusterControllerHandler):
 					continue
 			
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
-				print("\t\t%s : %i" % (ctype, len(infos)))
-				waitcount += len(infos)
+				
+				count = 0
+				for info in infos:
+					if info[0] == self.uid:
+						count += 1
+
+				print("\t\t%s : %i" % (ctype, count))
+				waitcount += count
 
 			if waitcount > 0:
 				time.sleep(3)
