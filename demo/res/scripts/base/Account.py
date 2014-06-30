@@ -30,7 +30,8 @@ class Account(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("Account[%i]::onEntitiesEnabled:entities enable. mailbox:%s, clientType(%i), hasAvatar=%s" % (self.id, self.client, self.getClientType(), self.activeCharacter))
+		INFO_MSG("Account[%i]::onEntitiesEnabled:entities enable. mailbox:%s, clientType(%i), hasAvatar=%s, accountName=%s" % \
+			(self.id, self.client, self.getClientType(), self.activeCharacter, self.__ACCOUNT_NAME__))
 			
 	def onLogOnAttempt(self, ip, port, password):
 		"""
