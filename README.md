@@ -41,15 +41,15 @@ Allows developers to concentrate on the game logic development, quickly create a
 In theory only need to expand hardware can increase load-limit, The complexity of the single machine 
 load-limit depends on the logic of the game itself.)
 
-## 什么是KBEngine?
+##什么是KBEngine?
 一款开源的游戏服务端引擎，使用简单的约定协议就能够使客户端与服务端进行交互，
 使用KBEngine插件能够快速与(Unity3D, OGRE, Cocos2d, HTML5, 等等)技术结合形成一个完整的客户端。
 
-服务端底层框架使用c++编写， 游戏逻辑层使用Python， 开发者无需重复的实现一些游戏服务端通用的底层技术，
+服务端底层框架使用c++编写，游戏逻辑层使用Python(支持热更新)，开发者无需重复的实现一些游戏服务端通用的底层技术，
 将精力真正集中到游戏开发层面上来，快速的打造各种网络游戏。
 
-(经常被问到承载上限, kbengine底层架构被设计为多进程分布式动态负载均衡方案， 理论上只需要不断扩展硬件就能够
-不断增加承载上限, 单台机器的承载上限取决于游戏逻辑本身的复杂度。)
+(经常被问到承载上限，kbengine底层架构被设计为多进程分布式动态负载均衡方案，
+理论上只需要不断扩展硬件就能够不断增加承载上限，单台机器的承载上限取决于游戏逻辑本身的复杂度。)
 
 
 
