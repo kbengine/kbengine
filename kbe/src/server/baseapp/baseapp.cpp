@@ -2502,12 +2502,22 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 
+	unsigned char md[16];
+	MD5((unsigned char *)password.c_str(), password.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
 	PyObject* py__ACCOUNT_NAME__ = PyUnicode_FromString(accountName.c_str());
-	PyDict_SetItemString(pyDict, "accountName", py__ACCOUNT_NAME__);
+	PyDict_SetItemString(pyDict, "__ACCOUNT_NAME__", py__ACCOUNT_NAME__);
 	Py_DECREF(py__ACCOUNT_NAME__);
 
-	PyObject* py__ACCOUNT_PASSWD__ = PyUnicode_FromString(password.c_str());
-	PyDict_SetItemString(pyDict, "password", py__ACCOUNT_PASSWD__);
+	PyObject* py__ACCOUNT_PASSWD__ = PyUnicode_FromString(md5password);
+	PyDict_SetItemString(pyDict, "__ACCOUNT_PASSWORD__", py__ACCOUNT_PASSWD__);
 	Py_DECREF(py__ACCOUNT_PASSWD__);
 
 	base->initializeEntity(pyDict);
