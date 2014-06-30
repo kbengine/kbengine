@@ -495,11 +495,9 @@ void EndPoint::initNetwork()
 	
 	g_networkInitted = true;
 
-#if !defined(PLAYSTATION3)
-#ifndef unix
+#if KBE_PLATFORM == PLATFORM_WIN32
 	WSAData wsdata;
 	WSAStartup(0x202, &wsdata);
-#endif // !unix
 #endif
 }
 
