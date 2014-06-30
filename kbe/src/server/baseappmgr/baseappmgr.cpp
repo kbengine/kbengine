@@ -149,7 +149,13 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s >> sender_componentID >> forward_componentID;
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
-	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG(boost::format("Baseappmgr::forwardMessage: not found forwardComponent(%1%)!\n") % forward_componentID);
+		KBE_ASSERT(false && "Baseappmgr::forwardMessage: not found forwardComponent!\n");
+		return;
+	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
