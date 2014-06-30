@@ -221,6 +221,10 @@
 				RelativePath="main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\sync_app_datas_handler.cpp"
+				>
+			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -259,6 +263,10 @@
 			</File>
 			<File
 				RelativePath=".\dbtasks.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sync_app_datas_handler.hpp"
 				>
 			</File>
 		</Filter>

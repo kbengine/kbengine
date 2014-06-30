@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_interface.hpp"
 #include "dbtasks.hpp"
 #include "billinghandler.hpp"
+#include "sync_app_datas_handler.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -66,7 +67,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	numExecuteRawDatabaseCommand_(0),
 	numCreatedAccount_(0),
 	pBillingAccountHandler_(NULL),
-	pBillingChargeHandler_(NULL)
+	pBillingChargeHandler_(NULL),
+	pSyncAppDatasHandler_(NULL)
 {
 }
 
@@ -187,7 +189,7 @@ bool Dbmgr::initializeEnd()
 
 	INFO_MSG(boost::format("Dbmgr::initializeEnd: digest(%1%)\n") % 
 		EntityDef::md5().getDigestStr());
-
+	
 	return initBillingHandler() && initDB();
 }
 
@@ -310,6 +312,11 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 	if(globalorderID > 0)
 		startGlobalOrder = globalorderID;
 
+	if(pSyncAppDatasHandler_ == NULL)
+		pSyncAppDatasHandler_ = new SyncAppDatasHandler(this->getNetworkInterface());
+
+	pSyncAppDatasHandler_->pushApp(componentID);
+
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息
 	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
@@ -326,8 +333,8 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				if(grouporderID <= 0)
 					startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
 
-
-				onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
+				// 由pSyncAppDatasHandler_同步
+				//onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
@@ -339,8 +346,9 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 			{
 				if(grouporderID <= 0)
 					startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
-
-				onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
+				
+				// 由pSyncAppDatasHandler_同步
+				//onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);

@@ -49,6 +49,7 @@ namespace KBEngine{
 
 class DBInterface;
 class BillingHandler;
+class SyncAppDatasHandler;
 
 class Dbmgr :	public ServerApp, 
 				public Singleton<Dbmgr>
@@ -218,6 +219,8 @@ public:
 	void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& newpassword);
 	
+	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }
+	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -248,6 +251,8 @@ protected:
 
 	BillingHandler*										pBillingAccountHandler_;
 	BillingHandler*										pBillingChargeHandler_;
+
+	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 };
 
 }
