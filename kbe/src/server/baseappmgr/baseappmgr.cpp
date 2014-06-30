@@ -152,7 +152,7 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(boost::format("Baseappmgr::forwardMessage: not found forwardComponent(%1%)!\n") % forward_componentID);
+		ERROR_MSG(boost::format("Baseappmgr::forwardMessage: not found forwardComponent(%1%, at:%2%)!\n") % forward_componentID % cinfos);
 		KBE_ASSERT(false && "Baseappmgr::forwardMessage: not found forwardComponent!\n");
 		return;
 	}
