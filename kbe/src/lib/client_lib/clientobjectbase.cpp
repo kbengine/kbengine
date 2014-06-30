@@ -767,7 +767,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 	else
 	{
-		clearSpace(true);
+		clearSpace(false);
 
 		Py_DECREF(entity->getCellMailbox());
 		entity->setCellMailbox(NULL);
