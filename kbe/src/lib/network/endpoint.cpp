@@ -402,96 +402,31 @@ int EndPoint::convertAddress(const char * string, u_int32_t & address)
 }
 
 //-------------------------------------------------------------------------------------
-#ifdef unix
-int EndPoint::getQueueSizes(int & tx, int & rx) const
-{
-	int	ret = -1;
-
-	u_int16_t	nport = 0;
-	this->getlocaladdress(&nport,NULL);
-
-	char		match[16];
-	kbe_snprintf(match, sizeof(match), "%04X", (int)ntohs(nport));
-
-	FILE * f = fopen("/proc/net/udp", "r");
-
-	if (!f)
-	{
-		ERROR_MSG(boost::format("Endpoint::getQueueSizes: "
-				"could not open /proc/net/udp: %1%\n") %
-			kbe_strerror());
-
-		return -1;
-	}
-
-	char	aline[256];
-
-	while (fgets(aline, 256, f) != NULL)
-	{	// it goes "iiii: hhhhhhhh:pppp" (could check ip too 'tho)
-		if(!strncmp(aline+4+1+ 1 +8+1, match, 4))
-		{	// then goes " hhhhhhhh:pppp ss tttttttt:rrrrrrrr"
-			char * start = aline+4+1+ 1 +8+1+4+ 1 +8+1+4+ 1 +2+ 1;
-			start[8] = 0;
-			tx = strtol(start, NULL, 16);
-
-			start += 8+1;
-			start[8] = 0;
-			rx = strtol(start, NULL, 16);
-
-			ret = 0;
-
-			break;
-		}
-	}
-
-	fclose(f);
-
-	return ret;
-}
-#else
-int EndPoint::getQueueSizes(int &, int &) const
-{
-	return -1;
-}
-#endif
-
-//-------------------------------------------------------------------------------------
 int EndPoint::getBufferSize(int optname) const
 {
-#ifdef unix
 	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
 
 	int recvbuf = -1;
 	socklen_t rbargsize = sizeof(int);
+
 	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
 		(char*)&recvbuf, &rbargsize);
 
 	if (rberr == 0 && rbargsize == sizeof(int))
-	{
 		return recvbuf;
-	}
-	else
-	{
-		ERROR_MSG(boost::format("EndPoint::getBufferSize: "
-			"Failed to read option %1%: %2%\n") %
-			(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
-			kbe_strerror());
 
-		return -1;
-	}
+	ERROR_MSG(boost::format("EndPoint::getBufferSize: "
+		"Failed to read option %1%: %2%\n") %
+		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
+		kbe_strerror());
 
-#else
 	return -1;
-#endif
 }
 
 //-------------------------------------------------------------------------------------
 bool EndPoint::setBufferSize(int optname, int size)
 {
-#ifdef unix
-	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size,
-		sizeof(size));
-#endif
+	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size, sizeof(size));
 
 	return this->getBufferSize(optname) >= size;
 }
