@@ -33,7 +33,7 @@ http://www.kbengine.org
 An open source MMOG server engine, Using a simple protocol will be able to make the client and server interaction,
 To use the KBEngine-plugins quick combine with (Unity3D, OGRE, Cocos2d, HTML5, etc.) to form a complete client.
 
-Engine framework written using c++, Game logic layer using Python, 
+Engine framework written using c++, Game logic layer using Python(Support the hotfix), 
 developers do not need to re-implement some common server-side technology,
 Allows developers to concentrate on the game logic development, quickly create a variety of games.
 
