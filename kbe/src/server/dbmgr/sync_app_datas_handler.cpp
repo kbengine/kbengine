@@ -119,6 +119,8 @@ bool SyncAppDatasHandler::process()
 					(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
 					BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+
+					hasDone = true;
 				}
 				break;
 			case CELLAPP_TYPE:
@@ -129,6 +131,8 @@ bool SyncAppDatasHandler::process()
 					(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
 					CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+
+					hasDone = true;
 				}
 				break;
 			case LOGINAPP_TYPE:
