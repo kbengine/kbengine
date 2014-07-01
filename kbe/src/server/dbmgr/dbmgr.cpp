@@ -302,7 +302,6 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 	
-	std::string digest = EntityDef::md5().getDigestStr();
 	int32 startGroupOrder = 1;
 	int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
 
@@ -315,8 +314,6 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 	if(pSyncAppDatasHandler_ == NULL)
 		pSyncAppDatasHandler_ = new SyncAppDatasHandler(this->getNetworkInterface());
 
-	pSyncAppDatasHandler_->pushApp(componentID);
-
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息
 	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
@@ -324,54 +321,31 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		tcomponentType == CELLAPP_TYPE || 
 		tcomponentType == LOGINAPP_TYPE)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		
 		switch(tcomponentType)
 		{
 		case BASEAPP_TYPE:
 			{
 				if(grouporderID <= 0)
 					startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
-
-				// 由pSyncAppDatasHandler_同步
-				//onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
-
-				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
-				BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-					idRange.second, startGlobalOrder, startGroupOrder, digest);
 			}
 			break;
 		case CELLAPP_TYPE:
 			{
 				if(grouporderID <= 0)
 					startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
-				
-				// 由pSyncAppDatasHandler_同步
-				//onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
-
-				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
-				CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-					idRange.second, startGlobalOrder, startGroupOrder, digest);
 			}
 			break;
 		case LOGINAPP_TYPE:
 			if(grouporderID <= 0)
 				startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
-			(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
-			LoginappInterface::onDbmgrInitCompletedArgs3::staticAddToBundle((*pBundle), 
-				startGlobalOrder, startGroupOrder, digest);
-
 			break;
 		default:
 			break;
 		}
-
-		(*pBundle).send(networkInterface_, pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
+
+	pSyncAppDatasHandler_->pushApp(componentID, startGroupOrder, startGlobalOrder);
 
 	// 如果是baseapp或者cellapp则将自己注册到所有其他baseapp和cellapp
 	if(tcomponentType == BASEAPP_TYPE || 

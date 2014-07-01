@@ -36,16 +36,23 @@ namespace KBEngine{
 class SyncAppDatasHandler : public Task
 {
 public:
+	struct ComponentInitInfo
+	{
+		COMPONENT_ID cid;
+		int32 startGroupOrder;
+		int32 startGlobalOrder;
+	};
+
 	SyncAppDatasHandler(Mercury::NetworkInterface & networkInterface);
 	~SyncAppDatasHandler();
 	
 	bool process();
 
-	void pushApp(COMPONENT_ID cid);
+	void pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32 startGlobalOrder);
 private:
-	Mercury::NetworkInterface & networkInterface_;
-	uint64						lastRegAppTime_;
-	std::vector<COMPONENT_ID>	apps_;
+	Mercury::NetworkInterface &		networkInterface_;
+	uint64							lastRegAppTime_;
+	std::vector<ComponentInitInfo>	apps_;
 
 };
 

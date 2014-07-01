@@ -57,13 +57,24 @@ SyncAppDatasHandler::~SyncAppDatasHandler()
 }
 
 //-------------------------------------------------------------------------------------
-void SyncAppDatasHandler::pushApp(COMPONENT_ID cid)
+void SyncAppDatasHandler::pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32 startGlobalOrder)
 {
 	lastRegAppTime_ = timestamp();
-	if(std::find(apps_.begin(), apps_.end(), cid) != apps_.end())
-		return;
+	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
+	for(; iter != apps_.end(); iter++)
+	{
+		if((*iter).cid == cid)
+		{
+			ERROR_MSG(boost::format("SyncAppDatasHandler::pushApp: cid(%1%) is exist!\n") % cid);
+			return;
+		}
+	}
 
-	apps_.push_back(cid);
+	ComponentInitInfo cinfo;
+	cinfo.cid = cid;
+	cinfo.startGroupOrder = startGroupOrder;
+	cinfo.startGlobalOrder = startGlobalOrder;
+	apps_.push_back(cinfo);
 }
 
 //-------------------------------------------------------------------------------------
@@ -76,32 +87,62 @@ bool SyncAppDatasHandler::process()
 		return true;
 
 	bool hasDone = false;
+	
+	std::string digest = EntityDef::md5().getDigestStr();
 
-	std::vector<COMPONENT_ID>::iterator iter = apps_.begin();
+	// 如果是连接到dbmgr则需要等待接收app初始信息
+	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
+	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
 	for(; iter != apps_.end(); iter++)
 	{
-		COMPONENT_ID componentID = (*iter);
-		Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(componentID);
+		ComponentInitInfo cInitInfo = (*iter);
+		Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(cInitInfo.cid);
 
 		if(cinfos == NULL)
 			continue;
 
-		switch(cinfos->componentType)
+		COMPONENT_TYPE tcomponentType = cinfos->componentType;
+
+		if(tcomponentType == BASEAPP_TYPE || 
+			tcomponentType == CELLAPP_TYPE || 
+			tcomponentType == LOGINAPP_TYPE)
 		{
-		case BASEAPP_TYPE:
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			
+			switch(tcomponentType)
 			{
-				Dbmgr::getSingleton().onGlobalDataClientLogon(cinfos->pChannel, cinfos->componentType);
-				hasDone = true;
+			case BASEAPP_TYPE:
+				{
+					Dbmgr::getSingleton().onGlobalDataClientLogon(cinfos->pChannel, BASEAPP_TYPE);
+
+					std::pair<ENTITY_ID, ENTITY_ID> idRange = Dbmgr::getSingleton().idServer().allocRange();
+					(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
+					BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+				}
+				break;
+			case CELLAPP_TYPE:
+				{
+					Dbmgr::getSingleton().onGlobalDataClientLogon(cinfos->pChannel, CELLAPP_TYPE);
+
+					std::pair<ENTITY_ID, ENTITY_ID> idRange = Dbmgr::getSingleton().idServer().allocRange();
+					(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
+					CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+				}
+				break;
+			case LOGINAPP_TYPE:
+				(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
+				LoginappInterface::onDbmgrInitCompletedArgs3::staticAddToBundle((*pBundle), 
+					cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+
+				break;
+			default:
+				break;
 			}
-			break;
-		case CELLAPP_TYPE:
-			{
-				Dbmgr::getSingleton().onGlobalDataClientLogon(cinfos->pChannel, cinfos->componentType);
-				hasDone = true;
-			}
-			break;
-		default:
-			break;
+
+			(*pBundle).send(networkInterface_, cinfos->pChannel);
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 
