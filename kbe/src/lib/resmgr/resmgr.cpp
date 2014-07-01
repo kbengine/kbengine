@@ -150,7 +150,7 @@ bool Resmgr::initialize()
 }
 
 //-------------------------------------------------------------------------------------
-void Resmgr::pirnt(void)
+void Resmgr::print(void)
 {
 	INFO_MSG(boost::format("Resmgr::initialize: KBE_ROOT=%1%\n") % kb_env_.root.c_str());
 	INFO_MSG(boost::format("Resmgr::initialize: KBE_RES_PATH=%1%\n") % kb_env_.res_path.c_str());

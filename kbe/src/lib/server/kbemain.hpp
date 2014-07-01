@@ -135,7 +135,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
 #endif
 
-	Resmgr::getSingleton().pirnt();
+	Resmgr::getSingleton().print();
 
 	Mercury::EventDispatcher dispatcher;
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);

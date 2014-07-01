@@ -86,7 +86,7 @@ public:
 		return respaths_; 
 	}
 
-	void pirnt(void);
+	void print(void);
 
 	bool isInit(){ 
 		return isInit_; 
