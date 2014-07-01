@@ -195,6 +195,9 @@ public:
 
 	std::string getKey(const TiXmlNode* node)
 	{
+		if(node == NULL)
+			return "";
+
 		return strutil::kbe_trim(node->Value());
 	}
 
