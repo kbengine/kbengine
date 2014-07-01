@@ -295,10 +295,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\circular_buffer.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\common.hpp"
 				>
 			</File>
