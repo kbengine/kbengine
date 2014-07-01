@@ -54,6 +54,19 @@
 			<Arg>	AVATAR_INFOS 	</Arg>
 		</onCreateAvatarResult>
 
+		<receiveMsg>
+			<Utype> 10007		</Utype>
+			<Arg>	UNICODE	</Arg>
+			<Arg>	UNICODE	</Arg>
+		</receiveMsg>
+		<onNewAccountEnter>
+			<Utype> 10009	</Utype>
+			<Arg>	UNICODE	</Arg>		
+		</onNewAccountEnter>
+		<onNewAccountLeave>
+			<Utype> 10011	</Utype>
+			<Arg>	UNICODE	</Arg>		
+		</onNewAccountLeave>
 		<onRemoveAvatar>
 			<Arg>	DBID		</Arg>
 		</onRemoveAvatar>
@@ -78,6 +91,11 @@
 			<Arg>	DBID	</Arg>	<!-- dbid -->
 		</selectAvatarGame>
 
+		<sendMsg> <!-- chat method -->
+			<Exposed/>
+			<Utype> 10009 </Utype>
+			<Arg>	UNICODE	</Arg>
+		</sendMsg>
 		<reqRemoveAvatar>
 			<Exposed/>
 			<Arg>	UNICODE	</Arg>	<!-- name -->

@@ -1,0 +1,16 @@
+<root>
+	<BaseMethods>
+		<registerAccount>
+			<Arg>	UNICODE	</Arg>
+			<Arg>	MAILBOX	</Arg>
+		</registerAccount>
+		<deregisterAccount>
+			<Arg>	UNICODE	</Arg>
+		</deregisterAccount>
+		<sendMsg>
+			<Arg>	UNICODE	</Arg>
+			<Arg>	UNICODE	</Arg>
+		</sendMsg>
+	</BaseMethods>
+</root>
+

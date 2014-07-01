@@ -9,4 +9,5 @@
 	<Monster/>
 	<NPC/>
 	<Gate/>
+	<AccountRoom/>
 </root>

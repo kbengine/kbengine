@@ -8,6 +8,7 @@ import d_avatar_inittab
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
+		DEBUG_MSG("my account name=%s." % self.accountName)
 		self.activeCharacter = None
 		
 	def onTimer(self, id, userArg):
@@ -25,8 +26,9 @@ class Account(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("account[%i] entities enable. mailbox:%s, clientType(%i)" % (self.id, self.client, self.getClientType()))
-		
+		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
+		#KBEngine.globalBases["AccountRoom"].registerAccount( self.playerName, self )
+		KBEngine.globalData["AccountRoom"].registerAccount( self.accountName, self )
 		# 如果一个在线的账号被一个客户端登陆并且onLogOnAttempt返回允许
 		# 那么会挤掉之前的客户端， 并且onEntitiesEnabled会再次触发
 		# 那么此时self.activeCharacter不为None
@@ -62,8 +64,18 @@ class Account(KBEngine.Proxy):
 			self.activeCharacter = None
 
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
+		KBEngine.globalData["AccountRoom"].deregisterAccount( self.accountName )	# 暂时在此时注销
 		self.destroy()
 	
+	# Exposed method
+	# 发送帐号聊天室的聊天消息
+	def sendMsg( self, msg ):
+		if len( msg ) > 100:
+			ERROR_MSG( "account( %s ) send too long( %i ) msg." % ( self.accountName, len( msg ) ) )
+			return
+		KBEngine.globalData["AccountRoom"].sendMsg( self.accountName, msg )
+		DEBUG_MSG( "account( %s ) send ( %i ) msg. %s" % ( self.accountName, len( msg ), msg ) )
+		#client method: client.receiveMsg( accountName, msg ) be called.
 	def reqAvatarList(self):
 		"""
 		exposed.
@@ -89,6 +101,7 @@ class Account(KBEngine.Proxy):
 		if len(self.characters) >= 3:
 			DEBUG_MSG("Account[%i].reqCreateAvatar:%s. character=%s.\n" % (self.id, name, self.characters))
 			self.client.onCreateAvatarResult(3, avatarinfo)
+ 		
 			return
 		
 		""" 根据前端类别给出出生点
@@ -97,7 +110,6 @@ class Account(KBEngine.Proxy):
 		CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
 		CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
 		CLIENT_TYPE_BOTS				= 4,	// bots
-		CLIENT_TYPE_MINI				= 5,	// 微型客户端
 		"""
 		spawnPos = (0,0,0)
 		spaceUType = 1
@@ -105,9 +117,6 @@ class Account(KBEngine.Proxy):
 		if self.getClientType() == 2:
 			spaceUType = 2
 			spawnPos = (-97.9299, 0, -158.922)
-		elif self.getClientType() == 5:
-			spaceUType = 3
-			spawnPos = (-97.9299, 1.5, -158.922)
 		else:
 			spaceUType = 1
 			spawnPos = (771.5861, 211.0021, 776.5501)
