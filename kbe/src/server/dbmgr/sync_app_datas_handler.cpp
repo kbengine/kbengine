@@ -83,16 +83,40 @@ bool SyncAppDatasHandler::process()
 	if(lastRegAppTime_ == 0)
 		return true;
 
+	bool hasApp = false;
+
+	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
+	for(; iter != apps_.end(); iter++)
+	{
+		ComponentInitInfo cInitInfo = (*iter);
+		Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(cInitInfo.cid);
+
+		if(cinfos == NULL)
+			continue;
+
+		COMPONENT_TYPE tcomponentType = cinfos->componentType;
+		if(tcomponentType == BASEAPP_TYPE || 
+			tcomponentType == CELLAPP_TYPE)
+		{
+			hasApp = true;
+			break;
+		}
+	}
+	
+	if(!hasApp)
+	{
+		lastRegAppTime_ = timestamp();
+		return true;
+	}
+
 	if(timestamp() - lastRegAppTime_ < uint64( 3 * stampsPerSecond() ) )
 		return true;
 
-	bool hasDone = false;
-	
 	std::string digest = EntityDef::md5().getDigestStr();
 
 	// 如果是连接到dbmgr则需要等待接收app初始信息
 	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
-	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
+	iter = apps_.begin();
 	for(; iter != apps_.end(); iter++)
 	{
 		ComponentInitInfo cInitInfo = (*iter);
@@ -119,8 +143,6 @@ bool SyncAppDatasHandler::process()
 					(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
 					BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
-
-					hasDone = true;
 				}
 				break;
 			case CELLAPP_TYPE:
@@ -131,8 +153,6 @@ bool SyncAppDatasHandler::process()
 					(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
 					CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
-
-					hasDone = true;
 				}
 				break;
 			case LOGINAPP_TYPE:
@@ -151,12 +171,6 @@ bool SyncAppDatasHandler::process()
 	}
 
 	apps_.clear();
-	lastRegAppTime_ = timestamp();
-
-	if(!hasDone)
-	{
-		return true;
-	}
 
 	delete this;
 	return false;
