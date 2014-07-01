@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="win32">
+      <UniqueIdentifier>{84a8ebd7-7cf0-47f6-b75e-d441df67da40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Classes">
+      <UniqueIdentifier>{bb6c862e-70e9-49d9-81b7-3829a6f50471}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lbKBEClient">
+      <UniqueIdentifier>{09e87953-2c46-4867-a563-44e442c39d62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lbKBEClient\net">
+      <UniqueIdentifier>{c0f8f801-cda6-47f3-8743-84faf7b45a63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lbKBEClient\utils">
+      <UniqueIdentifier>{080f3962-f6f2-4f5d-a0eb-87b863fe8d40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lbKBEClient\client">
+      <UniqueIdentifier>{5933b68c-14ba-4f0a-aa5a-dbdf6dae9d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jsonbox">
+      <UniqueIdentifier>{25ef6b68-d0eb-4f8d-8897-13cab6110470}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lbKBEClient\KEntity">
+      <UniqueIdentifier>{a3d0c8ab-f20c-44c4-b463-47fef10cfe8c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\AppDelegate.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\HelloWorldScene.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KBundle.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KMemoryStream.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KMessage.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KNetworkInterface.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KBEApplication.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\net\base_sock.cpp">
+      <Filter>lbKBEClient\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\net\net_client.cpp">
+      <Filter>lbKBEClient\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\util\tools.cpp">
+      <Filter>lbKBEClient\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\client\GameNetClient.cpp">
+      <Filter>lbKBEClient\client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KBEGameSocket.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KDataTypes.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Array.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Convert.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Escaper.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\IndentCanceller.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Indenter.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Object.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\SolidusEscaper.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\jsbox\Value.cpp">
+      <Filter>jsonbox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KEntitydef.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KEntity.cpp">
+      <Filter>lbKBEClient\KEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\KMailbox.cpp">
+      <Filter>lbKBEClient\KEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\client\KAccount.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LibKBEClient\client\KAvatar.cpp">
+      <Filter>lbKBEClient</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="main.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\AppDelegate.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\HelloWorldScene.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KBundle.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KMemoryStream.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KMessage.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KNetworkInterface.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KBEApplication.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\net\base_sock.h">
+      <Filter>lbKBEClient\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\net\net_client.h">
+      <Filter>lbKBEClient\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\util\basic_types.h">
+      <Filter>lbKBEClient\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\util\tools.h">
+      <Filter>lbKBEClient\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\client\GameNetClient.h">
+      <Filter>lbKBEClient\client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KBEGameSocket.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KBEClientcore.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KBEClientCoreMacros.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KMemoryStreamConvert.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KDataTypes.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\jsbox\JsonBox.h">
+      <Filter>jsonbox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KClient_interface_marcos.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KEntity.h">
+      <Filter>lbKBEClient\KEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KMailbox.h">
+      <Filter>lbKBEClient\KEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\KEntitydef.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\client\KAccount.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibKBEClient\client\KAvatar.h">
+      <Filter>lbKBEClient</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
