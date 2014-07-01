@@ -38,8 +38,8 @@ developers do not need to re-implement some common server-side technology,
 Allows developers to concentrate on the game logic development, quickly create a variety of games.
 
 (Frequently asked load-limit, kbengine is designed to be multi-process distributed dynamic load balancing scheme, 
-In theory only need to expand hardware can increase load-limit, The complexity of the single machine 
-load-limit depends on the logic of the game itself.)
+In theory only need to expand hardware can increase load-limit, The single machine load-limit 
+depends on complexity of logic of the game itself.)
 
 ##什么是KBEngine?
 一款开源的游戏服务端引擎，使用简单的约定协议就能够使客户端与服务端进行交互，
