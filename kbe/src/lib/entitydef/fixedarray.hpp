@@ -41,7 +41,7 @@ public:
 	const DataType* getDataType(void){ return _dataType; }
 	
 	/** 
-		初始化固定字典
+		初始化固定数组
 	*/
 	void initialize(std::string strInitData);
 	void initialize(PyObject* pyObjInitData);

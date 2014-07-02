@@ -150,7 +150,14 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 		}
 		else
 		{
-			PyObject* val1 = iter->second->dataType->createFromStream(streamInitData);
+			PyObject* val1 = NULL;
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				val1 = ((FixedDictType*)iter->second->dataType)->createFromStreamEx(streamInitData, isPersistentsStream);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				val1 = ((FixedArrayType*)iter->second->dataType)->createFromStreamEx(streamInitData, isPersistentsStream);
+			else
+				val1 = iter->second->dataType->createFromStream(streamInitData);
+
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
 			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
 		}

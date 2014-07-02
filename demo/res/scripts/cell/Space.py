@@ -22,6 +22,7 @@ class Space(KBEngine.Entity, GameObject):
 		KBEngine method.
 		"""
 		del KBEngine.globalData["space_%i" % self.spaceID]
+		self.destroySpace()
 		
 	def onEnter(self, entityMailbox):
 		"""
