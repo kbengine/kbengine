@@ -1,0 +1,3 @@
+[submodule "kbe/src/client/kbengine_cocos2dx_demo"]
+	path = kbe/src/client/kbengine_cocos2dx_demo
+	url = git://github.com/cnsoft/kbengine_cocos2dx_demo.git
