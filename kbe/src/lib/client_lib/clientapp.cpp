@@ -633,6 +633,13 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onLoginFailed(pChannel, s);
+	canReset_ = false;
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath)
 {
 }
