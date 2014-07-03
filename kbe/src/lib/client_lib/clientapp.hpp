@@ -158,6 +158,14 @@ public:
 	*/
 	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
 
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
 	virtual void onTargetChanged();
 
 	/** 
