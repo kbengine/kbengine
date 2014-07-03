@@ -135,6 +135,13 @@ bool ClientApp::initializeEnd()
 		return false;
 	}
 
+	if(g_kbeConfig.useLastAccountName())
+	{
+		EventData_LastAccountInfo eventdata;
+		eventdata.name = g_kbeConfig.accountName();
+		eventHandler_.fire(&eventdata);
+	}
+
 	return true;
 }
 
@@ -639,7 +646,8 @@ void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	canReset_ = true;
 }
 
-void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
 	canReset_ = true;

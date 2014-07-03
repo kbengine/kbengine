@@ -49,6 +49,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_ADDSPACEGEOMAPPING 17
 #define CLIENT_EVENT_VERSION_NOT_MATCH 18
 #define CLIENT_EVENT_ON_KICKED 19
+#define CLIENT_EVENT_LAST_ACCOUNT_INFO 20
 
 struct EventData
 {
@@ -78,6 +79,18 @@ public:
 	void fire(const EventData* lpEventData);
 protected:
 	EVENT_HANDLES eventHandles_;
+};
+
+struct EventData_LastAccountInfo : public EventData
+{
+	EventData_LastAccountInfo():
+	EventData(CLIENT_EVENT_LAST_ACCOUNT_INFO),
+	name(),
+	password()
+	{
+	}
+
+	std::string name, password;
 };
 
 struct EventData_LoginSuccess : public EventData
@@ -393,6 +406,9 @@ inline EventData* newKBEngineEvent(EventID v)
 		case CLIENT_EVENT_ON_KICKED:
 			return new EventData_onKicked();
 			break;
+		case CLIENT_EVENT_LAST_ACCOUNT_INFO:
+			return new EventData_LastAccountInfo();
+			break;
 		default:
 			break;
 	}
@@ -481,6 +497,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_ON_KICKED:
 			peventdata = new EventData_onKicked();
 			(*static_cast<EventData_onKicked*>(peventdata)) = (*static_cast<const EventData_onKicked*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LAST_ACCOUNT_INFO:
+			peventdata = new EventData_LastAccountInfo();
+			(*static_cast<EventData_LastAccountInfo*>(peventdata)) = (*static_cast<const EventData_LastAccountInfo*>(lpEventData));
 			break;
 		default:
 			break;
