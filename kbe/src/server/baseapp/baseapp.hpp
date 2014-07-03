@@ -197,7 +197,7 @@ public:
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 
-		为一个baseEntity在制定的cell上创建一个cellEntity 
+		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
 	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
 	

@@ -60,7 +60,7 @@ struct ForwardItem
 };
 
 /*
-	转发缓存消息到制定组件上
+	转发缓存消息到指定组件上
 */
 class ForwardComponent_MessageBuffer : public Task, 
 						public Singleton<ForwardComponent_MessageBuffer>
