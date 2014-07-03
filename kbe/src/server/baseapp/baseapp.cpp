@@ -1686,6 +1686,7 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 void Baseapp::onClientEntityEnterWorld(Proxy* base)
 {
 	base->initClientCellPropertys();
+	base->onClientGetCell(NULL);
 }
 
 //-------------------------------------------------------------------------------------
