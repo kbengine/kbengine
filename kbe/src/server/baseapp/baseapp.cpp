@@ -82,7 +82,8 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 			{
 				Py_DECREF(pyVal);
 			}
-
+			
+			ERROR_MSG(boost::format("Baseapp::createCellDataDictFromPersistentStream: %1%.%2% is error, set to default!\n") % entityType % attrname);
 			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
 		}
 

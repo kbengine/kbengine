@@ -941,8 +941,7 @@ bool PythonType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 {
-	std::string val = "";
-	if(val.size() > 0)
+	if(defaultVal.size() > 0)
 	{
 		PyObject* module = PyImport_AddModule("__main__");
 		if(module == NULL)
@@ -956,7 +955,7 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 
 		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
 		
-		return PyRun_String(const_cast<char*>(val.c_str()), 
+		return PyRun_String(const_cast<char*>(defaultVal.c_str()), 
 							Py_eval_input, mdict, mdict);
 	}
 		
@@ -1010,10 +1009,16 @@ bool PyDictType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyDictType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyDict_New();
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyDict_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyDict_New();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1048,10 +1053,16 @@ bool PyTupleType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyTupleType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyTuple_New(0);
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyTuple_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyTuple_New(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1086,10 +1097,16 @@ bool PyListType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyListType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyList_New(0);
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyList_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyList_New(0);
 }
 
 //-------------------------------------------------------------------------------------
