@@ -61,6 +61,8 @@ load-limit depends on the logic of the game itself.)
 
    2014-07-01 PreAlpha is ready. Now, cocos2dx client can chat with unity3d client in the KBE same game server . by cnsoft
    
-   2014-07-03 create submodule : kbengine_cocos2dx_demo. 
+   2014-07-03 create submodule : kbengine_cocos2dx_demo.  
+   
+   ensure use this :  git submodule update --init --recursive   to download
    
  ![screenshots1](https://raw.githubusercontent.com/cnsoft/kbengine-cocos2dx/cocos2dx-cnsoft/kbe/src/client/cocos2dx/snapshots/u_cocos2d_chat.PNG)
