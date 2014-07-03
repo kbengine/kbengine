@@ -1048,6 +1048,9 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	entity->setPosition(pos);
 	entity->setDirection(dir);
 
+	entityPos_ = pos;
+	entityDir_ = dir;
+
 	EventData_PositionForce eventdata;
 	eventdata.x = pos.x;
 	eventdata.y = pos.y;
