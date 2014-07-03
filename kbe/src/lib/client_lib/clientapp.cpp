@@ -636,13 +636,13 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginFailed(pChannel, s);
-	canReset_ = false;
+	canReset_ = true;
 }
 
 void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
-	canReset_ = false;
+	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
