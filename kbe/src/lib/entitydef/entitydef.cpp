@@ -616,7 +616,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			if(typeNode)
 			{
 				strType = xml->getValStr(typeNode);
-				//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 				if(strType == "ARRAY")
 				{
@@ -703,13 +702,16 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 															detailLevel);
 
 			bool ret = true;
+
 			// 添加到模块中
 			if(hasCellFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CELLAPP_TYPE);
+
 			if(hasBaseFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, BASEAPP_TYPE);
+
 			if(hasClientFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CLIENT_TYPE);
@@ -1262,6 +1264,7 @@ bool EntityDef::installScript(PyObject* mod)
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+
 	_isInit = true;
 	return true;
 }
