@@ -1257,7 +1257,14 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
+	dataType_ = NULL;
 	TiXmlNode* arrayNode = xmlplus->enterNode(node, "of");
+	if(arrayNode == NULL)
+	{
+		ERROR_MSG("FixedArrayType::initialize: not found \"of\".\n");
+		return false;
+	}
+
 	std::string strType = xmlplus->getValStr(arrayNode);
 	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// ×ª»»Îª´óĞ´
 
@@ -1270,6 +1277,11 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 			DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + 
 				dataType->aliasName(), dataType);
+		}
+		else
+		{
+			ERROR_MSG("FixedArrayType::initialize: Array is error.\n");
+			return false;
 		}
 	}
 	else
@@ -1287,6 +1299,12 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			
 			return false;
 		}			
+	}
+
+	if(dataType_ == NULL)
+	{
+		ERROR_MSG("FixedArrayType::initialize: dataType is NULL.\n");
+		return false;
 	}
 
 	DATATYPE_UID uid = dataType_->id();
