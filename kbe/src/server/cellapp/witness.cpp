@@ -622,12 +622,14 @@ bool Witness::update()
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					
-					_addAOIEntityIDToStream(s1, (*iter));
-					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity));
+					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), (*iter));
 
 					(*pForwardBundle).append(*s1);
 					MemoryStream::ObjPool().reclaimObject(s1);
-					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+
+					if(pForwardBundle->packetsLength() > 0)
+						MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 				}
 
@@ -688,130 +690,151 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags)
+void Witness::addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
 {
 	switch(flags)
 	{
 	case UPDATE_FLAG_NULL:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData);
+			// (*pForwardBundle).newMessage(ClientInterface::onUpdateData);
 		}
 		break;
 	case UPDATE_FLAG_XZ:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_XYZ:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_y);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_r);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_PITCH:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_p);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_ypr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yp);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_PITCH_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_pr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
-
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
-
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_y);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_p);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_r);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yp);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_pr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_ypr);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	default:
