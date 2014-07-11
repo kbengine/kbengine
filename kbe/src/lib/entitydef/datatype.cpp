@@ -1526,8 +1526,14 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
 	TiXmlNode* propertiesNode = xmlplus->enterNode(node, "Properties");
+	if(propertiesNode == NULL)
+	{
+		ERROR_MSG("FixedDictType::initialize: not found \"Properties\".\n");
+		return false;
+	}
+
 	std::string strType = "", typeName = "";
-	
+
 	XML_FOR_BEGIN(propertiesNode)
 	{
 		typeName = xmlplus->getKey(propertiesNode);
