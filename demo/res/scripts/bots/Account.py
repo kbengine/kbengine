@@ -20,10 +20,10 @@ class Account(KBEngine.Entity):
 		"""
 		define method.
 		"""
-		DEBUG_MSG("Account:onCreateAvatarResult::%s, retcode=%i" % (info, retcode))
+		DEBUG_MSG("Account:onCreateAvatarResult::%s, retcode=%i" % (dict(info), retcode))
 		
 		if retcode == 0:
-			self.base.selectAvatarGame(info[0])
+			self.base.selectAvatarGame(info["dbid"])
 
 	def onRemoveAvatar(self, dbid):
 		"""
