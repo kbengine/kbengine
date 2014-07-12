@@ -88,6 +88,12 @@ public:
 		更新字典数据到自己的数据中 
 	*/
 	PyObject* update(PyObject* args);
+
+	/** 
+		获得对象的描述 
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
 protected:
 	FixedDictType* _dataType;
 } ;
