@@ -778,7 +778,11 @@ bool DBTaskActivateAccount::db_thread_process()
 
 	success_ = pTable1->activateAccount(pdbi_, code_, info);
 	if(!success_)
+	{
+		WARNING_MSG(boost::format("DBTaskActivateAccount::db_thread_process(): activateAccount error: %1%\n") % 
+				pdbi_->getstrerror());
 		return false;
+	}
 
 	return false;
 }
