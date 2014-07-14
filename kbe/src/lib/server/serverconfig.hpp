@@ -181,6 +181,9 @@ typedef struct EngineComponentInfo
 	float defaultAddBots_tickTime;							// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
 	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
 
+	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
+	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增
+
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
 	int8 encrypt_login;										// 加密登录信息

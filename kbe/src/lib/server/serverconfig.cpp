@@ -977,6 +977,22 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
+		node = xml->enterNode(rootNode, "account_infos");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "account_name_prefix");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_prefix = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "account_name_suffix_inc");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_suffix_inc = xml->getValInt(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);

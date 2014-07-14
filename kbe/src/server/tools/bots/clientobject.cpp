@@ -330,8 +330,11 @@ void ClientObject::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStre
 
 	if(retcode != 0)
 	{
-		error_ = C_ERROR_CREATE_FAILED;
-		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		//error_ = C_ERROR_CREATE_FAILED;
+
+		// ¼ÌÐø³¢ÊÔµÇÂ¼
+		state_ = C_STATE_LOGIN;
+		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % SERVER_ERR_STR[retcode]);
 		return;
 	}
 
@@ -362,7 +365,7 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	s >> failedcode;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % SERVER_ERR_STR[failedcode]);
 
 	error_ = C_ERROR_LOGIN_FAILED;
 }

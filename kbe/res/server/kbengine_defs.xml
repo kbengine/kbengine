@@ -656,7 +656,22 @@
 			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
 			<tickcount> 2  </tickcount>									<!-- Type: Integer -->
-		</defaultAddBots>							
+		</defaultAddBots>
+		
+		<!-- 机器人账号相关 
+			(about bots-accounts)
+		-->
+		<account_infos>
+			<!-- 机器人账号名称的前缀 
+				(The account name prefix)
+			-->
+			<account_name_prefix>		bot_	</account_name_prefix>
+			
+			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增 
+				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
+			-->
+			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
+		</account_infos>
 	</bots>
 	
 	<messagelog>
