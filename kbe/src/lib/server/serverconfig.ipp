@@ -88,6 +88,12 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
 }
 
 //-------------------------------------------------------------------------------------	
+INLINE ENGINE_COMPONENT_INFO& ServerConfig::getConfig()
+{
+	return getComponent(g_componentType);
+}
+
+//-------------------------------------------------------------------------------------	
 INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 {
 	switch(componentType)

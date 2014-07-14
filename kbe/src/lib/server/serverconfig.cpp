@@ -565,6 +565,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
+
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
 			_baseAppInfo.externalPorts_min = xml->getValInt(node);
@@ -825,6 +829,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_loginAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	

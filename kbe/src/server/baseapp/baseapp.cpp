@@ -641,13 +641,13 @@ void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	if(pChannel->isExternal())
 		return;
 
 	EntityApp<Base>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
-									intaddr, intport, extaddr, extport);
+									intaddr, intport, extaddr, extport, extaddrEx);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
@@ -668,17 +668,17 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	{
 	case BASEAPP_TYPE:
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), 
+		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), 
+		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
@@ -2194,7 +2194,17 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 
 	(*pBundle) << loginName;
 	(*pBundle) << accountName;
-	(*pBundle) << this->getNetworkInterface().extaddr().ip;
+	
+	if(strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
+	{
+		uint32 exip = inet_addr(g_kbeSrvConfig.getBaseApp().externalAddress);
+		(*pBundle) << exip;
+	}
+	else
+	{
+		(*pBundle) << this->getNetworkInterface().extaddr().ip;
+	}
+
 	(*pBundle) << this->getNetworkInterface().extaddr().port;
 	(*pBundle).send(this->getNetworkInterface(), pChannel);
 
@@ -3567,7 +3577,10 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID enti
 		{
 			if((*iter).groupOrderid == 1)
 			{
-				http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+				if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+					http_host = (*iter).externalAddressEx;
+				else
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
 			}
 		}
 

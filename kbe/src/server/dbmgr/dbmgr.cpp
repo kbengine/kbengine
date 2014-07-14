@@ -295,10 +295,10 @@ void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, C
 //-------------------------------------------------------------------------------------
 void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
-						intaddr, intport, extaddr, extport);
+						intaddr, intport, extaddr, extport, extaddrEx);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 	
@@ -366,15 +366,15 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				
 				if(tcomponentType == BASEAPP_TYPE)
 				{
-					BaseappInterface::onGetEntityAppFromDbmgrArgs10::staticAddToBundle((*pBundle), 
+					BaseappInterface::onGetEntityAppFromDbmgrArgs11::staticAddToBundle((*pBundle), 
 						uid, username, componentType, componentID, startGlobalOrder, startGroupOrder,
-							intaddr, intport, extaddr, extport);
+							intaddr, intport, extaddr, extport, g_kbeSrvConfig.getConfig().externalAddress);
 				}
 				else
 				{
-					CellappInterface::onGetEntityAppFromDbmgrArgs10::staticAddToBundle((*pBundle), 
+					CellappInterface::onGetEntityAppFromDbmgrArgs11::staticAddToBundle((*pBundle), 
 						uid, username, componentType, componentID, startGlobalOrder, startGroupOrder,
-							intaddr, intport, extaddr, extport);
+							intaddr, intport, extaddr, extport, g_kbeSrvConfig.getConfig().externalAddress);
 				}
 				
 				KBE_ASSERT((*fiter).pChannel != NULL);

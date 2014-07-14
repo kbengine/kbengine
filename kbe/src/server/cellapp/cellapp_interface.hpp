@@ -48,7 +48,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPP_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -58,7 +58,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 某app主动请求look。
 	CELLAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
@@ -71,7 +72,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
 	// 当前app需要主动的去与他们建立连接
-	CELLAPP_MESSAGE_DECLARE_ARGS10(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS11(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -81,7 +82,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 某app请求获取一个entityID段的回调
 	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,						MERCURY_FIXED_MESSAGE,

@@ -428,7 +428,10 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 		std::string http_host = "localhost";
 		if(startGroupOrder_ == 1)
 		{
-			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+			else
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
 		}
 		else
 		{
@@ -437,7 +440,10 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 			{
 				if((*iter).groupOrderid == 1)
 				{
-					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+					if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+						http_host = (*iter).externalAddressEx;
+					else
+						http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
 				}
 			}
 		}
@@ -563,7 +569,10 @@ void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::stri
 		std::string http_host = "localhost";
 		if(startGroupOrder_ == 1)
 		{
-			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+			else
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
 		}
 		else
 		{
@@ -572,7 +581,10 @@ void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::stri
 			{
 				if((*iter).groupOrderid == 1)
 				{
-					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+					if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+						http_host = (*iter).externalAddressEx;
+					else
+						http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
 				}
 			}
 		}

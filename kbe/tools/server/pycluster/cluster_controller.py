@@ -198,6 +198,24 @@ class ClusterControllerHandler:
 			extport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
 			ii += 2
 			
+			# get extaddrEx
+			i1 = ii
+			for x in self.recvDatas[count][ii:]:
+				if type(x) == str:
+					if ord(x) == 0:
+						break
+				else:
+					if x == 0:
+						break
+
+				ii += 1
+
+			extaddrEx = self.recvDatas[count][i1: ii];
+			if type(extaddrEx) == 'bytes':
+				extaddrEx = extaddrEx.decode()
+                                
+			ii += 1
+
 			pid = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
 			ii += 4
 			
@@ -244,7 +262,7 @@ class ClusterControllerHandler:
 			
 			if not found:
 				componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
-									intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3))
+									intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3, extaddrEx))
 				
 			count += 1
 		

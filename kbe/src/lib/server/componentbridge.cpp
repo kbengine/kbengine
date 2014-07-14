@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/error_reporter.hpp"
 #include "network/udp_packet.hpp"
 #include "helper/sys_info.hpp"
+#include "server/serverconfig.hpp"
 
 #include "../../server/machine/machine_interface.hpp"
 
@@ -170,7 +171,7 @@ bool Componentbridge::findInterfaces()
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs21 args;
+			MachineInterface::onBroadcastInterfaceArgs22 args;
 
 RESTART_RECV:
 
@@ -216,7 +217,7 @@ RESTART_RECV:
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-						args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, 
+						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
 						args.usedmem, args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
 					isContinue = true;
@@ -324,10 +325,10 @@ bool Componentbridge::process()
 			Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
-			MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 				networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
-				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
+				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
 			
 			bhandler.broadcast();

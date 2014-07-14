@@ -111,6 +111,8 @@ typedef struct EngineComponentInfo
 		use_coordinate_system = true;
 		account_type = 3;
 		debugDBMgr = false;
+
+		externalAddress[0] = '\0';
 	}
 
 	~EngineComponentInfo()
@@ -142,6 +144,7 @@ typedef struct EngineComponentInfo
 
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
+	char externalAddress[MAX_NAME];							// 外部IP地址
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
 	int32 externalPorts_max;
 
@@ -224,6 +227,8 @@ public:
 
 	INLINE ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
  	
+	INLINE ENGINE_COMPONENT_INFO& getConfig();
+
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	

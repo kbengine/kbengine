@@ -89,7 +89,7 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 	/**  
 		创建一个entity 
