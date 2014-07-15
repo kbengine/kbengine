@@ -201,6 +201,7 @@ def funcFlags(mapDict, dctData, chilidDict, data):
 	"""
 	val = 0
 	for x in data.split(","):
-		val |= int(mapDict[x])
-		
+		if len(x) > 0:
+			val |= int(mapDict[x])
+
 	return val
