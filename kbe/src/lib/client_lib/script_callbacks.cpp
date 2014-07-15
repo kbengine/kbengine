@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.hpp"
 #include "script_callbacks.hpp"
 #include "server/serverapp.hpp"
+#include "server/serverconfig.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -53,7 +54,12 @@ ScriptID ScriptCallbacks::addCallback( float initialOffset, TimerHandler * pHand
 		initialOffset = 0.f;
 	}
 
-	int hertz = Config::getSingleton().gameUpdateHertz();
+	int hertz = 0;
+	
+	if(g_componentType == BOTS_TYPE)
+		hertz = g_kbeSrvConfig.gameUpdateHertz();
+	else
+		hertz = Config::getSingleton().gameUpdateHertz();
 
 	int initialTicks = GameTime( g_kbetime +
 			initialOffset * hertz );
