@@ -636,8 +636,8 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 
 	if((info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
-		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): Has been activated.\n") % 
-				code);
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): Has been activated, flags=%2%.\n") % 
+				code % info.flags);
 
 		return false;
 	}
