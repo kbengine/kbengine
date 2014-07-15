@@ -50,6 +50,26 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+
+	
+#define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
+	SCRIPT_METHOD_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_BEGIN(CLASS)															\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
+	SCRIPT_GETSET_DECLARE_END()																				\
+
+
 #ifdef CLIENT_NO_FLOAT																					
 	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
 		int32 x = (int32)pos.x;																				\

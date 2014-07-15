@@ -39,20 +39,20 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
-ENTITY_METHOD_DECLARE_END()
+CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
+CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
-ENTITY_GETSET_DECLARE_BEGIN(Entity)
+CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
 SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
-ENTITY_GETSET_DECLARE_END()
+CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
