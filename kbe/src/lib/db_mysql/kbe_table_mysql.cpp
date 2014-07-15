@@ -482,7 +482,12 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::queryAccount(%1%): sql(%2%) is failed(%3%)!\n") % 
+				name % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	info.datas = "";
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
@@ -542,7 +547,12 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::logAccount(%1%): sql(%2%) is failed(%3%)!\n") % 
+				code % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	return true;
 }
@@ -566,7 +576,12 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): sql(%2%) is failed(%3%)!\n") % 
+				code % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	uint64 logtime = 1;
 
@@ -586,10 +601,18 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	}
 
 	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailAtivationInfo_.deadline)
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): is expired! %2% > %3%.\n") % 
+				code % (time(NULL) - logtime) % g_kbeSrvConfig.emailAtivationInfo_.deadline);
+
 		return false;
+	}
 
 	if(info.name.size() == 0)
 	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): name is NULL.\n") % 
+				code);
+
 		return false;
 	}
 	
@@ -612,16 +635,29 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	}
 
 	if((info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): Has been activated.\n") % 
+				code);
+
 		return false;
+	}
 
 	info.flags &= ~ACCOUNT_FLAG_NOT_ACTIVATED; 
 
 	if(!pTable->setFlagsDeadline(dbi, info.name, info.flags, info.deadline))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): set deadline is error(%2%)!\n") % 
+				code % dbi->getstrerror());
 		return false;
-
+	}
 
 	if(!pTable->updatePassword(dbi, info.name, password))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): update password is error(%2%)!\n") % 
+				code % dbi->getstrerror());
+
 		return false;
+	}
 
 	if(info.dbid == 0)
 	{
@@ -645,6 +681,9 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	if(!dbi->query((boost::format("update kbe_accountinfos set entityDBID=%1% where accountName like \"%2%\"") 
 		% info.dbid % tbuf).str(), false))
 	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(%1%): update kbe_accountinfos is error(%2%)!\n") % 
+				code % dbi->getstrerror());
+
 		SAFE_RELEASE_ARRAY(tbuf);
 		return false;
 	}
@@ -681,7 +720,12 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail(%1%): sql(%2%) is failed(%3%)!\n") % 
+				code % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	uint64 logtime = 1;
 
@@ -703,10 +747,18 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 	}
 
 	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailBindInfo_.deadline)
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail(%1%): is expired! %2% > %3%.\n") % 
+				code % (time(NULL) - logtime) % g_kbeSrvConfig.emailBindInfo_.deadline);
+
 		return false;
+	}
 
 	if(qname.size() == 0 || qemail.size() == 0)
 	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail(%1%): name or email is NULL.\n") % 
+				code);
+
 		return false;
 	}
 	
@@ -737,6 +789,9 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 
 	if(!dbi->query(sqlstr, false))
 	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail(%1%): update kbe_accountinfos is error(%2%)!\n") % 
+				code % dbi->getstrerror());
+
 		return false;
 	}
 
@@ -771,7 +826,12 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::resetpassword(%1%): sql(%2%) is failed(%3%)!\n") % 
+				code % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	uint64 logtime = 1;
 	
@@ -791,10 +851,18 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	}
 
 	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailResetPasswordInfo_.deadline)
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail(%1%): is expired! %2% > %3%.\n") % 
+				code % (time(NULL) - logtime) % g_kbeSrvConfig.emailResetPasswordInfo_.deadline);
+
 		return false;
+	}
 
 	if(qname.size() == 0 || password.size() == 0)
 	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::resetpassword(%1%): name or password is NULL.\n") % 
+				code);
+
 		return false;
 	}
 
@@ -821,7 +889,12 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	}
 
 	if(!pTable->updatePassword(dbi, name, md5password))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::resetpassword(%1%): update password is error(%2%)!\n") % 
+				code % dbi->getstrerror());
+
 		return false;
+	}
 
 
 	try
@@ -855,7 +928,12 @@ bool KBEEmailVerificationTableMysql::delAccount(DBInterface * dbi, int8 type, co
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::delAccount(%1%): sql(%2%) is failed(%3%)!\n") % 
+				name % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	return true;
 }
