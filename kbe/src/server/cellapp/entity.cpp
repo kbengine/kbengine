@@ -1024,6 +1024,9 @@ int Entity::pySetPosition(PyObject *value)
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
+
 	onDefDataChanged(&positionDescription, value);
 	return 0;
 }
@@ -1147,8 +1150,11 @@ int Entity::pySetDirection(PyObject *value)
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
-	onDefDataChanged(&positionDescription, value);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
+
+	onDefDataChanged(&directionDescription, value);
 
 	return 0;
 }
@@ -1188,6 +1194,9 @@ void Entity::onPyPositionChanged()
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
+
 	onDefDataChanged(&positionDescription, pPyPosition_);
 
 	if(this->pEntityCoordinateNode())
@@ -1231,8 +1240,11 @@ void Entity::onPyDirectionChanged()
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
-	onDefDataChanged(&positionDescription, pPyDirection_);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, 0, "", DETAIL_LEVEL_FAR);
+	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
+
+	onDefDataChanged(&directionDescription, pPyDirection_);
 }
 
 //-------------------------------------------------------------------------------------
