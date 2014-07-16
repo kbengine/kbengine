@@ -471,7 +471,6 @@ void Entity::onBecomePlayer()
 	if(pyModule == NULL)
 	{
 		SCRIPT_ERROR_CHECK();
-		ERROR_MSG(boost::format("%1%::onBecomePlayer(): please implement %2%.\n") % this->scriptModule_->getName() % moduleName);
 	}
 	else
 	{
@@ -481,6 +480,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(boost::format("%1%::onBecomePlayer(): please implement %2%.\n") % this->scriptModule_->getName() % moduleName);
 		}
 		else
 		{
