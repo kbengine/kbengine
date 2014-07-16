@@ -303,7 +303,6 @@ void ClientApp::handleGameTick()
 {
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	handleTimers();
 	
 	if(lastAddr.ip != 0)
 	{
