@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\machine_infos.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pendingLoginmgr.cpp"
 				>
 			</File>
@@ -224,10 +228,6 @@
 			</File>
 			<File
 				RelativePath=".\serverconfig.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\serverinfos.cpp"
 				>
 			</File>
 			<File
@@ -301,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\machine_infos.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pendingLoginmgr.hpp"
 				>
 			</File>
@@ -326,10 +330,6 @@
 			</File>
 			<File
 				RelativePath=".\serverconfig.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\serverinfos.hpp"
 				>
 			</File>
 			<File

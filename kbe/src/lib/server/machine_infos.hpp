@@ -18,17 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_INFOS_HPP__
-#define __SERVER_INFOS_HPP__
+#ifndef __MACHINE_INFOS_HPP__
+#define __MACHINE_INFOS_HPP__
 
 #include "cstdkbe/cstdkbe.hpp"
 namespace KBEngine{
-class ServerInfos : public Singleton<ServerInfos>
+class MachineInfos : public Singleton<MachineInfos>
 {
 public:
-	ServerInfos();
+	MachineInfos();
 
-	const std::string & serverName() const { return serverName_; }
+	const std::string & machineName() const { return machineName_; }
 	const std::string & cpuInfo() const { return cpuInfo_; }
 	const std::vector<float>& cpuSpeeds() const { return cpuSpeeds_; }
 	const std::string & memInfo() const { return memInfo_; }
@@ -45,7 +45,7 @@ private:
 	void fetchWindowsMemInfo();
 #endif
 
-	std::string serverName_;
+	std::string machineName_;
 
 	std::string cpuInfo_;
 	std::vector<float> cpuSpeeds_;
@@ -55,4 +55,4 @@ private:
 	uint64 memUsed_;
 };
 }
-#endif // __SERVER_INFOS_HPP__
+#endif // __MACHINE_INFOS_HPP__

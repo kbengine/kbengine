@@ -2318,6 +2318,13 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		return;
 	}
 
+	if(idClient_.getSize() == 0)
+	{
+		ERROR_MSG("Baseapp::loginGateway: idClient size is 0.\n");
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
+
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{

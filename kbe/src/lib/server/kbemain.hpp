@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/componentbridge.hpp"
-#include "server/serverinfos.hpp"
+#include "server/machine_infos.hpp"
 #include "resmgr/resmgr.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -41,7 +41,7 @@ namespace KBEngine{
 
 inline void START_MSG(const char * name, uint64 appuid)
 {
-	ServerInfos serverInfo;
+	MachineInfos machineInfo;
 	
 	std::string s = (boost::format("---- %1% "
 			"Version: %2%. "
@@ -61,9 +61,9 @@ inline void START_MSG(const char * name, uint64 appuid)
 #endif
 
 	s = (boost::format("Server %1%: %2% with %3% RAM\n") %
-		serverInfo.serverName().c_str() %
-		serverInfo.cpuInfo().c_str() %
-		serverInfo.memInfo().c_str() ).str();
+		machineInfo.machineName().c_str() %
+		machineInfo.cpuInfo().c_str() %
+		machineInfo.memInfo().c_str() ).str();
 
 	INFO_MSG(s);
 
