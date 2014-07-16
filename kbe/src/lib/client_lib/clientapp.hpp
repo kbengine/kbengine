@@ -110,9 +110,7 @@ public:
 		std::string ip, KBEngine::uint32 port);
 
 	GAME_TIME time() const { return g_kbetime; }
-	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
-	void handleTimers();
 
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }

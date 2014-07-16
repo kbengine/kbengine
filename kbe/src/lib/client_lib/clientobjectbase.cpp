@@ -148,6 +148,8 @@ void ClientObjectBase::reset(void)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::tickSend()
 {
+	handleTimers();
+
 	if(!pServerChannel_ || !pServerChannel_->endpoint())
 		return;
 	
@@ -165,8 +167,6 @@ void ClientObjectBase::tickSend()
 
 		return;
 	}
-
-	handleTimers();
 
 	// 向服务器发送tick
 	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
