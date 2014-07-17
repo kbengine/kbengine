@@ -43,8 +43,17 @@ public:
 	};
 
 	friend class DBUtil;
-	DBInterface(){};
-	virtual ~DBInterface(){};
+
+	DBInterface():
+	db_port_(3306),
+	db_numConnections_(1),
+	lastquery_()
+	{
+	};
+
+	virtual ~DBInterface()
+	{
+	};
 
 	/**
 		检查环境
@@ -116,6 +125,11 @@ public:
 		处理异常
 	*/
 	virtual bool processException(std::exception & e) = 0;
+
+	/**
+		获取最后一次查询的sql语句
+	*/
+	virtual const std::string& lastquery()const{ return lastquery_; }
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口
@@ -124,6 +138,7 @@ protected:
 	char db_password_[MAX_BUF];								// 数据库的密码
 	char db_name_[MAX_BUF];									// 数据库名
 	uint16 db_numConnections_;								// 数据库最大连接
+	std::string lastquery_;									// 最后一次查询描述
 };
 
 /*

@@ -149,8 +149,7 @@ hasLostConnection_(false),
 inTransaction_(false),
 lock_(NULL, false),
 characterSet_(characterSet),
-collation_(collation),
-lastquery_()
+collation_(collation)
 {
 	lock_.pdbi(this);
 }

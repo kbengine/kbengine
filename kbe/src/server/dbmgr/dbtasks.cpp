@@ -96,7 +96,7 @@ bool DBTask::process()
 	if (duration > stampsPerSecond())
 	{
 		WARNING_MSG(boost::format("DBTask::process(): took %.2f seconds\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % static_cast<DBInterfaceMysql*>(pdbi_)->lastquery().c_str());
+			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
 	}
 
 	return ret;
@@ -670,6 +670,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	ACCOUNT_INFOS info;
 	if(accountName_.size() == 0)
 	{
+		ERROR_MSG("DBTaskCreateMailAccount::db_thread_process(): accountName is NULL!\n");
 		return false;
 	}
 
@@ -682,7 +683,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	{
 		if(pdbi_->getlasterror() > 0)
 		{
-			WARNING_MSG(boost::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount error: %1%\n") % 
+			WARNING_MSG(boost::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount is error: %1%\n") % 
 				pdbi_->getstrerror());
 		}
 
@@ -707,6 +708,8 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	}
 	catch (...)
 	{
+		WARNING_MSG(boost::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(kbe_accountinfos) is error: %1%\n%2%\n") % 
+			pdbi_->getstrerror() % pdbi_->lastquery());
 	}
 
 	unsigned char md[16];
@@ -730,7 +733,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::reqCreateMailAccount:%1%.\n") % registerName_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::reqCreateMailAccount:%1%, success=%2%.\n") % registerName_ % success_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateMailAccountResult);

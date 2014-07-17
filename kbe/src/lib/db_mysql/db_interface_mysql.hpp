@@ -119,6 +119,7 @@ public:
 	{
 		if(pMysql_ == NULL)
 			return "pMysql is NULL";
+
 		return mysql_error( pMysql_ ); 
 	}
 
@@ -162,11 +163,6 @@ public:
 		处理异常
 	*/
 	bool processException(std::exception & e);
-
-	/**
-		获取最后一次查询的sql语句
-	*/
-	std::string lastquery()const{ return lastquery_; }
 protected:
 	MYSQL* pMysql_;
 
@@ -178,8 +174,6 @@ protected:
 
 	std::string characterSet_;
 	std::string collation_;
-	
-	std::string lastquery_;
 };
 
 
