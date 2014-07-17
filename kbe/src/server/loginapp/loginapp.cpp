@@ -669,13 +669,6 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s.opfini();
 
-	if(initProgress_ < 1.f)
-	{
-		datas = (boost::format("initProgress: %1%") % initProgress_).str();
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
-		return;
-	}
-
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
@@ -701,6 +694,13 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 		datas = "";
 		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
+		return;
+	}
+
+	if(initProgress_ < 1.f)
+	{
+		datas = (boost::format("initProgress: %1%") % initProgress_).str();
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas);
 		return;
 	}
 

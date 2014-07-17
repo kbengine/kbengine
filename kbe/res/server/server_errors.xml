@@ -101,4 +101,8 @@
 		<descr>	操作失败。</descr>
 	</SERVER_ERR_OP_FAILED>
 	
+	<SERVER_ERR_SRV_STARTING>
+		<id>20</id>
+		<descr>	服务器正在启动中。</descr>
+	</SERVER_ERR_SRV_STARTING>
 </root>
