@@ -109,7 +109,10 @@ bool InitProgressHandler::process()
 	}
 	
 	if(v >= 1.0f)
+	{
+		v = 100.f;
 		completed = true;
+	}
 
 	Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 
