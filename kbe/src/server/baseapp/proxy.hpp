@@ -65,6 +65,12 @@ public:
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles* pBundles();
 
+	/** 
+		定义属性数据被改变了 
+	*/
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
+			PyObject* pyData);
+
 	/**
 		向witness客户端推送一条消息
 	*/

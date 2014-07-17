@@ -76,7 +76,7 @@ public:
 	/** 
 		获取属性的标志 cell_public等 
 	*/
-	INLINE const uint32& getFlags(void)const;
+	INLINE uint32 getFlags(void)const;
 	
 	/** 
 		获取属性名称 
@@ -152,7 +152,7 @@ public:
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
-	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
+	static uint32	propertyDescriptionCount_;									// 所有的属性描述的数量	
 
 	INLINE bool hasCell(void)const;
 	INLINE bool hasBase(void)const;

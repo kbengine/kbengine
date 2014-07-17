@@ -355,7 +355,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	if(!isReal() || initing_)
 		return;
 
-	const uint32& flags = propertyDescription->getFlags();
+	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
 	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
