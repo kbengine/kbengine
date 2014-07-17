@@ -579,8 +579,11 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") %
-		id_ % md->getName() % md->getUType() % this->getScriptName());
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") %
+			id_ % md->getName() % md->getUType() % this->getScriptName());
+	}
 
 	md->currCallerID(this->getID());
 
