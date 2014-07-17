@@ -218,6 +218,40 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 	}
 }
 
+inline void setEvns()
+{
+	std::string scomponentGroupOrder = "0";
+	std::string scomponentGlobalOrder = "0";
+	std::string scomponentID = "0";
+
+	if(g_componentGroupOrder > 0)
+	{
+		int32 icomponentGroupOrder = g_componentGroupOrder;
+		scomponentGroupOrder = KBEngine::StringConv::val2str(icomponentGroupOrder);
+	}
+	
+	if(g_componentGlobalOrder > 0)
+	{
+		int32 icomponentGlobalOrder = g_componentGlobalOrder;
+		scomponentGlobalOrder = KBEngine::StringConv::val2str(icomponentGlobalOrder);
+	}
+
+	{
+		uint64 v = g_componentID;
+		scomponentID = KBEngine::StringConv::val2str(v);
+	}
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		_putenv((std::string("KBE_COMPONENTID=") + scomponentID).c_str());
+		_putenv((std::string("KBE_GLOBALID=") + scomponentGlobalOrder).c_str());
+		_putenv((std::string("KBE_GROUPID=") + scomponentGroupOrder).c_str());
+#else
+		setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
+		setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
+		setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
+#endif
+}
+
 template <class CLIENT_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
@@ -226,6 +260,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_componentID = genUUID64();
 	g_componentType = componentType;
 	parseMainCommandArgs(argc, argv);
+	setEvns();
 
 	if(!loadConfig())
 	{
