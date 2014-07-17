@@ -43,10 +43,10 @@ public:
 			ERROR_MSG("DBThread:: can't create dbinterface!\n");
 		}
 
-		DEBUG_MSG(boost::format("DBThread:: %1% started!\n") % this);
+		DEBUG_MSG(boost::format("DBThread::onStart(): %1%!\n") % this);
 	}
 
-	~DBThread()
+	virtual void onEnd()
 	{
 		if(_pDBInterface)
 		{
@@ -55,7 +55,11 @@ public:
 			DBUtil::finiThread();
 		}
 
-		DEBUG_MSG(boost::format("DBThread:: %1% end!\n") % this);
+		DEBUG_MSG(boost::format("DBThread::onEnd(): %1%!\n") % this);
+	}
+
+	~DBThread()
+	{
 	}
 
 	virtual void onProcessTaskStart(thread::TPTask* pTask)
