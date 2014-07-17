@@ -701,6 +701,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	info.password = password_;
 	info.flags |= ACCOUNT_FLAG_NOT_ACTIVATED; 
 	info.email = info.name;
+	info.dbid = KBEngine::genUUID64();
 
 	try
 	{
@@ -1071,7 +1072,7 @@ bool DBTaskAccountNewPassword::db_thread_process()
 		return false;
 	}
 
-	if(info.dbid == 0)
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
 	unsigned char md[16];
@@ -1174,7 +1175,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
 			return false;
 
-		if(info.dbid == 0)
+		if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			return false;
 		
 		unsigned char md[16];
@@ -1409,7 +1410,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
 		{
-			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0)
+			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
 				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
 					accountName_);
@@ -1442,7 +1443,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		}
 	}
 
-	if(info.dbid == 0)
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
 	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)

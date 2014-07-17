@@ -628,14 +628,8 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	KBE_ASSERT(pTable);
 	
 	info.flags = 0;
-	if(pTable->queryAccount(dbi, info.name, info))
+	if(!pTable->queryAccount(dbi, info.name, info))
 	{
-		if(dbi->getlasterror() > 0)
-		{
-			WARNING_MSG(boost::format("KBEEmailVerificationTableMysql::activateAccount(): queryAccount error: %1%\n") % 
-				dbi->getstrerror());
-		}
-
 		return false;
 	}
 
@@ -664,16 +658,15 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 		return false;
 	}
 
-	if(info.dbid == 0)
-	{
-		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	info.dbid = 0;
 
-		// 防止多线程问题， 这里做一个拷贝。
-		MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 
-		info.dbid = EntityTables::getSingleton().writeEntity(dbi, 0, 
-				&copyAccountDefMemoryStream, pModule);
-	}
+	// 防止多线程问题， 这里做一个拷贝。
+	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
+
+	info.dbid = EntityTables::getSingleton().writeEntity(dbi, 0, 
+			&copyAccountDefMemoryStream, pModule);
 
 	KBE_ASSERT(info.dbid > 0);
 
