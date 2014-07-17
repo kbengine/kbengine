@@ -123,16 +123,11 @@ void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
 
 	if(pInfos->componentType == LOGINAPP_TYPE && cinfo->pChannel != NULL)
 	{
-		std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.begin();
+		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 
-		for(; iter != baseapps_.end(); iter++)
-		{
-			Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
-
-			(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
-			(*(*bundleptr)) << baseappsInitProgress_;
-			(*bundleptr)->send(networkInterface_, cinfo->pChannel);
-		}
+		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
+		(*(*bundleptr)) << baseappsInitProgress_;
+		(*bundleptr)->send(networkInterface_, cinfo->pChannel);
 	}
 }
 
