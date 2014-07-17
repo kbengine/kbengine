@@ -415,7 +415,12 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		ERROR_MSG(boost::format("KBEAccountTableMysql::logAccount(%1%): sql(%2%) is failed(%3%)!\n") % 
+				info.name % sqlstr % dbi->getstrerror());
+
 		return false;
+	}
 
 	return true;
 }
