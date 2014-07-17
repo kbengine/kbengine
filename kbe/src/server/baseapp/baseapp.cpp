@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base_remotemethod.hpp"
 #include "archiver.hpp"
 #include "backuper.hpp"
+#include "initprogress_handler.hpp"
 #include "restore_entity_handler.hpp"
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
@@ -2114,6 +2115,8 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+
+	new InitProgressHandler(this->getNetworkInterface());
 }
 
 //-------------------------------------------------------------------------------------

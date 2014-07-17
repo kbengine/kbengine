@@ -9,6 +9,7 @@ SRCS =						\
 	data_downloads				\
 	base_remotemethod			\
 	forward_message_over_handler		\
+	initprogress_handler			\
 	restore_entity_handler			\
 	sync_entitystreamtemplate_handler	\
 	main					\

@@ -44,6 +44,9 @@ public:
 	
 	void destroy(){ isDestroyed_ = true; }
 	bool isDestroyed()const { return isDestroyed_; }
+
+	float initProgress()const{ return initProgress_; }
+	void initProgress(float v){ initProgress_ = v; }
 protected:
 	ENTITY_ID numBases_;
 	ENTITY_ID numProxices_;
@@ -52,6 +55,8 @@ protected:
 	bool isDestroyed_;
 
 	Watchers watchers_;
+
+	float initProgress_;
 };
 
 }

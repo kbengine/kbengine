@@ -48,7 +48,8 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 	gameTimer_(),
 	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
 	bestBaseappID_(0),
-	baseapps_()
+	baseapps_(),
+	baseappsInitProgress_(0.f)
 {
 }
 
@@ -113,6 +114,26 @@ void Baseappmgr::onChannelDeregister(Mercury::Channel * pChannel)
 	}
 
 	ServerApp::onChannelDeregister(pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
+{
+	Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pInfos->cid);
+
+	if(pInfos->componentType == LOGINAPP_TYPE && cinfo->pChannel != NULL)
+	{
+		std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.begin();
+
+		for(; iter != baseapps_.end(); iter++)
+		{
+			Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+
+			(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
+			(*(*bundleptr)) << baseappsInitProgress_;
+			(*bundleptr)->send(networkInterface_, cinfo->pChannel);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -350,6 +371,54 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 
 	(*pBundleToLoginapp).send(this->getNetworkInterface(), lpChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID cid, float progress)
+{
+	if(progress > 1.f)
+	{
+		INFO_MSG(boost::format("Baseappmgr::onBaseappInitProgress: cid=%1%, progress=%2%.\n") % 
+			cid % (progress > 1.f ? 1.f : progress));
+	}
+
+	KBE_ASSERT(baseapps_.find(cid) != baseapps_.end());
+
+	baseapps_[cid].initProgress(progress);
+
+	size_t completedCount = 0;
+
+	std::map< COMPONENT_ID, Baseapp >::iterator iter1 = baseapps_.begin();
+	for(; iter1 != baseapps_.end(); iter1++)
+	{
+		if((*iter1).second.initProgress() > 1.f)
+			completedCount++;
+	}
+
+	if(completedCount >= baseapps_.size())
+	{
+		baseappsInitProgress_ = 100.f;
+		INFO_MSG("Baseappmgr::onBaseappInitProgress: all completed!\n");
+	}
+	else
+	{
+		baseappsInitProgress_ = float(completedCount) / float(baseapps_.size());
+	}
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+	Components::COMPONENTS::iterator iter = cts.begin();
+	for(; iter != cts.end(); iter++)
+	{
+		if((*iter).pChannel == NULL)
+			continue;
+
+		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+
+		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
+		(*(*bundleptr)) << baseappsInitProgress_;
+		(*bundleptr)->send(networkInterface_, (*iter).pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

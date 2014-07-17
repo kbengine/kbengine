@@ -139,6 +139,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 请求查询watcher数据
 	LOGINAPP_MESSAGE_DECLARE_STREAM(queryWatcher,									MERCURY_VARIABLE_MESSAGE)
 
+	// baseapp同步自己的初始化信息
+	LOGINAPP_MESSAGE_DECLARE_ARGS1(onBaseappInitProgress,							MERCURY_FIXED_MESSAGE,
+									float,											progress)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

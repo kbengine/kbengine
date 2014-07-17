@@ -53,7 +53,8 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface),
 	digest_(),
-	pHttpCBHandler(NULL)
+	pHttpCBHandler(NULL),
+	initProgress_(0.f)
 {
 }
 
@@ -668,6 +669,13 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s.opfini();
 
+	if(initProgress_ < 1.f)
+	{
+		datas = (boost::format("initProgress: %1%") % initProgress_).str();
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
+		return;
+	}
+
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
@@ -1086,6 +1094,18 @@ void Loginapp::importServerErrorsDescr(Mercury::Channel* pChannel)
 	}
 
 	bundle.resend(getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onBaseappInitProgress(Mercury::Channel* pChannel, float progress)
+{
+	if(progress > 1.f)
+	{
+		INFO_MSG(boost::format("Loginapp::onBaseappInitProgress: progress=%1%.\n") % 
+			(progress > 1.f ? 1.f : progress));
+	}
+
+	initProgress_ = progress;
 }
 
 //-------------------------------------------------------------------------------------

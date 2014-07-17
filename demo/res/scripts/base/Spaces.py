@@ -25,7 +25,10 @@ class Spaces(KBEngine.Base, GameObject):
 				self._spaceAllocs[utype] = SpaceAllocDuplicate(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
-				
+	
+	def getSpaceAllocs(self):
+		return self._spaceAllocs
+		
 	def createSpaceOnTimer(self, tid, tno):
 		"""
 		创建space

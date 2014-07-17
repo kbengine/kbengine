@@ -227,6 +227,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\initprogress_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath="main.cpp"
 				>
 			</File>
@@ -312,6 +316,10 @@
 			</File>
 			<File
 				RelativePath=".\forward_message_over_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\initprogress_handler.hpp"
 				>
 			</File>
 			<File

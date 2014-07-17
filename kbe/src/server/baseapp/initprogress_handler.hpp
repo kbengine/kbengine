@@ -17,26 +17,34 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "baseapp.hpp"
+
+#ifndef __INIT_PROGRESS_HANDLER__
+#define __INIT_PROGRESS_HANDLER__
+
+// common include
+#include "helper/debug_helper.hpp"
+#include "cstdkbe/cstdkbe.hpp"
+// #define NDEBUG
+// windows include	
+#if KBE_PLATFORM == PLATFORM_WIN32
+#else
+// linux include
+#endif
 
 namespace KBEngine{
 
-//-------------------------------------------------------------------------------------
-Baseapp::Baseapp():
-numBases_(0),
-numProxices_(0),
-load_(0.f),
-isDestroyed_(false),
-watchers_(),
-initProgress_(0.f)
+class InitProgressHandler : public Task
 {
-}
+public:
+	InitProgressHandler(Mercury::NetworkInterface & networkInterface);
+	~InitProgressHandler();
+	
+	bool process();
+private:
+	Mercury::NetworkInterface & networkInterface_;
 
-//-------------------------------------------------------------------------------------
-Baseapp::~Baseapp()
-{
-}
+};
 
 
-//-------------------------------------------------------------------------------------
 }
+#endif
