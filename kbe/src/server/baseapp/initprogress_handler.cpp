@@ -108,7 +108,7 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 	
-	if(v >= 1.0f)
+	if(v >= 0.9999f)
 	{
 		v = 100.f;
 		completed = true;
