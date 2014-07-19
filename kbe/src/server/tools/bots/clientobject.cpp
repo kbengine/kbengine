@@ -55,6 +55,7 @@ SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
+Mercury::TCPPacketReceiver(),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT),
 pBlowfishFilter_(0)
@@ -62,6 +63,8 @@ pBlowfishFilter_(0)
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
 	extradatas_ = "bots";
+
+	this->pNetworkInterface_ = &ninterface;
 }
 
 //-------------------------------------------------------------------------------------
@@ -124,6 +127,8 @@ bool ClientObject::initCreate()
 	}
 
 	pServerChannel_->pushBundle(pBundle);
+
+	this->pEndpoint_ = pEndpoint;
 	return true;
 }
 
