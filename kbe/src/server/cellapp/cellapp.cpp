@@ -564,7 +564,7 @@ void Cellapp::reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memo
 	Entity* e = this->findEntity(entityID);
 	if(!e)
 	{
-		ERROR_MSG(boost::format("Cellapp::reqBackupEntityCellData: not found entity %1%.\n") % entityID);
+		WARRING_MSG(boost::format("Cellapp::reqBackupEntityCellData: not found entity %1%.\n") % entityID);
 		return;
 	}
 
@@ -583,7 +583,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::Memo
 	Entity* e = this->findEntity(entityID);
 	if(!e)
 	{
-		ERROR_MSG(boost::format("Cellapp::reqWriteToDBFromBaseapp: not found entity %1%.\n") % entityID);
+		WARRING_MSG(boost::format("Cellapp::reqWriteToDBFromBaseapp: not found entity %1%.\n") % entityID);
 		return;
 	}
 
