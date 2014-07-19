@@ -345,7 +345,20 @@ bool Space::destroy(ENTITY_ID entityID)
 
 	// 最后销毁创建者
 	if(creator)
-		creator->destroyEntity();
+	{
+		if(Cellapp::getSingleton().findEntity(creator->getID()) != NULL)
+		{
+			creator->destroyEntity();
+		}
+		else
+		{
+			// 之所以会这样是因为可能spaceEntity在调用destroy销毁的时候onDestroy中调用了destroySpace
+			// 那么就会出现在spaceEntity-destroy过程中导致这里继续调用creator->destroyEntity()
+			// 此时就会出现EntityApp::destroyEntity: not found.
+			// 然后再spaceEntity析构的时候销毁pEntityCoordinateNode_会出错， 这里应该设置为NULL。
+			creator->pEntityCoordinateNode(NULL);
+		}
+	}
 
 	pNavHandle_.clear();
 	entities_.clear();

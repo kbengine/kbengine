@@ -467,6 +467,7 @@ public:
 		获取entity所在节点
 	*/
 	INLINE EntityCoordinateNode* pEntityCoordinateNode()const;
+	INLINE void pEntityCoordinateNode(EntityCoordinateNode* pNode);
 
 	/**
 		安装卸载节点

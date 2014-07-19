@@ -175,6 +175,12 @@ INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::pEntityCoordinateNode(EntityCoordinateNode* pNode)
+{
+	pEntityCoordinateNode_ = pNode;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE void Entity::isOnGround(bool v)
 {
 	isOnGround_ = v;
