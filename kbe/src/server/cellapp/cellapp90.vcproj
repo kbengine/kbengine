@@ -267,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ghost_manager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\history_event.cpp"
 				>
 			</File>
@@ -424,6 +428,10 @@
 			</File>
 			<File
 				RelativePath=".\forward_message_over_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ghost_manager.hpp"
 				>
 			</File>
 			<File

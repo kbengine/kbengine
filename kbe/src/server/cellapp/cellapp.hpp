@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "spaces.hpp"
 #include "cells.hpp"
 #include "updatables.hpp"
+#include "ghost_manager.hpp"
 #include "witnessed_timeout_handler.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
@@ -235,6 +236,8 @@ protected:
 	TelnetServer*						pTelnetServer_;
 
 	WitnessedTimeoutHandler	*			pWitnessedTimeoutHandler_;
+
+	GhostManager*						pGhostManager_;
 };
 
 }
