@@ -60,7 +60,8 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 	forward_messagebuffer_(ninterface),
 	cells_(),
 	pTelnetServer_(NULL),
-	pWitnessedTimeoutHandler_(NULL)
+	pWitnessedTimeoutHandler_(NULL),
+	pGhostManager_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -244,6 +245,8 @@ bool Cellapp::initializeEnd()
 
 	mainDispatcher_.clearSpareTime();
 
+	pGhostManager_ = new GhostManager(getNetworkInterface());
+
 	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher(), &this->getNetworkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 	return pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 
@@ -254,6 +257,7 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	SAFE_RELEASE(pGhostManager_);
 	SAFE_RELEASE(pWitnessedTimeoutHandler_);
 
 	if(pTelnetServer_)

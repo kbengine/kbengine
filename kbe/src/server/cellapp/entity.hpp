@@ -493,6 +493,9 @@ protected:
 	// 这个entity的baseapp mailbox
 	EntityMailbox*											baseMailbox_;						
 
+	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
+	COMPONENT_ID											realCell_;	
+
 	// entity的当前位置
 	Position3D												lastpos_;	
 	Position3D												position_;							
@@ -506,9 +509,6 @@ protected:
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
 	GAME_TIME												posChangedTime_;
 	GAME_TIME												dirChangedTime_;
-
-	// 自己是否是一个realEntity
-	bool													isReal_;	
 
 	// 是否在地面上
 	bool													isOnGround_;						

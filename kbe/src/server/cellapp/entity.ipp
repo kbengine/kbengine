@@ -141,7 +141,7 @@ INLINE void Entity::setOtherClients(AllClients* clients)
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isReal(void)const
 { 
-	return isReal_; 
+	return realCell_ == 0; 
 }
 
 //-------------------------------------------------------------------------------------

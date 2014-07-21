@@ -16,6 +16,7 @@ SRCS =						\
 	entityref				\
 	entity_remotemethod			\
 	entity_coordinate_node			\
+	ghost_manager				\
 	history_event				\
 	loadnavmesh_threadtasks			\
 	main					\
