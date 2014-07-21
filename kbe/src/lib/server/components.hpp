@@ -71,6 +71,7 @@ public:
 			extradata = extradata1 = extradata2 = 0;
 			pid = 0;
 			externalAddressEx[0] = '\0';
+			logTime = timestamp();
 		}
 
 		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr;	// 内部和外部地址
@@ -89,6 +90,7 @@ public:
 		uint32 usedmem;
 		uint64 extradata, extradata1, extradata2, extradata3;
 		uint32 pid;
+		uint64 logTime;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
