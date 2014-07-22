@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "entity.hpp"
-#include "movetopoint_handler.hpp"	
+#include "moveto_point_handler.hpp"	
 #include "move_controller.hpp"	
 
 namespace KBEngine{	

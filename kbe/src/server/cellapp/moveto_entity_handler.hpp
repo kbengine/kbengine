@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBE_MOVETOENTITYHANDLER_HPP__
 #define __KBE_MOVETOENTITYHANDLER_HPP__
 
-#include "movetopoint_handler.hpp"	
+#include "moveto_point_handler.hpp"	
 
 
 namespace KBEngine{

@@ -283,11 +283,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_handler.cpp"
+				RelativePath=".\moveto_entity_handler.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_handler.cpp"
+				RelativePath=".\moveto_point_handler.cpp"
 				>
 			</File>
 			<File
@@ -455,11 +455,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_handler.hpp"
+				RelativePath=".\moveto_entity_handler.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_handler.hpp"
+				RelativePath=".\moveto_point_handler.hpp"
 				>
 			</File>
 			<File
