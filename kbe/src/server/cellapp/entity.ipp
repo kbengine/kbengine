@@ -145,6 +145,24 @@ INLINE bool Entity::isReal(void)const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool Entity::hasGhost(void)const
+{ 
+	return ghostCell_ > 0; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::realCell(void)const
+{ 
+	return realCell_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::ghostCell(void)const
+{ 
+	return ghostCell_; 
+}
+
+//-------------------------------------------------------------------------------------
 INLINE SPACE_ENTITIES::size_type Entity::spaceEntityIdx()const
 {
 	return spaceEntityIdx_;

@@ -114,6 +114,13 @@ PyObject* Entity::pyGetClientApp()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
+
+//-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 }

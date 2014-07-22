@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "all_clients.hpp"
 #include "client_entity.hpp"
 #include "controllers.hpp"	
+#include "real_entity_method.hpp"
 #include "entity_coordinate_node.hpp"
 #include "proximity_controller.hpp"
 #include "move_controller.hpp"	
@@ -97,6 +98,7 @@ ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
 realCell_(0),
+ghostCell_(0),
 lastpos_(),
 position_(),
 pPyPosition_(NULL),
@@ -349,6 +351,26 @@ int Entity::pySetTopSpeed(PyObject *value)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+
+	MethodDescription* md = const_cast<ScriptDefModule*>(getScriptModule())->findCellMethodDescription(ccattr);
+	free(ccattr);
+
+	if(md != NULL)
+	{
+		return new RealEntityMethod(md, this);
+	}
+
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
+
+//-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 	// 如果不是一个realEntity或者在初始化则不理会
@@ -362,10 +384,31 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
-	// 判断是否需要广播给其他的cellapp, 这个还需一个前提是entity必须拥有ghost实体
-	// 只有在cell边界一定范围内的entity才拥有ghost实体
-	if((flags & ENTITY_BROADCAST_CELL_FLAGS) > 0)
+	// 判断是否需要广播给其他的cellapp, 这还需一个前提是entity必须拥有ghost实体
+	// 只有在cell边界一定范围内的entity才拥有ghost实体, 或者在跳转space时也会短暂的置为ghost状态
+	if((flags & ENTITY_BROADCAST_CELL_FLAGS) > 0 && hasGhost())
 	{
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
+		(*pForwardBundle) << getID();
+		(*pForwardBundle) << propertyDescription->getUType();
+
+		pForwardBundle->append(*mstream);
+
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if(gm)
+		{
+			// 记录这个事件产生的数据量大小
+			g_publicCellEventHistoryStats.trackEvent(getScriptName(), 
+				propertyDescription->getName(), 
+				pForwardBundle->currMsgLength());
+
+			gm->pushMessage(ghostCell(), pForwardBundle);
+		}
+		else
+		{
+			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		}
 	}
 	
 	const Position3D& basePos = this->getPosition(); 
@@ -567,7 +610,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %
 			getScriptName() % getID());
 
-		s.read_skip(s.opsize());
+		s.opfini();
 		return;
 	}
 
@@ -607,10 +650,15 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 			else
 			{
 				SCRIPT_ERROR_CHECK();
+				s.opfini();
 			}
 		}
 	}
-	
+	else
+	{
+		s.opfini();
+	}
+
 	Py_XDECREF(pyFunc);
 	SCRIPT_ERROR_CHECK();
 }
@@ -2539,6 +2587,60 @@ bool Entity::_reload(bool fullReload)
 {
 	allClients_->setScriptModule(scriptModule_);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
+{
+	ENTITY_PROPERTY_UID utype;
+	s >> utype;
+
+	PropertyDescription* pPropertyDescription = getScriptModule()->findCellPropertyDescription(utype);
+	if(pPropertyDescription == NULL)
+	{
+		ERROR_MSG(boost::format("%1%::onUpdateGhostPropertys: not found propertyID(%2%), entityID(%3%)\n") % 
+			getScriptName() % utype % getID());
+
+		s.opfini();
+		return;
+	}
+
+	DEBUG_MSG(boost::format("%1%::onUpdateGhostPropertys: property(%2%), entityID(%3%)\n") % 
+		getScriptName() % pPropertyDescription->getName() % getID());
+
+	PyObject* pyVal = pPropertyDescription->createFromStream(&s);
+	if(pyVal == NULL)
+	{
+		ERROR_MSG(boost::format("%1%::onUpdateGhostPropertys: entityID=%2%, create(%3%) is error!\n") % 
+			getScriptName() % getID() % pPropertyDescription->getName());
+
+		s.opfini();
+		return;
+	}
+
+	PyObject_SetAttrString(static_cast<PyObject*>(this),
+				pPropertyDescription->getName(), pyVal);
+
+	Py_DECREF(pyVal);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
+{
+	ENTITY_METHOD_UID utype;
+	s >> utype;
+
+	MethodDescription* pMethodDescription = getScriptModule()->findCellMethodDescription(utype);
+	if(pMethodDescription == NULL)
+	{
+		ERROR_MSG(boost::format("%1%::onRemoteRealMethodCall: not found propertyID(%2%), entityID(%3%)\n") % 
+			getScriptName() % utype % getID());
+
+		s.opfini();
+		return;
+	}
+
+	onRemoteMethodCall_(pMethodDescription, s);
 }
 
 //-------------------------------------------------------------------------------------

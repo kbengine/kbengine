@@ -311,6 +311,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\real_entity_method.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
@@ -476,6 +480,10 @@
 			</File>
 			<File
 				RelativePath=".\range_trigger_node.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\real_entity_method.hpp"
 				>
 			</File>
 			<File

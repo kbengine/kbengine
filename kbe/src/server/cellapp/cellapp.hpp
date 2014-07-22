@@ -30,13 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "witnessed_timeout_handler.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 
@@ -157,6 +150,16 @@ public:
 	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostPropertys(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
+	/** 网络接口
+		ghost请求调用def方法real
+	*/
+	void onRemoteRealMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		base请求获取celldata
 	*/
 	void reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -223,6 +226,12 @@ public:
 	void reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s);
 	void reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s);
 	void reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/**
+		获取和设置ghost管理器
+	*/
+	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
+	GhostManager* pGhostManager()const{ return pGhostManager_; }
 
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData

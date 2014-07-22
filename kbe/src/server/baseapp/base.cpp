@@ -549,6 +549,13 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Base::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
+
+//-------------------------------------------------------------------------------------
 PyObject* Base::pyGetCellMailbox()
 { 
 	if(isDestroyed())	

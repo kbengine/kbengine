@@ -32,6 +32,7 @@ SRCS =						\
 	coordinate_system			\
 	range_trigger				\
 	range_trigger_node			\
+	real_entity_method			\
 	trap_trigger				\
 	updatable				\
 	updatables				\

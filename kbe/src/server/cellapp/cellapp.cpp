@@ -1119,6 +1119,80 @@ void Cellapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::onUpdateGhostPropertys(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID;
+	
+	s >> entityID;
+
+	Entity* entity = findEntity(entityID);
+	if(entity == NULL)
+	{
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if(gm)
+		{
+			COMPONENT_ID targetCell = gm->getRoute(entityID);
+			if(targetCell > 0)
+			{
+				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+				(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
+				(*pForwardBundle) << entityID;
+				pForwardBundle->append(s);
+
+				gm->pushRouteMessage(entityID, targetCell, pForwardBundle);
+				s.opfini();
+				return;
+			}
+		}
+
+		ERROR_MSG(boost::format("Cellapp::onUpdateGhostPropertys: not found entity(%1%)\n") % 
+			entityID);
+
+		s.opfini();
+		return;
+	}
+
+	entity->onUpdateGhostPropertys(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onRemoteRealMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID;
+	
+	s >> entityID;
+
+	Entity* entity = findEntity(entityID);
+	if(entity == NULL)
+	{
+		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+		if(gm)
+		{
+			COMPONENT_ID targetCell = gm->getRoute(entityID);
+			if(targetCell > 0)
+			{
+				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+				(*pForwardBundle).newMessage(CellappInterface::onRemoteRealMethodCall);
+				(*pForwardBundle) << entityID;
+				pForwardBundle->append(s);
+
+				gm->pushRouteMessage(entityID, targetCell, pForwardBundle);
+				s.opfini();
+				return;
+			}
+		}
+
+		ERROR_MSG(boost::format("Cellapp::onRemoteRealMethodCall: not found entity(%1%)\n") % 
+			entityID);
+
+		s.opfini();
+		return;
+	}
+
+	entity->onRemoteRealMethodCall(s);
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID srcEntityID;

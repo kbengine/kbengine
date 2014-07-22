@@ -636,11 +636,7 @@ public:																										\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
-	PyObject * onScriptGetAttribute(PyObject* attr)															\
-	{																										\
-		DEBUG_OP_ATTRIBUTE("get", attr)																		\
-		return ScriptObject::onScriptGetAttribute(attr);													\
-	}																										\
+	PyObject * onScriptGetAttribute(PyObject* attr);														\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\

@@ -31,8 +31,9 @@ GhostManager::GhostManager(Mercury::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
 entityIDs_(),
-ghost_route_()
-
+ghost_route_(),
+messages_(),
+inTasks_(true)
 {
 	networkInterface.mainDispatcher().addFrequentTask(this);
 }
@@ -40,14 +41,113 @@ ghost_route_()
 //-------------------------------------------------------------------------------------
 GhostManager::~GhostManager()
 {
-	networkInterface_.mainDispatcher().cancelFrequentTask(this);
+	if(inTasks_)
+		networkInterface_.mainDispatcher().cancelFrequentTask(this);
+
+	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > >::iterator iter = messages_.begin();
+	for(; iter != messages_.end(); iter++)
+	{
+		std::vector< Mercury::Bundle* >::iterator iter1 = iter->second.begin();
+		for(; iter1 != iter->second.end(); iter1++)
+			Mercury::Bundle::ObjPool().reclaimObject((*iter1));
+	}
+
 	DEBUG_MSG("GhostManager::~GhostManager()\n");
+	inTasks_ = false;
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::pushMessage(COMPONENT_ID componentID, Mercury::Bundle* pBundle)
+{
+	messages_[componentID].push_back(pBundle);
+
+	if(!inTasks_)
+	{
+		inTasks_ = true;
+		networkInterface_.mainDispatcher().addFrequentTask(this);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::pushRouteMessage(ENTITY_ID entityID, COMPONENT_ID componentID, Mercury::Bundle* pBundle)
+{
+	pushMessage(componentID, pBundle);
+	addRoute(entityID, componentID);
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::addRoute(ENTITY_ID entityID, COMPONENT_ID componentID)
+{
+	ROUTE_INFO& info = ghost_route_[entityID];
+	
+	info.componentID = componentID;
+	info.lastTime = timestamp();
+
+	if(!inTasks_)
+	{
+		inTasks_ = true;
+		networkInterface_.mainDispatcher().addFrequentTask(this);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+COMPONENT_ID GhostManager::getRoute(ENTITY_ID entityID)
+{
+	std::map<ENTITY_ID, ROUTE_INFO>::iterator iter = ghost_route_.find(entityID);
+	if(iter == ghost_route_.end())
+		return 0;
+
+	return iter->second.componentID;
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::checkRoute()
+{
+	std::map<ENTITY_ID, ROUTE_INFO>::iterator iter = ghost_route_.begin();
+	for(; iter != ghost_route_.end(); iter++)
+	{
+		if(timestamp() - iter->second.lastTime > uint64( 5 * stampsPerSecond() ))
+		{
+			ghost_route_.erase(iter++);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::syncMessages()
+{
+	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > >::iterator iter = messages_.begin();
+	for(; iter != messages_.end(); )
+	{
+		std::vector< Mercury::Bundle* >::iterator iter1 = iter->second.begin();
+		for(; iter1 != iter->second.end(); iter1++)
+		{
+			// 将消息同步到ghost
+			Mercury::Bundle::ObjPool().reclaimObject((*iter1));
+		}
+			
+		iter->second.clear();
+		messages_.erase(iter++);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 bool GhostManager::process()
 {
-	return true;
+	if(messages_.size() == 0 && 
+		ghost_route_.size() == 0)
+	{
+		inTasks_ = false;
+		return inTasks_;
+	}
+
+	syncMessages();
+	checkRoute();
+	return inTasks_;
 }
 
 //-------------------------------------------------------------------------------------
