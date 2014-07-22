@@ -29,5 +29,6 @@ ProfileVal CLIENT_UPDATE_PROFILE( "clientUpdate" );
 
 EventHistoryStats g_privateClientEventHistoryStats("PrivateClientEvents");
 EventHistoryStats g_publicClientEventHistoryStats("PublicClientEvents");
+EventHistoryStats g_publicCellEventHistoryStats("PublicCellEvents");
 
 }

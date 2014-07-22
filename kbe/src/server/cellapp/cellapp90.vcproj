@@ -283,11 +283,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_handler.cpp"
+				RelativePath=".\moveto_entity_handler.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_handler.cpp"
+				RelativePath=".\moveto_point_handler.cpp"
 				>
 			</File>
 			<File
@@ -308,6 +308,10 @@
 			</File>
 			<File
 				RelativePath=".\range_trigger_node.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\real_entity_method.cpp"
 				>
 			</File>
 			<File
@@ -451,11 +455,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\movetoentity_handler.hpp"
+				RelativePath=".\moveto_entity_handler.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\movetopoint_handler.hpp"
+				RelativePath=".\moveto_point_handler.hpp"
 				>
 			</File>
 			<File
@@ -476,6 +480,10 @@
 			</File>
 			<File
 				RelativePath=".\range_trigger_node.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\real_entity_method.hpp"
 				>
 			</File>
 			<File

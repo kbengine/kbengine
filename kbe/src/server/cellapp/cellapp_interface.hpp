@@ -160,6 +160,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 请求teleport到当前cellapp上
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
 
+	// real请求更新属性到ghost
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					MERCURY_VARIABLE_MESSAGE)
+	
+	// ghost请求调用def方法real
+	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteRealMethodCall,					MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

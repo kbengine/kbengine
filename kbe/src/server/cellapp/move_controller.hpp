@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "controller.hpp"
 #include "updatable.hpp"
-#include "movetopoint_handler.hpp"
+#include "moveto_point_handler.hpp"
 #include "pyscript/scriptobject.hpp"	
 
 namespace KBEngine{

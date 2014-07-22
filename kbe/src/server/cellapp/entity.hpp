@@ -93,6 +93,21 @@ public:
 	INLINE bool isReal(void)const;
 
 	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE bool hasGhost(void)const;
+
+	/** 
+		判断自身是否是一个realEntity 
+	*/
+	INLINE COMPONENT_ID realCell(void)const;
+
+	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE COMPONENT_ID ghostCell(void)const;
+
+	/** 
 		定义属性数据被改变了 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
@@ -480,6 +495,16 @@ public:
 	*/
 	INLINE GAME_TIME posChangedTime()const;
 	INLINE GAME_TIME dirChangedTime()const;
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostPropertys(KBEngine::MemoryStream& s);
+	
+	/** 
+		ghost请求调用def方法real
+	*/
+	void onRemoteRealMethodCall(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端
@@ -495,6 +520,9 @@ protected:
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
 	COMPONENT_ID											realCell_;	
+
+	// 如果一个entity为real，那么entity可能会存在一个ghost的指向
+	COMPONENT_ID											ghostCell_;	
 
 	// entity的当前位置
 	Position3D												lastpos_;	
