@@ -32,6 +32,7 @@ namespace Mercury
 class Bundle;
 }
 
+class Entity;
 
 /*
 	* cell1: entity(1) is real, 则在GhostManager中存放于entityIDs_进行检查  (向其他ghost更新)
@@ -58,6 +59,7 @@ public:
 
 private:
 	void syncMessages();
+	void syncGhosts();
 
 	void checkRoute();
 
@@ -75,8 +77,8 @@ private:
 private:
 	Mercury::NetworkInterface & networkInterface_;
 	
-	// 所有存在ghost或者real部分的相关entity
-	std::vector<ENTITY_ID> 	entityIDs_;
+	// 所有存在ghost的相关entity
+	std::map<ENTITY_ID, Entity*> 	realEntities_;
 	
 	// ghost路由， 分布式程序某些时候无法保证同步， 那么在本机上的某些entity被迁移走了的
 	// 时候可能会还会收到一些网络消息， 因为其他app可能还无法立即得到迁移地址， 此时我们
