@@ -505,6 +505,11 @@ public:
 		ghost请求调用def方法real
 	*/
 	void onRemoteRealMethodCall(KBEngine::MemoryStream& s);
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostVolatileData(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端

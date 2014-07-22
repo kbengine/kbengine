@@ -30,7 +30,7 @@ namespace KBEngine{
 GhostManager::GhostManager(Mercury::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
-entityIDs_(),
+realEntities_(),
 ghost_route_(),
 messages_(),
 inTasks_(true)
@@ -121,7 +121,7 @@ void GhostManager::checkRoute()
 void GhostManager::syncMessages()
 {
 	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > >::iterator iter = messages_.begin();
-	for(; iter != messages_.end(); )
+	for(; iter != messages_.end(); iter++)
 	{
 		std::vector< Mercury::Bundle* >::iterator iter1 = iter->second.begin();
 		for(; iter1 != iter->second.end(); iter1++)
@@ -131,7 +131,27 @@ void GhostManager::syncMessages()
 		}
 			
 		iter->second.clear();
-		messages_.erase(iter++);
+	}
+
+	messages_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::syncGhosts()
+{
+	std::map<ENTITY_ID, Entity*>::iterator iter = realEntities_.begin();
+	for(; iter != realEntities_.end(); )
+	{
+		COMPONENT_ID ghostCell = iter->second->ghostCell();
+		if(ghostCell > 0)
+		{
+			// 将位置等信息同步到ghost
+			++iter;
+		}
+		else
+		{
+			realEntities_.erase(iter++);
+		}
 	}
 }
 
@@ -139,14 +159,17 @@ void GhostManager::syncMessages()
 bool GhostManager::process()
 {
 	if(messages_.size() == 0 && 
-		ghost_route_.size() == 0)
+		ghost_route_.size() == 0 && 
+		realEntities_.size() == 0)
 	{
 		inTasks_ = false;
 		return inTasks_;
 	}
 
 	syncMessages();
+	syncGhosts();
 	checkRoute();
+
 	return inTasks_;
 }
 

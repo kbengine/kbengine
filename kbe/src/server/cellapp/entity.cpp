@@ -2644,4 +2644,11 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onUpdateGhostVolatileData(KBEngine::MemoryStream& s)
+{
+	DEBUG_MSG(boost::format("%1%::onUpdateGhostVolatileData: entityID(%3%)\n") % 
+		getScriptName() % getID());
+}
+
+//-------------------------------------------------------------------------------------
 }
