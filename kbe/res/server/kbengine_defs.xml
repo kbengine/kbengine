@@ -153,7 +153,7 @@
 	<!-- 关服倒计时(秒) 
 		(Countdown to shutdown the server(seconds))
 	-->
-	<shutdown_time> 1.0 </shutdown_time>
+	<shutdown_time> 60.0 </shutdown_time>
 	
 	<!-- 关闭服务器的时候， 如果有未完成的任务， 服务器需要等待任务结束。
 		每Tick（秒）检查一次
