@@ -510,6 +510,16 @@ public:
 		real请求更新属性到ghost
 	*/
 	void onUpdateGhostVolatileData(KBEngine::MemoryStream& s);
+
+	/** 
+		转变为ghost, 自身必须为real
+	*/
+	void changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out);
+
+	/** 
+		转变为real, 自身必须为ghost
+	*/
+	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in);
 private:
 	/** 
 		发送teleport结果到base端

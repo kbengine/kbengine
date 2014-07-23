@@ -2382,19 +2382,20 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 //-------------------------------------------------------------------------------------
 void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	// 如果这个entity有base部分， 我们需要先让base部分暂停与cell通讯， 相关信息缓存, 然后再回调到onTeleportRefMailbox。 
-	// 同时我们还需要调用一下备份功能。
+	// 如果这个entity有base部分， 假如是本进程级别的传送，那么相关操作按照正常的执行
+	// 如果是跨cellapp的传送， 那么我们可以先设置entity为ghost并立即序列化entity发往目的cellapp
+	// 如果期间有base的消息发送过来， entity的ghost机制能够转到real上去， 因此传送之前不需要对base
+	// 做一些设置，传送成功后先设置base的关系base在被改变关系后仍然有0.1秒的时间收到包继续发往ghost，
+	// 如果一直有包则一直刷新时间直到没有任何包需要广播并且超时0.1秒之后的包才会直接发往real）, 这样做的好处是传送并不需要非常谨慎的与base耦合
+	// 传送过程中有任何错误也不会影响到base部分，base部分的包也能够按照秩序送往real。
+
+	// 如果有base部分, 我们还需要调用一下备份功能。
 	if(this->getBaseMailbox() != NULL)
 	{
 		this->backupCellData();
+	}
 
-		// 告诉baseapp， cell正在迁移, 迁移完毕需要设置this->transferCompleted();
-		// this->transferStart();
-	}
-	else
-	{
-		onTeleportRefMailbox(nearbyMBRef, pos, dir);
-	}
+	onTeleportRefMailbox(nearbyMBRef, pos, dir);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2426,6 +2427,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 		Py_INCREF(nearbyMBRef);
 	}
 	
+	// 如果是cellMailbox则直接发送消息，否则cellViaXXXMailbox需要转发
 	if(nearbyMBRef->isCellReal())
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -2458,6 +2460,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 //-------------------------------------------------------------------------------------
 void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID)
 {
+	// 目的space错误
 	if(destSpaceID == 0)
 	{
 		ERROR_MSG("Entity::onReqTeleportOtherAck: not found destSpace!\n");
@@ -2765,6 +2768,34 @@ void Entity::onUpdateGhostVolatileData(KBEngine::MemoryStream& s)
 {
 	DEBUG_MSG(boost::format("%1%::onUpdateGhostVolatileData: entityID(%3%)\n") % 
 		getScriptName() % getID());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out)
+{
+	// 一个entity要转变为ghost
+	// 首先需要设置自身的realCell
+	// 序列化controller并停止所有的controller(timer, navigate, trap,...)
+	// 卸载witness， 并且序列化
+	KBE_ASSERT(isReal() == true && "Entity::changeToGhost(): not is real.\n");
+
+	realCell_ = realCell;
+
+	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in)
+{
+	// 一个entity要转变为real
+	// 首先需要设置自身的ghostCell
+	// 反序列化controller并恢复所有的controller(timer, navigate, trap,...)
+	// 反序列化安装witness
+	KBE_ASSERT(isReal() == false && "Entity::changeToReal(): not is ghost.\n");
+
+	ghostCell_ = ghostCell;
+
+	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % getScriptName() % getID() % ghostCell_);
 }
 
 //-------------------------------------------------------------------------------------

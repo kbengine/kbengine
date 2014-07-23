@@ -1451,9 +1451,9 @@ void Cellapp::reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStrea
 		}
 	}
 
-	Mercury::Channel* pCellappChannel = Components::getSingleton().findComponent(cellComponentID)->pChannel;
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellComponentID);
 
-	if(pCellappChannel == NULL)
+	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		ERROR_MSG(boost::format("Cellapp::reqTeleportOtherValidation: not found cellapp(%1%)!\n") % cellComponentID);
 		return;
@@ -1465,7 +1465,7 @@ void Cellapp::reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStrea
 	(*pBundle) << nearbyMBRefID;
 	(*pBundle) << spaceID;
 
-	pBundle->send(this->getNetworkInterface(), pCellappChannel);
+	pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -1485,7 +1485,7 @@ void Cellapp::reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Cellapp::reqTeleportOtherAck: not found reqTeleportEntity(%1%)!\n") % teleportEntityID);
+		WARNING_MSG(boost::format("Cellapp::reqTeleportOtherAck: not found reqTeleportEntity(%1%)!\n") % teleportEntityID);
 	}
 }
 
