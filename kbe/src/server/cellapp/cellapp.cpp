@@ -245,7 +245,7 @@ bool Cellapp::initializeEnd()
 
 	mainDispatcher_.clearSpareTime();
 
-	pGhostManager_ = new GhostManager(getNetworkInterface());
+	pGhostManager_ = new GhostManager();
 
 	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher(), &this->getNetworkInterface());
 	pTelnetServer_->pScript(&this->getScript());

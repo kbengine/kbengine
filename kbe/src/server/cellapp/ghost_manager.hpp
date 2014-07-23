@@ -43,13 +43,11 @@ class Entity;
 	* cell1: entity(1) is real, 如果被再迁移到cell3， 则需要向ghost_route_临时设置一个路由地址， 路由在最后一次收ghost请求包超过一定时间擦除。
 	                    如果期间有一些ghost请求包被转发过来， 那么找不到entity就查询路由表，并继续转发到realEntity。
 */
-class GhostManager : public Task
+class GhostManager : public TimerHandler
 {
 public:
-	GhostManager(Mercury::NetworkInterface & networkInterface);
+	GhostManager();
 	~GhostManager();
-	
-	bool process();
 
 	void pushMessage(COMPONENT_ID componentID, Mercury::Bundle* pBundle);
 	void pushRouteMessage(ENTITY_ID entityID, COMPONENT_ID componentID, Mercury::Bundle* pBundle);
@@ -57,6 +55,14 @@ public:
 	COMPONENT_ID getRoute(ENTITY_ID entityID);
 	void addRoute(ENTITY_ID entityID, COMPONENT_ID componentID);
 
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser);
+
+	virtual void onRelease( TimerHandle handle, void * /*pUser*/ ){};
+
+	void cancel();
+
+	void start();
 private:
 	void syncMessages();
 	void syncGhosts();
@@ -75,8 +81,6 @@ private:
 		uint64 lastTime;
 	};
 private:
-	Mercury::NetworkInterface & networkInterface_;
-	
 	// 所有存在ghost的相关entity
 	std::map<ENTITY_ID, Entity*> 	realEntities_;
 	
@@ -88,7 +92,9 @@ private:
 	// 所有需要广播的事件消息
 	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > > messages_;
 
-	bool inTasks_;
+	TimerHandle* pTimerHandle_;
+
+	uint64 checkTime_;
 };
 
 

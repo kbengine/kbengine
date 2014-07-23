@@ -27,23 +27,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-GhostManager::GhostManager(Mercury::NetworkInterface & networkInterface):
-Task(),
-networkInterface_(networkInterface),
+GhostManager::GhostManager():
 realEntities_(),
 ghost_route_(),
 messages_(),
-inTasks_(true)
+pTimerHandle_(NULL),
+checkTime_(0)
 {
-	networkInterface.mainDispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 GhostManager::~GhostManager()
 {
-	if(inTasks_)
-		networkInterface_.mainDispatcher().cancelFrequentTask(this);
-
 	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > >::iterator iter = messages_.begin();
 	for(; iter != messages_.end(); iter++)
 	{
@@ -52,20 +47,38 @@ GhostManager::~GhostManager()
 			Mercury::Bundle::ObjPool().reclaimObject((*iter1));
 	}
 
-	DEBUG_MSG("GhostManager::~GhostManager()\n");
-	inTasks_ = false;
+	cancel();
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::cancel()
+{
+	if(pTimerHandle_)
+	{
+		pTimerHandle_->cancel();
+		delete pTimerHandle_;
+		pTimerHandle_ = NULL;
+
+		DEBUG_MSG("GhostManager::cancel()\n");
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void GhostManager::start()
+{
+	if(pTimerHandle_ == NULL)
+	{
+		pTimerHandle_ = new TimerHandle();
+		(*pTimerHandle_) = Cellapp::getSingleton().getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.getCellApp().ghostUpdateHertz, this,
+								NULL);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void GhostManager::pushMessage(COMPONENT_ID componentID, Mercury::Bundle* pBundle)
 {
 	messages_[componentID].push_back(pBundle);
-
-	if(!inTasks_)
-	{
-		inTasks_ = true;
-		networkInterface_.mainDispatcher().addFrequentTask(this);
-	}
+	start();
 }
 
 //-------------------------------------------------------------------------------------
@@ -83,11 +96,7 @@ void GhostManager::addRoute(ENTITY_ID entityID, COMPONENT_ID componentID)
 	info.componentID = componentID;
 	info.lastTime = timestamp();
 
-	if(!inTasks_)
-	{
-		inTasks_ = true;
-		networkInterface_.mainDispatcher().addFrequentTask(this);
-	}
+	start();
 }
 
 //-------------------------------------------------------------------------------------
@@ -156,21 +165,24 @@ void GhostManager::syncGhosts()
 }
 
 //-------------------------------------------------------------------------------------
-bool GhostManager::process()
+void GhostManager::handleTimeout(TimerHandle, void * arg)
 {
-	if(messages_.size() == 0 && 
-		ghost_route_.size() == 0 && 
-		realEntities_.size() == 0)
+	if(timestamp() - checkTime_ > uint64( stampsPerSecond() * 0.1 ))
 	{
-		inTasks_ = false;
-		return inTasks_;
+		if(messages_.size() == 0 && 
+			ghost_route_.size() == 0 && 
+			realEntities_.size() == 0)
+		{
+			cancel();
+			return;
+		}
+
+		checkRoute();
+		checkTime_ = timestamp();
 	}
 
 	syncMessages();
 	syncGhosts();
-	checkRoute();
-
-	return inTasks_;
 }
 
 //-------------------------------------------------------------------------------------
