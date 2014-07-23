@@ -355,16 +355,20 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
-	MethodDescription* md = const_cast<ScriptDefModule*>(getScriptModule())->findCellMethodDescription(ccattr);
-	free(ccattr);
-
-	if(md != NULL)
+	// 如果是ghost调用def方法则需要rpc调用。
+	if(!isReal())
 	{
-		return new RealEntityMethod(md, this);
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+
+		MethodDescription* md = const_cast<ScriptDefModule*>(getScriptModule())->findCellMethodDescription(ccattr);
+		free(ccattr);
+
+		if(md != NULL)
+		{
+			return new RealEntityMethod(md, this);
+		}
 	}
 
 	return ScriptObject::onScriptGetAttribute(attr);
