@@ -246,9 +246,17 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDestroySpace()																		
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -256,7 +264,7 @@ PyObject* Entity::pyDestroySpace()
 
 	if(getSpaceID() == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::destroySpace: spaceID is 0.\n");
+		PyErr_Format(PyExc_TypeError, "%s::destroySpace: spaceID is 0.\n", getScriptName());
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -912,9 +920,17 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addProximity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::addProximity: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -926,6 +942,14 @@ PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyClientEntity(ENTITY_ID entityID)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: %d is destroyed!\n",		
@@ -958,6 +982,14 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 	
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	uint32 id = 0;
 	PyObject* pyargobj = NULL;
 
@@ -1495,7 +1527,7 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 		return 1;
 	}
 
-	PyErr_Format(PyExc_AssertionError, "Entity::setAoiRadius: did not get witness.");
+	PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: did not get witness.", getScriptName());
 	PyErr_PrintEx(0);
 	return -1;
 }
@@ -1503,6 +1535,14 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	return PyLong_FromLong(setAoiRadius(radius, hyst));
 }
 
@@ -1566,13 +1606,21 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::raycast: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	int layer = pobj->layer();
 	PyObject* pyStartPos = NULL;
 	PyObject* pyEndPos = NULL;
 
 	if(pobj->isDestroyed())
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: entity is destroyed!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: entity is destroyed!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1581,7 +1629,7 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "OO", &pyStartPos, &pyEndPos) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -1590,42 +1638,42 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "OOi", &pyStartPos, &pyEndPos, &layer) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(!PySequence_Check(pyStartPos))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) not is PySequence!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(!PySequence_Check(pyEndPos))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) not is PySequence!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyStartPos) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) invalid!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyEndPos) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) invalid!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1708,9 +1756,17 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
 								 int8 faceMovement, float layer, PyObject_ptr userData)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::navigate: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::navigate: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1720,14 +1776,14 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float r
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1764,9 +1820,17 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1776,14 +1840,14 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) not is PySequence!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) invalid!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1819,9 +1883,17 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1903,9 +1975,17 @@ void Entity::debugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDebugAOI()
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1918,9 +1998,17 @@ PyObject* Entity::pyDebugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyEntitiesInAOI()
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1949,6 +2037,15 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 {
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
+
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	PyObject* pyPosition = NULL, *pyEntityType = NULL;
 	float radius = 0.f;
 
@@ -2154,9 +2251,17 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -2560,9 +2665,17 @@ void Entity::onRestore()
 //-------------------------------------------------------------------------------------
 int Entity::pySetShouldAutoBackup(PyObject *value)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(isDestroyed())	
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;																				
@@ -2570,7 +2683,7 @@ int Entity::pySetShouldAutoBackup(PyObject *value)
 
 	if(!PyLong_Check(value))
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d set shouldAutoBackup value is not int!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d set shouldAutoBackup value is not int!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;	
