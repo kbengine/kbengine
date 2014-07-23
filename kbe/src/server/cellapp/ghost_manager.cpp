@@ -132,9 +132,24 @@ void GhostManager::syncMessages()
 	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > >::iterator iter = messages_.begin();
 	for(; iter != messages_.end(); iter++)
 	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(iter->first);
 		std::vector< Mercury::Bundle* >::iterator iter1 = iter->second.begin();
+
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			ERROR_MSG(boost::format("GhostManager::syncMessages: not found cellapp(%1%)!\n") % iter->first);
+			
+			for(; iter1 != iter->second.end(); iter1++)
+				Mercury::Bundle::ObjPool().reclaimObject((*iter1));
+
+			iter->second.clear();
+			continue;
+		}
+
 		for(; iter1 != iter->second.end(); iter1++)
 		{
+			(*iter1)->send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+
 			// 将消息同步到ghost
 			Mercury::Bundle::ObjPool().reclaimObject((*iter1));
 		}
@@ -155,6 +170,13 @@ void GhostManager::syncGhosts()
 		if(ghostCell > 0)
 		{
 			// 将位置等信息同步到ghost
+			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(ghostCell);
+			if(cinfos == NULL || cinfos->pChannel == NULL)
+			{
+				ERROR_MSG(boost::format("GhostManager::syncGhosts: not found cellapp(%1%)!\n") % iter->first);
+				continue;
+			}
+
 			++iter;
 		}
 		else
