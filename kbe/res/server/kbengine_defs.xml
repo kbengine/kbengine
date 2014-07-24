@@ -673,6 +673,18 @@
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
 		</account_infos>
+		
+		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 
+			(Telnet service, if the port is occupied backwards to try 51001)
+		-->
+		<telnet_service>
+			<port> 51000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
+			<default_layer> python </default_layer>
+		</telnet_service>
 	</bots>
 	
 	<messagelog>
