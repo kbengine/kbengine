@@ -68,6 +68,16 @@ Witness::~Witness()
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::addToStream(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::createFromStream(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
 	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).\n") % 

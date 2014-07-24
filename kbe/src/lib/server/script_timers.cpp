@@ -193,6 +193,15 @@ ScriptTimers::Map::const_iterator ScriptTimers::findTimer(TimerHandle handle) co
 	return iter;
 }
 
+//-------------------------------------------------------------------------------------
+void ScriptTimers::addToStream(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptTimers::createFromStream(KBEngine::MemoryStream& s)
+{
+}
 
 //-------------------------------------------------------------------------------------
 namespace ScriptTimersUtil

@@ -514,12 +514,15 @@ public:
 	/** 
 		转变为ghost, 自身必须为real
 	*/
-	void changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out);
+	void changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s);
 
 	/** 
 		转变为real, 自身必须为ghost
 	*/
-	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in);
+	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s);
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端
