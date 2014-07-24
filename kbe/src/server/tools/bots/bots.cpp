@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pybots.hpp"
 #include "bots.hpp"
+#include "server/telnet_server.hpp"
 #include "client_lib/entity.hpp"
 #include "clientobject.hpp"
 #include "bots_interface.hpp"
@@ -52,7 +53,8 @@ reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount)
 reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
 reqCreateAndLoginTickTime_(g_serverConfig.getBots().defaultAddBots_tickTime),
 pCreateAndLoginHandler_(NULL),
-pEventPoller_(Mercury::EventPoller::create())
+pEventPoller_(Mercury::EventPoller::create()),
+pTelnetServer_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
@@ -86,6 +88,16 @@ bool Bots::initializeBegin()
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeEnd()
 {
+	pTelnetServer_ = new TelnetServer(&getMainDispatcher(), &getNetworkInterface());
+	pTelnetServer_->pScript(&getScript());
+	if(!pTelnetServer_->start(g_serverConfig.getBots().telnet_passwd, 
+		g_serverConfig.getBots().telnet_deflayer, 
+		g_serverConfig.getBots().telnet_port))
+	{
+		ERROR_MSG("Bots::initialize: initializeEnd is error!\n");
+		return false;
+	}
+
 	return true;
 }
 
@@ -94,6 +106,10 @@ void Bots::finalise()
 {
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
+
+	pTelnetServer_->stop();
+	SAFE_RELEASE(pTelnetServer_);
+
 	ClientApp::finalise();
 }
 

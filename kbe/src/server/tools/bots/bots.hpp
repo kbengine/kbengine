@@ -53,6 +53,7 @@ namespace KBEngine{
 
 class ClientObject;
 class PyBots;
+class TelnetServer;
 typedef SmartPointer<ClientObject> ClientObjectPtr;
 
 class Bots  : public ClientApp
@@ -314,6 +315,8 @@ protected:
 	CreateAndLoginHandler*									pCreateAndLoginHandler_;
 
 	Mercury::EventPoller*									pEventPoller_;
+
+	TelnetServer*											pTelnetServer_;
 };
 
 }

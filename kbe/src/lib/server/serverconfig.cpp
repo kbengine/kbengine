@@ -997,6 +997,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+
+		node = xml->enterNode(rootNode, "telnet_service");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if(childnode)
+			{
+				_botsInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if(childnode)
+			{
+				_botsInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if(childnode)
+			{
+				_botsInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
 	}
 
 	rootNode = xml->getRootNode("messagelog");
