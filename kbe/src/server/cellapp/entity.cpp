@@ -82,6 +82,7 @@ SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,							0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GET_DECLARE("isOnGround",					pyGetIsOnGround,				0,							0)
+SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,							0)
 SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
@@ -2761,7 +2762,7 @@ void Entity::onUpdateGhostVolatileData(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out)
+void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 {
 	// 一个entity要转变为ghost
 	// 首先需要设置自身的realCell
@@ -2774,11 +2775,11 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out)
 
 	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
 
-	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &out);
+	addToStream(s);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in)
+void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 {
 	// 一个entity要转变为real
 	// 首先需要设置自身的ghostCell
@@ -2790,6 +2791,49 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in)
 	ghostCell_ = ghostCell;
 
 	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % getScriptName() % getID() % ghostCell_);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addToStream(KBEngine::MemoryStream& s)
+{
+	s << id_ << scriptModule_->getUType() << spaceID_ << isDestroyed_ << isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_;
+	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
+	
+	uint32 size = witnesses_.size();
+	s << size;
+	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
+	for(; iter != witnesses_.end(); iter++)
+	{
+		s << (*iter);
+	}
+
+	if(pControllers_)
+	{
+		s << true;
+		pControllers_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+
+	if(pWitness())
+	{
+		s << true;
+		pWitness()->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+
+	scriptTimers_.addToStream(s);
+	pyCallbackMgr_.addToStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createFromStream(KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

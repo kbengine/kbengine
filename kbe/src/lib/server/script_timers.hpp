@@ -49,6 +49,9 @@ public:
 	ScriptID getIDForHandle(TimerHandle handle) const;
 
 	bool isEmpty() const	{ return map_.empty(); }
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 private:
 	typedef std::map<ScriptID, TimerHandle> Map;
 

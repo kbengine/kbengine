@@ -82,6 +82,9 @@ public:
 	Witness();
 	~Witness();
 	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 	virtual std::string c_str(){ return "Witness"; }
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
