@@ -557,7 +557,7 @@ bool Witness::update()
 					Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
 
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-					otherEntity->addPositionAndDirectionToStream(*s1, true);
+					otherEntity->addPositionAndDirectionToStream(*s1, true);			
 					otherEntity->addClientDataToStream(s1, true);
 
 					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);

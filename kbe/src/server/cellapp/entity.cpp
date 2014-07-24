@@ -678,6 +678,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
+	addPositionAndDirectionToStream(*mstream, useAliasID);
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
@@ -742,11 +743,6 @@ void Entity::backupCellData()
 		(*pBundle) << id_;
 
 		MemoryStream* s = MemoryStream::ObjPool().createObject();
-		addPositionAndDirectionToStream(*s);
-		(*pBundle).append(s);
-		MemoryStream::ObjPool().reclaimObject(s);
-
-		s = MemoryStream::ObjPool().createObject();
 		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
 		(*pBundle).append(s);
 		MemoryStream::ObjPool().reclaimObject(s);
@@ -2483,13 +2479,7 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-
-	addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
-	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+	changeToGhost(destSpaceID, *s);
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
 
@@ -2775,6 +2765,7 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out)
 {
 	// 一个entity要转变为ghost
 	// 首先需要设置自身的realCell
+	// 将所有def数据添加进流
 	// 序列化controller并停止所有的controller(timer, navigate, trap,...)
 	// 卸载witness， 并且序列化
 	KBE_ASSERT(isReal() == true && "Entity::changeToGhost(): not is real.\n");
@@ -2782,6 +2773,8 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& out)
 	realCell_ = realCell;
 
 	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
+
+	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &out);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2789,6 +2782,7 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& in)
 {
 	// 一个entity要转变为real
 	// 首先需要设置自身的ghostCell
+	// 将所有def数据添加进流
 	// 反序列化controller并恢复所有的controller(timer, navigate, trap,...)
 	// 反序列化安装witness
 	KBE_ASSERT(isReal() == false && "Entity::changeToReal(): not is ghost.\n");

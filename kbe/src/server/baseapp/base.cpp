@@ -235,6 +235,8 @@ void Base::createCellData(void)
 //-------------------------------------------------------------------------------------
 void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 {
+	addPositionAndDirectionToStream(*s, useAliasID);
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
