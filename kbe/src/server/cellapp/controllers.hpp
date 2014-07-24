@@ -40,6 +40,8 @@ public:
 	typedef std::map<uint32, KBEShared_ptr< Controller > > CONTROLLERS_MAP;
 	CONTROLLERS_MAP& objects() { return objects_; }
 
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 private:
 	CONTROLLERS_MAP objects_;
 

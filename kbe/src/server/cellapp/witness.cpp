@@ -68,6 +68,16 @@ Witness::~Witness()
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::addToStream(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::createFromStream(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
 	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).\n") % 
@@ -557,7 +567,7 @@ bool Witness::update()
 					Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
 
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-					otherEntity->addPositionAndDirectionToStream(*s1, true);
+					otherEntity->addPositionAndDirectionToStream(*s1, true);			
 					otherEntity->addClientDataToStream(s1, true);
 
 					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);

@@ -82,6 +82,7 @@ SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,							0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GET_DECLARE("isOnGround",					pyGetIsOnGround,				0,							0)
+SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,							0)
 SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
@@ -246,9 +247,17 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDestroySpace()																		
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -256,7 +265,7 @@ PyObject* Entity::pyDestroySpace()
 
 	if(getSpaceID() == 0)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::destroySpace: spaceID is 0.\n");
+		PyErr_Format(PyExc_TypeError, "%s::destroySpace: spaceID is 0.\n", getScriptName());
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -670,6 +679,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
+	addPositionAndDirectionToStream(*mstream, useAliasID);
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
@@ -734,11 +744,6 @@ void Entity::backupCellData()
 		(*pBundle) << id_;
 
 		MemoryStream* s = MemoryStream::ObjPool().createObject();
-		addPositionAndDirectionToStream(*s);
-		(*pBundle).append(s);
-		MemoryStream::ObjPool().reclaimObject(s);
-
-		s = MemoryStream::ObjPool().createObject();
 		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
 		(*pBundle).append(s);
 		MemoryStream::ObjPool().reclaimObject(s);
@@ -912,9 +917,17 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addProximity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::addProximity: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -926,6 +939,14 @@ PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyClientEntity(ENTITY_ID entityID)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: %d is destroyed!\n",		
@@ -958,6 +979,14 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 	
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	uint32 id = 0;
 	PyObject* pyargobj = NULL;
 
@@ -1495,7 +1524,7 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 		return 1;
 	}
 
-	PyErr_Format(PyExc_AssertionError, "Entity::setAoiRadius: did not get witness.");
+	PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: did not get witness.", getScriptName());
 	PyErr_PrintEx(0);
 	return -1;
 }
@@ -1503,6 +1532,14 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	return PyLong_FromLong(setAoiRadius(radius, hyst));
 }
 
@@ -1566,13 +1603,21 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::raycast: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	int layer = pobj->layer();
 	PyObject* pyStartPos = NULL;
 	PyObject* pyEndPos = NULL;
 
 	if(pobj->isDestroyed())
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: entity is destroyed!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: entity is destroyed!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1581,7 +1626,7 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "OO", &pyStartPos, &pyEndPos) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -1590,42 +1635,42 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "OOi", &pyStartPos, &pyEndPos, &layer) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args is error!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(!PySequence_Check(pyStartPos))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) not is PySequence!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(!PySequence_Check(pyEndPos))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) not is PySequence!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyStartPos) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args1(startPos) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) invalid!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyEndPos) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::raycast: args2(endPos) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) invalid!", pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1708,9 +1753,17 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
 								 int8 faceMovement, float layer, PyObject_ptr userData)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::navigate: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::navigate: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1720,14 +1773,14 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float r
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::navigate: args1(position) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1764,9 +1817,17 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1776,14 +1837,14 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) not is PySequence!");
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) not is PySequence!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::moveToPoint: args1(position) invalid!");
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) invalid!", getScriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1819,9 +1880,17 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1903,9 +1972,17 @@ void Entity::debugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDebugAOI()
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1918,9 +1995,17 @@ PyObject* Entity::pyDebugAOI()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyEntitiesInAOI()
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -1949,6 +2034,15 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 {
 	uint16 currargsSize = PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
+
+	if(!pobj->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: not is real entity(%d).", 
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	PyObject* pyPosition = NULL, *pyEntityType = NULL;
 	float radius = 0.f;
 
@@ -2154,9 +2248,17 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -2277,19 +2379,20 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 //-------------------------------------------------------------------------------------
 void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	// 如果这个entity有base部分， 我们需要先让base部分暂停与cell通讯， 相关信息缓存, 然后再回调到onTeleportRefMailbox。 
-	// 同时我们还需要调用一下备份功能。
+	// 如果这个entity有base部分， 假如是本进程级别的传送，那么相关操作按照正常的执行
+	// 如果是跨cellapp的传送， 那么我们可以先设置entity为ghost并立即序列化entity发往目的cellapp
+	// 如果期间有base的消息发送过来， entity的ghost机制能够转到real上去， 因此传送之前不需要对base
+	// 做一些设置，传送成功后先设置base的关系base在被改变关系后仍然有0.1秒的时间收到包继续发往ghost，
+	// 如果一直有包则一直刷新时间直到没有任何包需要广播并且超时0.1秒之后的包才会直接发往real）, 这样做的好处是传送并不需要非常谨慎的与base耦合
+	// 传送过程中有任何错误也不会影响到base部分，base部分的包也能够按照秩序送往real。
+
+	// 如果有base部分, 我们还需要调用一下备份功能。
 	if(this->getBaseMailbox() != NULL)
 	{
 		this->backupCellData();
+	}
 
-		// 告诉baseapp， cell正在迁移, 迁移完毕需要设置this->transferCompleted();
-		// this->transferStart();
-	}
-	else
-	{
-		onTeleportRefMailbox(nearbyMBRef, pos, dir);
-	}
+	onTeleportRefMailbox(nearbyMBRef, pos, dir);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2321,6 +2424,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 		Py_INCREF(nearbyMBRef);
 	}
 	
+	// 如果是cellMailbox则直接发送消息，否则cellViaXXXMailbox需要转发
 	if(nearbyMBRef->isCellReal())
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -2353,6 +2457,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 //-------------------------------------------------------------------------------------
 void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID)
 {
+	// 目的space错误
 	if(destSpaceID == 0)
 	{
 		ERROR_MSG("Entity::onReqTeleportOtherAck: not found destSpace!\n");
@@ -2375,13 +2480,7 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-
-	addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
-	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+	changeToGhost(destSpaceID, *s);
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
 
@@ -2560,9 +2659,17 @@ void Entity::onRestore()
 //-------------------------------------------------------------------------------------
 int Entity::pySetShouldAutoBackup(PyObject *value)
 {
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: not is real entity(%d).", 
+			getScriptName(), getID());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(isDestroyed())	
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;																				
@@ -2570,7 +2677,7 @@ int Entity::pySetShouldAutoBackup(PyObject *value)
 
 	if(!PyLong_Check(value))
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d set shouldAutoBackup value is not int!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d set shouldAutoBackup value is not int!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		return 0;	
@@ -2652,6 +2759,81 @@ void Entity::onUpdateGhostVolatileData(KBEngine::MemoryStream& s)
 {
 	DEBUG_MSG(boost::format("%1%::onUpdateGhostVolatileData: entityID(%3%)\n") % 
 		getScriptName() % getID());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
+{
+	// 一个entity要转变为ghost
+	// 首先需要设置自身的realCell
+	// 将所有def数据添加进流
+	// 序列化controller并停止所有的controller(timer, navigate, trap,...)
+	// 卸载witness， 并且序列化
+	KBE_ASSERT(isReal() == true && "Entity::changeToGhost(): not is real.\n");
+
+	realCell_ = realCell;
+
+	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
+
+	addToStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
+{
+	// 一个entity要转变为real
+	// 首先需要设置自身的ghostCell
+	// 将所有def数据添加进流
+	// 反序列化controller并恢复所有的controller(timer, navigate, trap,...)
+	// 反序列化安装witness
+	KBE_ASSERT(isReal() == false && "Entity::changeToReal(): not is ghost.\n");
+
+	ghostCell_ = ghostCell;
+
+	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % getScriptName() % getID() % ghostCell_);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addToStream(KBEngine::MemoryStream& s)
+{
+	s << id_ << scriptModule_->getUType() << spaceID_ << isDestroyed_ << isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_;
+	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
+	
+	uint32 size = witnesses_.size();
+	s << size;
+	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
+	for(; iter != witnesses_.end(); iter++)
+	{
+		s << (*iter);
+	}
+
+	if(pControllers_)
+	{
+		s << true;
+		pControllers_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+
+	if(pWitness())
+	{
+		s << true;
+		pWitness()->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+
+	scriptTimers_.addToStream(s);
+	pyCallbackMgr_.addToStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createFromStream(KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

@@ -40,6 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverconfig.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/timer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 
@@ -70,6 +71,14 @@ public:
 	void finalise()
 	{
 		cbMap_.clear();
+	}
+
+	void addToStream(KBEngine::MemoryStream& s)
+	{
+	}
+
+	void createFromStream(KBEngine::MemoryStream& s)
+	{
 	}
 
 	/** 

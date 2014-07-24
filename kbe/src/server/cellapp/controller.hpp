@@ -30,6 +30,7 @@ namespace KBEngine{
 
 class Entity;
 class Controllers;
+class MemoryStream;
 
 /*
 	控制器， 管理trap、Vision等。
@@ -59,6 +60,9 @@ public:
 	virtual void destroy();
 
 	Controller::ControllerType type(){ return type_; }
+
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	uint32 id_;
 	Entity* pEntity_;

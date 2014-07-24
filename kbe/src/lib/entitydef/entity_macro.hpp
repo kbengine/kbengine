@@ -42,7 +42,6 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
-	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 
 
@@ -285,7 +284,6 @@ protected:																									\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
 	bool isDestroyed_;																						\
-	Mercury::Bundle* pBundle_;																				\
 	bool initing_;																							\
 public:																										\
 	bool initing()const{ return initing_; }																	\
@@ -542,8 +540,6 @@ public:																										\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
-																											\
-	INLINE Mercury::Bundle* pBundle()const{ return pBundle_; }												\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
@@ -920,7 +916,6 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	pBundle_(new Mercury::Bundle()),																		\
 	initing_(true)																							\
 
 
@@ -929,7 +924,6 @@ public:																										\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\
-	SAFE_RELEASE(pBundle_);																					\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\

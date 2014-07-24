@@ -1,5 +1,5 @@
 <root>
-	<!-- 进程处理频率 
+	<!-- 游戏逻辑处理频率 
 		(Update frequency process)
 	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
@@ -85,9 +85,6 @@
 		其他自定义(Other custom)
 	-->
 	<app_publish>0</app_publish>
-	
-	<cellapps> 1 </cellapps>
-	<baseapps> 1 </baseapps>
 	
 	<channelCommon> 
 		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
@@ -370,7 +367,11 @@
 		
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
-		<ghostUpdateHertz> 50 </ghostUpdateHertz> <!-- Type: Integer -->
+		
+		<!-- ghost更新频率 
+			(Update frequency process)
+		-->
+		<ghostUpdateHertz> 30 </ghostUpdateHertz>		<!-- Type: Integer -->
 		
 		<!-- 是否使用坐标系统, 如果设置为false， 那么AOI、Trap、 Move等功能将不可用 
 			(Whether the use of coordinate-system, if is false, 
@@ -394,7 +395,7 @@
 			-->
 			<entity_posdir_additional_updates> 5 </entity_posdir_additional_updates>
 		</coordinate_system>
-		
+
 		<!-- Telnet服务, 如果端口被占用则向后尝试50001.. 
 			(Telnet service, if the port is occupied backwards to try 50001)
 		-->
