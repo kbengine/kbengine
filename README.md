@@ -1,4 +1,4 @@
-KBEngine -- open source MMOG server engine.
+KBEngine
 ========
 
 ##Homepage
@@ -9,7 +9,6 @@ http://www.kbengine.org
 	binarys		: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources
-
 	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo
 	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring
 	ogre		: https://github.com/kbengine/kbengine_ogre_demo
@@ -17,10 +16,10 @@ http://www.kbengine.org
 
 
 ##Docs
+	docs		: http://www.kbengine.org/docs/
 	API		: https://github.com/kbengine/kbengine/tree/master/kbe/doc
 	tutorial	: https://github.com/kbengine/kbengine/tree/master/tutorial
-	online_docs	: http://www.kbengine.org/docs/
-
+	
 ##Support
 	Email		: kbengine_maillist@googlegroups.com
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
@@ -29,7 +28,6 @@ http://www.kbengine.org
 	16535321
 
 ##What is KBEngine?
-
 An open source MMOG server engine, Using a simple protocol will be able to make the client and server interaction,
 To use the KBEngine-plugins quick combine with (Unity3D, OGRE, Cocos2d, HTML5, etc.) to form a complete client.
 
