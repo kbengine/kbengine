@@ -1281,11 +1281,6 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle) << componentID_;
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -1327,11 +1322,6 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	(*pBundle) << base->getSpaceID();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -1606,11 +1596,6 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	(*pBundle) << base->inRestore();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);

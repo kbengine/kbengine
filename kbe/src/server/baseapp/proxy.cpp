@@ -148,12 +148,8 @@ void Proxy::initClientCellPropertys()
 	}
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	addPositionAndDirectionToStream(*s, true);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	s = MemoryStream::ObjPool().createObject();
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
