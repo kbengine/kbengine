@@ -124,7 +124,7 @@ scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
-	clearBufferedLog();
+	clearBufferedLog(true);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -194,12 +194,15 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::clearBufferedLog()
+void DebugHelper::clearBufferedLog(bool destroy)
 {
 	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
 	for(; iter != bufferedLogPackets_.end(); iter++)
 	{
-		Mercury::Bundle::ObjPool().reclaimObject((*iter));
+		if(destroy)
+			delete (*iter);
+		else
+			Mercury::Bundle::ObjPool().reclaimObject((*iter));
 	}
 
 	bufferedLogPackets_.clear();
