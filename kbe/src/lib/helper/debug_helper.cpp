@@ -198,7 +198,7 @@ void DebugHelper::clearBufferedLog()
 	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
 	for(; iter != bufferedLogPackets_.end(); iter++)
 	{
-		delete (*iter);
+		Mercury::Bundle::ObjPool().reclaimObject((*iter));
 	}
 
 	bufferedLogPackets_.clear();
@@ -334,6 +334,14 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if(length <= 0)
 		return;
+
+	if(bufferedLogPackets_.size() > 4096)
+	{
+		WARNING_MSG(boost::format("DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n") % 
+			bufferedLogPackets_.size());
+
+		return;
+	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
