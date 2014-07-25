@@ -251,7 +251,7 @@ void DebugHelper::sync()
 				bufferedLogPackets_.size());
 		}
 
-		int i = 0;
+		uint32 i = 0;
 
 		size_t totalLen = 0;
 
