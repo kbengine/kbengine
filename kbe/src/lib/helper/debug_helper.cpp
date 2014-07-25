@@ -337,7 +337,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if(bufferedLogPackets_.size() > 4096)
 	{
-		WARNING_MSG(boost::format("DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n") % 
+		WARNING_MSG(boost::format("DebugHelper::onMessage: bufferedLogPackets is full(%1%), discard log-packets!\n") % 
 			bufferedLogPackets_.size());
 
 		return;
