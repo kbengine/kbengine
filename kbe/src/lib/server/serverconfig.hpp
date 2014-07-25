@@ -256,6 +256,8 @@ public:
 	float shutdowntime(){ return shutdown_time_; }
 	float shutdownWaitTickTime(){ return shutdown_waitTickTime_; }
 
+	uint32 tickMaxBufferedLogs()const { return tick_max_buffered_logs_; }
+	uint32 tickMaxSyncLogs()const { return tick_max_sync_logs_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -271,6 +273,8 @@ private:
 	ENGINE_COMPONENT_INFO _billingInfo;
 public:
 	int16 gameUpdateHertz_;
+	uint32 tick_max_buffered_logs_;
+	uint32 tick_max_sync_logs_;
 
 	ChannelCommon channelCommon_;
 

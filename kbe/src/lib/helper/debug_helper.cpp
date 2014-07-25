@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "network/tcp_packet.hpp"
+#include "server/serverconfig.hpp"
 
 #ifdef unix
 #include <unistd.h>
@@ -212,7 +213,7 @@ void DebugHelper::sync()
 
 	if(messagelogAddr_.isNone())
 	{
-		if(bufferedLogPackets_.size() > 4096)
+		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
 			ERROR_MSG(boost::format("DebugHelper::sync: can't found messagelog. packet size=%1%.\n") %
 				bufferedLogPackets_.size());
@@ -227,7 +228,7 @@ void DebugHelper::sync()
 	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
 	if(pChannel == NULL)
 	{
-		if(bufferedLogPackets_.size() > 4096)
+		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
 			messagelogAddr_.ip = 0;
 			messagelogAddr_.port = 0;
@@ -244,7 +245,7 @@ void DebugHelper::sync()
 
 	if(bufferedLogPackets_.size() > 0)
 	{
-		if(bufferedLogPackets_.size() > 32)
+		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxSyncLogs())
 		{
 			WARNING_MSG(boost::format("DebugHelper::sync: packet size=%1%.\n") % 
 				bufferedLogPackets_.size());
@@ -257,7 +258,7 @@ void DebugHelper::sync()
 		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
 		for(; iter != bufferedLogPackets_.end();)
 		{
-			if(i++ >= 32 || totalLen > (PACKET_MAX_SIZE_TCP * 10))
+			if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
 				break;
 			
 			totalLen += (*iter)->currMsgLength();
@@ -335,7 +336,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	if(length <= 0)
 		return;
 
-	if(bufferedLogPackets_.size() > 4096)
+	if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
 		WARNING_MSG(boost::format("DebugHelper::onMessage: bufferedLogPackets is full(%1%), discard log-packets!\n") % 
 			bufferedLogPackets_.size());
