@@ -346,7 +346,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full(%1%), discard log-packets!\n");
+	LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
 #endif
 
 		Mercury::g_trace_packet = v;
