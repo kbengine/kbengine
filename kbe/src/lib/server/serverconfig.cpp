@@ -34,6 +34,8 @@ KBE_SINGLETON_INIT(ServerConfig);
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
+tick_max_buffered_logs_(4096),
+tick_max_sync_logs_(32),
 billingSystemAddr_(),
 billingSystem_accountType_(""),
 billingSystem_chargeType_(""),
@@ -1031,6 +1033,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_messagelogInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_max_buffered_logs");
+		if(node != NULL){
+			tick_max_buffered_logs_ = (uint32)xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_max_sync_logs");
+		if(node != NULL){
+			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
 		}
 	}
 
