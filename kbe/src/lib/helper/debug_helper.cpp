@@ -341,6 +341,15 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
+		int8 v = Mercury::g_trace_packet;
+		Mercury::g_trace_packet = 0;
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full(%1%), discard log-packets!\n");
+#endif
+
+		Mercury::g_trace_packet = v;
 		return;
 	}
 
