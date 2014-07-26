@@ -165,7 +165,7 @@ public:
 
 	void changeLogger(std::string name);
 
-	void clearBufferedLog();
+	void clearBufferedLog(bool destroy = false);
 
 	void setScriptMsgType(int msgtype);
 
