@@ -52,10 +52,11 @@ class EntityMailbox;
 class Cellapp;
 class Witness;
 class AllClients;
-class RangeList;
-class EntityRangeNode;
+class CoordinateSystem;
+class EntityCoordinateNode;
 class Controller;
 class Controllers;
+class Space;
 
 namespace Mercury
 {
@@ -78,7 +79,7 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void onDestroy(void);
+	void onDestroy(bool callScript);
 	
 	/**
 		销毁场景
@@ -90,6 +91,21 @@ public:
 		判断自身是否是一个realEntity 
 	*/
 	INLINE bool isReal(void)const;
+
+	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE bool hasGhost(void)const;
+
+	/** 
+		判断自身是否是一个realEntity 
+	*/
+	INLINE COMPONENT_ID realCell(void)const;
+
+	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE COMPONENT_ID ghostCell(void)const;
 
 	/** 
 		定义属性数据被改变了 
@@ -141,10 +157,6 @@ public:
 	INLINE Direction3D& getDirection();
 	INLINE void setDirection(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
-
-	DECLARE_PY_GETSET_MOTHOD(pyGetYaw, pySetYaw);
-	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
-	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
 	
 
 	/**
@@ -152,6 +164,7 @@ public:
 	*/
 	INLINE void isOnGround(bool v);
 	INLINE bool isOnGround()const;
+	DECLARE_PY_GET_MOTHOD(pyGetIsOnGround);
 
 	/** 
 		设置entity方向和位置 
@@ -162,6 +175,11 @@ public:
 	void onPositionChanged();
 	void onDirectionChanged();
 	
+	void onPyPositionChanged();
+	void onPyDirectionChanged();
+	
+	void updateLastPos();
+
 	bool checkMoveForTopSpeed(const Position3D& position);
 
 	/** 网络接口
@@ -197,6 +215,10 @@ public:
 	*/
 	DECLARE_PY_MOTHOD_ARG3(pyTeleport, PyObject_ptr, PyObject_ptr, PyObject_ptr);
 	void teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir);
+	void teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
 
 	/**
 		传送成功和失败相关回调
@@ -204,6 +226,7 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
+	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID);
 
 	/**
 		进入离开cell等回调
@@ -213,6 +236,12 @@ public:
 	void onLeavingCell();
 	void onLeftCell();
 	
+	/**
+		进入离开space等回调
+	*/
+	void onEnterSpace(Space* pSpace);
+	void onLeaveSpace(Space* pSpace);
+
 	/** 
 		当cellapp意外终止后， baseapp如果能找到合适的cellapp则将其恢复后
 		会调用此方法
@@ -249,10 +278,16 @@ public:
 	void onWriteToDB();
 
 	/** 
+		脚本获取和设置entity的position 
+	*/
+	INLINE int8 layer()const;
+	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
+
+	/** 
 		射线 
 	*/
-	int raycast(const Position3D& start, const Position3D& end, float* hitPos);
-	DECLARE_PY_MOTHOD_ARG2(pyRaycast, PyObject_ptr, PyObject_ptr);
+	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
+	static PyObject* __py_pyRaycast(PyObject* self, PyObject* args);
 
 	/** 
 		entity移动导航 
@@ -317,6 +352,8 @@ public:
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* md, MemoryStream& s);
 
 	/**
 		观察者
@@ -374,31 +411,42 @@ public:
 	void onUpdateDataFromClient(KBEngine::MemoryStream& s);
 
 	/** 
-		添加一个陷阱 
+		添加一个范围触发器  
 	*/
 	uint32 addProximity(float range_xz, float range_y, int32 userarg);
 	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, int32);
 
 	/** 
-		删除一个陷阱 
+		添加一个范围触发器  
+	*/
+	DECLARE_PY_MOTHOD_ARG1(pyClientEntity, ENTITY_ID);
+
+	/** 
+		恢复所有的范围触发器 
+		在teleport时会出现这样的情况
+	*/
+	void restoreProximitys();
+
+	/** 
+		删除一个范围触发器  
 	*/
 	void cancelController(uint32 id);
 	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);
 
 	/** 
-		一个entity进入了这个entity的某个陷阱 
+		一个entity进入了这个entity的某个范围触发器  
 	*/
 	void onEnterTrap(Entity* entity, float range_xz, float range_y, 
 							uint32 controllerID, int32 userarg);
 
 	/** 
-		一个entity离开了这个entity的某个陷阱 
+		一个entity离开了这个entity的某个范围触发器  
 	*/
 	void onLeaveTrap(Entity* entity, float range_xz, float range_y, 
 							uint32 controllerID, int32 userarg);
 
 	/** 
-		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
+		当entity跳到一个新的space上去后，离开范围触发器事件将触发这个接口 
 	*/
 	void onLeaveTrapID(ENTITY_ID entityID, 
 							float range_xz, float range_y, 
@@ -412,12 +460,12 @@ public:
 	/** 
 		entity的一次移动完成 
 	*/
-	void onMove(uint32 controllerId, PyObject* userarg);
+	void onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
 
 	/** 
 		entity的移动完成 
 	*/
-	void onMoveOver(uint32 controllerId, PyObject* userarg);
+	void onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
 
 	/** 
 		entity移动失败
@@ -433,75 +481,121 @@ public:
 	/**
 		获取entity所在节点
 	*/
-	INLINE EntityRangeNode* pEntityRangeNode()const;
+	INLINE EntityCoordinateNode* pEntityCoordinateNode()const;
+	INLINE void pEntityCoordinateNode(EntityCoordinateNode* pNode);
 
 	/**
 		安装卸载节点
 	*/
-	void installRangeNodes(RangeList* pRangeList);
-	void uninstallRangeNodes(RangeList* pRangeList);
+	void installCoordinateNodes(CoordinateSystem* pCoordinateSystem);
+	void uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem);
 
 	/**
 		获取entity位置朝向在某时间是否改变过
 	*/
 	INLINE GAME_TIME posChangedTime()const;
 	INLINE GAME_TIME dirChangedTime()const;
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostPropertys(KBEngine::MemoryStream& s);
+	
+	/** 
+		ghost请求调用def方法real
+	*/
+	void onRemoteRealMethodCall(KBEngine::MemoryStream& s);
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostVolatileData(KBEngine::MemoryStream& s);
+
+	/** 
+		转变为ghost, 自身必须为real
+	*/
+	void changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s);
+
+	/** 
+		转变为real, 自身必须为ghost
+	*/
+	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s);
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
+	void addTimersToStream(KBEngine::MemoryStream& s);
+	void createTimersFromStream(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端
 	*/
-	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID);
+	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
+		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
 protected:
 	// 这个entity的客户端mailbox
-	EntityMailbox*							clientMailbox_;						
+	EntityMailbox*											clientMailbox_;						
 
 	// 这个entity的baseapp mailbox
-	EntityMailbox*							baseMailbox_;						
+	EntityMailbox*											baseMailbox_;						
+
+	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
+	COMPONENT_ID											realCell_;	
+
+	// 如果一个entity为real，那么entity可能会存在一个ghost的指向
+	COMPONENT_ID											ghostCell_;	
 
 	// entity的当前位置
-	Position3D								position_;							
+	Position3D												lastpos_;	
+	Position3D												position_;							
+	script::ScriptVector3*									pPyPosition_;	
 
 	// entity的当前方向
-	Direction3D								direction_;		
+	Direction3D												direction_;		
+	script::ScriptVector3*									pPyDirection_;	
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
-	GAME_TIME								posChangedTime_;
-	GAME_TIME								dirChangedTime_;
-
-	// 自己是否是一个realEntity
-	bool									isReal_;	
+	GAME_TIME												posChangedTime_;
+	GAME_TIME												dirChangedTime_;
 
 	// 是否在地面上
-	bool									isOnGround_;						
+	bool													isOnGround_;						
 
 	// entity x,z轴最高移动速度
-	float									topSpeed_;							
+	float													topSpeed_;							
 
 	// entity y轴最高移动速度
-	float									topSpeedY_;							
+	float													topSpeedY_;							
 
 	// 自身在space的entities中的位置
-	SPACE_ENTITIES::size_type				spaceEntityIdx_;					
+	SPACE_ENTITIES::size_type								spaceEntityIdx_;					
 
 	// 是否被任何观察者监视到
-	std::list<ENTITY_ID>					witnesses_;
+	std::list<ENTITY_ID>									witnesses_;
 
 	// 观察者对象
-	Witness*								pWitness_;							
+	Witness*												pWitness_;							
 
-	AllClients*								allClients_;
-	AllClients*								otherClients_;
+	AllClients*												allClients_;
+	AllClients*												otherClients_;
 
 	// entity节点
-	EntityRangeNode*						pEntityRangeNode_;					
+	EntityCoordinateNode*									pEntityCoordinateNode_;					
 
 	// 控制器管理器
-	Controllers*							pControllers_;						
-	Controller*								pMoveController_;
+	Controllers*											pControllers_;						
+	Controller*												pMoveController_;
 
 	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
-	int8									shouldAutoBackup_;
+	int8													shouldAutoBackup_;
+
+	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
+	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
+	
+	// entity层， 可以做任意表示， 基于tile的游戏可以表示为海陆空等层， 纯3d也可以表示各种层
+	// 在脚本层做搜索的时候可以按层搜索.
+	int8													layer_;
 };
 
 }

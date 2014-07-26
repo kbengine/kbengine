@@ -37,6 +37,7 @@ extern ProfileVal CLIENT_UPDATE_PROFILE;
 
 extern EventHistoryStats g_privateClientEventHistoryStats;
 extern EventHistoryStats g_publicClientEventHistoryStats;
+extern EventHistoryStats g_publicCellEventHistoryStats;
 
 }
 #endif

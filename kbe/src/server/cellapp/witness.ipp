@@ -38,6 +38,44 @@ INLINE float Witness::aoiHysteresisArea()const
 { 
 	return aoiHysteresisArea_; 
 }
+
+//-------------------------------------------------------------------------------------
+INLINE EntityRef* Witness::getAOIEntityRef(ENTITY_ID entityID)
+{
+	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
+		findif_vector_entityref_exist_by_entityid_handler(entityID));
+
+	if(iter != aoiEntities_.end())
+	{
+		return (*iter);
+	}
 	
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Witness::entityInAOI(ENTITY_ID entityID)
+{
+	EntityRef* pEntityRef = getAOIEntityRef(entityID);
+
+	if(pEntityRef == NULL || pEntityRef->pEntity() == NULL || pEntityRef->flags() == ENTITYREF_FLAG_UNKONWN || 
+		(pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) > 0)
+		return false;
+		
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE AOITrigger* Witness::pAOITrigger()
+{
+	return pAOITrigger_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE EntityRef::AOI_ENTITIES& Witness::aoiEntities()
+{ 
+	return aoiEntities_; 
+}
+
 //-------------------------------------------------------------------------------------
 }

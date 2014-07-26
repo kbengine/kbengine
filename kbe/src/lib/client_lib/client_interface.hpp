@@ -50,16 +50,19 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 服务端hello返回。
-	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,								MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,								MERCURY_VARIABLE_MESSAGE)
+
+	// 和服务端的版本不匹配
+	CLIENT_MESSAGE_DECLARE_STREAM(onVersionNotMatch,						MERCURY_VARIABLE_MESSAGE)
 
 	// 创建账号失败。
-	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,					MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,					MERCURY_VARIABLE_MESSAGE)
 
 	// 登录成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,						MERCURY_VARIABLE_MESSAGE)
 
 	// 登录失败。
-	CLIENT_MESSAGE_DECLARE_STREAM(onLoginFailed,							MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onLoginFailed,							MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
 	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,							MERCURY_VARIABLE_MESSAGE,
@@ -72,32 +75,29 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 服务器上的entity已经进入游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS3(onEntityEnterWorld,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									ENTITY_SCRIPT_UID,						scriptType,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterWorld,						MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityLeaveWorld,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								eid)
+
+	// 服务器上的entity已经离开游戏世界了。
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityLeaveWorldOptimized,				MERCURY_VARIABLE_MESSAGE)
 
 	// 告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,							MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,								eid)
 
 	// 服务器上的entity已经进入space了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterSpace,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterSpace,						MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开space了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityLeaveSpace,						MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,								eid,
-									SPACE_ID,								spaceID)
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveSpace,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								eid)
 
 	// 远程呼叫entity方法
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCallOptimized,				MERCURY_VARIABLE_MESSAGE)
 
 	// 被踢出服务器
 	CLIENT_MESSAGE_DECLARE_ARGS1(onKicked,									MERCURY_FIXED_MESSAGE,
@@ -105,12 +105,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 服务器更新entity属性
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,						MERCURY_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertysOptimized,				MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器强制设置entity的位置与朝向
 	CLIENT_MESSAGE_DECLARE_STREAM(onSetEntityPosAndDir,						MERCURY_VARIABLE_MESSAGE)
 
 	// 服务器更新包
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePos,							MERCURY_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePosXZ,						MERCURY_VARIABLE_MESSAGE)
+
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateData,								MERCURY_VARIABLE_MESSAGE)
 
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateData_ypr,							MERCURY_VARIABLE_MESSAGE)
@@ -159,12 +162,21 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientEntityDef,					MERCURY_VARIABLE_MESSAGE)
 
 	// 错误码描述导出
-	CLIENT_MESSAGE_DECLARE_STREAM(onImportMercuryErrorsDescr,				MERCURY_VARIABLE_MESSAGE)
-	
-	// 服务端添加了某个space的几何映射
-	CLIENT_MESSAGE_DECLARE_ARGS2(addSpaceGeometryMapping,					MERCURY_VARIABLE_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_STREAM(onImportServerErrorsDescr,				MERCURY_VARIABLE_MESSAGE)
+
+	// 服务端初始化spacedata
+	CLIENT_MESSAGE_DECLARE_STREAM(initSpaceData,							MERCURY_VARIABLE_MESSAGE)
+
+	// 服务端设置了spacedata
+	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								MERCURY_VARIABLE_MESSAGE,
 									SPACE_ID,								spaceID,
-									std::string,							respath)
+									std::string,							key,
+									std::string,							valye)
+
+	// 服务端删除了spacedata
+	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								MERCURY_VARIABLE_MESSAGE,
+									SPACE_ID,								spaceID,
+									std::string,							key)
 
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountResetPasswordCB,				MERCURY_FIXED_MESSAGE,

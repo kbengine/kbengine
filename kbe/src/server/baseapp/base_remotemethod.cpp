@@ -90,10 +90,10 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 			methodDescription->getName(), 
 			pBundle->currMsgLength(), 
 			"::");
+		
+		static_cast<Proxy*>(pEntity)->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		mailbox->postMail((*pBundle));
-
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 	

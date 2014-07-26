@@ -2,9 +2,9 @@
 import KBEngine
 from KBEDebug import *
 
-class GameObject(KBEngine.Base):
+class GameObject:
 	def __init__(self):
-		KBEngine.Base.__init__(self)
+		pass
 
 	def getScriptName(self):
 		return self.__class__.__name__
@@ -57,7 +57,8 @@ class GameObject(KBEngine.Base):
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
-		DEBUG_MSG("%s::onGetCell: %i" % (self.getScriptName(), self.id))
+		#DEBUG_MSG("%s::onGetCell: %i" % (self.getScriptName(), self.id))
+		pass
 		
 	def onLoseCell(self):
 		"""

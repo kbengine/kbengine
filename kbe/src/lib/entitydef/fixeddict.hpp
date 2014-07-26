@@ -39,7 +39,7 @@ public:
 	FixedDict(DataType* dataType);
 	FixedDict(DataType* dataType, std::string& strDictInitData);
 	FixedDict(DataType* dataType, PyObject* pyDictInitData);
-	FixedDict(DataType* dataType, MemoryStream* streamInitData);
+	FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream);
 
 	virtual ~FixedDict();
 
@@ -75,7 +75,7 @@ public:
 	*/
 	void initialize(std::string strDictInitData);
 	void initialize(PyObject* pyDictInitData);
-	void initialize(MemoryStream* streamInitData);
+	void initialize(MemoryStream* streamInitData, bool isPersistentsStream);
 
 	/** 
 		检查数据改变 
@@ -88,6 +88,12 @@ public:
 		更新字典数据到自己的数据中 
 	*/
 	PyObject* update(PyObject* args);
+
+	/** 
+		获得对象的描述 
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
 protected:
 	FixedDictType* _dataType;
 } ;

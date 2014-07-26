@@ -41,6 +41,20 @@ void EventHistoryStats::trackEvent(const std::string& type, const std::string& n
 {
 	std::string fullname = type + flags + name;
 	
+	if(size >= PACKET_MAX_SIZE_TCP)
+	{
+		if(size < MERCURY_MESSAGE_MAX_SIZE)
+		{
+			WARNING_MSG(boost::format("EventHistoryStats::trackEvent[%1%]: message size(%2%) >= PACKET_MAX_SIZE_TCP(%3%).\n") % 
+				fullname % size % PACKET_MAX_SIZE_TCP);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("EventHistoryStats::trackEvent[%1%]: message size(%2%) > MERCURY_MESSAGE_MAX_SIZE(%3%).\n") % 
+				fullname % size % MERCURY_MESSAGE_MAX_SIZE);
+		}
+	}
+
 	STATS::iterator iter = stats_.find(fullname);
 	if(iter == stats_.end())
 	{

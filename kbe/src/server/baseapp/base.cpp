@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/fixed_messages.hpp"
+#include "client_lib/client_interface.hpp"
 
 #ifndef CODE_INLINE
 #include "base.ipp"
@@ -94,21 +95,34 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onDestroy(void)																					
+void Base::onDestroy(bool callScript)																					
 {
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+	if(callScript)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+	}
 
 	if(this->hasDB())
 	{
 		onCellWriteToDBCompleted(0);
+	}
+	
+	eraseEntityLog();
+}
 
-		// 擦除DB中的在线纪录
+//-------------------------------------------------------------------------------------
+void Base::eraseEntityLog()
+{
+	// 这里没有使用hasDB()来进行判断
+	// 用户可能destroy( writeToDB = False ), 这个操作会导致hasDB为false， 因此这里
+	// 需要判断dbid是否大于0， 如果大于0则应该要去擦除在线等记录情况.
+	if(this->getDBID() > 0)
+	{
 		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
 		(*(*bundleptr)) << this->getDBID();
-
+		(*(*bundleptr)) << this->getScriptModule()->getUType();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
@@ -163,7 +177,18 @@ bool Base::installCellDataAttr(PyObject* dictData, bool installpy)
 void Base::createCellData(void)
 {
 	if(!scriptModule_->hasCell() || !installCellDataAttr())
+	{
+		if(scriptModule_->getCellPropertyDescriptions().size() > 0)
+		{
+			if(!scriptModule_->hasCell())
+			{
+				WARNING_MSG(boost::format("%1%::createCellData: cellData no create, not from the cellapp found script(%2%)!\n") % 
+					scriptModule_->getName() % scriptModule_->getName());
+			}
+		}
+
 		return;
+	}
 	
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
@@ -208,19 +233,42 @@ void Base::createCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
+void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 {
+	addPositionAndDirectionToStream(*s, useAliasID);
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		if(flags == 0 || (flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
-			(*s) << propertyDescription->getUType();
 
-			propertyDescription->getDataType()->addToStream(s, pyVal);
+			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			{
+				(*s) << propertyDescription->aliasIDAsUint8();
+			}
+			else
+			{
+				(*s) << propertyDescription->getUType();
+			}
+
+			if(!propertyDescription->getDataType()->isSameType(pyVal))
+			{
+				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->getScriptName() % 
+					propertyDescription->getName() % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+				
+				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
+				propertyDescription->getDataType()->addToStream(s, pydefval);
+				Py_DECREF(pydefval);
+			}
+			else
+			{
+				propertyDescription->getDataType()->addToStream(s, pyVal);
+			}
 
 			if (PyErr_Occurred())
  			{	
@@ -268,8 +316,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type is error.\n") %
-						this->getScriptName() % this->getID() % attrname);
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
+						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
 				}
 				else
 				{
@@ -284,8 +332,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type is error.\n") %
-						this->getScriptName() % this->getID() % attrname);
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
+						this->getScriptName() % this->getID() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
 				}
 				else
 				{
@@ -443,7 +491,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 		// 这种情况需要返回给用户一个错误， 用户可以继续尝试这个操作
 		if(pobj->hasDB() && pobj->getDBID() == 0)
 		{
-			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, but not dbid. "
+			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, current dbid is 0. "
 				"please wait for dbmgr to processing!\n", 
 				pobj->getScriptName(), pobj->getID());
 			PyErr_PrintEx(0);
@@ -501,6 +549,13 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 	shouldAutoArchive_ = 0;
 	shouldAutoBackup_ = 0;
 }
+
+//-------------------------------------------------------------------------------------
+PyObject* Base::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
 
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetCellMailbox()
@@ -627,20 +682,6 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	// 如果是外部通道调用则判断来源性
-	if(pChannel->isExternal())
-	{
-		ENTITY_ID srcEntityID = pChannel->proxyID();
-		if(srcEntityID <= 0 || srcEntityID != this->getID())
-		{
-			WARNING_MSG(boost::format("Base::onRemoteMethodCall: srcEntityID:%1% != thisEntityID:%2%.\n") % 
-				srcEntityID % this->getID());
-
-			s.opfini();
-			return;
-		}
-	}
-
 	if(isDestroyed())																				
 	{																										
 		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
@@ -656,14 +697,40 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Base::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_);
+		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
+			utype % id_ % this->getScriptName());
 
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Base::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
-		id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
+	// 如果是外部通道调用则判断来源性
+	if (pChannel->isExternal())
+	{
+		ENTITY_ID srcEntityID = pChannel->proxyID();
+		if (srcEntityID <= 0 || srcEntityID != this->getID())
+		{
+			WARNING_MSG(boost::format("%3%::onRemoteMethodCall(%4%): srcEntityID:%1% != thisEntityID:%2%.\n") %
+				srcEntityID % this->getID() % this->getScriptName() % md->getName());
+
+			s.opfini();
+			return;
+		}
+
+		if(!md->isExposed())
+		{
+			ERROR_MSG(boost::format("%3%::onRemoteMethodCall: %1% not is exposed, call is illegal! srcEntityID:%2%.\n") %
+				md->getName() % srcEntityID % this->getScriptName());
+
+			s.opfini();
+			return;
+		}
+	}
+
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(boost::format("Base::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
+			id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
+	}
 
 	md->currCallerID(this->getID());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
@@ -671,15 +738,22 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(md != NULL)
 	{
-		PyObject* pyargs = md->createFromStream(&s);
-		if(pyargs)
+		if(md->getArgSize() == 0)
 		{
-			md->call(pyFunc, pyargs);
-			Py_XDECREF(pyargs);
+			md->call(pyFunc, NULL);
 		}
 		else
 		{
-			SCRIPT_ERROR_CHECK();
+			PyObject* pyargs = md->createFromStream(&s);
+			if(pyargs)
+			{
+				md->call(pyFunc, pyargs);
+				Py_XDECREF(pyargs);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
 		}
 	}
 	
@@ -887,9 +961,6 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
 
-	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	addPersistentsDataToStream(ED_FLAG_ALL, s);
-
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
@@ -901,6 +972,9 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 		ERROR_MSG(boost::format("Base::onCellWriteToDBCompleted(%1%): not found dbmgr!\n") % this->getID());
 		return;
 	}
+
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::writeEntity);
@@ -1156,11 +1230,14 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID)
+void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport)
 {
 	if(spaceID > 0)
 	{
-		onTeleportSuccess(spaceID);
+		if(!fromCellTeleport)
+			onTeleportSuccess(spaceID);
+		else
+			this->setSpaceID(spaceID);
 	}
 	else
 	{

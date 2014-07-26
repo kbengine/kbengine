@@ -42,6 +42,8 @@ public:
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
 	Address(std::string ipArg, uint16 portArg);
+	
+	virtual ~Address(){}
 
 	uint32	ip;
 	uint16	port;
@@ -71,23 +73,17 @@ inline Address::Address(uint32 ipArg, uint16 portArg) :
 {
 } 
 
+// 比较操作符重载
 inline bool operator==(const Address & a, const Address & b)
 {
 	return (a.ip == b.ip) && (a.port == b.port);
 }
-
 
 inline bool operator!=(const Address & a, const Address & b)
 {
 	return (a.ip != b.ip) || (a.port != b.port);
 }
 
-/**
- * 	This operator compares two addresses. It is needed
- * 	for using an address as a key in an STL map.
- *
- * 	@return true if a is less than b, false otherwise.
- */
 inline bool operator<(const Address & a, const Address & b)
 {
 	return (a.ip < b.ip) || (a.ip == b.ip && (a.port < b.port));

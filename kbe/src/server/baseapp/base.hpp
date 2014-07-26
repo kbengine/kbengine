@@ -201,12 +201,17 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void onDestroy(void);
+	void onDestroy(bool callScript);
 
 	/**
 		销毁base内部通知
 	*/
 	void onDestroyEntity(bool deleteFromDB, bool writeToDB);
+
+	/**
+		从db擦除在线log
+	*/
+	void eraseEntityLog();
 
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
@@ -237,7 +242,7 @@ public:
 	/**
 		传送回调
 	*/
-	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID);  
+	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
 	void onTeleportFailure();  
 	void onTeleportSuccess(SPACE_ID spaceID);
 

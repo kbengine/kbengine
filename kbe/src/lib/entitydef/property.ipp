@@ -36,7 +36,7 @@ INLINE DataType* PropertyDescription::getDataType(void)const
 	return dataType_; 
 };
 
-INLINE const uint32& PropertyDescription::getFlags(void)const
+INLINE uint32 PropertyDescription::getFlags(void)const
 { 
 	return flags_; 
 };
@@ -76,4 +76,34 @@ INLINE uint32 PropertyDescription::getDatabaseLength()const
 	return databaseLength_; 
 }
 
+INLINE int16 PropertyDescription::aliasID()const 
+{ 
+	return aliasID_; 
+}
+
+INLINE uint8 PropertyDescription::aliasIDAsUint8()const 
+{ 
+	return (uint8)aliasID_; 
+}
+
+INLINE void PropertyDescription::aliasID(int16 v)
+{ 
+	aliasID_ = v; 
+}
+
+INLINE bool PropertyDescription::hasCell(void)const
+{ 
+	return (flags_ & ENTITY_CELL_DATA_FLAGS) > 0; 
+}
+
+INLINE bool PropertyDescription::hasBase(void)const
+{ 
+	return (flags_ & ENTITY_BASE_DATA_FLAGS) > 0; 
+}
+
+INLINE bool PropertyDescription::hasClient(void)const
+{ 
+	return (flags_ & ENTITY_CLIENT_DATA_FLAGS) > 0; 
+}
+	
 }

@@ -70,6 +70,18 @@
 			<external> 60.0 </external>
 		</timeout>
 		
+		<!-- 通道send数据重试时间次数 -->
+		<resend> 
+			<internal> 
+				<interval> 10 </interval>					<!-- 毫秒 -->
+				<retries> 0 </retries>						<!-- 重试次数, 0无限 -->
+			</internal>
+			<external>
+				<interval> 10 </interval>					<!-- 毫秒 -->
+				<retries> 3 </retries>						<!-- 重试次数, 0无限 -->
+			</external>
+		</resend>
+		
 		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
 		<receiveWindowOverflow>
 			<messages>
@@ -94,9 +106,9 @@
 	<ip> localhost </ip>
 	<port> 20013 </port>
 
-	<!-- 如果被占用则向后尝试50001.. -->
+	<!-- 如果被占用则向后尝试51001.. -->
 	<telnet_service>
-		<port> 50000 </port>
+		<port> 51000 </port>
 		<password> kbe </password>
 		<!-- 命令默认层 -->
 		<default_layer> python </default_layer>
@@ -114,4 +126,11 @@
 			2: rsa (res\key\kbengine_private.key)
 	 -->
 	<encrypt_login> 2 </encrypt_login>
+	
+	<!-- 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节别名ID -->
+	<aliasEntityID> true </aliasEntityID>
+
+	<!-- 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 
+		方法uid和属性uid传输到client时使用1字节别名ID -->
+	<entitydefAliasID>true</entitydefAliasID>
 </root>

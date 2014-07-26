@@ -26,7 +26,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h> 
 #include <math.h>
 #include <assert.h> 
-#include <iostream>  
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>  
@@ -253,19 +254,51 @@ typedef uint32_t												DWORD;
 #ifdef _LP64
 typedef int64													intptr;
 typedef uint64													uintptr;
+
+#ifndef PRI64
 #define PRI64													"ld"
+#endif
+
+#ifndef PRIu64
 #define PRIu64													"lu"
+#endif
+
+#ifndef PRIx64
 #define PRIx64													"lx"
+#endif
+
+#ifndef PRIX64
 #define PRIX64													"lX"
+#endif
+
+#ifndef PRTime
 #define PRTime													PRI64
+#endif
+
 #else
 typedef int32													intptr;
 typedef uint32													uintptr;
+
+#ifndef PRI64
 #define PRI64													"lld"
+#endif
+
+#ifndef PRIu64
 #define PRIu64													"llu"
+#endif
+
+#ifndef PRIx64
 #define PRIx64													"llx"
+#endif
+
+#ifndef PRIX64
 #define PRIX64													"llX"
+#endif
+
+#ifndef PRTime
 #define PRTime													"ld"
+#endif
+
 #endif
 
 #ifndef PRIzd
@@ -295,6 +328,7 @@ typedef int32													ScriptID;
 typedef uint32													ArraySize;												// 任何数组的大小都用这个描述
 typedef uint64													DBID;													// 一个在数据库中的索引用来当做某ID
 typedef uint32													CELL_ID;
+typedef KBEUnordered_map< std::string, std::string >			SPACE_DATA;												// space中存储的数据
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16
@@ -579,24 +613,38 @@ extern COMPONENT_ORDER g_componentGroupOrder;
 
 inline uint64 genUUID64()
 {
-	srand(getSystemTime());
+	static uint64 tv = (uint64)getSystemTime();
+	static uint32 lastNum = 0;
+	
+	uint64 now = (uint64)getSystemTime();	
+	if(now != tv)
+	{
+		tv = now;
+		lastNum = 0;
+	}
 	
 	if(g_componentGlobalOrder <= 0)
 	{
-		// 时间戳32位， 16位随机数， 16位迭代数
-		uint64 tv = getSystemTime();
-		static uint16 lastNum0 = rand() % 65535;
-		uint32 rnd = rand() % 65535;
-		return (tv << 32) + (rnd << (24)) + lastNum0++;
+		// 16位随机数， 时间戳32位， 16位迭代数
+		static uint64 rnd = 0;
+		if(rnd == 0)
+		{
+			srand(getSystemTime());
+			rnd = ((uint64)rand() % 65535) + 1;
+		}
+		
+		assert(lastNum < 65536 && "genUUID64(): overflow!");
+		
+		return (rnd << 48) + (tv << 16) + lastNum++;
 	}
 	else
 	{
-		// app顺序数8位，时间戳32位， 8位随机数， 16位迭代数
-		uint32 tv = getSystemTime();
-		uint64 appOrder = g_componentGlobalOrder;
-		static uint16 lastNum1 = rand() % 65535;
-		uint32 rnd = rand() % 255;
-		return (appOrder << 56) + (tv << (24)) + (rnd << (8)) + lastNum1++;
+		// app顺序数8位，时间戳32位， 24位迭代数（16777216：24位最大数+1）
+		static uint64 appOrder = g_componentGlobalOrder;
+		
+		assert(lastNum < 16777216 && "genUUID64(): overflow!");
+		
+		return (appOrder << 56) + (tv << 24) + lastNum++;
 	}
 }
 

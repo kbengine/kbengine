@@ -50,8 +50,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,							MERCURY_FIXED_MESSAGE)
 
 	// 错误码描述导出。
-	LOGINAPP_MESSAGE_EXPOSED(importMercuryErrorsDescr)
-	LOGINAPP_MESSAGE_DECLARE_ARGS0(importMercuryErrorsDescr,						MERCURY_FIXED_MESSAGE)
+	LOGINAPP_MESSAGE_EXPOSED(importServerErrorsDescr)
+	LOGINAPP_MESSAGE_DECLARE_ARGS0(importServerErrorsDescr,							MERCURY_FIXED_MESSAGE)
 
 	// 某app主动请求断线。
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(reqClose,										MERCURY_FIXED_MESSAGE)
@@ -138,6 +138,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 请求查询watcher数据
 	LOGINAPP_MESSAGE_DECLARE_STREAM(queryWatcher,									MERCURY_VARIABLE_MESSAGE)
+
+	// baseapp同步自己的初始化信息
+	LOGINAPP_MESSAGE_DECLARE_ARGS1(onBaseappInitProgress,							MERCURY_FIXED_MESSAGE,
+									float,											progress)
 
 NETWORK_INTERFACE_DECLARE_END()
 

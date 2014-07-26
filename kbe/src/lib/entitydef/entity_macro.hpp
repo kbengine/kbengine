@@ -42,11 +42,30 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
-	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 
 
 #define ENTITY_GETSET_DECLARE_END()																			\
+	SCRIPT_GETSET_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+
+	
+#define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
+	SCRIPT_METHOD_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_BEGIN(CLASS)															\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
@@ -63,6 +82,22 @@ namespace KBEngine{
 		z = (int32)dir.z;																					\
 																											\
 		s << diruid << posdirLen << x << y << z;															\
+
+
+	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
+		int32 x = (int32)pos.x;																				\
+		int32 y = (int32)pos.y;																				\
+		int32 z = (int32)pos.z;																				\
+																											\
+		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
+		s << aliasID << posdirLen << x << y << z;															\
+																											\
+		x = (int32)dir.x;																					\
+		y = (int32)dir.y;																					\
+		z = (int32)dir.z;																					\
+																											\
+		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
+		s << aliasID << posdirLen << x << y << z;															\
 
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
@@ -91,6 +126,13 @@ namespace KBEngine{
 		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
 		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
 
+
+	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
+		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
+		s << aliasID << posdirLen << pos.x << pos.y << pos.z;												\
+		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
+		s << aliasID << posdirLen << dir.x << dir.y << dir.z;												\
+	
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
 	{																										\
@@ -242,7 +284,6 @@ protected:																									\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
 	bool isDestroyed_;																						\
-	Mercury::Bundle* pBundle_;																				\
 	bool initing_;																							\
 public:																										\
 	bool initing()const{ return initing_; }																	\
@@ -328,7 +369,7 @@ public:																										\
 		Py_XDECREF(cellDataDict);																			\
 	}																										\
 																											\
-	void addCellDataToStream(uint32 flags, MemoryStream* mstream);											\
+	void addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID = false);					\
 																											\
 	PyObject* createCellDataFromStream(MemoryStream* mstream)												\
 	{																										\
@@ -359,7 +400,7 @@ public:																										\
 		return cellData;																					\
 	}																										\
 																											\
-	void addCellDataToStreamByDetailLevel(int8 detailLevel, MemoryStream* mstream)							\
+	void addCellDataToStreamByDetailLevel(int8 detailLevel, MemoryStream* mstream, bool useAliasID = false)	\
 	{																										\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
@@ -370,7 +411,16 @@ public:																										\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());				\
-			(*mstream) << propertyDescription->getUType();													\
+																											\
+			if(useAliasID && scriptModule_->usePropertyDescrAlias())										\
+			{																								\
+				(*mstream) << propertyDescription->aliasIDAsUint8();										\
+			}																								\
+			else																							\
+			{																								\
+				(*mstream) << propertyDescription->getUType();												\
+			}																								\
+																											\
 			propertyDescription->getDataType()->addToStream(mstream, pyVal);								\
 		}																									\
 																											\
@@ -378,7 +428,7 @@ public:																										\
 		SCRIPT_ERROR_CHECK();																				\
 	}																										\
 																											\
-	void addClientDataToStream(MemoryStream* s)																\
+	void addClientDataToStream(MemoryStream* s, bool otherClient = false)									\
 	{																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
@@ -388,11 +438,25 @@ public:																										\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
+			if(otherClient)																					\
+			{																								\
+				if((propertyDescription->getFlags() & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) <= 0)			\
+					continue;																				\
+			}																								\
+																											\
 			PyObject *key = PyUnicode_FromString(propertyDescription->getName());							\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-	    		(*s) << propertyDescription->getUType();													\
+				if(getScriptModule()->usePropertyDescrAlias())												\
+				{																							\
+	    			(*s) << propertyDescription->aliasIDAsUint8();											\
+				}																							\
+				else																						\
+				{																							\
+	    			(*s) << propertyDescription->getUType();												\
+				}																							\
+																											\
 	    		propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));			\
 			}																								\
 																											\
@@ -402,7 +466,7 @@ public:																										\
 		Py_XDECREF(pydict);																					\
 	}																										\
 																											\
-	void addPositionAndDirectionToStream(MemoryStream& s);													\
+	void addPositionAndDirectionToStream(MemoryStream& s, bool useAliasID = false);							\
 																											\
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\
 	{																										\
@@ -476,8 +540,6 @@ public:																										\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
-																											\
-	INLINE Mercury::Bundle* pBundle()const{ return pBundle_; }												\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
@@ -570,11 +632,7 @@ public:																										\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
-	PyObject * onScriptGetAttribute(PyObject* attr)															\
-	{																										\
-		DEBUG_OP_ATTRIBUTE("get", attr)																		\
-		return ScriptObject::onScriptGetAttribute(attr);													\
-	}																										\
+	PyObject * onScriptGetAttribute(PyObject* attr);														\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
@@ -610,7 +668,7 @@ public:																										\
 		{																									\
 			if(PyArg_ParseTuple(args, "O", &pycallback) == -1)												\
 			{																								\
-				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args is error!");						\
+				PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");					\
 				PyErr_PrintEx(0);																			\
 				pycallback = NULL;																			\
 				S_Return;																					\
@@ -630,12 +688,13 @@ public:																										\
 																											\
 	void writeToDB(void* data);																				\
 																											\
-	void destroy()																							\
+	void destroy(bool callScript = true)																	\
 	{																										\
 		if(!isDestroyed_)																					\
 		{																									\
+			onDestroy(callScript);																			\
+			scriptTimers_.cancelAll();																		\
 			isDestroyed_ = true;																			\
-			onDestroy();																					\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\
@@ -709,7 +768,7 @@ public:																										\
 																											\
 	void CLASS::destroyEntity()																				\
 	{																										\
-		APP::getSingleton().destroyEntity(id_);																\
+		APP::getSingleton().destroyEntity(id_, true);														\
 	}																										\
 																											\
 	PyObject* CLASS::pyGetIsDestroyed()																		\
@@ -717,7 +776,7 @@ public:																										\
 		return PyBool_FromLong(isDestroyed());																\
 	}																										\
 																											\
-	void CLASS::addPositionAndDirectionToStream(MemoryStream& s)											\
+	void CLASS::addPositionAndDirectionToStream(MemoryStream& s, bool useAliasID)							\
 	{																										\
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;					\
@@ -775,7 +834,14 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
+		if(getScriptModule()->usePropertyDescrAlias() && useAliasID)										\
+		{																									\
+			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
+		}																									\
+		else																								\
+		{																									\
+			ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
+		}																									\
 																											\
 		if(g_componentType != BASEAPP_TYPE)																	\
 		{																									\
@@ -850,7 +916,6 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	pBundle_(new Mercury::Bundle()),																		\
 	initing_(true)																							\
 
 
@@ -859,7 +924,6 @@ public:																										\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\
-	SAFE_RELEASE(pBundle_);																					\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\

@@ -161,7 +161,17 @@ public:
 	/** 网络接口
 		错误码描述导出
 	*/
-	void importMercuryErrorsDescr(Mercury::Channel* pChannel);
+	void importServerErrorsDescr(Mercury::Channel* pChannel);
+
+	// 引擎版本不匹配
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		baseapp同步自己的初始化信息
+		startGlobalOrder: 全局启动顺序 包括各种不同组件
+		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
+	*/
+	void onBaseappInitProgress(Mercury::Channel* pChannel, float progress);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 
@@ -174,6 +184,8 @@ protected:
 	std::string							digest_;
 
 	HTTPCBHandler*						pHttpCBHandler;
+
+	float								initProgress_;
 };
 
 }

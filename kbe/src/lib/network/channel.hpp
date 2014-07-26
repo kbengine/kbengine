@@ -36,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/interfaces.hpp"
 #include "network/packet_filter.hpp"
-#include "network/circular_buffer.hpp"
 
 namespace KBEngine { 
 namespace Mercury

@@ -30,7 +30,9 @@ namespace KBEngine{
 class EntityAspect
 {
 public:
+	EntityAspect(const EntityAspect& entityAspect);
 	EntityAspect(ENTITY_ID aspectID);
+	EntityAspect();
 	virtual ~EntityAspect();
 	
 	void modelres(const std::string& modelres){ modelres_ = modelres; }

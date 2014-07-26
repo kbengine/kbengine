@@ -42,9 +42,15 @@ typedef uint16	MessageLength; // 最大65535
 typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
 
-// 频道超时时间
+// 通道超时时间
 extern float g_channelInternalTimeout;
 extern float g_channelExternalTimeout;
+
+// 通道发送超时重试
+extern uint32 g_intReSendInterval;
+extern uint32 g_intReSendRetries;
+extern uint32 g_extReSendInterval;
+extern uint32 g_extReSendRetries;
 
 // 外部通道加密类别
 extern int8 g_channelExternalEncryptType;
@@ -52,7 +58,7 @@ extern int8 g_channelExternalEncryptType;
 // listen监听队列最大值
 extern uint32 g_SOMAXCONN;
 
-// 不做频道超时检查
+// 不做通道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
 {																					\
 	Mercury::g_channelExternalTimeout = Mercury::g_channelInternalTimeout = -1.0f;	\
@@ -132,6 +138,7 @@ enum Reason
 	REASON_CHANNEL_LOST = -11,		 ///< Corresponds to channel lost
 	REASON_SHUTTING_DOWN = -12,		 ///< Corresponds to shutting down app.
 	REASON_HTML5_ERROR = -13,		 ///< html5 error.
+	REASON_CHANNEL_CONDEMN = -14,	 ///< condemn error.
 };
 
 inline
@@ -152,7 +159,8 @@ const char * reasonToString(Reason reason)
 		"REASON_TRANSMIT_QUEUE_FULL",
 		"REASON_CHANNEL_LOST",
 		"REASON_SHUTTING_DOWN",
-		"REASON_HTML5_ERROR"
+		"REASON_HTML5_ERROR",
+		"REASON_CHANNEL_CONDEMN"
 	};
 
 	unsigned int index = -reason;

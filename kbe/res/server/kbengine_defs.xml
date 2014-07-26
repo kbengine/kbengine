@@ -1,23 +1,38 @@
 <root>
+	<!-- 游戏逻辑处理频率 
+		(Update frequency process)
+	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
-	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient> <!-- Type: Integer -->
+	
+	<!-- 每秒发送到客户端的带宽限制(bit) 
+		(The data sent to the client, the second bandwidth limit (bit))
+	-->
+	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient>				<!-- Type: Integer -->
 	
 	<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
 	什么样的包不带长度信息? 所有能够预先计算出包大小的且永远不变的包不带长度信息， 
-	如果有可变字符串参数则一定需要带长度信息 -->
+	如果有可变字符串参数则一定需要带长度信息
+	(Non-0 is not optimized, Force all packets contain length information, Some convenient docking protocol client.
+	What of data packet length information does not? All packages can be calculated in advance 
+	and never change the size of the package with no length information.) 
+	-->
 	<packetAlwaysContainLength>0</packetAlwaysContainLength>
 	
 	<!-- 是否需要将任何接收和发送的包以文本输出到log中提供调试
+		(Whether the contents of the log output packet)
+		
 		debug_type:
-			0: 不输出
-			1: 16进制输出
-			2: 字符流输出
-			3: 10进制输出
+			0: 不输出(Not output)
+			1: 16进制输出(16 hexadecimal output)
+			2: 字符流输出(Stringstream output)
+			3: 10进制输出(10 hexadecimal output)
 		use_logfile:
 			是否独立一个log文件来记录包内容，文件名通常为
+			(Whether the use of other log files ? such as:)
 			appname_packetlogs.log
 		disable_msgs:
 			关闭某些包的输出
+			(Some messages are not output)
 	-->
 	<trace_packet>
 		<debug_type>0</debug_type>
@@ -56,38 +71,59 @@
 		</disables>
 	</trace_packet>
 	
-	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
+	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息， 以及def信息 
+		(Whether the output the logs: create the entity, Script get attributes, 
+			Initialization attributes information, Def information.)
+	-->
 	<debugEntity>0</debugEntity>
 
 	<!-- apps发布状态, 可在脚本中获取该值
+		(apps released state, This value can be obtained in the script)
 		Type: Integer8
 		0 : debug
 		1 : release
-		其他自定义
+		其他自定义(Other custom)
 	-->
 	<app_publish>0</app_publish>
 	
-	<cellapps> 1 </cellapps>
-	<baseapps> 1 </baseapps>
-	
 	<channelCommon> 
-		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 -->
+		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
+			(If long (configurable value) no communication, channel will be kicked out of the server.)
+		-->
 		<timeout> 
 			<internal> 60.0 </internal>
 			<external> 60.0 </external>
 		</timeout>
+
+		<!-- 发送数据重试的最大时间和最大次数 
+			(Send retry max-time and max-count)
+		-->
+		<resend> 
+			<internal> 
+				<interval> 10 </interval>					<!-- 毫秒(Millisecond) -->
+				<retries> 0 </retries>						<!-- 重试次数(Retry count), 0无限(0 is unlimited) -->
+			</internal>
+			<external>
+				<interval> 10 </interval>					<!-- 毫秒 -->
+				<retries> 3 </retries>						<!-- 重试次数, 0无限(0 is unlimited) -->
+			</external>
+		</resend>
 		
-		<!-- socket读写缓冲大小 -->
+		<!-- socket读写缓冲大小 
+			(socket send/recv buffer size)
+		-->
 		<readBufferSize> 
 			<internal>	16777216	</internal> 			<!-- 16M -->
-			<external>	0			</external>				<!-- 系统默认 -->
+			<external>	0			</external>				<!-- 系统默认(system default) -->
 		</readBufferSize>
 		<writeBufferSize> 
 			<internal>	16777216	</internal>				<!-- 16M -->
-			<external>	0			</external>				<!-- 系统默认 -->
+			<external>	0			</external>				<!-- 系统默认(system default) -->
 		</writeBufferSize>
 		
-		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
+		<!-- 一个tick内接收窗口溢出值 0无限制
+			(A tick, the value of the receive window overflow, 0 is unlimited)
+		-->
 		<receiveWindowOverflow>
 			<messages>
 				<critical>	32			</critical>
@@ -101,24 +137,37 @@
 		</receiveWindowOverflow>
 		
 		<!-- 加密通信，只对外部通道
-			可选加密:
-				0: 无加密
-				1: blowfish
-				2: rsa (res\key\kbengine_private.key)
+			(Encrypted communication, channel-external only)
+			
+			可选择的加密方式(Optional encryption):
+				0: 无加密(No Encryption)
+				1: Blowfish
+				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_type> 1 </encrypt_type>
 	</channelCommon> 
 	
-	<!-- 关服倒计时(秒) -->
+	<!-- 关服倒计时(秒) 
+		(Countdown to shutdown the server(seconds))
+	-->
 	<shutdown_time> 60.0 </shutdown_time>
-	<!-- 关服等待任务结束tick(秒) -->
+	
+	<!-- 关闭服务器的时候， 如果有未完成的任务， 服务器需要等待任务结束。
+		每Tick（秒）检查一次
+	(Shutdown the server, if you have not completed the task, the server needs to wait for the end of the mission.
+		Time(seconds) for each waiting.)
+	-->
 	<shutdown_waittick> 1.0 </shutdown_waittick>
 	
-	<!-- callback默认超时时间(秒) -->
+	<!-- callback默认超时时间(秒) 
+		(The callback: default timeout(seconds))
+	-->
 	<callback_timeout> 300.0 </callback_timeout>
 	
 	<thread_pool>
-		<!-- 默认超时时间(秒) -->
+		<!-- 默认超时时间(秒) 
+			(default timeout(seconds))
+		-->
 		<timeout> 300.0 </timeout>
 		
 		<init_create> 1 </init_create>
@@ -126,89 +175,190 @@
 		<max_create> 8 </max_create>
 	</thread_pool>
 	
-	<!-- email 服务 -->
+	<!-- Email服务, 提供账号验证， 密码找回等等。
+		(Email services, providing the account verification, password recovery, etc.)
+	-->
 	<email_service_config>server/email_service.xml</email_service_config>
 		
 	<billingSystem>
-		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
+		<!-- 
+			账号的类型(Account Type):
+			normal: 默认当前进程处理(default handling the current process), 
+			thirdparty: 由第三方服务商处理(handled by third-party service providers) 
+		-->
 		<accountType> normal </accountType>
+		
+		<!-- 
+			计费的类型(Charge Type):
+			normal: 默认当前进程处理(default handling the current process), 
+			thirdparty: 由第三方服务商处理(handled by third-party service providers) 
+		-->
 		<chargeType> normal </chargeType>
 		
-		<!-- 进程地址 -->
+		<!-- billingSystem的地址，多组游戏服务端可以共用一个billingSystem
+			(billingSystem address, multiple gameserver can share a billingSystem)
+		-->
 		<host> localhost </host>
 		<port> 30099 	</port>
 		
-		<!-- 订单超时(secs) -->
+		<!-- 订单超时(秒) 
+			(Orders timeout(seconds))
+		-->
 		<orders_timeout> 3600 	</orders_timeout>
 		
-		<!-- 第三方运营账号服务接口 如: www.google.com, 当type是thirdparty时有效 -->
+		<!-- 第三方账号服务接口,如: www.google.com, 当accountType是thirdparty时有效 
+			(Third-party account service interfaces, such as: www.google.com, 
+			When the accountType is thirdparty, is valid.)
+		-->
 		<thirdpartyAccountService_addr></thirdpartyAccountService_addr>
 		<thirdpartyAccountService_port> 80 </thirdpartyAccountService_port>
 		
-		<!-- 第三方运营充值服务接口 如: www.google.com, 当type是thirdparty时有效 -->
+		<!-- 第三方充值服务接口 如: www.google.com, 当chargeType是thirdparty时有效 
+			(Third-party charge service interfaces, such as: www.google.com, 
+			When the chargeType is thirdparty, is valid.)
+		-->
 		<thirdpartyChargeService_addr></thirdpartyChargeService_addr>
 		<thirdpartyChargeService_port> 80 </thirdpartyChargeService_port>
 		
-		<!-- 第三方运营回调端口，这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析-->
+		<!-- billingSystem和第三方服务商协作的回调地址, 这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析
+			(billingSystem and third-party service providers collaborate callback address)
+		-->
 		<thirdpartyService_cbport> 30040 </thirdpartyService_cbport>
 		
-		<!-- listen监听队列最大值 -->
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 	</billingSystem>
 	
 	<dbmgr>
+		<!-- debug模式下可输出读写操作信息
+		    (Debug mode can output the read and write informations)
+		 -->
+		<debug> false </debug>
+		
+		<!-- 账号Entity的名称
+		    (Name of AccountEntity)
+		 -->
 		<dbAccountEntityScriptType>	Account	</dbAccountEntityScriptType>
 		
+		<!-- 不检查defs-MD5
+			(Do not check defs-MD5) 
+		-->
 		<allowEmptyDigest> false </allowEmptyDigest>					<!-- Type: Boolean -->
 		
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- 新账号默认标记(可叠加， 填写时按十进制格式) 
-			常规标记 = 0x00000000
-			锁定标记 = 0x000000001
-			未激活标记 = 0x000000002
+		<!-- 新账号默认标记(可组合，填写时按十进制格式) 
+			(Default flags a new account, Can be combined, Fill in decimal format when)
+			常规标记(normal flag)	= 0x00000000
+			锁定标记(lock flag)	= 0x000000001
+			未激活标记(normal flag)	= 0x000000002
 		-->
 		<accountDefaultFlags> 0 </accountDefaultFlags>					<!-- Type: Integer -->
-		<!-- 新账号默认过期时间(秒, 引擎会加上当前时间) -->
+		
+		<!-- 新账号默认过期时间(秒, 引擎会加上当前时间) 
+			(New account default expiration time (seconds, the engine will add the current time))
+		-->
 		<accountDefaultDeadline> 0 </accountDefaultDeadline>			<!-- Type: Integer -->
 		
+		<!-- 数据库类型 
+			（Database type)
+		-->
 		<type> mysql </type>											<!-- Type: String -->
+		
+		<!-- 数据库地址 
+			（Database address)
+		-->
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 0 </port>												<!-- Type: Integer -->
+		
+		<!-- 数据库账号验证 
+			（Database auth)
+		-->
 		<auth>  
 			<username> kbe </username>									<!-- Type: String -->
 			<password> kbe </password>									<!-- Type: String -->
-			<!-- 为true则表示password是加密(rsa)的, 可防止明文配置 -->
-			<encrypt>true</encrypt>
+			
+			<!-- 为true则表示password是加密(rsa)的, 可防止明文配置 
+				(is true, password is RSA)
+			-->
+			<encrypt> true </encrypt>
 		</auth>
+		
+		<!-- 数据库名称 
+			(Database name)
+		-->
 		<databaseName> kbe </databaseName> 								<!-- Type: String -->
+		
+		<!-- 数据库允许的连接数 
+			(Number of connections allowed by the database)
+		-->
 		<numConnections> 5 </numConnections>							<!-- Type: Integer -->
 		
+		<!-- 字符编码类型 
+			(Character encoding type)
+		-->
 		<unicodeString>
 			<characterSet> utf8 </characterSet> 						<!-- Type: String -->
 			<collation> utf8_bin </collation> 							<!-- Type: String -->
 		</unicodeString>
 		
-		<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 -->
+		<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 
+			(When logged in, the game database can not find the game account is automatically created)
+		-->
 		<notFoundAccountAutoCreate> true </notFoundAccountAutoCreate>
 	</dbmgr>
 	
 	<cellapp>
+		<!-- 入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
 		<entryScriptFile> kbengine </entryScriptFile>
 		
+		<!-- 默认AOI半径, 脚本中可以改变它 
+			(Default AOI radius, the script can change it)
+		-->
 		<defaultAoIRadius>			
 			<radius> 80.0 </radius>
 			<hysteresisArea> 5.0 </hysteresisArea>
 		</defaultAoIRadius>
 		
+		<!-- 优化EntityID，AOI范围内实体数小于255个, EntityID传输到client时使用1字节别名ID 
+			（Optimization EntityID，AOI the Entity is less than 255, 
+			use an aliasID(1byte) transmitted to the client)
+		-->
+		<aliasEntityID> true </aliasEntityID>
+		
+		<!-- 优化Entity属性和方法在广播时所消耗的带宽，Entity客户端属性或者客户端方法不超过255时， 
+			方法uid和属性uid传输到client时使用1字节别名ID 
+			(Entity client (property or a method) is less than 256, using 1 byte transmission.)
+		-->
+		<entitydefAliasID>true</entitydefAliasID>
+	
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 		
+		<!-- entityID分配器，进入溢出范围则请求获取新的ID资源 
+			(The entityID allocator, enter the overflow area will get the new ID's)
+		-->
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
+		<!-- 程序的性能分析
+			（Analysis of program performance） 
+		-->
 		<profiles>
-			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 退出时导出一份记录 -->
+			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 进程退出后将导出一份报告 
+				(if is true, Engine start is completed, start to record profile information, 
+				Process exit will export a report.)
+			-->
 			<cprofile> false </cprofile>
 			<pyprofile> false </pyprofile>
 			<eventprofile> false </eventprofile>
@@ -217,166 +367,347 @@
 		
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
-		<ghostUpdateHertz> 50 </ghostUpdateHertz> <!-- Type: Integer -->
 		
-		<!-- 是否使用坐标系统 如果为false， aoi、trap、 move等功能将不再维护 -->
+		<!-- ghost更新频率 
+			(Update frequency process)
+		-->
+		<ghostUpdateHertz> 30 </ghostUpdateHertz>		<!-- Type: Integer -->
+		
+		<!-- 是否使用坐标系统, 如果设置为false， 那么AOI、Trap、 Move等功能将不可用 
+			(Whether the use of coordinate-system, if is false, 
+			AOI, Trap, Move and other functions will not be available)
+		-->
 		<coordinate_system> 
 			<enable> true </enable>
 			
-			<!-- 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 
-				但y轴的管理会带来一定的消耗 -->
+			<!-- 是否管理y轴? 注：管理y轴，则AOI、Trap等功能有了高度，当space内的实体较少时比较好用，
+				否则y轴的管理会带来一些消耗 
+				(is maintenance Y axis? Note: Management y axis, AOI、Trap and other functions with the height,
+				When the entity space within little more useful when, Otherwise, 
+				the management of the y-axis will produce some consumption
+				-->
 			<rangemgr_y> false </rangemgr_y>
+			
+			<!-- 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。 
+				(After stopping to change the position/direction, 
+				the engine continued to update client information(position/direction) ticks
+				If 0, then always update)
+			-->
+			<entity_posdir_additional_updates> 5 </entity_posdir_additional_updates>
 		</coordinate_system>
-		
-		<!-- 如果被占用则向后尝试50001.. -->
+
+		<!-- Telnet服务, 如果端口被占用则向后尝试50001.. 
+			(Telnet service, if the port is occupied backwards to try 50001)
+		-->
 		<telnet_service>
 			<port> 50000 </port>
 			<password> kbe </password>
-			<!-- 命令默认层 -->
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
 		
+		<!-- 服务端关闭过程的参数 
+			(Parameter server shutdown process)
+		-->
 		<shutdown>
-			<!-- 每秒销毁有base的entity -->
+			<!-- 每秒销毁有base部分的entity的数量
+				(In per-seconds, The destruction of the number of entity's(has base))
+			-->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
 		
+		<!-- 谁是观察者? 玩家就是观察者，观察到的信息会同步给客户端。
+			开发者可以设计为NPC/Monster在被观察时才激活AI，这样可以减少服务端的CPU消耗。参考Entity.onWitnessed
+			(Who is witness? Player is witness, The observed information will be synchronized to the client.
+			Developers can be designed to: Activation (NPC / Monster) AI was observed when, This can reduce server CPU consumption.
+			see also: Entity.onWitnessed.
+			)
+		-->
 		<witness>
-			<!-- 观察者 timeout超时(秒) Integer-->
-			<timeout> 15 </timeout>
+			<!-- 当一个实体不再被观察者观察之后，实体并不会马上恢复为未被观察状态，在timeout(秒)时间范围内没有再次被观察则重置状态 
+				(When the observer to stop observing entity, Entity does not recovery immediately to the initial-state,
+				Not observed before timeout again, the recovery state.)
+			-->
+			<timeout> 15 </timeout>										<!-- Type: Integer -->
 		</witness>
 	</cellapp>
 	
 	<baseapp>
+		<!-- 入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
 		<entryScriptFile> kbengine </entryScriptFile>
-		
+
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
+		
+		<!-- 外部IP地址，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
+			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
+			地址。
+			(External IP address, In some server environment, May use the port mapping to access KBE,
+			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
+			For example: account activation email address given callback.)
+		-->
+		<externalAddress>  </externalAddress>							<!-- Type: String -->
+		
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the client port range） 
+		-->
 		<externalPorts_min> 20015 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 20019 </externalPorts_max>					<!-- Type: Integer -->
-		
+
+		<!-- 自动存档的时间周期
+			（Automatic archiving time period） 
+		-->
 		<archivePeriod> 100 </archivePeriod> 							<!-- Type: Float -->
+		
+		<!-- 自动备份的时间
+			（Automatic backup time period） 
+		-->
 		<backupPeriod> 10 </backupPeriod>								<!-- Type: Float -->
+		
+		<!-- 是否备份未定义的属性
+			（Whether backup undefined property） 
+		-->
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>		<!-- Type: Boolean -->
-		
+
+		<!-- 负载平衡滤波器指标值
+			（Load balancing Smoothing Bias value） 
+		-->
 		<loadSmoothingBias> 0.01 </loadSmoothingBias>
-		
+
+		<!-- 资源下载带宽限制
+			（Download bandwidth limits） 
+		-->
 		<downloadStreaming>
 			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
 			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
-		
+
+		<!-- entityID分配器，进入溢出范围则请求获取新的ID资源 
+			(The entityID allocator, enter the overflow area will get the new ID's)
+		-->
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
-		<!-- entity restore每tick数量 -->
+		<!-- 当灾难发生后，baseapp进行灾难恢复时，每次恢复entity的数量 
+			(When after the disaster, When baseapp recovery, Each time the number of recovery entity's)
+		-->
 		<entityRestoreSize> 32 </entityRestoreSize>
 		
+		<!-- 程序的性能分析
+			（Analysis of program performance） 
+		-->
 		<profiles>
-			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 退出时导出一份记录 -->
+			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 进程退出后将导出一份报告 
+				(if is true, Engine start is completed, start to record profile information, 
+				Process exit will export a report.)
+			-->
 			<cprofile> false </cprofile>
 			<pyprofile> false </pyprofile>
 			<eventprofile> false </eventprofile>
 			<mercuryprofile> false </mercuryprofile>
 		</profiles>
 		
-		<!-- listen监听队列最大值 -->
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- 如果被占用则向后尝试40001.. -->
+		<!-- Telnet服务, 如果端口被占用则向后尝试40001.. 
+			(Telnet service, if the port is occupied backwards to try 40001)
+		-->
 		<telnet_service>
 			<port> 40000 </port>
 			<password> kbe </password>
-			<!-- 命令默认层 -->
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
 		
+		<!-- 服务端关闭过程的参数 
+			(Parameter server shutdown process)
+		-->
 		<shutdown>
-			<!-- 每秒销毁base数量 -->
+			<!-- 每秒销毁base的数量
+				(The destroy of the per-seconds base's)
+			-->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
 		
 		<respool>
-			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 -->
+			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 
+				(Buffer size is equal to the size of resources, 
+				Less than the buffer resources before they can enter the resource pool)
+			-->
 			<buffer_size> 1024 </buffer_size>
-			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) 
+			(Resources have not been accessed overtime will be destroyed (s))
+			-->
 			<timeout> 600 </timeout>
-			<!-- 资源池检查tick(秒) -->
+			
+			<!-- 资源池检查tick(秒) 
+				(Resource pool check tick (secs))
+			-->
 			<checktick>60</checktick>
 		</respool>
 	</baseapp>
 	
 	<cellappmgr>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 	</cellappmgr>
 	
 	<baseappmgr>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 	</baseappmgr>
 	
 	<loginapp>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
+		
+		<!-- 外部IP地址，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
+			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
+			地址。
+			(External IP address, In some server environment, May use the port mapping to access KBE,
+			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
+			For example: account activation email address given callback.)
+		-->
+		<externalAddress>  </externalAddress>							<!-- Type: String -->
+		
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the client port range） 
+		-->
 		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 		
-		<allowUnencryptedLogins> false </allowUnencryptedLogins>		<!-- Type: Boolean -->
-		
 		<!-- 加密登录信息
-			可选加密:
-				0: 无加密
-				1: blowfish
-				2: rsa (res\key\kbengine_private.key)
+			(The encrypted user login information)
+			
+			可选择的加密方式(Optional encryption):
+				0: 无加密(No Encryption)
+				1: Blowfish
+				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_login> 2 </encrypt_login>
 		
-		<!-- listen监听队列最大值 -->
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- 
-			1: 普通账号
-			2: email账号(需要激活)
-			3: 智能账号(自动识别email， 普通号码等) 
+		<!-- 账号的类型								(Account types)
+			1: 普通账号								(Normal Account)
+			2: email账号(需要激活)					(Email Account, Note: activation required.)
+			3: 智能账号(自动识别Email， 普通号码等)	(Smart Account (Email or Normal, etc.))
 		-->
 		<account_type> 3 </account_type>
 		
-		<!-- 用户http回调接口，处理认证、密码重置等 -->
+		<!-- http回调接口，处理认证、密码重置等 
+			(Http-callback interface, handling authentication, password reset, etc.)
+		-->
 		<http_cbhost> localhost </http_cbhost>
 		<http_cbport> 21103 </http_cbport>
 	</loginapp>		
 	
 	<kbmachine>
+		<!-- 暴露给客户端的端口范围
+			（Exposed to the tools port range） 
+		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 	</kbmachine>
 	
-	<kbcenter>
-		<internalInterface>  </internalInterface>
-	</kbcenter>
-	
 	<bots>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
+		
+		<!-- loginapp地址 
+			（loginapp address)
+		-->
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 20013 </port>											<!-- Type: Integer -->
 		
-		<!-- 默认启动进程后自动添加这么多个bots 
-			totalcount： 添加总数量
-			ticktime： 每次添加所用时间(s)
-			tickcount： 每次添加数量
+		
+		<!-- 默认启动进程后自动添加这么多个机器人 
+			(After starting the process, automatically add some robots)
+			totalcount	： 添加总数量			(Add the total-number)
+			ticktime	： 每次添加所用时间(s)	(Interval time-secs)
+			tickcount	： 每次添加数量			(Each time you add the number of)
 		-->
 		<defaultAddBots> 
-			<totalcount> 10  </totalcount> <!-- Type: Integer -->
-			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
-			<tickcount> 2  </tickcount> <!-- Type: Integer -->
-		</defaultAddBots>							
+			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
+			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
+			<tickcount> 2  </tickcount>									<!-- Type: Integer -->
+		</defaultAddBots>
+		
+		<!-- 机器人账号相关 
+			(about bots-accounts)
+		-->
+		<account_infos>
+			<!-- 机器人账号名称的前缀 
+				(The account name prefix)
+			-->
+			<account_name_prefix>		bot_	</account_name_prefix>
+			
+			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增 
+				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
+			-->
+			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
+		</account_infos>
+		
+		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 
+			(Telnet service, if the port is occupied backwards to try 51001)
+		-->
+		<telnet_service>
+			<port> 51000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
+			<default_layer> python </default_layer>
+		</telnet_service>
 	</bots>
 	
 	<messagelog>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
+		
+		<!-- 单个app(baseapp, cellapp, 等等..)进程上, 一个tick最多缓存的log数量
+			（The number of single-process(baseapp, cellapp, etc..), The number of log a tick buffer.） 
+		-->
+		<tick_max_buffered_logs> 65535 </tick_max_buffered_logs>
+
+		<!-- 单个app(baseapp, cellapp, 等等..)进程上, 一个tick同步给messagelog的log数量
+			（The number of single-process(baseapp, cellapp, etc..), A tick synchronization to the number of messagelog） 
+		-->
+		<tick_sync_logs> 32 </tick_sync_logs>
 	</messagelog>
 	
 	<resourcemgr>
+		<!-- 接口网卡的名称
+			（Name of the interface(NIC)） 
+		-->
 		<internalInterface>  </internalInterface>
 		
 		<downloadStreaming>
@@ -384,15 +715,26 @@
 			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
 		
-		<!-- listen监听队列最大值 -->
+		<!-- listen监听队列最大值
+		    (listen: Maximum listen queue)
+		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
 		<respool>
-			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 -->
+			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 
+				(Buffer size is equal to the size of resources, 
+				Less than the buffer resources before they can enter the resource pool)
+			-->
 			<buffer_size> 1024 </buffer_size>
-			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) 
+			(Resources have not been accessed overtime will be destroyed (s))
+			-->
 			<timeout> 600 </timeout>
-			<!-- 资源池检查tick(秒) -->
+			
+			<!-- 资源池检查tick(秒) 
+				(Resource pool check tick (secs))
+			-->
 			<checktick>60</checktick>
 		</respool>
 	</resourcemgr>

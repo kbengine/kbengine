@@ -81,6 +81,11 @@ class Witness : public PoolObject, public Updatable
 public:
 	Witness();
 	~Witness();
+	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
+	virtual std::string c_str(){ return "Witness"; }
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
@@ -113,21 +118,23 @@ public:
 
 	void onEnterAOI(Entity* pEntity);
 	void onLeaveAOI(Entity* pEntity);
-	
+	void _onLeaveAOI(EntityRef* pEntityRef);
+
 	/**
 		写Volatile数据到流
 	*/
 	uint32 addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity);
 	
-	/**
-		如果aoi中entity数量小于256则只发送索引位置
-	*/
-	void addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID);
-	
+
+	void addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
+		const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
+
+	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID)const;
+
 	/**
 		使用何种协议来更新客户端
 	*/
-	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags);
+	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
 
 	/**
 		添加基础位置到更新包
@@ -139,10 +146,22 @@ public:
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
-	typedef std::vector<EntityRef*> AOI_ENTITIES;
+	INLINE EntityRef::AOI_ENTITIES& aoiEntities();
 
-	AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
+	/** 获得aoientity的引用 */
+	INLINE EntityRef* getAOIEntityRef(ENTITY_ID entityID);
 
+	/** entityID是否在aoi内 */
+	INLINE bool entityInAOI(ENTITY_ID entityID);
+
+	INLINE AOITrigger* pAOITrigger();
+private:
+	/**
+		如果aoi中entity数量小于256则只发送索引位置
+	*/
+	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
 private:
 	Entity*									pEntity_;
 
@@ -151,9 +170,11 @@ private:
 
 	AOITrigger*								pAOITrigger_;
 
-	AOI_ENTITIES							aoiEntities_;
+	EntityRef::AOI_ENTITIES					aoiEntities_;
 
 	Position3D								lastBasePos;
+
+	uint16									clientAOISize_;
 
 };
 

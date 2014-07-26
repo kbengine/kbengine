@@ -49,6 +49,7 @@ namespace KBEngine{
 
 class DBInterface;
 class BillingHandler;
+class SyncAppDatasHandler;
 
 class Dbmgr :	public ServerApp, 
 				public Singleton<Dbmgr>
@@ -101,14 +102,14 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
 	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		请求创建账号
@@ -142,7 +143,7 @@ public:
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid);
+	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
 
 	/** 网络接口
 		执行数据库查询
@@ -160,9 +161,14 @@ public:
 	void removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		通过dbid从数据库中删除一个实体的回调
+	*/
+	void deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
@@ -213,6 +219,8 @@ public:
 	void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& newpassword);
 	
+	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }
+	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -223,8 +231,8 @@ protected:
 	// globalData
 	GlobalDataServer*									pGlobalData_;								
 
-	// globalBases
-	GlobalDataServer*									pGlobalBases_;								
+	// baseAppData
+	GlobalDataServer*									pBaseAppData_;								
 
 	// cellAppData
 	GlobalDataServer*									pCellAppData_;														
@@ -243,6 +251,8 @@ protected:
 
 	BillingHandler*										pBillingAccountHandler_;
 	BillingHandler*										pBillingChargeHandler_;
+
+	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 };
 
 }

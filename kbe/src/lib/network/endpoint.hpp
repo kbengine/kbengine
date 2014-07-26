@@ -89,10 +89,6 @@ public:
 	int findDefaultInterface(char * name);
 	int findIndicatedInterface(const char * spec, char * name);
 	static int convertAddress(const char * string, u_int32_t & address);
-	
-	int transmitQueueSize() const;
-	int receiveQueueSize() const;
-	int getQueueSizes(int & tx, int & rx) const;
 
 	int getBufferSize(int optname) const;
 	bool setBufferSize(int optname, int size);

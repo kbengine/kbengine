@@ -41,7 +41,7 @@ public:
 	const DataType* getDataType(void){ return _dataType; }
 	
 	/** 
-		初始化固定字典
+		初始化固定数组
 	*/
 	void initialize(std::string strInitData);
 	void initialize(PyObject* pyObjInitData);
@@ -50,7 +50,10 @@ public:
 		支持pickler 方法 
 	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
-	/** unpickle方法 */
+
+	/** 
+		unpickle方法 
+	*/
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 	
 	/** 
@@ -73,6 +76,12 @@ public:
 	bool isSameItemType(PyObject* pyValue);
 
 	virtual PyObject* createNewItemFromObj(PyObject* pyItem);
+
+	/** 
+		获得对象的描述 
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
 protected:
 	FixedArrayType* _dataType;
 } ;

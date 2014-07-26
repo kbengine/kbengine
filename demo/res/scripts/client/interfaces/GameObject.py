@@ -3,21 +3,21 @@ import KBEngine
 import KBExtra
 from KBEDebug import *
 
-class GameObject(KBEngine.Entity):
+class GameObject:
 	def __init__(self):
-		KBEngine.Entity.__init__(self)
+		pass
 		
 	def getScriptName(self):
 		return self.__class__.__name__
 		
-	def enterWorld(self):
+	def onEnterWorld(self):
 		"""
 		KBEngine method.
 		这个entity已经进入世界了
 		"""
 		pass
 		
-	def leaveWorld(self):
+	def onLeaveWorld(self):
 		"""
 		KBEngine method.
 		这个entity将要离开世界了

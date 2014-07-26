@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import d_spaces
 from KBEDebug import *
 
 def countPlayers():
@@ -16,8 +17,8 @@ def onBaseAppReady(bootstrapIdx):
 	"""
 	KBEngine method.
 	baseapp已经准备好了
-	@param isBootstrap: 是否是第一个baseapp启动
-	@type isBootstrap: bool
+	@param bootstrapIdx: 当前baseapp的启动顺序
+	@type bootstrapIdx: INT32
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
 	KBEngine.addWatcher("scripts/countPlayers", "UINT32", countPlayers)
@@ -25,7 +26,7 @@ def onBaseAppReady(bootstrapIdx):
 	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
-		
+
 def onBaseAppShutDown(state):
 	"""
 	KBEngine method.
@@ -36,7 +37,41 @@ def onBaseAppShutDown(state):
 	@type state: int					 
 	"""
 	INFO_MSG('onBaseAppShutDown: state=%i' % state)
+
+def readlyForLogin(bootstrapIdx):
+	"""
+	KBEngine method.
+	如果返回值大于等于1.0则初始化全部完成, 否则返回准备的进度值0.0~1.0。
+	在此可以确保脚本层全部初始化完成之后才开放登录。
+	@param bootstrapIdx: 当前baseapp的启动顺序
+	@type bootstrapIdx: INT32
+	"""
+	if bootstrapIdx != 1:
+		INFO_MSG('initProgress: completed!')
+		return True
 		
+	spacesEntity = KBEngine.globalData["SpaceMgr"]
+	
+	tmpDatas = list(d_spaces.datas.keys())
+	count = 0
+	total = len(tmpDatas)
+	
+	for utype in tmpDatas:
+		spaceAlloc = spacesEntity.getSpaceAllocs()[utype]
+		if spaceAlloc.__class__.__name__ != "SpaceAllocDuplicate":
+			if len(spaceAlloc.getSpaces()) > 0:
+				count += 1
+		else:
+			count += 1
+	
+	if count < total:
+		v = float(count) / total
+		# INFO_MSG('initProgress: %f' % v)
+		return v;
+	
+	INFO_MSG('initProgress: completed!')
+	return 1.0
+	
 def onInit(isReload):
 	"""
 	KBEngine method.
@@ -73,20 +108,20 @@ def onGlobalDataDel(key):
 	globalData有删除
 	"""
 	DEBUG_MSG('onDelGlobalData: %s' % key)
-	
-def onGlobalBases(key, value):
+
+def onBaseAppData(key, value):
 	"""
 	KBEngine method.
-	globalBases有改变
+	baseAppData有改变
 	"""
-	DEBUG_MSG('onGlobalBases: %s' % key)
+	DEBUG_MSG('onBaseAppData: %s' % key)
 	
-def onGlobalBasesDel(key):
+def onBaseAppDataDel(key):
 	"""
 	KBEngine method.
-	globalBases有删除
+	baseAppData有删除
 	"""
-	DEBUG_MSG('onGlobalBasesDel: %s' % key)
+	DEBUG_MSG('onBaseAppDataDel: %s' % key)
 
 def onLoseChargeCB(ordersID, dbid, success, datas):
 	"""

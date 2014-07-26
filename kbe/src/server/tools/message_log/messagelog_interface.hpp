@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 	// 某app注册自己的接口地址到本app
-	MESSAGELOG_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	MESSAGELOG_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -57,7 +57,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extAddrEx)
 
 	// 某app主动请求look。
 	MESSAGELOG_MESSAGE_DECLARE_ARGS0(lookApp,								MERCURY_FIXED_MESSAGE)

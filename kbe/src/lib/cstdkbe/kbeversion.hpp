@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 	
 #define KBE_VERSION_MAJOR 0
-#define KBE_VERSION_MINOR 0
-#define KBE_VERSION_PATCH 1
+#define KBE_VERSION_MINOR 1
+#define KBE_VERSION_PATCH 9
 
 namespace KBEVersion
 {

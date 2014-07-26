@@ -300,4 +300,28 @@ PyObject* FixedArray::__py_remove(PyObject* self, PyObject* args, PyObject* kwar
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* FixedArray::tp_str()
+{
+	return tp_repr();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArray::tp_repr()
+{
+	std::vector<PyObject*>& values = getValues();
+	PyObject* pyList = PyList_New(values.size());
+	
+	for(size_t i=0; i<values.size(); i++)
+	{
+		Py_INCREF(values[i]);
+		PyList_SET_ITEM(pyList, i, values[i]);
+	}
+
+	PyObject* pyStr = PyObject_Repr(pyList);
+	Py_DECREF(pyList);
+
+	return pyStr;
+}
+
+//-------------------------------------------------------------------------------------
 }

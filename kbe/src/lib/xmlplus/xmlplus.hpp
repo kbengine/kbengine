@@ -71,7 +71,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
-#include "third_party/tinyxml/tinyxml.h"
+#include "dependencies/tinyxml/tinyxml.h"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -128,7 +128,14 @@ public:
 
 		if(!txdoc_->LoadFile())
 		{
-			ERROR_MSG(boost::format("load xml from %1% is error!\n") % pathbuf);
+#if KBE_PLATFORM == PLATFORM_WIN32
+			printf("%s", (boost::format("TiXmlNode::openXML: %1%, is error!\n") % pathbuf).str().c_str());
+#endif
+			if(DebugHelper::isInit())
+			{
+				ERROR_MSG(boost::format("TiXmlNode::openXML: %1%, is error!\n") % pathbuf);
+			}
+
 			return NULL;
 		}
 
@@ -186,11 +193,49 @@ public:
 	
 	TiXmlDocument* getTxdoc()const { return txdoc_; }
 
-	std::string getKey(const TiXmlNode* node){return strutil::kbe_trim(node->Value());}
-	std::string getValStr(const TiXmlNode* node){return strutil::kbe_trim(node->ToText()->Value());}
-	std::string getVal(const TiXmlNode* node){return node->ToText()->Value();}
-	int getValInt(const TiXmlNode* node){return atoi(strutil::kbe_trim(node->ToText()->Value()).c_str());}
-	double getValFloat(const TiXmlNode* node){return atof(strutil::kbe_trim(node->ToText()->Value()).c_str());}
+	std::string getKey(const TiXmlNode* node)
+	{
+		if(node == NULL)
+			return "";
+
+		return strutil::kbe_trim(node->Value());
+	}
+
+	std::string getValStr(const TiXmlNode* node)
+	{
+		const TiXmlText* ptext = node->ToText();
+		if(ptext == NULL)
+			return "";
+
+		return strutil::kbe_trim(ptext->Value());
+	}
+
+	std::string getVal(const TiXmlNode* node)
+	{
+		const TiXmlText* ptext = node->ToText();
+		if(ptext == NULL)
+			return "";
+
+		return ptext->Value();
+	}
+
+	int getValInt(const TiXmlNode* node)
+	{
+		const TiXmlText* ptext = node->ToText();
+		if(ptext == NULL)
+			return 0;
+
+		return atoi(strutil::kbe_trim(ptext->Value()).c_str());
+	}
+
+	double getValFloat(const TiXmlNode* node)
+	{
+		const TiXmlText* ptext = node->ToText();
+		if(ptext == NULL)
+			return 0.f;
+
+		return atof(strutil::kbe_trim(ptext->Value()).c_str());
+	}
 protected:
 	TiXmlDocument* txdoc_;
 	TiXmlElement* rootElement_;

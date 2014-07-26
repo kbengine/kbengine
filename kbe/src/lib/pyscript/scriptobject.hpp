@@ -149,12 +149,15 @@ public:																						\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\
 																							\
+	static bool _##CLASS##_py_installed;													\
+																							\
 	/** getsetµÄÖ»¶ÁÊôÐÔ
 	*/																						\
-	static int __py_readonly_descr(PyObject* self, void* closure)							\
+	static int __py_readonly_descr(PyObject* self, PyObject* value, void* closure)			\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
-		"Sorry, this attribute in " #CLASS " is read-only");								\
+		"Sorry, this attribute %s.%s is read-only", (self != NULL ? self->ob_type->tp_name\
+		: #CLASS), (closure != NULL ? (char*)closure : "unknown"));							\
 		PyErr_PrintEx(0);																	\
 		return 0;																			\
 	}																						\
@@ -164,7 +167,8 @@ public:																						\
 	static int __py_writeonly_descr(PyObject* self, PyObject* value, void* closure)			\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
-		"Sorry, this attribute in " #CLASS " is write-only");								\
+		"Sorry, this attribute %s.%s is write-only", (self != NULL ? self->ob_type->tp_name\
+		: #CLASS), (closure != NULL ? (char*)(closure) : "unknown"));						\
 		PyErr_PrintEx(0);																	\
 		return 0;																			\
 	}																						\
@@ -328,6 +332,7 @@ public:																						\
 		}																					\
 																							\
 		SCRIPT_ERROR_CHECK();																\
+		_##CLASS##_py_installed = true;														\
 																							\
 	}																						\
 																							\
@@ -339,7 +344,9 @@ public:																						\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmembers);										\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpgetseters);											\
 		CLASS::onUninstallScript();															\
-		Py_DECREF(&_scriptType);															\
+																							\
+		if(_##CLASS##_py_installed)															\
+			Py_DECREF(&_scriptType);														\
 	}																						\
 
 

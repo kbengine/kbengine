@@ -46,15 +46,17 @@ public:
 
 	void cancelAll();
 
-	void writeToStream(MemoryStream & stream ) const;
-	void readFromStream(MemoryStream & stream,
-			uint32 numTimers, TimerHandler * pHandler);
-
 	ScriptID getIDForHandle(TimerHandle handle) const;
 
 	bool isEmpty() const	{ return map_.empty(); }
-private:
+
 	typedef std::map<ScriptID, TimerHandle> Map;
+
+	ScriptTimers::Map& map(){ return map_; }
+
+	void directAddTimer(ScriptID tid, TimerHandle handle);
+private:
+	
 
 	ScriptID getNewID();
 	Map::const_iterator findTimer(TimerHandle handle) const;
@@ -73,10 +75,6 @@ namespace ScriptTimersUtil
 	bool delTimer( ScriptTimers * pTimers, ScriptID timerID );
 	void releaseTimer( ScriptTimers ** ppTimers, TimerHandle handle );
 	void cancelAll( ScriptTimers * pTimers );
-
-	void writeToStream( ScriptTimers * pTimers, MemoryStream & stream );
-	void readFromStream( ScriptTimers ** ppTimers, MemoryStream & stream,
-			TimerHandler * pHandler );
 
 	ScriptID getIDForHandle( ScriptTimers * pTimers,
 			TimerHandle handle );

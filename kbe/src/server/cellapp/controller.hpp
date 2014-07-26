@@ -30,6 +30,7 @@ namespace KBEngine{
 
 class Entity;
 class Controllers;
+class MemoryStream;
 
 /*
 	控制器， 管理trap、Vision等。
@@ -37,7 +38,14 @@ class Controllers;
 class Controller
 {
 public:
-	Controller(Entity* pEntity, int32 userarg, uint32 id = 0);
+	enum ControllerType
+	{
+		CONTROLLER_TYPE_NORMAL = 0,			// 常规类型
+		CONTROLLER_TYPE_PROXIMITY = 1,		// 范围触发器类型
+		CONTROLLER_TYPE_MOVE = 2,			// 移动控制器类型
+	};
+
+	Controller(Controller::ControllerType type, Entity* pEntity, int32 userarg, uint32 id = 0);
 	virtual ~Controller();
 	
 	uint32 id(){ return id_; }
@@ -50,6 +58,11 @@ public:
 	void pControllers(Controllers* v){ pControllers_ = v; }
 
 	virtual void destroy();
+
+	Controller::ControllerType type(){ return type_; }
+
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	uint32 id_;
 	Entity* pEntity_;
@@ -57,6 +70,8 @@ protected:
 	int32 userarg_;
 	
 	Controllers* pControllers_;
+
+	ControllerType type_;
 
 };
 

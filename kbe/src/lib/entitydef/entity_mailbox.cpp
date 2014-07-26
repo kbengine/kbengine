@@ -71,7 +71,7 @@ EntityMailbox::~EntityMailbox()
 	char s[1024];
 	c_str(s, 1024);
 
-	DEBUG_MSG(boost::format("EntityMailbox::~EntityMailbox(): %1%.\n") % s);
+	//DEBUG_MSG(boost::format("EntityMailbox::~EntityMailbox(): %1%.\n") % s);
 
 	KBE_ASSERT(atIdx_ < EntityMailbox::mailboxs.size());
 	KBE_ASSERT(EntityMailbox::mailboxs[ atIdx_ ] == this);
@@ -134,6 +134,13 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	if(md != NULL)
 	{
 		free(ccattr);
+
+		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
+		{
+			if(!md->isExposed())
+				return ScriptObject::onScriptGetAttribute(attr);
+		}
+
 		return createRemoteMethod(md);
 	}
 

@@ -5,7 +5,7 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
 
-class SpawnPoint(GameObject):
+class SpawnPoint(KBEngine.Entity, GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)

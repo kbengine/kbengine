@@ -142,8 +142,9 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/jsoncpp/include
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E
@@ -208,7 +209,7 @@ LDFLAGS += -export-dynamic
 # The OpenSSL redist is used for all builds as cstdkbe/md5.[ch]pp depends
 # on the OpenSSL MD5 implementation.
 
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/log4cxx/include
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/log4cxx/include
 ifeq ($(NO_USE_LOG4CXX),0)
 ifeq ($(KBE_CONFIG), Hybrid64)
 LDLIBS += -llog4cxx64 -lapr-1-64 -laprutil-1-64 -lexpat64
@@ -219,35 +220,51 @@ else
 CPPFLAGS += -DNO_USE_LOG4CXX
 endif
 
-OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/openssl
+OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
 ifeq ($(USE_OPENSSL),1)
 LDLIBS += -lssl -lcrypto -ldl
 CPPFLAGS += -DUSE_OPENSSL
 endif
 
-G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/g3dlite
+G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/g3dlite
 KBE_INCLUDES += -I$(G3DMATH_DIR)
 ifeq ($(USE_G3DMATH),1)
 LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
 
-SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar
+SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/sigar
 KBE_INCLUDES += -I$(SIGAR_DIR)/linux
 #ifeq ($(USE_SIGAR),1)
 LDLIBS += -lsigar
 CPPFLAGS += -DUSE_SIGAR
 #endif
 
-JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/jwsmtp
+JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jwsmtp
 KBE_INCLUDES += -I$(JWSMTP_DIR)/jwsmtp/jwsmtp
 ifeq ($(USE_JWSMTP),1)
 LDLIBS += -ljwsmtp
 CPPFLAGS += -DUSE_JWSMTP
 endif
 
+TMXPARSER_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/tmxparser
+KBE_INCLUDES += -I$(TMXPARSER_DIR)
+ifeq ($(USE_TMXPARSER),1)
+LDLIBS += -ltmxparser
+CPPFLAGS += -DUSE_TMXPARSER
+endif
+
+ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zip
+KBE_INCLUDES += -I$(ZIP_DIR)
+ifeq ($(USE_ZIP),1)
+LDLIBS += -lzip
+CPPFLAGS += -DUSE_ZIP
+endif
+
+
 LDLIBS += -ltinyxml
+LDLIBS += -ljsoncpp
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1
@@ -260,11 +277,6 @@ else
 	ARCHFLAGS=-m32
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/CppUnitLite2/src/
-KBE_INCLUDES += -I$(CPPUNITLITE2_DIR)
-LDLIBS += -lCppUnitLite2
-endif
 
 # Use backwards compatible hash table style. This is because Fedora Core 6
 # defaults to using "gnu" style hash tables which produces incompatible
@@ -499,10 +511,6 @@ $(LIBDIR)/libssl.a: always
 	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_ssl
 endif
 
-ifdef USE_CPPUNITLITE2
-$(LIBDIR)/libCppUnitLite2.a: always
-	@$(MAKE) -C $(CPPUNITLITE2_DIR)
-endif
 
 # Strip the prefixed "lib" string. Be careful not to strip any _lib
 $(MY_LIBNAMES): always
@@ -626,14 +634,8 @@ else
 PYTHON_DEP =
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DEP = $(LIBDIR)/libCppUnitLite2.a
-else
-CPPUNITLITE2_DEP =
-endif
 
-
-$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP) $(CPPUNITLITE2_DEP)
+$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP)
 
 ifdef QUIET_BUILD
 	test -e $(MSG_FILE) && cat $(MSG_FILE); rm -f $(MSG_FILE)

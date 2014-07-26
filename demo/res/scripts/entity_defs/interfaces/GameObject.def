@@ -44,6 +44,12 @@
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		30			</Default>
 		</modelScale>
+
+		<persistentMapping>
+			<Type>			PY_DICT		</Type>
+			<Flags>		BASE		</Flags>
+			<Persistent>	true		</Persistent>
+		</persistentMapping>
 	</Properties>
 
 	<CellMethods>

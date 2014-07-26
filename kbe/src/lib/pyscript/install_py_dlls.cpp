@@ -46,6 +46,9 @@ extern "C" PyObject* PyInit_pyexpat(void);
 pyfunc g_funs[] = {&PyInit_pyexpat, &PyInit__socket, &PyInit__ssl, &PyInit__hashlib, 
 &PyInit_select, &PyInit__ctypes, &PyInit__elementtree, &PyInit_unicodedata, NULL};
 
+const char* g_sfuns[] = {"PyInit_pyexpat", "PyInit__socket", "PyInit__ssl", "PyInit__hashlib", 
+"PyInit_select", "PyInit__ctypes", "PyInit__elementtree", "PyInit_unicodedata", ""};
+
 //-------------------------------------------------------------------------------------
 bool install_py_dlls(void)
 {
@@ -57,7 +60,13 @@ bool install_py_dlls(void)
 		if(g_funs[i] == NULL)
 			break;
 
+		DEBUG_MSG(boost::format("Script::install_py_dlls(): %1%\n") % g_sfuns[i]);
 		PyObject * m = (*g_funs[i++])();
+		if(m == NULL)
+		{
+			return false;
+		}
+
 		struct PyModuleDef *def;
 		def = PyModule_GetDef(m);
 		if (!def) {

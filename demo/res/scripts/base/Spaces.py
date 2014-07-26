@@ -7,9 +7,11 @@ from SpaceAlloc import *
 import d_spaces
 import wtimer
 
-class Spaces(GameObject):
+class Spaces(KBEngine.Base, GameObject):
 	def __init__(self):
+		KBEngine.Base.__init__(self)
 		GameObject.__init__(self)
+		
 		self._spaceAllocs = {}
 		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
 		self.initAlloc()
@@ -19,13 +21,14 @@ class Spaces(GameObject):
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
 			spaceData = d_spaces.datas.get(utype)
-			if spaceData["entityType"] == "SpaceCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
-			elif spaceData["entityType"] == "SpaceFightCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
+			if spaceData["entityType"] == "SpaceDuplicate":
+				self._spaceAllocs[utype] = SpaceAllocDuplicate(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
-				
+	
+	def getSpaceAllocs(self):
+		return self._spaceAllocs
+		
 	def createSpaceOnTimer(self, tid, tno):
 		"""
 		创建space

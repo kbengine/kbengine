@@ -292,7 +292,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->setnodelay(true);
 	pEP->addr(address);
 	
-#ifdef KBE_SERVER
 	if(rbuffer > 0)
 	{
 		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
@@ -311,7 +310,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 				pEndPointName % pEP->getBufferSize(SO_SNDBUF) % wbuffer);
 		}
 	}
-#endif
 
 	int backlog = Mercury::g_SOMAXCONN;
 	if(backlog < 5)
@@ -513,15 +511,26 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 {
 	Reason reason = REASON_SUCCESS;
-	const Bundle::Packets& pakcets = bundle.packets();
-	Bundle::Packets::const_iterator iter = pakcets.begin();
-	for (; iter != pakcets.end(); iter++)
+
+	if(!pChannel->isCondemn())
 	{
-		reason = this->sendPacket((*iter), pChannel);
-		if(reason != REASON_SUCCESS)
-			break; 
+		const Bundle::Packets& pakcets = bundle.packets();
+		Bundle::Packets::const_iterator iter = pakcets.begin();
+		for (; iter != pakcets.end(); iter++)
+		{
+			reason = this->sendPacket((*iter), pChannel);
+			if(reason != REASON_SUCCESS)
+				break; 
+		}
 	}
-	
+	else
+	{
+		ERROR_MSG(boost::format("NetworkInterface::send: channel(%1%) send error, reason=%2%.\n") % pChannel->c_str() % 
+			reasonToString(REASON_CHANNEL_CONDEMN));
+
+		reason = REASON_CHANNEL_CONDEMN;
+	}
+
 	bundle.onSendCompleted();
 	return reason;
 }
@@ -548,8 +557,13 @@ Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
 //-------------------------------------------------------------------------------------
 Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPacket)
 {
+	if(pChannel->isCondemn())
+	{
+		return REASON_CHANNEL_CONDEMN;
+	}
+
 	// 尝试发送的次数
-	int retries = 0;
+	uint32 retries = 0;
 	Reason reason;
 	
 	pPacket->sentSize = 0;
@@ -571,25 +585,30 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		}
 
 		// 如果系统发送缓冲已经满了，则我们等待10ms
-		if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK) 
-			&& (pChannel->isInternal() || retries <= 3))
+		if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
 		{
+			if(pChannel->isInternal())
+			{
+				if(g_intReSendRetries > 0 && retries > g_intReSendRetries)
+				{
+					pChannel->condemn();
+					break;
+				}
+			}
+			else
+			{
+				if(g_extReSendRetries > 0 && retries > g_extReSendRetries)
+				{
+					pChannel->condemn();
+					break;
+				}
+			}
+
 			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%1%)\n") %
 				retries );
 			
-			/* 这个做法导致很多意外问题
-			int fd = *pChannel->endpoint();
-			this->pDispatcher_->processNetwork(false);
-			
-			// 有可能会在processNetwork处理时被强制关闭通道而造成崩溃， 所以此处需要检查一下
-			if(this->findChannel(fd) == NULL)
-				return REASON_CHANNEL_LOST;
-			*/
-
-			if(retries > 256)
-				break;
-
+			KBEngine::sleep(pChannel->isInternal() ? g_intReSendInterval : g_extReSendInterval);
 			continue;
 		}
 
@@ -598,19 +617,19 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 
 	// 其他错误退出尝试
 	ERROR_MSG(boost::format("NetworkInterface::basicSendWithRetries: packet discarded(reason=%1%).\n") % (reasonToString(reason)));
-
-	// 如果是外部通道， 那么此时后续包都将出错， 没有必要继续和其通讯了
-	if(pChannel->isExternal())
-	{
-		pChannel->condemn();
-	}
-
 	return reason;
 }
 
 //-------------------------------------------------------------------------------------
 Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
 {
+	if(pChannel->isCondemn())
+	{
+		ERROR_MSG(boost::format("NetworkInterface::basicSendSingleTry: channel(%1%) send error, reason=%2%.\n") % pChannel->c_str() % 
+			reasonToString(REASON_CHANNEL_CONDEMN));
+		return REASON_CHANNEL_CONDEMN;
+	}
+
 	EndPoint * endpoint = pChannel->endpoint();
 	KBE_ASSERT(pPacket->rpos() == 0);
 	int len = endpoint->send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize);

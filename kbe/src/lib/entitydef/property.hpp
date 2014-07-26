@@ -76,7 +76,7 @@ public:
 	/** 
 		获取属性的标志 cell_public等 
 	*/
-	INLINE const uint32& getFlags(void)const;
+	INLINE uint32 getFlags(void)const;
 	
 	/** 
 		获取属性名称 
@@ -98,6 +98,14 @@ public:
 	*/
 	INLINE ENTITY_PROPERTY_UID getUType(void)const;
 	
+	/** 
+		别名id， 当暴露的方法或者广播的属性总个数小于255时
+		我们不使用utype而使用1字节的aliasID来传输
+	*/
+	INLINE int16 aliasID()const;
+	INLINE uint8 aliasIDAsUint8()const;
+	INLINE void aliasID(int16 v);
+
 	/** 
 		设置这个属性为索引键 
 	*/
@@ -140,9 +148,15 @@ public:
 
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
-	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 
-	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+
+	static uint32	propertyDescriptionCount_;									// 所有的属性描述的数量	
+
+	INLINE bool hasCell(void)const;
+	INLINE bool hasBase(void)const;
+	INLINE bool hasClient(void)const;
 protected:	
 	std::string					name_;											// 这个属性的名称
 	std::string					dataTypeName_;									// 这个属性的字符串数据类别名
@@ -154,6 +168,7 @@ protected:
 	ENTITY_PROPERTY_UID			utype_;											// 这个属性的数字类别， 用于网络上传输识别
 	std::string					defaultValStr_;									// 这个属性的默认值
 	DETAIL_TYPE					detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
+	int16						aliasID_;										// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
 };
 
 class FixedDictDescription : public PropertyDescription
@@ -178,6 +193,7 @@ public:
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
 	typedef std::vector<std::pair<std::string, KBEShared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
 protected:
@@ -204,6 +220,9 @@ public:
 		脚本请求设置这个属性的值 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 protected:	
 };
 

@@ -26,7 +26,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp_interface.hpp"
 #include "base_remotemethod.hpp"
 #include "archiver.hpp"
-#include "backup_sender.hpp"
+#include "backuper.hpp"
+#include "initprogress_handler.hpp"
 #include "restore_entity_handler.hpp"
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
@@ -59,7 +60,7 @@ KBE_SINGLETON_INIT(Baseapp);
 
 uint64 Baseapp::_g_lastTimestamp = timestamp();
 
-PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityType)
+PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
 	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
@@ -73,7 +74,20 @@ PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityTyp
 		PropertyDescription* propertyDescription = iter->second;
 
 		const char* attrname = propertyDescription->getName();
-		PyObject* pyVal = propertyDescription->createFromStream(&s);
+
+		PyObject* pyVal = propertyDescription->createFromPersistentStream(&s);
+
+		if(!propertyDescription->getDataType()->isSameType(pyVal))
+		{
+			if(pyVal)
+			{
+				Py_DECREF(pyVal);
+			}
+			
+			ERROR_MSG(boost::format("Baseapp::createCellDataDictFromPersistentStream: %1%.%2% is error, set to default!\n") % entityType % attrname);
+			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+		}
+
 		PyDict_SetItemString(pyDict, attrname, pyVal);
 		Py_DECREF(pyVal);
 	}
@@ -119,10 +133,10 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	EntityApp<Base>(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
-	pGlobalBases_(NULL),
+	pBaseAppData_(NULL),
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
-	pBackupSender_(),
+	pBackuper_(),
 	load_(0.f),
 	numProxices_(0),
 	pTelnetServer_(NULL),
@@ -196,7 +210,7 @@ void Baseapp::onShutdown(bool first)
 			if(static_cast<Base*>(iter->second.get())->hasDB() && 
 				static_cast<Base*>(iter->second.get())->getCellMailbox() == NULL)
 			{
-				this->destroyEntity(static_cast<Base*>(iter->second.get())->getID());
+				this->destroyEntity(static_cast<Base*>(iter->second.get())->getID(), true);
 
 				count--;
 				done = true;
@@ -248,6 +262,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere,				__py_createBaseAnywhere,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,									METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhereFromDBID,		__py_createBaseAnywhereFromDBID,							METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,								METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		quantumPassedPercent,			__py_quantumPassedPercent,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		charge,							__py_charge,												METH_VARARGS,			0);
@@ -258,6 +273,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,										METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,												METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deleteBaseByDBID,				__py_deleteBaseByDBID,										METH_VARARGS,			0);
 	return EntityApp<Base>::installPyModules();
 }
 
@@ -265,8 +281,8 @@ bool Baseapp::installPyModules()
 void Baseapp::onInstallPyModules()
 {
 	// 添加globalData, globalBases支持
-	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
-	registerPyObjectToScript("globalBases", pGlobalBases_);
+	pBaseAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::BASEAPP_DATA);
+	registerPyObjectToScript("baseAppData", pBaseAppData_);
 
 	if(PyModule_AddIntMacro(this->getScript().getModule(), LOG_ON_REJECT))
 	{
@@ -297,8 +313,8 @@ bool Baseapp::uninstallPyModules()
 		script::PyProfile::remove("kbengine");
 	}
 
-	unregisterPyObjectToScript("globalBases");
-	S_RELEASE(pGlobalBases_); 
+	unregisterPyObjectToScript("baseAppData");
+	S_RELEASE(pBaseAppData_); 
 
 	Base::uninstallScript();
 	Proxy::uninstallScript();
@@ -441,7 +457,7 @@ void Baseapp::handleGameTick()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleBackup()
 {
-	pBackupSender_->tick();
+	pBackuper_->tick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -472,7 +488,7 @@ bool Baseapp::initializeEnd()
 			Resmgr::respool_checktick);
 	}
 
-	pBackupSender_.reset(new BackupSender());
+	pBackuper_.reset(new Backuper());
 	pArchiver_.reset(new Archiver());
 
 	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());
@@ -626,13 +642,13 @@ void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	if(pChannel->isExternal())
 		return;
 
 	EntityApp<Base>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
-									intaddr, intport, extaddr, extport);
+									intaddr, intport, extaddr, extport, extaddrEx);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
@@ -653,17 +669,17 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	{
 	case BASEAPP_TYPE:
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), 
+		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), 
+		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
@@ -853,8 +869,8 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	ENTITY_ID entityID = idClient_.alloc();
 	KBE_ASSERT(entityID > 0);
 
-	DbmgrInterface::queryEntityArgs5::staticAddToBundle((*pBundle), 
-		g_componentID, dbid, entityType, callbackID, entityID);
+	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
+		g_componentID, 0, dbid, entityType, callbackID, entityID);
 	
 	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -906,11 +922,12 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 					callbackID);
 			}
 		}
-
+		
+		s.opfini();
 		return;
 	}
 
-	PyObject* pyDict = create_celldatadict_from_stream(s, entityType.c_str());
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
@@ -948,6 +965,308 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	PyObject* pyCallback = NULL;
+	wchar_t* wEntityType = NULL;
+	char* entityType = NULL;
+	int ret = -1;
+	DBID dbid;
+	PyObject* pyEntityType = NULL;
+
+	switch(argCount)
+	{
+	case 3:
+		ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyCallback);
+		break;
+	case 2:
+		ret = PyArg_ParseTuple(args, "O|K", &pyEntityType, &dbid);
+		break;
+	default:
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
+				__FUNCTION__, argCount);	
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	};
+
+	if(pyEntityType)
+	{
+		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
+		entityType = strutil::wchar2char(wEntityType);									
+		PyMem_Free(wEntityType);		
+	}
+
+	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args is error, entityType=%s!", entityType);
+		PyErr_PrintEx(0);
+
+		if(entityType)
+			free(entityType);
+
+		return NULL;
+	}
+
+	if(EntityDef::findScriptModule(entityType) == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: entityType is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	if(dbid <= 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: dbid is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	if(pyCallback && !PyCallable_Check(pyCallback))
+	{
+		pyCallback = NULL;
+
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: callback is error!");
+		PyErr_PrintEx(0);
+		free(entityType);
+		return NULL;
+	}
+
+	Baseapp::getSingleton().createBaseAnywhereFromDBID(entityType, dbid, pyCallback);
+
+	free(entityType);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
+{
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: not found dbmgr!\n");
+		PyErr_PrintEx(0);
+		return;
+	}
+
+	CALLBACK_ID callbackID = 0;
+	if(pyCallback != NULL)
+	{
+		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pBundle->newMessage(DbmgrInterface::queryEntity);
+
+	ENTITY_ID entityID = idClient_.alloc();
+	KBE_ASSERT(entityID > 0);
+
+	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
+		g_componentID, 1, dbid, entityType, callbackID, entityID);
+	
+	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	size_t currpos = s.rpos();
+
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	bool success = false;
+	bool wasActive = false;
+	ENTITY_ID entityID;
+
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> success;
+	s >> entityID;
+	s >> wasActive;
+
+	if(!success)
+	{
+		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed.\n") % 
+			entityType.c_str() % dbid);
+
+		if(callbackID > 0)
+		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+			Py_INCREF(Py_None);
+			// baseRef, dbid, wasActive
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if(pyfunc != NULL)
+			{
+				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+													const_cast<char*>("OKi"), 
+													Py_None, dbid, wasActive);
+
+				if(pyResult != NULL)
+					Py_DECREF(pyResult);
+				else
+					SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: can't found callback:%1%.\n") %
+					callbackID);
+			}
+		}
+		
+		s.opfini();
+		return;
+	}
+
+	Mercury::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
+	if(pBaseappmgrChannel == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed, not found baseappmgr.\n") % 
+			entityType.c_str() % dbid);
+		return;
+	}
+
+	s.rpos(currpos);
+
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	(*stream) << g_componentID;
+	stream->append(s);
+	s.opfini();
+
+	// 通知baseappmgr在其他baseapp上创建entity
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBID);
+	pBundle->append((*stream));
+	pBundle->send(this->getNetworkInterface(), pBaseappmgrChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	MemoryStream::ObjPool().reclaimObject(stream);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	bool success = false;
+	bool wasActive = false;
+	ENTITY_ID entityID;
+	COMPONENT_ID sourceBaseappID;
+
+	s >> sourceBaseappID;
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> success;
+	s >> entityID;
+	s >> wasActive;
+
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
+	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
+	if(e)
+	{
+		static_cast<Base*>(e)->setDBID(dbid);
+		static_cast<Base*>(e)->initializeEntity(pyDict);
+		Py_DECREF(pyDict);
+	}
+
+	// 是否本地组件就是发起源， 如果是直接在本地调用回调
+	if(g_componentID == sourceBaseappID)
+	{
+		onCreateBaseAnywhereFromDBIDOtherBaseappCallback(pChannel, g_componentID, entityType, static_cast<Base*>(e)->getID(), callbackID, dbid);
+	}
+	else
+	{
+		// 通知baseapp, 创建好了
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDOtherBaseappCallback);
+
+
+		BaseappInterface::onCreateBaseAnywhereFromDBIDOtherBaseappCallbackArgs5::staticAddToBundle((*pBundle), 
+			g_componentID, entityType, static_cast<Base*>(e)->getID(), callbackID, dbid);
+
+		Components::ComponentInfos* baseappinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, sourceBaseappID);
+		if(baseappinfos == NULL || baseappinfos->pChannel == NULL || baseappinfos->cid == 0)
+		{
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = NULL;
+			pFI->pBundle = pBundle;
+			forward_messagebuffer_.push(sourceBaseappID, pFI);
+			WARNING_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found sourceBaseapp(%1%), message is buffered.\n") % sourceBaseappID);
+			return;
+		}
+		
+		pBundle->send(this->getNetworkInterface(), baseappinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
+{
+	if(callbackID > 0)
+	{
+		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
+		if(sm == NULL)
+		{
+			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback: not found entityType:%1%.\n") %
+				entityType.c_str());
+
+			return;
+		}
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		// baseRef, dbid, wasActive
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if(pyfunc != NULL)
+		{
+			Base* pbase = this->findEntity(createdEntityID);
+
+			PyObject* pyResult = NULL;
+			
+			if(pbase)
+			{
+				pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												pbase, dbid, 0);
+			}
+			else
+			{
+				PyObject* mb = static_cast<PyObject*>(new EntityMailbox(sm, NULL, createByBaseappID, createdEntityID, MAILBOX_TYPE_BASE));
+				pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												mb, dbid, 0);
+				Py_DECREF(mb);
+			}
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found callback:%1%.\n") %
+				callbackID);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 {
 	ENTITY_ID id = base->getID();
@@ -962,11 +1281,6 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle) << componentID_;
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -1008,11 +1322,6 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	(*pBundle) << base->getSpaceID();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -1287,11 +1596,6 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	(*pBundle) << base->inRestore();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	base->addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
-
-	s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -1368,15 +1672,7 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 void Baseapp::onClientEntityEnterWorld(Proxy* base)
 {
 	base->initClientCellPropertys();
-
-	/*
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onEntityEnterWorld);
-	bundle << base->getID();
-	bundle << base->getScriptModule()->getUType();
-	bundle << base->getSpaceID();
-	base->getClientMailbox()->postMail(bundle);
-	*/
+	base->onClientGetCell(NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1804,10 +2100,12 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+
+	new InitProgressHandler(this->getNetworkInterface());
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::onBroadcastBaseAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1827,7 +2125,7 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
 	{
-		ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has key!\n");
+		ERROR_MSG("Baseapp::onBroadcastBaseAppDataChanged: no has key!\n");
 		return;
 	}
 
@@ -1835,12 +2133,12 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 	if(isDelete)
 	{
-		if(pGlobalBases_->del(pyKey))
+		if(pBaseAppData_->del(pyKey))
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 			// 通知脚本
-			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalBasesDel"), 
+			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppDataDel"), 
 				const_cast<char*>("O"), pyKey);
 		}
 	}
@@ -1849,19 +2147,19 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		PyObject * pyValue = script::Pickler::unpickle(value);
 		if(pyValue == NULL)
 		{
-			ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has value!\n");
+			ERROR_MSG("Baseapp::onBroadcastBaseAppDataChanged: no has value!\n");
 			Py_DECREF(pyKey);
 			return;
 		}
 
 		Py_INCREF(pyValue);
 
-		if(pGlobalBases_->write(pyKey, pyValue))
+		if(pBaseAppData_->write(pyKey, pyValue))
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 			// 通知脚本
-			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalBases"), 
+			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onBaseAppData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
 
@@ -1884,7 +2182,17 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 
 	(*pBundle) << loginName;
 	(*pBundle) << accountName;
-	(*pBundle) << this->getNetworkInterface().extaddr().ip;
+	
+	if(strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
+	{
+		uint32 exip = inet_addr(g_kbeSrvConfig.getBaseApp().externalAddress);
+		(*pBundle) << exip;
+	}
+	else
+	{
+		(*pBundle) << this->getNetworkInterface().extaddr().ip;
+	}
+
 	(*pBundle) << this->getNetworkInterface().extaddr().port;
 	(*pBundle).send(this->getNetworkInterface(), pChannel);
 
@@ -1998,6 +2306,13 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		return;
 	}
 
+	if(idClient_.getSize() == 0)
+	{
+		ERROR_MSG("Baseapp::loginGateway: idClient size is 0.\n");
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
+
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
@@ -2005,14 +2320,14 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 			accountName.c_str() % ptinfos->entityID);
 
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
-		if(base == NULL)
+		if(base == NULL || base->isDestroyed())
 		{
 			loginGatewayFailed(pChannel, accountName, SERVER_ERR_BUSY);
 			return;
 		}
 		
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
-		int32 ret = base->onLogOnAttempt(inet_ntoa((struct in_addr&)pChannel->addr().ip), 
+		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
 
 		switch(ret)
@@ -2027,9 +2342,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
 						pOldClientChannel->c_str());
 					
-					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ANOTHER_LOGON);
-					pOldClientChannel->proxyID(0);
-					pOldClientChannel->condemn();
+					kickChannel(pOldClientChannel, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
 				}
 				else
 				{
@@ -2059,7 +2372,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		case LOG_ON_WAIT_FOR_DESTROY:
 		default:
 			INFO_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
-			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_ONLINE);
+			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
 			return;
 		};
 	}
@@ -2127,6 +2440,25 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode)
+{
+	if(pChannel == NULL)
+		return;
+
+	INFO_MSG(boost::format("Baseapp::kickChannel: pChannel=%1%, failedcode=%2%, proxyID=%3%.\n") %
+		pChannel->c_str() % failedcode % pChannel->proxyID());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onKicked);
+	ClientInterface::onKickedArgs1::staticAddToBundle((*pBundle), failedcode);
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	pChannel->proxyID(0);
+	pChannel->condemn();
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
@@ -2175,11 +2507,25 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	base->setDBID(dbid);
 	base->setClientType(ptinfos->ctype);
 
-	PyObject* pyDict = create_celldatadict_from_stream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+
+	unsigned char md[16];
+	MD5((unsigned char *)password.c_str(), password.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
 
 	PyObject* py__ACCOUNT_NAME__ = PyUnicode_FromString(accountName.c_str());
-	PyDict_SetItemString(pyDict, "__account_name__", py__ACCOUNT_NAME__);
+	PyDict_SetItemString(pyDict, "__ACCOUNT_NAME__", py__ACCOUNT_NAME__);
 	Py_DECREF(py__ACCOUNT_NAME__);
+
+	PyObject* py__ACCOUNT_PASSWD__ = PyUnicode_FromString(md5password);
+	PyDict_SetItemString(pyDict, "__ACCOUNT_PASSWORD__", py__ACCOUNT_PASSWD__);
+	Py_DECREF(py__ACCOUNT_PASSWD__);
 
 	base->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
@@ -2212,83 +2558,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID)
-{
-	if(pChannel->isExternal())
-		return;
-
-	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
-	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
-	// KBE_ASSERT(base != NULL);
-	
-	if(base == NULL)
-	{
-		ERROR_MSG(boost::format("Baseapp::onEntityEnterWorldFromCellapp: not found entity %d.\n") % entityID);
-
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
-		CellappInterface::onDestroyCellEntityFromBaseappArgs1::staticAddToBundle((*pBundle), entityID);
-		base->sendToClient(CellappInterface::onDestroyCellEntityFromBaseapp, pBundle);
-	}
-
-	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
-	if(pClientChannel)
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onEntityEnterWorld);
-
-		ClientInterface::onEntityEnterWorldArgs3::staticAddToBundle((*pBundle), entityID, base->getScriptModule()->getUType(),
-			base->getSpaceID());
-
-		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		base->sendToClient(ClientInterface::onEntityEnterWorld, pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID)
-{
-	if(pChannel->isExternal())
-		return;
-
-	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
-	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
-	KBE_ASSERT(base != NULL);
-
-	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
-	if(pClientChannel)
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-
-		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle((*pBundle), entityID, 
-			base->getSpaceID());
-
-		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		base->sendToClient(ClientInterface::onEntityLeaveWorld, pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID, SPACE_ID spaceID)
-{
-	if(pChannel->isExternal())
-		return;
-}
-
-//-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, 
-											ENTITY_ID entityID, SPACE_ID spaceID)
-{
-	if(pChannel->isExternal())
-		return;
-}
-
-//-------------------------------------------------------------------------------------
 void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, 
 												KBEngine::MemoryStream& s)
 {
@@ -2301,7 +2570,43 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+		if(s.opsize() > 0)
+		{
+			if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+			{
+				Mercury::MessageID fmsgid = 0;
+				s >> fmsgid;
+				Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+				bool isprint = true;
+
+				if(pMessageHandler)
+				{
+					std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+															Mercury::g_trace_packet_disables.end(),				
+																pMessageHandler->name);							
+																													
+					if(iter != Mercury::g_trace_packet_disables.end())												
+					{																								
+						isprint = false;																			
+					}																								
+				}
+
+				if(isprint)
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found, %2%(msgid=%3%).\n") % 
+						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+				}
+				else
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+			}
+		}
+
 		s.opfini();
 		return;
 	}
@@ -2309,9 +2614,47 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
 	if(mailbox == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-			"is error(not found clientMailbox)! entityID=%1%.\n") % 
-			eid);
+		if(s.opsize() > 0)
+		{
+			if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+			{
+				Mercury::MessageID fmsgid = 0;
+				s >> fmsgid;
+				Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+				bool isprint = true;
+
+				if(pMessageHandler)
+				{
+					std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+															Mercury::g_trace_packet_disables.end(),				
+																pMessageHandler->name);							
+																													
+					if(iter != Mercury::g_trace_packet_disables.end())												
+					{																								
+						isprint = false;																			
+					}																								
+				}
+
+				if(isprint)
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID(%1%), %2%(msgid=%3%).\n") % 
+						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+				}
+				else
+				{
+					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID(%1%).\n") % 
+						eid);
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
+					"is error(not found clientMailbox)! entityID(%1%).\n") % 
+					eid);
+			}
+		}
 
 		s.opfini();
 		return;
@@ -2354,6 +2697,74 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	}
 
 	s.read_skip(s.opsize());
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel, 
+												KBEngine::MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+	
+	ENTITY_ID eid;
+	s >> eid;
+
+	Base* base = pEntities_->find(eid);
+	if(base == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: entityID %1% not found.\n") % eid);
+		s.opfini();
+		return;
+	}
+
+	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getCellMailbox());
+	if(mailbox == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: "
+			"is error(not found cellMailbox)! entityID=%1%.\n") % 
+			eid);
+
+		s.opfini();
+		return;
+	}
+	
+	if(s.opsize() <= 0)
+		return;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).append(s);
+	mailbox->postMail((*pBundle));
+	
+	if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+	{
+		Mercury::MessageID fmsgid = 0;
+		s >> fmsgid;
+		Mercury::MessageHandler* pMessageHandler = CellappInterface::messageHandlers.find(fmsgid);
+		bool isprint = true;
+
+		if(pMessageHandler)
+		{
+			(*pBundle).pCurrMsgHandler(pMessageHandler);
+			std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+													Mercury::g_trace_packet_disables.end(),				
+														pMessageHandler->name);							
+																											
+			if(iter != Mercury::g_trace_packet_disables.end())												
+			{																								
+				isprint = false;																			
+			}																								
+		}
+
+		if(isprint)
+		{
+			DEBUG_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: %1%(msgid=%2%).\n") %
+				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+		}
+	}
+
+	s.read_skip(s.opsize());
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2495,8 +2906,12 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 		return;
 	}
 	
-	if(s.opsize() <= 0 || s.opsize() != (sizeof(float) * 6 + sizeof(uint8)))
+	static size_t datasize = (sizeof(float) * 6 + sizeof(uint8) + sizeof(uint32));
+	if(s.opsize() <= 0 || s.opsize() != datasize)
 	{
+		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: invalid data, size(%1% != %2%), srcEntityID=%3%.\n") %
+			datasize % s.opsize() % srcEntityID);
+
 		s.opfini();
 		return;
 	}
@@ -2666,7 +3081,7 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 {
-	Mercury::Bundle bundle;
+	static Mercury::Bundle bundle;
 
 	if(bundle.packets().size() == 0)
 	{
@@ -2685,7 +3100,8 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 				info.id = iter->first;
 				info.name = pMessageHandler->name;
 				info.msgLen = pMessageHandler->msgLen;
-				
+				info.argsType = (int8)pMessageHandler->pArgs->type();
+
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
@@ -2703,7 +3119,7 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 		for(; iter != messages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
-			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
 			for(; argiter != iter->second.argsTypes.end(); argiter++)
@@ -2743,14 +3159,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 		
-		const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
+		const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
 		uint16 aliassize = dataTypes.size();
 		bundle << aliassize;
 
-		DataTypes::DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
 		for(; dtiter != dataTypes.end(); dtiter++)
 		{
-			const DataType* datatype = dtiter->second.get();
+			const DataType* datatype = dtiter->second;
 
 			bundle << datatype->id();
 			bundle << dtiter->first;
@@ -2789,39 +3205,48 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			const ScriptDefModule::METHODDESCRIPTION_MAP& methods1 = iter->get()->getBaseExposedMethodDescriptions();
 			const ScriptDefModule::METHODDESCRIPTION_MAP& methods2 = iter->get()->getCellExposedMethodDescriptions();
 
-			if(propers.size() == 0 && methods.size() == 0)
+			if(!iter->get()->hasClient())
 				continue;
 
-			uint16 size = propers.size() + 3/*pos, dir, spaceID*/;
+			uint16 size = propers.size() + 3 /* pos, dir, spaceID */;
 			uint16 size1 = methods.size();
 			uint16 size2 = methods1.size();
 			uint16 size3 = methods2.size();
 
 			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
-			bundle << posuid << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
-			bundle << diruid << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
-			bundle << spaceuid << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
+			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+			bundle << posuid << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+
+			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+			bundle << diruid << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+
+			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+			bundle << spaceuid << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); piter++)
 			{
 				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
+				int16 aliasID = piter->second->aliasID();
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
-				bundle << properUtype << name << defaultValStr << piter->second->getDataType()->id();
+
+				bundle << properUtype << aliasID << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
 			for(; miter != methods.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -2834,12 +3259,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			for(; miter != methods1.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -2852,12 +3279,14 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			for(; miter != methods2.end(); miter++)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				int16 aliasID = miter->second->aliasID();
+
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = args.size();
 
-				bundle << methodUtype << name << argssize;
+				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
@@ -2923,6 +3352,146 @@ PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 	PyTuple_SetItem(pyobj, 0,  PyLong_FromUnsignedLong(addr.ip));
 	PyTuple_SetItem(pyobj, 1,  PyLong_FromUnsignedLong(addr.port));
 	return pyobj;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args != (entityType, dbID, pycallback)!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	char* entityType = NULL;
+	PyObject* pycallback = NULL;
+	DBID dbid;
+
+	if(PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
+	if(sm == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: entityType(%s) not found!", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(dbid == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: dbid is 0!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	if(!PyCallable_Check(pycallback))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: invalid pycallback!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("KBEngine::deleteBaseByDBID(%1%): not found dbmgr!\n");
+		return NULL;
+	}
+
+	CALLBACK_ID callbackID = Baseapp::getSingleton().callbackMgr().save(pycallback);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::deleteBaseByDBID);
+	(*pBundle) << g_componentID;
+	(*pBundle) << dbid;
+	(*pBundle) << callbackID;
+	(*pBundle) << sm->getUType();
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID = 0;
+	COMPONENT_ID entityInAppID = 0;
+	bool success = false;
+	CALLBACK_ID callbackID;
+	DBID entityDBID;
+	ENTITY_SCRIPT_UID sid;
+
+	s >> success >> entityID >> entityInAppID >> callbackID >> sid >> entityDBID;
+
+	ScriptDefModule* sm = EntityDef::findScriptModule(sid);
+	if(sm == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::deleteBaseByDBIDCB: entityUType(%1%) not found!\n") % sid);
+		return;
+	}
+
+	if(callbackID > 0)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		// true or false or mailbox
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if(pyfunc != NULL)
+		{
+			PyObject* pyval = NULL;
+			if(success)
+			{
+				pyval = Py_True;
+				Py_INCREF(pyval);
+			}
+			else if(entityID > 0 && entityInAppID > 0)
+			{
+				Base* e = static_cast<Base*>(this->findEntity(entityID));
+				if(e != NULL)
+				{
+					pyval = e;
+					Py_INCREF(pyval);
+				}
+				else
+				{
+					pyval = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, entityInAppID, entityID, MAILBOX_TYPE_BASE));
+				}
+			}
+			else
+			{
+				pyval = Py_False;
+				Py_INCREF(pyval);
+			}
+
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("O"), 
+												pyval);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+
+			Py_DECREF(pyval);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("Baseapp::deleteBaseByDBIDCB: can't found callback:%1%.\n") %
+				callbackID);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -2995,8 +3564,23 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID enti
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		Components::COMPONENTS::iterator iter = loginapps.begin();
+		for(; iter != loginapps.end(); iter++)
+		{
+			if((*iter).groupOrderid == 1)
+			{
+				if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+					http_host = (*iter).externalAddressEx;
+				else
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+			}
+		}
+
 		threadPool_.addTask(new SendBindEMailTask(email, code, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost, 
+			http_host, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
@@ -3095,6 +3679,18 @@ void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID en
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
 	bundle.send(this->getNetworkInterface(), base->getClientMailbox()->getChannel());
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onVersionNotMatch);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

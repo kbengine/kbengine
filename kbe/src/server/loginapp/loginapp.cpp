@@ -53,7 +53,8 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface),
 	digest_(),
-	pHttpCBHandler(NULL)
+	pHttpCBHandler(NULL),
+	initProgress_(0.f)
 {
 }
 
@@ -94,7 +95,6 @@ void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 void Loginapp::handleCheckStatusTick()
 {
 	threadPool_.onMainThreadTick();
-	this->getMainDispatcher().processOnce(false);
 	getNetworkInterface().processAllChannelPackets(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
 	pendingCreateMgr_.process();
@@ -227,7 +227,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		SERVER_ERROR_CODE retcode = SERVER_ERR_SHUTTINGDOWN;
+		SERVER_ERROR_CODE retcode = SERVER_ERR_IN_SHUTTINGDOWN;
 		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
@@ -424,8 +424,33 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		if(startGroupOrder_ == 1)
+		{
+			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+			else
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+		}
+		else
+		{
+			Components::COMPONENTS::iterator iter = loginapps.begin();
+			for(; iter != loginapps.end(); iter++)
+			{
+				if((*iter).groupOrderid == 1)
+				{
+					if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+						http_host = (*iter).externalAddressEx;
+					else
+						http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+				}
+			}
+		}
+
 		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost, 
+			http_host, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
@@ -540,8 +565,33 @@ void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::stri
 
 	if(failedcode == SERVER_SUCCESS)
 	{
+		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+		std::string http_host = "localhost";
+		if(startGroupOrder_ == 1)
+		{
+			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+			else
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip);
+		}
+		else
+		{
+			Components::COMPONENTS::iterator iter = loginapps.begin();
+			for(; iter != loginapps.end(); iter++)
+			{
+				if((*iter).groupOrderid == 1)
+				{
+					if(strlen((const char*)&(*iter).externalAddressEx) > 0)
+						http_host = (*iter).externalAddressEx;
+					else
+						http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+				}
+			}
+		}
+
 		threadPool_.addTask(new SendResetPasswordEMailTask(email, code, 
-			g_kbeSrvConfig.getLoginApp().http_cbhost,  
+			http_host,  
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 }
@@ -599,7 +649,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && ctype != CLIENT_TYPE_BROWSER)
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && ctype != CLIENT_TYPE_MINI))
 	{
 		std::string clientDigest;
 
@@ -612,7 +662,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 				loginName % clientDigest % digest_);
 
 			datas = "";
-			_loginFailed(pChannel, loginName, SERVER_ERR_DIGEST, datas, true);
+			_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
 			return;
 		}
 	}
@@ -643,7 +693,14 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		INFO_MSG(boost::format("Loginapp::login: shutting down, %1% login failed!\n") % loginName);
 
 		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_SHUTTINGDOWN, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
+		return;
+	}
+
+	if(initProgress_ < 1.f)
+	{
+		datas = (boost::format("initProgress: %1%") % initProgress_).str();
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas);
 		return;
 	}
 
@@ -891,6 +948,18 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onVersionNotMatch(Mercury::Channel* pChannel)
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onVersionNotMatch);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 {
 	static Mercury::Bundle bundle;
@@ -909,7 +978,8 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 				info.id = iter->first;
 				info.name = pMessageHandler->name;
 				info.msgLen = pMessageHandler->msgLen;
-				
+				info.argsType = (int8)pMessageHandler->pArgs->type();
+
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
@@ -952,7 +1022,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 		for(; iter != clientMessages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
-			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
 			for(; argiter != iter->second.argsTypes.end(); argiter++)
@@ -965,7 +1035,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 		for(; iter != messages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
-			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
 			for(; argiter != iter->second.argsTypes.end(); argiter++)
@@ -979,7 +1049,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
+void Loginapp::importServerErrorsDescr(Mercury::Channel* pChannel)
 {
 	static Mercury::Bundle bundle;
 	
@@ -988,12 +1058,12 @@ void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/mercury_errors.xml").c_str());
+		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
 
 		if(!xml->isGood())
 		{
 			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-				"server/mercury_errors.xml");
+				"server/server_errors.xml");
 
 			SAFE_RELEASE(xml);
 			return;
@@ -1010,18 +1080,32 @@ void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
 
 		SAFE_RELEASE(xml);
 
-		bundle.newMessage(ClientInterface::onImportMercuryErrorsDescr);
+		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
 		uint16 size = errsDescrs.size();
 
 		bundle << size;
 		for(; iter != errsDescrs.end(); iter++)
 		{
-			bundle << iter->first << iter->second.first << iter->second.second;
+			bundle << iter->first;
+			bundle.appendBlob(iter->second.first.data(), iter->second.first.size());
+			bundle.appendBlob(iter->second.second.data(), iter->second.second.size());
 		}
 	}
 
 	bundle.resend(getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onBaseappInitProgress(Mercury::Channel* pChannel, float progress)
+{
+	if(progress > 1.f)
+	{
+		INFO_MSG(boost::format("Loginapp::onBaseappInitProgress: progress=%1%.\n") % 
+			(progress > 1.f ? 1.f : progress));
+	}
+
+	initProgress_ = progress;
 }
 
 //-------------------------------------------------------------------------------------

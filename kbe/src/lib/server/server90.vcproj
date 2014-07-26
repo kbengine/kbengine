@@ -41,13 +41,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;../../lib/third_party/jwsmtp/jwsmtp/jwsmtp"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jwsmtp/jwsmtp/jwsmtp"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;ENABLE_WATCHERS;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="../../libs\$(ProjectName).pdb"
+				AssemblerListingLocation="../../_objs\$(ProjectName)_d\"
+				ObjectFile="../../_objs\$(ProjectName)_d\"
+				ProgramDataBaseFileName="../../libs\$(ProjectName)_d.pdb"
+				XMLDocumentationFileName="../../_objs\$(ProjectName)_d\"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -108,12 +111,15 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include;../../lib/third_party/jwsmtp/jwsmtp/jwsmtp"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../lib/dependencies/log4cxx/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jwsmtp/jwsmtp/jwsmtp"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;ENABLE_WATCHERS;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
+				AssemblerListingLocation="../../_objs\$(ProjectName)\"
+				ObjectFile="../../_objs\$(ProjectName)\"
 				ProgramDataBaseFileName="../../libs\$(ProjectName).pdb"
+				XMLDocumentationFileName="../../_objs\$(ProjectName)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -197,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\machine_infos.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pendingLoginmgr.cpp"
 				>
 			</File>
@@ -218,10 +228,6 @@
 			</File>
 			<File
 				RelativePath=".\serverconfig.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\serverinfos.cpp"
 				>
 			</File>
 			<File
@@ -295,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\machine_infos.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pendingLoginmgr.hpp"
 				>
 			</File>
@@ -320,10 +330,6 @@
 			</File>
 			<File
 				RelativePath=".\serverconfig.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\serverinfos.hpp"
 				>
 			</File>
 			<File
@@ -355,6 +361,10 @@
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\serverconfig.ipp"
 			>
 		</File>
 		<File

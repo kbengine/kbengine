@@ -21,17 +21,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SPACE_HPP__
 #define __SPACE_HPP__
 
-#include "range_list.hpp"
+#include "coordinate_system.hpp"
 #include "cell.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
+#include "navigation/navigation_handle.hpp"
 
 namespace KBEngine{
 
 class Entity;
-class NavMeshHandle;
 typedef SmartPointer<Entity> EntityPtr;
 typedef std::vector<EntityPtr> SPACE_ENTITIES;
 
@@ -88,13 +88,31 @@ public:
 	static PyObject* __py_AddSpaceGeometryMapping(PyObject* self, PyObject* args);
 	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer);
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
-	const std::string& getGeometryPath(){ return loadGeometryPath_; }
-	void onLoadedSpaceGeometryMapping(NavMeshHandle* pNavMeshHandle);
+	const std::string& getGeometryPath();
+	void setGeometryPath(const std::string& path);
+	void onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle);
 	void onAllSpaceGeometryLoaded();
 	
-	NavMeshHandle* pNavMeshHandle()const{ return pNavMeshHandle_; }
+	NavigationHandlePtr pNavHandle()const{ return pNavHandle_; }
+
+	/**
+		spaceData相关操作接口
+	*/
+	void setSpaceData(const std::string& key, const std::string& value);
+	void delSpaceData(const std::string& key);
+	bool hasSpaceData(const std::string& key);
+	const std::string& getSpaceData(const std::string& key);
+	void onSpaceDataChanged(const std::string& key, const std::string& value, bool isdel);
+	static PyObject* __py_SetSpaceData(PyObject* self, PyObject* args);
+	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
+	static PyObject* __py_DelSpaceData(PyObject* self, PyObject* args);
+
+	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
+
+	bool isDestroyed()const{ return destroyed_; }
+
 protected:
-	void _addSpaceGeometryMappingToEntityClient(const Entity* pEntity);
+	void _addSpaceDatasToEntityClient(const Entity* pEntity);
 
 protected:
 	// 这个space的ID
@@ -109,15 +127,18 @@ protected:
 	// 是否加载过地形数据
 	bool hasGeometry_;
 
-	// 加载几何的路径
-	std::string loadGeometryPath_;					
-	
 	// 每个space最多只有一个cell
 	Cell* pCell_;
 
-	RangeList rangeList_;
+	CoordinateSystem coordinateSystem_;
 
-	NavMeshHandle* pNavMeshHandle_;
+	NavigationHandlePtr pNavHandle_;
+
+	// spaceData, 只能存储字符串资源， 这样能比较好的兼容客户端。
+	// 开发者可以将其他类型转换成字符串进行传输
+	SPACE_DATA datas_;
+
+	bool destroyed_;
 };
 
 

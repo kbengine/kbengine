@@ -8,9 +8,9 @@ from KBEDebug import *
 import d_entities
 import d_avatar_inittab
 
-class GameObject(KBEngine.Entity):
+class GameObject:
 	def __init__(self):
-		KBEngine.Entity.__init__(self)
+		pass
 
 	def initEntity(self):
 		"""
@@ -50,10 +50,6 @@ class GameObject(KBEngine.Entity):
 		KBEngine method.
 		引擎回调timer触发
 		"""
-		if self.isDestroyed:
-			self.delTimer(tid)
-			return
-			
 		#DEBUG_MSG("%s::onTimer: %i, tid:%i, arg:%i" % (self.getScriptName(), self.id, tid, userArg))
 		self._timermap[userArg](self, tid, userArg)
 		

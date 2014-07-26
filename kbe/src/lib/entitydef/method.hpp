@@ -98,6 +98,14 @@ public:
 	bool isBase()const{ return methodDomain_ == BASEAPP_TYPE; }
 
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
+
+	/** 
+		别名id， 当暴露的方法或者广播的属性总个数小于255时
+		我们不使用utype而使用1字节的aliasID来传输
+	*/
+	INLINE int16 aliasID()const;
+	INLINE uint8 aliasIDAsUint8()const;
+	INLINE void aliasID(int16 v);
 protected:
 	COMPONENT_ID							methodDomain_;
 
@@ -109,6 +117,8 @@ protected:
 	bool									isExposed_;									// 是否是一个暴露方法
 
 	ENTITY_ID								currCallerID_;								// 当前调用这个方法的调用者ID, 提供暴露方法调用时给脚本判断调用源防止作弊
+
+	int16									aliasID_;									// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
 };
 
 }

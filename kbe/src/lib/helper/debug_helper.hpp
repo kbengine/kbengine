@@ -111,6 +111,8 @@ public:
 
 	~DebugHelper();
 	
+	static bool isInit() { return getSingletonPtr() != 0; }
+
 	static void initHelper(COMPONENT_TYPE componentType);
 
 	void setFile(std::string funcname, std::string file, uint32 line){
@@ -119,6 +121,8 @@ public:
 		_currFuncName = funcname;
 	}
 	
+	std::string getLogName();
+
 	void lockthread();
 	void unlockthread();
 
@@ -161,7 +165,7 @@ public:
 
 	void changeLogger(std::string name);
 
-	void clearBufferedLog();
+	void clearBufferedLog(bool destroy = false);
 
 	void setScriptMsgType(int msgtype);
 

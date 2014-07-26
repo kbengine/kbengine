@@ -8,6 +8,7 @@ ASMS =
 
 MY_LIBS =		\
 	server		\
+	pyscript        \
 	network		\
 	thread
 	
@@ -17,7 +18,7 @@ USE_PYTHON = 1
 USE_G3DMATH=1
 
 ifndef USE_OPENSSL
-	USE_OPENSSL = 0
+	USE_OPENSSL = 1
 endif
 
 ifndef NO_USE_LOG4CXX

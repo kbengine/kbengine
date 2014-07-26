@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pybots.hpp"
 #include "bots.hpp"
+#include "server/telnet_server.hpp"
 #include "client_lib/entity.hpp"
 #include "clientobject.hpp"
 #include "bots_interface.hpp"
@@ -52,7 +53,8 @@ reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount)
 reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
 reqCreateAndLoginTickTime_(g_serverConfig.getBots().defaultAddBots_tickTime),
 pCreateAndLoginHandler_(NULL),
-pEventPoller_(Mercury::EventPoller::create())
+pEventPoller_(Mercury::EventPoller::create()),
+pTelnetServer_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
@@ -86,6 +88,16 @@ bool Bots::initializeBegin()
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeEnd()
 {
+	pTelnetServer_ = new TelnetServer(&getMainDispatcher(), &getNetworkInterface());
+	pTelnetServer_->pScript(&getScript());
+	if(!pTelnetServer_->start(g_serverConfig.getBots().telnet_passwd, 
+		g_serverConfig.getBots().telnet_deflayer, 
+		g_serverConfig.getBots().telnet_port))
+	{
+		ERROR_MSG("Bots::initialize: initializeEnd is error!\n");
+		return false;
+	}
+
 	return true;
 }
 
@@ -94,12 +106,19 @@ void Bots::finalise()
 {
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
+
+	pTelnetServer_->stop();
+	SAFE_RELEASE(pTelnetServer_);
+
 	ClientApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
 bool Bots::installEntityDef()
 {
+	EntityDef::entityAliasID(ServerConfig::getSingleton().getCellApp().aliasEntityID);
+	EntityDef::entitydefAliasID(ServerConfig::getSingleton().getCellApp().entitydefAliasID);
+
 	return ClientApp::installEntityDef();
 }
 
@@ -451,6 +470,16 @@ void Bots::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
 	}
 }
 
+//-------------------------------------------------------------------------------------	
+void Bots::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onVersionNotMatch(pChannel, s);
+	}
+}
+
 //-------------------------------------------------------------------------------------
 void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
@@ -503,43 +532,52 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-							  ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
+void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterWorld(pChannel, eid, scriptType, spaceID);
+		pClient->onEntityEnterWorld(pChannel, s);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveWorld(pChannel, eid, spaceID);
+		pClient->onEntityLeaveWorld(pChannel, eid);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void Bots::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterSpace(pChannel, eid, spaceID);
+		pClient->onEntityLeaveWorldOptimized(pChannel, s);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveSpace(pChannel, eid, spaceID);
+		pClient->onEntityEnterSpace(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityLeaveSpace(pChannel, eid);
 	}
 }
 
@@ -560,6 +598,16 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 	if(pClient)
 	{
 		pClient->onRemoteMethodCall(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onRemoteMethodCallOptimized(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onRemoteMethodCallOptimized(pChannel, s);
 	}
 }
 
@@ -584,12 +632,32 @@ void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onUpdatePropertysOptimized(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdatePropertysOptimized(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onUpdateBasePos(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateBasePosXZ(pChannel, s);
 	}
 }
 
@@ -873,13 +941,23 @@ void Bots::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
 	}
 }
 
-//-------------------------------------------------------------------------------------
-void Bots::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath)
+//-------------------------------------------------------------------------------------	
+void Bots::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->addSpaceGeometryMapping(pChannel, spaceID, respath);
+		pClient->setSpaceData(pChannel, spaceID, key, value);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->delSpaceData(pChannel, spaceID, key);
 	}
 }
 

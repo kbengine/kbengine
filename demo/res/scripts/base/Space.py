@@ -11,8 +11,9 @@ import d_spaces
 import d_spaces_spawns
 import xml.etree.ElementTree as etree 
 
-class Space(GameObject):
+class Space(KBEngine.Base, GameObject):
 	def __init__(self):
+		KBEngine.Base.__init__(self)
 		GameObject.__init__(self)
 		self.createInNewSpace(None)
 		
@@ -29,10 +30,12 @@ class Space(GameObject):
 	def createSpawnPointDatas(self):
 		"""
 		"""
-		if(len(self.spaceResName) == 0):
+		res = r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName
+		if(len(self.spaceResName) == 0 or not KBEngine.hasRes(res)):
 			return
 			
-		res = KBEngine.getResFullPath(r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName)
+		res = KBEngine.getResFullPath(res)
+			
 		tree = etree.parse(res) 
 		root = tree.getroot()
 		

@@ -88,7 +88,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		if(entities.size() == 0)
 			S_Return;
 	}
-
+	
+	// 先发给自己
 	if(methodDescription->checkArgs(args))
 	{
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
@@ -138,7 +139,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				pBundle->currMsgLength(), 
 				"::");
 		}
-
+		
+		// 广播给其他人
 		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
 		for(; iter != entities.end(); iter++)
 		{
@@ -154,12 +156,15 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(pChannel == NULL)
 				continue;
 
+			if(!pAoiEntity->pWitness()->entityInAOI(pEntity->getID()))
+				continue;
+
 			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
-			pForwardBundle->newMessage(ClientInterface::onRemoteMethodCall);
-			(*pForwardBundle) << pEntity->getID();
 			
+			pAoiEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
+					ClientInterface::onRemoteMethodCallOptimized, pEntity->getID());
+
 			if(mstream->wpos() > 0)
 				(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
@@ -168,7 +173,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				if(Mercury::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger("packetlogs");
 
-				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
+				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall(%1%::%2%)\n") % 
 					pAoiEntity->getScriptName() % methodDescription->getName());
 																									
 				switch(Mercury::g_trace_packet)																	
@@ -191,7 +196,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
 			//mailbox->postMail((*pBundle));
-			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pSendBundle);
+			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
 			//Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 

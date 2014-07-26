@@ -86,7 +86,7 @@ public:
 
 	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType) = 0;
 
-	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid) = 0;
+	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType) = 0;
 protected:
 	
 };

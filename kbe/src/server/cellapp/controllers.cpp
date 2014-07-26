@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "controllers.hpp"	
 #include "helper/profile.hpp"	
+#include "cstdkbe/memorystream.hpp"	
 
 namespace KBEngine{	
 
@@ -65,6 +66,31 @@ bool Controllers::remove(uint32 id)
 {
 	objects_.erase(id);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Controllers::addToStream(KBEngine::MemoryStream& s)
+{
+	uint32 size = 0;
+	size = objects_.size();
+	s << lastid_ << size;
+
+	CONTROLLERS_MAP::iterator iter = objects_.begin();
+	for(; iter != objects_.end(); iter++)
+	{
+		iter->second->addToStream(s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Controllers::createFromStream(KBEngine::MemoryStream& s)
+{
+	uint32 size = 0;
+	s >> lastid_ >> size;
+
+	for(uint32 i=0; i<size; i++)
+	{
+	}
 }
 
 //-------------------------------------------------------------------------------------

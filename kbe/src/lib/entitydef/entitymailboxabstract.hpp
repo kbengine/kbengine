@@ -69,36 +69,26 @@ public:
 	/** 
 		获取entityID 
 	*/
-	ENTITY_ID getID()const{ 
-		return id_; 
-	}
+	INLINE ENTITY_ID getID()const;
 
-	void setID(int id){ 
-		id_ = id; 
-	}
+	INLINE void setID(int id);
 
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
 	/** 
 		获得组件ID 
 	*/
-	COMPONENT_ID getComponentID(void)const{ 
-		return componentID_; 
-	}
+	INLINE COMPONENT_ID getComponentID(void)const;
 
 	/** 
 		获得utype 
 	*/
-	ENTITY_SCRIPT_UID getUType(void)const{ 
-		return utype_; 
-	}
+	INLINE ENTITY_SCRIPT_UID getUType(void)const;
 
 	/** 
 		获得type 
 	*/
-	ENTITY_MAILBOX_TYPE getType(void)const{
-		return type_; 
-	}
+	INLINE ENTITY_MAILBOX_TYPE getType(void)const;
 
 	/** 
 		支持pickler 方法 
@@ -114,9 +104,13 @@ public:
 	const Mercury::Address& addr()const{ return addr_; }
 	void addr(const Mercury::Address& saddr){ addr_ = saddr; }
 
-	bool isClient();
-	bool isCell();
-	bool isBase();
+	INLINE bool isClient()const;
+	INLINE bool isCell()const;
+	INLINE bool isCellReal()const;
+	INLINE bool isCellViaBase()const;
+	INLINE bool isBase()const;
+	INLINE bool isBaseReal()const;
+	INLINE bool isBaseViaCell()const;
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Mercury::Address						addr_;					// 频道地址
@@ -126,4 +120,8 @@ protected:
 };
 
 }
+
+#ifdef CODE_INLINE
+#include "entitymailboxabstract.ipp"
+#endif
 #endif

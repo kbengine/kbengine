@@ -101,6 +101,10 @@ void ServerApp::shutDown(float shutdowntime)
 //-------------------------------------------------------------------------------------
 void ServerApp::onShutdownBegin()
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: shutdown begin.\n");
+#endif
+
 	mainDispatcher_.setWaitBreakProcessing();
 	networkInterface_.dispatcher().setWaitBreakProcessing();
 }
@@ -314,7 +318,7 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 //-------------------------------------------------------------------------------------
 void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	if(pChannel->isExternal())
 		return;
@@ -341,7 +345,7 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else
@@ -467,13 +471,21 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%\n") % 
 		verInfo % buf % pChannel->c_str());
 
-	onHello(pChannel, verInfo, encryptedKey);
+	if(verInfo != KBEVersion::versionString())
+		onVersionNotMatch(pChannel);
+	else
+		onHello(pChannel, verInfo, encryptedKey);
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
 						const std::string& encryptedKey)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onVersionNotMatch(Mercury::Channel* pChannel)
 {
 }
 

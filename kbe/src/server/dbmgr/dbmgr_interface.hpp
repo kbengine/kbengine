@@ -51,7 +51,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 某app注册自己的接口地址到本app
-	DBMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -61,7 +61,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									uint32,							intaddr, 
 									uint16,							intport,
 									uint32,							extaddr, 
-									uint16,							extport)
+									uint16,							extport,
+									std::string,					extaddrEx)
 
 	// 某app主动请求look。
 	DBMGR_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
@@ -75,7 +76,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 								COMPONENT_ID,						componentID)
 
 	// global数据改变
-	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChanged,		MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
@@ -107,8 +108,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									ENTITY_ID,						entityID)
 		
 	// baseapp上entity下线。
-	DBMGR_MESSAGE_DECLARE_ARGS1(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
-									DBID,							dbid)
+	DBMGR_MESSAGE_DECLARE_ARGS2(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
+									DBID,							dbid,
+									uint16,							sid)
 
 	// 请求擦除客户端请求任务。
 	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,
@@ -123,12 +125,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 删除某个entity的存档
 	DBMGR_MESSAGE_DECLARE_STREAM(removeEntity,						MERCURY_VARIABLE_MESSAGE)
 
+	// 请求从数据库删除实体
+	DBMGR_MESSAGE_DECLARE_STREAM(deleteBaseByDBID,					MERCURY_VARIABLE_MESSAGE)
+
 	// 请求关闭服务器
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS5(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
+	DBMGR_MESSAGE_DECLARE_ARGS6(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
 									COMPONENT_ID,					componentID,
+									int8,							queryMode,
 									DBID,							dbid, 
 									std::string,					entityType,
 									CALLBACK_ID,					callbackID,

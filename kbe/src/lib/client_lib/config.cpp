@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
+#include "entitydef/entitydef.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
@@ -36,7 +37,10 @@ channelInternalTimeout_(60.0f),
 channelExternalTimeout_(60.0f),
 encrypt_login_(0),
 fileName_(),
-useLastAccountName_(false)
+useLastAccountName_(false),
+telnet_port(0),
+telnet_passwd(),
+telnet_deflayer()
 {
 }
 
@@ -128,6 +132,42 @@ bool Config::loadConfig(std::string fileName)
 			{
 				channelExternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
 				Mercury::g_channelExternalTimeout = channelExternalTimeout_;
+			}
+		}
+
+		childnode = xml->enterNode(rootNode, "resend");
+		if(childnode)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+				}
+			}
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+				}
 			}
 		}
 
@@ -228,6 +268,17 @@ bool Config::loadConfig(std::string fileName)
 		encrypt_login_ = xml->getValInt(rootNode);
 	}
 	
+	rootNode = xml->getRootNode("aliasEntityID");
+	if(rootNode != NULL)
+	{
+		EntityDef::entityAliasID((xml->getValStr(rootNode) == "true"));
+	}
+
+	rootNode = xml->getRootNode("entitydefAliasID");
+	if(rootNode != NULL){
+		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
+	}
+
 	SAFE_RELEASE(xml);
 	return true;
 }

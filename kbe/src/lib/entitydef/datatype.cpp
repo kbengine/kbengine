@@ -941,8 +941,7 @@ bool PythonType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 {
-	std::string val = "";
-	if(val.size() > 0)
+	if(defaultVal.size() > 0)
 	{
 		PyObject* module = PyImport_AddModule("__main__");
 		if(module == NULL)
@@ -956,7 +955,7 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 
 		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
 		
-		return PyRun_String(const_cast<char*>(val.c_str()), 
+		return PyRun_String(const_cast<char*>(defaultVal.c_str()), 
 							Py_eval_input, mdict, mdict);
 	}
 		
@@ -1010,10 +1009,16 @@ bool PyDictType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyDictType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyDict_New();
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyDict_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyDict_New();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1048,10 +1053,16 @@ bool PyTupleType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyTupleType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyTuple_New(0);
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyTuple_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyTuple_New(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1086,10 +1097,16 @@ bool PyListType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* PyListType::parseDefaultStr(std::string defaultVal)
 {
-	if(defaultVal.size() == 0)
-		return PyList_New(0);
+	PyObject* pyVal = PythonType::parseDefaultStr(defaultVal);
+	if(PyList_Check(pyVal))
+	{
+		return pyVal;
+	}
 
-	return PythonType::parseDefaultStr(defaultVal);
+	if(pyVal)
+		Py_DECREF(pyVal);
+
+	return PyList_New(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1112,7 +1129,7 @@ bool BlobType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PyObject_TypeCheck(pyValue, Blob::getScriptType()))
+	if(!PyBytes_Check(pyValue))
 	{
 		OUT_TYPE_ERROR("BLOB");
 		return false;
@@ -1124,30 +1141,23 @@ bool BlobType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
-	return new Blob(defaultVal);
+	return  PyBytes_FromStringAndSize(defaultVal.data(), defaultVal.size());
 }
 
 //-------------------------------------------------------------------------------------
 void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	Blob* pBlob = static_cast<Blob*>(pyValue);
-	pBlob->addToStream(mstream);
+	Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
+	char* datas = PyBytes_AsString(pyValue);
+	mstream->appendBlob(datas, datasize);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::createFromStream(MemoryStream* mstream)
 {
-	Blob* pBlob = new Blob();
-	pBlob->createFromStream(mstream);
-
-	if (pBlob && !PyErr_Occurred())
-	{
-		return pBlob;
-	}
-
-	OUT_TYPE_ERROR("BLOB");
-	S_RELEASE(pBlob);
-	return NULL;
+	std::string datas;
+	mstream->readBlob(datas);
+	return PyBytes_FromStringAndSize(datas.data(), datas.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -1247,7 +1257,14 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
+	dataType_ = NULL;
 	TiXmlNode* arrayNode = xmlplus->enterNode(node, "of");
+	if(arrayNode == NULL)
+	{
+		ERROR_MSG("FixedArrayType::initialize: not found \"of\".\n");
+		return false;
+	}
+
 	std::string strType = xmlplus->getValStr(arrayNode);
 	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// ×ª»»Îª´óÐ´
 
@@ -1260,6 +1277,11 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 			DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + 
 				dataType->aliasName(), dataType);
+		}
+		else
+		{
+			ERROR_MSG("FixedArrayType::initialize: Array is error.\n");
+			return false;
 		}
 	}
 	else
@@ -1277,6 +1299,12 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			
 			return false;
 		}			
+	}
+
+	if(dataType_ == NULL)
+	{
+		ERROR_MSG("FixedArrayType::initialize: dataType is NULL.\n");
+		return false;
 	}
 
 	DATATYPE_UID uid = dataType_->id();
@@ -1329,19 +1357,38 @@ PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	addToStreamEx(mstream, pyValue, false);
+}
+
+//-------------------------------------------------------------------------------------
+void FixedArrayType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents)
+{
 	ArraySize size = PySequence_Size(pyValue);
 	(*mstream) << size;
 
 	for(ArraySize i=0; i<size; i++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
-		dataType_->addToStream(mstream, pyVal);
+
+		if(dataType_->type() == DATA_TYPE_FIXEDDICT)
+			((FixedDictType*)dataType_)->addToStreamEx(mstream, pyVal, onlyPersistents);
+		else if(dataType_->type() == DATA_TYPE_FIXEDARRAY)
+			((FixedArrayType*)dataType_)->addToStreamEx(mstream, pyVal, onlyPersistents);
+		else
+			dataType_->addToStream(mstream, pyVal);
+
 		Py_DECREF(pyVal);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
+{
+	return createFromStreamEx(mstream, false);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
 {
 	ArraySize size;
 	FixedArray* arr = new FixedArray(this);
@@ -1361,7 +1408,15 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 				break;
 			}
 
-			PyObject* pyVal = dataType_->createFromStream(mstream);
+			PyObject* pyVal = NULL;
+			
+			if(dataType_->type() == DATA_TYPE_FIXEDDICT)
+				pyVal = ((FixedDictType*)dataType_)->createFromStreamEx(mstream, onlyPersistents);
+			else if(dataType_->type() == DATA_TYPE_FIXEDARRAY)
+				pyVal = ((FixedArrayType*)dataType_)->createFromStreamEx(mstream, onlyPersistents);
+			else
+				pyVal = dataType_->createFromStream(mstream);
+	
 			if(pyVal)
 			{
 				vals.push_back(pyVal);
@@ -1489,8 +1544,14 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
 	TiXmlNode* propertiesNode = xmlplus->enterNode(node, "Properties");
+	if(propertiesNode == NULL)
+	{
+		ERROR_MSG("FixedDictType::initialize: not found \"Properties\".\n");
+		return false;
+	}
+
 	std::string strType = "", typeName = "";
-	
+
 	XML_FOR_BEGIN(propertiesNode)
 	{
 		typeName = xmlplus->getKey(propertiesNode);
@@ -1875,10 +1936,42 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames[%3%]\n") % 
 				this->aliasName_ % iter->first % this->debugInfos());
 
-			KBE_ASSERT(pyObject != NULL);
+			// KBE_ASSERT(pyObject != NULL);
+			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
+
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else
+				iter->second->dataType->addToStream(mstream, pobj);
+
+			Py_DECREF(pobj);
+			continue;
+		}
+		
+		if(!iter->second->dataType->isSameType(pyObject))
+		{
+			// KBE_ASSERT(pyObject != NULL);
+			PyObject* pobj = iter->second->dataType->parseDefaultStr("");
+
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pobj, onlyPersistents);
+			else
+				iter->second->dataType->addToStream(mstream, pobj);
+
+			Py_DECREF(pobj);
+			continue;
 		}
 
-		iter->second->dataType->addToStream(mstream, pyObject);
+		if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+			((FixedDictType*)iter->second->dataType)->addToStreamEx(mstream, pyObject, onlyPersistents);
+		else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+			((FixedArrayType*)iter->second->dataType)->addToStreamEx(mstream, pyObject, onlyPersistents);
+		else
+			iter->second->dataType->addToStream(mstream, pyObject);
 	}
 
 	if(hasImpl())
@@ -1890,7 +1983,13 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createFromStream(MemoryStream* mstream)
 {
-	FixedDict* pydict = new FixedDict(this, mstream);
+	return createFromStreamEx(mstream, false);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
+{
+	FixedDict* pydict = new FixedDict(this, mstream, onlyPersistents);
 
 	if(hasImpl())
 	{

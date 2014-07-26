@@ -47,6 +47,9 @@ KBE_MD5 EntityDef::__md5;
 bool EntityDef::_isInit = false;
 bool g_isReload = false;
 
+bool EntityDef::__entityAliasID = false;
+bool EntityDef::__entitydefAliasID = false;
+
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;																									
@@ -123,7 +126,7 @@ void EntityDef::reload(bool fullReload)
 		bool ret = finalise(true);
 		KBE_ASSERT(ret && "EntityDef::reload: finalise is error!");
 
-		ret = initialize(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
+		ret = initialize(EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
 		KBE_ASSERT(ret && "EntityDef::reload: initialize is error!");
 	}
 	else
@@ -135,13 +138,13 @@ void EntityDef::reload(bool fullReload)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::initialize(const std::string entitiesPath, 
-						   std::vector<PyTypeObject*>& scriptBaseTypes, 
+bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes, 
 						   COMPONENT_TYPE loadComponentType)
 {
 	__loadComponentType = loadComponentType;
-	__entitiesPath = entitiesPath;
 	__scriptBaseTypes = scriptBaseTypes;
+
+	__entitiesPath = Resmgr::getSingleton().getPyUserResPath() + "scripts/";
 
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
@@ -150,9 +153,10 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	g_entityFlagMapping["BASE_AND_CLIENT"]						= ED_FLAG_BASE_AND_CLIENT;
 	g_entityFlagMapping["BASE"]									= ED_FLAG_BASE;
 	g_entityFlagMapping["OTHER_CLIENTS"]						= ED_FLAG_OTHER_CLIENTS;
+	g_entityFlagMapping["OWN_CLIENT"]							= ED_FLAG_OWN_CLIENT;
 
-	std::string entitiesFile = entitiesPath + "entities.xml";
-	std::string defFilePath = entitiesPath + "entity_defs/";
+	std::string entitiesFile = __entitiesPath + "entities.xml";
+	std::string defFilePath = __entitiesPath + "entity_defs/";
 	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 初始化数据类别
@@ -204,6 +208,8 @@ bool EntityDef::initialize(const std::string entitiesPath,
 
 			return false;
 		}
+		
+		scriptModule->onLoaded();
 	}
 	XML_FOR_END(node);
 
@@ -211,7 +217,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllScriptModule(entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return loadAllScriptModule(__entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -566,7 +572,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount entity the flags[%1%] in %2%.\n") % 
+					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") % 
 						strFlags.c_str() % name.c_str());
 
 					return false;
@@ -587,7 +593,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount entity the flags[%1%] in %2%.\n") %
+					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") %
 						strFlags.c_str() % name.c_str());
 					return false;
 				}
@@ -610,7 +616,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			if(typeNode)
 			{
 				strType = xml->getValStr(typeNode);
-				//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 				if(strType == "ARRAY")
 				{
@@ -695,15 +700,18 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 															dataType, isIdentifier, 
 															databaseLength, defaultStr, 
 															detailLevel);
-			
+
 			bool ret = true;
+
 			// 添加到模块中
 			if(hasCellFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CELLAPP_TYPE);
+
 			if(hasBaseFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, BASEAPP_TYPE);
+
 			if(hasClientFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CLIENT_TYPE);
@@ -739,10 +747,10 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
-						if(__loadComponentType == BASEAPP_TYPE || __loadComponentType == CELLAPP_TYPE)
-							methodDescription->setExposed();
+						methodDescription->setExposed();
 					}
 					else if(argType == "Arg")
 					{
@@ -757,7 +765,9 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -766,6 +776,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -827,10 +838,10 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
-						if(__loadComponentType == BASEAPP_TYPE || __loadComponentType == CELLAPP_TYPE)
-							methodDescription->setExposed();
+						methodDescription->setExposed();
 					}
 					else if(argType == "Arg")
 					{
@@ -845,7 +856,9 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -854,6 +867,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -915,6 +929,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Arg")
 					{
 						DataType* dataType = NULL;
@@ -928,7 +943,9 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
@@ -937,6 +954,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -1246,6 +1264,7 @@ bool EntityDef::installScript(PyObject* mod)
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+
 	_isInit = true;
 	return true;
 }

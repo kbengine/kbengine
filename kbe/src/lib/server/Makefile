@@ -16,7 +16,7 @@ SRCS =				\
 	script_timers		\
 	serverapp		\
 	serverconfig		\
-	serverinfos		\
+	machine_infos		\
 	sendmail_threadtasks	\
 	shutdowner		\
 	signal_handler		\

@@ -24,12 +24,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_exception.hpp"
 #include "thread/threadguard.hpp"
 #include "helper/watcher.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
 KBEngine::thread::ThreadMutex logMutex;
 KBEUnordered_map< std::string, uint32 > g_querystatistics;
 bool _g_installedWatcher = false;
+bool _g_debug = false;
 
 void querystatistics(const char* strCommand, uint32 size)
 {
@@ -126,6 +128,8 @@ void initializeWatcher()
 		return;
 
 	_g_installedWatcher = true;
+	_g_debug = g_kbeSrvConfig.getDBMgr().debugDBMgr;
+
 	WATCH_OBJECT("db_querys/select", &KBEngine::watcher_select);
 	WATCH_OBJECT("db_querys/delete", &KBEngine::watcher_delete);
 	WATCH_OBJECT("db_querys/insert", &KBEngine::watcher_insert);
@@ -145,8 +149,7 @@ hasLostConnection_(false),
 inTransaction_(false),
 lock_(NULL, false),
 characterSet_(characterSet),
-collation_(collation),
-lastquery_()
+collation_(collation)
 {
 	lock_.pdbi(this);
 }
@@ -226,6 +229,47 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	}
 
     return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::checkEnvironment()
+{
+	std::string querycmd = "SHOW VARIABLES LIKE \"%lower_case_table_names%\"";
+	if(!query(querycmd.c_str(), querycmd.size(), true))
+	{
+		ERROR_MSG(boost::format("DBInterfaceMysql::checkEnvironment: %1%, query is error!\n") % querycmd);
+		return false;
+	}
+
+	bool lower_case_table_names = false;
+	MYSQL_RES * pResult = mysql_store_result(mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			std::string s = arow[0];
+			std::string v = arow[1];
+			
+			if(s == "lower_case_table_names")
+			{
+				if(v != "1")
+				{
+					lower_case_table_names = true;
+				}
+				else
+				{
+					CRITICAL_MSG(boost::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 0, curr=%1%!\n") % v);
+				}
+			}
+			
+			break;
+		}
+
+		mysql_free_result(pResult);
+	}
+	
+	return lower_case_table_names;
 }
 
 //-------------------------------------------------------------------------------------
@@ -319,7 +363,14 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 	querystatistics(strCommand, size);
 
 	lastquery_ = strCommand;
+
+	if(_g_debug)
+	{
+		DEBUG_MSG(boost::format("DBInterfaceMysql::query: %1%\n") % lastquery_);
+	}
+
     int nResult = mysql_real_query(pMysql_, strCommand, size);  
+
     if(nResult != 0)  
     {  
 		if(showexecinfo)

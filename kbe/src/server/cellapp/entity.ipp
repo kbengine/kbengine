@@ -77,7 +77,7 @@ INLINE void Entity::setPosition(const Position3D& pos)
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setDirection(const Direction3D& dir)
 {
-	if(almostEqual(direction_.yaw, dir.yaw) && almostEqual(direction_.roll, dir.roll) && almostEqual(direction_.pitch, dir.pitch))
+	if(almostEqual(direction_.yaw(), dir.yaw()) && almostEqual(direction_.roll(), dir.roll()) && almostEqual(direction_.pitch(), dir.pitch()))
 		return;
 
 	direction_ = dir; 
@@ -141,7 +141,25 @@ INLINE void Entity::setOtherClients(AllClients* clients)
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isReal(void)const
 { 
-	return isReal_; 
+	return realCell_ == 0; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::hasGhost(void)const
+{ 
+	return ghostCell_ > 0; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::realCell(void)const
+{ 
+	return realCell_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::ghostCell(void)const
+{ 
+	return ghostCell_; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,9 +187,15 @@ INLINE void Entity::pWitness(Witness* w)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityRangeNode* Entity::pEntityRangeNode()const
+INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
 {
-	return pEntityRangeNode_;
+	return pEntityCoordinateNode_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::pEntityCoordinateNode(EntityCoordinateNode* pNode)
+{
+	pEntityCoordinateNode_ = pNode;
 }
 
 //-------------------------------------------------------------------------------------
@@ -208,6 +232,12 @@ INLINE GAME_TIME Entity::posChangedTime()const
 INLINE GAME_TIME Entity::dirChangedTime()const
 {
 	return dirChangedTime_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE int8 Entity::layer()const
+{
+	return layer_;
 }
 
 //-------------------------------------------------------------------------------------

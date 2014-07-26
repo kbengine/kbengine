@@ -36,8 +36,14 @@ public:
 	bool remove(uint32 id);
 	
 	uint32 freeID(){ return ++lastid_; }
+
+	typedef std::map<uint32, KBEShared_ptr< Controller > > CONTROLLERS_MAP;
+	CONTROLLERS_MAP& objects() { return objects_; }
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 private:
-	std::map<uint32, KBEShared_ptr< Controller > > objects_;
+	CONTROLLERS_MAP objects_;
 
 	uint32 lastid_;
 };

@@ -23,21 +23,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loadnavmesh_threadtasks.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/deadline.hpp"
-#include "navigation/navmeshex.hpp"
+#include "navigation/navigation.hpp"
 
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 bool LoadNavmeshTask::process()
 {
-	NavMeshEx::getSingleton().loadNavmesh(name_);
+	Navigation::getSingleton().loadNavigation(name_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 {
-	NavMeshHandle* pNavMeshHandle = NavMeshEx::getSingleton().findNavmesh(name_);
+	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
 	
 	Space* pSpace = Spaces::findSpace(spaceID_);
 	if(pSpace == NULL)
@@ -47,7 +47,7 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 	}
 	else
 	{
-		pSpace->onLoadedSpaceGeometryMapping(pNavMeshHandle);
+		pSpace->onLoadedSpaceGeometryMapping(pNavigationHandle);
 	}
 	
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 

@@ -35,6 +35,10 @@ Spaces::~Spaces()
 //-------------------------------------------------------------------------------------
 void Spaces::finalise()
 {
+	SPACES::iterator iter = spaces_.begin();
+	for(;iter != spaces_.end(); iter++)
+		iter->second->destroy(0);
+
 	spaces_.clear();
 }
 
@@ -61,6 +65,9 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 	INFO_MSG(boost::format("Spaces::destroySpace: %1%.\n") % spaceID);
 
 	Space* pSpace = Spaces::findSpace(spaceID);
+	if(pSpace->isDestroyed())
+		return true;
+
 	if(!pSpace->destroy(entityID))
 	{
 		ERROR_MSG("Spaces::destroySpace: is error!\n");

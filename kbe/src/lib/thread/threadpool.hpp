@@ -148,8 +148,6 @@ public:
 
 	virtual TPTask* tryGetTask(void);
 	
-	void deleteFiniTask(TPTask* tpTask);
-	
 	/**
 		发送条件信号
 	*/
@@ -180,7 +178,7 @@ public:
 	/**
 		本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务
 	*/
-	void onTaskComplete(void);
+	void onTaskCompleted(void);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	static unsigned __stdcall threadFunc(void *arg);

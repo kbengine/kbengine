@@ -109,10 +109,8 @@ public:
 	bool login(std::string accountName, std::string passwd, 
 		std::string ip, KBEngine::uint32 port);
 
-	GAME_TIME time() const { return time_; }
-	Timers & timers() { return timers_; }
+	GAME_TIME time() const { return g_kbetime; }
 	double gameTimeInSeconds() const;
-	void handleTimers();
 
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
@@ -139,15 +137,64 @@ public:
 		COMPONENT_TYPE componentType);
 
 	/** 网络接口
+		和服务端的版本不匹配
+	*/
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
+
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
 	virtual void onTargetChanged();
 
+	/** 
+		服务端添加了某个space的几何映射
+	*/
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
+
+	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_GetSpaceData(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_callback(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_callback(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_cancelCallback(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_cancelCallback(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_getWatcher(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_getWatcher(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_getWatcherDir(PyObject *self, PyObject* args){
+		
+		return ClientObjectBase::__py_getWatcherDir(&ClientApp::getSingleton(), args);	
+	}
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -164,9 +211,6 @@ protected:
 	
 	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
 	Mercury::BlowfishFilter*								pBlowfishFilter_;
-
-	GAME_TIME												time_;
-	Timers													timers_;
 
 	// 线程池
 	thread::ThreadPool										threadPool_;

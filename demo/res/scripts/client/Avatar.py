@@ -14,7 +14,8 @@ from interfaces.Spell import Spell
 from interfaces.Motion import Motion
 from interfaces.SkillBox import SkillBox
 
-class Avatar(GameObject,
+class Avatar(KBEngine.Entity,
+			GameObject,
 			Flags,
 			State,
 			Motion,
@@ -24,6 +25,7 @@ class Avatar(GameObject,
 			Dialog,
 			Teleport):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		GameObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
@@ -75,6 +77,13 @@ class Avatar(GameObject,
 		玩家跳跃
 		"""
 		pass
+		
+	def set_own_val(self, oldValue):
+		"""
+		Property method.
+		服务器设置了属性
+		"""
+		DEBUG_MSG("%s::set_own_val: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.own_val))
 		
 class PlayerAvatar(Avatar, EventHandler):
 	def __init__(self): # 这里引擎不会自动调用

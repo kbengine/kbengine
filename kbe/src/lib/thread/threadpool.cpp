@@ -27,9 +27,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/watcher.hpp"
 
-namespace KBEngine{ 
+namespace KBEngine
+{ 
+
 KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
-namespace thread{
+
+namespace thread
+{
 
 int ThreadPool::timeout = 300;
 
@@ -54,10 +58,12 @@ bool TPThread::join(void)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	int i = 0;
+
 	while(true)
 	{
 		++i;
 		DWORD dw = WaitForSingleObject(getID(), 3000);  
+
 		switch (dw)
 		{
 		case WAIT_OBJECT_0:
@@ -150,7 +156,9 @@ void ThreadPool::destroy()
 		KBEngine::sleep(300);
 		itry++;
 
+		std::string taskaddrs = "";
 		THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
 		int count = allThreadList_.size();
 		std::list<TPThread*>::iterator itr = allThreadList_.begin();
 		for(; itr != allThreadList_.end(); itr++)
@@ -158,21 +166,26 @@ void ThreadPool::destroy()
 			if((*itr))
 			{
 				if((*itr)->getState() != TPThread::THREAD_STATE_END)
+				{
 					(*itr)->sendCondSignal();
+					taskaddrs += (boost::format("%1%,") % (*itr)).str();
+				}
 				else
+				{
 					count--;
+				}
 			}
 		}
 
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-
+		
 		if(count <= 0)
 		{
 			break;
 		}
 		else
 		{
-			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
+			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%)[%2%], try=%3%\n") % count % taskaddrs % itry);
 		}
 	}
 
@@ -254,6 +267,7 @@ TPTask* ThreadPool::popbufferTask(void)
 	}
 
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);	
+
 	return tptask;
 }
 
@@ -297,6 +311,7 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 
 	isInitialize_ = true;
 	KBEngine::sleep(100);
+
 	return true;
 }
 
@@ -337,6 +352,7 @@ void ThreadPool::onMainThreadTick()
 void ThreadPool::bufferTask(TPTask* tptask)
 {
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
+
 	bufferedTaskList_.push(tptask);
 
 	if(bufferedTaskList_.size() > THREAD_BUSY_SIZE)
@@ -522,11 +538,15 @@ bool ThreadPool::addTask(TPTask* tptask)
 bool ThreadPool::hasThread(TPThread* pTPThread)
 {
 	bool ret = true;
+
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
 	std::list<TPThread*>::iterator itr1 = find(allThreadList_.begin(), allThreadList_.end(), pTPThread);
 	if(itr1 == allThreadList_.end())
 		ret = false;
+
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
 	return ret;
 }
 
@@ -572,6 +592,7 @@ void* TPThread::threadFunc(void* arg)
 			continue;
 
 		tptd->state_ = THREAD_STATE_BUSY;
+
 		while(task && !tptd->threadPool()->isDestroyed())
 		{
 			tptd->onProcessTaskStart(task);
@@ -582,12 +603,12 @@ void* TPThread::threadFunc(void* arg)
 
 			if(!task1)
 			{
-				tptd->onTaskComplete();
+				tptd->onTaskCompleted();
 				break;
 			}
 			else
 			{
-				tptd->deleteFiniTask(task);
+				pThreadPool->addFiniTask(task);
 				task = task1;
 				tptd->setTask(task1);
 			}
@@ -686,9 +707,9 @@ bool TPThread::onWaitCondSignal(void)
 }
 
 //-------------------------------------------------------------------------------------
-void TPThread::onTaskComplete(void)
+void TPThread::onTaskCompleted(void)
 {
-	deleteFiniTask(currTask_);
+	threadPool_->addFiniTask(currTask_);
 	currTask_ = NULL;
 	threadPool_->addFreeThread(this);
 }
@@ -697,12 +718,6 @@ void TPThread::onTaskComplete(void)
 TPTask* TPThread::tryGetTask(void)
 {
 	return threadPool_->popbufferTask();
-}
-
-//-------------------------------------------------------------------------------------
-void TPThread::deleteFiniTask(TPTask* tpTask)
-{
-	threadPool_->addFiniTask(tpTask);
 }
 
 //-------------------------------------------------------------------------------------

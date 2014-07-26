@@ -45,7 +45,7 @@ namespace Mercury{
 }
 
 class Proxy;
-class BackupSender;
+class Backuper;
 class Archiver;
 class TelnetServer;
 class RestoreEntityHandler;
@@ -120,7 +120,7 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 	
 	/** 网络接口
 		某个client向本app告知处于活动状态。
@@ -138,6 +138,7 @@ public:
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
@@ -172,6 +173,23 @@ public:
 	void onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 
+		从db获取信息创建一个entity
+	*/
+	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
+
+	/** 网络接口
+		createBaseFromDBID的回调。
+	*/
+	// 从数据库来的回调
+	void onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	// 请求在这个进程上创建这个entity
+	void createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	// 创建完毕后的回调
+	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
+	
+
+	/** 
 		baseapp 的createBaseAnywhere的回调 
 	*/
 	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -179,7 +197,7 @@ public:
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 
-		为一个baseEntity在制定的cell上创建一个cellEntity 
+		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
 	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
 	
@@ -218,7 +236,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastBaseAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		注册将要登录的账号, 注册后则允许登录到此网关
@@ -230,6 +248,11 @@ public:
 		新用户请求登录到网关上
 	*/
 	void loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+
+	/**
+		踢出一个Channel
+	*/
+	void kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
@@ -250,31 +273,11 @@ public:
 		从dbmgr获取到账号Entity信息
 	*/
 	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-
-	/** 网络接口
-		通知客户端进入了cell（世界或者AOI)
-	*/
-	void onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
 	
 	/**
 		客户端自身进入世界了
 	*/
 	void onClientEntityEnterWorld(Proxy* base);
-
-	/** 网络接口
-		通知客户端离开了cell（世界或者AOI)
-	*/
-	void onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
-
-	/** 网络接口
-		通知客户端进入了某个space
-	*/
-	void onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
-
-	/** 网络接口
-		通知客户端离开了某个space
-	*/
-	void onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
 
 	/** 网络接口
 		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走
@@ -308,6 +311,11 @@ public:
 	*/
 	void forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		cellapp转发entity消息给某个baseEntity的cellEntity
+	*/
+	void forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
 	/**
 		获取游戏时间
 	*/
@@ -354,6 +362,9 @@ public:
 		const std::string& verInfo, 
 		const std::string& encryptedKey);
 
+	// 引擎版本不匹配
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+
 	/**
 		一个cell的entity都恢复完毕
 	*/
@@ -396,6 +407,18 @@ public:
 	*/
 	static PyObject* __py_address(PyObject* self, PyObject* args);
 
+	/**
+		通过dbid从数据库中删除一个实体
+
+		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的mailbox， 其他任何原因都返回false.
+	*/
+	static PyObject* __py_deleteBaseByDBID(PyObject* self, PyObject* args);
+
+	/** 网络接口
+		通过dbid从数据库中删除一个实体的回调
+	*/
+	void deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/** 网络接口
 		请求绑定email
 	*/
@@ -414,7 +437,7 @@ public:
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
-	GlobalDataClient*										pGlobalBases_;								// globalBases
+	GlobalDataClient*										pBaseAppData_;								// globalBases
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr											pendingLoginMgr_;
@@ -422,7 +445,7 @@ protected:
 	ForwardComponent_MessageBuffer							forward_messagebuffer_;
 
 	// 备份存档相关
-	KBEShared_ptr< BackupSender >							pBackupSender_;	
+	KBEShared_ptr< Backuper >								pBackuper_;	
 	KBEShared_ptr< Archiver >								pArchiver_;	
 
 	float													load_;

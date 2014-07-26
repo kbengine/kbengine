@@ -60,15 +60,14 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	DEBUG_MSG(boost::format("syncToDB(): %1%->%2%(%3%).\n") % tablename % itemname % datatype);
 
-	char __sql_str__[MAX_BUF];	
-	kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s add %s %s;",
-		tablename, itemname, datatype);	
+	char __sql_str__[MAX_BUF];
 
-	bool ret = false;
+	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` ADD `%s` %s;",
+		tablename, itemname, datatype);	
 
 	try
 	{
-		ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
+		dbi->query(__sql_str__, strlen(__sql_str__), false);	
 	}
 	catch(...)
 	{
@@ -76,8 +75,9 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	if(dbi->getlasterror() == 1060)	
 	{
-		kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s %s;",	
+		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` MODIFY COLUMN `%s` %s;",	
 			tablename, itemname, datatype);
+
 		try
 		{
 			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
@@ -85,6 +85,9 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 		catch(...)
 		{
+			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%: %5%)\n lastQuery: %6%.\n") % 
+				tablename % itemname % datatype % dbi->getlasterror() % dbi->getstrerror() % static_cast<DBInterfaceMysql*>(dbi)->lastquery());
+
 			return false;
 		}
 	}
@@ -1435,15 +1438,7 @@ bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi, void* pData)
 void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
 	std::string& datas = opTableItemDataBox.results[opTableItemDataBox.readresultIdx++];
-	ArraySize size = datas.size(), rpos = 0, wpos = 0;
-	wpos = size;
-
-	(*s) << size;
-	if(size > 0)
-	{
-		(*s) << rpos << wpos;
-		(*s).append(datas.data(), size);
-	}
+	s->appendBlob(datas.data(), datas.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -1455,25 +1450,17 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 
 	std::string val;
-	ArraySize size, rpos, wpos;
-
-	(*s) >> size;
-
-	if(size > 0)
-	{
-		(*s) >> rpos >> wpos;
-
-		val.assign((const char*)s->data() + s->rpos(), size);
-		s->read_skip(size);
-	}
+	s->readBlob(val);
 
 	char* tbuf = new char[val.size() * 2 + 1];
 	memset(tbuf, 0, val.size() * 2 + 1);
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, val.c_str(), val.size());
+		tbuf, val.data(), val.size());
 
-	pSotvs->extraDatas = tbuf;
+	pSotvs->extraDatas = "\"";
+	pSotvs->extraDatas += tbuf;
+	pSotvs->extraDatas += "\"";
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
@@ -1521,7 +1508,9 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 
-	pSotvs->extraDatas = tbuf;
+	pSotvs->extraDatas = "\"";
+	pSotvs->extraDatas += tbuf;
+	pSotvs->extraDatas += "\"";
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));

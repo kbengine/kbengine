@@ -27,6 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "resmgr/resmgr.hpp"
 #include "pyscript/script.hpp"
+#include "server/serverconfig.hpp"
+#include "client_lib/config.hpp"
+#include "network/bundle.hpp"
 
 #ifndef CODE_INLINE
 #include "scriptdef_module.ipp"
@@ -39,11 +42,31 @@ namespace KBEngine{
 ScriptDefModule::ScriptDefModule(std::string name):
 scriptType_(NULL),
 uType_(0),
+persistentPropertyDescr_(),
+cellPropertyDescr_(),
+basePropertyDescr_(),
+clientPropertyDescr_(),
+persistentPropertyDescr_uidmap_(),
+cellPropertyDescr_uidmap_(),
+basePropertyDescr_uidmap_(),
+clientPropertyDescr_uidmap_(),
+propertyDescr_aliasmap_(),
+methodCellDescr_(),
+methodBaseDescr_(),
+methodClientDescr_(),
+methodBaseExposedDescr_(),
+methodCellExposedDescr_(),
+methodCellDescr_uidmap_(),
+methodBaseDescr_uidmap_(),
+methodClientDescr_uidmap_(),
+methodDescr_aliasmap_(),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
 volatileinfo_(),
-name_(name)
+name_(name),
+usePropertyDescrAlias_(false),
+useMethodDescrAlias_(false)
 {
 	EntityDef::md5().append((void*)name.c_str(), name.size());
 }
@@ -96,6 +119,168 @@ void ScriptDefModule::finalise(void)
 }
 
 //-------------------------------------------------------------------------------------
+void ScriptDefModule::onLoaded(void)
+{
+	if(EntityDef::entitydefAliasID())
+	{
+		int aliasID = ENTITY_BASE_PROPERTY_ALIASID_MAX;
+		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
+		for(; iter1 != cellPropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
+				iter1->second->aliasID(aliasID++);
+			}
+		}
+
+		iter1 = basePropertyDescr_.begin();
+		for(; iter1 != basePropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
+				iter1->second->aliasID(aliasID++);
+			}
+		}
+
+		iter1 = clientPropertyDescr_.begin();
+		for(; iter1 != clientPropertyDescr_.end(); iter1++)
+		{
+			if(iter1->second->hasClient())
+			{
+				propertyDescr_aliasmap_[aliasID] = iter1->second;
+				iter1->second->aliasID(aliasID++);
+			}
+		}
+		
+		if(aliasID > 255)
+		{
+			iter1 = cellPropertyDescr_.begin();
+			for(; iter1 != cellPropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
+
+			iter1 = basePropertyDescr_.begin();
+			for(; iter1 != basePropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
+
+			iter1 = clientPropertyDescr_.begin();
+			for(; iter1 != clientPropertyDescr_.end(); iter1++)
+			{
+				if(iter1->second->hasClient())
+				{
+					iter1->second->aliasID(-1);
+				}
+			}
+
+			propertyDescr_aliasmap_.clear();
+		}
+		else
+		{
+			usePropertyDescrAlias_ = true;
+		}
+
+		aliasID = 0;
+
+		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
+		for(; iter2 != methodClientDescr_.end(); iter2++)
+		{
+			methodDescr_aliasmap_[aliasID] = iter2->second;
+			iter2->second->aliasID(aliasID++);
+		}
+
+		if(aliasID > 255)
+		{
+			METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
+			for(; iter2 != methodClientDescr_.end(); iter2++)
+			{
+				iter2->second->aliasID(-1);
+				methodDescr_aliasmap_.clear();
+			}
+		}
+		else
+		{
+			useMethodDescrAlias_ = true;
+		}
+	}
+
+	if(g_debugEntity)
+	{
+		c_str();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptDefModule::c_str()
+{
+	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
+	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	iter1 = basePropertyDescr_.begin();
+	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	iter1 = clientPropertyDescr_.begin();
+	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
+			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
+	for(; iter2 != methodCellDescr_.end(); iter2++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.CellMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
+			getName() % iter2->second->getName() % iter2->second->getUType() % 
+			iter2->second->getArgSize() % iter2->second->aliasID() % (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
+	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.BaseMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
+			getName() % iter3->second->getName() % iter3->second->getUType() % 
+			iter3->second->getArgSize() % iter3->second->aliasID() % (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+	}
+
+	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
+	for(; iter4 != methodClientDescr_.end(); iter4++)
+	{
+		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.ClientMethod %2% uid=%3%, argssize=%4%, aliasID=%5%.\n") % 
+			getName() % iter4->second->getName() % iter4->second->getUType() % iter4->second->getArgSize() % iter4->second->aliasID());
+	}
+
+	DEBUG_MSG(boost::format("ScriptDefModule::c_str: [%1%], cellPropertys=%2%, basePropertys=%2%, "
+		"clientPropertys=%4%, cellMethods=%5%(%6%), baseMethods=%7%(%8%), clientMethods=%9%\n") %
+		getName() % 
+		getCellPropertyDescriptions().size() % 
+		getBasePropertyDescriptions().size() % 
+		getClientPropertyDescriptions().size() % 
+		getCellMethodDescriptions().size() % 
+		getCellExposedMethodDescriptions().size() % 
+		getBaseMethodDescriptions().size() % 
+		getBaseExposedMethodDescriptions().size() % 
+		getClientMethodDescriptions().size());
+}
+
+//-------------------------------------------------------------------------------------
 void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
 { 
 	uType_ = utype; 
@@ -103,15 +288,21 @@ void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
 }
 
 //-------------------------------------------------------------------------------------
-ENTITY_SCRIPT_UID ScriptDefModule::getUType(void)
+void ScriptDefModule::addSmartUTypeToStream(MemoryStream* pStream)
 {
-	return uType_;
+	if(EntityDef::scriptModuleAliasID())
+		(*pStream) << getAliasID();
+	else
+		(*pStream) << getUType();
 }
 
 //-------------------------------------------------------------------------------------
-PyTypeObject* ScriptDefModule::getScriptType(void)
+void ScriptDefModule::addSmartUTypeToBundle(Mercury::Bundle* pBundle)
 {
-	return scriptType_;
+	if(EntityDef::scriptModuleAliasID())
+		(*pBundle) << getAliasID();
+	else
+		(*pBundle) << getUType();
 }
 
 //-------------------------------------------------------------------------------------
@@ -123,6 +314,7 @@ PyObject* ScriptDefModule::createObject(void)
 		PyErr_Print();
 		ERROR_MSG("ScriptDefModule::createObject: GenericAlloc is failed.\n");
 	}
+
 	return pObject;
 }
 
@@ -169,7 +361,6 @@ void ScriptDefModule::autoMatchCompOwn()
 	{
 		setCell(true);
 	}
-
 }
 
 //-------------------------------------------------------------------------------------
@@ -431,6 +622,7 @@ MethodDescription* ScriptDefModule::findCellMethodDescription(const char* attrNa
 		//ERROR_MSG("ScriptDefModule::findCellMethodDescription: [%s] not found!\n", attrName);
 		return NULL;
 	}
+
 	return iter->second;
 }
 
@@ -443,6 +635,34 @@ MethodDescription* ScriptDefModule::findCellMethodDescription(ENTITY_METHOD_UID 
 		//ERROR_MSG("ScriptDefModule::findCellMethodDescription: [%ld] not found!\n", utype);
 		return NULL;
 	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptDefModule::findAliasPropertyDescription(ENTITY_DEF_ALIASID aliasID)
+{
+	PROPERTYDESCRIPTION_ALIASMAP::iterator iter = propertyDescr_aliasmap_.find(aliasID);
+
+	if(iter == propertyDescr_aliasmap_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findAliasPropertyDescription: [%ld] not found!\n", aliasID);
+		return NULL;
+	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+MethodDescription* ScriptDefModule::findAliasMethodDescription(ENTITY_DEF_ALIASID aliasID)
+{
+	METHODDESCRIPTION_ALIASMAP::iterator iter = methodDescr_aliasmap_.find(aliasID);
+	if(iter == methodDescr_aliasmap_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findAliasMethodDescription: [%s] not found!\n", aliasID);
+		return NULL;
+	}
+
 	return iter->second;
 }
 

@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/componentbridge.hpp"
-#include "server/serverinfos.hpp"
+#include "server/machine_infos.hpp"
 #include "resmgr/resmgr.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -41,9 +41,9 @@ namespace KBEngine{
 
 inline void START_MSG(const char * name, uint64 appuid)
 {
-	ServerInfos serverInfo;
+	MachineInfos machineInfo;
 	
-	INFO_MSG(boost::format("---- %1% "
+	std::string s = (boost::format("---- %1% "
 			"Version: %2%. "
 			"Config: %3%. "
 			"Built: %4% %5%. "
@@ -52,12 +52,25 @@ inline void START_MSG(const char * name, uint64 appuid)
 			"PID: %8% ----\n") %
 		name % KBEVersion::versionString().c_str() %
 		KBE_CONFIG % __TIME__ % __DATE__ %
-		appuid % getUserUID() % getProcessPID() );
+		appuid % getUserUID() % getProcessPID()).str();
+
+	INFO_MSG(s);
 	
-	INFO_MSG(boost::format("Server %1%: %2% with %3% RAM\n") %
-		serverInfo.serverName().c_str() %
-		serverInfo.cpuInfo().c_str() %
-		serverInfo.memInfo().c_str() );
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("%s", s.c_str());
+#endif
+
+	s = (boost::format("Server %1%: %2% with %3% RAM\n") %
+		machineInfo.machineName().c_str() %
+		machineInfo.cpuInfo().c_str() %
+		machineInfo.memInfo().c_str() ).str();
+
+	INFO_MSG(s);
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("%s\n", s.c_str());
+#endif
+
 }
 
 inline void loadConfig()
@@ -122,7 +135,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
 #endif
 
-	Resmgr::getSingleton().pirnt();
+	Resmgr::getSingleton().print();
 
 	Mercury::EventDispatcher dispatcher;
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);
@@ -160,6 +173,17 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	}
 	
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: %s", (boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType)).str().c_str());
+
+	wchar_t exe_path[MAX_PATH];
+	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
+	GetCurrentDirectory(MAX_PATH, exe_path);
+	
+	char* ccattr = strutil::wchar2char(exe_path);
+	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(componentType));
+	free(ccattr);
+#endif
 
 	int ret = app.run();
 

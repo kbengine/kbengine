@@ -13,21 +13,21 @@ class Account(KBEngine.Entity):
 		"""
 		define method.
 		"""
-		DEBUG_MSG("Account:onReqAvatarList::%s" % (dict(infos)))
-		self.avatars = dict(infos)
+		DEBUG_MSG("Account:onReqAvatarList::%s" % (infos))
+		self.avatars = infos
 		KBEngine.fireEvent("update_avatars", self.avatars)
 		
 	def onCreateAvatarResult(self, retcode, info):
 		"""
 		define method.
 		"""
-		DEBUG_MSG("Account:onCreateAvatarResult::%s, retcode=%i" % (dict(info), retcode))
+		DEBUG_MSG("Account:onCreateAvatarResult::%s, retcode=%i" % (info, retcode))
 		
-		if info["dbid"] == 0:
+		if info[0] == 0: # "dbid"
 			DEBUG_MSG("Account:onCreateAvatarResult::avatar full.")
 			return
 			
-		self.avatars[info["dbid"]] = dict(info);
+		self.avatars[info[0]] = info
 		KBEngine.fireEvent("update_avatars", self.avatars)
 	
 	def onRemoveAvatar(self, dbid):

@@ -8,12 +8,14 @@ from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 
-class Monster(GameObject, 
+class Monster(KBEngine.Entity,
+			GameObject, 
 			Flags,
 			State,
 			Motion,
 			Combat):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		GameObject.__init__(self)
 		Motion.__init__(self)
 		Flags.__init__(self) 

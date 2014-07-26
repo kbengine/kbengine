@@ -45,7 +45,7 @@ namespace Mercury
 class Channel;
 }
 
-class ProxySender;
+class ProxyForwarder;
 
 #define LOG_ON_REJECT  0
 #define LOG_ON_ACCEPT  1
@@ -64,6 +64,12 @@ public:
 
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles* pBundles();
+
+	/** 
+		定义属性数据被改变了 
+	*/
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
+			PyObject* pyData);
 
 	/**
 		向witness客户端推送一条消息
@@ -175,7 +181,7 @@ protected:
 	// 通信加密key 默认blowfish
 	std::string encryptionKey;
 
-	ProxySender* pProxySender_;
+	ProxyForwarder* pProxyForwarder_;
 
 	COMPONENT_CLIENT_TYPE clientComponentType_;
 };

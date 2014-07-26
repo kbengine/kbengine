@@ -617,8 +617,10 @@ public:
 	bool isSameItemType(PyObject* pyValue);
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents);
 
 	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -670,6 +672,7 @@ public:
 	void addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents);
 
 	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);

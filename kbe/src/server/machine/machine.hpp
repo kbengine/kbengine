@@ -68,7 +68,7 @@ public:
 							int8 componentType, uint64 componentID, uint64 componentIDEx, 
 							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
-							uint32 extaddr, uint16 extport, uint32 pid,
+							uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 							uint64 extradata1, uint64 extradata2, uint64 extradata3);
 	

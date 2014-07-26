@@ -35,7 +35,7 @@ public:
 	enum DATA_TYPE
 	{
 		GLOBAL_DATA,
-		GLOBAL_BASES,
+		BASEAPP_DATA,
 		CELLAPP_DATA
 	};
 public:	
@@ -52,7 +52,7 @@ public:
 	void addConcernComponentType(COMPONENT_TYPE ct){ concernComponentTypes_.push_back(ct); }
 	
 	/** 广播一个数据的改变给所关心的组件 */
-	void broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, 
+	void broadcastDataChanged(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, 
 							const std::string& value, bool isDelete = false);
 	
 	/** 一个新的客户端登陆 */

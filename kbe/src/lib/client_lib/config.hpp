@@ -84,6 +84,6 @@ public:
 	std::string telnet_deflayer;
 };
 
-#define g_kbeConfig Config::getSingleton()
+#define g_kbeConfig KBEngine::Config::getSingleton()
 }
 #endif

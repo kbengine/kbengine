@@ -53,7 +53,7 @@ ClientApp::ClientApp(Mercury::EventDispatcher& dispatcher,
 					 Mercury::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
-ClientObjectBase(ninterface),
+ClientObjectBase(ninterface, getScriptType()),
 TimerHandler(),
 Mercury::ChannelTimeOutHandler(),
 scriptBaseTypes_(),
@@ -64,8 +64,6 @@ mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
 pBlowfishFilter_(NULL),
-time_(),
-timers_(),
 threadPool_(),
 entryScript_(),
 state_(C_STATE_INIT)
@@ -137,6 +135,13 @@ bool ClientApp::initializeEnd()
 		return false;
 	}
 
+	if(g_kbeConfig.useLastAccountName())
+	{
+		EventData_LastAccountInfo eventdata;
+		eventdata.name = g_kbeConfig.accountName();
+		eventHandler_.fire(&eventdata);
+	}
+
 	return true;
 }
 
@@ -170,16 +175,19 @@ bool ClientApp::installEntityDef()
 
 	// 初始化所有扩展模块
 	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, g_componentType)){
+	if(!EntityDef::initialize(scriptBaseTypes_, g_componentType)){
 		return false;
 	}
 
-	// 注册创建entity的方法到py
-	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,	__py_fireEvent,			METH_VARARGS,	0)
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,		__py_getPlayer,			METH_VARARGS,	0)
-	
+	// 注册一些接口到kbengine
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,			__py_fireEvent,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,				__py_getPlayer,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getSpaceData,		__py_GetSpaceData,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	callback,			__py_callback,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	cancelCallback,		__py_cancelCallback,							METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,								METH_VARARGS,	0)
 	return true;
 }
 
@@ -201,20 +209,6 @@ bool ClientApp::installPyModules()
 {
 	registerScript(client::Entity::getScriptType());
 	onInstallPyModules();
-
-	// 安装入口模块
-	PyObject *entryScriptFileName = PyUnicode_FromString(g_kbeConfig.entryScriptFile());
-	if(entryScriptFileName != NULL)
-	{
-		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
-		S_RELEASE(entryScriptFileName);
-
-		if(entryScript_.get() == NULL)
-		{
-			return false;
-		}
-	}
 
 	// 注册设置脚本输出类型
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,	__py_setScriptLogType,	METH_VARARGS,	0)
@@ -244,6 +238,21 @@ bool ClientApp::installPyModules()
 	}
 
 	registerPyObjectToScript("entities", pEntities_);
+
+	// 安装入口模块
+	PyObject *entryScriptFileName = PyUnicode_FromString(g_kbeConfig.entryScriptFile());
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -294,7 +303,6 @@ void ClientApp::handleGameTick()
 {
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	handleTimers();
 	
 	if(lastAddr.ip != 0)
 	{
@@ -392,12 +400,6 @@ void ClientApp::handleGameTick()
 			KBE_ASSERT(false);
 			break;
 	};
-}
-
-//-------------------------------------------------------------------------------------
-void ClientApp::handleTimers()
-{
-	timers().process(g_kbetime);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -616,12 +618,32 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onVersionNotMatch(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
 	Config::getSingleton().writeAccountName(name_.c_str());
 
 	state_ = C_STATE_LOGIN_GATEWAY_CHANNEL;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onLoginFailed(pChannel, s);
+	canReset_ = true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
+	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	

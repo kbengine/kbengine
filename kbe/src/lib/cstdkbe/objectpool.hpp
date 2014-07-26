@@ -196,6 +196,7 @@ protected:
 class PoolObject
 {
 public:
+	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
 	
 	/**

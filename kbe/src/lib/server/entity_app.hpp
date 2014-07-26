@@ -90,7 +90,7 @@ public:
 	/** 
 		通过entityID销毁一个entity 
 	*/
-	virtual bool destroyEntity(ENTITY_ID entityID);
+	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript);
 
 	/**
 		由mailbox来尝试获取一个entity的实例
@@ -156,7 +156,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
@@ -180,6 +180,12 @@ public:
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
 	/**
+		获取watcher值
+	*/
+	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
+	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
+
+	/**
 		重新导入所有的脚本
 	*/
 	virtual void reloadScript(bool fullReload);
@@ -191,9 +197,24 @@ public:
 	static PyObject* __py_getResFullPath(PyObject* self, PyObject* args);
 
 	/**
+		通过相对路径判断资源是否存在
+	*/
+	static PyObject* __py_hasRes(PyObject* self, PyObject* args);
+
+	/**
 		open文件
 	*/
 	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
+
+	/**
+		列出目录下所有文件
+	*/
+	static PyObject* __py_listPathRes(PyObject* self, PyObject* args);
+
+	/**
+		匹配相对路径获得全路径 
+	*/
+	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -286,7 +307,9 @@ void EntityApp<E>::finalise(void)
 	
 	pyCallbackMgr_.finalise();
 	ScriptTimers::finalise(*this);
-	pEntities_->finalise();
+
+	if(pEntities_)
+		pEntities_->finalise();
 	
 	uninstallPyScript();
 
@@ -296,12 +319,15 @@ void EntityApp<E>::finalise(void)
 template<class E>
 bool EntityApp<E>::installEntityDef()
 {
+	EntityDef::entityAliasID(ServerConfig::getSingleton().getCellApp().aliasEntityID);
+	EntityDef::entitydefAliasID(ServerConfig::getSingleton().getCellApp().entitydefAliasID);
+	
 	if(!EntityDef::installScript(this->getScript().getModule()))
 		return false;
 
 	// 初始化所有扩展模块
 	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, componentType_)){
+	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
 		return false;
 	}
 
@@ -323,48 +349,51 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	if(Resmgr::getSingleton().respaths().size() <= 0)
+	if(Resmgr::getSingleton().respaths().size() <= 0 || 
+		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
+		Resmgr::getSingleton().getPySysResPath().size() == 0)
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
-	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	std::wstring user_res_path = L"";
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserResPath().c_str()));
 	if(tbuf != NULL)
 	{
-		root_path += tbuf;
+		user_res_path += tbuf;
 		free(tbuf);
 	}
 	else
 	{
+		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH error[char2wchar]!\n");
 		return false;
 	}
 
-	std::wstring pyPaths = root_path + L"res/scripts/common;";
-	pyPaths += root_path + L"res/scripts/data;";
-	pyPaths += root_path + L"res/scripts/user_type;";
+	std::wstring pyPaths = user_res_path + L"scripts/common;";
+	pyPaths += user_res_path + L"scripts/data;";
+	pyPaths += user_res_path + L"scripts/user_type;";
 
 	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/base;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/base;";
 		break;
 	case CELLAPP_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/cell;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/cell;";
 		break;
 	case DBMGR_TYPE:
-		pyPaths += root_path + L"res/scripts/server_common;";
-		pyPaths += root_path + L"res/scripts/db;";
+		pyPaths += user_res_path + L"scripts/server_common;";
+		pyPaths += user_res_path + L"scripts/db;";
 		break;
 	default:
-		pyPaths += root_path + L"res/scripts/client;";
+		pyPaths += user_res_path + L"scripts/client;";
 		break;
 	};
 	
-	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
+	std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
 	kbe_res_path += "scripts/common";
 
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
@@ -407,18 +436,6 @@ bool EntityApp<E>::installPyModules()
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
 
-	if(entryScriptFileName != NULL)
-	{
-		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
-		S_RELEASE(entryScriptFileName);
-
-		if(entryScript_.get() == NULL)
-		{
-			return false;
-		}
-	}
-
 	// 添加pywatcher支持
 	if(!initializePyWatcher(&this->getScript()))
 		return false;
@@ -437,8 +454,23 @@ bool EntityApp<E>::installPyModules()
 	// 获得资源全路径
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,	METH_VARARGS,	0);
 
-	// 文件操作
+	// 是否存在某个资源
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,			METH_VARARGS,	0);
+
+	// 打开一个文件
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,			METH_VARARGS,	0);
+
+	// 列出目录下所有文件
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	listPathRes,		__py_listPathRes,		METH_VARARGS,	0);
+
+	// 匹配相对路径获得全路径
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,			METH_VARARGS,	0);
+
+	// 获取watcher值
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,		METH_VARARGS,	0);
+
+	// 获取watcher目录
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,		METH_VARARGS,	0);
 
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
@@ -471,6 +503,18 @@ bool EntityApp<E>::installPyModules()
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
 	
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	onInstallPyModules();
 	return true;
 }
@@ -640,12 +684,12 @@ void EntityApp<E>::handleGameTick()
 }
 
 template<class E>
-bool EntityApp<E>::destroyEntity(ENTITY_ID entityID)
+bool EntityApp<E>::destroyEntity(ENTITY_ID entityID, bool callScript)
 {
 	PyObjectPtr entity = pEntities_->erase(entityID);
 	if(entity != NULL)
 	{
-		static_cast<E*>(entity.get())->destroy();
+		static_cast<E*>(entity.get())->destroy(callScript);
 		return true;
 	}
 
@@ -674,6 +718,179 @@ PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 }
 
 template<class E>
+PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	//DebugHelper::getSingleton().setScriptMsgType(type);
+
+	KBEShared_ptr< WatcherObject > pWobj = WatcherPaths::root().getWatcher(path);
+	if(pWobj.get() == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	WATCHER_VALUE_TYPE wtype = pWobj->getType();
+	PyObject* pyval = NULL;
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	pWobj->addToStream(stream);
+	WATCHER_ID id;
+	(*stream) >> id;
+
+	switch(wtype)
+	{
+	case WATCHER_VALUE_TYPE_UINT8:
+		{
+			uint8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT16:
+		{
+			uint16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT32:
+		{
+			uint32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT64:
+		{
+			uint64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT8:
+		{
+			int8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT16:
+		{
+			int16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT32:
+		{
+			int32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT64:
+		{
+			int64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_FLOAT:
+		{
+			float v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_DOUBLE:
+		{
+			double v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_CHAR:
+	case WATCHER_VALUE_TYPE_STRING:
+		{
+			std::string v;
+			(*stream) >> v;
+			pyval = PyUnicode_FromString(v.c_str());
+		}
+		break;
+	case WATCHER_VALUE_TYPE_BOOL:
+		{
+			bool v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_COMPONENT_TYPE:
+		{
+			COMPONENT_TYPE v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	MemoryStream::ObjPool().reclaimObject(stream);
+	return pyval;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::vector<std::string> vec;
+	WatcherPaths::root().dirPath(path, vec);
+
+	PyObject* pyTuple = PyTuple_New(vec.size());
+	std::vector<std::string>::iterator iter = vec.begin();
+	int i = 0;
+	for(; iter != vec.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
+	}
+
+	return pyTuple;
+}
+
+template<class E>
 PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -690,6 +907,7 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
 		PyErr_PrintEx(0);
+		return 0;
 	}
 
 	DebugHelper::getSingleton().setScriptMsgType(type);
@@ -721,6 +939,29 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 }
 
 template<class E>
+PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+
+	if(PyArg_ParseTuple(args, "s", &respath) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return PyBool_FromLong(Resmgr::getSingleton().hasRes(respath));
+}
+
+template<class E>
 PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -744,9 +985,161 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
 
 	PyObject *ioMod = PyImport_ImportModule("io");
-	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), const_cast<char*>("ss"), const_cast<char*>(sfullpath.c_str()), fargs);
+
+	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), 
+		const_cast<char*>("ss"), 
+		const_cast<char*>(sfullpath.c_str()), 
+		fargs);
+
 	Py_DECREF(ioMod);
 	return openedFile;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+
+	if(PyArg_ParseTuple(args, "s", &respath) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::string path = Resmgr::getSingleton().matchPath(respath);
+	return PyUnicode_FromStringAndSize(path.c_str(), path.size());
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount < 1 || argCount > 2)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::wstring wExtendName = L"*";
+	PyObject* pathobj = NULL;
+	PyObject* path_argsobj = NULL;
+
+	if(argCount == 1)
+	{
+		if(PyArg_ParseTuple(args, "O", &pathobj) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		if(PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+		
+		if(PyUnicode_Check(path_argsobj))
+		{
+			wchar_t* fargs = NULL;
+			fargs = PyUnicode_AsWideCharString(path_argsobj, NULL);
+			wExtendName = fargs;
+			PyMem_Free(fargs);
+		}
+		else
+		{
+			if(PySequence_Check(path_argsobj))
+			{
+				wExtendName = L"";
+				Py_ssize_t size = PySequence_Size(path_argsobj);
+				for(int i=0; i<size; i++)
+				{
+					PyObject* pyobj = PySequence_GetItem(path_argsobj, i);
+					if(!PyUnicode_Check(pyobj))
+					{
+						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+						PyErr_PrintEx(0);
+						return 0;
+					}
+					
+					wchar_t* wtemp = NULL;
+					wtemp = PyUnicode_AsWideCharString(pyobj, NULL);
+					wExtendName += wtemp;
+					wExtendName += L"|";
+					PyMem_Free(wtemp);
+				}
+			}
+			else
+			{
+				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is error!");
+				PyErr_PrintEx(0);
+				return 0;
+			}
+		}
+	}
+
+	if(!PyUnicode_Check(pathobj))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(wExtendName.size() == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is NULL!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(wExtendName[0] == '.')
+		wExtendName.erase(wExtendName.begin());
+
+	if(wExtendName.size() == 0)
+		wExtendName = L"*";
+
+	wchar_t* respath = PyUnicode_AsWideCharString(pathobj, NULL);
+	if(respath == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* cpath = strutil::wchar2char(respath);
+	std::string foundPath = Resmgr::getSingleton().matchPath(cpath);
+	free(cpath);
+	PyMem_Free(respath);
+
+	respath = strutil::char2wchar(foundPath.c_str());
+
+	std::vector<std::wstring> results;
+	Resmgr::getSingleton().listPathRes(respath, wExtendName, results);
+	PyObject* pyresults = PyTuple_New(results.size());
+
+	std::vector<std::wstring>::iterator iter = results.begin();
+	int i = 0;
+
+	for(; iter != results.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyresults, i++, PyUnicode_FromWideChar((*iter).c_str(), (*iter).size()));
+	}
+
+	free(respath);
+	return pyresults;
 }
 
 template<class E>
@@ -804,7 +1197,7 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 template<class E>
-void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string key, value;
 	bool isDelete;
@@ -820,7 +1213,7 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
 	{
-		ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has key!\n");
+		ERROR_MSG("EntityApp::onBroadcastGlobalDataChanged: no has key!\n");
 		return;
 	}
 
@@ -840,7 +1233,7 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		PyObject * pyValue = script::Pickler::unpickle(value);
 		if(pyValue == NULL)
 		{
-			ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has value!\n");
+			ERROR_MSG("EntityApp::onBroadcastGlobalDataChanged: no has value!\n");
 			Py_DECREF(pyKey);
 			return;
 		}

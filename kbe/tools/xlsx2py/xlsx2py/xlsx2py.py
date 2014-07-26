@@ -6,7 +6,7 @@ import string
 import signal
 import time
 import codecs
-
+import json
 
 from ExcelTool import ExcelTool
 from config import *
@@ -459,7 +459,11 @@ class xlsx2py(object):
 			#stream += xlsxtool.dict_to_text(datas) + "\n"
 			stream += "%s\n" % (datas)
 			self.xlsxWrite(stream)
-
+			jsonhandle = codecs.open(self.fileHandler.stream.name + "." + dataName + ".json", "w+",'utf-8')
+			s = json.dumps(datas)
+			jsonhandle.write("{%s}" % (s[1:-1]))
+			jsonhandle.close()
+			
 	def writeFoot(self):
 		"""
 		ÎÄ¼þÎ²

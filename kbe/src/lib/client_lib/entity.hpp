@@ -118,10 +118,13 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void onDestroy(void){};
+	void onDestroy(bool callScript){};
 
 	void onEnterWorld();
 	void onLeaveWorld();
+
+	void onEnterSpace();
+	void onLeaveSpace();
 
 	/**
 		远程呼叫本entity的方法 

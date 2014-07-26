@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.hpp"
 #include "proxy.hpp"
-#include "proxy_sender.hpp"
+#include "proxy_forwarder.hpp"
 #include "profile.hpp"
 #include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
@@ -64,12 +64,12 @@ dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
 encryptionKey(),
-pProxySender_(NULL),
+pProxyForwarder_(NULL),
 clientComponentType_(UNKNOWN_CLIENT_COMPONENT_TYPE)
 {
 	Baseapp::getSingleton().incProxicesCount();
 
-	pProxySender_ = new ProxySender(this);
+	pProxyForwarder_ = new ProxyForwarder(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ Proxy::~Proxy()
 		pChannel->condemn();
 	}
 
-	SAFE_RELEASE(pProxySender_);
+	SAFE_RELEASE(pProxyForwarder_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,16 +137,20 @@ void Proxy::initClientCellPropertys()
 		spaceuid = msgInfo->msgid;
 	}
 	
-	(*pBundle) << spaceuid << this->getSpaceID();
+	if(getScriptModule()->usePropertyDescrAlias())
+	{
+		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+		(*pBundle) << aliasID << this->getSpaceID();
+	}
+	else
+	{
+		(*pBundle) << spaceuid << this->getSpaceID();
+	}
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	addPositionAndDirectionToStream(*s);
-	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	s = MemoryStream::ObjPool().createObject();
-	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s);
+	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
 	//getClientMailbox()->postMail((*pBundle));
@@ -168,10 +172,10 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("uku"), 
-		PyUnicode_FromString(addr), 
-		PyLong_FromLong(port),
-		PyUnicode_FromString(password)
+		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sks"), 
+		addr, 
+		port,
+		password
 	);
 	
 	int32 ret = LOG_ON_REJECT;
@@ -228,6 +232,14 @@ PyObject* Proxy::pyGetClientType()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 {
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	// 如果为None 则设置为NULL
 	Proxy* oterProxy = NULL;
 	if(pyOterProxy != Py_None)
@@ -248,6 +260,18 @@ void Proxy::onGiveClientToFailure()
 //-------------------------------------------------------------------------------------
 void Proxy::giveClientTo(Proxy* proxy)
 {
+	if(isDestroyed())
+	{
+		char err[255];																				
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: %d is destroyed.", 
+			getScriptName(), getID());			
+
+		PyErr_SetString(PyExc_TypeError, err);														
+		PyErr_PrintEx(0);	
+		onGiveClientToFailure();
+		return;
+	}
+
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
 		char err[255];																				
@@ -262,10 +286,34 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 	if(proxy)
 	{
+		if(proxy->isDestroyed())
+		{
+			char err[255];																				
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.", 
+				getScriptName(), proxy->getID());			
+
+			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_PrintEx(0);	
+			onGiveClientToFailure();
+			return;
+		}
+
+		if(proxy->getID() == this->getID())
+		{
+			char err[255];																				
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is self.", 
+				getScriptName(), proxy->getID());			
+
+			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_PrintEx(0);	
+			onGiveClientToFailure();
+			return;
+		}
+
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
-			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% have clientMailbox.\n") % 
+			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% has clientMailbox.\n") % 
 					getScriptName() %
 					getID() %
 					proxy->getScriptName() % 
@@ -292,6 +340,16 @@ void Proxy::giveClientTo(Proxy* proxy)
 		proxy->onGiveClientTo(lpChannel);
 		setClientMailbox(NULL);
 		addr(Mercury::Address::NONE);
+		
+		if(proxy->getClientMailbox() != NULL)
+		{
+			// 通知client销毁当前entity
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
+			(*pBundle) << this->getID();
+			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
+			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		}
 	}
 }
 
@@ -316,6 +374,39 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	*/
+}
+
+//-------------------------------------------------------------------------------------
+void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription, 
+		PyObject* pyData)
+{
+	uint32 flags = propertyDescription->getFlags();
+
+	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
+		return;
+
+	// 创建一个需要广播的模板流
+	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+
+	propertyDescription->getDataType()->addToStream(mstream, pyData);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
+	(*pBundle) << getID();
+
+	if(scriptModule_->usePropertyDescrAlias())
+		(*pBundle) << propertyDescription->aliasIDAsUint8();
+	else
+		(*pBundle) << propertyDescription->getUType();
+
+	pBundle->append(*mstream);
+	
+	g_privateClientEventHistoryStats.trackEvent(getScriptName(), 
+		propertyDescription->getName(), 
+		pBundle->currMsgLength());
+
+	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
+	MemoryStream::ObjPool().reclaimObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------

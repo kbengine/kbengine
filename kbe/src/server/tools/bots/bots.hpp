@@ -53,6 +53,7 @@ namespace KBEngine{
 
 class ClientObject;
 class PyBots;
+class TelnetServer;
 typedef SmartPointer<ClientObject> ClientObjectPtr;
 
 class Bots  : public ClientApp
@@ -145,6 +146,11 @@ public:
 		COMPONENT_TYPE componentType);
 
 	/** 网络接口
+		和服务端的版本不匹配
+	*/
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
@@ -191,14 +197,14 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-		ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s);
 
 
 	/** 网络接口
 		服务器上的entity已经离开游戏世界了
 	*/
-	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
+	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+	virtual void onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
@@ -208,17 +214,18 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入space了
 	*/
-	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器上的entity已经离开space了
 	*/
-	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid);
 
 	/** 网络接口
 		远程调用entity的方法 
 	*/
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onRemoteMethodCallOptimized(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   被踢出服务器
@@ -229,11 +236,13 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdatePropertysOptimized(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新avatar基础位置
 	*/
 	virtual void onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
@@ -287,9 +296,11 @@ public:
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 
 	/** 网络接口
+		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/
-	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);
+	void setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	void delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
 protected:
 	PyBots*													pPyBots_;
 
@@ -304,6 +315,8 @@ protected:
 	CreateAndLoginHandler*									pCreateAndLoginHandler_;
 
 	Mercury::EventPoller*									pEventPoller_;
+
+	TelnetServer*											pTelnetServer_;
 };
 
 }

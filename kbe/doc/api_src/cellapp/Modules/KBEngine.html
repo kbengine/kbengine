@@ -1,0 +1,678 @@
+<html>
+<head>
+<title>KBEngine - KBEngine cell 文档</title>
+<link href="../../style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr><td align=left style="background:#0F5286"> <img src="../../logo.png"> </td></tr>
+</table> <hr>
+<h1>模块 KBEngine</h1>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'classes' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">类</a></h2>
+<table id="classes" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="class_list"><a href="../Classes/Entity.html" class="class_list" >Entity</a></span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'functions' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">成员函数</a></h2>
+<table id="functions" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="function_list">def <a href="#addSpaceGeometryMapping" class="function_list" >addSpaceGeometryMapping</a>( spaceID, mapper, path, shouldLoadOnServer ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#addWatcher" class="function_list" >addWatcher</a>( path, getFunction, setFunction ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#address" class="function_list" >address</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#Blob" class="function_list" >Blob</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#createEntity" class="function_list" >createEntity</a>( class, spaceID, position, direction, state ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#executeRawDatabaseCommand" class="function_list" >executeRawDatabaseCommand</a>( command, callback ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#genUUID64" class="function_list" >genUUID64</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#getResFullPath" class="function_list" >getResFullPath</a>( res ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#getSpaceGeometryMappings" class="function_list" >getSpaceGeometryMappings</a>( spaceID ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#isShuttingDown" class="function_list" >isShuttingDown</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#open" class="function_list" >open</a>( res, mode ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#publish" class="function_list" >publish</a>(  ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#reloadScript" class="function_list" >reloadScript</a>( fullReload ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#scriptLogType" class="function_list" >scriptLogType</a>( logType ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#time" class="function_list" >time</a>(  ):</span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'attributes' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">属性</a></h2>
+<table id="attributes" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><a href="#LOG_TYPE_DBG" class="attribute_list" >LOG_TYPE_DBG</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_ERR" class="attribute_list" >LOG_TYPE_ERR</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_INFO" class="attribute_list" >LOG_TYPE_INFO</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_NORMAL" class="attribute_list" >LOG_TYPE_NORMAL</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#LOG_TYPE_WAR" class="attribute_list" >LOG_TYPE_WAR</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#NEXT_ONLY" class="attribute_list" >NEXT_ONLY</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#cellAppData" class="attribute_list" >cellAppData</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#component" class="attribute_list" >component</a></td><td>&nbsp; </td></tr>
+
+<tr valign=top><td><a href="#entities" class="attribute_list" >entities</a></td><td>&nbsp; <a href="Entities.html">Entities</a>
+</td></tr>
+
+<tr valign=top><td><a href="#globalData" class="attribute_list" >globalData</a></td><td>&nbsp; GlobalDataClient</td></tr>
+
+</table>
+
+<hr>
+<h2>成员函数文档</h2>
+
+<a name="addSpaceGeometryMapping"></a><p class="function_definition">
+<span class="function_definition">def addSpaceGeometryMapping( <i>spaceID, mapper, path, shouldLoadOnServer</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数关联一个给定空间的几何映射。这使得几何体在客户端和服务端上被加载起来。
+<br><br>
+在服务端上，来自给定目录里所有块的几何加载到指定的空间。这些块文件是异步加载的，当所有的几何加载
+完成的时候下面的通知方法会被调用：
+
+<pre>	def onAllSpaceGeometryLoaded( self, spaceID, mappingName ):
+</pre>
+<br><br>
+服务端只加载它需要的数据。例如，它只加载每个模型的BSP，而不加载质感和模型的所有网格。
+<br><br>
+加载地形高度数据，但不加载地形结构化数据。为了节省内存，服务端可以加载较低分辨率的
+地形高度数据。这在space目录里的space.settings文件里指定。标签<terrain/lodInfo/server/heightMapLod>控制
+选择哪个LOD级别。标签值可以设为0到6。每一个级别是前一个分辨率的一半，所以0是完整的网格分辨率，1是这个分辨率的一半，以此类推。
+<br><br>
+有一种可能会导致onAllSpaceGeometryLoaded()不被调用，就是如果在某一个
+时刻多个CellApp同时调用这个方法来添加几何到相同的空间的时候CellAppMgr崩溃了。
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>spaceID</i></span></td><td><span class="function_parameter_description">
+指定在哪个空间操作
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>mapper</i></span></td><td><span class="function_parameter_description">
+目前填None
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>path</i></span></td><td><span class="function_parameter_description">
+包含块的目录路径
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>shouldLoadOnServer</i></span></td><td><span class="function_parameter_description">
+可选的boolean参数，指定是否在服务端上加载几何。默认为True
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="addWatcher"></a><p class="function_definition">
+<span class="function_definition">def addWatcher( <i>path, getFunction, setFunction</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数与观察者调试系统交互，允许观察者变量的创建。
+<br><br>
+该函数在Python里允许一个特别的观察者变量的创建。
+例：
+<br><br>
+
+<pre>>>> maxBandwidth = 20000
+>>> def getMaxBps( ):
+>>>     return str(maxBandwidth)
+>>> def setMaxBps( bps ):
+>>>     maxBandwidth = int(bps)
+>>>     setBandwidthPerSecond( int(bps) )
+>>>
+>>> <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#addWatcher>addWatcher</a>( "Comms/Max bandwidth per second", getMaxBps, setMaxBps )
+</pre>
+<br><br>
+这个函数添加一个观察者变量在"Comms"观察树之下。函数getMaxBps是获取观察者的值调用，函数setMaxBps是当观察者的值有变化时调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>path</i></span></td><td><span class="function_parameter_description">
+创建观察者的路径。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>getFunction</i></span></td><td><span class="function_parameter_description">
+这个函数当检索该观察者变量时调用。
+这个函数不带参数返回一个代表观察者变量值的字符串。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>setFunction</i></span></td><td><span class="function_parameter_description">
+（可选的）这个函数是当设置观察者变量时调用的。该函数带有一个字符串参数作为观察者变量的最新值。
+这个函数没有返回值。如果这个函数不存在则创建出来的观察者是一个只读的观察者变量。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="address"></a><p class="function_definition">
+<span class="function_definition">def address( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数返回内部网络接口的地址。
+</div>
+
+<a name="Blob"></a><p class="function_definition">
+<span class="function_definition">def Blob( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数返回一个blob对象。
+</div>
+
+<a name="createEntity"></a><p class="function_definition">
+<span class="function_definition">def createEntity( <i>class, spaceID, position, direction, state</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+createEntity在cell上创建一个新的实体和把它放到世界里。这个函数设置新实体的
+类，位置和方向，还可以选择性地设置实体的任意属性（属性在实体的.def文件里描述）。
+<br><br>
+例子：
+
+<pre># 创建一个打开的门的实体与"thing"实体的位置一样
+direction = ( 0, 0, thing.yaw )
+properties = { "open":1 }
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createEntity>createEntity</a>( "Door", thing.space, thing.position, direction,
+                       properties )
+</pre>
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>class</i></span></td><td><span class="function_parameter_description">
+要实例化的类的名字。需要注意的是这必须是一个实体类，在entities.xml文件里声明。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>spaceID</i></span></td><td><span class="function_parameter_description">
+要放置实体的空间的id。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>position</i></span></td><td><span class="function_parameter_description">
+由3个float组成的序列，指定新实体的出生点，在世界的坐标。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>direction</i></span></td><td><span class="function_parameter_description">
+由3个float组成的序列，指定新实体的初始方向(roll, pitch, yaw)，相对于世界坐标系。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>state</i></span></td><td><span class="function_parameter_description">
+一个描述实体属性的初始状态的字典。一个属性如果没有列在这里，将带上它在.def文件里的默认值。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+新实体。
+</td></tr>
+</table>
+</p>
+
+<a name="executeRawDatabaseCommand"></a><p class="function_definition">
+<span class="function_definition">def executeRawDatabaseCommand( <i>command, callback</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个脚本函数在数据库上执行原始数据库命令。该命令不被解析——它直接传到相关的数据库。
+它的特性是不支持XML数据库。
+<br><br>
+请注意数据库里的实体数据可能不会更新，尤其是当第二次数据库还可以被写入的时候。
+强烈不推荐这个函数用于读取或修改实体数据。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>command</i></span></td><td><span class="function_parameter_description">
+这个字符串命令具体到当前数据库层。对于MySQL数据库它是一个SQL查询语句。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>callback</i></span></td><td><span class="function_parameter_description">
+带有命令执行结果的回调对象（比如说是一个函数）。这个回调带有3个参数：结果集合，影响的行数和错误信息。
+<br><br>
+这个结果集合参数是一个行列表。每一行是一个包含字段值的字符串列表。命令执行没有返回结果集合（比如说是DELETE命令），或者
+命令执行有错误时这个结果集合为None。
+<br><br>
+这个数字是命令执行受影响的行数。这个参数只和不返回结果结合的命令（如DELETE）相关。
+如果有结果集合返回或者命令执行有错误时这个参数为None。
+<br><br>
+命令执行有错误时这个错误信息参数是一个描述错误的字符串。命令执行没有发生错误时这个参数为None。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="genUUID64"></a><p class="function_definition">
+<span class="function_definition">def genUUID64( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+该函数生成一个64位的唯一ID。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+返回一个64位的integer。
+</td></tr>
+</table>
+</p>
+
+<a name="getResFullPath"></a><p class="function_definition">
+<span class="function_definition">def getResFullPath( <i>res</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+获取资源的绝对路径。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>res</i></span></td><td><span class="function_parameter_description">
+string，资源的相对路径。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+string，资源的绝对路径。
+</td></tr>
+</table>
+</p>
+
+<a name="getSpaceGeometryMappings"></a><p class="function_definition">
+<span class="function_definition">def getSpaceGeometryMappings( <i>spaceID</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数返回一个指定空间的"客户端-服务端"的几何映射。每一个列表元素由一个映射
+元组，它的变化矩阵和一个表明是否只是客户端的boolean值组成。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>spaceID</i></span></td><td><span class="function_parameter_description">
+要查询的空间的id。
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="isShuttingDown"></a><p class="function_definition">
+<span class="function_definition">def isShuttingDown( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+返回服务端是否正在关闭中。在onBaseAppShuttingDown回调函数被调用后，这个函数返回True。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+系统正在关闭返回True，否则返回False。
+</td></tr>
+</table>
+</p>
+
+<a name="open"></a><p class="function_definition">
+<span class="function_definition">def open( <i>res, mode</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+使用这个接口可以使用相对路径来打开相关资源。
+注意：资源必须在KBE_RES_PATH之下才可以访问到。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>res</i></span></td><td><span class="function_parameter_description">
+string，资源的相对路径。
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>mode</i></span></td><td><span class="function_parameter_description">
+string，文件操作模式：<br>
+w     以写方式打开，<br>
+a     以追加模式打开 (从 EOF 开始, 必要时创建新文件)<br>
+r+     以读写模式打开<br>
+w+     以读写模式打开 (参见 w )<br>
+a+     以读写模式打开 (参见 a )<br>
+rb     以二进制读模式打开<br>
+wb     以二进制写模式打开 (参见 w )<br>
+ab     以二进制追加模式打开 (参见 a )<br>
+rb+    以二进制读写模式打开 (参见 r+ )<br>
+wb+    以二进制读写模式打开 (参见 w+ )<br>
+ab+    以二进制读写模式打开 (参见 a+ )<br>
+</span></td></tr>
+
+</table>
+</p>
+
+<a name="publish"></a><p class="function_definition">
+<span class="function_definition">def publish( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个接口返回当前服务端发行模式。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+int8，0：debug，1：release，其它可自定义。
+</td></tr>
+</table>
+</p>
+
+<a name="reloadScript"></a><p class="function_definition">
+<span class="function_definition">def reloadScript( <i>fullReload</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个函数重新加载与实体和自定义数据类型相关的Python模块。当前实体类会设置为新加载的类。
+这个方法应该只用于开发模式，对于产品模式不合适。下面几点应该注意：
+<br><br>
+1）重载脚本仅仅能在baseapp上执行， 用户应该确保所有的服务端组件加载完成。
+<br><br>
+2）自定义类型在脚本重载后应该确保内存中已经实例化的对象也被更新，下面是一个例子:
+<br><br>
+
+<pre>for e in <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#entities>entities</a>.values():
+   if type( e ) is Avatar.Avatar:
+      e.customData.__class__ = CustomClass
+</pre>
+当这个方法完成时 <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onInit>onInit</a>( True ) 被调用。
+</div>
+
+<p>
+<span class="function_parameter">参数：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>fullReload</i></span></td><td><span class="function_parameter_description">
+可选的boolean参数，指定是否同时重新加载实体定义。如果这个参数为False，则实体定义不会被重新加载。默认为True。
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>重新加载成功返回True，否则返回False。
+</td></tr>
+</table>
+</p>
+
+<a name="scriptLogType"></a><p class="function_definition">
+<span class="function_definition">def scriptLogType( <i>logType</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个接口设置当前python.print输出的信息为什么级别的log。
+</div>
+
+<a name="time"></a><p class="function_definition">
+<span class="function_definition">def time( <i></i> ):</span>
+</p>
+
+<div class="function_description">
+<b>功能说明：</b><br><br>
+这个方法返回当前游戏的时间（周期数）。
+</div>
+
+<p>
+<span class="function_return">返回：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+uint32，当前游戏的时间，这里指周期数，周期受频率影响，频率由配置文件kbengine.xml或者kbengine_defs.xml->gameUpdateHertz决定。
+</td></tr>
+</table>
+</p>
+
+<hr>
+<h2>属性文档</h2>
+
+<a name="LOG_TYPE_DBG"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_DBG</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-调试类型。
+</div>
+
+<a name="LOG_TYPE_ERR"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_ERR</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-错误类型。
+</div>
+
+<a name="LOG_TYPE_INFO"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_INFO</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-常规信息类型。
+</div>
+
+<a name="LOG_TYPE_NORMAL"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_NORMAL</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-常规类型。
+</div>
+
+<a name="LOG_TYPE_WAR"></a><p class="attribute_definition">
+<span class="attribute_definition">LOG_TYPE_WAR</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+日志输出的类型-警告类型。
+</div>
+
+<a name="NEXT_ONLY"></a><p class="attribute_definition">
+<span class="attribute_definition">NEXT_ONLY</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个常量用于Entity.shouldAutoBackup和Entity.shouldAutoArchive属性。这个值意指在下一次认为可以的时候自动备份该实体，然后这个属性自动设为False（0）。
+</div>
+
+<a name="cellAppData"></a><p class="attribute_definition">
+<span class="attribute_definition">cellAppData</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个属性包含一个类字典的对象，这个对象会在所有的CellApp之间自动复制。
+当字典的一个值被修改，这个修改会广播到所有的CellApp。CellAppMgr解决竞争条件，保证信息复制的权威性。
+
+<br><br>
+例子：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#cellAppData>cellAppData</a>[ "hello" ] = "there"
+</pre>
+<br><br>
+其余CellApp可以访问下面的：
+
+<pre>print <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#cellAppData>cellAppData</a>[ "hello" ]
+</pre>
+<br><br>
+键和值可以是任意类型，但这些类型必须在所有目标组件上能够被封装和被拆封。
+<br><br>
+当一个值被改变或被删除，一个回调函数会在所有组件被调用。
+参看：<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onCellAppData>onCellAppData</a>和<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onDelCellAppData>onDelCellAppData</a>。
+<br><br>
+注意：只有顶层的值才会被广播，如果你有一个易变的值（比如一个列表），它改变了内部的值（比如只是改变一个数），这个信息不会被广播。
+<br><br>
+不要进行下面的操作：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#cellAppData>cellAppData</a>[ "list" ] = [1, 2, 3]
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#cellAppData>cellAppData</a>[ "list" ][1] = 7
+</pre>
+这样，本地访问是[1, 7, 3]，远程访问是[1, 2, 3]。
+</div>
+
+<a name="component"></a><p class="attribute_definition">
+<span class="attribute_definition">component</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这是正运行在当前python环境的组件。（至今为止）可能值有'cell', 'base', 'client', 'database', 'bot' 和 'editor'。
+</div>
+
+<a name="entities"></a><p class="attribute_definition">
+<span class="attribute_definition">entities</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+entities包含一个由所有当前驻留在这个cell上的实体组成的列表，包括幽灵实体。
+</div>
+
+<p>
+<span class="attribute_type">类型：</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td><a href="Entities.html">Entities</a>
+</td></tr>
+</table>
+</p>
+
+<a name="globalData"></a><p class="attribute_definition">
+<span class="attribute_definition">globalData</span>
+</p>
+
+<div class="attribute_description">
+<b>说明：</b><br><br>
+这个属性包含一个类字典的对象，这个对象会在所有的BaseApp和CellApp之间自动复制。
+当字典的一个值被修改，这个修改会广播到所有的BaseApp和CellApp。CellAppMgr解决竞争条件，保证信息复制的权威性。
+<br><br>
+例子：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "hello" ] = "there"
+</pre>
+<br><br>
+其余CellApp或者BaseApp可以访问下面的：
+
+<pre>print <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "hello" ]
+</pre>
+<br><br>
+键和值可以是任意类型，但这些类型必须在所有目标组件上能够被封装和被拆封。
+<br><br>
+当一个值被改变或被删除，一个回调函数会在所有组件被调用。
+参看：<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onGlobalData>onGlobalData</a>和<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#onGlobalDataDel>onGlobalDataDel</a>。
+<br><br>
+注意：只有顶层的值才会被广播，如果你有一个易变的值（比如一个列表），它改变了内部的值（比如只是改变一个数），这个信息不会被广播。
+<br><br>
+不要进行下面的操作：
+
+<pre><a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "list" ] = [1, 2, 3]
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#globalData>globalData</a>[ "list" ][1] = 7
+</pre>
+这样，本地访问是[1, 7, 3]，远程访问是[1, 2, 3]。
+</div>
+
+<hr>
+<p class="copyrightFooter">版权归KBEngine所有。</p>
+</body>
+</html>

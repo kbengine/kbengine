@@ -181,6 +181,28 @@ protected:
 };
 
 /**
+	从数据库中删除entity
+*/
+class DBTaskDeleteBaseByDBID : public DBTask
+{
+public:
+	DBTaskDeleteBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid);
+
+	virtual ~DBTaskDeleteBaseByDBID();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	COMPONENT_ID componentID_;
+	CALLBACK_ID callbackID_;
+	DBID entityDBID_;
+	ENTITY_SCRIPT_UID sid_;
+	bool success_;
+	ENTITY_ID entityID_;
+	COMPONENT_ID entityInAppID_;
+};
+
+/**
 	创建一个账号到数据库
 */
 class DBTaskCreateAccount : public DBTask
@@ -384,12 +406,13 @@ protected:
 class DBTaskEntityOffline : public DBTask
 {
 public:
-	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid);
+	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	DBID dbid_;
+	ENTITY_SCRIPT_UID sid_;
 };
 
 
@@ -425,13 +448,14 @@ protected:
 class DBTaskQueryEntity : public EntityDBTask
 {
 public:
-	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+	DBTaskQueryEntity(const Mercury::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	virtual ~DBTaskQueryEntity();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
+	int8 queryMode_;
 	std::string entityType_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;

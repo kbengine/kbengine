@@ -39,7 +39,8 @@ name_(name),
 utype_(utype),
 argTypes_(),
 isExposed_(isExposed),
-currCallerID_(0)
+currCallerID_(0),
+aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;
 
@@ -79,7 +80,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 {
 	if (args == NULL || !PyTuple_Check(args))
 	{
-		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", 
+		PyErr_Format(PyExc_AssertionError, "Method::checkArgs: method[%s] args is not a tuple.\n", 
 			getName());
 
 		PyErr_PrintEx(0);
@@ -92,7 +93,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 
 	if (giveArgsSize != argsSize + offset)
 	{
-		PyErr_Format(PyExc_TypeError, "Method::checkArgs: method[%s] requires exactly %d argument%s%s; %d given", 
+		PyErr_Format(PyExc_AssertionError, "Method::checkArgs: method[%s] requires exactly %d argument%s%s; %d given", 
 				getName(),
 				argsSize,
 				(offset > 0) ? " + exposed(1)" : "",
@@ -132,7 +133,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		if (!argTypes_[i]->isSameType(pyArg))
 		{
 			PyObject* pExample = argTypes_[i]->parseDefaultStr("");
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_AssertionError,
 				"Method::checkArgs: method[%s] argument %d: Expected %s, %s found",
 				getName(),
 				i+1,
@@ -155,7 +156,16 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
-	(*mstream) << utype_;
+	// 这里如果aliasID_大于0则采用一个优化的办法， 使用1字节传输
+	if(aliasID_ < 0)
+	{
+		(*mstream) << utype_;
+	}
+	else
+	{
+		uint8 utype = (uint8)aliasID_;
+		(*mstream) << utype;
+	}
 
 	// 如果是exposed方法则先将entityID打包进去
 	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
@@ -225,15 +235,18 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	}
 	else
 	{
-		if(checkArgs(args))
-			pyResult = PyObject_CallObject(func, args);
+		if(args == NULL)
+		{
+			pyResult = PyObject_CallObject(func, NULL);
+		}
+		else
+		{
+			if(checkArgs(args))
+				pyResult = PyObject_CallObject(func, args);
+		}
 	}
 
- 	if (PyErr_Occurred())
- 	{
-		PyErr_PrintEx(0);
-	}
-
+ 	SCRIPT_ERROR_CHECK();
 	return pyResult;
 }
 

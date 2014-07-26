@@ -42,7 +42,7 @@ bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componen
 	const std::string& key, const std::string& value)
 {
 	// 广播所做的改变
-	broadcastDataChange(pChannel, componentType, key, value);
+	broadcastDataChanged(pChannel, componentType, key, value);
 
 	DATA_MAP_KEY iter = dict_.find(key);
 	if(iter != dict_.end()){
@@ -62,15 +62,15 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 		return false;
 	}
 
-	broadcastDataChange(pChannel, componentType, key, "", true);
+	broadcastDataChanged(pChannel, componentType, key, "", true);
 	return true;	
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
+void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
-	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChange: writer(%1%, addr=%5%), key_size=%2%, val_size=%3%, isdelete=%4%\n") %
+	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChanged: writer(%1%, addr=%5%), key_size=%2%, val_size=%3%, isdelete=%4%\n") %
 		COMPONENT_NAME_EX(componentType) % key.size() % value.size() % (int)isDelete % pChannel->c_str());
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
@@ -88,7 +88,7 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 			if(pChannel == lpChannel)
 				continue;
 
-			if(dataType_ == GLOBAL_BASES && iter1->componentType != BASEAPP_TYPE)
+			if(dataType_ == BASEAPP_DATA && iter1->componentType != BASEAPP_TYPE)
 				continue;
 				
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
@@ -101,22 +101,22 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 			case GLOBAL_DATA:
 				if(iter1->componentType == CELLAPP_TYPE)
 				{
-					(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
+					(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChanged);
 				}
 				else if(iter1->componentType == BASEAPP_TYPE)
 				{
-					(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+					(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChanged);
 				}
 				else
 				{
 					KBE_ASSERT(false && "componentType is error!\n");
 				}
 				break;
-			case GLOBAL_BASES:
-				(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
+			case BASEAPP_DATA:
+				(*pBundle).newMessage(BaseappInterface::onBroadcastBaseAppDataChanged);
 				break;
 			case CELLAPP_DATA:
-				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChange);
+				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 				break;
 			default:
 				KBE_ASSERT(false && "dataType is error!\n");
@@ -157,25 +157,25 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		case GLOBAL_DATA:
 			if(componentType == CELLAPP_TYPE)
 			{
-				(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
+				(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChanged);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
-				(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+				(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChanged);
 			}
 			else
 			{
 				KBE_ASSERT(false && "componentType is error!\n");
 			}
 			break;
-		case GLOBAL_BASES:
+		case BASEAPP_DATA:
 			if(componentType != BASEAPP_TYPE)
 			{
 				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 				continue;
 			}
 
-			(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
+			(*pBundle).newMessage(BaseappInterface::onBroadcastBaseAppDataChanged);
 			break;
 		case CELLAPP_DATA:
 			if(componentType != CELLAPP_TYPE)
@@ -184,7 +184,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 				continue;
 			}
 
-			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChange);
+			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 			break;
 		default:
 			KBE_ASSERT(false && "dataType is error!\n");

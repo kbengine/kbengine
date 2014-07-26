@@ -6,7 +6,8 @@ SRCS =						\
 	dbtasks					\
 	db_threadpool				\
 	buffered_dbtasks			\
-	main
+	main					\
+	sync_app_datas_handler
 
 ASMS =
 
@@ -38,7 +39,7 @@ ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
 endif
 
-#KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/mysql/include
+#KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mysql/include
 
 include $(KBE_ROOT)/kbe/src/build/common.mak
 

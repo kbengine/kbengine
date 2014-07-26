@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CLIENT_OBJECT_BASE_H__
 
 #include "event.hpp"
+#include "script_callbacks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
@@ -76,11 +77,12 @@ public:
 	/**
 		通过entityID销毁一个entity 
 	*/
-	virtual bool destroyEntity(ENTITY_ID entityID);
+	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript);
 
 	void tickSend();
 	
-	virtual Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
+	virtual Mercury::Channel* initLoginappChannel(std::string accountName, 
+		std::string passwd, std::string ip, KBEngine::uint32 port);
 	virtual Mercury::Channel* initBaseappChannel();
 
 	bool createAccount();
@@ -113,6 +115,11 @@ public:
 		return PyLong_FromLong(pClientObjectBase->appID());	
 	}
 	
+	static PyObject* __py_callback(PyObject* self, PyObject* args);
+	static PyObject* __py_cancelCallback(PyObject* self, PyObject* args);
+
+	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
+	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
 	/**
 		如果entitiessize小于256
 		通过索引位置来获取entityID
@@ -132,6 +139,12 @@ public:
 		COMPONENT_TYPE componentType);
 
 	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		和服务端的版本不匹配
+	*/
+	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+	
 
 	/** 网络接口
 		创建账号成功和失败回调
@@ -178,13 +191,13 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-		ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器上的entity已经离开游戏世界了
 	*/
-	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
+	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+	virtual void onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
@@ -194,17 +207,19 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入space了
 	*/
-	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器上的entity已经离开space了
 	*/
-	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid);
 
 	/** 网络接口
 		远程调用entity的方法 
 	*/
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onRemoteMethodCallOptimized(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口
 	   被踢出服务器
@@ -215,6 +230,8 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdatePropertysOptimized(Mercury::Channel* pChannel, MemoryStream& s);
+	void onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
@@ -225,6 +242,7 @@ public:
 		服务器更新avatar基础位置
 	*/
 	virtual void onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新VolatileData
@@ -257,7 +275,8 @@ public:
 	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
 	
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, 
+		float pitch, float yaw, int8 isOnGound);
 
 	/** 
 		更新玩家到服务端 
@@ -292,16 +311,7 @@ public:
 	/** 网络接口
 		错误码描述导出(通常是web等才会应用到)
 	*/
-	virtual void onImportMercuryErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
-
-	/** 网络接口
-		服务端添加了某个space的几何映射
-	*/
-	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);
-	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath){}
-	virtual void onLoadedSpaceGeometryMapping(SPACE_ID spaceID){
-		isLoadedGeometry_ = true;
-	}
+	virtual void onImportServerErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
 
 	/** 网络接口
 		重置账号密码请求返回
@@ -323,7 +333,7 @@ public:
 	*/
 	client::Entity* pPlayer();
 	void setPlayerPosition(float x, float y, float z){ entityPos_ = Position3D(x, y, z); }
-	void setPlayerDirection(float yaw, float pitch, float roll){ entityDir_ = Direction3D(roll, pitch, yaw); }
+	void setPlayerDirection(float roll, float pitch, float yaw){ entityDir_ = Direction3D(roll, pitch, yaw); }
 
 	void setTargetID(ENTITY_ID id){ 
 		targetID_ = id; 
@@ -332,9 +342,36 @@ public:
 	ENTITY_ID getTargetID()const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
-	const std::string& getGeometryPath(){ return loadGeometryPath_; }
+	ENTITY_ID getAoiEntityID(ENTITY_ID id);
+	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& s);
+	ENTITY_ID getAoiEntityIDByAliasID(uint8 id);
+
+	/** 
+		space相关操作接口
+		服务端添加了某个space的几何映射
+	*/
+	void addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath);
+	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath){}
+	virtual void onLoadedSpaceGeometryMapping(SPACE_ID spaceID){
+		isLoadedGeometry_ = true;
+	}
+
+	const std::string& getGeometryPath();
+	
+	void initSpaceData(Mercury::Channel* pChannel, MemoryStream& s);
+	void setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	void delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
+	bool hasSpaceData(const std::string& key);
+	const std::string& getSpaceData(const std::string& key);
+	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
+	void clearSpace(bool isAll);
+
+	Timers & timers() { return timers_; }
+	void handleTimers();
+
+	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
 protected:				
-	int32 appID_;
+	int32													appID_;
 
 	// 服务端网络通道
 	Mercury::Channel*										pServerChannel_;
@@ -345,44 +382,49 @@ protected:
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 
-	ENTITY_ID entityID_;
+	ENTITY_ID												entityID_;
+	SPACE_ID												spaceID_;
 
-	Position3D entityPos_;
-	Direction3D entityDir_;
+	Position3D												entityPos_;
+	Direction3D												entityDir_;
 
-	DBID dbid_;
+	DBID													dbid_;
 
-	std::string ip_;
-	uint16 port_;
+	std::string												ip_;
+	uint16													port_;
 
-	uint64 lastSentActiveTickTime_;
-	uint64 lastSentUpdateDataTime_;
+	uint64													lastSentActiveTickTime_;
+	uint64													lastSentUpdateDataTime_;
 
-	bool connectedGateway_;
-	bool canReset_;
+	bool													connectedGateway_;
+	bool													canReset_;
 
-	std::string name_;
-	std::string password_;
-	std::string extradatas_;
+	std::string												name_;
+	std::string												password_;
+	std::string												extradatas_;
 
-	CLIENT_CTYPE typeClient_;
+	CLIENT_CTYPE											typeClient_;
 
 	typedef std::map<ENTITY_ID, KBEShared_ptr<MemoryStream> > BUFFEREDMESSAGE;
 	BUFFEREDMESSAGE											bufferedCreateEntityMessage_;
 
 	EventHandler											eventHandler_;
 
-	Mercury::NetworkInterface& ninterface_;
+	Mercury::NetworkInterface&								ninterface_;
 
 	// 当前客户端所选择的目标
 	ENTITY_ID												targetID_;
 
-	// 加载几何的路径
-	std::string loadGeometryPath_;
-
 	// 是否加载过地形数据
-	bool isLoadedGeometry_;
+	bool													isLoadedGeometry_;
+
+	SPACE_DATA												spacedatas_;
+
+	Timers													timers_;
+	ScriptCallbacks											scriptCallbacks_;
 };
+
+
 
 }
 #endif

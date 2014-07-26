@@ -11,7 +11,8 @@ from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.SkillBox import SkillBox
 
-class Avatar(GameObject,
+class Avatar(KBEngine.Entity,
+			GameObject,
 			Flags,
 			State,
 			SkillBox,
@@ -20,6 +21,7 @@ class Avatar(GameObject,
 			Dialog,
 			Teleport):
 	def __init__(self):
+		KBEngine.Entity.__init__(self)
 		GameObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 

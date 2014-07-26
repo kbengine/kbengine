@@ -2,6 +2,7 @@
 import KBEngine
 import random
 import wtimer
+import time
 import d_spaces
 import d_avatar_inittab
 from KBEDebug import *
@@ -20,7 +21,7 @@ class Avatar(KBEngine.Proxy,
 		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
 		avatar_inittab = d_avatar_inittab.datas[self.roleType]
 
-		if "Copy" in spacedatas["entityType"]:
+		if "Duplicate" in spacedatas["entityType"]:
 			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
 			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
 			self.cellData["position"] = avatar_inittab["spawnPos"]
@@ -68,10 +69,13 @@ class Avatar(KBEngine.Proxy,
 			
 		# 如果帐号ENTITY存在 则也通知销毁它
 		if self.accountEntity != None:
-			self.accountEntity.activeCharacter = None
-			self.accountEntity.destroy()
-			self.accountEntity = None
-			
+			if time.time() - self.accountEntity.relogin > 1:
+				self.accountEntity.activeCharacter = None
+				self.accountEntity.destroy()
+				self.accountEntity = None
+			else:
+				DEBUG_MSG("Avatar[%i].destroySelf: relogin =%i" % (self.id, time.time() - self.accountEntity.relogin))
+				
 		# 销毁base
 		self.destroy()
 

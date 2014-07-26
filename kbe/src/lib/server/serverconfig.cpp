@@ -24,12 +24,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
 
+#ifndef CODE_INLINE
+#include "serverconfig.ipp"
+#endif
+
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
+tick_max_buffered_logs_(4096),
+tick_max_sync_logs_(32),
 billingSystemAddr_(),
 billingSystem_accountType_(""),
 billingSystem_chargeType_(""),
@@ -190,6 +196,42 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				channelCommon_.channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
 				Mercury::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
+			}
+		}
+
+		childnode = xml->enterNode(rootNode, "resend");
+		if(childnode)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+				}
+			}
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode)
+			{
+				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
+				if(childnode2)
+				{
+					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+				}
+
+				childnode2 = xml->enterNode(childnode1, "retries");
+				if(childnode2)
+				{
+					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+				}
 			}
 		}
 
@@ -420,6 +462,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_cellAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
+		node = xml->enterNode(rootNode, "aliasEntityID");
+		if(node != NULL){
+			_cellAppInfo.aliasEntityID = (xml->getValStr(node) == "true");
+		}
+
+		node = xml->enterNode(rootNode, "entitydefAliasID");
+		if(node != NULL){
+			_cellAppInfo.entitydefAliasID = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "ghostDistance");
 		if(node != NULL){
 			_cellAppInfo.ghostDistance = (float)xml->getValFloat(node);
@@ -447,7 +499,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "rangemgr_y");
 			if(childnode)
 			{
-				_cellAppInfo.rangelist_hasY = (xml->getValStr(childnode) == "true");
+				_cellAppInfo.coordinateSystem_hasY = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "entity_posdir_additional_updates");
+			if(childnode)
+			{
+				_cellAppInfo.entity_posdir_additional_updates = xml->getValInt(childnode);
 			}
 		}
 
@@ -508,6 +566,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -734,6 +796,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(node) == "true");
 		}
 		
+		node = xml->enterNode(rootNode, "debug");
+		if(node != NULL){
+			_dbmgrInfo.debugDBMgr = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "allowEmptyDigest");
 		if(node != NULL){
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
@@ -764,6 +831,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_loginAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -908,9 +979,47 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
+		node = xml->enterNode(rootNode, "account_infos");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "account_name_prefix");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_prefix = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "account_name_suffix_inc");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_suffix_inc = xml->getValInt(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "telnet_service");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if(childnode)
+			{
+				_botsInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if(childnode)
+			{
+				_botsInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if(childnode)
+			{
+				_botsInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
@@ -924,6 +1033,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_messagelogInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_max_buffered_logs");
+		if(node != NULL){
+			tick_max_buffered_logs_ = (uint32)xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_max_sync_logs");
+		if(node != NULL){
+			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
 		}
 	}
 
@@ -1083,104 +1202,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 	return true;
 }
 
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getCellApp(void)
-{
-	return _cellAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getBaseApp(void)
-{
-	return _baseAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getDBMgr(void)
-{
-	return _dbmgrInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getLoginApp(void)
-{
-	return _loginAppInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getCellAppMgr(void)
-{
-	return _cellAppMgrInfo;
-}
-
-//-------------------------------------------------------------------------------------
-ENGINE_COMPONENT_INFO& ServerConfig::getBaseAppMgr(void)
-{
-	return _baseAppMgrInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getKBMachine(void)
-{
-	return _kbMachineInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getKBCenter(void)
-{
-	return _kbCenterInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
-{
-	return _botsInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getResourcemgr(void)
-{
-	return _resourcemgrInfo;
-}
-
-//-------------------------------------------------------------------------------------		
-ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
-{
-	return _messagelogInfo;
-}
-
-//-------------------------------------------------------------------------------------	
-ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
-{
-	switch(componentType)
-	{
-	case DBMGR_TYPE:
-		return getDBMgr();
-	case LOGINAPP_TYPE:
-		return getLoginApp();
-	case BASEAPPMGR_TYPE:
-		return getBaseAppMgr();
-	case CELLAPPMGR_TYPE:
-		return getCellAppMgr();
-	case CELLAPP_TYPE:
-		return getCellApp();
-	case BASEAPP_TYPE:
-		return getBaseApp();
-	case MACHINE_TYPE:
-		return getKBMachine();
-	case CENTER_TYPE:
-		return getKBCenter();
-	case RESOURCEMGR_TYPE:
-		return getResourcemgr();
-	case MESSAGELOG_TYPE:
-		return getMessagelog();
-	default:
-		return getCellApp();
-	};
-
-	return getBaseApp();	
-}
-
 //-------------------------------------------------------------------------------------	
 uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
 {
@@ -1192,6 +1213,8 @@ uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
 void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
 							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
 {
+	std::string infostr = "";
+
 	if(componentType == CELLAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getCellApp();
@@ -1208,6 +1231,15 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz()).str();
+			infostr += (boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius).str();
+			infostr += (boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea).str();
+			infostr += (boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile).str();
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			//infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == BASEAPP_TYPE)
@@ -1220,12 +1252,17 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
-			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
-			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
 			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz()).str();
+			infostr += (boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile).str();
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == BASEAPPMGR_TYPE)
@@ -1240,6 +1277,10 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == CELLAPPMGR_TYPE)
@@ -1254,6 +1295,10 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == DBMGR_TYPE)
@@ -1268,6 +1313,10 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == LOGINAPP_TYPE)
@@ -1282,6 +1331,11 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
 	else if (componentType == MACHINE_TYPE)
@@ -1296,8 +1350,21 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+
+			infostr += "server-configs:\n";
+			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
+			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
 	}
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if(infostr.size() > 0)
+	{
+		infostr += "\n";
+		printf("%s", infostr.c_str());
+	}
+#endif
+
 }
 
 //-------------------------------------------------------------------------------------		

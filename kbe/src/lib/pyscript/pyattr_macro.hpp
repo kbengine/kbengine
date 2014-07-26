@@ -74,6 +74,11 @@ namespace KBEngine{ namespace script{
 #define PY_METHOD_ARG_int16_ARG							int16
 #define PY_METHOD_ARG_int16_PYARGTYPE					"h"
 
+#define PY_METHOD_ARG_int								int32
+#define PY_METHOD_ARG_int								int32
+#define PY_METHOD_ARG_int_ARG							int32
+#define PY_METHOD_ARG_int_PYARGTYPE						"i"
+
 #define PY_METHOD_ARG_int32								int32
 #define PY_METHOD_ARG_int32_ARG							int32
 #define PY_METHOD_ARG_int32_PYARGTYPE					"i"
@@ -101,8 +106,8 @@ namespace KBEngine{ namespace script{
 //-----------------------------------------------------------------------------------------------------------
 /** 定义暴露给脚本的方法宏
 */
-#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)													PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {
-#define TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyMethodDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMethods[] = {
+#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)													bool CLASS::_##CLASS##_py_installed = false; PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {
+#define TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER bool TEMPLATE_CLASS::_##CLASSNAME##_py_installed = false;  TEMPLATE_HEADER PyMethodDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMethods[] = {
 #define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)							{METHOD_NAME, (PyCFunction)&__py_##METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_DIRECT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_METHOD_DECLARE_END()															{0, 0, 0, 0}};
@@ -128,8 +133,8 @@ namespace KBEngine{ namespace script{
 #define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)													PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
 #define TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyGetSetDef TEMPLATE_CLASS::_##CLASSNAME##_scriptGetSeters[] =	{
 #define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
+#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, const_cast<char*>(NAME)},
+#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, const_cast<char*>(NAME)},
 #define SCRIPT_GETSET_DECLARE_END()															{0, 0, 0, 0, 0}};
 
 //-----------------------------------------------------------------------------------------------------------
@@ -180,15 +185,15 @@ namespace KBEngine{ namespace script{
 			if(!PyArg_ParseTuple(args, PY_METHOD_ARG_##ARG_TYPE1##_PYARGTYPE,														\
 										&arg1))																						\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s) is error!\n", __FUNCTION__, #ARG_TYPE1);								\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s), gived %d! is script[%s].\n",							\
+				__FUNCTION__, argsSize, #ARG_TYPE1, currargsSize, pobj->getScriptName());											\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -218,15 +223,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE2##_PYARGTYPE,														\
 										&arg1, &arg2))																				\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s) is error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2);				\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s), gived %d! is script[%s].\n",						\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, currargsSize, pobj->getScriptName());								\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -259,15 +264,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE3##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3))																		\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s) is error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3);\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s), gived %d! is script[%s].\n",					\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, currargsSize, pobj->getScriptName());					\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -302,15 +307,16 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE4##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4))																\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s) is error!\n", __FUNCTION__,									\
+										#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4);											\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s), gived %d! is script[%s].\n",				\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, currargsSize, pobj->getScriptName());		\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -349,15 +355,16 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE5##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5))															\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s) is error!\n", __FUNCTION__,								\
+						#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5);												\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s), gived %d! is script[%s].\n",			\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, currargsSize, pobj->getScriptName());	\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -399,15 +406,17 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE6##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6))													\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,							\
+							#ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6);											\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s, %s), gived %d! is script[%s].\n",		\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,						\
+				currargsSize, pobj->getScriptName());																				\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -452,15 +461,17 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE7##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7))											\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,						\
+							#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7);					\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s, %s, %s), gived %d! is script[%s].\n",	\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,			\
+				currargsSize, pobj->getScriptName());																				\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -508,15 +519,17 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE8##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8))									\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,					\
+							#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8);		\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s, %s, %s, %s), gived %d! is script[%s].\n",	\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8,	\
+				currargsSize, pobj->getScriptName());																				\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -568,15 +581,17 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE9##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9))								\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,				\
+						#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8, #ARG_TYPE9);\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s, %s, %s, %s, %s), gived %d! is script[%s].\n",	\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8,		\
+				#ARG_TYPE9, currargsSize, pobj->getScriptName());																	\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\
@@ -631,15 +646,18 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE10##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10))						\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args is error!\n", __FUNCTION__);												\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,			\
+				#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8,						\
+				#ARG_TYPE9, #ARG_TYPE10);																							\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			PyErr_Format(PyExc_AssertionError, "%s: args require %d args, gived %d! is script[%s].\n",								\
-				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+			PyErr_Format(PyExc_AssertionError, "%s: args require %d args(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s), gived %d! is script[%s].\n",	\
+				__FUNCTION__, argsSize, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8,	\
+				#ARG_TYPE9, #ARG_TYPE10, currargsSize, pobj->getScriptName());														\
 																																	\
 			PyErr_PrintEx(0);																										\
 																																	\

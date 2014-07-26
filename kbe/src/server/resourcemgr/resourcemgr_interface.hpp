@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ResourcemgrInterface)
 	// 某app注册自己的接口地址到本app
-	RESOURCEMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	RESOURCEMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -57,7 +57,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ResourcemgrInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 某个app向本app告知处于活动状态。
 	RESOURCEMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						MERCURY_FIXED_MESSAGE,

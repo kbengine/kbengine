@@ -54,7 +54,8 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 	databaseLength_(databaseLength),
 	utype_(utype),
 	defaultValStr_(defaultStr),
-	detailLevel_(detailLevel)
+	detailLevel_(detailLevel),
+	aliasID_(-1)
 {
 	dataType_->incRef();
 
@@ -117,6 +118,12 @@ void PropertyDescription::addPersistentToStream(MemoryStream* mstream, PyObject*
 	}
 
 	dataType_->addToStream(mstream, pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PropertyDescription::createFromPersistentStream(MemoryStream* mstream)
+{
+	return dataType_->createFromStream(mstream);
 }
 
 //-------------------------------------------------------------------------------------
@@ -255,12 +262,18 @@ void FixedDictDescription::addPersistentToStream(MemoryStream* mstream, PyObject
 	if(pyValue == NULL)
 	{
 		pyValue = newDefaultVal();
-		dataType_->addToStream(mstream, pyValue);
+		static_cast<FixedDictType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
 		Py_DECREF(pyValue);
 		return;
 	}
 
 	static_cast<FixedDictType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictDescription::createFromPersistentStream(MemoryStream* mstream)
+{
+	return ((FixedDictType*)dataType_)->createFromStreamEx(mstream, true);
 }
 
 //-------------------------------------------------------------------------------------
@@ -298,6 +311,27 @@ PyObject* ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	}
 
 	return NULL;	
+}
+
+//-------------------------------------------------------------------------------------
+void ArrayDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	// 允许使用默认值来创建一个流
+	if(pyValue == NULL)
+	{
+		pyValue = newDefaultVal();
+		static_cast<FixedArrayType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
+		Py_DECREF(pyValue);
+		return;
+	}
+
+	static_cast<FixedArrayType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ArrayDescription::createFromPersistentStream(MemoryStream* mstream)
+{
+	return ((FixedArrayType*)dataType_)->createFromStreamEx(mstream, true);
 }
 
 //-------------------------------------------------------------------------------------

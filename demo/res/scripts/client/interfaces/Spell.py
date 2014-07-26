@@ -33,6 +33,6 @@ class Spell:
 		"""
 		对一个目标entity施放一个技能
 		"""
-		self.cell.spellTarget(skillID, targetID)
+		self.cell.useTargetSkill(skillID, targetID)
 
 Spell._timermap = {}

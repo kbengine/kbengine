@@ -55,6 +55,7 @@ SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
+Mercury::TCPPacketReceiver(),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT),
 pBlowfishFilter_(0)
@@ -62,6 +63,8 @@ pBlowfishFilter_(0)
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
 	extradatas_ = "bots";
+
+	this->pNetworkInterface_ = &ninterface;
 }
 
 //-------------------------------------------------------------------------------------
@@ -124,6 +127,8 @@ bool ClientObject::initCreate()
 	}
 
 	pServerChannel_->pushBundle(pBundle);
+
+	this->pEndpoint_ = pEndpoint;
 	return true;
 }
 
@@ -330,8 +335,11 @@ void ClientObject::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStre
 
 	if(retcode != 0)
 	{
-		error_ = C_ERROR_CREATE_FAILED;
-		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		//error_ = C_ERROR_CREATE_FAILED;
+
+		// ¼ÌÐø³¢ÊÔµÇÂ¼
+		state_ = C_STATE_LOGIN;
+		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % SERVER_ERR_STR[retcode]);
 		return;
 	}
 
@@ -362,7 +370,7 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	s >> failedcode;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % SERVER_ERR_STR[failedcode]);
 
 	error_ = C_ERROR_LOGIN_FAILED;
 }

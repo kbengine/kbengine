@@ -39,20 +39,20 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
-ENTITY_METHOD_DECLARE_END()
+CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
+CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
-ENTITY_GETSET_DECLARE_BEGIN(Entity)
+CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
 SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
-ENTITY_GETSET_DECLARE_END()
+CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
@@ -114,6 +114,13 @@ PyObject* Entity::pyGetClientApp()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
+
+//-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 }
@@ -122,13 +129,22 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
-	s >> utype;
 	
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
+	MethodDescription* md = NULL;
 	
-	MethodDescription* md = scriptModule_->findClientMethodDescription(utype);
-	
+	if(scriptModule_->useMethodDescrAlias())
+	{
+		ENTITY_DEF_ALIASID aliasID;
+		s >> aliasID;
+		md = scriptModule_->findAliasMethodDescription(aliasID);
+		utype = aliasID;
+	}
+	else
+	{
+		s >> utype;
+		md = scriptModule_->findClientMethodDescription(utype);
+	}
+
 	if(md == NULL)
 	{
 		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
@@ -137,17 +153,38 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
+				id_ % utype);
+	}
+
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName()));
 
 	if(md != NULL)
 	{
-		PyObject* pyargs = md->createFromStream(&s);
-		md->call(pyFunc, pyargs);
-		Py_DECREF(pyargs);
+		if(md->getArgSize() == 0)
+		{
+			md->call(pyFunc, NULL);
+		}
+		else
+		{
+			PyObject* pyargs = md->createFromStream(&s);
+			if(pyargs)
+			{
+				md->call(pyFunc, pyargs);
+				Py_DECREF(pyargs);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+		}
 	}
 	
 	Py_XDECREF(pyFunc);
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
@@ -157,24 +194,43 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
-	Mercury::FixedMessages::MSGInfo* msgInfo =
-				Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+	if(!scriptModule_->usePropertyDescrAlias())
+	{
+		Mercury::FixedMessages::MSGInfo* msgInfo =
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
 
-	if(msgInfo != NULL)
-		posuid = msgInfo->msgid;
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
-	if(msgInfo != NULL)
-		diruid = msgInfo->msgid;
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+			diruid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
-	if(msgInfo != NULL)
-		spaceuid = msgInfo->msgid;
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if(msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+	else
+	{
+		posuid = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+		diruid = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+		spaceuid = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+	}
 
 	while(s.opsize() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
-		s >> uid;
+		uint8 aliasID = 0;
+
+		if(scriptModule_->usePropertyDescrAlias())
+		{
+			s >> aliasID;
+			uid = aliasID;
+		}
+		else
+		{
+			s >> uid;
+		}
 
 		// 如果是位置或者朝向信息则
 		if(uid == posuid)
@@ -204,11 +260,15 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			int32 x, y, z;
 			s >> size >> x >> y >> z;
 
-			dir.roll = (float)x;
-			dir.pitch = (float)y;
-			dir.yaw = (float)z;
+			dir.roll((float)x);
+			dir.pitch((float)y);
+			dir.yaw((float)z);
 #else
-			s >> size >> dir.roll >> dir.pitch >> dir.yaw;
+			float yaw, pitch, roll;
+			s >> size >> roll >> pitch >> yaw;
+			dir.yaw(yaw);
+			dir.pitch(pitch);
+			dir.roll(roll);
 #endif
 
 			setDirection(dir);
@@ -222,7 +282,13 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			continue;
 		}
 
-		PropertyDescription* pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+		PropertyDescription* pPropertyDescription = NULL;
+		
+		if(scriptModule_->usePropertyDescrAlias())
+			pPropertyDescription = getScriptModule()->findAliasPropertyDescription(aliasID);
+		else
+			pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+
 		if(pPropertyDescription == NULL)
 		{
 			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
@@ -242,6 +308,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
+		SCRIPT_ERROR_CHECK();
 	}
 }
 
@@ -264,7 +331,7 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition());
+	return new script::ScriptVector3(&getPosition(), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -279,7 +346,7 @@ void Entity::onPositionChanged()
 	eventdata.z = position_.z;
 	eventdata.speed = velocity_;
 	
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -304,13 +371,13 @@ int Entity::pySetDirection(PyObject *value)
 
 	Direction3D& dir = getDirection();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
-	dir.roll	= float(PyFloat_AsDouble(pyItem));
+	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 1);
-	dir.pitch	= float(PyFloat_AsDouble(pyItem));
+	dir.pitch(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 2);
-	dir.yaw		= float(PyFloat_AsDouble(pyItem));
+	dir.yaw(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
 	onDirectionChanged();
@@ -320,7 +387,7 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(getDirection().asVector3());
+	return new script::ScriptVector3(&getDirection().dir, NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -330,10 +397,10 @@ void Entity::onDirectionChanged()
 		return;
 
 	EventData_DirectionChanged eventdata;
-	eventdata.yaw = direction_.yaw;
-	eventdata.pitch = direction_.pitch;
-	eventdata.roll = direction_.roll;
-	eventdata.pEntity = getAspect();
+	eventdata.yaw = direction_.yaw();
+	eventdata.pitch = direction_.pitch();
+	eventdata.roll = direction_.roll();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -356,7 +423,7 @@ void Entity::onMoveSpeedChanged()
 {
 	EventData_MoveSpeedChanged eventdata;
 	eventdata.speed = velocity_;
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = getID();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -366,7 +433,7 @@ void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -374,7 +441,21 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -384,7 +465,7 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
 }
 
@@ -409,6 +490,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(boost::format("%1%::onBecomePlayer(): please implement %2%.\n") % this->scriptModule_->getName() % moduleName);
 		}
 		else
 		{

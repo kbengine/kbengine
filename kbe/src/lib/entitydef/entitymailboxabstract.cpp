@@ -69,25 +69,6 @@ EntityMailboxAbstract::~EntityMailboxAbstract()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::isClient()
-{
-	return type_ == MAILBOX_TYPE_CLIENT || type_ == MAILBOX_TYPE_CLIENT_VIA_CELL
-		|| type_ == MAILBOX_TYPE_CLIENT_VIA_BASE;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::isCell()
-{
-	return type_ == MAILBOX_TYPE_CELL || type_ == MAILBOX_TYPE_CELL_VIA_BASE;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::isBase()
-{
-	return type_ == MAILBOX_TYPE_BASE || type_ == MAILBOX_TYPE_BASE_VIA_CELL;
-}
-
-//-------------------------------------------------------------------------------------
 void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 {
 	// 如果是server端的mailbox

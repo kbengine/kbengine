@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "range_trigger.hpp"
-#include "range_list.hpp"
-#include "range_node.hpp"
-#include "entity_range_node.hpp"
+#include "coordinate_system.hpp"
+#include "entity_coordinate_node.hpp"
+#include "range_trigger_node.hpp"
 
 #ifndef CODE_INLINE
 #include "range_trigger.ipp"
@@ -29,9 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{	
 
-
 //-------------------------------------------------------------------------------------
-RangeTrigger::RangeTrigger(RangeNode* origin, float xz, float y):
+RangeTrigger::RangeTrigger(CoordinateNode* origin, float xz, float y):
 range_xz_(fabs(xz)),
 range_y_(fabs(y)),
 origin_(origin),
@@ -47,31 +46,40 @@ RangeTrigger::~RangeTrigger()
 }
 
 //-------------------------------------------------------------------------------------
+bool RangeTrigger::reinstall(CoordinateNode* pCoordinateNode)
+{
+	uninstall();
+	origin_ = pCoordinateNode;
+	return install();
+}
+
+//-------------------------------------------------------------------------------------
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this,0.0f, 0.0f);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
 	else
 		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0.0f, 0.0f);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
 
-	origin_->pRangeList()->insert(positiveBoundary_);
-	origin_->pRangeList()->insert(negativeBoundary_);
+	origin_->pCoordinateSystem()->insert(positiveBoundary_);
+	origin_->pCoordinateSystem()->insert(negativeBoundary_);
 	
-	positiveBoundary_->old_x(FLT_MAX);
-	positiveBoundary_->old_y(FLT_MAX);
-	positiveBoundary_->old_z(FLT_MAX);
+	positiveBoundary_->old_xx(FLT_MAX);
+	positiveBoundary_->old_yy(FLT_MAX);
+	positiveBoundary_->old_zz(FLT_MAX);
+
 	positiveBoundary_->range(range_xz_, range_y_);
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
 
-	negativeBoundary_->old_x(-FLT_MAX);
-	negativeBoundary_->old_y(-FLT_MAX);
-	negativeBoundary_->old_z(-FLT_MAX);
+	negativeBoundary_->old_xx(-FLT_MAX);
+	negativeBoundary_->old_yy(-FLT_MAX);
+	negativeBoundary_->old_zz(-FLT_MAX);
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
 	negativeBoundary_->update();
@@ -81,26 +89,26 @@ bool RangeTrigger::install()
 //-------------------------------------------------------------------------------------
 bool RangeTrigger::uninstall()
 {
-	if(positiveBoundary_ && positiveBoundary_->pRangeList())
+	if(positiveBoundary_ && positiveBoundary_->pCoordinateSystem())
 	{
-		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
 		positiveBoundary_->pRangeTrigger(NULL);
-		positiveBoundary_->resetOld();
+		positiveBoundary_->pCoordinateSystem()->remove(positiveBoundary_);
 	}
 
-	if(negativeBoundary_ && negativeBoundary_->pRangeList())
+	if(negativeBoundary_ && negativeBoundary_->pCoordinateSystem())
 	{
-		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
 		negativeBoundary_->pRangeTrigger(NULL);
-		negativeBoundary_->resetOld();
+		negativeBoundary_->pCoordinateSystem()->remove(negativeBoundary_);
 	}
 	
-	// 此处不必release node， 节点的释放统一交给rangelist
+	// 此处不必release node， 节点的释放统一交给CoordinateSystem
+	positiveBoundary_ = NULL;
+	negativeBoundary_ = NULL;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNode* pNode, bool isfront)
 {
 	if(pNode == origin())
 		return;
@@ -114,7 +122,7 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	bool wasIn = false;
 	bool isIn = false;
 
-	if(RangeList::hasY)
+	if(CoordinateSystem::hasY)
 	{
 		bool wasInY = pRangeTriggerNode->wasInYRange(pNode);
 		bool isInY = pRangeTriggerNode->isInYRange(pNode);
@@ -145,22 +153,22 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
+bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
 {
-	if(!RangeList::hasY)
+	if(!CoordinateSystem::hasY)
 		return true;
 
-	float originY = old_y() - old_range_y_;
+	float originY = old_yy() - old_range_y_;
 
 	volatile float lowerBound = originY - fabs(old_range_y_);
 	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_y()) && (pNode->old_y() < upperBound);
+	return (lowerBound < pNode->old_yy()) && (pNode->old_yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, CoordinateNode* pNode, bool isfront)
 {
-	if(pNode == origin() || !RangeList::hasY)
+	if(pNode == origin() || !CoordinateSystem::hasY)
 		return;
 
 	bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
@@ -192,12 +200,12 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 }
 
 //-------------------------------------------------------------------------------------
-void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, CoordinateNode* pNode, bool isfront)
 {
 	if(pNode == origin())
 		return;
 
-	if(RangeList::hasY)
+	if(CoordinateSystem::hasY)
 	{
 		bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
 		bool isInZ = pRangeTriggerNode->isInZRange(pNode);

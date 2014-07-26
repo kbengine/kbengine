@@ -141,7 +141,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		//printf("KBEMessage_handlers begin:\n");
 	}
 	
-	bool isfixedMsg = false;
+	//bool isfixedMsg = false;
 
 	FixedMessages::MSGInfo* msgInfo = FixedMessages::getSingleton().isFixed(ihName.c_str());
 
@@ -152,7 +152,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 			if(FixedMessages::getSingleton().isFixed(msgID_))
 			{
 				msgID_++;
-				isfixedMsg = true;
+				//isfixedMsg = true;
 			}
 			else
 				break;
@@ -182,7 +182,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	{
 		if(msgLen == 0)
 		{
-			msgHandler->msgLen = args->msgsize();
+			msgHandler->msgLen = args->dataSize();
 
 			if(msgHandler->type() == MERCURY_MESSAGE_TYPE_ENTITY)
 			{
