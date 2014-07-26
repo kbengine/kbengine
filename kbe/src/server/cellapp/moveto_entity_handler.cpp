@@ -39,6 +39,20 @@ MoveToEntityHandler::~MoveToEntityHandler()
 }
 
 //-------------------------------------------------------------------------------------
+void MoveToEntityHandler::addToStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::addToStream(s);
+	s << pTargetID_;
+}
+
+//-------------------------------------------------------------------------------------
+void MoveToEntityHandler::createFromStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::createFromStream(s);
+	s >> pTargetID_;
+}
+
+//-------------------------------------------------------------------------------------
 const Position3D& MoveToEntityHandler::destPos()
 {
 	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);

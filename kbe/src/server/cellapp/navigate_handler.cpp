@@ -80,6 +80,20 @@ NavigateHandler::~NavigateHandler()
 }
 
 //-------------------------------------------------------------------------------------
+void NavigateHandler::addToStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::addToStream(s);
+	s << maxMoveDistance_ << maxDistance_;
+}
+
+//-------------------------------------------------------------------------------------
+void NavigateHandler::createFromStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::createFromStream(s);
+	s >> maxMoveDistance_ >> maxDistance_;
+}
+
+//-------------------------------------------------------------------------------------
 bool NavigateHandler::requestMoveOver(const Position3D& oldPos)
 {
 	if(destPosIdx_ == ((int)paths_.size()))

@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "controller.hpp"	
 #include "controllers.hpp"	
+#include "cstdkbe/memorystream.hpp"	
 
 namespace KBEngine{	
 
@@ -52,11 +53,17 @@ void Controller::destroy()
 //-------------------------------------------------------------------------------------
 void Controller::addToStream(KBEngine::MemoryStream& s)
 {
+	uint8 itype = (uint8)type_;
+	s << id_ << itype << userarg_;
 }
 
 //-------------------------------------------------------------------------------------
 void Controller::createFromStream(KBEngine::MemoryStream& s)
 {
+	uint8 itype;
+	s >> id_ >> itype >> userarg_;
+
+	type_ = (ControllerType)itype;
 }
 
 //-------------------------------------------------------------------------------------

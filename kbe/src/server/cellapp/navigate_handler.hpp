@@ -31,11 +31,17 @@ public:
 	NavigateHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
 		float maxMoveDistance, float maxDistance, float girth,
 		PyObject* userarg);
+
 	virtual ~NavigateHandler();
 	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 	virtual bool requestMoveOver(const Position3D& oldPos);
 
 	virtual bool isOnGround(){ return true; }
+
+	virtual MoveType type()const{ return MOVE_TYPE_NAV; }
 protected:
 	int destPosIdx_;
 	std::vector<Position3D> paths_;

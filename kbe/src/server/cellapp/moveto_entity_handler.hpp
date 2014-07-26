@@ -33,9 +33,14 @@ public:
 		bool moveVertically, PyObject* userarg);
 	virtual ~MoveToEntityHandler();
 	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 	virtual bool update();
 
 	virtual const Position3D& destPos();
+
+	virtual MoveType type()const{ return MOVE_TYPE_ENTITY; }
 protected:
 	ENTITY_ID pTargetID_;
 };

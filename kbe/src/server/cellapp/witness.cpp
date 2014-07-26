@@ -70,11 +70,49 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;
+
+	uint32 size = aoiEntities_.size();
+	s << size;
+
+	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); iter++)
+	{
+		(*iter)->addToStream(s);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::createFromStream(KBEngine::MemoryStream& s)
 {
+	s >> aoiRadius_ >> aoiHysteresisArea_ >> clientAOISize_;
+
+	uint32 size;
+	s >> size;
+	
+	for(uint32 i=0; i<size; i++)
+	{
+		EntityRef* pEntityRef = new EntityRef();
+		pEntityRef->createFromStream(s);
+		aoiEntities_.push_back(pEntityRef);
+	}
+
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+	{
+		if(aoiRadius_ > 0.f)
+		{
+			if(pAOITrigger_ == NULL)
+			{
+				pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
+			}
+			else
+			{
+				pAOITrigger_->range(aoiRadius_, aoiRadius_);
+			}
+		}
+	}
+
+	lastBasePos.z = -FLT_MAX;
 }
 
 //-------------------------------------------------------------------------------------

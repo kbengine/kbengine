@@ -43,6 +43,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/timer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
+#include "pyscript/pickler.hpp"
 
 //#define NDEBUG
 // windows include	
@@ -73,13 +74,10 @@ public:
 		cbMap_.clear();
 	}
 
-	void addToStream(KBEngine::MemoryStream& s)
-	{
-	}
 
-	void createFromStream(KBEngine::MemoryStream& s)
-	{
-	}
+	void addToStream(KBEngine::MemoryStream& s);
+
+	void createFromStream(KBEngine::MemoryStream& s);
 
 	/** 
 		向管理器添加一个回调 
@@ -153,6 +151,62 @@ protected:
 	IDAllocate<CALLBACK_ID> idAlloc_;									// 回调的id分配器
 	uint64 lastTimestamp_;
 };
+
+template<>
+inline void CallbackMgr<PyObjectPtr>::addToStream(KBEngine::MemoryStream& s)
+{
+	uint32 size = cbMap_.size();
+
+	s << idAlloc_.lastID() << size;
+
+	CALLBACKS::iterator iter = cbMap_.begin();
+	for(; iter != cbMap_.end(); iter++)
+	{
+		s << iter->first;
+		s.appendBlob(script::Pickler::pickle(iter->second.first.get()));
+		s << iter->second.second;
+	}
+}
+
+template<>
+inline void CallbackMgr<PyObjectPtr>::createFromStream(KBEngine::MemoryStream& s)
+{
+	CALLBACK_ID v;
+	s >> v;
+
+	idAlloc_.lastID(v);
+
+	uint32 size;
+	s >> size;
+
+	for(uint32 i=0; i<size; i++)
+	{
+		CALLBACK_ID cbID;
+		s >> cbID;
+
+		std::string data;
+		s.readBlob(data);
+
+		PyObject* pyCallback = NULL;
+		
+		if(data.size() > 0)
+			pyCallback = script::Pickler::unpickle(data);
+		
+		uint64 timeout;
+		s >> timeout;
+
+		if(pyCallback == NULL || cbID == 0)
+		{
+			ERROR_MSG(boost::format("CallbackMgr::createFromStream: pyCallback(%1%) is error!\n") % cbID);
+			continue;
+		}
+
+		cbMap_.insert(CallbackMgr<PyObjectPtr>::CALLBACKS::value_type(cbID, 
+			std::pair< PyObjectPtr, uint64 >(pyCallback, timeout)));
+
+		Py_DECREF(pyCallback);
+	}
+}
 
 template<>
 inline void CallbackMgr<PyObject*>::finalise()
