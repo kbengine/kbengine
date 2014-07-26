@@ -8,6 +8,7 @@ ASMS =
 
 MY_LIBS =		\
 	server		\
+	pyscript        \
 	network		\
 	thread
 	
