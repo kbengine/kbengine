@@ -55,6 +55,29 @@ MoveToPointHandler::~MoveToPointHandler()
 }
 
 //-------------------------------------------------------------------------------------
+void MoveToPointHandler::addToStream(KBEngine::MemoryStream& s)
+{
+	uint8 utype = type();
+
+	s << utype << destPos_.x << destPos_.y << destPos_.z << velocity_ << faceMovement_ << moveVertically_ <<
+		range_ << layer_;
+
+	s.appendBlob(script::Pickler::pickle(pyuserarg_));
+}
+
+//-------------------------------------------------------------------------------------
+void MoveToPointHandler::createFromStream(KBEngine::MemoryStream& s)
+{
+	s >> /*utype <<*/ destPos_.x >> destPos_.y >> destPos_.z >> velocity_ >> faceMovement_ >> moveVertically_ >>
+		range_ >> layer_;
+
+	std::string val = "";
+	s.readBlob(val);
+
+	pyuserarg_ = script::Pickler::unpickle(val);
+}
+
+//-------------------------------------------------------------------------------------
 bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 {
 	if(pController_)

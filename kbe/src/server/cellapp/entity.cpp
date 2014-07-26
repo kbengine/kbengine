@@ -2796,7 +2796,15 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::addToStream(KBEngine::MemoryStream& s)
 {
-	s << id_ << scriptModule_->getUType() << spaceID_ << isDestroyed_ << isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_;
+	COMPONENT_ID componentID = 0;
+	if(baseMailbox_)
+	{
+		componentID = baseMailbox_->getComponentID();
+	}
+
+	s << id_ << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
+		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_ << componentID;
+
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
 	uint32 size = witnesses_.size();
@@ -2827,13 +2835,120 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		s << false;
 	}
 
-	scriptTimers_.addToStream(s);
+	addTimersToStream(s);
 	pyCallbackMgr_.addToStream(s);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::createFromStream(KBEngine::MemoryStream& s)
 {
+	ENTITY_SCRIPT_UID sid;
+	COMPONENT_ID componentID;
+
+	s >> id_ >> sid >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
+		topSpeedY_ >> shouldAutoBackup_ >> layer_ >> componentID;
+
+	this->scriptModule_ = EntityDef::findScriptModule(sid);
+
+	// ÉèÖÃentityµÄbaseMailbox
+	setBaseMailbox(new EntityMailbox(getScriptModule(), NULL, componentID, id_, MAILBOX_TYPE_BASE));
+
+	PyObject* cellData = createCellDataFromStream(&s);
+	createNamespace(cellData);
+	Py_XDECREF(cellData);
+
+	uint32 size;
+	s >> size;
+
+	KBE_ASSERT(witnesses_.size() == 0);
+
+	for(uint32 i=0; i<size; i++)
+	{
+		ENTITY_ID entityID;
+		s >> entityID;
+
+		if(Cellapp::getSingleton().findEntity(entityID) == NULL)
+			continue;
+
+		witnesses_.push_back(entityID);
+	}
+
+	bool has;
+
+	s >> has;
+	if(has)
+	{
+		if(pControllers_ == NULL)
+			pControllers_ = new Controllers();
+
+		pControllers_->createFromStream(s);
+	}
+
+	s >> has;
+	if(has)
+	{
+		PyObject* clientMailbox = PyObject_GetAttrString(getBaseMailbox(), "client");
+		KBE_ASSERT(clientMailbox != Py_None);
+
+		EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
+		setClientMailbox(client);
+
+		setWitness(Witness::ObjPool().createObject());
+		pWitness_->createFromStream(s);
+	}
+
+	createTimersFromStream(s);
+	pyCallbackMgr_.createFromStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addTimersToStream(KBEngine::MemoryStream& s)
+{
+	ScriptTimers::Map& map = scriptTimers_.map();
+	uint32 size = map.size();
+	s << size;
+
+	ScriptTimers::Map::const_iterator iter = map.begin();
+	while (iter != map.end())
+	{
+		// timerID
+		s << iter->first;
+
+		uint32 time;
+		uint32 interval;
+		int32 userData = 0;
+		int* pUserData = &userData;
+
+		Cellapp::getSingleton().timers().getTimerInfo(iter->second, time, interval, (void *&)pUserData);
+
+		s << time << interval << userData;
+		++iter;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createTimersFromStream(KBEngine::MemoryStream& s)
+{
+	uint32 size;
+	s >> size;
+
+	for(uint32 i=0; i<size; i++)
+	{
+		ScriptID tid;
+		uint32 time;
+		uint32 interval;
+		int32 userData = 0;
+
+		s >> tid >> time >> interval >> userData;
+
+		EntityScriptTimerHandler* pEntityScriptTimerHandler = new EntityScriptTimerHandler(this);
+
+		TimerHandle timerHandle = Cellapp::getSingleton().timers().add(
+				time, interval,
+				pEntityScriptTimerHandler, (void *)(intptr_t)userData);
+		
+		scriptTimers_.directAddTimer(tid, timerHandle);
+	}
 }
 
 //-------------------------------------------------------------------------------------

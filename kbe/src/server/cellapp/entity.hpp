@@ -523,6 +523,9 @@ public:
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
+
+	void addTimersToStream(KBEngine::MemoryStream& s);
+	void createTimersFromStream(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端

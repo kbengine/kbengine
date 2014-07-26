@@ -110,6 +110,9 @@ public:
 	virtual void reclaim(T id)
 	{
 	}
+
+	T lastID()const{ return lastID_; }
+	void lastID(T v){ lastID_ = v; }
 protected:
 	T lastID_;													// 最后一次申请到的ID
 };

@@ -50,10 +50,13 @@ public:
 
 	bool isEmpty() const	{ return map_.empty(); }
 
-	void addToStream(KBEngine::MemoryStream& s);
-	void createFromStream(KBEngine::MemoryStream& s);
-private:
 	typedef std::map<ScriptID, TimerHandle> Map;
+
+	ScriptTimers::Map& map(){ return map_; }
+
+	void directAddTimer(ScriptID tid, TimerHandle handle);
+private:
+	
 
 	ScriptID getNewID();
 	Map::const_iterator findTimer(TimerHandle handle) const;

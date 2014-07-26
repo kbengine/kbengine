@@ -256,11 +256,11 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				WARNING_MSG(boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
+				ERROR_MSG(boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
 					COMPONENT_NAME_EX(componentType) % (*iter).cid);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-				printf("[WARNING]: %s.\n", (boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
+				printf("[ERROR]: %s.\n", (boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
 					COMPONENT_NAME_EX(componentType) % (*iter).cid).str().c_str());
 #endif
 				iter = components.erase(iter);
