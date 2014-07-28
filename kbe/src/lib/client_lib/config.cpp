@@ -24,9 +24,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
 #include "entitydef/entitydef.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
+
+ServerConfig g_ServerConfig;
 
 //-------------------------------------------------------------------------------------
 Config::Config():
