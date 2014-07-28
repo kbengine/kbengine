@@ -57,7 +57,7 @@ namespace Mercury
 static bool g_networkInitted = false;
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<EndPoint> _g_objPool;
+static ObjectPool<EndPoint> _g_objPool("EndPoint");
 ObjectPool<EndPoint>& EndPoint::ObjPool()
 {
 	return _g_objPool;

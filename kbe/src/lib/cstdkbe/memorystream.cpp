@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "memorystream.hpp"
 namespace KBEngine
 {
-static ObjectPool<MemoryStream> _g_objPool;
+static ObjectPool<MemoryStream> _g_objPool("MemoryStream");
 //-------------------------------------------------------------------------------------
 ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 {

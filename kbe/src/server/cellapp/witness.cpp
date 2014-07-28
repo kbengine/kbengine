@@ -211,7 +211,7 @@ void Witness::detach(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Witness> _g_objPool;
+static ObjectPool<Witness> _g_objPool("Witness");
 ObjectPool<Witness>& Witness::ObjPool()
 {
 	return _g_objPool;

@@ -52,19 +52,21 @@ class ObjectPool
 public:
 	typedef std::list<T*> OBJECTS;
 
-	ObjectPool():
+	ObjectPool(std::string name):
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
-		mutex_()
+		mutex_(),
+		name_(name)
 	{
 	}
 
-	ObjectPool(unsigned int preAssignVal, size_t max):
+	ObjectPool(std::string name, unsigned int preAssignVal, size_t max):
 		objects_(),
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
-		mutex_()
+		mutex_(),
+		name_(name)
 	{
 	}
 
@@ -123,7 +125,7 @@ public:
 		}
 
 		mutex_.unlockMutex();
-		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
+
 		return NULL;
 	}
 
@@ -137,7 +139,8 @@ public:
 
 		while(true)
 		{
-			if(objects_.size() > 0){
+			if(objects_.size() > 0)
+			{
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
 
@@ -152,7 +155,7 @@ public:
 		}
 
 		mutex_.unlockMutex();
-		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
+
 		return NULL;
 	}
 
@@ -180,6 +183,17 @@ public:
 
 	size_t size(void)const{ return objects_.size(); }
 	
+	std::string c_str()
+	{
+		mutex_.lockMutex();
+
+		char buf[1024];
+		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
+			name_.c_str(), (int)objects_.size(), (int)max_, (isDestroyed ? "true" : "false"));
+
+		mutex_.unlockMutex();
+		return buf;
+	}
 protected:
 	OBJECTS objects_;							// 对象缓冲器
 
@@ -188,6 +202,8 @@ protected:
 	bool isDestroyed_;
 
 	KBEngine::thread::ThreadMutex mutex_;
+
+	std::string name_;
 };
 
 /*
@@ -199,6 +215,8 @@ public:
 	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
 	
+	virtual size_t getPoolObjectBytes(){ return 0; }
+
 	/**
 		池对象被析构前的通知
 		某些对象可以在此做一些工作
