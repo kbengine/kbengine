@@ -32,7 +32,7 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-static ObjectPool<UDPPacket> _g_objPool;
+static ObjectPool<UDPPacket> _g_objPool("UDPPacket");
 ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 {
 	return _g_objPool;

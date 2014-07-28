@@ -33,7 +33,7 @@ const Address Address::NONE(0, 0);
 
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Address> _g_objPool;
+static ObjectPool<Address> _g_objPool("Address");
 ObjectPool<Address>& Address::ObjPool()
 {
 	return _g_objPool;

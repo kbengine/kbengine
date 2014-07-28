@@ -100,7 +100,7 @@ namespace Mercury
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Bundle> _g_objPool;
+static ObjectPool<Bundle> _g_objPool("Bundle");
 ObjectPool<Bundle>& Bundle::ObjPool()
 {
 	return _g_objPool;

@@ -2455,7 +2455,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID)
+void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID, COMPONENT_ID componentID)
 {
 	// 目的space错误
 	if(destSpaceID == 0)
@@ -2480,7 +2480,8 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	changeToGhost(destSpaceID, *s);
+	changeToGhost(componentID, *s);
+	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
 
@@ -2772,6 +2773,7 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	KBE_ASSERT(isReal() == true && "Entity::changeToGhost(): not is real.\n");
 
 	realCell_ = realCell;
+	ghostCell_ = 0;
 
 	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
 
@@ -2789,21 +2791,24 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	KBE_ASSERT(isReal() == false && "Entity::changeToReal(): not is ghost.\n");
 
 	ghostCell_ = ghostCell;
+	realCell_ = 0;
 
 	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % getScriptName() % getID() % ghostCell_);
+
+	createFromStream(s);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::addToStream(KBEngine::MemoryStream& s)
 {
-	COMPONENT_ID componentID = 0;
+	COMPONENT_ID baseMailboxComponentID = 0;
 	if(baseMailbox_)
 	{
-		componentID = baseMailbox_->getComponentID();
+		baseMailboxComponentID = baseMailbox_->getComponentID();
 	}
 
-	s << id_ << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
-		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_ << componentID;
+	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
+		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_ << baseMailboxComponentID;
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
@@ -2843,15 +2848,16 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 void Entity::createFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_SCRIPT_UID sid;
-	COMPONENT_ID componentID;
+	COMPONENT_ID baseMailboxComponentID;
 
-	s >> id_ >> sid >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> shouldAutoBackup_ >> layer_ >> componentID;
+	s >> sid >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
+		topSpeedY_ >> shouldAutoBackup_ >> layer_ >> baseMailboxComponentID;
 
 	this->scriptModule_ = EntityDef::findScriptModule(sid);
 
 	// 设置entity的baseMailbox
-	setBaseMailbox(new EntityMailbox(getScriptModule(), NULL, componentID, id_, MAILBOX_TYPE_BASE));
+	if(baseMailboxComponentID > 0)
+		setBaseMailbox(new EntityMailbox(getScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
 
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);
