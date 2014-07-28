@@ -194,6 +194,10 @@ public:
 		mutex_.unlockMutex();
 		return buf;
 	}
+
+	size_t max()const{ return max_; }
+
+	bool isDestroyed()const{ return isDestroyed_; }
 protected:
 	OBJECTS objects_;							// ¶ÔÏó»º³åÆ÷
 

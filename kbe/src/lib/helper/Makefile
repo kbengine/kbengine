@@ -7,6 +7,7 @@ SRCS =				\
 	profiler		\
 	script_loglevel		\
 	sys_info		\
+	watch_pools		\
 	watcher
 
 ifndef KBE_ROOT

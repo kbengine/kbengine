@@ -163,6 +163,18 @@ INLINE COMPONENT_ID Entity::ghostCell(void)const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::realCell(COMPONENT_ID cellID)
+{ 
+	realCell_ = cellID; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::ghostCell(COMPONENT_ID cellID)
+{ 
+	ghostCell_ = cellID; 
+}
+
+//-------------------------------------------------------------------------------------
 INLINE SPACE_ENTITIES::size_type Entity::spaceEntityIdx()const
 {
 	return spaceEntityIdx_;
