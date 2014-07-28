@@ -9,7 +9,6 @@
 #include "network/bundle_broadcast.hpp"
 #include "network/message_handler.hpp"
 #include "server/components.hpp"
-#include "server/serverconfig.hpp"
 #include "helper/console_helper.hpp"
 #include "xmlplus/xmlplus.hpp"
 
@@ -83,7 +82,6 @@ namespace ConsoleInterface{
 }
 
 BOOL g_sendData = FALSE;
-ServerConfig g_ServerConfig;
 
 class ConsoleExecCommandCBMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandler
 {
