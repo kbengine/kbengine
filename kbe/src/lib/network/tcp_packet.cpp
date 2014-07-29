@@ -32,7 +32,7 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-static ObjectPool<TCPPacket> _g_objPool;
+static ObjectPool<TCPPacket> _g_objPool("TCPPacket");
 ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 {
 	return _g_objPool;

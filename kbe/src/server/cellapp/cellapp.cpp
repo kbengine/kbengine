@@ -51,6 +51,22 @@ KBE_SINGLETON_INIT(Cellapp);
 Navigation g_navigation;
 
 //-------------------------------------------------------------------------------------
+int32 watchWitnessPool_size()
+{
+	return (int)Witness::ObjPool().objects().size();
+}
+
+int32 watchWitnessPool_max()
+{
+	return (int)Witness::ObjPool().max();
+}
+
+bool watchWitnessPool_isDestroyed()
+{
+	return Witness::ObjPool().isDestroyed();
+}
+
+//-------------------------------------------------------------------------------------
 Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher, 
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
@@ -130,6 +146,10 @@ bool Cellapp::initializeWatcher()
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
 	WATCH_OBJECT("stats/runningTime", &runningTime);
+
+	WATCH_OBJECT("objectPools/Witness/size", &watchWitnessPool_size);
+	WATCH_OBJECT("objectPools/Witness/max", &watchWitnessPool_max);
+	WATCH_OBJECT("objectPools/Witness/isDestroyed", &watchWitnessPool_isDestroyed);
 	return EntityApp<Entity>::initializeWatcher();
 }
 
@@ -1464,6 +1484,7 @@ void Cellapp::reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStrea
 	(*pBundle) << teleportEntityID;
 	(*pBundle) << nearbyMBRefID;
 	(*pBundle) << spaceID;
+	(*pBundle) << g_componentID;
 
 	pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1474,14 +1495,15 @@ void Cellapp::reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	SPACE_ID spaceID = 0;
+	COMPONENT_ID componentID;
 
-	s >> teleportEntityID >> nearbyMBRefID >> spaceID;
+	s >> teleportEntityID >> nearbyMBRefID >> spaceID >> componentID;
 	
 	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
 
 	if(entity)
 	{
-		entity->onReqTeleportOtherAck(pChannel, nearbyMBRefID, spaceID);
+		entity->onReqTeleportOtherAck(pChannel, nearbyMBRefID, spaceID, componentID);
 	}
 	else
 	{
@@ -1519,14 +1541,15 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 		s.opfini();
 		return;
 	}
+	
+	e->createFromStream(s);
 
+	COMPONENT_ID ghostCell;
+	s >> ghostCell;
+	
+	e->ghostCell(ghostCell);
 	e->setSpaceID(space->getID());
 	e->setPositionAndDirection(pos, dir);
-
-	// 读取entity的celldata并且创建entity
-	PyObject* cellData = e->createCellDataFromStream(&s);
-	e->createNamespace(cellData);
-	Py_XDECREF(cellData);
 	
 	space->addEntityAndEnterWorld(e);
 

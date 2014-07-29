@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\watch_pools.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\watcher.cpp"
 				>
 			</File>
@@ -232,6 +236,10 @@
 			</File>
 			<File
 				RelativePath=".\sys_info.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\watch_pools.hpp"
 				>
 			</File>
 			<File

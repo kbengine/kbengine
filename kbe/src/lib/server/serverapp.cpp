@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
 #include "helper/sys_info.hpp"
+#include "helper/watch_pools.hpp"
 #include "resmgr/resmgr.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
@@ -182,7 +183,7 @@ bool ServerApp::initializeWatcher()
 	WATCH_OBJECT("gametime", this, &ServerApp::time);
 
 	return Mercury::initializeWatcher() && Resmgr::getSingleton().initializeWatcher() &&
-		threadPool_.initializeWatcher();
+		threadPool_.initializeWatcher() && WatchPool::initWatchPools();
 }
 
 //-------------------------------------------------------------------------------------		

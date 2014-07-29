@@ -101,11 +101,13 @@ public:
 		判断自身是否是一个realEntity 
 	*/
 	INLINE COMPONENT_ID realCell(void)const;
+	INLINE void realCell(COMPONENT_ID cellID);
 
 	/** 
 		判断自身是否有ghostEntity 
 	*/
 	INLINE COMPONENT_ID ghostCell(void)const;
+	INLINE void ghostCell(COMPONENT_ID cellID);
 
 	/** 
 		定义属性数据被改变了 
@@ -226,7 +228,8 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
-	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID);
+	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, 
+		SPACE_ID destSpaceID, COMPONENT_ID componentID);
 
 	/**
 		进入离开cell等回调

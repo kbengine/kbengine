@@ -38,7 +38,7 @@ namespace Mercury
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<UDPPacketReceiver> _g_objPool;
+static ObjectPool<UDPPacketReceiver> _g_objPool("UDPPacketReceiver");
 ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 {
 	return _g_objPool;
