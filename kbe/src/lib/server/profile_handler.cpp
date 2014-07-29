@@ -125,6 +125,26 @@ CProfileHandler::CProfileHandler(Mercury::NetworkInterface & networkInterface, u
 ProfileHandler(networkInterface, timinglen, name, addr)
 {
 	networkInterface_.dispatcher().addFrequentTask(this);
+
+	ProfileGroup& defaultGroup = ProfileGroup::defaultGroup();
+	ProfileGroup::PROFILEVALS::const_iterator iter = defaultGroup.profiles().begin();
+
+	for(; iter != defaultGroup.profiles().end(); iter++)
+	{
+		std::string name = (*iter)->name();
+	
+		if(name == "RunningTime")
+		{
+			continue;
+		}
+
+		profileVals_[name].name = name;
+		profileVals_[name].count = (*iter)->count();
+		profileVals_[name].lastTime = (*iter)->lastTime();
+		profileVals_[name].sumTime = (*iter)->sumTime();
+		profileVals_[name].lastIntTime = (*iter)->lastIntTime();
+		profileVals_[name].sumIntTime = (*iter)->sumIntTime();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -151,7 +171,7 @@ void CProfileHandler::timeout()
 			continue;
 		}
 
-		uint32 count = iter->second.count;
+		uint32 count = iter->second.diff_count;
 
 		float lastTime = (float)stampsToSeconds(iter->second.diff_lastTime);
 		float sumTime = (float)stampsToSeconds(iter->second.diff_sumTime);

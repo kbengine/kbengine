@@ -70,7 +70,6 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
-Mercury::Channel* g_pMessagelogChannel = NULL;
 ProfileVal g_syncLogProfile("syncLog");
 
 #ifndef NO_USE_LOG4CXX
@@ -113,6 +112,7 @@ _logfile(NULL),
 _currFile(),
 _currFuncName(),
 _currLine(0),
+messagelogAddr_(),
 logMutex(),
 bufferedLogPackets_(),
 syncStarting_(false),
@@ -212,7 +212,10 @@ void DebugHelper::clearBufferedLog(bool destroy)
 //-------------------------------------------------------------------------------------
 void DebugHelper::sync()
 {
-	if(g_pMessagelogChannel == NULL)
+	if(bufferedLogPackets_.size() == 0)
+		return;
+
+	if(Mercury::Address::NONE == messagelogAddr_)
 	{
 		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
@@ -221,9 +224,17 @@ void DebugHelper::sync()
 
 		return;
 	}
+	
+	Mercury::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
+	if(pMessagelogChannel == NULL)
+	{
+		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
+		{
+			clearBufferedLog();
+		}
 
-	if(bufferedLogPackets_.size() == 0)
 		return;
+	}
 
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
@@ -238,7 +249,7 @@ void DebugHelper::sync()
 			break;
 		
 		totalLen += (*iter)->currMsgLength();
-		g_pMessagelogChannel->send((*iter));
+		pMessagelogChannel->send((*iter));
 		
 		bufferedLogPackets_.erase(iter++); 
 	}
@@ -357,13 +368,13 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 //-------------------------------------------------------------------------------------
 void DebugHelper::registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	g_pMessagelogChannel = pNetworkInterface_->findChannel(*pAddr);
+	messagelogAddr_ = *pAddr;
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	g_pMessagelogChannel = NULL;
+	messagelogAddr_ = Mercury::Address::NONE;
 }
 
 //-------------------------------------------------------------------------------------
