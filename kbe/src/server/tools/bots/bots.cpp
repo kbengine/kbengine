@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
-ServerConfig g_serverConfig;
+
 Componentbridge* g_pComponentbridge = NULL;
 
 //-------------------------------------------------------------------------------------
@@ -49,9 +49,9 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 ClientApp(dispatcher, ninterface, componentType, componentID),
 pPyBots_(NULL),
 clients_(),
-reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount),
-reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
-reqCreateAndLoginTickTime_(g_serverConfig.getBots().defaultAddBots_tickTime),
+reqCreateAndLoginTotalCount_(g_kbeSrvConfig.getBots().defaultAddBots_totalCount),
+reqCreateAndLoginTickCount_(g_kbeSrvConfig.getBots().defaultAddBots_tickCount),
+reqCreateAndLoginTickTime_(g_kbeSrvConfig.getBots().defaultAddBots_tickTime),
 pCreateAndLoginHandler_(NULL),
 pEventPoller_(Mercury::EventPoller::create()),
 pTelnetServer_(NULL)
@@ -90,9 +90,9 @@ bool Bots::initializeEnd()
 {
 	pTelnetServer_ = new TelnetServer(&getMainDispatcher(), &getNetworkInterface());
 	pTelnetServer_->pScript(&getScript());
-	if(!pTelnetServer_->start(g_serverConfig.getBots().telnet_passwd, 
-		g_serverConfig.getBots().telnet_deflayer, 
-		g_serverConfig.getBots().telnet_port))
+	if(!pTelnetServer_->start(g_kbeSrvConfig.getBots().telnet_passwd, 
+		g_kbeSrvConfig.getBots().telnet_deflayer, 
+		g_kbeSrvConfig.getBots().telnet_port))
 	{
 		ERROR_MSG("Bots::initialize: initializeEnd is error!\n");
 		return false;
