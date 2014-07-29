@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 extern ProfileVal SCRIPTCALL_PROFILE;
-extern ProfileVal ONTIMER_PROFILE;
 
 extern EventHistoryStats g_privateClientEventHistoryStats;
 extern EventHistoryStats g_publicClientEventHistoryStats;

@@ -174,7 +174,6 @@ private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
-	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 	std::list< Mercury::Bundle* > bufferedLogPackets_;
 	bool syncStarting_;
