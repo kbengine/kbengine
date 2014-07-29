@@ -146,23 +146,27 @@ void SignalHandlers::onSignalled(int sigNum)
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	std::vector<int>::iterator iter = signalledVec_.begin();
-	for(; iter != signalledVec_.end(); iter++)
+	if(signalledVec_.size() > 0)
 	{
-		int sigNum = (*iter);
-		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
-		if(iter1 == singnalHandlerMap_.end())
+		std::vector<int>::iterator iter = signalledVec_.begin();
+		for(; iter != signalledVec_.end(); iter++)
 		{
-			DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% unhandled, singnalHandlerMap(%2%).\n") % 
-				SIGNAL_NAMES[sigNum] % singnalHandlerMap_.size());
-			continue;
+			int sigNum = (*iter);
+			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+			if(iter1 == singnalHandlerMap_.end())
+			{
+				DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% unhandled, singnalHandlerMap(%2%).\n") % 
+					SIGNAL_NAMES[sigNum] % singnalHandlerMap_.size());
+				continue;
+			}
+			
+			DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% handle.\n") % SIGNAL_NAMES[sigNum]);
+			iter1->second->onSignalled(sigNum);
 		}
-		
-		DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% handle.\n") % SIGNAL_NAMES[sigNum]);
-		iter1->second->onSignalled(sigNum);
+
+		signalledVec_.clear();
 	}
 
-	signalledVec_.clear();
 	return true;
 }
 
