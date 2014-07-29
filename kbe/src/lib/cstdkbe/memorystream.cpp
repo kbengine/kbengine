@@ -44,6 +44,13 @@ MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj()
 }
 
 //-------------------------------------------------------------------------------------
+size_t MemoryStream::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(rpos_) + sizeof(wpos_) + data_.size();
+	return bytes;
+}
+
+//-------------------------------------------------------------------------------------
 } 
 
 

@@ -106,8 +106,9 @@ void Bots::finalise()
 {
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
-
-	pTelnetServer_->stop();
+	
+	if(pTelnetServer_)
+		pTelnetServer_->stop();
 	SAFE_RELEASE(pTelnetServer_);
 
 	ClientApp::finalise();

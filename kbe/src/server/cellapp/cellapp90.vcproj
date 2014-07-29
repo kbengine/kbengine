@@ -335,6 +335,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\watch_obj_pools.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\witness.cpp"
 				>
 			</File>
@@ -504,6 +508,10 @@
 			</File>
 			<File
 				RelativePath=".\updatables.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\watch_obj_pools.hpp"
 				>
 			</File>
 			<File
