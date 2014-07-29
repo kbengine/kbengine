@@ -39,6 +39,14 @@ public:
 	static void destroyObjPool();
 	void onReclaimObject();
 
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(ip)
+		 + sizeof(port);
+
+		return bytes;
+	}
+
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
 	Address(std::string ipArg, uint16 portArg);

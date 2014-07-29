@@ -56,6 +56,14 @@ public:
 		MemoryStream::onReclaimObject();
 		resetPacket();
 	}
+	
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(msgID_) + sizeof(isTCPPacket_) + sizeof(encrypted_) + sizeof(pBundle_)
+		 + sizeof(sentSize);
+
+		return MemoryStream::getPoolObjectBytes() + bytes;
+	}
 
 	Bundle* pBundle()const{ return pBundle_; }
 	void pBundle(Bundle* v){ pBundle_ = v; }

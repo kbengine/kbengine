@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "witness.hpp"
 #include "coordinate_node.hpp"
 #include "aoi_trigger.hpp"
+#include "watch_obj_pools.hpp"
 #include "cellapp_interface.hpp"
 #include "entity_remotemethod.hpp"
 #include "forward_message_over_handler.hpp"
@@ -49,22 +50,6 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Cellapp);
 
 Navigation g_navigation;
-
-//-------------------------------------------------------------------------------------
-int32 watchWitnessPool_size()
-{
-	return (int)Witness::ObjPool().objects().size();
-}
-
-int32 watchWitnessPool_max()
-{
-	return (int)Witness::ObjPool().max();
-}
-
-bool watchWitnessPool_isDestroyed()
-{
-	return Witness::ObjPool().isDestroyed();
-}
 
 //-------------------------------------------------------------------------------------
 Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher, 
@@ -146,11 +131,7 @@ bool Cellapp::initializeWatcher()
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
 	WATCH_OBJECT("stats/runningTime", &runningTime);
-
-	WATCH_OBJECT("objectPools/Witness/size", &watchWitnessPool_size);
-	WATCH_OBJECT("objectPools/Witness/max", &watchWitnessPool_max);
-	WATCH_OBJECT("objectPools/Witness/isDestroyed", &watchWitnessPool_isDestroyed);
-	return EntityApp<Entity>::initializeWatcher();
+	return EntityApp<Entity>::initializeWatcher() && WatchObjectPool::initWatchPools();
 }
 
 //-------------------------------------------------------------------------------------

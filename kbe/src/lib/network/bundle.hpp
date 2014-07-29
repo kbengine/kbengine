@@ -113,6 +113,7 @@ public:
 	static ObjectPool<Bundle>& ObjPool();
 	static void destroyObjPool();
 	void onReclaimObject();
+	virtual size_t getPoolObjectBytes();
 
 	typedef std::vector<Packet*> Packets;
 	

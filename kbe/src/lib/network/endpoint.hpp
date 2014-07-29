@@ -40,6 +40,14 @@ public:
 	static void destroyObjPool();
 	void onReclaimObject();
 
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(KBESOCKET)
+		 + address_.getPoolObjectBytes();
+
+		return bytes;
+	}
+
 	EndPoint(int fd);
 	EndPoint(Address address);
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);

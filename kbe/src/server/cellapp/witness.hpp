@@ -93,6 +93,16 @@ public:
 	static ObjectPool<Witness>& ObjPool();
 	void onReclaimObject();
 
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(pEntity_)
+		 + sizeof(aoiRadius_) + sizeof(aoiHysteresisArea_)
+		  + sizeof(pAOITrigger_) + sizeof(clientAOISize_)
+		  + sizeof(lastBasePos) + (sizeof(EntityRef*) * aoiEntities_.size());
+
+		return bytes;
+	}
+
 	INLINE Entity* pEntity();
 
 	void attach(Entity* pEntity);

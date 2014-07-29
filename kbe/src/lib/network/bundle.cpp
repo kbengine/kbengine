@@ -116,6 +116,17 @@ void Bundle::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+size_t Bundle::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(reuse_) + sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
+		sizeof(currMsgLengthPos_) + sizeof(currMsgHandlerLength_) + sizeof(currMsgLength_) + 
+		sizeof(currMsgPacketCount_) + sizeof(currMsgID_) + sizeof(numMessages_) + sizeof(pChannel_)
+		+ (packets_.size() * sizeof(Packet*));
+
+	return bytes;
+}
+
+//-------------------------------------------------------------------------------------
 Bundle::SmartPoolObjectPtr Bundle::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<Bundle>(ObjPool().createObject(), _g_objPool));

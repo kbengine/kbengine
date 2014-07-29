@@ -57,7 +57,8 @@ public:
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
 		mutex_(),
-		name_(name)
+		name_(name),
+		totalAlloc_(0)
 	{
 	}
 
@@ -66,7 +67,8 @@ public:
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
 		mutex_(),
-		name_(name)
+		name_(name),
+		totalAlloc_(0)
 	{
 	}
 
@@ -98,6 +100,7 @@ public:
 	{
 		for(unsigned int i=0; i<preAssignVal; i++){
 			objects_.push_back(new T);
+			++totalAlloc_;
 		}
 	}
 
@@ -171,6 +174,7 @@ public:
 			if(size() >= max_ || isDestroyed_)
 			{
 				delete obj;
+				--totalAlloc_;
 			}
 			else
 			{
@@ -196,6 +200,7 @@ public:
 	}
 
 	size_t max()const{ return max_; }
+	size_t totalAlloc()const{ return totalAlloc_; }
 
 	bool isDestroyed()const{ return isDestroyed_; }
 protected:
@@ -208,6 +213,8 @@ protected:
 	KBEngine::thread::ThreadMutex mutex_;
 
 	std::string name_;
+
+	size_t totalAlloc_;
 };
 
 /*

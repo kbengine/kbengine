@@ -36,6 +36,7 @@ SRCS =						\
 	trap_trigger				\
 	updatable				\
 	updatables				\
+	watch_obj_pools				\
 	witness					\
 	witnessed_timeout_handler
 
