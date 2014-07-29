@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "debug_helper.hpp"
+#include "profile.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
@@ -69,7 +70,8 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
-
+Mercury::Channel* g_pMessagelogChannel = NULL;
+ProfileVal g_syncLogProfile("syncLog");
 
 #ifndef NO_USE_LOG4CXX
 log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
@@ -111,7 +113,6 @@ _logfile(NULL),
 _currFile(),
 _currFuncName(),
 _currLine(0),
-messagelogAddr_(),
 logMutex(),
 bufferedLogPackets_(),
 syncStarting_(false),
@@ -211,64 +212,35 @@ void DebugHelper::clearBufferedLog(bool destroy)
 //-------------------------------------------------------------------------------------
 void DebugHelper::sync()
 {
-	if(bufferedLogPackets_.size() == 0)
-		return;
-
-	if(messagelogAddr_.isNone())
+	if(g_pMessagelogChannel == NULL)
 	{
 		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
-			ERROR_MSG(boost::format("DebugHelper::sync: can't found messagelog. packet size=%1%.\n") %
-				bufferedLogPackets_.size());
 			clearBufferedLog();
 		}
+
 		return;
 	}
+
+	if(bufferedLogPackets_.size() == 0)
+		return;
 
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
 
-	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
-	if(pChannel == NULL)
+	uint32 i = 0;
+	size_t totalLen = 0;
+
+	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
+	for(; iter != bufferedLogPackets_.end();)
 	{
-		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
-		{
-			messagelogAddr_.ip = 0;
-			messagelogAddr_.port = 0;
-
-			WARNING_MSG(boost::format("DebugHelper::sync: is no use the messagelog, packet size=%1%.\n") % 
-				bufferedLogPackets_.size());
-
-			clearBufferedLog();
-		}
-
-		Mercury::g_trace_packet = v;
-		return;
-	}
-
-	if(bufferedLogPackets_.size() > 0)
-	{
-		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxSyncLogs())
-		{
-			WARNING_MSG(boost::format("DebugHelper::sync: packet size=%1%.\n") % 
-				bufferedLogPackets_.size());
-		}
-
-		uint32 i = 0;
-
-		size_t totalLen = 0;
-
-		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-		for(; iter != bufferedLogPackets_.end();)
-		{
-			if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
-				break;
-			
-			totalLen += (*iter)->currMsgLength();
-			pChannel->send((*iter));
-			
-			bufferedLogPackets_.erase(iter++); 
-		}
+		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
+			break;
+		
+		totalLen += (*iter)->currMsgLength();
+		g_pMessagelogChannel->send((*iter));
+		
+		bufferedLogPackets_.erase(iter++); 
 	}
 
 	Mercury::g_trace_packet = v;
@@ -282,8 +254,10 @@ bool DebugHelper::process()
 		syncStarting_ = false;
 		return false;
 	}
-
+	
+	g_syncLogProfile.start();
 	sync();
+	g_syncLogProfile.stop();
 	return true;
 }
 
@@ -383,14 +357,13 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 //-------------------------------------------------------------------------------------
 void DebugHelper::registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	messagelogAddr_ = *pAddr;
+	g_pMessagelogChannel = pNetworkInterface_->findChannel(*pAddr);
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	messagelogAddr_.ip = 0;
-	messagelogAddr_.port = 0;
+	g_pMessagelogChannel = NULL;
 }
 
 //-------------------------------------------------------------------------------------
