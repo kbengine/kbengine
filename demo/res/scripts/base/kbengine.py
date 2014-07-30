@@ -21,7 +21,7 @@ def onBaseAppReady(bootstrapIdx):
 	@type bootstrapIdx: INT32
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
-	KBEngine.addWatcher("scripts/countPlayers", "UINT32", countPlayers)
+	KBEngine.addWatcher("players", "UINT32", countPlayers)
 	
 	if bootstrapIdx == 1:
 		# 创建spacemanager
