@@ -177,7 +177,9 @@ private:
 
 	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
+
 	std::list< Mercury::Bundle* > bufferedLogPackets_;
+	size_t hasBufferedLogPackets_;
 
 	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;
