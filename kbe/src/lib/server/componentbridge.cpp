@@ -238,6 +238,11 @@ RESTART_RECV:
 							//dispatcher().breakProcessing();
 							return false;
 						}
+						else
+						{
+							findIdx_++;
+							continue;
+						}
 					}
 				}
 				
