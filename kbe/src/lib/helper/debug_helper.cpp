@@ -175,6 +175,7 @@ _currLine(0),
 messagelogAddr_(),
 logMutex(),
 bufferedLogPackets_(),
+hasBufferedLogPackets_(0),
 pNetworkInterface_(NULL),
 pDispatcher_(NULL),
 scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
@@ -269,17 +270,18 @@ void DebugHelper::clearBufferedLog(bool destroy)
 	}
 
 	bufferedLogPackets_.clear();
+	hasBufferedLogPackets_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::sync()
 {
-	if(bufferedLogPackets_.size() == 0)
+	if(hasBufferedLogPackets_ == 0)
 		return;
 
 	if(Mercury::Address::NONE == messagelogAddr_)
 	{
-		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
+		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
 			clearBufferedLog();
 		}
@@ -290,7 +292,7 @@ void DebugHelper::sync()
 	Mercury::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
 	if(pMessagelogChannel == NULL)
 	{
-		if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
+		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
 			clearBufferedLog();
 		}
@@ -314,6 +316,7 @@ void DebugHelper::sync()
 		pMessagelogChannel->send((*iter));
 		
 		bufferedLogPackets_.erase(iter++); 
+		--hasBufferedLogPackets_;
 	}
 
 	Mercury::g_trace_packet = v;
@@ -368,7 +371,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	if(length <= 0)
 		return;
 
-	if(bufferedLogPackets_.size() > g_kbeSrvConfig.tickMaxBufferedLogs())
+	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
 		int8 v = Mercury::g_trace_packet;
 		Mercury::g_trace_packet = 0;
@@ -398,6 +401,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << g_kbetime;
 	(*pBundle) << str;
 	
+	++hasBufferedLogPackets_;
 	bufferedLogPackets_.push_back(pBundle);
 
 	Mercury::g_trace_packet = v;
