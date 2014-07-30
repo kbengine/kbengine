@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "debug_helper.hpp"
 #include "profile.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/timer.hpp"
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"
@@ -107,6 +108,65 @@ void vutf8printf(FILE *out, const char *str, va_list* ap)
 }
 
 //-------------------------------------------------------------------------------------
+class DebugHelperSyncHandler  : public TimerHandler
+{
+public:
+	DebugHelperSyncHandler():
+	pActiveTimerHandle_(NULL)
+	{
+	}
+
+	virtual ~DebugHelperSyncHandler()
+	{
+		// cancel();
+	}
+
+	enum TimeOutType
+	{
+		TIMEOUT_ACTIVE_TICK,
+		TIMEOUT_MAX
+	};
+
+	virtual void handleTimeout(TimerHandle handle, void * arg)
+	{
+		g_syncLogProfile.start();
+		DebugHelper::getSingleton().sync();
+		g_syncLogProfile.stop();
+	}
+
+	//-------------------------------------------------------------------------------------
+	void cancel()
+	{
+		if(pActiveTimerHandle_ == NULL)
+			return;
+
+		pActiveTimerHandle_->cancel();
+		delete pActiveTimerHandle_;
+		pActiveTimerHandle_ = NULL;
+	}
+
+	//-------------------------------------------------------------------------------------
+	void startActiveTick()
+	{
+		if(pActiveTimerHandle_ == NULL)
+		{
+			if(DebugHelper::getSingleton().pDispatcher())
+			{
+				pActiveTimerHandle_ = new TimerHandle();
+				(*pActiveTimerHandle_) = DebugHelper::getSingleton().pDispatcher()->addTimer(1000000 / 10,
+												this, (void *)TIMEOUT_ACTIVE_TICK);
+
+			}
+		}
+	}
+
+private:
+	TimerHandle* pActiveTimerHandle_;
+};
+
+DebugHelperSyncHandler* g_pDebugHelperSyncHandler = NULL;
+
+//-------------------------------------------------------------------------------------
 DebugHelper::DebugHelper():
 _logfile(NULL),
 _currFile(),
@@ -115,17 +175,19 @@ _currLine(0),
 messagelogAddr_(),
 logMutex(),
 bufferedLogPackets_(),
-syncStarting_(false),
 pNetworkInterface_(NULL),
 pDispatcher_(NULL),
 scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
 {
+	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
 
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
 	clearBufferedLog(true);
+
+	// SAFE_RELEASE(g_pDebugHelperSyncHandler);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -258,28 +320,10 @@ void DebugHelper::sync()
 }
 
 //-------------------------------------------------------------------------------------
-bool DebugHelper::process()
-{
-	if(bufferedLogPackets_.size() == 0 || pNetworkInterface_ == NULL)
-	{
-		syncStarting_ = false;
-		return false;
-	}
-	
-	g_syncLogProfile.start();
-	sync();
-	g_syncLogProfile.stop();
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 void DebugHelper::pDispatcher(Mercury:: EventDispatcher* dispatcher)
 { 
 	pDispatcher_ = dispatcher; 
-	if(syncStarting_)
-	{
-		pDispatcher_->addFrequentTask(this);
-	}
+	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -357,12 +401,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	bufferedLogPackets_.push_back(pBundle);
 
 	Mercury::g_trace_packet = v;
-	if(!syncStarting_)
-	{
-		if(pDispatcher_)
-			pDispatcher_->addFrequentTask(this);
-		syncStarting_ = true;
-	}
+	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
