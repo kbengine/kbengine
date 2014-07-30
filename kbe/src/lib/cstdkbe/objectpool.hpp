@@ -58,7 +58,8 @@ public:
 		isDestroyed_(false),
 		mutex_(),
 		name_(name),
-		totalAlloc_(0)
+		totalAlloc_(0),
+		obj_count_(0)
 	{
 	}
 
@@ -68,7 +69,8 @@ public:
 		isDestroyed_(false),
 		mutex_(),
 		name_(name),
-		totalAlloc_(0)
+		totalAlloc_(0),
+		obj_count_(0)
 	{
 	}
 
@@ -91,6 +93,7 @@ public:
 		}
 				
 		objects_.clear();	
+		obj_count_ = 0;
 		mutex_.unlockMutex();
 	}
 
@@ -101,6 +104,7 @@ public:
 		for(unsigned int i=0; i<preAssignVal; i++){
 			objects_.push_back(new T);
 			++totalAlloc_;
+			++obj_count_;
 		}
 	}
 
@@ -115,11 +119,11 @@ public:
 
 		while(true)
 		{
-			if(objects_.size() > 0)
+			if(obj_count_ > 0)
 			{
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
-
+				--obj_count_;
 				mutex_.unlockMutex();
 				return t;
 			}
@@ -142,10 +146,11 @@ public:
 
 		while(true)
 		{
-			if(objects_.size() > 0)
+			if(obj_count_ > 0)
 			{
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
+				--obj_count_;
 
 				// ÏÈÖØÖÃ×´Ì¬
 				t->onReclaimObject();
@@ -179,13 +184,14 @@ public:
 			else
 			{
 				objects_.push_back(obj);
+				++obj_count_;
 			}
 		}
 
 		mutex_.unlockMutex();
 	}
 
-	size_t size(void)const{ return objects_.size(); }
+	size_t size(void)const{ return obj_count_; }
 	
 	std::string c_str()
 	{
@@ -193,7 +199,7 @@ public:
 
 		char buf[1024];
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
-			name_.c_str(), (int)objects_.size(), (int)max_, (isDestroyed ? "true" : "false"));
+			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
 
 		mutex_.unlockMutex();
 		return buf;
@@ -215,6 +221,8 @@ protected:
 	std::string name_;
 
 	size_t totalAlloc_;
+
+	size_t obj_count_;
 };
 
 /*
