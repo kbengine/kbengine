@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning(disable:4819)
 #endif
 #include "boost/format.hpp"
-#include "cstdkbe/tasks.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
@@ -103,8 +102,7 @@ inline const char* KBELOG_TYPE_NAME_EX(uint32 CTYPE)
 	return " UNKNOWN";
 }
 
-class DebugHelper : public Task, 
-					public Singleton<DebugHelper>
+class DebugHelper  : public Singleton<DebugHelper>
 {
 public:
 	DebugHelper();
@@ -125,15 +123,12 @@ public:
 
 	void lockthread();
 	void unlockthread();
-
-	/** 
-		同步日志到messagelog
-	*/
-	void sync();
-	bool process();
     
 	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
 	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
+	
+	Mercury:: EventDispatcher* pDispatcher()const{ return pDispatcher_; }
+	Mercury:: NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
 	void print_msg(boost::format& fmt);
 	void print_msg(std::string s);
@@ -170,14 +165,20 @@ public:
 	void setScriptMsgType(int msgtype);
 
 	void shouldWriteToSyslog(bool v = true);
+
+	/** 
+		同步日志到messagelog
+	*/
+	void sync();
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
+
 	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 	std::list< Mercury::Bundle* > bufferedLogPackets_;
-	bool syncStarting_;
+
 	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;
 
