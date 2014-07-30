@@ -56,7 +56,7 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_ACCOUNT_LOCK						15			// 账号被冻结。
 #define SERVER_ERR_ACCOUNT_DEADLINE					16			// 账号已过期。
 #define SERVER_ERR_ACCOUNT_NOT_ACTIVATED			17			// 账号未激活。
-#define SERVER_ERR_VERSION_NOT_MATCH				18			// 账号未激活。
+#define SERVER_ERR_VERSION_NOT_MATCH				18			// 与服务端的版本不匹配。
 #define SERVER_ERR_OP_FAILED						19			// 操作失败。
 #define SERVER_ERR_SRV_STARTING						20			// 服务器正在启动中。
 #define SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE	21			// 未开放账号注册功能。
