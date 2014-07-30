@@ -724,10 +724,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), MAX_NAME);
-
 		node = xml->enterNode(rootNode, "type");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_type, xml->getValStr(node).c_str(), MAX_NAME);
@@ -790,11 +786,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_dbmgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
-
-		node = xml->enterNode(rootNode, "notFoundAccountAutoCreate");
-		if(node != NULL){
-			_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(node) == "true");
-		}
 		
 		node = xml->enterNode(rootNode, "debug");
 		if(node != NULL){
@@ -806,13 +797,42 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
 		}
 
-		node = xml->enterNode(rootNode, "accountDefaultFlags");	
+		node = xml->enterNode(rootNode, "account_system");
 		if(node != NULL)
-			_dbmgrInfo.accountDefaultFlags = xml->getValInt(node);	
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "accountDefaultFlags");
+			if(childnode)
+			{
+				_dbmgrInfo.accountDefaultFlags = xml->getValInt(childnode);
+			}
 
-		node = xml->enterNode(rootNode, "accountDefaultDeadline");	
-		if(node != NULL)
-			_dbmgrInfo.accountDefaultDeadline = xml->getValInt(node);	
+			childnode = xml->enterNode(node, "accountDefaultDeadline");	
+			if(childnode != NULL)
+			{
+				_dbmgrInfo.accountDefaultDeadline = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "accountEntityScriptType");	
+			if(childnode != NULL)
+			{
+				strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(childnode).c_str(), MAX_NAME);
+			}
+
+			childnode = xml->enterNode(node, "account_registration");	
+			if(childnode != NULL)
+			{
+				TiXmlNode* childchildnode = xml->enterNode(childnode, "enable");
+				if(childchildnode)
+				{
+					_dbmgrInfo.account_registration_enable = (xml->getValStr(childchildnode) == "true");
+				}
+
+				childchildnode = xml->enterNode(childnode, "loginAutoCreate");
+				if(childchildnode != NULL){
+					_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(childchildnode) == "true");
+				}
+			} 
+		}
 	}
 
 	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)

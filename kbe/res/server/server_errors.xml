@@ -105,4 +105,9 @@
 		<id>20</id>
 		<descr>	服务器正在启动中。</descr>
 	</SERVER_ERR_SRV_STARTING>
+	
+	<SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE>
+		<id>21</id>
+		<descr>	未开放账号注册功能。</descr>
+	</SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE>
 </root>

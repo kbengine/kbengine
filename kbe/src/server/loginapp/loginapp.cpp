@@ -193,6 +193,20 @@ void Loginapp::onClientActiveTick(Mercury::Channel* pChannel)
 bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountName, 
 								 std::string& password, std::string& datas, ACCOUNT_TYPE type)
 {
+	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
+	{
+		WARNING_MSG(boost::format("Loginapp::_createAccount(%1%): not available!\n") % accountName);
+
+		std::string retdatas = "";
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE;
+		bundle << retcode;
+		bundle.appendBlob(retdatas);
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return false;
+	}
+
 	accountName = KBEngine::strutil::kbe_trim(accountName);
 	password = KBEngine::strutil::kbe_trim(password);
 
