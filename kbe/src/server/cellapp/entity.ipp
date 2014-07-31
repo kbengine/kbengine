@@ -30,7 +30,7 @@ INLINE void Entity::setClientMailbox(EntityMailbox* mailbox)
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isWitnessed(void)const
 { 
-	return witnesses_.size() > 0; 
+	return witnesses_count_ > 0; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -39,9 +39,16 @@ INLINE bool Entity::hasWitness(void)const
 	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
 }
 
+//-------------------------------------------------------------------------------------
 INLINE const std::list<ENTITY_ID>&	Entity::witnesses()
 {
 	return witnesses_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE size_t Entity::witnessesSize()const
+{
+	return witnesses_count_;
 }
 
 //-------------------------------------------------------------------------------------
