@@ -78,6 +78,8 @@ private:
 	CoordinateNode* first_z_coordinateNode_;
 
 	std::list<CoordinateNode*> dels_;
+	size_t dels_count_;
+
 	int updating_;
 };
 

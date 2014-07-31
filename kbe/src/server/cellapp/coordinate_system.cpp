@@ -36,6 +36,7 @@ first_x_coordinateNode_(NULL),
 first_y_coordinateNode_(NULL),
 first_z_coordinateNode_(NULL),
 dels_(),
+dels_count_(0),
 updating_(0)
 {
 }
@@ -44,6 +45,7 @@ updating_(0)
 CoordinateSystem::~CoordinateSystem()
 {
 	dels_.clear();
+	dels_count_ = 0;
 
 	if(first_x_coordinateNode_)
 	{
@@ -143,7 +145,10 @@ bool CoordinateSystem::remove(CoordinateNode* pNode)
 	{
 		std::list<CoordinateNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
 		if(iter == dels_.end())
+		{
 			dels_.push_back(pNode);
+			++dels_count_;
+		}
 	}
 	else
 	{
@@ -156,7 +161,7 @@ bool CoordinateSystem::remove(CoordinateNode* pNode)
 //-------------------------------------------------------------------------------------
 void CoordinateSystem::removeDelNodes()
 {
-	if(dels_.size() == 0)
+	if(dels_count_ == 0)
 		return;
 
 	std::list<CoordinateNode*>::iterator iter = dels_.begin();
@@ -166,6 +171,7 @@ void CoordinateSystem::removeDelNodes()
 	}
 
 	dels_.clear();
+	dels_count_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
