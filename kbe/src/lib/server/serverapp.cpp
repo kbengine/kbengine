@@ -490,5 +490,39 @@ void ServerApp::onVersionNotMatch(Mercury::Channel* pChannel)
 {
 }
 
+//-------------------------------------------------------------------------------------
+void ServerApp::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string profileName;
+	int8 profileType;
+	uint32 timelen;
+
+	s >> profileName >> profileType >> timelen;
+
+	startProfile_(pChannel, profileName, profileType, timelen);
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+{
+	switch(profileType)
+	{
+	case 1:	// cprofile
+		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 2:	// eventprofile
+		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 3:	// mercuryprofile
+		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	default:
+		ERROR_MSG(boost::format("ServerApp::startProfile_: type(%1%:%2%) not support!\n") % 
+			profileType % profileName);
+
+		break;
+	};
+}
+
 //-------------------------------------------------------------------------------------		
 }

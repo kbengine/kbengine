@@ -124,9 +124,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
 
 	// baseapp同步自己的初始化信息
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(onBaseappInitProgress,						MERCURY_FIXED_MESSAGE,
-									COMPONENT_ID,								cid,
-									float,										progress)
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(onBaseappInitProgress,					MERCURY_FIXED_MESSAGE,
+									COMPONENT_ID,							cid,
+									float,									progress)
+
+	// 开始profile
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

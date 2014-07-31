@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"	
 #include "network/fixed_messages.hpp"
 #include "client_lib/client_interface.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 #include "navigation/navigation.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"

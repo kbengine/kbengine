@@ -183,10 +183,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\eventhistory_stats.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\forward_messagebuffer.cpp"
 				>
 			</File>
@@ -208,10 +204,6 @@
 			</File>
 			<File
 				RelativePath=".\pendingLoginmgr.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\profile_handler.cpp"
 				>
 			</File>
 			<File
@@ -277,10 +269,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\eventhistory_stats.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\forward_messagebuffer.hpp"
 				>
 			</File>
@@ -306,10 +294,6 @@
 			</File>
 			<File
 				RelativePath=".\pendingLoginmgr.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\profile_handler.hpp"
 				>
 			</File>
 			<File

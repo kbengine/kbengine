@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.hpp"
 #include "helper/profile.hpp"	
 #include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 
 #include "client_lib/client_interface.hpp"
 

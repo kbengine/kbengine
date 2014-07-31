@@ -173,7 +173,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventhistory_stats.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profile_handler.cpp"
 				>
 			</File>
 			<File
@@ -219,11 +227,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventhistory_stats.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\memory_helper.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\profile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profile_handler.hpp"
 				>
 			</File>
 			<File

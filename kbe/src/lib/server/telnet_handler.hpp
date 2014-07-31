@@ -21,7 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TELNET_HANDLER_H__
 #define __TELNET_HANDLER_H__
 
-#include "profile_handler.hpp"
+#include "helper/profile_handler.hpp"
+#include "pyscript/pyprofile_handler.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/interfaces.hpp"

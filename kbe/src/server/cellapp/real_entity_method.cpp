@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "real_entity_method.hpp"
 #include "entitydef/method.hpp"
 #include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 
 #include "cellapp_interface.hpp"
 

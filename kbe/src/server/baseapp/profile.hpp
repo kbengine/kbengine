@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/profile.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 
 namespace KBEngine{
 

@@ -90,6 +90,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 									COMPONENT_ID,				componentID,
 									float,						load)
 
+	// ¿ªÊ¼profile
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(startProfile,				MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

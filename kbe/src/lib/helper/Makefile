@@ -3,8 +3,10 @@ LIB =	helper
 SRCS =				\
 	debug_helper		\
 	debug_option		\
+	eventhistory_stats	\
 	profile			\
 	profiler		\
+	profile_handler		\
 	script_loglevel		\
 	sys_info		\
 	watch_pools		\

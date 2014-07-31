@@ -26,11 +26,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/mercurystats.hpp"
 #include "network/bundle.hpp"
 #include "network/message_handler.hpp"
-#include "pyscript/pyprofile.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
 #include "helper/profile.hpp"
-#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
@@ -64,59 +62,6 @@ void ProfileHandler::handleTimeout(TimerHandle handle, void * arg)
 	timeout();
 
 	profiles.erase(name_);
-}
-
-//-------------------------------------------------------------------------------------
-PyProfileHandler::PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Mercury::Address& addr) :
-ProfileHandler(networkInterface, timinglen, name, addr)
-{
-	script::PyProfile::start(name_);
-}
-
-//-------------------------------------------------------------------------------------
-PyProfileHandler::~PyProfileHandler()
-{
-	if(name_ != "kbengine" || !g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
-		script::PyProfile::remove(name_);
-}
-
-//-------------------------------------------------------------------------------------
-void PyProfileHandler::timeout()
-{
-	if(name_ != "kbengine" || !g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
-		script::PyProfile::stop(name_);
-
-	MemoryStream s;
-	script::PyProfile::addToStream(name_, &s);
-
-	if(name_ == "kbengine" && g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
-		script::PyProfile::start(name_);
-	
-	sendStream(&s);
-}
-
-//-------------------------------------------------------------------------------------
-void PyProfileHandler::sendStream(MemoryStream* s)
-{
-	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
-	if(pChannel == NULL)
-	{
-		WARNING_MSG(boost::format("PyProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
-			name_ % addr_.c_str());
-		return;
-	}
-
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
-
-	ConsoleInterface::ConsoleProfileHandler msgHandler;
-	(*(*bundle)).newMessage(msgHandler);
-
-	int8 type = 0;
-	(*(*bundle)) << type;
-	(*(*bundle)) << timinglen_;
-	(*(*bundle)).append(s);
-	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
 //-------------------------------------------------------------------------------------

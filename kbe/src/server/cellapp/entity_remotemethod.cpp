@@ -23,9 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_remotemethod.hpp"
 #include "entitydef/method.hpp"
 #include "helper/profile.hpp"	
+#include "helper/eventhistory_stats.hpp"
 #include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
-
 #include "client_lib/client_interface.hpp"
 
 namespace KBEngine{	

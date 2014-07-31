@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "pyscript/script.hpp"
 #include "pyscript/pyprofile.hpp"
+#include "pyscript/pyprofile_handler.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -36,7 +37,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/globaldata_client.hpp"
 #include "server/globaldata_server.hpp"
-#include "server/profile_handler.hpp"
 #include "server/callbackmgr.hpp"	
 #include "entitydef/entitydef.hpp"
 #include "entitydef/entities.hpp"
@@ -164,10 +164,10 @@ public:
 	*/
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
-	/** 网络接口
+	/** 
 		console请求开始profile
 	*/
-	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
 	/**
 		获取apps发布状态, 可在脚本中获取该值
@@ -1143,33 +1143,18 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 }
 
 template<class E>
-void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
-	std::string profileName;
-	int8 profileType;
-	uint32 timelen;
-
-	s >> profileName >> profileType >> timelen;
-
 	switch(profileType)
 	{
 	case 0:	// pyprofile
 		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 1:	// cprofile
-		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 2:	// eventprofile
-		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 3:	// mercuryprofile
-		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
+		return;
 	default:
-		ERROR_MSG(boost::format("EntityApp::startProfile: type(%1%:%2%) not support!\n") % 
-			profileType % profileName);
 		break;
 	};
+
+	ServerApp::startProfile_(pChannel, profileName, profileType, timelen);
 }
 
 template<class E>

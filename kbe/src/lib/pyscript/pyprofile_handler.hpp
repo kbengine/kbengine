@@ -18,25 +18,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __APP_PROFILE_HPP__
-#define __APP_PROFILE_HPP__
+#ifndef __PYPROFILE_HANDLER__
+#define __PYPROFILE_HANDLER__
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "helper/debug_helper.hpp"
-#include "helper/profile.hpp"
-#include "helper/eventhistory_stats.hpp"
+#include "helper/profile_handler.hpp"
 
-namespace KBEngine{
+namespace KBEngine { 
 
-extern ProfileVal SCRIPTCALL_PROFILE;
-extern ProfileVal ONMOVE_PROFILE;
-extern ProfileVal ONNAVIGATE_PROFILE;
-extern ProfileVal CLIENT_UPDATE_PROFILE;
-
-
-extern EventHistoryStats g_privateClientEventHistoryStats;
-extern EventHistoryStats g_publicClientEventHistoryStats;
-extern EventHistoryStats g_publicCellEventHistoryStats;
+class PyProfileHandler : public ProfileHandler
+{
+public:
+	PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
+	virtual ~PyProfileHandler();
+	
+	void timeout();
+	void sendStream(MemoryStream* s);
+};
 
 }
+
 #endif

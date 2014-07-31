@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/watcher.hpp"
 #include "helper/profile.hpp"
 #include "helper/profiler.hpp"
+#include "helper/profile_handler.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "server/common.hpp"
 #include "server/components.hpp"
@@ -181,6 +182,11 @@ public:
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
 
+	/** 网络接口
+		console请求开始profile
+	*/
+	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

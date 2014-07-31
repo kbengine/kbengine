@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 #include "network/interfaces.hpp"
 
 namespace KBEngine { 
@@ -61,17 +61,6 @@ protected:
 	Mercury::Address addr_;
 
 	uint32 timinglen_;
-};
-
-class PyProfileHandler : public ProfileHandler
-{
-public:
-	PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
-	virtual ~PyProfileHandler();
-	
-	void timeout();
-	void sendStream(MemoryStream* s);
 };
 
 class CProfileHandler : public Task, 

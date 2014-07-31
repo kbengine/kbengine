@@ -185,6 +185,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					password,
 									std::string,					newpassword)
 
+	// ¿ªÊ¼profile
+	DBMGR_MESSAGE_DECLARE_STREAM(startProfile,						MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

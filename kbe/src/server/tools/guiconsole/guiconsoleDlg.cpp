@@ -1649,14 +1649,38 @@ void CguiconsoleDlg::onReceiveWatcherData(MemoryStream& s)
 
 bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 {
+	if(type == 0)
+	{
+		if(getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE && getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE)
+		{
+			::AfxMessageBox(L"not support!");
+			return false;
+		}
+	}
+
 	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
 		Mercury::Bundle bundle;
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::startProfile);
-		else
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)
+			bundle.newMessage(BaseappmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
 			bundle.newMessage(CellappInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPPMGR_TYPE)
+			bundle.newMessage(CellappmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == DBMGR_TYPE)
+			bundle.newMessage(DbmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGINAPP_TYPE)
+			bundle.newMessage(LoginappInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == MESSAGELOG_TYPE)
+			bundle.newMessage(MessagelogInterface::startProfile);
+		else
+		{
+			::AfxMessageBox(L"not support!");
+			return false;
+		}
 
 		bundle << name;
 		bundle << type;
