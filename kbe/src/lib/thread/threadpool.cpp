@@ -516,8 +516,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
-		WARNING_MSG(boost::format("ThreadPool::addTask: can't createthread, the poolsize is full(%1%).\n") % 
-			maxThreadCount_);
+		//WARNING_MSG(boost::format("ThreadPool::addTask: can't createthread, the poolsize is full(%1%).\n") % 
+		//	maxThreadCount_);
 
 		return false;
 	}
