@@ -339,9 +339,10 @@ void Channel::send(Bundle * pBundle)
 	}
 	
 	if(pBundle)
-	{
 		bundles_.push_back(pBundle);
-	}
+
+	if(bundles_.size() == 0)
+		return;
 
 	Bundles::iterator iter = bundles_.begin();
 	for(; iter != bundles_.end(); iter++)
