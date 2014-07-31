@@ -557,10 +557,7 @@ bool Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
 
-	if(pEntity_ == NULL)
-		return true;
-
-	if(!pEntity_->getClientMailbox())
+	if(pEntity_ == NULL || !pEntity_->getClientMailbox())
 		return true;
 
 	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
@@ -568,14 +565,13 @@ bool Witness::update()
 		return true;
 	
 	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
-	int currPacketSize = pChannel->bundlesLength();
-	int remainPacketSize = PACKET_MAX_SIZE_TCP - currPacketSize;
+	int remainPacketSize = PACKET_MAX_SIZE_TCP - pChannel->bundlesLength();
 
 	if(remainPacketSize > 0)
 	{
-		Mercury::Bundle* pSendBundle = NEW_BUNDLE();
 		if(aoiEntities_.size() > 0)
 		{
+			Mercury::Bundle* pSendBundle = NEW_BUNDLE();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->getID(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
@@ -683,19 +679,18 @@ bool Witness::update()
 
 				++iter;
 			}
-		}
-		
-		if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
-		{
-			WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % pEntity_->getID() % pSendBundle->packetsLength());
-		}
 
-		if(!pSendBundle->isEmpty())
+			if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
+			{
+				WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
+					pEntity_->getID() % pSendBundle->packetsLength());
+			}
+
 			pChannel->bundles().push_back(pSendBundle);
-		else
-			DELETE_BUNDLE(pSendBundle);
+		}
 	}
 
+	if(pChannel->bundles().size() > 0)
 	{
 		// 如果数据大量阻塞发不出去将会报警
 		AUTO_SCOPED_PROFILE("updateClientSend");
