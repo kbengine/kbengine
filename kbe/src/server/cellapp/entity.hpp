@@ -388,6 +388,7 @@ public:
 	void onDelWitnessed();
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
+	INLINE size_t witnessesSize()const;
 
 	/** 网络接口
 		entity绑定了一个观察者(客户端)
@@ -576,6 +577,7 @@ protected:
 
 	// 是否被任何观察者监视到
 	std::list<ENTITY_ID>									witnesses_;
+	size_t													witnesses_count_;
 
 	// 观察者对象
 	Witness*												pWitness_;							

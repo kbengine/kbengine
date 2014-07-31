@@ -102,12 +102,21 @@ ThreadPool::ThreadPool():
 isInitialize_(false),
 bufferedTaskList_(),
 finiTaskList_(),
+finiTaskList_count_(0),
+bufferedTaskList_mutex_(),
+threadStateList_mutex_(),
+finiTaskList_mutex_(),
+busyThreadList_(),
+freeThreadList_(),
+allThreadList_(),
+maxThreadCount_(0),
+extraNewAddThreadCount_(0),
+currentThreadCount_(0),
+currentFreeThreadCount_(0),
+normalThreadCount_(0),
 isDestroyed_(false)
 {		
-	extraNewAddThreadCount_ =  0;
-	currentThreadCount_ =  0;
-	currentFreeThreadCount_ =  0;
-	normalThreadCount_ = 0;
+
 	
 	THREAD_MUTEX_INIT(threadStateList_mutex_);	
 	THREAD_MUTEX_INIT(bufferedTaskList_mutex_);
@@ -220,6 +229,7 @@ void ThreadPool::destroy()
 		}
 	
 		finiTaskList_.clear();
+		finiTaskList_count_ = 0;
 	}
 
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);
@@ -254,16 +264,17 @@ TPTask* ThreadPool::popbufferTask(void)
 	TPTask* tptask = NULL;
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 
-	if(bufferedTaskList_.size() > 0)
+	size_t size = bufferedTaskList_.size();
+	if(size > 0)
 	{
 		tptask = bufferedTaskList_.front();
 		bufferedTaskList_.pop();
-	}
 	
-	if(bufferedTaskList_.size() > THREAD_BUSY_SIZE)
-	{
-		WARNING_MSG(boost::format("ThreadPool::popbufferTask: task buffered(%1%)!\n") % 
-			bufferedTaskList_.size());
+		if(size > THREAD_BUSY_SIZE)
+		{
+			WARNING_MSG(boost::format("ThreadPool::popbufferTask: task buffered(%1%)!\n") % 
+				size);
+		}
 	}
 
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);	
@@ -276,6 +287,7 @@ void ThreadPool::addFiniTask(TPTask* tptask)
 { 
 	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
 	finiTaskList_.push_back(tptask); 
+	++finiTaskList_count_;
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 }
 
@@ -331,10 +343,12 @@ void ThreadPool::onMainThreadTick()
 		case thread::TPTask::TPTASK_STATE_COMPLETED:
 			delete (*finiiter);
 			finiTaskList_.erase(finiiter++);
+			--finiTaskList_count_;
 			break;
 		case thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD:
 			this->addTask((*finiiter));
 			finiTaskList_.erase(finiiter++);
+			--finiTaskList_count_;
 			break;
 		case thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD:
 			++finiiter;
@@ -355,10 +369,11 @@ void ThreadPool::bufferTask(TPTask* tptask)
 
 	bufferedTaskList_.push(tptask);
 
-	if(bufferedTaskList_.size() > THREAD_BUSY_SIZE)
+	size_t size = bufferedTaskList_.size();
+	if(size > THREAD_BUSY_SIZE)
 	{
 		WARNING_MSG(boost::format("ThreadPool::bufferTask: task buffered(%1%)!\n") % 
-			bufferedTaskList_.size());
+			size);
 	}
 
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
@@ -423,7 +438,7 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 	}
 		
 	busyThreadList_.push_back(tptd);
-	currentFreeThreadCount_--;
+	--currentFreeThreadCount_;
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
 
 	return true;
@@ -441,8 +456,8 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 	{
 		freeThreadList_.erase(itr);
 		allThreadList_.erase(itr1);
-		currentThreadCount_--;
-		currentFreeThreadCount_--;
+		--currentThreadCount_;
+		--currentFreeThreadCount_;
 
 		INFO_MSG(boost::format("ThreadPool::removeHangThread: thread.%1% is destroy. "
 			"currentFreeThreadCount:%2%, currentThreadCount:%3%\n") %
@@ -474,10 +489,10 @@ bool ThreadPool::addTask(TPTask* tptask)
 		TPThread* tptd = (TPThread*)(*itr);
 		freeThreadList_.erase(itr);
 		busyThreadList_.push_back(tptd);
-		currentFreeThreadCount_--;
+		--currentFreeThreadCount_;
 		
 		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
-		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_.size());
+		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
 		
 		tptd->setTask(tptask);												// 给线程设置新任务	
 		
@@ -522,8 +537,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 
 		allThreadList_.push_back(tptd);										// 所有的线程列表
 		freeThreadList_.push_back(tptd);									// 闲置的线程列表
-		currentThreadCount_++;
-		currentFreeThreadCount_++;	
+		++currentThreadCount_;
+		++currentFreeThreadCount_;	
 		
 	}
 	

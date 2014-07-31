@@ -85,7 +85,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(otherClients_)
 	{
-		if(entities.size() == 0)
+		if(pEntity->witnessesSize() == 0)
 			S_Return;
 	}
 	

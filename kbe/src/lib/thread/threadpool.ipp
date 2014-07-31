@@ -59,7 +59,7 @@ INLINE void ThreadPool::unlockBufferedTaskList()
 	
 INLINE uint32 ThreadPool::finiTaskSize()const
 {
-	return finiTaskList_.size();
+	return finiTaskList_count_;
 }
 
 INLINE THREAD_ID TPThread::getID(void)const

@@ -330,7 +330,8 @@ protected:
 	
 	std::queue<TPTask*> bufferedTaskList_;							// 系统处于繁忙时还未处理的任务列表
 	std::list<TPTask*> finiTaskList_;								// 已经完成的任务列表
-	
+	size_t finiTaskList_count_;
+
 	THREAD_MUTEX bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
 	THREAD_MUTEX threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁
 	THREAD_MUTEX finiTaskList_mutex_;								// 处理finiTaskList互斥锁
@@ -338,7 +339,7 @@ protected:
 	std::list<TPThread*> busyThreadList_;							// 繁忙的线程列表
 	std::list<TPThread*> freeThreadList_;							// 闲置的线程列表
 	std::list<TPThread*> allThreadList_;							// 所有的线程列表
-	
+
 	uint32 maxThreadCount_;											// 最大线程总数
 	uint32 extraNewAddThreadCount_;									// 如果normalThreadCount_不足够使用则会新创建这么多线程
 	uint32 currentThreadCount_;										// 当前线程数

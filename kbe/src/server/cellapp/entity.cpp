@@ -111,6 +111,7 @@ isOnGround_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
 witnesses_(),
+witnesses_count_(0),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
@@ -807,6 +808,7 @@ void Entity::addWitnessed(Entity* entity)
 	Cellapp::getSingleton().pWitnessedTimeoutHandler()->delWitnessed(this);
 
 	witnesses_.push_back(entity->getID());
+	++witnesses_count_;
 
 	/*
 	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
@@ -827,7 +829,7 @@ void Entity::addWitnessed(Entity* entity)
 	onEntityInitDetailLevel(entity, detailLevel);
 	*/
 
-	if(witnesses_.size() == 1)
+	if(witnesses_count_ == 1)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(1));
@@ -837,10 +839,11 @@ void Entity::addWitnessed(Entity* entity)
 //-------------------------------------------------------------------------------------
 void Entity::delWitnessed(Entity* entity)
 {
-	KBE_ASSERT(witnesses_.size() > 0);
+	KBE_ASSERT(witnesses_count_ > 0);
 
 	witnesses_.remove(entity->getID());
-	
+	--witnesses_count_;
+
 	// ÑÓÊ±Ö´ÐÐ
 	// onDelWitnessed();
 	Cellapp::getSingleton().pWitnessedTimeoutHandler()->addWitnessed(this);
@@ -849,7 +852,7 @@ void Entity::delWitnessed(Entity* entity)
 //-------------------------------------------------------------------------------------
 void Entity::onDelWitnessed()
 {
-	if(witnesses_.size() == 0)
+	if(witnesses_count_ == 0)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(0));
@@ -2812,7 +2815,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
-	uint32 size = witnesses_.size();
+	uint32 size = witnesses_count_;
 	s << size;
 	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
 	for(; iter != witnesses_.end(); iter++)
@@ -2866,7 +2869,8 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	uint32 size;
 	s >> size;
 
-	KBE_ASSERT(witnesses_.size() == 0);
+	KBE_ASSERT(witnesses_count_ == 0);
+	witnesses_count_ = size;
 
 	for(uint32 i=0; i<size; i++)
 	{
