@@ -40,34 +40,28 @@ Buffered_DBTasks::~Buffered_DBTasks()
 //-------------------------------------------------------------------------------------
 bool Buffered_DBTasks::hasTask(DBID dbid)
 {
-	mutex_.lockMutex();
 	std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> range = 
 		dbid_tasks_.equal_range(dbid);  
 
 	if (range.first != range.second)
 	{
-		mutex_.unlockMutex();
 		return true;
 	}
 
-	mutex_.unlockMutex();
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool Buffered_DBTasks::hasTask(ENTITY_ID entityID)
 {
-	mutex_.lockMutex();
 	std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> range = 
 		entityid_tasks_.equal_range(entityID);  
 
 	if (range.first != range.second)
 	{
-		mutex_.unlockMutex();
 		return true;
 	}
 
-	mutex_.unlockMutex();
 	return false;
 }
 
