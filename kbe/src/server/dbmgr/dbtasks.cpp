@@ -57,12 +57,11 @@ namespace KBEngine{
 DBTask::DBTask(const Mercury::Address& addr, MemoryStream& datas):
 pDatas_(0),
 addr_(addr),
-pdbi_(NULL)
+pdbi_(NULL),
+initTime_(timestamp())
 {
 	pDatas_ = MemoryStream::ObjPool().createObject();
 	*pDatas_ = datas;
-
-	initTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------

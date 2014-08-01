@@ -48,7 +48,8 @@ public:
 
 	DBTask(const Mercury::Address& addr):
 	pDatas_(0),
-	addr_(addr)
+	addr_(addr),
+	initTime_(timestamp())
 	{
 	}
 
@@ -60,6 +61,8 @@ public:
 	bool send(Mercury::Bundle& bundle);
 
 	void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
+
+	uint64 initTime()const{ return initTime_; }
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
