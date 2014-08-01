@@ -61,6 +61,8 @@ pdbi_(NULL)
 {
 	pDatas_ = MemoryStream::ObjPool().createObject();
 	*pDatas_ = datas;
+
+	initTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
@@ -89,10 +91,17 @@ bool DBTask::send(Mercury::Bundle& bundle)
 bool DBTask::process()
 {
 	uint64 startTime = timestamp();
-
+	
 	bool ret = db_thread_process();
 
-	uint64 duration = timestamp() - startTime;
+	uint64 duration = startTime - initTime_;
+	if(duration > stampsPerSecond())
+	{
+		WARNING_MSG(boost::format("DBTask::process(): delay %.2f seconds\nsql:(%s)\n") % 
+			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
+	}
+
+	duration = timestamp() - startTime;
 	if (duration > stampsPerSecond())
 	{
 		WARNING_MSG(boost::format("DBTask::process(): took %.2f seconds\nsql:(%s)\n") % 

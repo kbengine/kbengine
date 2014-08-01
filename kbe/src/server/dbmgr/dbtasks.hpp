@@ -64,6 +64,7 @@ protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
 	DBInterface* pdbi_;
+	uint64 initTime_;
 };
 
 /*
