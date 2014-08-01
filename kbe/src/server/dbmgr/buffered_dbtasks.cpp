@@ -27,7 +27,8 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 Buffered_DBTasks::Buffered_DBTasks():
 dbid_tasks_(),
-entityid_tasks_()
+entityid_tasks_(),
+mutex_()
 {
 }
 
@@ -39,34 +40,41 @@ Buffered_DBTasks::~Buffered_DBTasks()
 //-------------------------------------------------------------------------------------
 bool Buffered_DBTasks::hasTask(DBID dbid)
 {
+	mutex_.lockMutex();
 	std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> range = 
 		dbid_tasks_.equal_range(dbid);  
 
 	if (range.first != range.second)
 	{
+		mutex_.unlockMutex();
 		return true;
 	}
 
+	mutex_.unlockMutex();
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool Buffered_DBTasks::hasTask(ENTITY_ID entityID)
 {
+	mutex_.lockMutex();
 	std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> range = 
 		entityid_tasks_.equal_range(entityID);  
 
 	if (range.first != range.second)
 	{
+		mutex_.unlockMutex();
 		return true;
 	}
 
+	mutex_.unlockMutex();
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 {
+	mutex_.lockMutex();
 	pTask->pBuffered_DBTasks(this);
 	
 	if(pTask->EntityDBTask_entityDBID() <= 0)
@@ -74,6 +82,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 		if(hasTask(pTask->EntityDBTask_entityID()))
 		{
 			entityid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityID(), pTask));
+			mutex_.unlockMutex();
 			return;
 		}
 
@@ -85,6 +94,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 		if(hasTask(pTask->EntityDBTask_entityDBID()))
 		{
 			dbid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityDBID(), pTask));
+			mutex_.unlockMutex();
 			return;
 		}
 
@@ -92,12 +102,15 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 			static_cast<EntityDBTask *>(NULL)));
 	}
 
+	mutex_.unlockMutex();
 	Dbmgr::getSingleton().dbThreadPool().addTask(pTask);
+	
 }
 
 //-------------------------------------------------------------------------------------
-void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
+EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 {
+	mutex_.lockMutex();
 	EntityDBTask * pNextTask = NULL;
 	
 	if(pTask->EntityDBTask_entityDBID() <= 0)
@@ -108,7 +121,8 @@ void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
 		// 如果没有任务则退出
 		if (range.first == range.second)
 		{
-			return;
+			mutex_.unlockMutex();
+			return NULL;
 		}
 		
 		ENTITYID_TASKS_MAP::iterator nextIter = range.first;
@@ -129,7 +143,8 @@ void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
 		// 如果没有任务则退出
 		if (range.first == range.second)
 		{
-			return;
+			mutex_.unlockMutex();
+			return NULL;
 		}
 		
 		DBID_TASKS_MAP::iterator nextIter = range.first;
@@ -143,13 +158,15 @@ void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
 		dbid_tasks_.erase( range.first );
 	}
 	
+	mutex_.unlockMutex();
+
 	if(pNextTask != NULL)
 	{
 		INFO_MSG(boost::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%1%, dbid=%2%\n") % 
 			pNextTask->EntityDBTask_entityID() % pNextTask->EntityDBTask_entityDBID());
-		
-		Dbmgr::getSingleton().dbThreadPool().addTask(pNextTask);
 	}
+
+	return pNextTask;
 }
 
 //-------------------------------------------------------------------------------------

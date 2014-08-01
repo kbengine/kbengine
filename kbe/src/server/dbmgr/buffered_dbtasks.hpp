@@ -49,12 +49,14 @@ public:
 
 	void addTask(EntityDBTask* pTask);
 
-	void onFiniTask(EntityDBTask* pTask);
+	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
 protected:
 	DBID_TASKS_MAP dbid_tasks_;
 	ENTITYID_TASKS_MAP entityid_tasks_;
+
+	KBEngine::thread::ThreadMutex mutex_;
 };
 
 }

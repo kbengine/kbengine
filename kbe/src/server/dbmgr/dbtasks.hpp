@@ -56,6 +56,7 @@ public:
 	virtual ~DBTask();
 	virtual bool process();
 	virtual bool db_thread_process() = 0;
+	virtual DBTask* tryGetNextTask(){ return NULL; }
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	bool send(Mercury::Bundle& bundle);
@@ -99,6 +100,8 @@ public:
 	
 	void pBuffered_DBTasks(Buffered_DBTasks* v){ _pBuffered_DBTasks = v; }
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	DBTask* tryGetNextTask();
 private:
 	ENTITY_ID _entityID;
 	DBID _entityDBID;

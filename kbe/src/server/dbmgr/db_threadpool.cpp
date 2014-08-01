@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "db_threadpool.hpp"
+#include "dbtasks.hpp"
 #include "thread/threadtask.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "thread/threadpool.hpp"
@@ -60,6 +61,17 @@ public:
 
 	~DBThread()
 	{
+	}
+	
+	virtual thread::TPTask* tryGetTask(void)
+	{
+		DBTask* pDBTask = static_cast<DBTask*>(getTask())->tryGetNextTask();
+		if(pDBTask != NULL)
+		{
+			return pDBTask;
+		}
+
+		return thread::TPThread::tryGetTask();
 	}
 
 	virtual void onProcessTaskStart(thread::TPTask* pTask)

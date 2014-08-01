@@ -117,10 +117,15 @@ thread::TPTask::TPTaskState DBTask::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState EntityDBTask::presentMainThread()
+DBTask* EntityDBTask::tryGetNextTask()
 {
 	KBE_ASSERT(_pBuffered_DBTasks != NULL);
-	_pBuffered_DBTasks->onFiniTask(this);
+	return _pBuffered_DBTasks->tryGetNextTask(this);
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState EntityDBTask::presentMainThread()
+{
 	return DBTask::presentMainThread();
 }
 
