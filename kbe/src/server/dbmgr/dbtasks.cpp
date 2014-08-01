@@ -97,7 +97,7 @@ bool DBTask::process()
 	uint64 duration = startTime - initTime_;
 	if(duration > stampsPerSecond())
 	{
-		WARNING_MSG(boost::format("DBTask::process(): delay %.2f seconds\nsql:(%s)\n") % 
+		WARNING_MSG(boost::format("DBTask::process(): delay %.2f seconds\ntry adjusting the kbengine_defs.xml(numConnections)\nsql:(%s)\n") % 
 			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
 	}
 
