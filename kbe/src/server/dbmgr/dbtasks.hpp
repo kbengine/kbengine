@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
+#include "dbmgr_lib/db_tasks.hpp"
 
 namespace KBEngine{ 
 
@@ -41,34 +42,24 @@ struct ACCOUNT_INFOS;
 	数据库线程任务基础类
 */
 
-class DBTask : public thread::TPTask
+class DBTask : public DBTaskBase
 {
 public:
 	DBTask(const Mercury::Address& addr, MemoryStream& datas);
 
 	DBTask(const Mercury::Address& addr):
+	DBTaskBase(),
 	pDatas_(0),
-	addr_(addr),
-	initTime_(timestamp())
+	addr_(addr)
 	{
 	}
 
 	virtual ~DBTask();
-	virtual bool process();
-	virtual bool db_thread_process() = 0;
-	virtual DBTask* tryGetNextTask(){ return NULL; }
-	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	bool send(Mercury::Bundle& bundle);
-
-	void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
-
-	uint64 initTime()const{ return initTime_; }
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
-	DBInterface* pdbi_;
-	uint64 initTime_;
 };
 
 /*

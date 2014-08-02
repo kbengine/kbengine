@@ -25,11 +25,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "server/serverconfig.hpp"
+#include "thread/threadpool.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);
 
 DBUtil g_DBUtil;
+
+thread::ThreadPool* DBUtil::pThreadPool_ = NULL;
 
 //-------------------------------------------------------------------------------------
 DBUtil::DBUtil()
@@ -56,7 +59,7 @@ bool DBUtil::initThread()
 			mysql_thread_init();
 		}
 	}
-
+	
 	return true;
 }
 
@@ -68,13 +71,15 @@ bool DBUtil::finiThread()
 	{
 		mysql_thread_end();
 	}
-
+	
+	pThreadPool_ = NULL;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::initialize()
+bool DBUtil::initialize(thread::ThreadPool* pThreadPool)
 {
+	pThreadPool_ = pThreadPool;
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
 	if(dbcfg.db_passwordEncrypt)
@@ -189,7 +194,7 @@ bool DBUtil::initInterface(DBInterface* dbi)
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
 	}
-
+	
 	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);
 }
 

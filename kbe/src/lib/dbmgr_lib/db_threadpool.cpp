@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "db_threadpool.hpp"
-#include "dbtasks.hpp"
+#include "db_tasks.hpp"
 #include "thread/threadtask.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "thread/threadpool.hpp"
@@ -65,7 +65,7 @@ public:
 	
 	virtual thread::TPTask* tryGetTask(void)
 	{
-		DBTask* pDBTask = static_cast<DBTask*>(getTask())->tryGetNextTask();
+		DBTaskBase* pDBTask = static_cast<DBTaskBase*>(getTask())->tryGetNextTask();
 		if(pDBTask != NULL)
 		{
 			return pDBTask;
@@ -76,7 +76,7 @@ public:
 
 	virtual void onProcessTaskStart(thread::TPTask* pTask)
 	{
-		static_cast<DBTask*>(pTask)->pdbi(_pDBInterface);
+		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->lock();
 	}
 
@@ -102,7 +102,7 @@ public:
 
 	virtual void onProcessTaskEnd(thread::TPTask* pTask)
 	{
-		static_cast<DBTask*>(pTask)->pdbi(_pDBInterface);
+		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->unlock();
 	}
 private:

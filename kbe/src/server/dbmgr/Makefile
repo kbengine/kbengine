@@ -4,7 +4,6 @@ SRCS =						\
 	dbmgr					\
 	dbmgr_interface				\
 	dbtasks					\
-	db_threadpool				\
 	buffered_dbtasks			\
 	main					\
 	sync_app_datas_handler

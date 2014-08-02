@@ -165,6 +165,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\db_tasks.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_threadpool.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity_table.cpp"
 				>
 			</File>
@@ -180,6 +188,14 @@
 			>
 			<File
 				RelativePath=".\db_interface.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_tasks.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_threadpool.hpp"
 				>
 			</File>
 			<File

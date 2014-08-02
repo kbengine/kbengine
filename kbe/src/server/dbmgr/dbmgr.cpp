@@ -224,7 +224,7 @@ bool Dbmgr::initBillingHandler()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initDB()
 {
-	if(!DBUtil::initialize())
+	if(!DBUtil::initialize(&dbThreadPool_))
 	{
 		ERROR_MSG("Dbmgr::initDB: can't initialize dbinterface!\n");
 		return false;

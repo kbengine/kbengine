@@ -55,10 +55,9 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 DBTask::DBTask(const Mercury::Address& addr, MemoryStream& datas):
+DBTaskBase(),
 pDatas_(0),
-addr_(addr),
-pdbi_(NULL),
-initTime_(timestamp())
+addr_(addr)
 {
 	pDatas_ = MemoryStream::ObjPool().createObject();
 	*pDatas_ = datas;
@@ -84,36 +83,6 @@ bool DBTask::send(Mercury::Bundle& bundle)
 	}
 
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool DBTask::process()
-{
-	uint64 startTime = timestamp();
-	
-	bool ret = db_thread_process();
-
-	uint64 duration = startTime - initTime_;
-	if(duration > stampsPerSecond())
-	{
-		WARNING_MSG(boost::format("DBTask::process(): delay %.2f seconds, try adjusting the kbengine_defs.xml(numConnections)!\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
-	}
-
-	duration = timestamp() - startTime;
-	if (duration > stampsPerSecond())
-	{
-		WARNING_MSG(boost::format("DBTask::process(): took %.2f seconds\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
-	}
-
-	return ret;
-}
-
-//-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState DBTask::presentMainThread()
-{
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------

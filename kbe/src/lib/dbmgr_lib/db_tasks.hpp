@@ -18,34 +18,45 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DB_THREAD_POOL_H__
-#define __DB_THREAD_POOL_H__
+#ifndef __DB__TASKS_H__
+#define __DB__TASKS_H__
 
 // common include	
 // #define NDEBUG
-#include "dbtasks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "cstdkbe/timer.hpp"
 #include "thread/threadtask.hpp"
-#include "helper/debug_helper.hpp"
-#include "thread/threadpool.hpp"
 
 namespace KBEngine{ 
 
-/*
-	数据库线程任务buffer
-*/
-class TPThread;
+class MemoryStream;
+class DBInterface;
 
-class DBThreadPool : public thread::ThreadPool
+/*
+	数据库线程任务基础类
+*/
+
+class DBTaskBase : public thread::TPTask
 {
 public:
-	DBThreadPool();
-	~DBThreadPool();
 
-	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
+	DBTaskBase():
+	initTime_(timestamp())
+	{
+	}
+
+	virtual ~DBTaskBase(){}
+	virtual bool process();
+	virtual bool db_thread_process() = 0;
+	virtual DBTaskBase* tryGetNextTask(){ return NULL; }
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
+
+	uint64 initTime()const{ return initTime_; }
 protected:
-
+	DBInterface* pdbi_;
+	uint64 initTime_;
 };
 
 }

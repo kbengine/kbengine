@@ -28,6 +28,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
+namespace thread
+{
+class ThreadPool;
+}
+
 class DBUtil;
 
 /*
@@ -150,7 +155,7 @@ public:
 	DBUtil();
 	~DBUtil();
 	
-	static bool initialize();
+	static bool initialize(thread::ThreadPool* pThreadPool);
 
 	static bool initThread();
 	static bool finiThread();
@@ -160,8 +165,10 @@ public:
 	static const char* dbtype();
 	static const char* accountScriptName();
 	static bool initInterface(DBInterface* dbi);
-private:
 
+	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
+private:
+	static thread::ThreadPool* pThreadPool_;
 };
 
 }

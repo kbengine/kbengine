@@ -90,7 +90,9 @@ bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 }
 
 //-------------------------------------------------------------------------------------
-EntityTables::EntityTables()
+EntityTables::EntityTables():
+tables_(),
+kbe_tables_()
 {
 }
 
@@ -98,6 +100,7 @@ EntityTables::EntityTables()
 EntityTables::~EntityTables()
 {
 	tables_.clear();
+	kbe_tables_.clear();
 }
 
 //-------------------------------------------------------------------------------------
