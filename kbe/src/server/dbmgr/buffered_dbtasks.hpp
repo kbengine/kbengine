@@ -50,8 +50,8 @@ public:
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
 protected:
-	bool hasTask(DBID dbid);
-	bool hasTask(ENTITY_ID entityID);
+	bool hasTask_(DBID dbid);
+	bool hasTask_(ENTITY_ID entityID);
 
 	DBID_TASKS_MAP dbid_tasks_;
 	ENTITYID_TASKS_MAP entityid_tasks_;

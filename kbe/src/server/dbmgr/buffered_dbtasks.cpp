@@ -38,7 +38,7 @@ Buffered_DBTasks::~Buffered_DBTasks()
 }
 
 //-------------------------------------------------------------------------------------
-bool Buffered_DBTasks::hasTask(DBID dbid)
+bool Buffered_DBTasks::hasTask_(DBID dbid)
 {
 	std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> range = 
 		dbid_tasks_.equal_range(dbid);  
@@ -52,7 +52,7 @@ bool Buffered_DBTasks::hasTask(DBID dbid)
 }
 
 //-------------------------------------------------------------------------------------
-bool Buffered_DBTasks::hasTask(ENTITY_ID entityID)
+bool Buffered_DBTasks::hasTask_(ENTITY_ID entityID)
 {
 	std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> range = 
 		entityid_tasks_.equal_range(entityID);  
@@ -73,7 +73,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 	
 	if(pTask->EntityDBTask_entityDBID() <= 0)
 	{
-		if(hasTask(pTask->EntityDBTask_entityID()))
+		if(hasTask_(pTask->EntityDBTask_entityID()))
 		{
 			entityid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityID(), pTask));
 			mutex_.unlockMutex();
@@ -85,7 +85,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 	}
 	else
 	{
-		if(hasTask(pTask->EntityDBTask_entityDBID()))
+		if(hasTask_(pTask->EntityDBTask_entityDBID()))
 		{
 			dbid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityDBID(), pTask));
 			mutex_.unlockMutex();
@@ -98,7 +98,6 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 
 	mutex_.unlockMutex();
 	Dbmgr::getSingleton().dbThreadPool().addTask(pTask);
-	
 }
 
 //-------------------------------------------------------------------------------------
