@@ -178,7 +178,8 @@ bufferedLogPackets_(),
 hasBufferedLogPackets_(0),
 pNetworkInterface_(NULL),
 pDispatcher_(NULL),
-scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
+scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
+noSyncLog_(false)
 {
 	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
@@ -271,6 +272,10 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	bufferedLogPackets_.clear();
 	hasBufferedLogPackets_ = 0;
+	noSyncLog_ = true;
+
+	if(!destroy)
+		g_pDebugHelperSyncHandler->cancel();
 }
 
 //-------------------------------------------------------------------------------------
@@ -364,12 +369,14 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	}
 #endif
 
+	if(length <= 0 || noSyncLog_)
+		return;
+
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
 		return;
 
-	if(length <= 0)
-		return;
+
 
 	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
@@ -378,10 +385,12 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
+		LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
 #endif
 
 		Mercury::g_trace_packet = v;
+
+		clearBufferedLog();
 		return;
 	}
 

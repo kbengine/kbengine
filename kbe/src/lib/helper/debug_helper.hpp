@@ -185,6 +185,8 @@ private:
 	Mercury:: EventDispatcher* pDispatcher_;
 
 	int scriptMsgType_;
+
+	bool noSyncLog_;
 };
 
 /*---------------------------------------------------------------------------------
