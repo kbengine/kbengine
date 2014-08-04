@@ -707,8 +707,11 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 {
-	const Position3D& bpos = getBasePos();
+	const VolatileInfo& volatileInfo = pEntity_->getScriptModule()->getVolatileInfo();
+	if((volatileInfo.position() <= 0.0004f))
+		return;
 
+	const Position3D& bpos = getBasePos();
 	Vector3 movement = bpos - lastBasePos;
 
 	if(KBEVec3Length(&movement) < 0.0004f)
