@@ -93,11 +93,12 @@ bool ClientObject::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(boost::format("ClientObject::initNetwork(%2%): connect server is error(%1%)!\n") %
+			kbe_strerror() % name_);
 
 		delete pEndpoint;
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_INIT;
 		return false;
 	}
 
@@ -197,11 +198,12 @@ bool ClientObject::initLoginGateWay()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initLogin: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(boost::format("ClientObject::initLogin(%2%): connect server is error(%1%)!\n") %
+			kbe_strerror() % name_);
 
 		delete pEndpoint;
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 		return false;
 	}
 
