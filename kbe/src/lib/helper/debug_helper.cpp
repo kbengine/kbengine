@@ -466,8 +466,7 @@ void DebugHelper::error_msg(const std::string& s)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	if(canLogFile_)
-		LOG4CXX_ERROR(g_logger, s);
+	LOG4CXX_ERROR(g_logger, s);
 #endif
 
 	onMessage(KBELOG_ERROR, s.c_str(), s.size());
@@ -510,7 +509,7 @@ void DebugHelper::script_msg(const std::string& s)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	if(canLogFile_)
+	if(canLogFile_ && log4cxx::ScriptLevel::SCRIPT_ERR != scriptMsgType_)
 		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
