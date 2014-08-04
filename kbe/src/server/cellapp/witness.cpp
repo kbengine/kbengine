@@ -679,14 +679,18 @@ bool Witness::update()
 
 				++iter;
 			}
-
-			if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
+			
+			int32 packetsLength = pSendBundle->packetsLength();
+			if(packetsLength > 0)
 			{
-				WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
-					pEntity_->getID() % pSendBundle->packetsLength());
-			}
+				if(packetsLength > PACKET_MAX_SIZE_TCP)
+				{
+					WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
+						pEntity_->getID() % packetsLength);
+				}
 
-			pChannel->bundles().push_back(pSendBundle);
+				pChannel->bundles().push_back(pSendBundle);
+			}
 		}
 	}
 

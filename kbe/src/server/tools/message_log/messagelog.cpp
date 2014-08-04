@@ -87,10 +87,8 @@ bool Messagelog::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Messagelog::initializeEnd()
 {
-	// 由于messagelog接收其他app的log， 不允许文本输出保证安全。
-	if(Mercury::g_trace_packet == 2)
-		Mercury::g_trace_packet = 3;
-
+	// 由于messagelog接收其他app的log，如果跟踪包输出将会非常卡。
+	Mercury::g_trace_packet = 0;
 	return true;
 }
 
