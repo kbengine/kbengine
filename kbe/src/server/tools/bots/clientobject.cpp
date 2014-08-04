@@ -97,7 +97,7 @@ bool ClientObject::initCreate()
 			kbe_strerror());
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
 
@@ -201,7 +201,7 @@ bool ClientObject::initLoginGateWay()
 			kbe_strerror());
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
 
@@ -372,7 +372,10 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 
 	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % SERVER_ERR_STR[failedcode]);
 
-	error_ = C_ERROR_LOGIN_FAILED;
+	// error_ = C_ERROR_LOGIN_FAILED;
+
+	// ¼ÌÐø³¢ÊÔµÇÂ¼
+	state_ = C_STATE_LOGIN;
 }
 
 //-------------------------------------------------------------------------------------
