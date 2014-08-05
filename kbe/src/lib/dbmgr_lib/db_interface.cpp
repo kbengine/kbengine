@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface.hpp"
+#include "db_threadpool.hpp"
 #include "entity_table.hpp"
 #include "cstdkbe/kbekey.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
@@ -32,7 +33,7 @@ KBE_SINGLETON_INIT(DBUtil);
 
 DBUtil g_DBUtil;
 
-thread::ThreadPool* DBUtil::pThreadPool_ = NULL;
+thread::ThreadPool* DBUtil::pThreadPool_ = new DBThreadPool();
 
 //-------------------------------------------------------------------------------------
 DBUtil::DBUtil()
@@ -71,15 +72,13 @@ bool DBUtil::finiThread()
 	{
 		mysql_thread_end();
 	}
-	
-	pThreadPool_ = NULL;
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::initialize(thread::ThreadPool* pThreadPool)
+bool DBUtil::initialize()
 {
-	pThreadPool_ = pThreadPool;
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
 	if(dbcfg.db_passwordEncrypt)
@@ -117,6 +116,13 @@ bool DBUtil::initialize(thread::ThreadPool* pThreadPool)
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBUtil::finalise()
+{
+	pThreadPool()->finalise();
+	SAFE_RELEASE(pThreadPool_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -195,6 +201,13 @@ bool DBUtil::initInterface(DBInterface* dbi)
 		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
 	}
 	
+	if(!pThreadPool_->isInitialize())
+	{
+		if(!pThreadPool_->createThreadPool(dbcfg.db_numConnections, 
+			dbcfg.db_numConnections, dbcfg.db_numConnections))
+			return false;
+	}
+
 	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);
 }
 

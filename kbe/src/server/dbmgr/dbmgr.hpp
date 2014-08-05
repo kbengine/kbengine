@@ -175,11 +175,6 @@ public:
 		同步entity流模板
 	*/
 	void syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	
-	/**
-		获取db线程池
-	*/
-	INLINE DBThreadPool& dbThreadPool(){ return dbThreadPool_; }
 
 	virtual bool initializeWatcher();
 
@@ -238,9 +233,6 @@ protected:
 	GlobalDataServer*									pCellAppData_;														
 
 	Buffered_DBTasks									bufferedDBTasks_;
-
-	// 线程池
-	DBThreadPool										dbThreadPool_;	
 
 	// Statistics
 	uint32												numWrittenEntity_;

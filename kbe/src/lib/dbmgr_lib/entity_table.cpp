@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "db_tasks.hpp"
+#include "db_threadpool.hpp"
 #include "entity_table.hpp"
 #include "db_interface.hpp"
 #include "entitydef/entitydef.hpp"
@@ -92,7 +94,9 @@ bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 //-------------------------------------------------------------------------------------
 EntityTables::EntityTables():
 tables_(),
-kbe_tables_()
+kbe_tables_(),
+numSyncTables_(0),
+syncTablesError_(false)
 {
 }
 
@@ -127,16 +131,32 @@ bool EntityTables::load(DBInterface* dbi)
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTables::onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTable, bool error)
+{
+	if(error)
+	{
+		syncTablesError_ = true;
+		return;
+	}
+
+	numSyncTables_++;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTables::syncToDB(DBInterface* dbi)
 {
+	DBThreadPool* pDBThreadPool = static_cast<DBThreadPool*>(DBUtil::pThreadPool());
+	KBE_ASSERT(pDBThreadPool != NULL);
+	
+	int num = 0;
 	try
 	{
 		// 开始同步所有表
 		EntityTables::TABLES_MAP::iterator kiter = kbe_tables_.begin();
 		for(; kiter != kbe_tables_.end(); kiter++)
 		{
-			if(!kiter->second->syncToDB(dbi))
-				return false;
+			num++;
+			pDBThreadPool->addTask(new DBTaskSyncTable(kiter->second));
 		}
 
 		EntityTables::TABLES_MAP::iterator iter = tables_.begin();
@@ -144,10 +164,24 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 		{
 			if(!iter->second->hasSync())
 			{
-				if(!iter->second->syncToDB(dbi))
-					return false;
+				num++;
+				pDBThreadPool->addTask(new DBTaskSyncTable(iter->second));
 			}
 		}
+
+
+		while(true)
+		{
+			if(syncTablesError_)
+				return false;
+
+			if(numSyncTables_ == num)
+				break;
+
+			pDBThreadPool->onMainThreadTick();
+			sleep(10);
+		};
+
 
 		std::vector<std::string> dbTableNames;
 		dbi->getTableNames(dbTableNames, "");

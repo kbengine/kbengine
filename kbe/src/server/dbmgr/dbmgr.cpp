@@ -60,7 +60,6 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pBaseAppData_(NULL),
 	pCellAppData_(NULL),
 	bufferedDBTasks_(),
-	dbThreadPool_(),
 	numWrittenEntity_(0),
 	numRemovedEntity_(0),
 	numQueryEntity_(0),
@@ -91,7 +90,7 @@ bool Dbmgr::canShutdown()
 	if(ret)
 	{
 		WARNING_MSG(boost::format("Dbmgr::canShutdown(): tasks=%1%, threads=%2%, threadpoolDestroyed=%3%!\n") % 
-			bufferedDBTasks_.size() % dbThreadPool_.getCurrentThreadCount() % dbThreadPool_.isDestroyed());
+			bufferedDBTasks_.size() % DBUtil::pThreadPool()->getCurrentThreadCount() % DBUtil::pThreadPool()->isDestroyed());
 	}
 
 	return ret;
@@ -140,7 +139,7 @@ void Dbmgr::handleMainTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	dbThreadPool_.onMainThreadTick();
+	DBUtil::pThreadPool()->onMainThreadTick();
 	getNetworkInterface().processAllChannelPackets(&DbmgrInterface::messageHandlers);
 }
 
@@ -196,8 +195,8 @@ bool Dbmgr::initializeEnd()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initBillingHandler()
 {
-	pBillingAccountHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemAccountType(), threadPool(), dbThreadPool_);
-	pBillingChargeHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemChargeType(), threadPool(), dbThreadPool_);
+	pBillingAccountHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
+	pBillingChargeHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 
 	INFO_MSG(boost::format("Dbmgr::initBillingHandler: billing addr(%1%), accountType:(%2%), chargeType:(%3%).\n") % 
 		g_kbeSrvConfig.billingSystemAddr().c_str() %
@@ -224,7 +223,7 @@ bool Dbmgr::initBillingHandler()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initDB()
 {
-	if(!DBUtil::initialize(&dbThreadPool_))
+	if(!DBUtil::initialize())
 	{
 		ERROR_MSG("Dbmgr::initDB: can't initialize dbinterface!\n");
 		return false;
@@ -252,12 +251,6 @@ bool Dbmgr::initDB()
 	if(!ret)
 		return false;
 
-	if(!dbThreadPool_.isInitialize())
-	{
-		ret = dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
-			dbcfg.db_numConnections, dbcfg.db_numConnections);
-	}
-
 	return ret;
 }
 
@@ -268,7 +261,7 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);
 
-	dbThreadPool_.finalise();
+	DBUtil::finalise();
 	ServerApp::finalise();
 }
 
@@ -533,7 +526,7 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid)
 {
-	dbThreadPool_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
+	DBUtil::pThreadPool()->addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
 }
 
 //-------------------------------------------------------------------------------------
@@ -544,7 +537,7 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel,
 	s >> entityID;
 
 	if(entityID == -1)
-		dbThreadPool_.addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+		DBUtil::pThreadPool()->addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
 	else
 		bufferedDBTasks_.addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
 
@@ -598,7 +591,7 @@ void Dbmgr::deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 	s >> componentID >> entityDBID >> callbackID >> sid;
 	KBE_ASSERT(entityDBID > 0);
 
-	dbThreadPool_.addTask(new DBTaskDeleteBaseByDBID(pChannel->addr(), 
+	DBUtil::pThreadPool()->addTask(new DBTaskDeleteBaseByDBID(pChannel->addr(), 
 		componentID, entityDBID, callbackID, sid));
 }
 

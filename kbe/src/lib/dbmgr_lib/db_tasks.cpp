@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_tasks.hpp"
 #include "db_interface.hpp"
+#include "entity_table.hpp"
 #include "thread/threadpool.hpp"
 #include "cstdkbe/memorystream.hpp"
 
@@ -52,6 +53,32 @@ bool DBTaskBase::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskBase::presentMainThread()
 {
+	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskSyncTable::DBTaskSyncTable(KBEShared_ptr<EntityTable> pEntityTable):
+pEntityTable_(pEntityTable),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskSyncTable::~DBTaskSyncTable()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskSyncTable::db_thread_process()
+{
+	success_ = !pEntityTable_->syncToDB(pdbi_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskSyncTable::presentMainThread()
+{
+	EntityTables::getSingleton().onTableSyncSuccessfully(pEntityTable_, success_);
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 

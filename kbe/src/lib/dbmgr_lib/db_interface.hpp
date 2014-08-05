@@ -155,7 +155,8 @@ public:
 	DBUtil();
 	~DBUtil();
 	
-	static bool initialize(thread::ThreadPool* pThreadPool);
+	static bool initialize();
+	static void finalise();
 
 	static bool initThread();
 	static bool finiThread();

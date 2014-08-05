@@ -31,6 +31,7 @@ namespace KBEngine{
 
 class MemoryStream;
 class DBInterface;
+class EntityTable;
 
 /*
 	数据库线程任务基础类
@@ -58,6 +59,22 @@ protected:
 	DBInterface* pdbi_;
 	uint64 initTime_;
 };
+
+/**
+	执行一条sql语句
+*/
+class DBTaskSyncTable : public DBTaskBase
+{
+public:
+	DBTaskSyncTable(KBEShared_ptr<EntityTable> pEntityTable);
+	virtual ~DBTaskSyncTable();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	KBEShared_ptr<EntityTable> pEntityTable_;
+	bool success_;
+};
+
 
 }
 #endif

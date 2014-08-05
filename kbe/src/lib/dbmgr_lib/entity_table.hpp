@@ -290,10 +290,15 @@ public:
 		获取某个表所有的数据放到流中
 	*/
 	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	void onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTable, bool error);
 protected:
 	// 所有的表
 	TABLES_MAP tables_;
 	TABLES_MAP kbe_tables_;
+
+	int numSyncTables_;
+	bool syncTablesError_;
 };
 
 }

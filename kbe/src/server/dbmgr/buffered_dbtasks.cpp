@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "buffered_dbtasks.hpp"
 #include "thread/threadpool.hpp"
 #include "thread/threadguard.hpp"
+#include "dbmgr_lib/db_interface.hpp"
 
 namespace KBEngine{
 
@@ -97,7 +98,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 	}
 
 	mutex_.unlockMutex();
-	Dbmgr::getSingleton().dbThreadPool().addTask(pTask);
+	DBUtil::pThreadPool()->addTask(pTask);
 }
 
 //-------------------------------------------------------------------------------------
