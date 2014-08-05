@@ -41,6 +41,7 @@ SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			0,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			0,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -1951,6 +1952,15 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	}
 
 	return pyTuple;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
+{
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+	pClientObjectBase->reset();
+	pClientObjectBase->canReset(true);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------		

@@ -62,6 +62,7 @@ public:
 
 	void finalise(void);
 	virtual void reset(void);
+	void canReset(bool v){ canReset_ = v; }
 
 	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 
@@ -120,6 +121,9 @@ public:
 
 	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
 	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
+
+	static PyObject* __py_disconnect(PyObject* self, PyObject* args);
+
 	/**
 		如果entitiessize小于256
 		通过索引位置来获取entityID
