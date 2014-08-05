@@ -36,19 +36,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(ClientObjectBase)
-SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			METH_VARARGS,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(ClientObjectBase)
-SCRIPT_GET_DECLARE("id",							pyGetID,					0,					0)
-SCRIPT_GET_DECLARE("entities",						pyGetEntities,				0,					0)
+SCRIPT_GET_DECLARE("id",							pyGetID,					0,								0)
+SCRIPT_GET_DECLARE("entities",						pyGetEntities,				0,								0)
 SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ClientObjectBase, 0, 0, 0, 0, 0)		
 
@@ -83,7 +84,8 @@ ninterface_(ninterface),
 targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
-scriptCallbacks_(timers_)
+scriptCallbacks_(timers_),
+locktime_(0)
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
@@ -132,6 +134,7 @@ void ClientObjectBase::reset(void)
 	extradatas_ = "";
 	bufferedCreateEntityMessage_.clear();
 	canReset_ = false;
+	locktime_ = 0;
 
 	if(pServerChannel_)
 	{
@@ -1951,6 +1954,29 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	}
 
 	return pyTuple;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
+{
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+	pClientObjectBase->reset();
+	pClientObjectBase->canReset(true);
+
+	if(PyTuple_Size(args) == 1)
+	{
+		uint32 i = 0;
+		if(PyArg_ParseTuple(args, "I", &i) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		pClientObjectBase->locktime(timestamp() + stampsPerSecond() * i);
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------		

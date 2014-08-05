@@ -131,25 +131,25 @@ public:
 	Mercury:: NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
 	void print_msg(boost::format& fmt);
-	void print_msg(std::string s);
+	void print_msg(const std::string& s);
 
 	void debug_msg(boost::format& fmt);
-	void debug_msg(std::string s);
+	void debug_msg(const std::string& s);
 
 	void error_msg(boost::format& fmt);
-	void error_msg(std::string s);
+	void error_msg(const std::string& s);
 
 	void info_msg(boost::format& fmt);
-	void info_msg(std::string s);
+	void info_msg(const std::string& s);
 
 	void warning_msg(boost::format& fmt);
-	void warning_msg(std::string s);
+	void warning_msg(const std::string& s);
 
 	void critical_msg(boost::format& fmt);
-	void critical_msg(std::string s);
+	void critical_msg(const std::string& s);
 	
 	void script_msg(boost::format& fmt);
-	void script_msg(std::string s);
+	void script_msg(const std::string& s);
 
 	void backtrace_msg();
 
@@ -185,6 +185,10 @@ private:
 	Mercury:: EventDispatcher* pDispatcher_;
 
 	int scriptMsgType_;
+
+	bool noSyncLog_;
+
+	bool canLogFile_;
 };
 
 /*---------------------------------------------------------------------------------

@@ -178,7 +178,9 @@ bufferedLogPackets_(),
 hasBufferedLogPackets_(0),
 pNetworkInterface_(NULL),
 pDispatcher_(NULL),
-scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
+scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
+noSyncLog_(false),
+canLogFile_(true)
 {
 	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
@@ -271,6 +273,10 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	bufferedLogPackets_.clear();
 	hasBufferedLogPackets_ = 0;
+	noSyncLog_ = true;
+
+	if(!destroy)
+		g_pDebugHelperSyncHandler->cancel();
 }
 
 //-------------------------------------------------------------------------------------
@@ -285,7 +291,8 @@ void DebugHelper::sync()
 		{
 			clearBufferedLog();
 		}
-
+		
+		canLogFile_ = true;
 		return;
 	}
 	
@@ -296,7 +303,8 @@ void DebugHelper::sync()
 		{
 			clearBufferedLog();
 		}
-
+		
+		canLogFile_ = true;
 		return;
 	}
 
@@ -320,6 +328,7 @@ void DebugHelper::sync()
 	}
 
 	Mercury::g_trace_packet = v;
+	canLogFile_ = false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -364,12 +373,14 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	}
 #endif
 
+	if(length <= 0 || noSyncLog_)
+		return;
+
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
 		return;
 
-	if(length <= 0)
-		return;
+
 
 	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
@@ -378,10 +389,12 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
+		LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
 #endif
 
 		Mercury::g_trace_packet = v;
+
+		clearBufferedLog();
 		return;
 	}
 
@@ -427,13 +440,14 @@ void DebugHelper::print_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::print_msg(std::string s)
+void DebugHelper::print_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_INFO(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_INFO(g_logger, s);
 #endif
 
 	onMessage(KBELOG_PRINT, s.c_str(), s.size());
@@ -446,7 +460,7 @@ void DebugHelper::error_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::error_msg(std::string s)
+void DebugHelper::error_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
@@ -469,13 +483,14 @@ void DebugHelper::info_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::info_msg(std::string s)
+void DebugHelper::info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_INFO(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_INFO(g_logger, s);
 #endif
 
 	onMessage(KBELOG_INFO, s.c_str(), s.size());
@@ -488,13 +503,14 @@ void DebugHelper::script_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(std::string s)
+void DebugHelper::script_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
+	if(canLogFile_ && log4cxx::ScriptLevel::SCRIPT_ERR != scriptMsgType_)
+		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
 	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
@@ -518,13 +534,14 @@ void DebugHelper::debug_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::debug_msg(std::string s)
+void DebugHelper::debug_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_DEBUG(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_DEBUG(g_logger, s);
 #endif
 
 	onMessage(KBELOG_DEBUG, s.c_str(), s.size());
@@ -537,13 +554,14 @@ void DebugHelper::warning_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::warning_msg(std::string s)
+void DebugHelper::warning_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_WARN(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_WARN(g_logger, s);
 #endif
 
 	onMessage(KBELOG_WARNING, s.c_str(), s.size());
@@ -556,7 +574,7 @@ void DebugHelper::critical_msg(boost::format& fmt)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::critical_msg(std::string s)
+void DebugHelper::critical_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 

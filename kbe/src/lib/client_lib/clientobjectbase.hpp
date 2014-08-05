@@ -62,6 +62,7 @@ public:
 
 	void finalise(void);
 	virtual void reset(void);
+	void canReset(bool v){ canReset_ = v; }
 
 	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 
@@ -120,6 +121,9 @@ public:
 
 	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
 	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
+
+	static PyObject* __py_disconnect(PyObject* self, PyObject* args);
+
 	/**
 		如果entitiessize小于256
 		通过索引位置来获取entityID
@@ -370,6 +374,9 @@ public:
 	void handleTimers();
 
 	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
+
+	void locktime(uint64 t){ locktime_ = t; }
+	uint64 locktime()const{ return locktime_; }
 protected:				
 	int32													appID_;
 
@@ -422,6 +429,8 @@ protected:
 
 	Timers													timers_;
 	ScriptCallbacks											scriptCallbacks_;
+
+	uint64													locktime_;
 };
 
 

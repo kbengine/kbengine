@@ -2,6 +2,8 @@ LIB =	dbmgr_lib
 
 SRCS =				\
 	db_interface		\
+	db_tasks		\
+	db_threadpool		\
 	entity_table		\
 	kbe_tables
 

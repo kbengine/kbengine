@@ -18,45 +18,34 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BUFFERED_DBTASKS_H__
-#define __BUFFERED_DBTASKS_H__
+#ifndef __DB_THREAD_POOL_H__
+#define __DB_THREAD_POOL_H__
 
 // common include	
 // #define NDEBUG
-#include "dbtasks.hpp"
+#include "db_tasks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
+#include "thread/threadpool.hpp"
 
 namespace KBEngine{ 
 
 /*
 	数据库线程任务buffer
 */
+class TPThread;
 
-class Buffered_DBTasks
+class DBThreadPool : public thread::ThreadPool
 {
 public:
-	typedef std::multimap<DBID, EntityDBTask*> DBID_TASKS_MAP;  
-	typedef std::multimap<ENTITY_ID, EntityDBTask*> ENTITYID_TASKS_MAP;  
-	
-	Buffered_DBTasks();
-	virtual ~Buffered_DBTasks();
-	
-	void addTask(EntityDBTask* pTask);
+	DBThreadPool();
+	~DBThreadPool();
 
-	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
-
-	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
 protected:
-	bool hasTask_(DBID dbid);
-	bool hasTask_(ENTITY_ID entityID);
 
-	DBID_TASKS_MAP dbid_tasks_;
-	ENTITYID_TASKS_MAP entityid_tasks_;
-
-	KBEngine::thread::ThreadMutex mutex_;
 };
 
 }

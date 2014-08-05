@@ -679,14 +679,18 @@ bool Witness::update()
 
 				++iter;
 			}
-
-			if(pSendBundle->packetsLength() > PACKET_MAX_SIZE_TCP)
+			
+			int32 packetsLength = pSendBundle->packetsLength();
+			if(packetsLength > 0)
 			{
-				WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
-					pEntity_->getID() % pSendBundle->packetsLength());
-			}
+				if(packetsLength > PACKET_MAX_SIZE_TCP)
+				{
+					WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
+						pEntity_->getID() % packetsLength);
+				}
 
-			pChannel->bundles().push_back(pSendBundle);
+				pChannel->bundles().push_back(pSendBundle);
+			}
 		}
 	}
 
@@ -703,8 +707,11 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 {
-	const Position3D& bpos = getBasePos();
+	const VolatileInfo& volatileInfo = pEntity_->getScriptModule()->getVolatileInfo();
+	if((volatileInfo.position() <= 0.0004f))
+		return;
 
+	const Position3D& bpos = getBasePos();
 	Vector3 movement = bpos - lastBasePos;
 
 	if(KBEVec3Length(&movement) < 0.0004f)

@@ -366,7 +366,7 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 
 	if(_g_debug)
 	{
-		DEBUG_MSG(boost::format("DBInterfaceMysql::query: %1%\n") % lastquery_);
+		DEBUG_MSG(boost::format("DBInterfaceMysql::query(%1%): %2%\n") % this % lastquery_);
 	}
 
     int nResult = mysql_real_query(pMysql_, strCommand, size);  

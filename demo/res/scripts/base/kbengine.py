@@ -38,7 +38,7 @@ def onBaseAppShutDown(state):
 	"""
 	INFO_MSG('onBaseAppShutDown: state=%i' % state)
 
-def readlyForLogin(bootstrapIdx):
+def readyForLogin(bootstrapIdx):
 	"""
 	KBEngine method.
 	如果返回值大于等于1.0则初始化全部完成, 否则返回准备的进度值0.0~1.0。
@@ -48,7 +48,7 @@ def readlyForLogin(bootstrapIdx):
 	"""
 	if bootstrapIdx != 1:
 		INFO_MSG('initProgress: completed!')
-		return True
+		return 1.0
 		
 	spacesEntity = KBEngine.globalData["SpaceMgr"]
 	

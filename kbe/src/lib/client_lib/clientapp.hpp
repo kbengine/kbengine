@@ -171,29 +171,34 @@ public:
 	*/
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
 
-	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_GetSpaceData(&ClientApp::getSingleton(), args);	
 	}
 
-	static PyObject* __py_callback(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_callback(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_callback(&ClientApp::getSingleton(), args);	
 	}
 
-	static PyObject* __py_cancelCallback(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_cancelCallback(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_cancelCallback(&ClientApp::getSingleton(), args);	
 	}
 
-	static PyObject* __py_getWatcher(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_getWatcher(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_getWatcher(&ClientApp::getSingleton(), args);	
 	}
 
-	static PyObject* __py_getWatcherDir(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_getWatcherDir(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_getWatcherDir(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_disconnect(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_disconnect(&ClientApp::getSingleton(), args);	
 	}
 protected:
 	KBEngine::script::Script*								pScript_;

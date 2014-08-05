@@ -20,16 +20,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface.hpp"
+#include "db_threadpool.hpp"
 #include "entity_table.hpp"
 #include "cstdkbe/kbekey.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "server/serverconfig.hpp"
+#include "thread/threadpool.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);
 
 DBUtil g_DBUtil;
+
+thread::ThreadPool* DBUtil::pThreadPool_ = new DBThreadPool();
 
 //-------------------------------------------------------------------------------------
 DBUtil::DBUtil()
@@ -56,7 +60,7 @@ bool DBUtil::initThread()
 			mysql_thread_init();
 		}
 	}
-
+	
 	return true;
 }
 
@@ -112,6 +116,13 @@ bool DBUtil::initialize()
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBUtil::finalise()
+{
+	pThreadPool()->finalise();
+	SAFE_RELEASE(pThreadPool_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -188,6 +199,13 @@ bool DBUtil::initInterface(DBInterface* dbi)
 		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
+	}
+	
+	if(!pThreadPool_->isInitialize())
+	{
+		if(!pThreadPool_->createThreadPool(dbcfg.db_numConnections, 
+			dbcfg.db_numConnections, dbcfg.db_numConnections))
+			return false;
 	}
 
 	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);

@@ -73,6 +73,22 @@ ClientObject::~ClientObject()
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 
+//-------------------------------------------------------------------------------------		
+void ClientObject::reset(void)
+{
+	if(pServerChannel_ && pServerChannel_->endpoint())
+		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
+
+	std::string name = name_;
+	std::string passwd = password_;
+	ClientObjectBase::reset();
+	
+	name_ = name;
+	password_ = passwd;
+	extradatas_ = "bots";
+	state_ = C_STATE_INIT;
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
@@ -93,11 +109,12 @@ bool ClientObject::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(boost::format("ClientObject::initNetwork(%2%): connect server is error(%1%)!\n") %
+			kbe_strerror() % name_);
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_INIT;
 		return false;
 	}
 
@@ -197,11 +214,12 @@ bool ClientObject::initLoginGateWay()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initLogin: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(boost::format("ClientObject::initLogin(%2%): connect server is error(%1%)!\n") %
+			kbe_strerror() % name_);
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 		return false;
 	}
 
@@ -251,6 +269,11 @@ void ClientObject::gameTick()
 			connectedGateway_ = false;
 			canReset_ = true;
 		}
+	}
+
+	if(locktime() > 0 && timestamp() < locktime())
+	{
+		return;
 	}
 
 	switch(state_)
@@ -372,7 +395,10 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 
 	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % SERVER_ERR_STR[failedcode]);
 
-	error_ = C_ERROR_LOGIN_FAILED;
+	// error_ = C_ERROR_LOGIN_FAILED;
+
+	// ¼ÌÐø³¢ÊÔµÇÂ¼
+	state_ = C_STATE_LOGIN;
 }
 
 //-------------------------------------------------------------------------------------
