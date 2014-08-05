@@ -48,7 +48,7 @@ def readyForLogin(bootstrapIdx):
 	"""
 	if bootstrapIdx != 1:
 		INFO_MSG('initProgress: completed!')
-		return True
+		return 1.0
 		
 	spacesEntity = KBEngine.globalData["SpaceMgr"]
 	
