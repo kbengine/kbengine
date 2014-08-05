@@ -229,8 +229,6 @@ bool Dbmgr::initDB()
 		return false;
 	}
 
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-
 	DBInterface* pDBInterface = DBUtil::createInterface();
 	if(pDBInterface == NULL)
 	{
