@@ -73,6 +73,22 @@ ClientObject::~ClientObject()
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 
+//-------------------------------------------------------------------------------------		
+void ClientObject::reset(void)
+{
+	if(pServerChannel_ && pServerChannel_->endpoint())
+		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
+
+	std::string name = name_;
+	std::string passwd = password_;
+	ClientObjectBase::reset();
+	
+	name_ = name;
+	password_ = passwd;
+	extradatas_ = "bots";
+	state_ = C_STATE_INIT;
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
@@ -253,6 +269,11 @@ void ClientObject::gameTick()
 			connectedGateway_ = false;
 			canReset_ = true;
 		}
+	}
+
+	if(locktime() > 0 && timestamp() < locktime())
+	{
+		return;
 	}
 
 	switch(state_)

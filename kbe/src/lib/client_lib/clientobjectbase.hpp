@@ -374,6 +374,9 @@ public:
 	void handleTimers();
 
 	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
+
+	void locktime(uint64 t){ locktime_ = t; }
+	uint64 locktime()const{ return locktime_; }
 protected:				
 	int32													appID_;
 
@@ -426,6 +429,8 @@ protected:
 
 	Timers													timers_;
 	ScriptCallbacks											scriptCallbacks_;
+
+	uint64													locktime_;
 };
 
 

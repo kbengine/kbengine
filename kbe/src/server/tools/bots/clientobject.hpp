@@ -62,6 +62,8 @@ public:
 	virtual ~ClientObject();
 
 	bool processSocket(bool expectingPacket);
+	
+	void reset(void);
 
 	bool initCreate();
 	bool initLoginGateWay();
@@ -98,6 +100,7 @@ public:
 	   @port: ·þÎñÆ÷¶Ë¿Ú
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+
 protected:
 	C_ERROR error_;
 	C_STATE state_;
