@@ -670,9 +670,11 @@ bool Witness::update()
 
 					(*pForwardBundle).append(*s1);
 					MemoryStream::ObjPool().reclaimObject(s1);
-
+					
 					if(pForwardBundle->packetsLength() > 0)
+					{
 						MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+					}
 
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 				}
@@ -681,7 +683,7 @@ bool Witness::update()
 			}
 			
 			int32 packetsLength = pSendBundle->packetsLength();
-			if(packetsLength > 0)
+			if(packetsLength > 8/*MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
 			{
 				if(packetsLength > PACKET_MAX_SIZE_TCP)
 				{
@@ -690,6 +692,10 @@ bool Witness::update()
 				}
 
 				pChannel->bundles().push_back(pSendBundle);
+			}
+			else
+			{
+				Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 			}
 		}
 	}
