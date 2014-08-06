@@ -131,7 +131,7 @@ public:
 	/** 网络接口
 		当客户端所关联的这个entity的cell被创建时，被调用 
 	*/
-	void onClientGetCell(Mercury::Channel* pChannel);
+	void onClientGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
 
 	/**
 		获取前端类别

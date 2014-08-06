@@ -277,7 +277,7 @@ public:
 	/**
 		客户端自身进入世界了
 	*/
-	void onClientEntityEnterWorld(Proxy* base);
+	void onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID);
 
 	/** 网络接口
 		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走

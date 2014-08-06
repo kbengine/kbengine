@@ -216,8 +216,12 @@ void Proxy::onClientDeath(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onClientGetCell(Mercury::Channel* pChannel)
+void Proxy::onClientGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 {
+	// 回调给脚本，获得了cell
+	if(cellMailbox_ == NULL)
+		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));

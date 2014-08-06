@@ -1662,17 +1662,17 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 	// 如果是有客户端的entity则需要告知客户端， 自身entity已经进入世界了。
 	if(base->getClientMailbox() != NULL)
 	{
-		onClientEntityEnterWorld(static_cast<Proxy*>(base));
+		onClientEntityEnterWorld(static_cast<Proxy*>(base), componentID);
 	}
 
 	base->onGetCell(pChannel, componentID);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onClientEntityEnterWorld(Proxy* base)
+void Baseapp::onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID)
 {
 	base->initClientCellPropertys();
-	base->onClientGetCell(NULL);
+	base->onClientGetCell(NULL, componentID);
 }
 
 //-------------------------------------------------------------------------------------

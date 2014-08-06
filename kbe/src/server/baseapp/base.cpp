@@ -771,7 +771,8 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	destroyCellData();
 	
 	// 回调给脚本，获得了cell
-	cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+	if(cellMailbox_ == NULL)
+		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
 	if(!inRestore_)
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
