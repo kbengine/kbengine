@@ -218,8 +218,8 @@ void PacketReader::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Pac
 		pPacket->opfini();
 	}
 
-	DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") % 
-		pChannel_->c_str() % pChannel_ % fragmentDatasFlag % pFragmentDatasRemain_);
+	DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%, currMsgID=%5%, currMsgLen=%6%.\n") % 
+		pChannel_->c_str() % pChannel_ % fragmentDatasFlag % pFragmentDatasRemain_ % currMsgID_ % currMsgLen_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -257,7 +257,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 		};
 
-		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag(%3%), currMsgID=%4%, currMsgLen=%5%, completed!\n") % 
+		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, currMsgID=%4%, currMsgLen=%5%, completed!\n") % 
 			pChannel_->c_str() % pChannel_ % fragmentDatasFlag_ % currMsgID_ % currMsgLen_);
 
 		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
@@ -271,8 +271,8 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 		pFragmentDatasWpos_ += opsize;
 		pPacket->rpos(pPacket->rpos() + opsize);
 
-		DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
-			pChannel_->c_str() % pChannel_ % fragmentDatasFlag_ % pFragmentDatasRemain_);
+		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%, currMsgID=%5%, currMsgLen=%6%.\n") %
+			pChannel_->c_str() % pChannel_ % fragmentDatasFlag_ % pFragmentDatasRemain_ % currMsgID_ % currMsgLen_);
 	}	
 }
 
