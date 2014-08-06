@@ -257,11 +257,12 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 		};
 
+		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag(%3%), currMsgID=%4%, currMsgLen=%5%, completed!\n") % 
+			pChannel_->c_str() % pChannel_ % fragmentDatasFlag_ % currMsgID_ % currMsgLen_);
+
 		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 		pFragmentDatasRemain_ = 0;
 		SAFE_RELEASE_ARRAY(pFragmentDatas_);
-		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], completed!\n") % 
-			pChannel_->c_str() % pChannel_);
 	}
 	else
 	{

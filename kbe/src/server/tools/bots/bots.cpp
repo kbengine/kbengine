@@ -211,9 +211,12 @@ void Bots::handleGameTick()
 
 	pEventPoller_->processPendingEvents(0.0);
 
-	CLIENTS::iterator iter = clients().begin();
-	for(;iter != clients().end(); iter++)
-		iter->second.get()->gameTick();
+	{
+		AUTO_SCOPED_PROFILE("updateBots");
+		CLIENTS::iterator iter = clients().begin();
+		for(;iter != clients().end(); iter++)
+			iter->second.get()->gameTick();
+	}
 }
 
 //-------------------------------------------------------------------------------------
