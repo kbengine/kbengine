@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/profile.hpp"
 #include "helper/profiler.hpp"
 #include "helper/profile_handler.hpp"
+#include "pyscript/pyprofile_handler.hpp"
 
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/loginapp/loginapp_interface.hpp"
@@ -1000,6 +1001,44 @@ void Bots::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	bundle1 << type;
 	bundle1.append(readStreamPtr1.get()->get());
 	bundle1.send(getNetworkInterface(), pChannel);
+}
+
+
+//-------------------------------------------------------------------------------------
+void Bots::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string profileName;
+	int8 profileType;
+	uint32 timelen;
+
+	s >> profileName >> profileType >> timelen;
+
+	startProfile_(pChannel, profileName, profileType, timelen);
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+{
+	switch(profileType)
+	{
+	case 0:	// pyprofile
+		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 1:	// cprofile
+		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 2:	// eventprofile
+		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 3:	// mercuryprofile
+		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	default:
+		ERROR_MSG(boost::format("Bots::startProfile_: type(%1%:%2%) not support!\n") % 
+			profileType % profileName);
+
+		break;
+	};
 }
 
 //-------------------------------------------------------------------------------------

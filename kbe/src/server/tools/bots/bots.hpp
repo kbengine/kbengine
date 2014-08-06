@@ -307,6 +307,12 @@ public:
 	*/
 	void queryWatcher(Mercury::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+		console请求开始profile
+	*/
+	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
+
 protected:
 	PyBots*													pPyBots_;
 

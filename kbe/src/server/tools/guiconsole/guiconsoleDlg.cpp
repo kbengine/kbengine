@@ -1660,7 +1660,8 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 {
 	if(type == 0)
 	{
-		if(getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE && getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE)
+		if(getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE && getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE
+			&& getTreeItemComponent(m_tree.GetSelectedItem()) != BOTS_TYPE)
 		{
 			::AfxMessageBox(L"not support!");
 			return false;
@@ -1685,6 +1686,8 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 			bundle.newMessage(LoginappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == MESSAGELOG_TYPE)
 			bundle.newMessage(MessagelogInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BOTS_TYPE)
+			bundle.newMessage(BotsInterface::startProfile);
 		else
 		{
 			::AfxMessageBox(L"not support!");
