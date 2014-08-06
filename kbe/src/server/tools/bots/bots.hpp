@@ -301,6 +301,12 @@ public:
 	*/
 	void setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
 	void delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
+
+	/** 网络接口
+		请求查看watcher
+	*/
+	void queryWatcher(Mercury::Channel* pChannel, MemoryStream& s);
+
 protected:
 	PyBots*													pPyBots_;
 

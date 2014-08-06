@@ -1142,7 +1142,16 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 	if(pChannel)
 	{
 		Mercury::Bundle bundle;
-		COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+
+		if(debugComponentType == BOTS_TYPE)
+		{
+			bundle.newMessage(BotsInterface::queryWatcher);
+		}
+		else
+		{
+			COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+		}
+
 		bundle << paths;
 		bundle.send(_networkInterface, pChannel);
 	}

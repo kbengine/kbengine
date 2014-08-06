@@ -32,7 +32,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 #include "server/serverconfig.hpp"
+#include "helper/watch_pools.hpp"
 #include "helper/console_helper.hpp"
+#include "helper/watcher.hpp"
+#include "helper/profile.hpp"
+#include "helper/profiler.hpp"
+#include "helper/profile_handler.hpp"
 
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/loginapp/loginapp_interface.hpp"
@@ -960,6 +965,38 @@ void Bots::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std:
 	{
 		pClient->delSpaceData(pChannel, spaceID, key);
 	}
+}
+
+//-------------------------------------------------------------------------------------		
+void Bots::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	AUTO_SCOPED_PROFILE("watchers");
+
+	std::string path;
+	s >> path;
+
+	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj();
+	WatcherPaths::root().readWatchers(path, readStreamPtr.get()->get());
+
+	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj();
+	WatcherPaths::root().readChildPaths(path, path, readStreamPtr1.get()->get());
+
+	Mercury::Bundle bundle;
+	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
+	bundle.newMessage(msgHandler);
+
+	uint8 type = 0;
+	bundle << type;
+	bundle.append(readStreamPtr.get()->get());
+	bundle.send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle bundle1;
+	bundle1.newMessage(msgHandler);
+
+	type = 1;
+	bundle1 << type;
+	bundle1.append(readStreamPtr1.get()->get());
+	bundle1.send(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
