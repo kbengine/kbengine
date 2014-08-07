@@ -318,7 +318,7 @@
 				<!-- 是否开放注册 
 					(Whether open registration)
 				-->
-				<enable>	false	</enable>
+				<enable>	true	</enable>
 				
 				<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 
 					(When logged in, the game database can not find the game account is automatically created)
