@@ -210,6 +210,17 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 		KBE_ASSERT(false && "no support!\n");
 	}
 
+	int32 packetsLength = execret_.opsize();
+	const Mercury::MessageHandler& msgHandler = CellappInterface::onExecuteRawDatabaseCommandCB;
+
+	if(packetsLength > const_cast<Mercury::MessageHandler*>(&msgHandler)->msglenMax())
+	{
+		error_ = (boost::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: msglen exceeds the limit! msglen=(%1%) > maxlen(%2%).") %
+			packetsLength % const_cast<Mercury::MessageHandler*>(&msgHandler)->msglenMax()).str();
+
+		ERROR_MSG(error_);
+	}
+
 	(*pBundle) << callbackID_;
 	(*pBundle) << error_;
 
@@ -220,9 +231,8 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	if(cinfos && cinfos->pChannel)
 	{
-		int32 packetsLength = (*pBundle).packetsLength(true);
-		const Mercury::MessageHandler& msgHandler = CellappInterface::onExecuteRawDatabaseCommandCB;
-	
+		packetsLength = (*pBundle).packetsLength(true);
+
 		if(packetsLength > const_cast<Mercury::MessageHandler*>(&msgHandler)->msglenMax())
 		{
 			ERROR_MSG(boost::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: msglen exceeds the limit! msglen=(%1%) > maxlen(%2%).") %
