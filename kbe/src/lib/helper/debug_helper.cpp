@@ -282,8 +282,13 @@ void DebugHelper::clearBufferedLog(bool destroy)
 //-------------------------------------------------------------------------------------
 void DebugHelper::sync()
 {
+	lockthread();
+
 	if(hasBufferedLogPackets_ == 0)
+	{
+		unlockthread();
 		return;
+	}
 
 	if(Mercury::Address::NONE == messagelogAddr_)
 	{
@@ -293,6 +298,7 @@ void DebugHelper::sync()
 		}
 		
 		canLogFile_ = true;
+		unlockthread();
 		return;
 	}
 	
@@ -305,6 +311,7 @@ void DebugHelper::sync()
 		}
 		
 		canLogFile_ = true;
+		unlockthread();
 		return;
 	}
 
@@ -329,6 +336,7 @@ void DebugHelper::sync()
 
 	Mercury::g_trace_packet = v;
 	canLogFile_ = false;
+	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
