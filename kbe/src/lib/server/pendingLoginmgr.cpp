@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "helper/profile.hpp"
 
 namespace KBEngine { 
 
@@ -111,6 +112,8 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::find(std::string& accountName)
 //-------------------------------------------------------------------------------------
 bool PendingLoginMgr::process()
 {
+	AUTO_SCOPED_PROFILE("PendingMgr_process");
+
 	if(pPLMap_.size() <= 0)
 	{
 		start_ = false;

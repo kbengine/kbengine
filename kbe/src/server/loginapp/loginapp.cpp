@@ -193,6 +193,7 @@ void Loginapp::onClientActiveTick(Mercury::Channel* pChannel)
 bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountName, 
 								 std::string& password, std::string& datas, ACCOUNT_TYPE type)
 {
+	AUTO_SCOPED_PROFILE("createAccount");
 	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
 		WARNING_MSG(boost::format("Loginapp::_createAccount(%1%): not available!\n") % accountName);
@@ -531,6 +532,8 @@ void Loginapp::onAccountResetPassword(Mercury::Channel* pChannel, std::string& c
 //-------------------------------------------------------------------------------------
 void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
+	AUTO_SCOPED_PROFILE("reqAccountResetPassword");
+
 	accountName = KBEngine::strutil::kbe_trim(accountName);
 	INFO_MSG(boost::format("Loginapp::reqAccountResetPassword: accountName(%1%)\n") %
 		accountName);
@@ -613,6 +616,8 @@ void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::stri
 //-------------------------------------------------------------------------------------
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("login");
+
 	COMPONENT_CLIENT_TYPE ctype;
 	CLIENT_CTYPE tctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
 	std::string loginName;
