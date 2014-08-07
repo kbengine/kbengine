@@ -551,8 +551,9 @@ bool ClientObjectBase::login()
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::loginGateWay()
 {
-	// 请求登录网关
+	// 请求登录网关, 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::loginGateway);
 	(*pBundle) << name_;
@@ -615,6 +616,8 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(boost::format("ClientObjectBase::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+
+	// 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
 
 	EventData_LoginGatewayFailed eventdata;
@@ -630,7 +633,9 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 		eventHandler_.fire(&eventdata);
 	}
 
+	// 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
+
 	entityID_ = eid;
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
