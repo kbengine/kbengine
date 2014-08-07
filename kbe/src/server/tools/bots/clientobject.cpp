@@ -109,8 +109,8 @@ bool ClientObject::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork(%2%): connect server is error(%1%)!\n") %
-			kbe_strerror() % name_);
+		ERROR_MSG(boost::format("ClientObject::initNetwork(%2%): connect server(%3%:%4%) is error(%1%)!\n") %
+			kbe_strerror() % name_ % infos.login_ip % infos.login_port);
 
 		delete pEndpoint;
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
