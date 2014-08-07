@@ -220,7 +220,18 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		int32 packetsLength = (*pBundle).packetsLength(true);
+		const Mercury::MessageHandler& msgHandler = CellappInterface::onExecuteRawDatabaseCommandCB;
+	
+		if(packetsLength > const_cast<Mercury::MessageHandler*>(&msgHandler)->msglenMax())
+		{
+			ERROR_MSG(boost::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: msglen exceeds the limit! msglen=(%1%) > maxlen(%2%).") %
+				packetsLength % const_cast<Mercury::MessageHandler*>(&msgHandler)->msglenMax());
+		}
+		else
+		{
+			(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		}
 	}
 	else
 	{

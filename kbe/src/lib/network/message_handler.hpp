@@ -94,7 +94,7 @@ public:
 		return MERCURY_MESSAGE_TYPE_COMPONENT; 
 	}
 
-	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE / 2; }
+	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE; }
 
 	const char* c_str();
 

@@ -143,8 +143,8 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
-				WARNING_MSG(boost::format("PacketReader::processMessages(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
-					pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % pChannel_->c_str());
+				WARNING_MSG(boost::format("PacketReader::processMessages(%1%): msglen exceeds the limit! msgID=%2%, msglen=(%3%:%4%), maxlen=%6%, from %5%.\n") % 
+					pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % pChannel_->c_str() % pMsgHandler->msglenMax());
 
 				currMsgLen_ = 0;
 				pChannel_->condemn();
