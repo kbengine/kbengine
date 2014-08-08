@@ -205,8 +205,8 @@ void Base::createCellData(void)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Base::createCellData: %1% PropertyDescription the dataType is NULL.\n") %
-				propertyDescription->getName());	
+			ERROR_MSG(boost::format("%1%::createCellData: %2% PropertyDescription the dataType is NULL.\n") %
+				this->getScriptName() % propertyDescription->getName());	
 		}
 		
 		SCRIPT_ERROR_CHECK();
@@ -387,7 +387,7 @@ void Base::destroyCellData(void)
 	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
-		ERROR_MSG("Base::destroyCellData: del property cellData is error!\n");
+		ERROR_MSG(boost::format("%1%::destroyCellData: delete cellData is error!\n") % this->getScriptName());
 		SCRIPT_ERROR_CHECK();
 	}
 }
@@ -436,7 +436,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 	if(pobj->initing())
 	{
 		PyErr_Format(PyExc_AssertionError,
-			"Base::destroy(): %s is in initing, reject the request!\n",	
+			"%s::destroy(): is initing, reject the request!\n",	
 			pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return NULL;
@@ -518,7 +518,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 		{
-			ERROR_MSG(boost::format("Base::onDestroyEntity(%1%): writeToDB not found dbmgr!\n") % this->getID());
+			ERROR_MSG(boost::format("%1%::onDestroyEntity(%2%): writeToDB not found dbmgr!\n") % this->getScriptName() % this->getID());
 			return;
 		}
 
@@ -728,7 +728,7 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("Base::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
+		DEBUG_MSG(boost::format("%4%::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
 			id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
 	}
 
@@ -864,6 +864,10 @@ void Base::writeToDB(void* data)
 		// __py_pyWriteToDB没有增加引用
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
+
+		WARNING_MSG(boost::format("%1%::writeToDB(): is archiveing! entityid=%2%, dbid=%3%.\n") % 
+			this->getScriptName() % this->getID() % this->getDBID());
+
 		return;
 	}
 
@@ -874,6 +878,10 @@ void Base::writeToDB(void* data)
 		// __py_pyWriteToDB没有增加引用
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
+
+		ERROR_MSG(boost::format("%1%::writeToDB(): is destroyed! entityid=%2%, dbid=%3%.\n") % 
+			this->getScriptName() % this->getID() % this->getDBID());
+
 		return;																							
 	}
 
@@ -939,8 +947,8 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Base::onWriteToDBCallback: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(boost::format("%1%::onWriteToDBCallback: can't found callback:%2%.\n") %
+				this->getScriptName() % callbackID);
 		}
 
 		Py_DECREF(pyargs);
@@ -970,7 +978,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Base::onCellWriteToDBCompleted(%1%): not found dbmgr!\n") % this->getID());
+		ERROR_MSG(boost::format("%1%::onCellWriteToDBCompleted(%2%): not found dbmgr!\n") % 
+			this->getScriptName() % this->getID());
 		return;
 	}
 
@@ -1119,8 +1128,8 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 {
 	if(pChannel->proxyID() != this->getID())
 	{
-		WARNING_MSG(boost::format("Base::forwardEntityMessageToCellappFromClient: not srcEntity(%1%/%2%).\n") %
-			pChannel->proxyID() % this->getID());
+		WARNING_MSG(boost::format("%3%::forwardEntityMessageToCellappFromClient: not srcEntity(%1%/%2%).\n") %
+			pChannel->proxyID() % this->getID() % this->getScriptName());
 
 		return;
 	}
@@ -1267,8 +1276,8 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
 {
-	DEBUG_MSG(boost::format("Base::reqTeleportOther: reqTeleportEntityID=%1%, reqTeleportEntityCellAppID=%2%.\n") %
-		reqTeleportEntityID % reqTeleportEntityCellAppID);
+	DEBUG_MSG(boost::format("%3%::reqTeleportOther: reqTeleportEntityID=%1%, reqTeleportEntityCellAppID=%2%.\n") %
+		reqTeleportEntityID % reqTeleportEntityCellAppID % this->getScriptName());
 
 	if(this->getCellMailbox() == NULL || this->getCellMailbox()->getChannel() == NULL)
 	{
