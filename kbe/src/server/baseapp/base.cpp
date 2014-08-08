@@ -401,7 +401,10 @@ bool Base::destroyCellEntity(void)
 	}
 
 	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)
+	{
+		isArchiveing_ = false;
 		return false;
+	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
@@ -792,7 +795,8 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	S_RELEASE(cellMailbox_);
-	
+	isArchiveing_ = false;
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
 
@@ -806,6 +810,7 @@ void Base::onRestore()
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
 	inRestore_ = false;
+	isArchiveing_ = false;
 }
 
 //-------------------------------------------------------------------------------------
