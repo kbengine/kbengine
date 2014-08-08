@@ -239,9 +239,6 @@ void SelectPoller::handleInputNotifications(int &countReady,
 	fd_set &readFDs, fd_set &writeFDs)
 {
 #ifdef _WIN32
-	// X360 fd_sets don't look like POSIX ones, we know exactly what they are
-	// and can just iterate over the provided FD arrays
-
 	for (unsigned i=0; i < readFDs.fd_count; i++)
 	{
 		int fd = readFDs.fd_array[ i ];
@@ -257,9 +254,6 @@ void SelectPoller::handleInputNotifications(int &countReady,
 	}
 
 #else
-	// POSIX fd_sets are more opaque and we just have to count up blindly until
-	// we hit valid FD's with FD_ISSET
-
 	for (int fd = 0; fd <= fdLargest_ && countReady > 0; ++fd)
 	{
 		if (FD_ISSET(fd, &readFDs))
@@ -356,6 +350,15 @@ bool SelectPoller::doRegisterForRead(int fd)
 
 		return false;
 	}
+#else
+	if (fdReadSet_.fd_count >= FD_SETSIZE)
+	{
+		ERROR_MSG(boost::format("EventDispatcher::registerFileDescriptor: "
+			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
+			fd % FD_SETSIZE);
+
+		return false;
+	}
 #endif
 
 	// Bail early if it's already in the read set
@@ -377,6 +380,15 @@ bool SelectPoller::doRegisterForWrite(int fd)
 {
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
+	{
+		ERROR_MSG(boost::format("EventDispatcher::registerWriteFileDescriptor: "
+			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
+			fd % FD_SETSIZE);
+
+		return false;
+	}
+#else
+	if (fdWriteSet_.fd_count >= FD_SETSIZE)
 	{
 		ERROR_MSG(boost::format("EventDispatcher::registerWriteFileDescriptor: "
 			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
