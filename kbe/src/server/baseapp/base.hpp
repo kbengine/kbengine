@@ -265,6 +265,11 @@ public:
 	INLINE int8 shouldAutoBackup()const;
 	INLINE void shouldAutoBackup(int8 v);
 	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoBackup, pySetShouldAutoBackup);
+
+	/**
+		cellapp宕了
+	*/
+	void onCellAppDeath();
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
 	EntityMailbox*							clientMailbox_;			

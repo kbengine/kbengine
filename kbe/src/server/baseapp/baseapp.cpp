@@ -563,6 +563,7 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 			S_RELEASE(cell);
 			pBase->setCellMailbox(NULL);
 			pBase->installCellDataAttr(pBase->getCellData());
+			pBase->onCellAppDeath();
 			pRestoreEntityHandler->pushEntity(pBase->getID());
 		}
 

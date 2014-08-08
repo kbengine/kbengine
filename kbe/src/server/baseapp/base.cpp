@@ -676,6 +676,7 @@ void Base::onCreateCellFailure(void)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	creatingCell_ = false;
+	isGetingCellData_ = false;
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"));
 }
@@ -795,7 +796,9 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	S_RELEASE(cellMailbox_);
+
 	isArchiveing_ = false;
+	isGetingCellData_ = false;
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
@@ -1030,6 +1033,13 @@ void Base::onWriteToDB()
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
 		const_cast<char*>("O"), cellDataDict_);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onCellAppDeath()
+{
+	isArchiveing_ = false;
+	isGetingCellData_ = false;
 }
 
 //-------------------------------------------------------------------------------------
