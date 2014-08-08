@@ -268,6 +268,8 @@ void ClientObject::gameTick()
 			eventHandler_.fire(&eventdata);
 			connectedGateway_ = false;
 			canReset_ = true;
+			state_ = C_STATE_INIT;
+			DEBUG_MSG(boost::format("ClientObject(%1%)::tickSend: serverCloased! name(%2%)!\n") % this->appID() % this->name());
 		}
 	}
 
