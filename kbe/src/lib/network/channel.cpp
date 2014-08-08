@@ -146,7 +146,7 @@ Channel::Channel():
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
-	DEBUG_MSG(boost::format("Channel::~Channel(): %1%\n") % this->c_str());
+	//DEBUG_MSG(boost::format("Channel::~Channel(): %1%\n") % this->c_str());
 	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL && !isDestroyed_)
 	{
 		pNetworkInterface_->onChannelGone(this);

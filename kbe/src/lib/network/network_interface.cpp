@@ -396,7 +396,7 @@ bool NetworkInterface::registerChannel(Channel* pChannel)
 	if(pChannel->isExternal())
 		numExtChannels_++;
 
-	INFO_MSG(boost::format("NetworkInterface::registerChannel: new channel: %1%.\n") % pChannel->c_str());
+	//INFO_MSG(boost::format("NetworkInterface::registerChannel: new channel: %1%.\n") % pChannel->c_str());
 	return true;
 }
 
@@ -428,8 +428,8 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 
 	pChannel->incRef();
 
-	INFO_MSG(boost::format("NetworkInterface::deregisterChannel: del channel: %1%\n") %
-		pChannel->c_str());
+	//INFO_MSG(boost::format("NetworkInterface::deregisterChannel: del channel: %1%\n") %
+	//	pChannel->c_str());
 
 	if (!channelMap_.erase(addr))
 	{
