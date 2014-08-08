@@ -1588,8 +1588,8 @@ bool DBTaskQueryEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%, dbid=%2%, entityID=%3%, queryMode=%4%.\n") % 
-		entityType_ % dbid_ % entityID_ % ((int)queryMode_));
+	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%, dbid=%2%, entityID=%3%, wasActive=%4%, queryMode=%5%, success=%6%.\n") % 
+		entityType_ % dbid_ % entityID_ % wasActive_ % ((int)queryMode_) % success_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
