@@ -385,6 +385,9 @@ void Loginapp::reqCreateMailAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	s >> accountName >> password;
 	s.readBlob(datas);
 
+	DEBUG_MSG(boost::format("Loginapp::reqCreateMailAccount: accountName=%1%, passwordsize=%2%.\n") %
+		accountName.c_str() % password.size());
+
 	if(!_createAccount(pChannel, accountName, password, datas, ACCOUNT_TYPE_MAIL))
 		return;
 }
