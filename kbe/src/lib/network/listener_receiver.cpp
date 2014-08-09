@@ -55,7 +55,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 {
 	int tickcount = 0;
 
-	while(tickcount ++ < 1024)
+	while(tickcount ++ < 256)
 	{
 		EndPoint* pNewEndPoint = endpoint_.accept();
 		if(pNewEndPoint == NULL){
