@@ -49,6 +49,29 @@ public:
 	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+
+	/**
+		提供给watcher使用
+	*/
+	uint32 dbid_tasksSize()
+	{ 
+		mutex_.lockMutex();
+		uint32 ret = (uint32)dbid_tasks_.size(); 
+		mutex_.unlockMutex();
+		return ret;
+	}
+
+	/**
+		提供给watcher使用
+	*/
+	uint32 entityid_tasksSize()
+	{ 
+		mutex_.lockMutex();
+		uint32 ret = (uint32)entityid_tasks_.size(); 
+		mutex_.unlockMutex();
+		return ret;
+	}
+
 protected:
 	bool hasTask_(DBID dbid);
 	bool hasTask_(ENTITY_ID entityID);

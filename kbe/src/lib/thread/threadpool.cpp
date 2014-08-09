@@ -132,12 +132,12 @@ ThreadPool::~ThreadPool()
 //-------------------------------------------------------------------------------------
 bool ThreadPool::initializeWatcher()
 {
-	WATCH_OBJECT("threadpool/maxThreadCount", this->maxThreadCount_);
-	WATCH_OBJECT("threadpool/extraNewAddThreadCount", this->extraNewAddThreadCount_);
-	WATCH_OBJECT("threadpool/currentFreeThreadCount", this->currentFreeThreadCount_);
-	WATCH_OBJECT("threadpool/normalThreadCount", this->normalThreadCount_);
-	WATCH_OBJECT("threadpool/bufferedTaskSize", this, &ThreadPool::bufferTaskSize);
-	WATCH_OBJECT("threadpool/finiTaskSize", this, &ThreadPool::finiTaskSize);
+	WATCH_OBJECT((boost::format("%1%/maxThreadCount") % name()).str().c_str(), this->maxThreadCount_);
+	WATCH_OBJECT((boost::format("%1%/extraNewAddThreadCount") % name()).str().c_str(), this->extraNewAddThreadCount_);
+	WATCH_OBJECT((boost::format("%1%/currentFreeThreadCount") % name()).str().c_str(), this->currentFreeThreadCount_);
+	WATCH_OBJECT((boost::format("%1%/normalThreadCount") % name()).str().c_str(), this->normalThreadCount_);
+	WATCH_OBJECT((boost::format("%1%/bufferedTaskSize") % name()).str().c_str(), this, &ThreadPool::bufferTaskSize);
+	WATCH_OBJECT((boost::format("%1%/finiTaskSize") % name()).str().c_str(), this, &ThreadPool::finiTaskSize);
 	return true;
 }
 

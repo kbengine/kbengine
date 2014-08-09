@@ -286,6 +286,8 @@ public:
 		获得已经完成的任务数量
 	*/
 	INLINE uint32 finiTaskSize()const;
+
+	virtual std::string name()const{ return "ThreadPool"; }
 public:
 	static int timeout;
 

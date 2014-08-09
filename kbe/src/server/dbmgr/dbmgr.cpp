@@ -104,7 +104,11 @@ bool Dbmgr::initializeWatcher()
 	WATCH_OBJECT("numQueryEntity", numQueryEntity_);
 	WATCH_OBJECT("numExecuteRawDatabaseCommand", numExecuteRawDatabaseCommand_);
 	WATCH_OBJECT("numCreatedAccount", numCreatedAccount_);
-	return ServerApp::initializeWatcher();
+
+	WATCH_OBJECT("DBThreadPool/dbid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::dbid_tasksSize);
+	WATCH_OBJECT("DBThreadPool/entityid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::entityid_tasksSize);
+	
+	return ServerApp::initializeWatcher() && DBUtil::pThreadPool()->initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
