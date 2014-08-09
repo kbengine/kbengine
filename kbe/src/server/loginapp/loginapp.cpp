@@ -194,6 +194,9 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 								 std::string& password, std::string& datas, ACCOUNT_TYPE type)
 {
 	AUTO_SCOPED_PROFILE("createAccount");
+
+	ACCOUNT_TYPE oldType = type;
+
 	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
 		WARNING_MSG(boost::format("Loginapp::_createAccount(%1%): not available!\n") % accountName);
@@ -324,8 +327,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 		return false;
     }
 
-	DEBUG_MSG(boost::format("Loginapp::_createAccount: accountName=%1%, passwordsize=%2%, type=%3%.\n") %
-		accountName.c_str() % password.size() % type);
+	DEBUG_MSG(boost::format("Loginapp::_createAccount: accountName=%1%, passwordsize=%2%, type=%3%, oldType=%4%.\n") %
+		accountName.c_str() % password.size() % type % oldType);
 
 	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
