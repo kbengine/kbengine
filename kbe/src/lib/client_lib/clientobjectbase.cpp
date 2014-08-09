@@ -149,6 +149,17 @@ void ClientObjectBase::reset(void)
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onServerClosed()
+{
+	EventData_ServerCloased eventdata;
+	eventHandler_.fire(&eventdata);
+	connectedGateway_ = false;
+	canReset_ = true;
+
+	DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::tickSend()
 {
 	handleTimers();
@@ -160,12 +171,7 @@ void ClientObjectBase::tickSend()
 	{
 		if(connectedGateway_)
 		{
-			EventData_ServerCloased eventdata;
-			eventHandler_.fire(&eventdata);
-			connectedGateway_ = false;
-			canReset_ = true;
-
-			DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
+			onServerClosed();
 		}
 
 		return;

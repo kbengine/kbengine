@@ -377,6 +377,8 @@ public:
 
 	void locktime(uint64 t){ locktime_ = t; }
 	uint64 locktime()const{ return locktime_; }
+
+	virtual void onServerClosed();
 protected:				
 	int32													appID_;
 

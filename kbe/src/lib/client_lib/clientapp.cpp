@@ -300,6 +300,13 @@ void ClientApp::handleTimeout(TimerHandle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
+void ClientApp::onServerClosed()
+{
+	ClientObjectBase::onServerClosed();
+	state_ = C_STATE_INIT;
+}
+
+//-------------------------------------------------------------------------------------
 void ClientApp::handleGameTick()
 {
 	g_kbetime++;

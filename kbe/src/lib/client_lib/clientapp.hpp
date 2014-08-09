@@ -125,6 +125,8 @@ public:
 	static PyObject* __py_getPlayer(PyObject* self, PyObject* args);
 	static PyObject* __py_fireEvent(PyObject* self, PyObject* args);
 
+	virtual void onServerClosed();
+
 	/**
 		设置脚本输出类型前缀
 	*/
