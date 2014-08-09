@@ -317,6 +317,8 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 }
 
 //-------------------------------------------------------------------------------------
@@ -340,10 +342,19 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
+							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
+{
+	//sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
 							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
@@ -351,7 +362,7 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 	
 	if(componentSize == 0)
 	{
-		ERROR_MSG("Baseappmgr::onPendingAccountGetBaseappAddr: not found loginapp.");
+		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp.");
 		return;
 	}
 

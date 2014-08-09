@@ -122,6 +122,13 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID cid, float progress);
+
+	/** 
+		将分配的baseapp地址发送给loginapp并转发给客户端。
+	*/
+	void sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
+								  std::string& loginName, std::string& accountName, 
+								  uint32 addr, uint16 port);
 protected:
 	TimerHandle													gameTimer_;
 

@@ -765,7 +765,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
-	DEBUG_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%, datas=%3%.\n") %
+	ERROR_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%, datas=%3%.\n") %
 		loginName.c_str() % SERVER_ERR_STR[failedcode] % datas);
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
@@ -823,6 +823,9 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	s >> deadline;
 
 	s.readBlob(datas);
+
+	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryResultFromDbmgr: loginName=%1%.\n") %
+		loginName);
 
 	if((flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
