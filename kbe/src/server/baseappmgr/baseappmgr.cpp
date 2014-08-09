@@ -146,7 +146,7 @@ bool Baseappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeEnd()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	return true;
 }

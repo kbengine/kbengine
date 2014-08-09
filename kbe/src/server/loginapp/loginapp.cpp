@@ -149,7 +149,7 @@ bool Loginapp::inInitialize()
 bool Loginapp::initializeEnd()
 {
 	// 添加一个timer， 每秒检查一些状态
-	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
 	return true;
