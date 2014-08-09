@@ -383,7 +383,7 @@ protected:
 /**
 	账号上线
 */
-class DBTaskAccountOnline : public DBTask
+class DBTaskAccountOnline : public EntityDBTask
 {
 public:
 	DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
@@ -394,14 +394,13 @@ public:
 protected:
 	std::string accountName_;
 	COMPONENT_ID componentID_;
-	ENTITY_ID entityID_;
 };
 
 
 /**
 	entity下线
 */
-class DBTaskEntityOffline : public DBTask
+class DBTaskEntityOffline : public EntityDBTask
 {
 public:
 	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
@@ -409,7 +408,6 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
-	DBID dbid_;
 	ENTITY_SCRIPT_UID sid_;
 };
 

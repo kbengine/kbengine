@@ -517,14 +517,14 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 							COMPONENT_ID componentID, 
 							ENTITY_ID entityID)
 {
-	// PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), 
+	// bufferedDBTasks_.addTask(new DBTaskAccountOnline(pChannel->addr(), 
 	//	accountName, componentID, entityID));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid)
 {
-	DBUtil::pThreadPool()->addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
+	bufferedDBTasks_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
 }
 
 //-------------------------------------------------------------------------------------

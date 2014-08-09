@@ -1268,10 +1268,9 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 //-------------------------------------------------------------------------------------
 DBTaskAccountOnline::DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
 		COMPONENT_ID componentID, ENTITY_ID entityID):
-DBTask(addr),
+EntityDBTask(addr, entityID, 0),
 accountName_(accountName),
-componentID_(componentID),
-entityID_(entityID)
+componentID_(componentID)
 {
 }
 
@@ -1289,7 +1288,7 @@ bool DBTaskAccountOnline::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountOnline:componentID:%1%, entityID:%2%.\n") % componentID_ % entityID_);
+	DEBUG_MSG(boost::format("Dbmgr::onAccountOnline:componentID:%1%, entityID:%2%.\n") % componentID_ % EntityDBTask_entityID());
 
 	/*
 	// 如果没有连接db则从log中查找账号是否还在线
@@ -1309,13 +1308,12 @@ thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 	}
 	*/
 
-	return DBTask::presentMainThread();
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
 DBTaskEntityOffline::DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid):
-DBTask(addr),
-dbid_(dbid),
+EntityDBTask(addr, 0, dbid),
 sid_(sid)
 {
 }
@@ -1331,15 +1329,15 @@ bool DBTaskEntityOffline::db_thread_process()
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
-	pELTable->eraseEntityLog(pdbi_, dbid_, sid_);
+	pELTable->eraseEntityLog(pdbi_, EntityDBTask_entityDBID(), sid_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%, entityType=%2%.\n") % dbid_ % sid_);
-	return DBTask::presentMainThread();
+	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%, entityType=%2%.\n") % EntityDBTask_entityDBID() % sid_);
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
