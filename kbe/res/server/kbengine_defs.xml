@@ -671,7 +671,7 @@
 		<defaultAddBots> 
 			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
-			<tickcount> 2  </tickcount>									<!-- Type: Integer -->
+			<tickcount> 5  </tickcount>									<!-- Type: Integer -->
 		</defaultAddBots>
 		
 		<!-- 机器人账号相关 
