@@ -16,7 +16,7 @@ class Motion:
 		"""
 		if self.isMoving:
 			#INFO_MSG("%i stop motion." % self.id)
-			self.cancel("Movement")
+			self.cancelController("Movement")
 			self.isMoving = False
 			
 	def onMove(self, controllerId, userarg):
