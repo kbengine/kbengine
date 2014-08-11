@@ -37,6 +37,13 @@ Controllers::~Controllers()
 }
 
 //-------------------------------------------------------------------------------------
+void Controllers::clear()
+{
+	objects_.clear();
+	lastid_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
 bool Controllers::add(Controller* pController)
 {
 	uint32 id = pController->id();

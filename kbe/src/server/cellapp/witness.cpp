@@ -165,10 +165,34 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
-	KBE_ASSERT(pEntity == pEntity_);
-
 	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).\n") % 
 		pEntity->getScriptName() % pEntity->getID());
+
+	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
+	if(pChannel)
+	{
+		pChannel->send();
+
+		// 通知客户端leaveworld
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+		(*pForwardBundle) << pEntity->getID();
+
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
+		pEntity_->getClientMailbox()->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
+
+	clear(pEntity);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::clear(Entity* pEntity)
+{
+	KBE_ASSERT(pEntity == pEntity_);
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); iter++)
@@ -181,24 +205,6 @@ void Witness::detach(Entity* pEntity)
 		delete (*iter);
 	}
 	
-	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
-	if(pChannel)
-	{
-		pChannel->send();
-
-		// 通知客户端leaveworld
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-		(*pForwardBundle) << pEntity_->getID();
-
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
-		pEntity_->getClientMailbox()->postMail(*pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	}
-
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 5.0f;

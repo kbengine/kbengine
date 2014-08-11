@@ -70,6 +70,8 @@ entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
 ip_(),
 port_(),
+gatewayIP_(),
+gateWayPort_(),
 lastSentActiveTickTime_(timestamp()),
 lastSentUpdateDataTime_(timestamp()),
 connectedGateway_(false),
@@ -569,6 +571,22 @@ bool ClientObjectBase::loginGateWay()
 }
 
 //-------------------------------------------------------------------------------------
+bool ClientObjectBase::reLoginGateWay()
+{
+	// 请求重登陆网关, 通常是掉线了之后执行
+	connectedGateway_ = true;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::reLoginGateway);
+	(*pBundle) << name_;
+	(*pBundle) << password_;
+	(*pBundle) << rndUUID();
+	(*pBundle) << entityID_;
+	pServerChannel_->pushBundle(pBundle);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE retcode;
@@ -602,6 +620,9 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
+
+	gatewayIP_ = ip_;
+	gateWayPort_ = port_;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -643,6 +664,8 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 	connectedGateway_ = true;
 
 	entityID_ = eid;
+	rndUUID_ = rndUUID;
+
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
 

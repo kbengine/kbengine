@@ -35,7 +35,7 @@ SCRIPT_METHOD_DECLARE_END()
 
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ScriptStdOutErr)
-SCRIPT_MEMBER_DECLARE("softspace",			softspace_,		T_CHAR,					0,			0)	
+SCRIPT_MEMBER_DECLARE("softspace",			softspace_,			T_CHAR,					0,			0)	
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(ScriptStdOutErr)

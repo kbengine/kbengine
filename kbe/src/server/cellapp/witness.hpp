@@ -107,6 +107,7 @@ public:
 
 	void attach(Entity* pEntity);
 	void detach(Entity* pEntity);
+	void clear(Entity* pEntity);
 
 	void setAoiRadius(float radius, float hyst = 5.0f);
 	

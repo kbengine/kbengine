@@ -2477,8 +2477,8 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	(*pBundle).newMessage(CellappInterface::reqTeleportOther);
 	(*pBundle) << getID();
 	(*pBundle) << nearbyMBRefID;
-	(*pBundle) << this->getSpaceID() << destSpaceID;
-	(*pBundle) << this->getScriptModule()->getName();
+	(*pBundle) << getSpaceID() << destSpaceID;
+	(*pBundle) << getScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
@@ -2781,6 +2781,26 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
 
 	addToStream(s);
+	
+	stopMove();
+
+	witnesses_.clear();
+
+	if(pControllers_)
+	{
+		pControllers_->clear();
+		SAFE_RELEASE(pControllers_);
+	}
+
+	if(pWitness())
+	{
+		pWitness()->clear(this);
+		Witness::ObjPool().reclaimObject(pWitness_);
+		pWitness_ = NULL;
+	}
+
+	scriptTimers_.cancelAll();
+	pyCallbackMgr_.finalise();
 }
 
 //-------------------------------------------------------------------------------------

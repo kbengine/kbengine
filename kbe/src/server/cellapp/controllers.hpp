@@ -35,6 +35,8 @@ public:
 	bool remove(Controller* pController);
 	bool remove(uint32 id);
 	
+	void clear();
+
 	uint32 freeID(){ return ++lastid_; }
 
 	typedef std::map<uint32, KBEShared_ptr< Controller > > CONTROLLERS_MAP;

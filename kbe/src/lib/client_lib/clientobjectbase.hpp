@@ -88,7 +88,9 @@ public:
 
 	bool createAccount();
 	bool login();
+	
 	bool loginGateWay();
+	bool reLoginGateWay();
 
 	int32 appID()const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
@@ -379,6 +381,8 @@ public:
 	uint64 locktime()const{ return locktime_; }
 
 	virtual void onServerClosed();
+
+	uint64 rndUUID()const{ return rndUUID_; }
 protected:				
 	int32													appID_;
 
@@ -401,6 +405,9 @@ protected:
 
 	std::string												ip_;
 	uint16													port_;
+
+	std::string												gatewayIP_;
+	uint16													gateWayPort_;
 
 	uint64													lastSentActiveTickTime_;
 	uint64													lastSentUpdateDataTime_;
@@ -433,6 +440,9 @@ protected:
 	ScriptCallbacks											scriptCallbacks_;
 
 	uint64													locktime_;
+	
+	// 用于重登陆网关时的key
+	uint64													rndUUID_; 
 };
 
 

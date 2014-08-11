@@ -2430,13 +2430,18 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 
 		// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 		entityClientMailbox->getChannel()->proxyID(proxy->getID());
-		createClientProxies(proxy, true);
+		proxy->addr(entityClientMailbox->getChannel()->addr());
+
+		//createClientProxies(proxy, true);
+		proxy->onEntitiesEnabled();
 	}
 	else
 	{
-		WARNING_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
+		ERROR_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
 			"entityID=%3%, ClientMailbox is exist.\n") %
 			accountName.c_str() % key % entityID);
+
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 	}
 }
 

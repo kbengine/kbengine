@@ -1498,7 +1498,7 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	Position3D pos;
 	Direction3D dir;
-	std::string entityType;
+	ENTITY_SCRIPT_UID entityType;
 	SPACE_ID spaceID = 0, lastSpaceID = 0;
 
 	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID >> spaceID;
@@ -1515,7 +1515,7 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	}
 
 	// ´´½¨entity
-	Entity* e = createEntityCommon(entityType.c_str(), NULL, false, teleportEntityID, false);
+	Entity* e = createEntityCommon(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
 	if(e == NULL)
 	{
 		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: create reqTeleportEntity(%1%) is error!\n") % teleportEntityID);
