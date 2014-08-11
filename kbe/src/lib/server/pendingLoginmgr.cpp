@@ -77,7 +77,11 @@ bool PendingLoginMgr::add(PLInfos* infos)
 	pPLMap_[infos->accountName] = infos;
 	infos->lastProcessTime = timestamp();
 
-	DEBUG_MSG(boost::format("PendingLoginMgr::add: size=%1%.\n") % pPLMap_.size());
+	if(pPLMap_.size() > 64)
+	{
+		DEBUG_MSG(boost::format("PendingLoginMgr::add: size=%1%.\n") % pPLMap_.size());
+	}
+
 	return true;
 }
 
@@ -129,8 +133,8 @@ bool PendingLoginMgr::process()
 		if(curr - infos->lastProcessTime >= OP_TIME_OUT_MAX)
 		{
 			iter = pPLMap_.erase(iter);
-			DEBUG_MSG(boost::format("PendingLoginMgr::process: size=%1%, remove=%2%.\n") % 
-				pPLMap_.size() % infos->accountName.c_str());
+			DEBUG_MSG(boost::format("PendingLoginMgr::process: [%2%] is timeout, currsize=%1%.\n") % 
+				pPLMap_.size() % infos->accountName);
 
 			SAFE_RELEASE(infos);
 		}
