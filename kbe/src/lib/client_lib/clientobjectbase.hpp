@@ -187,6 +187,11 @@ public:
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
+	   重登陆baseapp成功
+	*/
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel);
+
+	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity
 	   在登录时也可表达成功回调
 	   @datas: 账号entity的信息

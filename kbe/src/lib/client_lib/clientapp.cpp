@@ -655,6 +655,12 @@ void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_C
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+{
+	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel);
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath)
 {
 }

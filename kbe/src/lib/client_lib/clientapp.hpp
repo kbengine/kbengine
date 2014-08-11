@@ -166,6 +166,11 @@ public:
 	*/
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
+	/** 网络接口
+	   重登陆baseapp成功
+	*/
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel);
+
 	virtual void onTargetChanged();
 
 	/** 

@@ -189,6 +189,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountNewPasswordCB,					MERCURY_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
+
+	// 重登陆网关成功 
+	CLIENT_MESSAGE_DECLARE_ARGS0(onReLoginGatewaySuccessfully,				MERCURY_FIXED_MESSAGE)
 									
 NETWORK_INTERFACE_DECLARE_END()
 

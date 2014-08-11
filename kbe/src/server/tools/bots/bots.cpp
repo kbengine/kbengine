@@ -531,6 +531,16 @@ void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 }
 
 //-------------------------------------------------------------------------------------	
+void Bots::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onReLoginGatewaySuccessfully(pChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void Bots::onCreatedProxies(Mercury::Channel * pChannel, 
 								 uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {

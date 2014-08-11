@@ -2434,6 +2434,12 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 
 		//createClientProxies(proxy, true);
 		proxy->onEntitiesEnabled();
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
+		(*pBundle).send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		
 	}
 	else
 	{

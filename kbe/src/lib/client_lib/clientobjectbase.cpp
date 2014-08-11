@@ -652,6 +652,12 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+{
+	INFO_MSG(boost::format("ClientObjectBase::onReLoginGatewaySuccessfully! name=%1%.\n") % name_);
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
 	if(entityID_ == 0)

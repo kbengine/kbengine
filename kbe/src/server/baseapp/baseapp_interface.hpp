@@ -163,7 +163,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	// 前端请求重新登录到网关上。
 	BASEAPP_MESSAGE_EXPOSED(reLoginGateway)
-	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginGateway,									MERCURY_FIXED_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginGateway,									MERCURY_VARIABLE_MESSAGE,
 									std::string,									accountName,
 									std::string,									password,
 									uint64,											key,
