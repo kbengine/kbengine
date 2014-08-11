@@ -830,8 +830,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	s.readBlob(datas);
 
-	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryResultFromDbmgr: loginName=%1%.\n") %
-		loginName);
+	//DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryResultFromDbmgr: loginName=%1%.\n") %
+	//	loginName);
 
 	if((flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
