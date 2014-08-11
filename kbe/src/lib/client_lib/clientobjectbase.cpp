@@ -1619,7 +1619,10 @@ void ClientObjectBase::clearSpace(bool isAll)
 		{
 			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
 			if(pEntity->getID() == this->entityID())
+			{
+				pEntity->setSpaceID(0);
 				continue;
+			}
 
 			EventData_LeaveWorld eventdata;
 			eventdata.spaceID = pEntity->getSpaceID();

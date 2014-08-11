@@ -441,6 +441,7 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = false;
+	setSpaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
 }
 
@@ -455,6 +456,7 @@ void Entity::onEnterSpace()
 void Entity::onLeaveSpace()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	setSpaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
