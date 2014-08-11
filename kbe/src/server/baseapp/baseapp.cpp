@@ -2405,7 +2405,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 		accountName % key % entityID);
 
 	Base* base = findEntity(entityID);
-	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()))
+	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()) || base->isDestroyed())
 	{
 		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
@@ -2439,7 +2439,6 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 		(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
 		(*pBundle).send(this->getNetworkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		
 	}
 	else
 	{
