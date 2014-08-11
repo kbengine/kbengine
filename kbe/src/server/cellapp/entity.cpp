@@ -2491,8 +2491,10 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	pBundle->send(Cellapp::getSingleton().getNetworkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
-	// 销毁这个entity
-	Cellapp::getSingleton().destroyEntity(getID(), false);
+	// 暂时不销毁这个entity, 等那边成功创建之后再回来销毁
+	// 此期间的消息可以通过ghost转发给real
+	// 如果未能正确传输过去则可以从当前cell继续恢复entity.
+	// Cellapp::getSingleton().destroyEntity(getID(), false);
 }
 
 //-------------------------------------------------------------------------------------

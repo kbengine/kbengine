@@ -231,6 +231,7 @@ public:
 	void reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s);
 	void reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s);
 	void reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/**
 		获取和设置ghost管理器

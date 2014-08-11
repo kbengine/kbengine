@@ -160,6 +160,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 请求teleport到当前cellapp上
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
 
+	// entity传送到目的cellapp上的space之后， 返回给之前cellapp的回调
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherCB,						MERCURY_VARIABLE_MESSAGE)
+
 	// real请求更新属性到ghost
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					MERCURY_VARIABLE_MESSAGE)
 	

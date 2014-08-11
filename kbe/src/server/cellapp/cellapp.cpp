@@ -1495,6 +1495,8 @@ void Cellapp::reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	size_t rpos = s.rpos();
+
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	Position3D pos;
 	Direction3D dir;
@@ -1505,10 +1507,22 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+	
+	bool success = false;
 
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
+		s.rpos(rpos);
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle) << teleportEntityID;
+		(*pBundle) << success;
+		(*pBundle).append(&s);
+		pBundle->send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: not found space(%1%),  reqTeleportEntity(%2%)!\n") % spaceID % teleportEntityID);
 		s.opfini();
 		return;
@@ -1518,6 +1532,16 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	Entity* e = createEntityCommon(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
 	if(e == NULL)
 	{
+		s.rpos(rpos);
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle) << teleportEntityID;
+		(*pBundle) << success;
+		(*pBundle).append(&s);
+		pBundle->send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: create reqTeleportEntity(%1%) is error!\n") % teleportEntityID);
 		s.opfini();
 		return;
@@ -1536,6 +1560,61 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 
 	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
 	e->onTeleportSuccess(nearbyMBRef, lastSpaceID);
+	
+	success = true;
+	
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle) << teleportEntityID;
+		(*pBundle) << success;
+		pBundle->send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	bool success;
+
+	s >> teleportEntityID >> success;
+
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+
+	if(entity == NULL)
+	{
+		if(!success)
+		{
+			ERROR_MSG(boost::format("Cellapp::reqTeleportOtherCB: not found reqTeleportEntity(%1%), lose entity!\n") % teleportEntityID);
+			s.opfini();
+			return;
+		}
+
+		s.opfini();
+	}
+
+	// 传送成功， 我们销毁这个entity。
+	if(success)
+	{
+		destroyEntity(teleportEntityID, false);
+		return;
+	}
+
+	// 传送失败了， 我们需要重恢复entity
+	Position3D pos;
+	Direction3D dir;
+	ENTITY_SCRIPT_UID entityType;
+	SPACE_ID spaceID = 0, lastSpaceID = 0;
+
+	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID >> spaceID;
+	s >> entityType;
+	s >> pos.x >> pos.y >> pos.z;
+	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+
+	entity->changeToReal(0, s);
+	entity->onTeleportFailure();
 }
 
 //-------------------------------------------------------------------------------------
