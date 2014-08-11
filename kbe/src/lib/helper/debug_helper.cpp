@@ -517,7 +517,7 @@ void DebugHelper::script_msg(const std::string& s)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	if(canLogFile_ && log4cxx::ScriptLevel::SCRIPT_ERR != scriptMsgType_)
+	if(canLogFile_)
 		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
