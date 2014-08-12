@@ -603,6 +603,10 @@ void DebugHelper::critical_msg(const std::string& s)
 	LOG4CXX_FATAL(g_logger, buf);
 #endif
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[FATAL]: %s", s.c_str());
+#endif
+
 	onMessage(KBELOG_CRITICAL, buf, strlen(buf));
 	backtrace_msg();
 }
