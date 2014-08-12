@@ -726,6 +726,9 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
 			entity->isOnGound(isOnGound > 0);
+
+			DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
+				entity->getScriptName() % eid  % (int)isOnGound);
 		}
 		else
 		{
@@ -742,17 +745,18 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		// 初始化一下服务端当前的位置
 		entity->setServerPosition(entity->getPosition());
 
-		KBE_ASSERT(!entity->isEnterword() && entity->getCellMailbox() == NULL);
-		
+		DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
+			entity->getScriptName() % eid  % (int)isOnGound);
+
+		KBE_ASSERT(!entity->isEnterword());
+		KBE_ASSERT(entity->getCellMailbox() == NULL);
+
 		// 设置entity的cellMailbox
 		EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
 			NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
 		entity->setCellMailbox(mailbox);
 	}
-
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-		entity->getScriptName() % eid  % (int)isOnGound);
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
