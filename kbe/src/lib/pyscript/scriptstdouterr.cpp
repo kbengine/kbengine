@@ -20,7 +20,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "scriptstdouterr.hpp"
-#include "helper/script_loglevel.hpp"
 
 #ifndef CODE_INLINE
 #include "scriptstdouterr.ipp"
@@ -94,16 +93,6 @@ void ScriptStdOutErr::onPrint(const wchar_t* msg, uint32 msglen)
 	{
 		std::string out;
 		strutil::wchar2utf8(sbuffer_, out);
-
-		const char* tracebackflag = "Traceback (most recent call last)";
-		size_t len = strlen(tracebackflag);
-		
-		if(out.size() > len)
-		{
-			if(out.substr(0, len) == tracebackflag)
-				DebugHelper::getSingleton().setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
-		}
-
 		SCRIPT_MSG(out);
 		sbuffer_ = L"";
 	}
