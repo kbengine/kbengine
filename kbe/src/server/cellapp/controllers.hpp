@@ -28,7 +28,7 @@ namespace KBEngine{
 class Controllers
 {
 public:
-	Controllers();
+	Controllers(ENTITY_ID entityID);
 	~Controllers();
 
 	bool add(Controller* pController);
@@ -44,10 +44,13 @@ public:
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
+
 private:
 	CONTROLLERS_MAP objects_;
 
 	uint32 lastid_;
+
+	ENTITY_ID entityID_;
 };
 
 }

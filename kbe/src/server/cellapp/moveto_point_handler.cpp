@@ -44,6 +44,20 @@ layer_(layer)
 }
 
 //-------------------------------------------------------------------------------------
+MoveToPointHandler::MoveToPointHandler():
+destPos_(),
+velocity_(0.f),
+faceMovement_(false),
+moveVertically_(false),
+pyuserarg_(NULL),
+range_(0.f),
+pController_(NULL),
+layer_(0)
+{
+	Cellapp::getSingleton().addUpdatable(this);
+}
+
+//-------------------------------------------------------------------------------------
 MoveToPointHandler::~MoveToPointHandler()
 {
 	if(pyuserarg_ != NULL)

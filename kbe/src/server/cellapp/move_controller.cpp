@@ -26,8 +26,8 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveController::MoveController(Controller::ControllerType type, Entity* pEntity, MoveToPointHandler* pMoveToPointHandler, uint32 id):
-Controller(type, pEntity, 0, id),
+MoveController::MoveController(Entity* pEntity, MoveToPointHandler* pMoveToPointHandler, uint32 id):
+Controller(Controller::CONTROLLER_TYPE_MOVE, pEntity, 0, id),
 pMoveToPointHandler_(pMoveToPointHandler)
 {
 }
@@ -38,6 +38,22 @@ MoveController::~MoveController()
 	// DEBUG_MSG(boost::format("MoveController::~MoveController(): %1%\n") % this);
 	pMoveToPointHandler_->pController(NULL);
 	pMoveToPointHandler_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void MoveController::addToStream(KBEngine::MemoryStream& s)
+{
+	Controller::addToStream(s);
+
+	pMoveToPointHandler_->addToStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void MoveController::createFromStream(KBEngine::MemoryStream& s)
+{
+	Controller::createFromStream(s);
+
+	pMoveToPointHandler_->createFromStream(s);
 }
 
 //-------------------------------------------------------------------------------------

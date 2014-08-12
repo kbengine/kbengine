@@ -75,6 +75,17 @@ maxDistance_(maxDistance)
 }
 
 //-------------------------------------------------------------------------------------
+NavigateHandler::NavigateHandler():
+MoveToPointHandler(),
+destPosIdx_(0),
+paths_(),
+pNavHandle_(NULL),
+maxMoveDistance_(0.f),
+maxDistance_(0.f)
+{
+}
+
+//-------------------------------------------------------------------------------------
 NavigateHandler::~NavigateHandler()
 {
 }

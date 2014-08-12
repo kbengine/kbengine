@@ -29,7 +29,9 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 ProximityController::ProximityController(Entity* pEntity, float xz, float y, int32 userarg, uint32 id):
 Controller(CONTROLLER_TYPE_PROXIMITY, pEntity, userarg, id),
-pTrapTrigger_(NULL)
+pTrapTrigger_(NULL),
+xz_(xz),
+y_(y)
 {
 	pTrapTrigger_ = new TrapTrigger(static_cast<EntityCoordinateNode*>(pEntity->pEntityCoordinateNode()), 
 								this, xz, y);
@@ -38,10 +40,32 @@ pTrapTrigger_(NULL)
 }
 
 //-------------------------------------------------------------------------------------
+ProximityController::ProximityController(Entity* pEntity):
+Controller(pEntity),
+xz_(0.f),
+y_(0.f)
+{
+}
+
+//-------------------------------------------------------------------------------------
 ProximityController::~ProximityController()
 {
 	pTrapTrigger_->uninstall();
 	delete pTrapTrigger_;
+}
+
+//-------------------------------------------------------------------------------------
+void ProximityController::addToStream(KBEngine::MemoryStream& s)
+{
+	Controller::addToStream(s);
+	s << xz_ << y_;
+}
+
+//-------------------------------------------------------------------------------------
+void ProximityController::createFromStream(KBEngine::MemoryStream& s)
+{
+	Controller::createFromStream(s);
+	s >> xz_ >> y_;
 }
 
 //-------------------------------------------------------------------------------------

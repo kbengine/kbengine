@@ -19,15 +19,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "controllers.hpp"	
+#include "cellapp.hpp"	
+#include "entity.hpp"	
 #include "helper/profile.hpp"	
 #include "cstdkbe/memorystream.hpp"	
+
+#include "proximity_controller.hpp"	
+#include "moveto_point_handler.hpp"	
+#include "moveto_entity_handler.hpp"	
+#include "navigate_handler.hpp"	
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-Controllers::Controllers():
-lastid_(0)
+Controllers::Controllers(ENTITY_ID entityID):
+lastid_(0),
+entityID_(entityID)
 {
 }
 
@@ -85,6 +93,8 @@ void Controllers::addToStream(KBEngine::MemoryStream& s)
 	CONTROLLERS_MAP::iterator iter = objects_.begin();
 	for(; iter != objects_.end(); iter++)
 	{
+		uint8 itype = (uint8)iter->second->type();
+		s << itype;
 		iter->second->addToStream(s);
 	}
 }
@@ -95,8 +105,31 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 	uint32 size = 0;
 	s >> lastid_ >> size;
 
+	Entity* pEntity = Cellapp::getSingleton().findEntity(entityID_);
+	KBE_ASSERT(pEntity);
+
 	for(uint32 i=0; i<size; i++)
 	{
+		uint8 itype;
+		s >> itype;
+
+		Controller::ControllerType type = (Controller::ControllerType)itype;
+		
+		Controller* pController = NULL;
+
+		switch(type)
+		{
+		case Controller::CONTROLLER_TYPE_PROXIMITY:
+			pController = new ProximityController(pEntity);
+			break;
+		case Controller::CONTROLLER_TYPE_MOVE:
+		default:
+			KBE_ASSERT(false);
+			break;
+		};
+		
+		pController->type(type);
+		objects_[pController->id()].reset(pController);
 	}
 }
 

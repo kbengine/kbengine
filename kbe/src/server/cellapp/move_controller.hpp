@@ -31,11 +31,15 @@ namespace KBEngine{
 class MoveController : public Controller
 {
 public:
-	MoveController(Controller::ControllerType type, Entity* pEntity, MoveToPointHandler* pMoveToPointHandler = NULL, uint32 id = 0);
+	MoveController(Entity* pEntity, MoveToPointHandler* pMoveToPointHandler = NULL, uint32 id = 0);
 	virtual ~MoveController();
 	
 	void pMoveToPointHandler(MoveToPointHandler* pMoveToPointHandler)
 		{ pMoveToPointHandler_ = pMoveToPointHandler; }
+
+
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	MoveToPointHandler* pMoveToPointHandler_;
 };

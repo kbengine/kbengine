@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "controller.hpp"
 #include "updatable.hpp"
 #include "pyscript/scriptobject.hpp"	
+#include "math/math.hpp"
 
 namespace KBEngine{
 
@@ -44,6 +45,8 @@ public:
 
 	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
+
+	MoveToPointHandler();
 	virtual ~MoveToPointHandler();
 	
 	virtual bool update();

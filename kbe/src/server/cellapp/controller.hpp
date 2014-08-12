@@ -46,6 +46,7 @@ public:
 	};
 
 	Controller(Controller::ControllerType type, Entity* pEntity, int32 userarg, uint32 id = 0);
+	Controller(Entity* pEntity);
 	virtual ~Controller();
 	
 	uint32 id(){ return id_; }
@@ -60,6 +61,7 @@ public:
 	virtual void destroy();
 
 	Controller::ControllerType type(){ return type_; }
+	void type(Controller::ControllerType t){ type_ = t; }
 
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);

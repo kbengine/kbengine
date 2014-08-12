@@ -35,6 +35,16 @@ type_(type)
 }
 
 //-------------------------------------------------------------------------------------
+Controller::Controller(Entity* pEntity):
+id_(0),
+pEntity_(pEntity),
+userarg_(0),
+pControllers_(0),
+type_(CONTROLLER_TYPE_NORMAL)
+{
+}
+
+//-------------------------------------------------------------------------------------
 Controller::~Controller()
 {
 	id_ = 0;
@@ -53,17 +63,13 @@ void Controller::destroy()
 //-------------------------------------------------------------------------------------
 void Controller::addToStream(KBEngine::MemoryStream& s)
 {
-	uint8 itype = (uint8)type_;
-	s << id_ << itype << userarg_;
+	s << id_ << userarg_;
 }
 
 //-------------------------------------------------------------------------------------
 void Controller::createFromStream(KBEngine::MemoryStream& s)
 {
-	uint8 itype;
-	s >> id_ >> itype >> userarg_;
-
-	type_ = (ControllerType)itype;
+	s >> id_ >> userarg_;
 }
 
 //-------------------------------------------------------------------------------------

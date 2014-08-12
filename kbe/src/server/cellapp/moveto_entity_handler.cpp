@@ -34,6 +34,13 @@ pTargetID_(pTargetID)
 }
 
 //-------------------------------------------------------------------------------------
+MoveToEntityHandler::MoveToEntityHandler():
+MoveToPointHandler(),
+pTargetID_(0)
+{
+}
+
+//-------------------------------------------------------------------------------------
 MoveToEntityHandler::~MoveToEntityHandler()
 {
 }

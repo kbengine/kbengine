@@ -116,7 +116,7 @@ pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
-pControllers_(new Controllers()),
+pControllers_(new Controllers(id)),
 pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
@@ -1740,7 +1740,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
 	
 	new NavigateHandler(p, destination, velocity, 
 		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
@@ -1804,7 +1804,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
 		0.0f, faceMovement, moveVertically, userData);
@@ -1867,7 +1867,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(Controller::CONTROLLER_TYPE_MOVE, this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
 
 	new MoveToEntityHandler(p, targetID, velocity, range,
 		faceMovement, moveVertically, userData);
@@ -2795,8 +2795,10 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	realCell_ = realCell;
 	ghostCell_ = 0;
 
-	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % getScriptName() % getID() % realCell);
-
+	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % 
+		getScriptName() % getID() % realCell);
+	
+	// 必须放在前面
 	addToStream(s);
 	
 	stopMove();
@@ -2833,7 +2835,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	ghostCell_ = ghostCell;
 	realCell_ = 0;
 
-	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % getScriptName() % getID() % ghostCell_);
+	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % 
+		getScriptName() % getID() % ghostCell_);
 
 	createFromStream(s);
 }
@@ -2848,40 +2851,16 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 	}
 
 	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
-		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << layer_ << baseMailboxComponentID;
+		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << 
+		layer_ << baseMailboxComponentID;
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
-	uint32 size = witnesses_count_;
-	s << size;
-
-	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
-	for(; iter != witnesses_.end(); iter++)
-	{
-		s << (*iter);
-	}
-
-	if(pControllers_)
-	{
-		s << true;
-		pControllers_->addToStream(s);
-	}
-	else
-	{
-		s << false;
-	}
-
-	if(pWitness())
-	{
-		s << true;
-		pWitness()->addToStream(s);
-	}
-	else
-	{
-		s << false;
-	}
-
+	addMoveHandlerToStream(s);
+	addControllersToStream(s);
+	addWitnessToStream(s);
 	addTimersToStream(s);
+
 	pyCallbackMgr_.addToStream(s);
 }
 
@@ -2903,7 +2882,74 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);
 	Py_XDECREF(cellData);
+	
+	createMoveHandlerFromStream(s);
+	createControllersFromStream(s);
+	createWitnessFromStream(s);
+	createTimersFromStream(s);
 
+	pyCallbackMgr_.createFromStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addControllersToStream(KBEngine::MemoryStream& s)
+{
+	if(pControllers_)
+	{
+		s << true;
+
+		// 必须先清理移动相关的Controllers
+		stopMove();
+
+		pControllers_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createControllersFromStream(KBEngine::MemoryStream& s)
+{
+	bool hasControllers;
+	s >> hasControllers;
+
+	if(hasControllers)
+	{
+		if(pControllers_ == NULL)
+			pControllers_ = new Controllers(getID());
+
+		pControllers_->createFromStream(s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addWitnessToStream(KBEngine::MemoryStream& s)
+{
+	uint32 size = witnesses_count_;
+	s << size;
+
+	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
+	for(; iter != witnesses_.end(); iter++)
+	{
+		s << (*iter);
+	}
+
+	if(pWitness())
+	{
+		s << true;
+		pWitness()->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
+{
 	uint32 size;
 	s >> size;
 
@@ -2921,19 +2967,10 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 		witnesses_.push_back(entityID);
 	}
 
-	bool has;
+	bool hasWitness;
+	s >> hasWitness;
 
-	s >> has;
-	if(has)
-	{
-		if(pControllers_ == NULL)
-			pControllers_ = new Controllers();
-
-		pControllers_->createFromStream(s);
-	}
-
-	s >> has;
-	if(has)
+	if(hasWitness)
 	{
 		PyObject* clientMailbox = PyObject_GetAttrString(getBaseMailbox(), "client");
 		KBE_ASSERT(clientMailbox != Py_None);
@@ -2944,9 +2981,36 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 		setWitness(Witness::ObjPool().createObject());
 		pWitness_->createFromStream(s);
 	}
+}
 
-	createTimersFromStream(s);
-	pyCallbackMgr_.createFromStream(s);
+//-------------------------------------------------------------------------------------
+void Entity::addMoveHandlerToStream(KBEngine::MemoryStream& s)
+{
+	if(pMoveController_)
+	{
+		s << true;
+		pMoveController_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
+{
+	bool hasMoveHandler;
+	s >> hasMoveHandler;
+
+	if(hasMoveHandler)
+	{
+		stopMove();
+
+		pMoveController_ = new MoveController(this);
+		pControllers_->objects()[pMoveController_->id()].reset(pMoveController_);
+		pMoveController_->createFromStream(s);
+	}
 }
 
 //-------------------------------------------------------------------------------------

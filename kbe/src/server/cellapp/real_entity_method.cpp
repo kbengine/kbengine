@@ -75,7 +75,6 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		
 		(*pForwardBundle).newMessage(CellappInterface::onRemoteRealMethodCall);
 		(*pForwardBundle) << ghostEntityID_;
-		(*pForwardBundle) << methodDescription->getUType();
 		
 		if(mstream->wpos() > 0)
 			(*pForwardBundle).append(mstream->data(), mstream->wpos());

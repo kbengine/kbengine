@@ -31,6 +31,8 @@ class MoveToEntityHandler : public MoveToPointHandler
 public:
 	MoveToEntityHandler(Controller* pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
+
+	MoveToEntityHandler();
 	virtual ~MoveToEntityHandler();
 	
 	void addToStream(KBEngine::MemoryStream& s);

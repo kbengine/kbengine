@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class TrapTrigger;
+class CoordinateNode;
 
 /*
 	π‹¿Ìtrap°£
@@ -35,14 +36,20 @@ class ProximityController : public Controller
 {
 public:
 	ProximityController(Entity* pEntity, float xz, float y, int32 userarg, uint32 id = 0);
+	ProximityController(Entity* pEntity);
 	~ProximityController();
 	
 	bool reinstall(CoordinateNode* pCoordinateNode);
 
 	void onEnter(Entity* pEntity, float xz, float y);
 	void onLeave(Entity* pEntity, float xz, float y);
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	TrapTrigger* pTrapTrigger_;
+	float xz_; 
+	float y_;
 };
 
 }

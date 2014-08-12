@@ -22,6 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBE_NAVIGATEHANDLER_HPP__
 
 #include "move_controller.hpp"	
+#include "math/math.hpp"
+#include "navigation/navigation_handle.hpp"
 
 namespace KBEngine{
 
@@ -32,6 +34,7 @@ public:
 		float maxMoveDistance, float maxDistance, float girth,
 		PyObject* userarg);
 
+	NavigateHandler();
 	virtual ~NavigateHandler();
 	
 	void addToStream(KBEngine::MemoryStream& s);
