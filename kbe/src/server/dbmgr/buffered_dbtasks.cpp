@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "thread/threadguard.hpp"
 #include "dbmgr_lib/db_interface.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine{
 
@@ -105,6 +106,13 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 {
 	mutex_.lockMutex();
+
+	if(g_kbeSrvConfig.getDBMgr().debugDBMgr)
+	{
+		DEBUG_MSG(boost::format("Buffered_DBTasks::tryGetNextTask(): finiTask(dbid=%1%, entityID=%2%\ndbidlist=%3%\nentityidlist=%4%\n") % 
+			pTask->EntityDBTask_entityDBID() % pTask->EntityDBTask_entityID() % printBuffered_dbid_() % printBuffered_entityID()); 
+	}
+
 	EntityDBTask * pNextTask = NULL;
 	
 	if(pTask->EntityDBTask_entityDBID() <= 0)
@@ -168,6 +176,25 @@ std::string Buffered_DBTasks::printBuffered_dbid()
 {
 	std::string ret;
 	mutex_.lockMutex();
+	ret = printBuffered_dbid_();
+	mutex_.unlockMutex();
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Buffered_DBTasks::printBuffered_entityID()
+{
+	std::string ret;
+	mutex_.lockMutex();
+    ret = printBuffered_entityID_();
+	mutex_.unlockMutex();
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Buffered_DBTasks::printBuffered_dbid_()
+{
+	std::string ret;
 
     for (DBID_TASKS_MAP::iterator iter = dbid_tasks_.begin(); iter != dbid_tasks_.end(); iter = dbid_tasks_.upper_bound(iter->first))  
     {  
@@ -182,15 +209,13 @@ std::string Buffered_DBTasks::printBuffered_dbid()
 		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
     }  
 
-	mutex_.unlockMutex();
 	return ret;
 }
 
 //-------------------------------------------------------------------------------------
-std::string Buffered_DBTasks::printBuffered_entityID()
+std::string Buffered_DBTasks::printBuffered_entityID_()
 {
 	std::string ret;
-	mutex_.lockMutex();
 
     for (ENTITYID_TASKS_MAP::iterator iter = entityid_tasks_.begin(); iter != entityid_tasks_.end(); iter = entityid_tasks_.upper_bound(iter->first))  
     {  
@@ -204,7 +229,6 @@ std::string Buffered_DBTasks::printBuffered_entityID()
 		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
     }  
 
-	mutex_.unlockMutex();
 	return ret;
 }
 

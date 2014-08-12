@@ -77,6 +77,8 @@ public:
 	*/
 	std::string printBuffered_dbid();
 	std::string printBuffered_entityID();
+	std::string printBuffered_dbid_();
+	std::string printBuffered_entityID_();
 protected:
 	bool hasTask_(DBID dbid);
 	bool hasTask_(ENTITY_ID entityID);
