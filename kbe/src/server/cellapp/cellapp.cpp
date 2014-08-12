@@ -1598,7 +1598,7 @@ void Cellapp::reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s)
 	// 传送成功， 我们销毁这个entity。
 	if(success)
 	{
-		//destroyEntity(teleportEntityID, false);
+		destroyEntity(teleportEntityID, false);
 		return;
 	}
 

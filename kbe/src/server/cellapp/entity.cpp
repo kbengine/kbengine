@@ -2794,6 +2794,12 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 
 	realCell_ = realCell;
 	ghostCell_ = 0;
+	
+	GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+	if(gm)
+	{
+		gm->addRoute(getID(), realCell_);
+	}
 
 	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % 
 		getScriptName() % getID() % realCell);
