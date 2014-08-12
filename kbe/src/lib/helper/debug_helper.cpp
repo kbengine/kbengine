@@ -515,13 +515,11 @@ void DebugHelper::script_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-	const size_t len = 33; // strlen("Traceback (most recent call last)");
-	
-	if(s.size() > len)
+	if(s.size() > 33 /* strlen("Traceback (most recent call last)" */)
 	{
 		if(s[0] == 'T' && s[10] == '(')
 		{
-			if(s.substr(0, len) == "Traceback (most recent call last)")
+			if(s.substr(0, 33) == "Traceback (most recent call last)")
 				setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
 		}
 	}
