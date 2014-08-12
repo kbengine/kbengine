@@ -1615,6 +1615,8 @@ void Cellapp::reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s)
 
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
+
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------

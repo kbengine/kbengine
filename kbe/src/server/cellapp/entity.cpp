@@ -2317,7 +2317,9 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 {
 	if(entity == NULL)
 	{
-		ERROR_MSG("Entity::teleport: nearbyEntityRef is null!\n");
+		ERROR_MSG(boost::format("%1%::teleport: %2%, nearbyEntityRef is null!\n") % 
+			this->getScriptName() % getID());
+
 		onTeleportFailure();
 		return;
 	}
@@ -2360,11 +2362,13 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		{
 			if(space != NULL)
 			{
-				ERROR_MSG("Entity::teleport: nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n");
+				ERROR_MSG(boost::format("%1%::teleport(): %2%, nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n") % 
+					this->getScriptName() % getID());
 			}
 			else
 			{
-				ERROR_MSG(boost::format("Entity::teleport: not found space(%1%)!\n") % spaceID);
+				ERROR_MSG(boost::format("%1%::teleport(): %2%, not found space(%3%)!\n") % 
+					this->getScriptName() % getID() % spaceID);
 			}
 
 			onTeleportFailure();
@@ -2407,14 +2411,18 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 		PyObject* pyret = PyObject_GetAttrString(nearbyMBRef, const_cast<char*>("cell"));
 		if(pyret == NULL)
 		{
-			ERROR_MSG("Entity::teleportRefMailbox: nearbyRef is error, not found cellMailbox!\n");
+			ERROR_MSG(boost::format("%1%::teleportRefMailbox(): %2%, nearbyRef is error, not found cellMailbox!\n") % 
+				this->getScriptName() % getID());
+
 			onTeleportFailure();
 			return;
 		}
 
 		if(pyret == Py_None)
 		{
-			ERROR_MSG("Entity::teleportRefMailbox: nearbyRef is error, not found cellMailbox!\n");
+			ERROR_MSG(boost::format("%1%::teleportRefMailbox(): %2%, nearbyRef is error, not found cellMailbox!\n") % 
+				this->getScriptName() % getID());
+
 			onTeleportFailure();
 			Py_DECREF(pyret);
 			return;
@@ -2463,7 +2471,9 @@ void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyM
 	// 目的space错误
 	if(destSpaceID == 0)
 	{
-		ERROR_MSG("Entity::onReqTeleportOtherAck: not found destSpace!\n");
+		ERROR_MSG(boost::format("%1%::onReqTeleportOtherAck(): %2%, not found destSpace!\n") % 
+			this->getScriptName() % getID());
+
 		onTeleportFailure();
 		return;
 	}
@@ -2570,7 +2580,9 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			else
 			{
 				// 如果不是entity， 也不是mailbox同时也不是None? 那肯定是输入错误
-				ERROR_MSG("Entity::teleport: nearbyRef is error!\n");
+				ERROR_MSG(boost::format("%1%::teleport(): %2%, nearbyRef is error!\n") % 
+					this->getScriptName() % getID());
+
 				onTeleportFailure();
 			}
 		}
@@ -2589,6 +2601,9 @@ void Entity::onTeleport()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportFailure()
 {
+	ERROR_MSG(boost::format("%1%::onTeleportFailure(): entityID=%2%\n") % 
+		this->getScriptName() % getID());
+
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
@@ -2839,6 +2854,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 	
 	uint32 size = witnesses_count_;
 	s << size;
+
 	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
 	for(; iter != witnesses_.end(); iter++)
 	{
@@ -2872,13 +2888,13 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::createFromStream(KBEngine::MemoryStream& s)
 {
-	ENTITY_SCRIPT_UID sid;
+	ENTITY_SCRIPT_UID scriptUType;
 	COMPONENT_ID baseMailboxComponentID;
 
-	s >> sid >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
+	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
 		topSpeedY_ >> shouldAutoBackup_ >> layer_ >> baseMailboxComponentID;
 
-	this->scriptModule_ = EntityDef::findScriptModule(sid);
+	this->scriptModule_ = EntityDef::findScriptModule(scriptUType);
 
 	// 设置entity的baseMailbox
 	if(baseMailboxComponentID > 0)
