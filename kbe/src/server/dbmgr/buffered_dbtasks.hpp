@@ -72,6 +72,11 @@ public:
 		return ret;
 	}
 
+	/**
+		提供给watcher使用
+	*/
+	std::string printBuffered_dbid();
+	std::string printBuffered_entityID();
 protected:
 	bool hasTask_(DBID dbid);
 	bool hasTask_(ENTITY_ID entityID);

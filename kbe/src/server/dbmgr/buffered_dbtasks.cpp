@@ -164,4 +164,49 @@ EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 }
 
 //-------------------------------------------------------------------------------------
+std::string Buffered_DBTasks::printBuffered_dbid()
+{
+	std::string ret;
+	mutex_.lockMutex();
+
+    for (DBID_TASKS_MAP::iterator iter = dbid_tasks_.begin(); iter != dbid_tasks_.end(); iter = dbid_tasks_.upper_bound(iter->first))  
+    {  
+        std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> res = dbid_tasks_.equal_range(iter->first);  
+		int count = 0;
+
+        for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)  
+        {  
+			++count;
+        } 
+
+		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
+    }  
+
+	mutex_.unlockMutex();
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Buffered_DBTasks::printBuffered_entityID()
+{
+	std::string ret;
+	mutex_.lockMutex();
+
+    for (ENTITYID_TASKS_MAP::iterator iter = entityid_tasks_.begin(); iter != entityid_tasks_.end(); iter = entityid_tasks_.upper_bound(iter->first))  
+    {  
+		int count = 0;
+        std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);  
+        for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)  
+        {  
+			++count;
+        }  
+
+		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
+    }  
+
+	mutex_.unlockMutex();
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 }

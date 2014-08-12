@@ -107,7 +107,9 @@ bool Dbmgr::initializeWatcher()
 
 	WATCH_OBJECT("DBThreadPool/dbid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::dbid_tasksSize);
 	WATCH_OBJECT("DBThreadPool/entityid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::entityid_tasksSize);
-	
+	WATCH_OBJECT("DBThreadPool/printBuffered_dbid", &bufferedDBTasks_, &Buffered_DBTasks::printBuffered_dbid);
+	WATCH_OBJECT("DBThreadPool/printBuffered_entityID", &bufferedDBTasks_, &Buffered_DBTasks::printBuffered_entityID);
+
 	return ServerApp::initializeWatcher() && DBUtil::pThreadPool()->initializeWatcher();
 }
 
