@@ -195,11 +195,11 @@ public:
 		输出线程工作状态
 		主要提供给watcher使用
 	*/
-	std::string printWorkState()
+	virtual std::string printWorkState()
 	{
 		char buf[256];
 		lock();
-		sprintf(buf, "task=%x,state=%d", currTask_,  state_);
+		sprintf(buf, "task=%p,state=%d", currTask_,  state_);
 		unlock();
 		return buf;
 	}
