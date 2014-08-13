@@ -116,8 +116,6 @@ currentFreeThreadCount_(0),
 normalThreadCount_(0),
 isDestroyed_(false)
 {		
-
-	
 	THREAD_MUTEX_INIT(threadStateList_mutex_);	
 	THREAD_MUTEX_INIT(bufferedTaskList_mutex_);
 	THREAD_MUTEX_INIT(finiTaskList_mutex_);
@@ -138,7 +136,25 @@ bool ThreadPool::initializeWatcher()
 	WATCH_OBJECT((boost::format("%1%/normalThreadCount") % name()).str().c_str(), this->normalThreadCount_);
 	WATCH_OBJECT((boost::format("%1%/bufferedTaskSize") % name()).str().c_str(), this, &ThreadPool::bufferTaskSize);
 	WATCH_OBJECT((boost::format("%1%/finiTaskSize") % name()).str().c_str(), this, &ThreadPool::finiTaskSize);
+	WATCH_OBJECT((boost::format("%1%/busyThreadStates") % name()).str().c_str(), this, &ThreadPool::printThreadWorks);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+std::string ThreadPool::printThreadWorks()
+{
+	std::string ret;
+
+	THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
+	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
+	for(; itr != busyThreadList_.end(); itr++)
+	{
+		ret += (boost::format("%1%:(%2%), ") % (*itr) % (*itr)->printWorkState()).str();
+	}
+
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------

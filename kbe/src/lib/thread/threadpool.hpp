@@ -190,14 +190,27 @@ public:
 		设置本线程要处理的任务
 	*/
 	INLINE ThreadPool* threadPool();
+
+	/**
+		输出线程工作状态
+		主要提供给watcher使用
+	*/
+	std::string printWorkState()
+	{
+		char buf[256];
+		lock();
+		sprintf(buf, "task=%x,state=%d", currTask_,  state_);
+		unlock();
+		return buf;
+	}
 protected:
 	THREAD_SINGNAL cond_;			// 线程信号量
 	THREAD_MUTEX mutex_;			// 线程互诉体
-	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出， 小于0为永久线程 秒单位
+	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出, 小于0为永久线程(秒单位)
 	TPTask * currTask_;				// 该线程的当前执行的任务
 	THREAD_ID tidp_;				// 本线程的ID
 	ThreadPool* threadPool_;		// 线程池指针
-	THREAD_STATE state_;			// 线程状态 -1还未启动, 0睡眠， 1繁忙中
+	THREAD_STATE state_;			// 线程状态: -1还未启动, 0睡眠, 1繁忙中
 };
 
 
@@ -213,6 +226,11 @@ public:
 	virtual void onMainThreadTick();
 	
 	bool hasThread(TPThread* pTPThread);
+
+	/**
+		获取当前线程池所有线程状态(提供给watch用)
+	*/
+	std::string printThreadWorks();
 
 	/**
 		获取当前线程总数
