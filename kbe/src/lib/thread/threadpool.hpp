@@ -197,9 +197,9 @@ public:
 	*/
 	virtual std::string printWorkState()
 	{
-		char buf[256];
+		char buf[128];
 		lock();
-		sprintf(buf, "task=%p,state=%s", currTask_,  (state_ == 1 ? "busy" : "free"));
+		sprintf(buf, "%p", currTask_);
 		unlock();
 		return buf;
 	}
