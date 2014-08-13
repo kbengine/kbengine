@@ -590,7 +590,9 @@ void* TPThread::threadFunc(void* arg)
 {
 	TPThread * tptd = static_cast<TPThread*>(arg);
 	ThreadPool* pThreadPool = tptd->threadPool();
+
 	bool isRun = true;
+	tptd->reset_done_tasks();
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else			
@@ -607,6 +609,7 @@ void* TPThread::threadFunc(void* arg)
 		}
 		else
 		{
+			tptd->reset_done_tasks();
 			isRun = tptd->onWaitCondSignal();
 		}
 
@@ -626,6 +629,7 @@ void* TPThread::threadFunc(void* arg)
 
 		while(task && !tptd->threadPool()->isDestroyed())
 		{
+			tptd->inc_done_tasks();
 			tptd->onProcessTaskStart(task);
 			tptd->processTask(task);							// 处理该任务								
 			tptd->onProcessTaskEnd(task);
@@ -660,6 +664,7 @@ __THREAD_END__:
 
 		tptd->onEnd();
 		tptd->state_ = THREAD_STATE_END;
+		tptd->reset_done_tasks();
 	}
 
 #if KBE_PLATFORM == PLATFORM_WIN32

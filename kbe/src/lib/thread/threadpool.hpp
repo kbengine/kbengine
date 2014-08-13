@@ -199,10 +199,17 @@ public:
 	{
 		char buf[128];
 		lock();
-		sprintf(buf, "%p", currTask_);
+		sprintf(buf, "%p,%u", currTask_, done_tasks_);
 		unlock();
 		return buf;
 	}
+
+	/**
+		线程启动一次在未改变到闲置状态下连续执行的任务计数
+	*/
+	void reset_done_tasks(){ done_tasks_ = 0; }
+	void inc_done_tasks(){ ++done_tasks_; }
+
 protected:
 	THREAD_SINGNAL cond_;			// 线程信号量
 	THREAD_MUTEX mutex_;			// 线程互诉体
@@ -211,6 +218,7 @@ protected:
 	THREAD_ID tidp_;				// 本线程的ID
 	ThreadPool* threadPool_;		// 线程池指针
 	THREAD_STATE state_;			// 线程状态: -1还未启动, 0睡眠, 1繁忙中
+	uint32 done_tasks_;				// 线程启动一次在未改变到闲置状态下连续执行的任务计数
 };
 
 
