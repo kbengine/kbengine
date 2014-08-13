@@ -199,7 +199,7 @@ public:
 	{
 		char buf[256];
 		lock();
-		sprintf(buf, "task=%p,state=%d", currTask_,  state_);
+		sprintf(buf, "task=%p,state=%s", currTask_,  (state_ == 1 ? "busy" : "free"));
 		unlock();
 		return buf;
 	}
