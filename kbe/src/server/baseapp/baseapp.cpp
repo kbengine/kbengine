@@ -2419,35 +2419,35 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 		return;
 	}
 
-	if(proxy->getClientMailbox() == NULL)
+	EntityMailbox* entityClientMailbox = proxy->getClientMailbox();
+	if(entityClientMailbox != NULL)
 	{
-		// 创建entity的客户端mailbox
-		EntityMailbox* entityClientMailbox = new EntityMailbox(proxy->getScriptModule(), 
-			&pChannel->addr(), 0, proxy->getID(), MAILBOX_TYPE_CLIENT);
-
-		proxy->setClientMailbox(entityClientMailbox);
-		proxy->addr(pChannel->addr());
-
-		// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
-		entityClientMailbox->getChannel()->proxyID(proxy->getID());
-		proxy->addr(entityClientMailbox->getChannel()->addr());
-
-		//createClientProxies(proxy, true);
-		proxy->onEntitiesEnabled();
-
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
-		(*pBundle).send(this->getNetworkInterface(), pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		WARNING_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
+			"entityID=%3%, ClientMailbox(%4%) is exist, will be kicked out!\n") %
+			accountName % key % entityID % proxy->getClientMailbox()->getChannel()->c_str());
+		
+		entityClientMailbox->getChannel()->condemn();
+		entityClientMailbox->addr(pChannel->addr());
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
-			"entityID=%3%, ClientMailbox is exist.\n") %
-			accountName.c_str() % key % entityID);
+		// 创建entity的客户端mailbox
+		entityClientMailbox = new EntityMailbox(proxy->getScriptModule(), 
+			&pChannel->addr(), 0, proxy->getID(), MAILBOX_TYPE_CLIENT);
 
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		proxy->setClientMailbox(entityClientMailbox);
 	}
+
+	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
+	proxy->addr(pChannel->addr());
+
+	//createClientProxies(proxy, true);
+	proxy->onEntitiesEnabled();
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
