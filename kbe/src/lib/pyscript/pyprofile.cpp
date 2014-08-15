@@ -198,7 +198,7 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 		return false;
 	}
 
-	FILE* f = fopen(fileName.c_str(), "rw");
+	FILE* f = fopen(fileName.c_str(), "wb");
 	if(f == NULL)
 	{
 		ERROR_MSG(boost::format("PyProfile::dump: profile(%1%) can't open fileName=%2%!\n") % profile % fileName);
