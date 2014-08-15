@@ -44,7 +44,7 @@ public:
 	static void addToStream(std::string profile, MemoryStream* s);
 	static bool remove(std::string profile);
 
-	static void print_stats(const std::string& sort = "time");
+	static void print_stats(const std::string& sort = "time", const std::string& profileName = "kbengine");
 
 	/** 
 		≥ı ºªØpickler 
