@@ -144,6 +144,18 @@ bool PyProfile::remove(std::string profile)
 }
 
 //-------------------------------------------------------------------------------------
+void PyProfile::print_stats(const std::string& sort = "time")
+{
+	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("print_stats"),
+		const_cast<char*>("s"), const_cast<char*>("time"));
+	
+	if(pyRet)
+		Py_DECREF(pyRet);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
 void PyProfile::addToStream(std::string profile, MemoryStream* s)
 {
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);

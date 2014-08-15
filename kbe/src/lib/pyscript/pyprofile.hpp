@@ -43,6 +43,9 @@ public:
 	static bool dump(std::string profile, std::string fileName);
 	static void addToStream(std::string profile, MemoryStream* s);
 	static bool remove(std::string profile);
+
+	static void print_stats(const std::string& sort = "time");
+
 	/** 
 		≥ı ºªØpickler 
 	*/
