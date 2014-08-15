@@ -168,7 +168,7 @@ void Cellapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 bool Cellapp::uninstallPyModules()
 {
-	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	if(g_kbeSrvConfig.getCellApp().profiles.open_pyprofile)
 	{
 		script::PyProfile::stop("kbengine");
 
