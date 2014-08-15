@@ -263,8 +263,6 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 //-------------------------------------------------------------------------------------
 void DebugHelper::clearBufferedLog(bool destroy)
 {
-	g_clearBufferedLogProfile.start();
-
 	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
 	for(; iter != bufferedLogPackets_.end(); iter++)
 	{
@@ -280,8 +278,6 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	if(!destroy)
 		g_pDebugHelperSyncHandler->cancel();
-
-	g_clearBufferedLogProfile.stop();
 }
 
 //-------------------------------------------------------------------------------------
@@ -406,8 +402,9 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 #endif
 
 		Mercury::g_trace_packet = v;
-
+		g_clearBufferedLogProfile.start();
 		clearBufferedLog();
+		g_clearBufferedLogProfile.stop();
 		return;
 	}
 
