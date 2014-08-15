@@ -173,7 +173,7 @@ bool Cellapp::uninstallPyModules()
 		script::PyProfile::stop("kbengine");
 
 		char buf[MAX_BUF];
-		kbe_snprintf(buf, MAX_BUF, "baseapp%u.prof", startGroupOrder_);
+		kbe_snprintf(buf, MAX_BUF, "cellapp%u.pyprofile", startGroupOrder_);
 		script::PyProfile::dump("kbengine", buf);
 		script::PyProfile::remove("kbengine");
 	}
