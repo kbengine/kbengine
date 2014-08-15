@@ -86,7 +86,7 @@ bool g_shouldWriteToSyslog = false;
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
-	backtrace_msg();
+	DebugHelper::getSingleton().backtrace_msg();
 	boost::format s = (boost::format("assertion failed: %1%, file %2%, line %3%, at: %4%\n") % exp % file % line % func);
 	printf("%s", (std::string("[ASSERT]: ") + s.str()).c_str());
 	dbghelper.print_msg(s);
