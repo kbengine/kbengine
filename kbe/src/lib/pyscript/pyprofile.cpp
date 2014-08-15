@@ -163,7 +163,7 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 	pScript_->pyStdouterrHook()->setHookBuffer(&retBufferPtr);
 	pScript_->pyStdouterrHook()->setPrint(false);
 	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("print_stats"),
-		const_cast<char*>(""));
+		const_cast<char*>("s"), const_cast<char*>("time"));
 	
 	pScript_->pyStdouterrHook()->setPrint(true);
 	pScript_->pyStdouterrHook()->uninstall();
@@ -212,12 +212,24 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 
 	if(!pyRet)
 	{
+		ERROR_MSG(boost::format("PyProfile::dump: save to %1% is error!\n") % fileName);
 		return false;
 	}
-	
-	DEBUG_MSG(boost::format("PyProfile::dump: save to %1%.") % fileName);
+	else
+	{
+		DEBUG_MSG(boost::format("PyProfile::dump: save to %1%.\n") % fileName);
+	}
 
 	Py_DECREF(pyRet);
+
+	pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("print_stats"),
+		const_cast<char*>("s"), const_cast<char*>("time"));
+	
+	SCRIPT_ERROR_CHECK();
+	
+	if(pyRet)
+		Py_DECREF(pyRet);
+
 	return true;
 }
 
