@@ -234,7 +234,7 @@ bool Cellapp::initializeEnd()
 {
 	// 如果需要pyprofile则在此处安装
 	// 结束时卸载并输出结果
-	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	if(g_kbeSrvConfig.getCellApp().profiles.open_pyprofile)
 	{
 		script::PyProfile::start("kbengine");
 	}
