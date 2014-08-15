@@ -72,6 +72,7 @@ KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
 ProfileVal g_syncLogProfile("syncLog");
+ProfileVal g_clearBufferedLogProfile("clearBufferedLog");
 
 #ifndef NO_USE_LOG4CXX
 log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
@@ -262,6 +263,8 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 //-------------------------------------------------------------------------------------
 void DebugHelper::clearBufferedLog(bool destroy)
 {
+	g_clearBufferedLogProfile.start();
+
 	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
 	for(; iter != bufferedLogPackets_.end(); iter++)
 	{
@@ -277,6 +280,8 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	if(!destroy)
 		g_pDebugHelperSyncHandler->cancel();
+
+	g_clearBufferedLogProfile.stop();
 }
 
 //-------------------------------------------------------------------------------------
