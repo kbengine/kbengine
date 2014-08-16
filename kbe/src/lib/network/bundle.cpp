@@ -289,6 +289,12 @@ void Bundle::finish(bool issend)
 //-------------------------------------------------------------------------------------
 void Bundle::clear(bool isRecl)
 {
+	if(pCurrPacket_ != NULL)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
 	{
@@ -306,23 +312,6 @@ void Bundle::clear(bool isRecl)
 	}
 	
 	packets_.clear();
-
-	if(pCurrPacket_)
-	{
-		if(!isRecl)
-		{
-			delete pCurrPacket_;
-		}
-		else
-		{
-			if(isTCPPacket_)
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
-			else
-				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
-		}
-
-		pCurrPacket_ = NULL;
-	}
 
 	reuse_ = false;
 	pChannel_ = NULL;
