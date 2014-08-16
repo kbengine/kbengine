@@ -72,7 +72,6 @@ KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
 ProfileVal g_syncLogProfile("syncLog");
-ProfileVal g_clearBufferedLogProfile("clearBufferedLog");
 
 #ifndef NO_USE_LOG4CXX
 log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
@@ -264,16 +263,31 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 //-------------------------------------------------------------------------------------
 void DebugHelper::clearBufferedLog(bool destroy)
 {
-	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-	for(; iter != bufferedLogPackets_.end(); iter++)
+	int8 v = Mercury::g_trace_packet;
+	Mercury::g_trace_packet = 0;
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_WARN(g_logger, "DebugHelper::clearBufferedLog()\n");
+#endif
+
+	if(destroy)
 	{
-		if(destroy)
+		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
+		for(; iter != bufferedLogPackets_.end(); iter++)
+		{
 			delete (*iter);
-		else
-			Mercury::Bundle::ObjPool().reclaimObject((*iter));
+		}
+
+		bufferedLogPackets_.clear();
+	}
+	else
+	{
+		Mercury::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
 	}
 
-	bufferedLogPackets_.clear();
+	Mercury::g_trace_packet = v;
+
 	hasBufferedLogPackets_ = 0;
 	noSyncLog_ = true;
 
@@ -403,9 +417,8 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 #endif
 
 		Mercury::g_trace_packet = v;
-		g_clearBufferedLogProfile.start();
+
 		clearBufferedLog();
-		g_clearBufferedLogProfile.stop();
 		return;
 	}
 
