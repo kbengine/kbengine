@@ -29,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>	
 #include <map>	
 #include <list>	
+#include <vector>
+
 #include "thread/threadmutex.hpp"
 
 // windows include	
@@ -184,7 +186,7 @@ public:
 	{
 		mutex_.lockMutex();
 		
-		std::list<T*>::iterator iter = objs.begin();
+		typename std::list< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); iter++)
 		{
 			reclaimObject_((*iter));
@@ -197,11 +199,11 @@ public:
 	/**
 		回收一个对象容器
 	*/
-	void reclaimObject(std::vector<T*>& objs)
+	void reclaimObject(std::vector< T* >& objs)
 	{
 		mutex_.lockMutex();
 		
-		std::vector<T*>::iterator iter = objs.begin();
+		typename std::vector< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); iter++)
 		{
 			reclaimObject_((*iter));
