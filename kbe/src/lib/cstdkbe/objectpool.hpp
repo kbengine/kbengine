@@ -173,21 +173,41 @@ public:
 	void reclaimObject(T* obj)
 	{
 		mutex_.lockMutex();
+		reclaimObject_(obj);
+		mutex_.unlockMutex();
+	}
 
-		if(obj != NULL)
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::list<T*>& objs)
+	{
+		mutex_.lockMutex();
+		
+		std::list<T*>::iterator iter = objs.begin();
+		for(; iter != objs.end(); iter++)
 		{
-			if(size() >= max_ || isDestroyed_)
-			{
-				delete obj;
-				--totalAlloc_;
-			}
-			else
-			{
-				objects_.push_back(obj);
-				++obj_count_;
-			}
+			reclaimObject_((*iter));
 		}
+		
+		objs.clear();
+		mutex_.unlockMutex();
+	}
 
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::vector<T*>& objs)
+	{
+		mutex_.lockMutex();
+		
+		std::vector<T*>::iterator iter = objs.begin();
+		for(; iter != objs.end(); iter++)
+		{
+			reclaimObject_((*iter));
+		}
+		
+		objs.clear();
 		mutex_.unlockMutex();
 	}
 
@@ -209,6 +229,28 @@ public:
 	size_t totalAlloc()const{ return totalAlloc_; }
 
 	bool isDestroyed()const{ return isDestroyed_; }
+
+protected:
+	/**
+		回收一个对象
+	*/
+	void reclaimObject_(T* obj)
+	{
+		if(obj != NULL)
+		{
+			if(size() >= max_ || isDestroyed_)
+			{
+				delete obj;
+				--totalAlloc_;
+			}
+			else
+			{
+				objects_.push_back(obj);
+				++obj_count_;
+			}
+		}
+	}
+
 protected:
 	OBJECTS objects_;							// 对象缓冲器
 
