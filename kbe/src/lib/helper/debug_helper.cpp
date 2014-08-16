@@ -266,11 +266,6 @@ void DebugHelper::clearBufferedLog(bool destroy)
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
 
-#ifdef NO_USE_LOG4CXX
-#else
-	LOG4CXX_WARN(g_logger, "DebugHelper::clearBufferedLog()\n");
-#endif
-
 	if(destroy)
 	{
 		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
@@ -285,6 +280,11 @@ void DebugHelper::clearBufferedLog(bool destroy)
 	{
 		Mercury::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
 	}
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_WARN(g_logger, "DebugHelper::clearBufferedLog()\n");
+#endif
 
 	Mercury::g_trace_packet = v;
 
