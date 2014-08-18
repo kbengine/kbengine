@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>	
 #include <list>	
 #include <vector>
+#include <queue> 
 
 #include "thread/threadmutex.hpp"
 
@@ -210,6 +211,23 @@ public:
 		}
 		
 		objs.clear();
+		mutex_.unlockMutex();
+	}
+
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::queue<T*>& objs)
+	{
+		mutex_.lockMutex();
+		
+		while(!objs.empty())
+		{
+			T* t = objs.back();
+			objs.pop();
+			reclaimObject_(t);
+		}
+
 		mutex_.unlockMutex();
 	}
 

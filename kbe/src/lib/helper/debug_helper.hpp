@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <time.h>	
 #include <stdarg.h> 
-#include <list> 
+#include <queue> 
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4819)
 #endif
@@ -178,7 +178,7 @@ private:
 	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 
-	std::list< Mercury::Bundle* > bufferedLogPackets_;
+	std::queue< Mercury::Bundle* > bufferedLogPackets_;
 	size_t hasBufferedLogPackets_;
 
 	Mercury:: NetworkInterface* pNetworkInterface_;

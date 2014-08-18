@@ -268,13 +268,12 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	if(destroy)
 	{
-		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-		for(; iter != bufferedLogPackets_.end(); iter++)
+		while(!bufferedLogPackets_.empty())
 		{
-			delete (*iter);
+			Mercury::Bundle* pBundle = bufferedLogPackets_.back();
+			bufferedLogPackets_.pop();
+			delete pBundle;
 		}
-
-		bufferedLogPackets_.clear();
 	}
 	else
 	{
@@ -337,16 +336,17 @@ void DebugHelper::sync()
 	uint32 i = 0;
 	size_t totalLen = 0;
 
-	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-	for(; iter != bufferedLogPackets_.end();)
+	while(!bufferedLogPackets_.empty())
 	{
 		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
 			break;
 		
-		totalLen += (*iter)->currMsgLength();
-		pMessagelogChannel->send((*iter));
+		Mercury::Bundle* pBundle = bufferedLogPackets_.back();
+		bufferedLogPackets_.pop();
+
+		totalLen += pBundle->currMsgLength();
+		pMessagelogChannel->send(pBundle);
 		
-		bufferedLogPackets_.erase(iter++); 
 		--hasBufferedLogPackets_;
 	}
 
@@ -439,7 +439,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << str;
 	
 	++hasBufferedLogPackets_;
-	bufferedLogPackets_.push_back(pBundle);
+	bufferedLogPackets_.push(pBundle);
 
 	Mercury::g_trace_packet = v;
 	g_pDebugHelperSyncHandler->startActiveTick();
