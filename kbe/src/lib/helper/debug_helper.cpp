@@ -270,7 +270,7 @@ void DebugHelper::clearBufferedLog(bool destroy)
 	{
 		while(!bufferedLogPackets_.empty())
 		{
-			Mercury::Bundle* pBundle = bufferedLogPackets_.back();
+			Mercury::Bundle* pBundle = bufferedLogPackets_.front();
 			bufferedLogPackets_.pop();
 			delete pBundle;
 		}
@@ -341,7 +341,7 @@ void DebugHelper::sync()
 		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
 			break;
 		
-		Mercury::Bundle* pBundle = bufferedLogPackets_.back();
+		Mercury::Bundle* pBundle = bufferedLogPackets_.front();
 		bufferedLogPackets_.pop();
 
 		totalLen += pBundle->currMsgLength();

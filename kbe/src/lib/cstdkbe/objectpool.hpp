@@ -223,7 +223,7 @@ public:
 		
 		while(!objs.empty())
 		{
-			T* t = objs.back();
+			T* t = objs.front();
 			objs.pop();
 			reclaimObject_(t);
 		}
