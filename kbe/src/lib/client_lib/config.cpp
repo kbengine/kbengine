@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "entitydef/entitydef.hpp"
 #include "server/serverconfig.hpp"
+#include "cstdkbe/kbeversion.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
@@ -110,13 +111,23 @@ bool Config::loadConfig(std::string fileName)
 	{
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
-
-	rootNode = xml->getRootNode("app_publish");
+	
+	rootNode = xml->getRootNode("publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode);
+		TiXmlNode* childnode = xml->enterNode(rootNode, "state");
+		if(childnode)
+		{
+			g_appPublish = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "script_version");
+		if(childnode)
+		{
+			KBEVersion::setScriptVersion(xml->getValStr(childnode));
+		}
 	}
-	
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
