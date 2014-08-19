@@ -177,10 +177,14 @@ public:
 	virtual void hello(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onHello(Mercury::Channel* pChannel, 
 		const std::string& verInfo, 
+		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+
+	// 引擎脚本层版本不匹配
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
 
 	/** 网络接口
 		console请求开始profile

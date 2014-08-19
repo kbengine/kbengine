@@ -143,12 +143,17 @@ public:
 	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		和服务端的版本不匹配
 	*/
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		和服务端的脚本层版本不匹配
+	*/
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		创建账号成功和失败回调

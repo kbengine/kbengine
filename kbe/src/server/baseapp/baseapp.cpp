@@ -3034,12 +3034,14 @@ void Baseapp::onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid,
 //-------------------------------------------------------------------------------------
 void Baseapp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
+						const std::string& scriptVerInfo,
 						const std::string& encryptedKey)
 {
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
 	pBundle->newMessage(ClientInterface::onHelloCB);
 	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle) << g_componentType;
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
@@ -3701,6 +3703,18 @@ void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
 	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
 	(*pBundle) << KBEVersion::versionString();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onScriptVersionNotMatch(Mercury::Channel* pChannel)
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
+	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);

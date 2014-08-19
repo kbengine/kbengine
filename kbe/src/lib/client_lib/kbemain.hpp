@@ -39,12 +39,13 @@ inline void START_MSG(const char * name, uint64 appuid)
 	
 	std::string s = (boost::format("---- %1% "
 			"Version: %2%. "
-			"Config: %3%. "
-			"Built: %4% %5%. "
-			"AppUID: %6%. "
-			"UID: %7%. "
-			"PID: %8% ----\n") %
-		name % KBEVersion::versionString().c_str() %
+			"ScriptVersion: %3%. "
+			"Config: %4%. "
+			"Built: %5% %6%. "
+			"AppUID: %7%. "
+			"UID: %8%. "
+			"PID: %9% ----\n") %
+		name % KBEVersion::versionString() % KBEVersion::scriptVersionString() %
 		KBE_CONFIG % __TIME__ % __DATE__ %
 		appuid % getUserUID() % getProcessPID()).str();
 

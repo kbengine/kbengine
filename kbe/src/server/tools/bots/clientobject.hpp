@@ -73,7 +73,7 @@ public:
 	ClientObject::C_ERROR lasterror(){ return error_; }
 
 	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		创建账号成功和失败回调

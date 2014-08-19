@@ -141,8 +141,8 @@ public:
 	/** 网络接口
 		客户端与服务端第一次建立交互, 服务端返回
 	*/
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType);
 
 	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
 
@@ -151,6 +151,10 @@ public:
 	*/
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 	
+	/** 网络接口
+		和服务端的脚本层版本不匹配
+	*/
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		创建账号成功和失败回调

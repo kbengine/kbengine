@@ -77,11 +77,8 @@ bool PendingLoginMgr::add(PLInfos* infos)
 	pPLMap_[infos->accountName] = infos;
 	infos->lastProcessTime = timestamp();
 
-	if(pPLMap_.size() > 64)
-	{
-		DEBUG_MSG(boost::format("PendingLoginMgr::add: size=%1%.\n") % pPLMap_.size());
-	}
 
+	DEBUG_MSG(boost::format("PendingLoginMgr::add: %1%, size=%2%.\n") % infos->accountName % pPLMap_.size());
 	return true;
 }
 
@@ -93,6 +90,7 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::remove(std::string& accountName)
 	{
 		PLInfos* infos = iter->second;
 		pPLMap_.erase(iter);
+		DEBUG_MSG(boost::format("PendingLoginMgr::remove: %1%, size=%2%.\n") % accountName % pPLMap_.size());
 		return infos;
 	}
 	

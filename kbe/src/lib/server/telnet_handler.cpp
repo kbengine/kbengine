@@ -145,16 +145,17 @@ std::string TelnetHandler::getWelcome()
 {
 	return (boost::format("\033[1;32mwelcome to %1% \r\n"
 			"Version: %2%. "
-			"Config: %3%. "
-			"Built: %4% %5%. "
-			"AppUID: %6%. "
-			"UID: %7%. "
-			"PID: %8%"
+			"ScriptVersion: %3%. "
+			"Config: %4%. "
+			"Built: %5% %6%. "
+			"AppUID: %7%. "
+			"UID: %8%. "
+			"PID: %9%"
 			"\r\n---------------------------------------------"
-			"%9%"
+			"%10%"
 			"\r\n---------------------------------------------"
-			" \033[0m\r\n%10%") %
-		COMPONENT_NAME_EX(g_componentType) % KBEVersion::versionString().c_str() %
+			" \033[0m\r\n%11%") %
+		COMPONENT_NAME_EX(g_componentType) % KBEVersion::versionString() % KBEVersion::scriptVersionString() %
 		KBE_CONFIG % __TIME__ % __DATE__ %
 		g_componentID % getUserUID() % getProcessPID() % help() % getInputStartString()).str();
 }

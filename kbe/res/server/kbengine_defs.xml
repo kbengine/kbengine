@@ -77,14 +77,19 @@
 	-->
 	<debugEntity>0</debugEntity>
 
-	<!-- apps发布状态, 可在脚本中获取该值
-		(apps released state, This value can be obtained in the script)
-		Type: Integer8
-		0 : debug
-		1 : release
-		其他自定义(Other custom)
-	-->
-	<app_publish>0</app_publish>
+	<publish>
+		<!-- 发布状态, 可在脚本中获取该值。 KBEngine.publish()
+			(apps released state, This value can be obtained in the script. KBEngine.publish())
+			Type: Integer8
+			0 : debug
+			1 : release
+			其他自定义(Other custom)
+		-->
+		<state>0</state>
+
+		<!-- 脚本层发布版本 -->
+		<script_version> 0.1.0 </script_version>
+	</publish>
 	
 	<channelCommon> 
 		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
@@ -150,7 +155,7 @@
 	<!-- 关服倒计时(秒) 
 		(Countdown to shutdown the server(seconds))
 	-->
-	<shutdown_time> 60.0 </shutdown_time>
+	<shutdown_time> 1.0 </shutdown_time>
 	
 	<!-- 关闭服务器的时候， 如果有未完成的任务， 服务器需要等待任务结束。
 		每Tick（秒）检查一次
@@ -374,10 +379,10 @@
 				(if is true, Engine start is completed, start to record profile information, 
 				Process exit will export a report.)
 			-->
-			<cprofile> false </cprofile>
-			<pyprofile> false </pyprofile>
-			<eventprofile> false </eventprofile>
-			<mercuryprofile> false </mercuryprofile>
+			<cprofile> true </cprofile>
+			<pyprofile> true </pyprofile>
+			<eventprofile> true </eventprofile>
+			<mercuryprofile> true </mercuryprofile>
 		</profiles>
 		
 		<ghostDistance> 500.0 </ghostDistance>
@@ -524,10 +529,10 @@
 				(if is true, Engine start is completed, start to record profile information, 
 				Process exit will export a report.)
 			-->
-			<cprofile> false </cprofile>
-			<pyprofile> false </pyprofile>
-			<eventprofile> false </eventprofile>
-			<mercuryprofile> false </mercuryprofile>
+			<cprofile> true </cprofile>
+			<pyprofile> true </pyprofile>
+			<eventprofile> true </eventprofile>
+			<mercuryprofile> true </mercuryprofile>
 		</profiles>
 		
 		<!-- listen监听队列最大值

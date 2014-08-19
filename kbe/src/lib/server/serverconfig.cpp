@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
+#include "cstdkbe/kbeversion.hpp"
 
 #ifndef CODE_INLINE
 #include "serverconfig.ipp"
@@ -124,10 +125,20 @@ bool ServerConfig::loadConfig(std::string fileName)
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
 
-	rootNode = xml->getRootNode("app_publish");
+	rootNode = xml->getRootNode("publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode);
+		TiXmlNode* childnode = xml->enterNode(rootNode, "state");
+		if(childnode)
+		{
+			g_appPublish = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "script_version");
+		if(childnode)
+		{
+			KBEVersion::setScriptVersion(xml->getValStr(childnode));
+		}
 	}
 
 	rootNode = xml->getRootNode("shutdown_time");

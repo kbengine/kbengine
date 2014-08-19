@@ -130,7 +130,7 @@ bool ClientObject::initCreate()
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -235,7 +235,7 @@ bool ClientObject::initLoginGateWay()
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 	
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -332,7 +332,7 @@ void ClientObject::gameTick()
 
 //-------------------------------------------------------------------------------------	
 void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{

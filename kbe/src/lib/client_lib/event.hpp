@@ -50,6 +50,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_VERSION_NOT_MATCH 18
 #define CLIENT_EVENT_ON_KICKED 19
 #define CLIENT_EVENT_LAST_ACCOUNT_INFO 20
+#define CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH 21
 
 struct EventData
 {
@@ -334,6 +335,17 @@ struct EventData_VersionNotMatch : public EventData
 	std::string serVerInfo;
 };
 
+struct EventData_ScriptVersionNotMatch : public EventData
+{
+	EventData_ScriptVersionNotMatch():
+	EventData(CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH)
+	{
+	}
+
+	std::string verInfo;
+	std::string serVerInfo;
+};
+
 struct EventData_onKicked : public EventData
 {
 	EventData_onKicked():
@@ -402,6 +414,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			return new EventData_VersionNotMatch();
+			break;
+		case CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH:
+			return new EventData_ScriptVersionNotMatch();
 			break;
 		case CLIENT_EVENT_ON_KICKED:
 			return new EventData_onKicked();
@@ -493,6 +508,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			peventdata = new EventData_VersionNotMatch();
 			(*static_cast<EventData_VersionNotMatch*>(peventdata)) = (*static_cast<const EventData_VersionNotMatch*>(lpEventData));
+			break;
+		case CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH:
+			peventdata = new EventData_ScriptVersionNotMatch();
+			(*static_cast<EventData_ScriptVersionNotMatch*>(peventdata)) = (*static_cast<const EventData_ScriptVersionNotMatch*>(lpEventData));
 			break;
 		case CLIENT_EVENT_ON_KICKED:
 			peventdata = new EventData_onKicked();

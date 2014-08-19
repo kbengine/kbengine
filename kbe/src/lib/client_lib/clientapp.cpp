@@ -373,7 +373,8 @@ void ClientApp::handleGameTick()
 					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString();
-					
+					(*pBundle) << KBEVersion::scriptVersionString();
+
 					if(Mercury::g_channelExternalEncryptType == 1)
 					{
 						pBlowfishFilter_ = new Mercury::BlowfishFilter();
@@ -586,6 +587,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(LoginappInterface::hello);
 		(*pBundle) << KBEVersion::versionString();
+		(*pBundle) << KBEVersion::scriptVersionString();
 
 		if(Mercury::g_channelExternalEncryptType == 1)
 		{
@@ -607,7 +609,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 //-------------------------------------------------------------------------------------	
 void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -629,6 +631,12 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 void ClientApp::onVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onVersionNotMatch(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onScriptVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onScriptVersionNotMatch(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	

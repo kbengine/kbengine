@@ -444,9 +444,9 @@ void ServerApp::queryLoad(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	std::string verInfo, encryptedKey;
+	std::string verInfo, scriptVerInfo, encryptedKey;
 
-	s >> verInfo;
+	s >> verInfo >> scriptVerInfo;
 	s.readBlob(encryptedKey);
 
 	char buf[1024];
@@ -469,24 +469,32 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 		buf[4] = '\0';
 	}
 
-	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%\n") % 
-		verInfo % buf % pChannel->c_str());
+	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, scriptVerInfo=%2%, encryptedKey=%3%, addr:%4%\n") % 
+		verInfo % scriptVerInfo % buf % pChannel->c_str());
 
 	if(verInfo != KBEVersion::versionString())
 		onVersionNotMatch(pChannel);
+	else if(scriptVerInfo != KBEVersion::scriptVersionString())
+		onScriptVersionNotMatch(pChannel);
 	else
-		onHello(pChannel, verInfo, encryptedKey);
+		onHello(pChannel, verInfo, scriptVerInfo, encryptedKey);
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
+						const std::string& scriptVerInfo, 
 						const std::string& encryptedKey)
 {
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onVersionNotMatch(Mercury::Channel* pChannel)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onScriptVersionNotMatch(Mercury::Channel* pChannel)
 {
 }
 

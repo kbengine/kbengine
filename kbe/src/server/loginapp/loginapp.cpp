@@ -949,12 +949,14 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 //-------------------------------------------------------------------------------------
 void Loginapp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
+						const std::string& scriptVerInfo, 
 						const std::string& encryptedKey)
 {
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
 	pBundle->newMessage(ClientInterface::onHelloCB);
 	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle) << g_componentType;
 	(*pBundle).send(getNetworkInterface(), pChannel);
 

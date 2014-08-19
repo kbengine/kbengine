@@ -70,6 +70,7 @@ public:
 
 	virtual void onHello(Mercury::Channel* pChannel, 
 		const std::string& verInfo, 
+		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
 	/** ÍøÂç½Ó¿Ú

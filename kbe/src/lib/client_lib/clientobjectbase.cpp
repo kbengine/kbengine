@@ -505,7 +505,7 @@ void ClientObjectBase::fireEvent(const EventData* pEventData)
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
 {
 }
 
@@ -515,13 +515,16 @@ void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
 	std::string verInfo;
 	s >> verInfo;
 	
+	std::string scriptVerInfo; 
+	s >> scriptVerInfo;
+
 	COMPONENT_TYPE ctype;
 	s >> ctype;
 
-	INFO_MSG(boost::format("ClientObjectBase::onHelloCB: verInfo=%1%, addr:%2%\n") % 
-		verInfo % pChannel->c_str());
+	INFO_MSG(boost::format("ClientObjectBase::onHelloCB: verInfo=%1%, scriptVerInfo=%2%, addr:%3%\n") % 
+		verInfo % scriptVerInfo % pChannel->c_str());
 
-	onHelloCB_(pChannel, verInfo, ctype);
+	onHelloCB_(pChannel, verInfo, scriptVerInfo, ctype);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -535,6 +538,21 @@ void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStrea
 
 	EventData_VersionNotMatch eventdata;
 	eventdata.verInfo = KBEVersion::versionString();
+	eventdata.serVerInfo = verInfo;
+	eventHandler_.fire(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string verInfo;
+	s >> verInfo;
+	
+	INFO_MSG(boost::format("ClientObjectBase::onScriptVersionNotMatch: verInfo=%1% not match(server:%2%)\n") % 
+		KBEVersion::scriptVersionString() % verInfo);
+
+	EventData_ScriptVersionNotMatch eventdata;
+	eventdata.verInfo = KBEVersion::scriptVersionString();
 	eventdata.serVerInfo = verInfo;
 	eventHandler_.fire(&eventdata);
 }

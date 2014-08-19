@@ -471,12 +471,12 @@ void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 
 //-------------------------------------------------------------------------------------
 void Bots::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onHelloCB_(pChannel, verInfo, componentType);
+		pClient->onHelloCB_(pChannel, verInfo, scriptVerInfo, componentType);
 	}
 }
 
@@ -487,6 +487,16 @@ void Bots::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
 	if(pClient)
 	{
 		pClient->onVersionNotMatch(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onScriptVersionNotMatch(pChannel, s);
 	}
 }
 
