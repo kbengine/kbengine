@@ -167,6 +167,9 @@ public:
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
 
+	// 引擎脚本层版本不匹配
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
+
 	/** 网络接口
 		baseapp同步自己的初始化信息
 		startGlobalOrder: 全局启动顺序 包括各种不同组件

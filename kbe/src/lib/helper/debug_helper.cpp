@@ -280,11 +280,6 @@ void DebugHelper::clearBufferedLog(bool destroy)
 		Mercury::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
 	}
 
-#ifdef NO_USE_LOG4CXX
-#else
-	LOG4CXX_WARN(g_logger, "DebugHelper::clearBufferedLog()\n");
-#endif
-
 	Mercury::g_trace_packet = v;
 
 	hasBufferedLogPackets_ = 0;
