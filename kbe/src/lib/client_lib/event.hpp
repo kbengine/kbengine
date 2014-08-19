@@ -105,9 +105,12 @@ struct EventData_LoginSuccess : public EventData
 struct EventData_LoginFailed : public EventData
 {
 	EventData_LoginFailed():
-	EventData(CLIENT_EVENT_LOGIN_FAILED)
+	EventData(CLIENT_EVENT_LOGIN_FAILED),
+	failedcode(0)
 	{
 	}
+
+	int failedcode;
 };
 
 struct EventData_LoginGatewaySuccess : public EventData
@@ -121,9 +124,12 @@ struct EventData_LoginGatewaySuccess : public EventData
 struct EventData_LoginGatewayFailed : public EventData
 {
 	EventData_LoginGatewayFailed():
-	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS)
+	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS),
+	failedcode(0)
 	{
 	}
+
+	int failedcode;
 };
 
 struct EventData_CreatedEntity : public EventData

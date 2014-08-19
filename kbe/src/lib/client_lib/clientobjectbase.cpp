@@ -654,6 +654,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 	EventData_LoginFailed eventdata;
+	eventdata.failedcode = failedcode;
 	eventHandler_.fire(&eventdata);
 }
 
@@ -666,6 +667,7 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 	connectedGateway_ = true;
 
 	EventData_LoginGatewayFailed eventdata;
+	eventdata.failedcode = failedcode;
 	eventHandler_.fire(&eventdata);
 }
 
@@ -678,6 +680,14 @@ void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
+	client::Entity* entity = pEntities_->find(eid);
+	if(entity != NULL)
+	{
+		WARNING_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%. has exist!\n") % 
+			name_ % rndUUID % eid % entityType);
+		return;
+	}
+
 	if(entityID_ == 0)
 	{
 		EventData_LoginGatewaySuccess eventdata;
