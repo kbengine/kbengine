@@ -133,13 +133,13 @@
 		-->
 		<receiveWindowOverflow>
 			<messages>
-				<critical>	32			</critical>
+				<critical>	16			</critical>
 				<internal>	65535		</internal>
-				<external>	256			</external>
+				<external>	32			</external>
 			</messages>
 			<bytes>
 				<internal>	0			</internal>
-				<external>	65535		</external>
+				<external>	1280		</external>
 			</bytes>
 		</receiveWindowOverflow>
 		
