@@ -2422,11 +2422,16 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	EntityMailbox* entityClientMailbox = proxy->getClientMailbox();
 	if(entityClientMailbox != NULL)
 	{
+		Mercury::Channel* pMBChannel = entityClientMailbox->getChannel();
+
 		WARNING_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
 			"entityID=%3%, ClientMailbox(%4%) is exist, will be kicked out!\n") %
-			accountName % key % entityID % proxy->getClientMailbox()->getChannel()->c_str());
+			accountName % key % entityID % 
+			(pMBChannel ? pMBChannel->c_str() : "unknown"));
 		
-		entityClientMailbox->getChannel()->condemn();
+		if(pMBChannel)
+			pMBChannel->condemn();
+
 		entityClientMailbox->addr(pChannel->addr());
 	}
 	else
