@@ -2440,6 +2440,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 	proxy->addr(pChannel->addr());
+	pChannel->proxyID(proxy->getID());
 
 	//createClientProxies(proxy, true);
 	proxy->onEntitiesEnabled();
