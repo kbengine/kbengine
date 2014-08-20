@@ -333,7 +333,8 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(boost::format("Baseappmgr::onPendingAccountGetBaseappAddr: not found baseapp(%1%).") % componentID);
+		ERROR_MSG(boost::format("Baseappmgr::onPendingAccountGetBaseappAddr: not found baseapp(%1%).\n") % componentID);
+		sendAllocatedBaseappAddr(pChannel, loginName, accountName, 0, 0);
 		return;
 	}
 
@@ -362,7 +363,7 @@ void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel,
 	
 	if(componentSize == 0)
 	{
-		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp.");
+		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp.\n");
 		return;
 	}
 

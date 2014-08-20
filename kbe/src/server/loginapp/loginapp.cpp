@@ -914,6 +914,15 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 {
 	if(pChannel->isExternal())
 		return;
+	
+	if(addr == 0)
+	{
+		ERROR_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName=%1%, not found baseapp.\n") % 
+			loginName);
+		
+		std::string datas;
+		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
+	}
 
 	Mercury::Address address(addr, port);
 
