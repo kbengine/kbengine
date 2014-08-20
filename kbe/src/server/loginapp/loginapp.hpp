@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __LOGINAPP_H__
-#define __LOGINAPP_H__
+#ifndef KBE_LOGINAPP_HPP
+#define KBE_LOGINAPP_HPP
 	
 // common include	
 #include "server/kbemain.hpp"
@@ -193,4 +193,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_LOGINAPP_HPP

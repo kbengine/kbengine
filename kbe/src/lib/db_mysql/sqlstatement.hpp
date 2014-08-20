@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SQL_STATEMENT_H__
-#define __SQL_STATEMENT_H__
+#ifndef KBE_SQL_STATEMENT_HPP
+#define KBE_SQL_STATEMENT_HPP
 
 // common include	
 // #define NDEBUG
@@ -271,4 +271,4 @@ protected:
 };
 
 }
-#endif
+#endif // KBE_SQL_STATEMENT_HPP

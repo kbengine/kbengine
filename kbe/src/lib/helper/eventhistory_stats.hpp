@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __EVENT_HISTORY_STATS__
-#define __EVENT_HISTORY_STATS__
+#ifndef KBE_EVENT_HISTORY_STATS_HPP
+#define KBE_EVENT_HISTORY_STATS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 
@@ -64,4 +64,4 @@ private:
 
 }
 
-#endif // __EVENT_HISTORY_STATS__
+#endif // KBE_EVENT_HISTORY_STATS_HPP

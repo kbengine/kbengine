@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKLISTENER_RECEIVER__
-#define __NETWORKLISTENER_RECEIVER__
+#ifndef KBE_NETWORKLISTENER_RECEIVER_HPP
+#define KBE_NETWORKLISTENER_RECEIVER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -58,4 +58,4 @@ private:
 #ifdef CODE_INLINE
 #include "listener_receiver.ipp"
 #endif
-#endif // __NETWORKLISTENER_RECEIVER__
+#endif // KBE_NETWORKLISTENER_RECEIVER_HPP

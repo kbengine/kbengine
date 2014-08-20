@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MESSAGE_HANDLER_HPP__
-#define __MESSAGE_HANDLER_HPP__
+#ifndef KBE_MESSAGE_HANDLER_HPP
+#define KBE_MESSAGE_HANDLER_HPP
 
 #include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/smartpointer.hpp"

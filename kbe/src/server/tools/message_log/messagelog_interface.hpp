@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __MESSAGELOG_INTERFACE_H__
+	#undef KBE_MESSAGELOG_INTERFACE_HPP
 #endif
 
 
-#ifndef __MESSAGELOG_INTERFACE_H__
-#define __MESSAGELOG_INTERFACE_H__
+#ifndef KBE_MESSAGELOG_INTERFACE_HPP
+#define KBE_MESSAGELOG_INTERFACE_HPP
 
 // common include	
 #if defined(MESSAGELOG)

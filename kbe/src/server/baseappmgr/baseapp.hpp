@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BASEAPPMGR_BASEAPP_H__
-#define __BASEAPPMGR_BASEAPP_H__
+#ifndef KBE_BASEAPPMGR_BASEAPP_HPP
+#define KBE_BASEAPPMGR_BASEAPP_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -60,4 +60,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_BASEAPPMGR_BASEAPP_HPP

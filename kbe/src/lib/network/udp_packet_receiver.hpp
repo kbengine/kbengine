@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKUDPPACKET_RECEIVER__
-#define __NETWORKUDPPACKET_RECEIVER__
+#ifndef KBE_NETWORKUDPPACKET_RECEIVER_HPP
+#define KBE_NETWORKUDPPACKET_RECEIVER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -66,4 +66,4 @@ protected:
 #ifdef CODE_INLINE
 #include "udp_packet_receiver.ipp"
 #endif
-#endif // __NETWORKUDPPACKET_RECEIVER__
+#endif // KBE_NETWORKUDPPACKET_RECEIVER_HPP

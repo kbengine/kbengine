@@ -32,8 +32,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 			...
 		}
 */
-#ifndef __THREADGUARD_H__
-#define __THREADGUARD_H__
+#ifndef KBE_THREADGUARD_HPP
+#define KBE_THREADGUARD_HPP
 	
 // common include
 #include "thread/threadmutex.hpp"
@@ -68,4 +68,5 @@ protected:
 
 }
 }
-#endif
+
+#endif // KBE_THREADGUARD_HPP

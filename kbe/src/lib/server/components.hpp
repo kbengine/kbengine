@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENGINE_COMPONENT_MGR_H__
-#define __ENGINE_COMPONENT_MGR_H__
+#ifndef KBE_ENGINE_COMPONENT_MGR_HPP
+#define KBE_ENGINE_COMPONENT_MGR_HPP
 	
 // common include
 //#define NDEBUG
@@ -200,4 +200,5 @@ private:
 };
 
 }
-#endif
+
+#endif // KBE_ENGINE_COMPONENT_MGR_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_BASE_REMOTE_METHOD_HPP__
-#define __KBE_BASE_REMOTE_METHOD_HPP__
+#ifndef KBE_BASE_REMOTE_METHOD_HPP
+#define KBE_BASE_REMOTE_METHOD_HPP
 
 
 #include "helper/debug_helper.hpp"

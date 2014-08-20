@@ -59,8 +59,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 			6000
 */
 
-#ifndef __XMLPLUS__
-#define __XMLPLUS__
+#ifndef KBE_XMLPLUS_HPP
+#define KBE_XMLPLUS_HPP
 
 // common include	
 //#define NDEBUG
@@ -244,4 +244,4 @@ protected:
 
 }
  
-#endif
+#endif // KBE_XMLPLUS_HPP

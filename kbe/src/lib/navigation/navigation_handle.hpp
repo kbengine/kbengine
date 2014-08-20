@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_NAVIGATEHANDLE_HPP__
-#define __KBE_NAVIGATEHANDLE_HPP__
+#ifndef KBE_NAVIGATEHANDLE_HPP
+#define KBE_NAVIGATEHANDLE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -67,5 +67,5 @@ public:
 typedef SmartPointer<NavigationHandle> NavigationHandlePtr;
 
 }
-#endif // __KBE_NAVIGATEHANDLE_HPP__
+#endif // KBE_NAVIGATEHANDLE_HPP
 

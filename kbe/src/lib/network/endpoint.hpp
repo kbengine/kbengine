@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBEENDPOINT__
-#define __KBEENDPOINT__
+#ifndef KBE_ENDPOINT_HPP
+#define KBE_ENDPOINT_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -133,4 +133,4 @@ protected:
 #ifdef CODE_INLINE
 #include "endpoint.ipp"
 #endif
-#endif // __KBEENDPOINT__
+#endif // KBE_ENDPOINT_HPP

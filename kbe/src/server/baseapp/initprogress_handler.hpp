@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __INIT_PROGRESS_HANDLER__
-#define __INIT_PROGRESS_HANDLER__
+#ifndef KBE_INIT_PROGRESS_HANDLER_HPP
+#define KBE_INIT_PROGRESS_HANDLER_HPP
 
 // common include
 #include "helper/debug_helper.hpp"
@@ -47,4 +47,5 @@ private:
 
 
 }
-#endif
+
+#endif // KBE_INIT_PROGRESS_HANDLER_HPP

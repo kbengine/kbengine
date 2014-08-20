@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_MOVETOENTITYHANDLER_HPP__
-#define __KBE_MOVETOENTITYHANDLER_HPP__
+#ifndef KBE_MOVETOENTITYHANDLER_HPP
+#define KBE_MOVETOENTITYHANDLER_HPP
 
 #include "moveto_point_handler.hpp"	
 
@@ -48,5 +48,5 @@ protected:
 };
  
 }
-#endif // __KBE_MOVETOENTITYHANDLER_HPP__
+#endif // KBE_MOVETOENTITYHANDLER_HPP
 

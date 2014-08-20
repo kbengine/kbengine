@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __DBMGR_INTERFACE_H__
+	#undef KBE_DBMGR_INTERFACE_HPP
 #endif
 
 
-#ifndef __DBMGR_INTERFACE_H__
-#define __DBMGR_INTERFACE_H__
+#ifndef KBE_DBMGR_INTERFACE_HPP
+#define KBE_DBMGR_INTERFACE_HPP
 
 // common include	
 #if defined(DBMGR)

@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_DEF_METHOD_H__
-#define __KBENGINE_DEF_METHOD_H__
+#ifndef KBENGINE_DEF_METHOD_HPP
+#define KBENGINE_DEF_METHOD_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -126,4 +127,4 @@ protected:
 #ifdef CODE_INLINE
 #include "method.ipp"
 #endif
-#endif
+#endif // KBENGINE_DEF_METHOD_HPP

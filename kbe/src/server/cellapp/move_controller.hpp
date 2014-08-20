@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_MOVETOPOINTCONTROLLER_HPP__
-#define __KBE_MOVETOPOINTCONTROLLER_HPP__
+#ifndef KBE_MOVETOPOINTCONTROLLERBASE_HPP
+#define KBE_MOVETOPOINTCONTROLLERBASE_HPP
 
 #include "controller.hpp"
 #include "updatable.hpp"
@@ -45,5 +45,5 @@ protected:
 };
  
 }
-#endif // __KBE_MOVETOPOINTCONTROLLER_HPP__
+#endif // KBE_MOVETOPOINTCONTROLLERBASE_HPP
 

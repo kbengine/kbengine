@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_COMMON_H__
-#define __SERVER_COMMON_H__
+#ifndef KBE_SERVER_COMMON_HPP
+#define KBE_SERVER_COMMON_HPP
 
 // common include
 #include "cstdkbe/timer.hpp"
@@ -171,4 +171,5 @@ inline uint64 secondsToStamps(float seconds)
 uint16 datatype2id(std::string datatype);
 
 }
-#endif
+
+#endif // KBE_SERVER_COMMON_HPP

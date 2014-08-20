@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __DETAILLEVEL_H__
-#define __DETAILLEVEL_H__
+#ifndef KBE_DETAILLEVEL_HPP
+#define KBE_DETAILLEVEL_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "pyscript/scriptobject.hpp"	
@@ -62,4 +63,5 @@ struct DetailLevel
 }
 
 
-#endif
+#endif // KBE_DETAILLEVEL_HPP
+

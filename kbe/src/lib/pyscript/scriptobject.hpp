@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SCRIPTOBJECT_H__
-#define __SCRIPTOBJECT_H__
+#ifndef KBE_SCRIPTOBJECT_HPP
+#define KBE_SCRIPTOBJECT_HPP
+
 #include <vector>	
 #include "Python.h"     
 #include "pyattr_macro.hpp" 
@@ -540,4 +541,4 @@ public:
 #include "scriptobject.ipp"
 #endif
 
-#endif
+#endif // KBE_SCRIPTOBJECT_HPP

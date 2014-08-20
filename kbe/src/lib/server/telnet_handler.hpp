@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TELNET_HANDLER_H__
-#define __TELNET_HANDLER_H__
+#ifndef KBE_TELNET_HANDLER_HPP
+#define KBE_TELNET_HANDLER_HPP
 
 #include "helper/profile_handler.hpp"
 #include "pyscript/pyprofile_handler.hpp"
@@ -183,4 +183,4 @@ public:
 #ifdef CODE_INLINE
 #include "telnet_handler.ipp"
 #endif
-#endif
+#endif // KBE_TELNET_HANDLER_HPP

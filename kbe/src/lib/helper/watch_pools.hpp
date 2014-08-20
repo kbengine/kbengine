@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __WATCH_POOLS_HANDLER__
-#define __WATCH_POOLS_HANDLER__
+#ifndef KBE_WATCH_POOLS_HANDLER_HPP
+#define KBE_WATCH_POOLS_HANDLER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"

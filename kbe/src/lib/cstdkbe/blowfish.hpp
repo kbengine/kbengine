@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_BLOWFISH_HPP__
-#define __KBENGINE_BLOWFISH_HPP__
+#ifndef KBENGINE_BLOWFISH_HPP
+#define KBENGINE_BLOWFISH_HPP
 
 #include "openssl/blowfish.h"
 #include <string>
@@ -63,4 +63,4 @@ protected:
 
 }
 
-#endif // __KBENGINE_BLOWFISH_HPP__
+#endif // KBENGINE_BLOWFISH_HPP

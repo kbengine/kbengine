@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __EVENT_DISPATCHER__
-#define __EVENT_DISPATCHER__
+#ifndef KBE_EVENT_DISPATCHER_HPP
+#define KBE_EVENT_DISPATCHER_HPP
 
 #include <map>
 #include "cstdkbe/tasks.hpp"
@@ -162,4 +162,4 @@ private:
 #ifdef CODE_INLINE
 #include "event_dispatcher.ipp"
 #endif
-#endif // __EVENT_DISPATCHER__
+#endif // KBE_EVENT_DISPATCHER_HPP

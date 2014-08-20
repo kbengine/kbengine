@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_APP_PROFILE_HPP__
-#define __CLIENT_APP_PROFILE_HPP__
+#ifndef KBE_CLIENT_APP_PROFILE_HPP
+#define KBE_CLIENT_APP_PROFILE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"

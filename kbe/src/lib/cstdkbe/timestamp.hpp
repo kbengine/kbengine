@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TIMESTAMP_HPP__
-#define __TIMESTAMP_HPP__
+#ifndef KBE_TIMESTAMP_HPP
+#define KBE_TIMESTAMP_HPP
 
 #include "cstdkbe/platform.hpp"
 #include "helper/debug_helper.hpp"
@@ -207,4 +207,4 @@ inline double TimeStamp::ageInSeconds() const
 
 }
 
-#endif // __TIMESTAMP_HPP__
+#endif // KBE_TIMESTAMP_HPP

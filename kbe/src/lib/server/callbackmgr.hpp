@@ -31,8 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // 可以使用bind来绑定一个类成员函数
 */
 
-#ifndef __CALLBACKMGR_H__
-#define __CALLBACKMGR_H__
+#ifndef KBE_CALLBACKMGR_HPP
+#define KBE_CALLBACKMGR_HPP
 
 // common include	
 #include "Python.h"
@@ -234,4 +234,5 @@ inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* c
 typedef CallbackMgr<PyObjectPtr> PY_CALLBACKMGR;
 
 }
-#endif
+
+#endif // KBE_CALLBACKMGR_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __INTERFACE_DEFS_H__
-#define __INTERFACE_DEFS_H__
+#ifndef KBE_INTERFACE_DEFS_HPP
+#define KBE_INTERFACE_DEFS_HPP
 	
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #endif
-// __INTERFACE_DEFS_H__
+// KBE_INTERFACE_DEFS_HPP
 namespace KBEngine{
 namespace Mercury
 {

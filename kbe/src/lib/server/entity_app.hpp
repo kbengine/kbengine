@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENTITY_APP_H__
-#define __ENTITY_APP_H__
+#ifndef KBE_ENTITY_APP_HPP
+#define KBE_ENTITY_APP_HPP
+
 // common include
 #include "pyscript/script.hpp"
 #include "pyscript/pyprofile.hpp"
@@ -1303,4 +1304,5 @@ void EntityApp<E>::reloadScript(bool fullReload)
 }
 
 }
-#endif
+
+#endif // KBE_ENTITY_APP_HPP

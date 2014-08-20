@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_PY_WATCHER_H__
-#define __KBENGINE_PY_WATCHER_H__
+#ifndef KBENGINE_PY_WATCHER_HPP
+#define KBENGINE_PY_WATCHER_HPP
+
 #include "scriptobject.hpp"
 #include "helper/watcher.hpp"
 
@@ -149,4 +150,4 @@ bool initializePyWatcher(Script* pScript);
 #include "pywatcher.ipp"
 #endif
 
-#endif
+#endif // KBENGINE_PY_WATCHER_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PYPROFILE_HANDLER__
-#define __PYPROFILE_HANDLER__
+#ifndef KBE_PYPROFILE_HANDLER_HPP
+#define KBE_PYPROFILE_HANDLER_HPP
 
 #include "helper/profile_handler.hpp"
 
@@ -38,4 +38,4 @@ public:
 
 }
 
-#endif
+#endif // KBE_PYPROFILE_HANDLER_HPP

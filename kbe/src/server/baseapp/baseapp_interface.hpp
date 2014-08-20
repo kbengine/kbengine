@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __BASEAPP_INTERFACE_H__
+	#undef KBE_BASEAPP_INTERFACE_HPP
 #endif
 
 
-#ifndef __BASEAPP_INTERFACE_H__
-#define __BASEAPP_INTERFACE_H__
+#ifndef KBE_BASEAPP_INTERFACE_HPP
+#define KBE_BASEAPP_INTERFACE_HPP
 
 // common include	
 #if defined(BASEAPP)

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __BOTS_H__
-#define __BOTS_H__
+#ifndef KBE_BOTS_HPP
+#define KBE_BOTS_HPP
 	
 // common include	
 #include "profile.hpp"
@@ -342,4 +342,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_BOTS_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __COMPONENT_BRIDEGE__
-#define __COMPONENT_BRIDEGE__
+#ifndef KBE_COMPONENT_BRIDEGE_HPP
+#define KBE_COMPONENT_BRIDEGE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/tasks.hpp"
@@ -76,4 +76,4 @@ private:
 
 }
 
-#endif // __COMPONENT_BRIDEGE__
+#endif // KBE_COMPONENT_BRIDEGE_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_OBJECT_H__
-#define __CLIENT_OBJECT_H__
+#ifndef KBE_CLIENT_OBJECT_HPP
+#define KBE_CLIENT_OBJECT_HPP
 
 #include "client_lib/entity.hpp"
 #include "client_lib/clientobjectbase.hpp"
@@ -109,4 +109,5 @@ protected:
 
 
 }
-#endif
+
+#endif // KBE_CLIENT_OBJECT_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CREATE_AND_LOGIN_HANDLER__
-#define __CREATE_AND_LOGIN_HANDLER__
+#ifndef KBE_CREATE_AND_LOGIN_HANDLER_HPP
+#define KBE_CREATE_AND_LOGIN_HANDLER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/tasks.hpp"
@@ -45,4 +45,4 @@ protected:
 
 }
 
-#endif
+#endif // KBE_CREATE_AND_LOGIN_HANDLER_HPP

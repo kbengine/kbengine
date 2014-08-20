@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_CONTROLLERS_HPP__
-#define __KBE_CONTROLLERS_HPP__
+#ifndef KBE_CONTROLLERS_HPP
+#define KBE_CONTROLLERS_HPP
 
 #include "controller.hpp"	
 
@@ -54,4 +54,4 @@ private:
 };
 
 }
-#endif // __KBE_CONTROLLERS_HPP__
+#endif // KBE_CONTROLLERS_HPP

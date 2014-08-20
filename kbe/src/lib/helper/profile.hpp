@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_PROFILE__
-#define __KBENGINE_PROFILE__
+#ifndef KBENGINE_PROFILE_HPP
+#define KBENGINE_PROFILE_HPP
 
 #include "debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -258,6 +258,6 @@ uint64 runningTime(){
 
 #include "profile.ipp"
 
-#endif // __KBENGINE_PROFILE__
+#endif // KBENGINE_PROFILE_HPP
 
 

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MGR_CELL_HPP__
-#define __MGR_CELL_HPP__
+#ifndef KBE_MGR_CELL_HPP
+#define KBE_MGR_CELL_HPP
 
 // common include
 #include "helper/debug_helper.hpp"

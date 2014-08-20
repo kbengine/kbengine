@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_AOI_TRIGGER_HPP__
-#define __KBE_AOI_TRIGGER_HPP__
+#ifndef KBE_AOI_TRIGGER_HPP
+#define KBE_AOI_TRIGGER_HPP
 
 #include "range_trigger.hpp"
 

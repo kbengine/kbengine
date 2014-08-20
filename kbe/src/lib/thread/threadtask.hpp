@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __THREADTASK_H__
-#define __THREADTASK_H__
+#ifndef KBE_THREADTASK_HPP
+#define KBE_THREADTASK_HPP
 
 // common include	
 // #define NDEBUG
@@ -58,4 +58,5 @@ public:
 
 }
 }
-#endif
+
+#endif // KBE_THREADTASK_HPP

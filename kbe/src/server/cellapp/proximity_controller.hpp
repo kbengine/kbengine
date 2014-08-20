@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_PROXIMITYCONTROLLER_HPP__
-#define __KBE_PROXIMITYCONTROLLER_HPP__
+#ifndef KBE_PROXIMITYCONTROLLER_HPP
+#define KBE_PROXIMITYCONTROLLER_HPP
 
 #include "controller.hpp"	
 
@@ -53,4 +53,4 @@ protected:
 };
 
 }
-#endif // __KBE_PROXIMITYCONTROLLER_HPP__
+#endif // KBE_PROXIMITYCONTROLLER_HPP

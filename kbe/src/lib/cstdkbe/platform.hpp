@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_PLATFORM_H__
-#define __KBE_PLATFORM_H__
+#ifndef KBE_PLATFORM_HPP
+#define KBE_PLATFORM_HPP
+
 // common include	
 #include <stdio.h>
 #include <stdlib.h>
@@ -672,4 +673,4 @@ inline bool isPlatformLittleEndian()
 }
 
 }
-#endif
+#endif // KBE_PLATFORM_HPP

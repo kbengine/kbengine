@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENTITIES_H__
-#define __ENTITIES_H__
+#ifndef KBE_ENTITIES_HPP
+#define KBE_ENTITIES_HPP
 	
 // common include	
 #include "helper/debug_helper.hpp"
@@ -338,4 +338,5 @@ PyObjectPtr Entities<T>::erase(ENTITY_ID id)
 }
 
 }
-#endif
+#endif // KBE_ENTITIES_HPP
+

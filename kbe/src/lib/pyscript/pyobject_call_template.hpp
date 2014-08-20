@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PYOBJECT_CALL_TEMPLATE__
-#define __PYOBJECT_CALL_TEMPLATE__
+#ifndef KBE_PYOBJECT_CALL_TEMPLATE_HPP
+#define KBE_PYOBJECT_CALL_TEMPLATE_HPP
+
 namespace KBEngine { 
 
 #define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
@@ -132,4 +133,4 @@ namespace KBEngine {
 
 
 }
-#endif // __PYOBJECT_CALL_TEMPLATE__
+#endif // KBE_PYOBJECT_CALL_TEMPLATE_HPP

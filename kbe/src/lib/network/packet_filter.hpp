@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __PACKET_FILTER_HPP__
-#define __PACKET_FILTER_HPP__
+#ifndef KBE_PACKET_FILTER_HPP
+#define KBE_PACKET_FILTER_HPP
 
 #include "network/common.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -57,4 +57,4 @@ typedef SmartPointer<PacketFilter> PacketFilterPtr;
 #include "packet_filter.ipp"
 #endif
 
-#endif // __PACKET_FILTER_HPP__
+#endif // KBE_PACKET_FILTER_HPP

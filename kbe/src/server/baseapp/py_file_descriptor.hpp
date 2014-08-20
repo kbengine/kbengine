@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PY_FILE_DESCRIPTOR__
-#define __PY_FILE_DESCRIPTOR__
+#ifndef KBE_PY_FILE_DESCRIPTOR_HPP
+#define KBE_PY_FILE_DESCRIPTOR_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/scriptobject.hpp"
@@ -54,4 +54,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_PY_FILE_DESCRIPTOR_HPP

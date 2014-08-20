@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ENTITY_CELL_BASE_CLIENT__MAILBOX_H__
-#define __ENTITY_CELL_BASE_CLIENT__MAILBOX_H__
+#ifndef KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_HPP
+#define KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_HPP
 	
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -128,4 +128,4 @@ protected:
 };
 
 }
-#endif
+#endif // KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_HPP

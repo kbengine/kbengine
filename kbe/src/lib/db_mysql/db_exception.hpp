@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DB_EXCEPTION_HPP__
-#define __DB_EXCEPTION_HPP__
+#ifndef KBE_DB_EXCEPTION_HPP
+#define KBE_DB_EXCEPTION_HPP
 
 #include <string>
 
@@ -44,6 +44,6 @@ private:
 
 }
 
-#endif // __DB_EXCEPTION_HPP__
+#endif // KBE_DB_EXCEPTION_HPP
 
 

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __OBJECTPOOL_H__
-#define __OBJECTPOOL_H__
+#ifndef KBE_OBJECTPOOL_HPP
+#define KBE_OBJECTPOOL_HPP
 	
 // common include	
 //#define NDEBUG

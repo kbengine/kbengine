@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ALL_CLIENTS_H__
-#define __ALL_CLIENTS_H__
+#ifndef KBE_ALL_CLIENTS_HPP
+#define KBE_ALL_CLIENTS_HPP
 	
 // common include	
 #include "cstdkbe/cstdkbe.hpp"
@@ -95,4 +95,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_ALL_CLIENTS_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MACHINE_INFOS_HPP__
-#define __MACHINE_INFOS_HPP__
+#ifndef KBE_MACHINE_INFOS_HPP
+#define KBE_MACHINE_INFOS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 namespace KBEngine{
@@ -55,4 +55,4 @@ private:
 	uint64 memUsed_;
 };
 }
-#endif // __MACHINE_INFOS_HPP__
+#endif // KBE_MACHINE_INFOS_HPP

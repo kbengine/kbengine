@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GHOST_MANAGER_HANDLER__
-#define __GHOST_MANAGER_HANDLER__
+#ifndef KBE_GHOST_MANAGER_HANDLER_HPP
+#define KBE_GHOST_MANAGER_HANDLER_HPP
 
 // common include
 #include "helper/debug_helper.hpp"
@@ -99,4 +99,5 @@ private:
 
 
 }
-#endif
+
+#endif // KBE_GHOST_MANAGER_HANDLER_HPP

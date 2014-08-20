@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LOGWATCHER_H__
-#define __LOGWATCHER_H__
+#ifndef KBE_LOGWATCHER_HPP
+#define KBE_LOGWATCHER_HPP
 	
 // common include	
 
@@ -56,4 +56,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_LOGWATCHER_HPP

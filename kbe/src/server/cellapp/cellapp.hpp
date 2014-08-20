@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CELLAPP_H__
-#define __CELLAPP_H__
+#ifndef KBE_CELLAPP_HPP
+#define KBE_CELLAPP_HPP
 	
 // common include	
 #include "entity.hpp"
@@ -256,4 +256,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_CELLAPP_HPP

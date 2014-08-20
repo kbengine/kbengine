@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_ADDRESS__
-#define __KBE_ADDRESS__
+#ifndef KBE_ADDRESS_HPP
+#define KBE_ADDRESS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -100,4 +100,4 @@ inline bool operator<(const Address & a, const Address & b)
 
 }
 }
-#endif // __EVENT_POLLER__
+#endif // KBE_ADDRESS_HPP

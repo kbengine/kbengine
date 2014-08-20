@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_ERRORS_H__
-#define __SERVER_ERRORS_H__
+#ifndef KBE_SERVER_ERRORS_HPP
+#define KBE_SERVER_ERRORS_HPP
 
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -87,4 +87,5 @@ const char SERVER_ERR_STR[][256] = {
 };
 
 }
-#endif // __SERVER_ERRORS_H__
+
+#endif // KBE_SERVER_ERRORS_HPP

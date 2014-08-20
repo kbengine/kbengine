@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DEADLINE_FORMAT__
-#define __DEADLINE_FORMAT__
+#ifndef KBE_DEADLINE_FORMAT_HPP
+#define KBE_DEADLINE_FORMAT_HPP
 #include "cstdkbe/cstdkbe.hpp"
 #include <math.h>
 
@@ -64,4 +64,4 @@ public:
 
 }
 
-#endif // __DEADLINE_FORMAT__
+#endif // KBE_DEADLINE_FORMAT_HPP

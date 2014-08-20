@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_EVENT_HPP__
-#define __CLIENT_EVENT_HPP__
+#ifndef KBE_CLIENT_EVENT_HPP
+#define KBE_CLIENT_EVENT_HPP
 
 #include "client_lib/entity_aspect.hpp"
 #include "cstdkbe/cstdkbe.hpp"

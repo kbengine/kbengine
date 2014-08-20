@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MEMORYSTREAM_H__
-#define __MEMORYSTREAM_H__
+#ifndef KBE_MEMORYSTREAM_HPP
+#define KBE_MEMORYSTREAM_HPP
 // common include	
 #include <iostream>
 #include <vector>

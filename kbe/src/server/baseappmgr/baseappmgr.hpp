@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __BASEAPPMGR_H__
-#define __BASEAPPMGR_H__
+#ifndef KBE_BASEAPPMGR_HPP
+#define KBE_BASEAPPMGR_HPP
 
 #include "baseapp.hpp"
 #include "server/kbemain.hpp"
@@ -142,4 +142,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_BASEAPPMGR_HPP

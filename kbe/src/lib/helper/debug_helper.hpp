@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBE_DEBUG_HPP__
-#define __KBE_DEBUG_HPP__
+#ifndef KBE_DEBUG_HPP
+#define KBE_DEBUG_HPP
 
 #include <assert.h>
 #include <time.h>	
@@ -229,4 +229,4 @@ void myassert(const char* exp, const char * func, const char * file, unsigned in
 
 }
 
-#endif // __KBE_DEBUG_HPP__
+#endif // KBE_DEBUG_HPP

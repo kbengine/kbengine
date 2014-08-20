@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BUFFERED_DBTASKS_H__
-#define __BUFFERED_DBTASKS_H__
+#ifndef KBE_BUFFERED_DBTASKS_HPP
+#define KBE_BUFFERED_DBTASKS_HPP
 
 // common include	
 // #define NDEBUG
@@ -90,4 +90,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_BUFFERED_DBTASKS_HPP

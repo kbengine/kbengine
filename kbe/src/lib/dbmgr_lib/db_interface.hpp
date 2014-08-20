@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_DB_INTERFACE__
-#define __KBE_DB_INTERFACE__
+#ifndef KBE_DB_INTERFACE_HPP
+#define KBE_DB_INTERFACE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -174,4 +174,4 @@ private:
 
 }
 
-#endif // __KBE_DB_INTERFACE__
+#endif // KBE_DB_INTERFACE_HPP

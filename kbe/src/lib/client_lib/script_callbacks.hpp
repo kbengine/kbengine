@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SCRIPT_CALLBACKS_HPP__
-#define __SCRIPT_CALLBACKS_HPP__
+#ifndef KBE_SCRIPT_CALLBACKS_HPP
+#define KBE_SCRIPT_CALLBACKS_HPP
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "pyscript/scriptobject.hpp"

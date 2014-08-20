@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_SCRIPT_LOCK_H__
-#define __KBENGINE_SCRIPT_LOCK_H__
+#ifndef KBENGINE_SCRIPT_LOCK_HPP
+#define KBENGINE_SCRIPT_LOCK_HPP
 
 #include "Python.h"
 
@@ -51,4 +51,4 @@ private:
 }
 }
 
-#endif
+#endif // KBENGINE_SCRIPT_LOCK_HPP

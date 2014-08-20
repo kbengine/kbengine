@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORK_COMMON_H__
-#define __NETWORK_COMMON_H__
+#ifndef KBE_NETWORK_COMMON_HPP
+#define KBE_NETWORK_COMMON_HPP
 
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -241,4 +241,5 @@ void finalise(void);
 
 }
 }
-#endif
+
+#endif // KBE_NETWORK_COMMON_HPP

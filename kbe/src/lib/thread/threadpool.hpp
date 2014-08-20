@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __THREADPOOL_H__
-#define __THREADPOOL_H__
+#ifndef KBE_THREADPOOL_HPP
+#define KBE_THREADPOOL_HPP
 
 // common include	
 // #define NDEBUG
@@ -386,4 +386,4 @@ protected:
 #ifdef CODE_INLINE
 #include "threadpool.ipp"
 #endif
-#endif
+#endif // KBE_THREADPOOL_HPP

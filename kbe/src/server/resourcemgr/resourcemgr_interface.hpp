@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __RESOURCEMGR_INTERFACE_H__
+	#undef KBE_RESOURCEMGR_INTERFACE_HPP
 #endif
 
 
-#ifndef __RESOURCEMGR_INTERFACE_H__
-#define __RESOURCEMGR_INTERFACE_H__
+#ifndef KBE_RESOURCEMGR_INTERFACE_HPP
+#define KBE_RESOURCEMGR_INTERFACE_HPP
 
 // common include	
 #if defined(RESOURCEMGR)

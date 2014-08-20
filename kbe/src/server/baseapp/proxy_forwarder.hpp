@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PROXY_FORWARDER__
-#define __PROXY_FORWARDER__
+#ifndef KBE_PROXY_FORWARDER_HPP
+#define KBE_PROXY_FORWARDER_HPP
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -42,4 +42,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_PROXY_FORWARDER_HPP

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBE_MEMORY_HELPER_HPP__
-#define __KBE_MEMORY_HELPER_HPP__
+#ifndef KBE_MEMORY_HELPER_HPP
+#define KBE_MEMORY_HELPER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -55,4 +55,4 @@ namespace KBEngine{
 
 }
 
-#endif // __KBE_DEBUG_OPTION_HPP__
+#endif // KBE_MEMORY_HELPER_HPP

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __CLIENT_APP_H__
-#define __CLIENT_APP_H__
+#ifndef KBE_CLIENT_APP_HPP
+#define KBE_CLIENT_APP_HPP
 
 #include "clientobjectbase.hpp"
 #include "cstdkbe/cstdkbe.hpp"

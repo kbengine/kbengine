@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_COORDINATE_SYSTEM_HPP__
-#define __KBE_COORDINATE_SYSTEM_HPP__
+#ifndef KBE_COORDINATE_SYSTEM_HPP
+#define KBE_COORDINATE_SYSTEM_HPP
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"	

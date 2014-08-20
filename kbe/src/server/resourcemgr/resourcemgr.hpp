@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __RESOURCEMGR_H__
-#define __RESOURCEMGR_H__
+#ifndef KBE_RESOURCEMGR_HPP
+#define KBE_RESOURCEMGR_HPP
 	
 // common include	
 #include "server/kbemain.hpp"
@@ -72,4 +72,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_RESOURCEMGR_HPP
