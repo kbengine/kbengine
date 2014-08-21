@@ -195,6 +195,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\backuper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\base.cpp"
 				>
 			</File>
@@ -272,10 +276,6 @@
 			>
 			<File
 				RelativePath=".\archiver.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\backuper.cpp"
 				>
 			</File>
 			<File
