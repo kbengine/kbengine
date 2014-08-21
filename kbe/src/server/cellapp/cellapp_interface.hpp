@@ -148,20 +148,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 请求查询watcher数据
 	CELLAPP_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
 
-	// 请求teleport到当前cellapp上进行确认
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherValidation,				MERCURY_VARIABLE_MESSAGE)
-
 	// 开始profile
 	CELLAPP_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
 
-	// 请求teleport到当前cellapp上进行确认后的应答
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherAck,						MERCURY_VARIABLE_MESSAGE)
-
 	// 请求teleport到当前cellapp上
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToTheCellApp,					MERCURY_VARIABLE_MESSAGE)
 
 	// entity传送到目的cellapp上的space之后， 返回给之前cellapp的回调
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherCB,						MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToTheCellAppCB,				MERCURY_VARIABLE_MESSAGE)
 
 	// real请求更新属性到ghost
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					MERCURY_VARIABLE_MESSAGE)

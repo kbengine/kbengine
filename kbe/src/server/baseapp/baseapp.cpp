@@ -2413,7 +2413,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	
 	Proxy* proxy = static_cast<Proxy*>(base);
 	
-	if(proxy->rndUUID() != key)
+	if(key == 0 || proxy->rndUUID() != key)
 	{
 		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;

@@ -2317,8 +2317,8 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 {
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::teleport: %2%, nearbyEntityRef is null!\n") % 
-			this->getScriptName() % getID());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d nearbyEntityRef is null!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 
 		onTeleportFailure();
 		return;
@@ -2362,13 +2362,13 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		{
 			if(space != NULL)
 			{
-				ERROR_MSG(boost::format("%1%::teleport(): %2%, nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n") % 
-					this->getScriptName() % getID());
+				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n", getScriptName(), getID());
+				PyErr_PrintEx(0);
 			}
 			else
 			{
-				ERROR_MSG(boost::format("%1%::teleport(): %2%, not found space(%3%)!\n") % 
-					this->getScriptName() % getID() % spaceID);
+				PyErr_Format(PyExc_Exception, "%s::teleport: %d, not found space(%d)!\n", getScriptName(), getID() % spaceID);
+				PyErr_PrintEx(0);
 			}
 
 			onTeleportFailure();
@@ -2405,106 +2405,50 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	// 我们先确定目的cellapp上space存在， 之后仅需要打包entity过去创建
 	if(nearbyMBRef->isBase())
 	{
-		PyObject* pyret = PyObject_GetAttrString(nearbyMBRef, const_cast<char*>("cell"));
-		if(pyret == NULL)
-		{
-			ERROR_MSG(boost::format("%1%::teleportRefMailbox(): %2%, nearbyRef is error, not found cellMailbox!\n") % 
-				this->getScriptName() % getID());
-
-			onTeleportFailure();
-			return;
-		}
-
-		if(pyret == Py_None)
-		{
-			ERROR_MSG(boost::format("%1%::teleportRefMailbox(): %2%, nearbyRef is error, not found cellMailbox!\n") % 
-				this->getScriptName() % getID());
-
-			onTeleportFailure();
-			Py_DECREF(pyret);
-			return;
-		}
-
-		nearbyMBRef = static_cast<EntityMailbox*>(pyret);
-	}
-	else
-	{
-		Py_INCREF(nearbyMBRef);
-	}
-	
-	// 如果是cellMailbox则直接发送消息，否则cellViaXXXMailbox需要转发
-	if(nearbyMBRef->isCellReal())
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportOtherValidation);
-		(*pBundle) << getID();
-		(*pBundle) << nearbyMBRef->getID();
-		(*pBundle) << g_componentID;
-		nearbyMBRef->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	}
-	else
-	{
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pForwardBundle).newMessage(CellappInterface::reqTeleportOtherValidation);
-		(*pForwardBundle) << getID();
-		(*pForwardBundle) << nearbyMBRef->getID();
-		(*pForwardBundle) << g_componentID;
-
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CELLAPP(nearbyMBRef->getID(), (*pSendBundle), (*pForwardBundle));
-
-		nearbyMBRef->postMail((*pSendBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-	}
-
-	Py_DECREF(nearbyMBRef);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID, COMPONENT_ID componentID)
-{
-	// 目的space错误
-	if(destSpaceID == 0)
-	{
-		ERROR_MSG(boost::format("%1%::onReqTeleportOtherAck(): %2%, not found destSpace!\n") % 
-			this->getScriptName() % getID());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error, not is cellMailbox!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 
 		onTeleportFailure();
 		return;
 	}
 	
-	// 这里确定目的space是存在的
-	// 我们需要将entity打包发往目的cellapp， 同时需要销毁当前cellapp上的该实体
-	const Position3D& pos = getPosition();
-	const Direction3D& dir = getDirection();
-
+	// 我们需要将entity打包发往目的cellapp
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(CellappInterface::reqTeleportOther);
+	(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellApp);
 	(*pBundle) << getID();
-	(*pBundle) << nearbyMBRefID;
-	(*pBundle) << getSpaceID() << destSpaceID;
+	(*pBundle) << nearbyMBRef->getID();
+	(*pBundle) << getSpaceID();
 	(*pBundle) << getScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	changeToGhost(componentID, *s);
+	changeToGhost(nearbyMBRef->getComponentID(), *s);
 	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
-
-	pBundle->send(Cellapp::getSingleton().getNetworkInterface(), pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	// 暂时不销毁这个entity, 等那边成功创建之后再回来销毁
 	// 此期间的消息可以通过ghost转发给real
 	// 如果未能正确传输过去则可以从当前cell继续恢复entity.
 	// Cellapp::getSingleton().destroyEntity(getID(), false);
+
+	// 如果是cellMailbox则直接发送消息，否则cellViaXXXMailbox需要转发
+	if(nearbyMBRef->isCellReal())
+	{
+		nearbyMBRef->postMail((*pBundle));
+	}
+	else
+	{
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		MERCURY_ENTITY_MESSAGE_FORWARD_CELLAPP(nearbyMBRef->getID(), (*pSendBundle), (*pBundle));
+		nearbyMBRef->postMail((*pSendBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2580,8 +2524,8 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			else
 			{
 				// 如果不是entity， 也不是mailbox同时也不是None? 那肯定是输入错误
-				ERROR_MSG(boost::format("%1%::teleport(): %2%, nearbyRef is error!\n") % 
-					this->getScriptName() % getID());
+				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error!\n", getScriptName(), getID());
+				PyErr_PrintEx(0);
 
 				onTeleportFailure();
 			}

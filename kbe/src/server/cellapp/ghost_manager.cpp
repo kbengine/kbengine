@@ -113,7 +113,7 @@ COMPONENT_ID GhostManager::getRoute(ENTITY_ID entityID)
 void GhostManager::checkRoute()
 {
 	std::map<ENTITY_ID, ROUTE_INFO>::iterator iter = ghost_route_.begin();
-	for(; iter != ghost_route_.end(); iter++)
+	for(; iter != ghost_route_.end(); )
 	{
 		if(timestamp() - iter->second.lastTime > uint64( 5 * stampsPerSecond() ))
 		{

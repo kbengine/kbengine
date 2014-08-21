@@ -1430,70 +1430,7 @@ PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
-	COMPONENT_ID cellComponentID = 0;
-	s >> teleportEntityID >> nearbyMBRefID >> cellComponentID;
-
-	Entity* entity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
-	SPACE_ID spaceID = 0;
-
-	if(entity)
-	{
-		Space* space = Spaces::findSpace(entity->getSpaceID());
-		if(space == NULL || (space->creatorID() == entity->getID() && entity->isDestroyed()))
-		{
-			spaceID = 0;
-		}
-		else
-		{
-			spaceID = space->getID();
-		}
-	}
-
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellComponentID);
-
-	if(cinfos == NULL || cinfos->pChannel == NULL)
-	{
-		ERROR_MSG(boost::format("Cellapp::reqTeleportOtherValidation: not found cellapp(%1%)!\n") % cellComponentID);
-		return;
-	}
-
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(CellappInterface::reqTeleportOtherAck);
-	(*pBundle) << teleportEntityID;
-	(*pBundle) << nearbyMBRefID;
-	(*pBundle) << spaceID;
-	(*pBundle) << g_componentID;
-
-	pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-}
-
-//-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s)
-{
-	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
-	SPACE_ID spaceID = 0;
-	COMPONENT_ID componentID;
-
-	s >> teleportEntityID >> nearbyMBRefID >> spaceID >> componentID;
-	
-	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
-
-	if(entity)
-	{
-		entity->onReqTeleportOtherAck(pChannel, nearbyMBRefID, spaceID, componentID);
-	}
-	else
-	{
-		WARNING_MSG(boost::format("Cellapp::reqTeleportOtherAck: not found reqTeleportEntity(%1%)!\n") % teleportEntityID);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
+void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	size_t rpos = s.rpos();
 
@@ -1501,29 +1438,49 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	Position3D pos;
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;
-	SPACE_ID spaceID = 0, lastSpaceID = 0;
+	SPACE_ID spaceID = 0;
 
-	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID >> spaceID;
+	s >> teleportEntityID >> nearbyMBRefID >> spaceID;
 	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	
 	bool success = false;
 
-	Space* space = Spaces::findSpace(spaceID);
-	if(space == NULL)
+	Entity* refEntity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
+	if(refEntity == NULL || refEntity->isDestroyed())
 	{
 		s.rpos(rpos);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
 		pBundle->send(this->getNetworkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
-		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: not found space(%1%),  reqTeleportEntity(%2%)!\n") % spaceID % teleportEntityID);
+		ERROR_MSG(boost::format("Cellapp::reqTeleportToTheCellApp: not found refEntity(%1%), spaceID(%2%), reqTeleportEntity(%3%)!\n") % 
+			nearbyMBRefID % spaceID % teleportEntityID);
+
+		s.opfini();
+		return;
+	}
+
+	Space* space = Spaces::findSpace(refEntity->getSpaceID());
+	if(space == NULL)
+	{
+		s.rpos(rpos);
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle) << teleportEntityID;
+		(*pBundle) << success;
+		(*pBundle).append(&s);
+		pBundle->send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+		ERROR_MSG(boost::format("Cellapp::reqTeleportToTheCellApp: not found space(%1%),  reqTeleportEntity(%2%)!\n") % spaceID % teleportEntityID);
 		s.opfini();
 		return;
 	}
@@ -1535,14 +1492,14 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 		s.rpos(rpos);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
 		pBundle->send(this->getNetworkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
-		ERROR_MSG(boost::format("Cellapp::reqTeleportOther: create reqTeleportEntity(%1%) is error!\n") % teleportEntityID);
+		ERROR_MSG(boost::format("Cellapp::reqTeleportToTheCellApp: create reqTeleportEntity(%1%) is error!\n") % teleportEntityID);
 		s.opfini();
 		return;
 	}
@@ -1559,13 +1516,13 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 	space->addEntityAndEnterWorld(e);
 
 	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
-	e->onTeleportSuccess(nearbyMBRef, lastSpaceID);
+	e->onTeleportSuccess(nearbyMBRef, space->getID());
 	
 	success = true;
 	
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportOtherCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		pBundle->send(this->getNetworkInterface(), pChannel);
@@ -1574,7 +1531,7 @@ void Cellapp::reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s)
+void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	bool success;
@@ -1587,7 +1544,9 @@ void Cellapp::reqTeleportOtherCB(Mercury::Channel* pChannel, MemoryStream& s)
 	{
 		if(!success)
 		{
-			ERROR_MSG(boost::format("Cellapp::reqTeleportOtherCB: not found reqTeleportEntity(%1%), lose entity!\n") % teleportEntityID);
+			ERROR_MSG(boost::format("Cellapp::reqTeleportToTheCellAppCB: not found reqTeleportEntity(%1%), lose entity!\n") % 
+				teleportEntityID);
+
 			s.opfini();
 			return;
 		}

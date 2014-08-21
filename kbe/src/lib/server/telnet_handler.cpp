@@ -148,7 +148,7 @@ std::string TelnetHandler::getWelcome()
 			"ScriptVersion: %3%. "
 			"Config: %4%. "
 			"Built: %5% %6%. "
-			"AppUID: %7%. "
+			"AppID: %7%. "
 			"UID: %8%. "
 			"PID: %9%"
 			"\r\n---------------------------------------------"
