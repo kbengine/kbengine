@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\move_controller.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\moveto_entity_handler.cpp"
 				>
 			</File>
@@ -448,10 +452,6 @@
 			</File>
 			<File
 				RelativePath=".\loadnavmesh_threadtasks.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\move_controller.cpp"
 				>
 			</File>
 			<File
