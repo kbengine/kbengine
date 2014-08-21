@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pywatcher.cpp"
+				>
+			</File>
+			<File
 				RelativePath="script.cpp"
 				>
 			</File>
@@ -286,10 +290,6 @@
 			</File>
 			<File
 				RelativePath=".\pythread_lock.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\pywatcher.cpp"
 				>
 			</File>
 			<File
