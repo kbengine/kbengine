@@ -262,6 +262,9 @@ public:
 	uint32 tickMaxBufferedLogs()const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs()const { return tick_max_sync_logs_; }
 private:
+	void _updateEmailInfos();
+
+private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
 	ENGINE_COMPONENT_INFO _dbmgrInfo;

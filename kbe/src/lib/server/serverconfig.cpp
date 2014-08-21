@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
+#include "cstdkbe/kbekey.hpp"
 #include "cstdkbe/kbeversion.hpp"
 
 #ifndef CODE_INLINE
@@ -1138,7 +1139,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 		childnode = xml->getRootNode("password");
 		if(childnode)
+		{
 			emailServerInfo_.password = xml->getValStr(childnode);
+		}
 
 		childnode = xml->getRootNode("smtp_auth");
 		if(childnode)
@@ -1241,6 +1244,43 @@ uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------	
+void ServerConfig::_updateEmailInfos()
+{
+	// 如果小于64则表示目前还是明文密码
+	if(emailServerInfo_.password.size() < 64)
+	{
+		std::string encrypted;
+		KBEKey::getSingleton().encrypt(emailServerInfo_.password, encrypted);
+		
+		char* strencrypted = new char[1024];
+		memset(strencrypted, 0, 1024);
+		strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
+		WARNING_MSG(boost::format("ServerConfig::loadConfig: email password(email_service.xml) is not encrypted!\nplease use password(rsa):\n%1%\n") 
+			% strencrypted);
+		delete[] strencrypted;
+	}
+	else
+	{
+		unsigned char* strencrypted = new unsigned char[1024];
+		memset(strencrypted, 0, 1024);
+		strutil::string2bytes((unsigned char *)emailServerInfo_.password.c_str(), strencrypted, 1024);
+		std::string encrypted;
+		encrypted.assign((char*)strencrypted, 1024);
+		delete[] strencrypted;
+		std::string out;
+
+		if(KBEKey::getSingleton().decrypt(encrypted, out) < 0)
+		{
+			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt is error!\n");
+		}
+		else
+		{
+			emailServerInfo_.password = out;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
 							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
 {
@@ -1295,6 +1335,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
 			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
+
+		_updateEmailInfos();
 	}
 	else if (componentType == BASEAPPMGR_TYPE)
 	{
@@ -1368,6 +1410,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
 			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
 		}
+
+		_updateEmailInfos();
 	}
 	else if (componentType == MACHINE_TYPE)
 	{
@@ -1395,7 +1439,6 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		printf("%s", infostr.c_str());
 	}
 #endif
-
 }
 
 //-------------------------------------------------------------------------------------		
