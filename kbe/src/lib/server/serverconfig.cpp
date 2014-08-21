@@ -1246,6 +1246,7 @@ uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
 //-------------------------------------------------------------------------------------	
 void ServerConfig::_updateEmailInfos()
 {
+#ifdef USE_OPENSSL
 	// 如果小于64则表示目前还是明文密码
 	if(emailServerInfo_.password.size() < 64)
 	{
@@ -1278,6 +1279,7 @@ void ServerConfig::_updateEmailInfos()
 			emailServerInfo_.password = out;
 		}
 	}
+#endif
 }
 
 //-------------------------------------------------------------------------------------	
