@@ -298,8 +298,8 @@ kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
 	loadConfig();																										\
-	parseMainCommandArgs(argc, argv);																					\
 	g_componentID = genUUID64();																						\
+	parseMainCommandArgs(argc, argv);																					\
 	return kbeMain(argc, argv);																							\
 }																														\
 int kbeMain
