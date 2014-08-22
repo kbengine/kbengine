@@ -223,7 +223,7 @@ void Bots::handleGameTick()
 //-------------------------------------------------------------------------------------
 Mercury::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
 {
-	int32 appID = (int32)mailbox.getComponentID();
+	int32 appID = (int32)mailbox.componentID();
 	ClientObject* pClient = findClientByAppID(appID);
 
 	if(pClient)

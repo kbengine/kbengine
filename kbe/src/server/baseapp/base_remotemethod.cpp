@@ -64,7 +64,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Base* pEntity = Baseapp::getSingleton().findEntity(mailbox->getID());
+	Base* pEntity = Baseapp::getSingleton().findEntity(mailbox->id());
 	if(pEntity == NULL)
 	{
 		//WARNING_MSG(boost::format("BaseRemoteMethod::callClientMethod: not found entity(%1%).\n") % 

@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef __BASE_H__
-#define __BASE_H__
+#ifndef KBE_BASE_HPP
+#define KBE_BASE_HPP
 	
 // common include	
 #include "profile.hpp"
@@ -252,6 +252,12 @@ public:
 	void reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
 
+	/** 网络接口
+		entity请求teleport到另一个cellapp上的space过程开始和结束。
+	*/
+	void onTeleportCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
+	void onTeleportCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
+
 	/**
 		设置获取是否自动存档
 	*/
@@ -311,4 +317,4 @@ protected:
 #include "base.ipp"
 #endif
 
-#endif
+#endif // KBE_BASE_HPP

@@ -1523,6 +1523,7 @@ void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& 
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		pBundle->send(this->getNetworkInterface(), pChannel);
@@ -1535,8 +1536,9 @@ void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream
 {
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	bool success;
+	COMPONENT_ID targetCellappID;
 
-	s >> teleportEntityID >> success;
+	s >> targetCellappID >> teleportEntityID >> success;
 
 	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
 
@@ -1552,6 +1554,17 @@ void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream
 		}
 
 		s.opfini();
+	}
+
+	EntityMailbox* baseMB = entity->getBaseMailbox();
+	if(baseMB)
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onTeleportCellappEnd);
+		(*pBundle) << baseMB->id();
+		(*pBundle) << targetCellappID;
+		baseMB->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	// 传送成功， 我们销毁这个entity。

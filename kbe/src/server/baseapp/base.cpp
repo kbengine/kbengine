@@ -1081,7 +1081,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	}
 	
 	EntityMailboxAbstract* cellMailbox = static_cast<EntityMailboxAbstract*>(pyobj);
-	if(cellMailbox->getType() != MAILBOX_TYPE_CELL)
+	if(cellMailbox->type() != MAILBOX_TYPE_CELL)
 	{
 		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", 
 			this->getScriptName());
@@ -1212,7 +1212,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 	{
 		EntityMailbox* mb = static_cast<EntityMailbox*>(baseEntityMB);
 
-		if(mb->getType() != MAILBOX_TYPE_BASE && mb->getType() != MAILBOX_TYPE_CELL_VIA_BASE)
+		if(mb->type() != MAILBOX_TYPE_BASE && mb->type() != MAILBOX_TYPE_CELL_VIA_BASE)
 		{
 			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", 
 				getScriptName(), getID());
@@ -1221,14 +1221,14 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 			return 0;
 		}
 
-		eid = mb->getID();
+		eid = mb->id();
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::reqTeleportOther);
 		(*pBundle) << eid;
 
 		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle((*pBundle), this->getID(), 
-			this->getCellMailbox()->getComponentID(), g_componentID);
+			this->getCellMailbox()->componentID(), g_componentID);
 
 		mb->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1239,7 +1239,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		if(!base->isDestroyed())
 		{
 			base->reqTeleportOther(NULL, this->getID(), 
-				this->getCellMailbox()->getComponentID(), g_componentID);
+				this->getCellMailbox()->componentID(), g_componentID);
 		}
 		else
 		{
@@ -1317,11 +1317,27 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	(*pBundle).newMessage(CellappInterface::teleportFromBaseapp);
 	(*pBundle) << reqTeleportEntityID;
 
-	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->getCellMailbox()->getComponentID(), 
+	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->getCellMailbox()->componentID(), 
 		this->getID(), reqTeleportEntityBaseAppID);
 
 	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onTeleportCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
+{
+	DEBUG_MSG(boost::format("%1%::onTeleportCellappStart: %2%, targetCellappID=%3%\n") %											
+		getScriptName() % getID() % cellappID);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onTeleportCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
+{
+	DEBUG_MSG(boost::format("%1%::onTeleportCellappEnd: %2%, targetCellappID=%3%\n") %											
+		getScriptName() % getID() % cellappID);
+
+	this->getCellMailbox()->componentID(cellappID);
 }
 
 //-------------------------------------------------------------------------------------

@@ -2386,25 +2386,6 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 //-------------------------------------------------------------------------------------
 void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	// 如果这个entity有base部分， 假如是本进程级别的传送，那么相关操作按照正常的执行
-	// 如果是跨cellapp的传送， 那么我们可以先设置entity为ghost并立即序列化entity发往目的cellapp
-	// 如果期间有base的消息发送过来， entity的ghost机制能够转到real上去， 因此传送之前不需要对base
-	// 做一些设置，传送成功后先设置base的关系base在被改变关系后仍然有0.1秒的时间收到包继续发往ghost，
-	// 如果一直有包则一直刷新时间直到没有任何包需要广播并且超时0.1秒之后的包才会直接发往real）, 这样做的好处是传送并不需要非常谨慎的与base耦合
-	// 传送过程中有任何错误也不会影响到base部分，base部分的包也能够按照秩序送往real。
-
-	// 如果有base部分, 我们还需要调用一下备份功能。
-	if(this->getBaseMailbox() != NULL)
-	{
-		this->backupCellData();
-	}
-
-	onTeleportRefMailbox(nearbyMBRef, pos, dir);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
-{
 	if(nearbyMBRef->isBase())
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error, not is cellMailbox!\n", getScriptName(), getID());
@@ -2413,19 +2394,58 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 		onTeleportFailure();
 		return;
 	}
-	
+
+	// 如果这个entity有base部分， 假如是本进程级别的传送，那么相关操作按照正常的执行
+	// 如果是跨cellapp的传送， 那么我们可以先设置entity为ghost并立即序列化entity发往目的cellapp
+	// 如果期间有base的消息发送过来， entity的ghost机制能够转到real上去， 因此传送之前不需要对base
+	// 做一些设置，传送成功后先设置base的关系base在被改变关系后仍然有0.1秒的时间收到包继续发往ghost，
+	// 如果一直有包则一直刷新时间直到没有任何包需要广播并且超时0.1秒之后的包才会直接发往real）, 这样做的好处是传送并不需要非常谨慎的与base耦合
+	// 传送过程中有任何错误也不会影响到base部分，base部分的包也能够按照秩序送往real。
+	if(this->getBaseMailbox() != NULL)
+	{
+		// 如果有base部分, 我们还需要调用一下备份功能。
+		this->backupCellData();
+		
+		Mercury::Channel* pBaseChannel = getBaseMailbox()->getChannel();
+		if(pBaseChannel)
+		{
+			// 同时需要通知base暂存发往cellapp的消息，因为后面如果跳转成功需要切换cellMailbox映射关系到新的cellapp
+			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
+			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(BaseappInterface::onTeleportCellappStart);
+			(*pBundle) << getID();
+			(*pBundle) << g_componentID;
+			(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), pBaseChannel);
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		}
+		else
+		{
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error, not found baseapp!\n", getScriptName(), getID());
+			PyErr_PrintEx(0);
+			onTeleportFailure();
+			return;
+		}
+	}
+
+	onTeleportRefMailbox(nearbyMBRef, pos, dir);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
+{
 	// 我们需要将entity打包发往目的cellapp
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellApp);
 	(*pBundle) << getID();
-	(*pBundle) << nearbyMBRef->getID();
+	(*pBundle) << nearbyMBRef->id();
 	(*pBundle) << getSpaceID();
 	(*pBundle) << getScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
-	changeToGhost(nearbyMBRef->getComponentID(), *s);
+	changeToGhost(nearbyMBRef->componentID(), *s);
 	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -2435,19 +2455,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	// 如果未能正确传输过去则可以从当前cell继续恢复entity.
 	// Cellapp::getSingleton().destroyEntity(getID(), false);
 
-	// 如果是cellMailbox则直接发送消息，否则cellViaXXXMailbox需要转发
-	if(nearbyMBRef->isCellReal())
-	{
-		nearbyMBRef->postMail((*pBundle));
-	}
-	else
-	{
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CELLAPP(nearbyMBRef->getID(), (*pSendBundle), (*pBundle));
-		nearbyMBRef->postMail((*pSendBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-	}
-
+	nearbyMBRef->postMail((*pBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -2510,7 +2518,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			if(PyObject_TypeCheck(nearbyMBRef, EntityMailbox::getScriptType()))
 			{
 				EntityMailbox* mb = static_cast<EntityMailbox*>(nearbyMBRef);
-				Entity* entity = Cellapp::getSingleton().findEntity(mb->getID());
+				Entity* entity = Cellapp::getSingleton().findEntity(mb->id());
 				
 				if(entity)
 				{
@@ -2561,7 +2569,7 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 	EntityMailbox* mb = this->getBaseMailbox();
 	if(mb)
 	{
-		_sendBaseTeleportResult(this->getID(), mb->getComponentID(), this->getSpaceID(), lastSpaceID, true);
+		_sendBaseTeleportResult(this->getID(), mb->componentID(), this->getSpaceID(), lastSpaceID, true);
 	}
 
 	// 如果身上有trap等触发器还得重新添加进去
@@ -2797,7 +2805,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 	COMPONENT_ID baseMailboxComponentID = 0;
 	if(baseMailbox_)
 	{
-		baseMailboxComponentID = baseMailbox_->getComponentID();
+		baseMailboxComponentID = baseMailbox_->componentID();
 	}
 
 	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 

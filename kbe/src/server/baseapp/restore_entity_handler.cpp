@@ -204,7 +204,7 @@ bool RestoreEntityHandler::process()
 				if(!destroyed)
 				{
 					utype = pBase->getScriptModule()->getUType();
-					cellappID = pBase->getCellMailbox()->getComponentID();
+					cellappID = pBase->getCellMailbox()->componentID();
 				}
 
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());

@@ -558,7 +558,7 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 		Base* pBase = static_cast<Base*>(iter->second.get());
 		
 		EntityMailbox* cell = pBase->getCellMailbox();
-		if(cell && cell->getComponentID() == pChannel->componentID())
+		if(cell && cell->componentID() == pChannel->componentID())
 		{
 			S_RELEASE(cell);
 			pBase->setCellMailbox(NULL);
@@ -1589,7 +1589,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	EntityMailbox* clientMailbox = base->getClientMailbox();
 	bool hasClient = (clientMailbox != NULL);
 	
-	(*pBundle) << createToCellMailbox->getID();				// 在这个mailbox所在的cellspace上创建
+	(*pBundle) << createToCellMailbox->id();				// 在这个mailbox所在的cellspace上创建
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
@@ -1605,7 +1605,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	{
 		ERROR_MSG(boost::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
 			"componentID=%1%, entityID=%2%), create is error!\n") %
-			createToCellMailbox->getComponentID() % createToCellMailbox->getID());
+			createToCellMailbox->componentID() % createToCellMailbox->id());
 
 		base->onCreateCellFailure();
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);

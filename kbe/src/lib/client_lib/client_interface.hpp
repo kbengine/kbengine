@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __CLIENT_INTERFACE_H__
+	#undef KBE_CLIENT_INTERFACE_HPP
 #endif
 
 
-#ifndef __CLIENT_INTERFACE_H__
-#define __CLIENT_INTERFACE_H__
+#ifndef KBE_CLIENT_INTERFACE_HPP
+#define KBE_CLIENT_INTERFACE_HPP
 
 // common include	
 #if defined(CLIENT)
@@ -203,4 +203,5 @@ NETWORK_INTERFACE_DECLARE_END()
 #endif
 
 }
-#endif
+
+#endif // KBE_CLIENT_INTERFACE_HPP

@@ -641,10 +641,10 @@ template<class E>
 Mercury::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	// 如果组件ID大于0则查找组件
-	if(mailbox.getComponentID() > 0)
+	if(mailbox.componentID() > 0)
 	{
 		Components::ComponentInfos* cinfos = 
-			Components::getSingleton().findComponent(mailbox.getComponentID());
+			Components::getSingleton().findComponent(mailbox.componentID());
 
 		if(cinfos != NULL && cinfos->pChannel != NULL)
 			return cinfos->pChannel; 
