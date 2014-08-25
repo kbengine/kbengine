@@ -234,8 +234,9 @@ void Witness::onReclaimObject()
 {
 }
 
+
 //-------------------------------------------------------------------------------------
-const Position3D&  Witness::getBasePos()
+const Position3D& Witness::basePos()
 {
 	return pEntity()->position();
 }
@@ -723,7 +724,7 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	if((volatileInfo.position() <= 0.0004f))
 		return;
 
-	const Position3D& bpos = getBasePos();
+	const Position3D& bpos = basePos();
 	Vector3 movement = bpos - lastBasePos;
 
 	if(KBEVec3Length(&movement) < 0.0004f)

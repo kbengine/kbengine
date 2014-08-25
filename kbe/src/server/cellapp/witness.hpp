@@ -120,7 +120,7 @@ public:
 	/**
 		基础位置， 如果有坐骑基础位置可能是坐骑等
 	*/
-	const Position3D& getBasePos();
+	INLINE const Position3D& basePos();
 
 	bool update();
 	
