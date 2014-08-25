@@ -90,7 +90,7 @@ bool Dbmgr::canShutdown()
 	if(ret)
 	{
 		WARNING_MSG(boost::format("Dbmgr::canShutdown(): tasks=%1%, threads=%2%, threadpoolDestroyed=%3%!\n") % 
-			bufferedDBTasks_.size() % DBUtil::pThreadPool()->getCurrentThreadCount() % DBUtil::pThreadPool()->isDestroyed());
+			bufferedDBTasks_.size() % DBUtil::pThreadPool()->currentThreadCount() % DBUtil::pThreadPool()->isDestroyed());
 	}
 
 	return ret;

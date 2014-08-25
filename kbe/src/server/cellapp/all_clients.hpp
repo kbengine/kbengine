@@ -81,7 +81,7 @@ public:
 	/** 
 		ªÒ»°entityID 
 	*/
-	ENTITY_ID getID()const{ return id_; }
+	ENTITY_ID id()const{ return id_; }
 	void setID(int id){ id_ = id; }
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 

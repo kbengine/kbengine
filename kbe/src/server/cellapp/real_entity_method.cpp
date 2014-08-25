@@ -43,9 +43,9 @@ RealEntityMethod::RealEntityMethod(MethodDescription* methodDescription,
 		Entity* ghostEntity):
 script::ScriptObject(getScriptType(), false),
 methodDescription_(methodDescription),
-ghostEntityID_(ghostEntity->getID()),
+ghostEntityID_(ghostEntity->id()),
 realCell_(ghostEntity->realCell()),
-scriptName_(ghostEntity->getScriptName())
+scriptName_(ghostEntity->scriptName())
 {
 }
 

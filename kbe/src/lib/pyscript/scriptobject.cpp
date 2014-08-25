@@ -95,9 +95,9 @@ PyObject* ScriptObject::tp_repr()
 {
 	if(g_debugEntity)
 		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
-			this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+			this->scriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	
-	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
+	return PyUnicode_FromFormat("%s object at %p.", this->scriptName(), this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,9 +105,9 @@ PyObject* ScriptObject::tp_str()
 {
 	if(g_debugEntity)
 		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
-				this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+				this->scriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	
-	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
+	return PyUnicode_FromFormat("%s object at %p.", this->scriptName(), this);
 }
 
 //-------------------------------------------------------------------------------------

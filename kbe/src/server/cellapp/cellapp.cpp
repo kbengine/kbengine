@@ -85,7 +85,7 @@ bool Cellapp::canShutdown()
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 	for(; iter != entities.end(); iter++)
 	{
-		if(static_cast<Entity*>(iter->second.get())->getBaseMailbox() != NULL)
+		if(static_cast<Entity*>(iter->second.get())->baseMailbox() != NULL)
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return false;
@@ -109,10 +109,10 @@ void Cellapp::onShutdown(bool first)
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); iter++)
 		{
-			if(static_cast<Entity*>(iter->second.get())->getBaseMailbox() != NULL && 
-				static_cast<Entity*>(iter->second.get())->getScriptModule()->isPersistent())
+			if(static_cast<Entity*>(iter->second.get())->baseMailbox() != NULL && 
+				static_cast<Entity*>(iter->second.get())->scriptModule()->isPersistent())
 			{
-				this->destroyEntity(static_cast<Entity*>(iter->second.get())->getID(), true);
+				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
 				count--;
 				done = true;
@@ -359,7 +359,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(pEntity != NULL)
 	{
 		Py_INCREF(pEntity);
-		pEntity->setSpaceID(space->getID());
+		pEntity->spaceID(space->id());
 		pEntity->initializeEntity(params);
 		pEntity->pySetPosition(position);
 		pEntity->pySetDirection(direction);	
@@ -709,8 +709,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
-		e->setBaseMailbox(mailbox);
+		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		e->baseMailbox(mailbox);
 		
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -729,12 +729,12 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			return;
 		}
 		
-		e->setSpaceID(space->getID());
+		e->spaceID(space->id());
 		e->initializeEntity(cellData);
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->getID());
+		space->creatorID(e->id());
 		space->addEntityAndEnterWorld(e);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -780,8 +780,8 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
-		e->setBaseMailbox(mailbox);
+		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		e->baseMailbox(mailbox);
 		
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -800,12 +800,12 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 			return;
 		}
 		
-		e->setSpaceID(space->getID());
+		e->spaceID(space->id());
 		e->createNamespace(cellData);
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->getID());
+		space->creatorID(e->id());
 		e->onRestore();
 
 		space->addEntityAndEnterWorld(e, true);
@@ -892,7 +892,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		return;
 	}
 
-	spaceID = pCreateToEntity->getSpaceID();
+	spaceID = pCreateToEntity->spaceID();
 
 	//DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), entityID, componentID);
@@ -920,22 +920,22 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		}
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
-		e->setBaseMailbox(mailbox);
+		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
+		e->baseMailbox(mailbox);
 		
 		cellData = e->createCellDataFromStream(pCellData);
 
 		if(hasClient)
 		{
-			KBE_ASSERT(e->getBaseMailbox() != NULL && !e->hasWitness());
-			PyObject* clientMailbox = PyObject_GetAttrString(e->getBaseMailbox(), "client");
+			KBE_ASSERT(e->baseMailbox() != NULL && !e->hasWitness());
+			PyObject* clientMailbox = PyObject_GetAttrString(e->baseMailbox(), "client");
 			KBE_ASSERT(clientMailbox != Py_None);
 
 			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
 			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
 
 			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
-			e->setClientMailbox(client);
+			e->clientMailbox(client);
 			e->setWitness(Witness::ObjPool().createObject());
 		}
 
@@ -1019,7 +1019,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		case MAILBOX_TYPE_BASE_VIA_CELL: // entity.base.cell.xxx
 			{
-				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getBaseMailbox());
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->baseMailbox());
 				if(mailbox == NULL)
 				{
 					ERROR_MSG(boost::format("Cellapp::onEntityMail: occur a error(can't found baseMailbox)! mailboxType=%1%, entityID=%2%.\n") %
@@ -1035,7 +1035,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		case MAILBOX_TYPE_CLIENT_VIA_CELL: // entity.cell.client
 			{
-				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getClientMailbox());
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->clientMailbox());
 				if(mailbox == NULL)
 				{
 					ERROR_MSG(boost::format("Cellapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%1%, entityID=%2%.\n") %
@@ -1251,7 +1251,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 	if(e->isDestroyed())																				
 	{																										
 		ERROR_MSG(boost::format("%1%::forwardEntityMessageToCellappFromClient: %2% is destroyed!\n") %										
-			e->getScriptName() % e->getID());
+			e->scriptName() % e->id());
 
 		s.read_skip(s.opsize());
 		return;																							
@@ -1467,7 +1467,7 @@ void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& 
 		return;
 	}
 
-	Space* space = Spaces::findSpace(refEntity->getSpaceID());
+	Space* space = Spaces::findSpace(refEntity->spaceID());
 	if(space == NULL)
 	{
 		s.rpos(rpos);
@@ -1510,13 +1510,13 @@ void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& 
 	s >> ghostCell;
 	
 	e->ghostCell(ghostCell);
-	e->setSpaceID(space->getID());
+	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
 	
 	space->addEntityAndEnterWorld(e);
 
 	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
-	e->onTeleportSuccess(nearbyMBRef, space->getID());
+	e->onTeleportSuccess(nearbyMBRef, space->id());
 	
 	success = true;
 	
@@ -1556,7 +1556,7 @@ void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream
 		s.opfini();
 	}
 
-	EntityMailbox* baseMB = entity->getBaseMailbox();
+	EntityMailbox* baseMB = entity->baseMailbox();
 	if(baseMB)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

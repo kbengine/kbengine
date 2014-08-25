@@ -520,7 +520,7 @@ public:
 	/** 
 		获取对象类别名称
 	*/
-	const char* getScriptName() const{ return ob_type->tp_name; }
+	const char* scriptName() const{ return ob_type->tp_name; }
 
 	/** 
 		脚本被安装时被调用 

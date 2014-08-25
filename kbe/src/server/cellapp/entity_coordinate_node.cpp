@@ -33,7 +33,7 @@ watcherNodes_()
 	flags(COORDINATE_NODE_FLAG_ENTITY);
 
 #ifdef _DEBUG
-	descr_ = (boost::format("EntityCoordinateNode(%1%_%2%)") % pEntity->getScriptName() % pEntity->getID()).str();
+	descr_ = (boost::format("EntityCoordinateNode(%1%_%2%)") % pEntity->scriptName() % pEntity->id()).str();
 #endif
 }
 
@@ -49,7 +49,7 @@ float EntityCoordinateNode::xx()const
 	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
 		return -FLT_MAX;
 
-	return pEntity_->getPosition().x;
+	return pEntity_->position().x;
 }
 
 //-------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ float EntityCoordinateNode::yy()const
 	if(pEntity_ == NULL)
 		return -FLT_MAX;
 
-	return pEntity_->getPosition().y;
+	return pEntity_->position().y;
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ float EntityCoordinateNode::zz()const
 	if(pEntity_ == NULL)
 		return -FLT_MAX;
 
-	return pEntity_->getPosition().z;
+	return pEntity_->position().z;
 }
 
 //-------------------------------------------------------------------------------------
@@ -122,9 +122,9 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 	if((rootNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
 	{
 		Entity* pEntity = static_cast<EntityCoordinateNode*>(rootNode)->pEntity();
-		if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+		if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 		{
-			Position3D distVec = originpos - pEntity->getPosition();
+			Position3D distVec = originpos - pEntity->position();
 			float dist = KBEVec3Length(&distVec);
 
 			if(dist <= radius)
@@ -142,9 +142,9 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 		{
 			Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
 			
-			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = originpos - pEntity->getPosition();
+				Position3D distVec = originpos - pEntity->position();
 				float dist = KBEVec3Length(&distVec);
 
 				if(dist <= radius)
@@ -166,9 +166,9 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 		{
 			Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
 			
-			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = originpos - pEntity->getPosition();
+				Position3D distVec = originpos - pEntity->position();
 				float dist = KBEVec3Length(&distVec);
 
 				if(dist <= radius)

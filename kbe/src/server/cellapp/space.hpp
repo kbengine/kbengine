@@ -67,7 +67,7 @@ public:
 
 	void onEntityAttachWitness(Entity* pEntity);
 
-	SPACE_ID getID()const{ return id_; }
+	SPACE_ID id()const{ return id_; }
 
 	const SPACE_ENTITIES& entities()const{ return entities_; }
 

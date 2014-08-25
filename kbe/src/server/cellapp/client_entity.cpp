@@ -87,7 +87,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	if(srcEntity->pWitness() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: no client, srcEntityID(%d).\n",		
-			srcEntity->getScriptName(), srcEntity->getID());		
+			srcEntity->scriptName(), srcEntity->id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -107,7 +107,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	if(e == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: not found entity(%d), srcEntityID(%d).\n",		
-			srcEntity->getScriptName(), clientEntityID_, srcEntity->getID());		
+			srcEntity->scriptName(), clientEntityID_, srcEntity->id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -116,7 +116,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* md = const_cast<ScriptDefModule*>(e->getScriptModule())->findClientMethodDescription(ccattr);
+	MethodDescription* md = const_cast<ScriptDefModule*>(e->scriptModule())->findClientMethodDescription(ccattr);
 	free(ccattr);
 
 	if(md != NULL)

@@ -76,7 +76,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 	Base* pBase = Baseapp::getSingleton().findEntity(data.id);
 	if(pBase && !pBase->isDestroyed())
 	{
-		data.spaceID = pBase->getSpaceID();
+		data.spaceID = pBase->spaceID();
 
 		if(pBase->isCreatedSpace())
 		{
@@ -159,7 +159,7 @@ bool RestoreEntityHandler::process()
 				}
 				else
 				{
-					if(pBase->getCellMailbox() == NULL)
+					if(pBase->cellMailbox() == NULL)
 					{
 						return true;
 					}
@@ -203,8 +203,8 @@ bool RestoreEntityHandler::process()
 
 				if(!destroyed)
 				{
-					utype = pBase->getScriptModule()->getUType();
-					cellappID = pBase->getCellMailbox()->componentID();
+					utype = pBase->scriptModule()->getUType();
+					cellappID = pBase->cellMailbox()->componentID();
 				}
 
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
@@ -258,7 +258,7 @@ bool RestoreEntityHandler::process()
 				return true;
 			}
 
-			if(pBase->getCellMailbox() != NULL)
+			if(pBase->cellMailbox() != NULL)
 			{
 				if(!data.processed)
 				{
@@ -279,9 +279,9 @@ bool RestoreEntityHandler::process()
 					for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
 					{
 						Base* pSpace = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
-						if(pSpace && pBase->getSpaceID() == pSpace->getSpaceID())
+						if(pSpace && pBase->spaceID() == pSpace->spaceID())
 						{
-							cellMailbox = pSpace->getCellMailbox();
+							cellMailbox = pSpace->cellMailbox();
 							break;
 						}
 					}
@@ -291,7 +291,7 @@ bool RestoreEntityHandler::process()
 						restoreSpacesIter = otherRestoredSpaces_.begin();
 						for(; restoreSpacesIter != otherRestoredSpaces_.end(); restoreSpacesIter++)
 						{
-							if(pBase->getSpaceID() == (*restoreSpacesIter).spaceID && (*restoreSpacesIter).cell)
+							if(pBase->spaceID() == (*restoreSpacesIter).spaceID && (*restoreSpacesIter).cell)
 							{
 								cellMailbox = (*restoreSpacesIter).cell;
 								break;
@@ -305,7 +305,7 @@ bool RestoreEntityHandler::process()
 					}
 					else
 					{
-						ENTITY_ID delID = pBase->getID();
+						ENTITY_ID delID = pBase->id();
 
 						pBase->destroy();
 						WARNING_MSG(boost::format("RestoreEntityHandler::process(%1%): not fount spaceCell, killed base(%2%)!") 

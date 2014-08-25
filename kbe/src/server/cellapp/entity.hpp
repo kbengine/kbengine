@@ -124,40 +124,40 @@ public:
 	/** 
 		mailbox section
 	*/
-	INLINE EntityMailbox* getBaseMailbox()const;
+	INLINE EntityMailbox* baseMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
-	INLINE void setBaseMailbox(EntityMailbox* mailbox);
+	INLINE void baseMailbox(EntityMailbox* mailbox);
 	
-	INLINE EntityMailbox* getClientMailbox()const;
+	INLINE EntityMailbox* clientMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
-	INLINE void setClientMailbox(EntityMailbox* mailbox);
+	INLINE void clientMailbox(EntityMailbox* mailbox);
 
 	/**
 		all_clients
 	*/
-	INLINE AllClients* getAllClients()const;
+	INLINE AllClients* allClients()const;
 	DECLARE_PY_GET_MOTHOD(pyGetAllClients);
-	INLINE void setAllClients(AllClients* clients);
+	INLINE void allClients(AllClients* clients);
 
 	/**
 		other_clients
 	*/
-	INLINE AllClients* getOtherClients()const;
+	INLINE AllClients* otherClients()const;
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
-	INLINE void setOtherClients(AllClients* clients);
+	INLINE void otherClients(AllClients* clients);
 
 	/** 
 		脚本获取和设置entity的position 
 	*/
-	INLINE Position3D& getPosition();
-	INLINE void setPosition(const Position3D& pos);
+	INLINE Position3D& position();
+	INLINE void position(const Position3D& pos);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
 		脚本获取和设置entity的方向 
 	*/
-	INLINE Direction3D& getDirection();
-	INLINE void setDirection(const Direction3D& dir);
+	INLINE Direction3D& direction();
+	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 
@@ -171,8 +171,8 @@ public:
 	/** 
 		设置entity方向和位置 
 	*/
-	void setPositionAndDirection(const Position3D& position, 
-		const Direction3D& direction);
+	void setPositionAndDirection(const Position3D& pos, 
+		const Direction3D& dir);
 	
 	void onPositionChanged();
 	void onDirectionChanged();
@@ -323,15 +323,15 @@ public:
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/
-	float getTopSpeed()const{ return topSpeed_; }
-	INLINE void setTopSpeed(float speed);
+	float topSpeed()const{ return topSpeed_; }
+	INLINE void topSpeed(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeed, pySetTopSpeed);
 	
 	/** 
 		脚本获取和设置entity的最高y移动速度 
 	*/
-	INLINE float getTopSpeedY()const;
-	INLINE void setTopSpeedY(float speed);
+	INLINE float topSpeedY()const;
+	INLINE void topSpeedY(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeedY, pySetTopSpeedY);
 	
 	/** 

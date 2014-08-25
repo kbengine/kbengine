@@ -355,7 +355,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	}
 
 	EventData_CreatedEntity eventdata;
-	eventdata.entityID = entity->getID();
+	eventdata.entityID = entity->id();
 	//eventdata.modelres = entity->getAspect()->modelres();
 	eventdata.modelScale = entity->getAspect()->modelScale();
 	eventHandler_.fire(&eventdata);
@@ -756,7 +756,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			entity->isOnGound(isOnGound > 0);
 
 			DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-				entity->getScriptName() % eid  % (int)isOnGound);
+				entity->scriptName() % eid  % (int)isOnGound);
 		}
 		else
 		{
@@ -767,35 +767,35 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 	else
 	{
 		entity->isOnGound(isOnGound > 0);
-		entityPos_ = entity->getPosition();
-		entityDir_ = entity->getDirection();
+		entityPos_ = entity->position();
+		entityDir_ = entity->direction();
 
 		// 初始化一下服务端当前的位置
-		entity->setServerPosition(entity->getPosition());
+		entity->serverPosition(entity->position());
 
 		DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-			entity->getScriptName() % eid  % (int)isOnGound);
+			entity->scriptName() % eid  % (int)isOnGound);
 
 		KBE_ASSERT(!entity->isEnterword());
-		KBE_ASSERT(entity->getCellMailbox() == NULL);
+		KBE_ASSERT(entity->cellMailbox() == NULL);
 
 		// 设置entity的cellMailbox
-		EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
+		EntityMailbox* mailbox = new EntityMailbox(entity->scriptModule(), 
 			NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-		entity->setCellMailbox(mailbox);
+		entity->cellMailbox(mailbox);
 	}
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
-	eventdata.entityID = entity->getID();
-	eventdata.x = entity->getPosition().x;
-	eventdata.y = entity->getPosition().y;
-	eventdata.z = entity->getPosition().z;
-	eventdata.pitch = entity->getDirection().pitch();
-	eventdata.roll = entity->getDirection().roll();
-	eventdata.yaw = entity->getDirection().yaw();
-	eventdata.speed = entity->getMoveSpeed();
+	eventdata.entityID = entity->id();
+	eventdata.x = entity->position().x;
+	eventdata.y = entity->position().y;
+	eventdata.z = entity->position().z;
+	eventdata.pitch = entity->direction().pitch();
+	eventdata.roll = entity->direction().roll();
+	eventdata.yaw = entity->direction().yaw();
+	eventdata.speed = entity->moveSpeed();
 	eventdata.isOnGound = isOnGound > 0;
 	eventHandler_.fire(&eventdata);
 
@@ -824,11 +824,11 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+		entity->scriptName() % eid);
 
 	EventData_LeaveWorld eventdata;
-	eventdata.spaceID = entity->getSpaceID();
-	eventdata.entityID = entity->getID();
+	eventdata.spaceID = entity->spaceID();
+	eventdata.entityID = entity->id();
 
 	entity->onLeaveWorld();
 
@@ -844,8 +844,8 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	{
 		clearSpace(false);
 
-		Py_DECREF(entity->getCellMailbox());
-		entity->setCellMailbox(NULL);
+		Py_DECREF(entity->cellMailbox());
+		entity->cellMailbox(NULL);
 	}
 }
 
@@ -868,26 +868,26 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStr
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+		entity->scriptName() % eid);
 
 	entity->isOnGound(isOnGound > 0);
 
-	entityPos_ = entity->getPosition();
-	entityDir_ = entity->getDirection();
+	entityPos_ = entity->position();
+	entityDir_ = entity->direction();
 
 	// 初始化一下服务端当前的位置
-	entity->setServerPosition(entity->getPosition());
+	entity->serverPosition(entity->position());
 
 	EventData_EnterSpace eventdata;
 	eventdata.spaceID = spaceID_;
-	eventdata.entityID = entity->getID();
-	eventdata.x = entity->getPosition().x;
-	eventdata.y = entity->getPosition().y;
-	eventdata.z = entity->getPosition().z;
-	eventdata.pitch = entity->getDirection().pitch();
-	eventdata.roll = entity->getDirection().roll();
-	eventdata.yaw = entity->getDirection().yaw();
-	eventdata.speed = entity->getMoveSpeed();
+	eventdata.entityID = entity->id();
+	eventdata.x = entity->position().x;
+	eventdata.y = entity->position().y;
+	eventdata.z = entity->position().z;
+	eventdata.pitch = entity->direction().pitch();
+	eventdata.roll = entity->direction().roll();
+	eventdata.yaw = entity->direction().yaw();
+	eventdata.speed = entity->moveSpeed();
 	eventdata.isOnGound = isOnGound > 0;
 	eventHandler_.fire(&eventdata);
 
@@ -905,11 +905,11 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+		entity->scriptName() % eid);
 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID_;
-	eventdata.entityID = entity->getID();
+	eventdata.entityID = entity->id();
 	eventHandler_.fire(&eventdata);
 
 	entity->onLeaveSpace();
@@ -927,7 +927,7 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+		entity->scriptName() % eid);
 
 	destroyEntity(eid, false);
 }
@@ -1038,11 +1038,11 @@ void ClientObjectBase::updatePlayerToServer()
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
 	if(pEntity == NULL || !connectedGateway_ || 
-		pServerChannel_ == NULL || pEntity->getCellMailbox() == NULL)
+		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
 		return;
 
-	Position3D& pos = pEntity->getPosition();
-	Direction3D& dir = pEntity->getDirection();
+	Position3D& pos = pEntity->position();
+	Direction3D& dir = pEntity->direction();
 
 	bool dirNoChanged = almostEqual(dir.yaw(), entityDir_.yaw()) && almostEqual(dir.pitch(), entityDir_.pitch()) && almostEqual(dir.roll(), entityDir_.roll());
 	Vector3 movement = pos - entityPos_;
@@ -1055,8 +1055,8 @@ void ClientObjectBase::updatePlayerToServer()
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 	
-	pEntity->setPosition(entityPos_);
-	pEntity->setDirection(entityDir_);
+	pEntity->position(entityPos_);
+	pEntity->direction(entityDir_);
 
 	(*pBundle) << pos.x;
 	(*pBundle) << pos.y;
@@ -1080,7 +1080,7 @@ void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream&
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
-		pEntity->setServerPosition(Position3D(x, y, z));
+		pEntity->serverPosition(Position3D(x, y, z));
 	}
 }
 
@@ -1093,7 +1093,7 @@ void ClientObjectBase::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStrea
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
-		pEntity->setServerPosition(Position3D(x, pEntity->getServerPosition().y, z));
+		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
 	}
 }
 
@@ -1120,8 +1120,8 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	dir.pitch(pitch);
 	dir.roll(roll);
 
-	entity->setPosition(pos);
-	entity->setDirection(dir);
+	entity->position(pos);
+	entity->direction(dir);
 
 	entityPos_ = pos;
 	entityDir_ = dir;
@@ -1130,14 +1130,14 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	eventdata.x = pos.x;
 	eventdata.y = pos.y;
 	eventdata.z = pos.z;
-	eventdata.entityID = entity->getID();
+	eventdata.entityID = entity->id();
 	fireEvent(&eventdata);
 
 	EventData_DirectionForce direventData;
 	direventData.yaw = dir.yaw();
 	direventData.pitch = dir.pitch();
 	direventData.roll = dir.roll();
-	direventData.entityID = entity->getID();
+	direventData.entityID = entity->id();
 	fireEvent(&direventData);
 }
 
@@ -1618,14 +1618,14 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		relativePos.y = y;
 		relativePos.z = z;
 		
-		Position3D basepos = player->getServerPosition();
+		Position3D basepos = player->serverPosition();
 		basepos += relativePos;
 		
 		// DEBUG_MSG(boost::format("ClientObjectBase::_updateVolatileData: %1%-%2%-%3%--%4%-%5%-%6%-\n") % x % y % z % basepos.x % basepos.y % basepos.z);
-		entity->setPosition(basepos);
+		entity->position(basepos);
 	}
 
-	Direction3D dir = entity->getDirection();
+	Direction3D dir = entity->direction();
 	
 	if(yaw != FLT_MAX)
 		dir.yaw(yaw);
@@ -1637,7 +1637,7 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		dir.roll(roll);
 
 	if(yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
-		entity->setDirection(dir);
+		entity->direction(dir);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1679,15 +1679,15 @@ void ClientObjectBase::clearSpace(bool isAll)
 		for(; iter != pEntities_->getEntities().end(); iter++)
 		{
 			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
-			if(pEntity->getID() == this->entityID())
+			if(pEntity->id() == this->entityID())
 			{
-				pEntity->setSpaceID(0);
+				pEntity->spaceID(0);
 				continue;
 			}
 
 			EventData_LeaveWorld eventdata;
-			eventdata.spaceID = pEntity->getSpaceID();
-			eventdata.entityID = pEntity->getID();
+			eventdata.spaceID = pEntity->spaceID();
+			eventdata.entityID = pEntity->id();
 
 			pEntity->onLeaveWorld();
 
@@ -1706,8 +1706,8 @@ void ClientObjectBase::clearSpace(bool isAll)
 			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
 
 			EventData_LeaveWorld eventdata;
-			eventdata.spaceID = pEntity->getSpaceID();
-			eventdata.entityID = pEntity->getID();
+			eventdata.spaceID = pEntity->spaceID();
+			eventdata.entityID = pEntity->id();
 
 			pEntity->onLeaveWorld();
 
@@ -1733,7 +1733,7 @@ void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s
 	client::Entity* player = pPlayer();
 	if(player)
 	{
-		player->setSpaceID(spaceID_);
+		player->spaceID(spaceID_);
 	}
 
 	std::string key, value;

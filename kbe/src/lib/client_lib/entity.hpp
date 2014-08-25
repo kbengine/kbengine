@@ -73,37 +73,37 @@ public:
 	/** 
 		mailbox section
 	*/
-	INLINE EntityMailbox* getBaseMailbox()const;
+	INLINE EntityMailbox* baseMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
-	INLINE void setBaseMailbox(EntityMailbox* mailbox);
+	INLINE void baseMailbox(EntityMailbox* mailbox);
 	
-	INLINE EntityMailbox* getCellMailbox()const;
+	INLINE EntityMailbox* cellMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
-	INLINE void setCellMailbox(EntityMailbox* mailbox);
+	INLINE void cellMailbox(EntityMailbox* mailbox);
 
 	/** 
 		脚本获取和设置entity的position 
 	*/
-	INLINE Position3D& getPosition();
-	INLINE Position3D& getServerPosition();
-	INLINE void setPosition(const Position3D& pos);
-	INLINE void setServerPosition(const Position3D& pos);
+	INLINE Position3D& position();
+	INLINE Position3D& serverPosition();
+	INLINE void position(const Position3D& pos);
+	INLINE void serverPosition(const Position3D& pos);
 	void onPositionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
 		脚本获取和设置entity的方向 
 	*/
-	INLINE Direction3D& getDirection();
-	INLINE void setDirection(const Direction3D& dir);
+	INLINE Direction3D& direction();
+	INLINE void direction(const Direction3D& dir);
 	void onDirectionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
 		移动速度
 	*/
-	INLINE void setMoveSpeed(float speed);
-	INLINE float getMoveSpeed()const;
+	INLINE void moveSpeed(float speed);
+	INLINE float moveSpeed()const;
 	void onMoveSpeedChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetMoveSpeed, pySetMoveSpeed);
 

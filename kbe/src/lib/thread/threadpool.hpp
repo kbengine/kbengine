@@ -107,9 +107,9 @@ public:
 	virtual void processTask(TPTask* pTask){ pTask->process(); }
 	virtual void onProcessTaskEnd(TPTask* pTask){}
 
-	INLINE THREAD_ID getID(void)const;
+	INLINE THREAD_ID id(void)const;
 	
-	INLINE void setID(THREAD_ID tidp);
+	INLINE void id(THREAD_ID tidp);
 	
 	/**
 		创建一个线程， 并将自己与该线程绑定
@@ -166,14 +166,14 @@ public:
 	/**
 		获取本线程要处理的任务
 	*/
-	INLINE TPTask* getTask(void)const;
+	INLINE TPTask* task(void)const;
 
 	/**
 		设置本线程要处理的任务
 	*/
-	INLINE void setTask(TPTask* tpt);
+	INLINE void task(TPTask* tpt);
 
-	INLINE int getState(void)const;
+	INLINE int state(void)const;
 	
 	/**
 		本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务
@@ -243,12 +243,12 @@ public:
 	/**
 		获取当前线程总数
 	*/	
-	INLINE uint32 getCurrentThreadCount(void)const;
+	INLINE uint32 currentThreadCount(void)const;
 	
 	/**
 		获取当前空闲线程总数
 	*/		
-	INLINE uint32 getCurrentFreeThreadCount(void)const;
+	INLINE uint32 currentFreeThreadCount(void)const;
 	
 	/**
 		创建线程池

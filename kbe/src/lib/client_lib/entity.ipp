@@ -24,52 +24,52 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setDirection(const Direction3D& dir)
+INLINE void Entity::direction(const Direction3D& dir)
 { 
 	direction_ = dir; 
 	onDirectionChanged();
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setPosition(const Position3D& pos)
+INLINE void Entity::position(const Position3D& pos)
 { 
 	position_ = pos; 
 	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setServerPosition(const Position3D& pos)
+INLINE void Entity::serverPosition(const Position3D& pos)
 { 
 	serverPosition_ = pos; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setMoveSpeed(float speed)
+INLINE void Entity::moveSpeed(float speed)
 {
 	velocity_ = speed; 
 	onMoveSpeedChanged();
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Entity::getMoveSpeed()const
+INLINE float Entity::moveSpeed()const
 {
 	return velocity_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Direction3D& Entity::getDirection()
+INLINE Direction3D& Entity::direction()
 { 
 	return direction_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Position3D& Entity::getPosition()
+INLINE Position3D& Entity::position()
 {
 	return position_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Position3D& Entity::getServerPosition()
+INLINE Position3D& Entity::serverPosition()
 {
 	return serverPosition_; 
 }
@@ -87,25 +87,25 @@ INLINE ClientObjectBase* Entity::pClientApp()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::getBaseMailbox()const
+INLINE EntityMailbox* Entity::baseMailbox()const
 { 
 	return baseMailbox_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setCellMailbox(EntityMailbox* mailbox)
+INLINE void Entity::cellMailbox(EntityMailbox* mailbox)
 { 
 	cellMailbox_ = mailbox; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::getCellMailbox()const
+INLINE EntityMailbox* Entity::cellMailbox()const
 { 
 	return cellMailbox_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setBaseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
 { 
 	baseMailbox_ = mailbox; 
 }

@@ -97,7 +97,7 @@ Proxy::~Proxy()
 //-------------------------------------------------------------------------------------
 void Proxy::initClientBasePropertys()
 {
-	if(getClientMailbox() == NULL)
+	if(clientMailbox() == NULL)
 		return;
 
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
@@ -107,10 +107,10 @@ void Proxy::initClientBasePropertys()
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
-		(*pBundle) << this->getID();
+		(*pBundle) << this->id();
 		(*pBundle).append(*s1);
 		sendToClient(ClientInterface::onUpdatePropertys, pBundle);
-		//getClientMailbox()->postMail((*pBundle));
+		//clientMailbox()->postMail((*pBundle));
 		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
@@ -120,12 +120,12 @@ void Proxy::initClientBasePropertys()
 //-------------------------------------------------------------------------------------
 void Proxy::initClientCellPropertys()
 {
-	if(getClientMailbox() == NULL)
+	if(clientMailbox() == NULL)
 		return;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
-	(*pBundle) << this->getID();
+	(*pBundle) << this->id();
 
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
@@ -137,14 +137,14 @@ void Proxy::initClientCellPropertys()
 		spaceuid = msgInfo->msgid;
 	}
 	
-	if(getScriptModule()->usePropertyDescrAlias())
+	if(scriptModule()->usePropertyDescrAlias())
 	{
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-		(*pBundle) << aliasID << this->getSpaceID();
+		(*pBundle) << aliasID << this->spaceID();
 	}
 	else
 	{
-		(*pBundle) << spaceuid << this->getSpaceID();
+		(*pBundle) << spaceuid << this->spaceID();
 	}
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
@@ -153,7 +153,7 @@ void Proxy::initClientCellPropertys()
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
-	//getClientMailbox()->postMail((*pBundle));
+	//clientMailbox()->postMail((*pBundle));
 	//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
@@ -194,10 +194,10 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
-	if(getClientMailbox() == NULL)
+	if(clientMailbox() == NULL)
 	{
 		ERROR_MSG(boost::format("%1%::onClientDeath: %2%, channel is null!\n") % 
-			this->getScriptName() % this->getID());
+			this->scriptName() % this->id());
 
 		return;
 	}
@@ -205,10 +205,10 @@ void Proxy::onClientDeath(void)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % 
-		this->getScriptName() % this->getID());
+		this->scriptName() % this->id());
 
-	Py_DECREF(getClientMailbox());
-	setClientMailbox(NULL);
+	Py_DECREF(clientMailbox());
+	clientMailbox(NULL);
 	addr(Mercury::Address::NONE);
 
 	entitiesEnabled_ = false;
@@ -239,7 +239,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 	if(this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -268,7 +268,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 	{
 		char err[255];																				
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: %d is destroyed.", 
-			getScriptName(), getID());			
+			scriptName(), id());			
 
 		PyErr_SetString(PyExc_TypeError, err);														
 		PyErr_PrintEx(0);	
@@ -279,7 +279,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
 		char err[255];																				
-		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", getScriptName());			
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());			
 		PyErr_SetString(PyExc_TypeError, err);														
 		PyErr_PrintEx(0);	
 		onGiveClientToFailure();
@@ -294,7 +294,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		{
 			char err[255];																				
 			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.", 
-				getScriptName(), proxy->getID());			
+				scriptName(), proxy->id());			
 
 			PyErr_SetString(PyExc_TypeError, err);														
 			PyErr_PrintEx(0);	
@@ -302,11 +302,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
-		if(proxy->getID() == this->getID())
+		if(proxy->id() == this->id())
 		{
 			char err[255];																				
 			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is self.", 
-				getScriptName(), proxy->getID());			
+				scriptName(), proxy->id());			
 
 			PyErr_SetString(PyExc_TypeError, err);														
 			PyErr_PrintEx(0);	
@@ -314,43 +314,43 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
-		EntityMailbox* mb = proxy->getClientMailbox();
+		EntityMailbox* mb = proxy->clientMailbox();
 		if(mb != NULL)
 		{
 			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% has clientMailbox.\n") % 
-					getScriptName() %
-					getID() %
-					proxy->getScriptName() % 
-					proxy->getID() %
-					proxy->getScriptName());
+					scriptName() %
+					id() %
+					proxy->scriptName() % 
+					proxy->id() %
+					proxy->scriptName());
 
 			onGiveClientToFailure();
 			return;
 		}
 
-		if(getCellMailbox())
+		if(cellMailbox())
 		{
 			// 通知cell丢失客户端
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(CellappInterface::onResetWitness);
-			(*pBundle) << this->getID();
-			getCellMailbox()->postMail((*pBundle));
+			(*pBundle) << this->id();
+			cellMailbox()->postMail((*pBundle));
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 
 		entitiesEnabled_ = false;
-		getClientMailbox()->addr(Mercury::Address::NONE);
-		Py_DECREF(getClientMailbox());
+		clientMailbox()->addr(Mercury::Address::NONE);
+		Py_DECREF(clientMailbox());
 		proxy->onGiveClientTo(lpChannel);
-		setClientMailbox(NULL);
+		clientMailbox(NULL);
 		addr(Mercury::Address::NONE);
 		
-		if(proxy->getClientMailbox() != NULL)
+		if(proxy->clientMailbox() != NULL)
 		{
 			// 通知client销毁当前entity
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
-			(*pBundle) << this->getID();
+			(*pBundle) << this->id();
 			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
 			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
@@ -360,7 +360,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 {
-	setClientMailbox(new EntityMailbox(this->scriptModule_, 
+	clientMailbox(new EntityMailbox(this->scriptModule_, 
 		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
 
 	addr(lpChannel->addr());
@@ -368,13 +368,13 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 
 	/*
 	如果有cell则已经绑定了witness， 在此我们不需要再次绑定。
-	if(getCellMailbox())
+	if(cellMailbox())
 	{
 		// 通知cell获得客户端
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::onGetWitness);
-		(*pBundle) << this->getID();
-		getCellMailbox()->postMail((*pBundle));
+		(*pBundle) << this->id();
+		cellMailbox()->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	*/
@@ -396,7 +396,7 @@ void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
-	(*pBundle) << getID();
+	(*pBundle) << id();
 
 	if(scriptModule_->usePropertyDescrAlias())
 		(*pBundle) << propertyDescription->aliasIDAsUint8();
@@ -405,7 +405,7 @@ void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription,
 
 	pBundle->append(*mstream);
 	
-	g_privateClientEventHistoryStats.trackEvent(getScriptName(), 
+	g_privateClientEventHistoryStats.trackEvent(scriptName(), 
 		propertyDescription->getName(), 
 		pBundle->currMsgLength());
 
@@ -416,11 +416,11 @@ void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription,
 //-------------------------------------------------------------------------------------
 double Proxy::getRoundTripTime()const
 {
-	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
-		getClientMailbox()->getChannel()->endpoint() == NULL)
+	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
+		clientMailbox()->getChannel()->endpoint() == NULL)
 		return 0.0;
 
-	return double(getClientMailbox()->getChannel()->endpoint()->getRTT()) / 1000000.0;
+	return double(clientMailbox()->getChannel()->endpoint()->getRTT()) / 1000000.0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -429,7 +429,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;																				
 	}
@@ -440,11 +440,11 @@ PyObject* Proxy::pyGetRoundTripTime()
 //-------------------------------------------------------------------------------------
 double Proxy::getTimeSinceHeardFromClient()const
 {
-	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
-		getClientMailbox()->getChannel()->endpoint() == NULL)
+	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
+		clientMailbox()->getChannel()->endpoint() == NULL)
 		return DBL_MAX;
 
-	return double(timestamp() - getClientMailbox()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
+	return double(timestamp() - clientMailbox()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
 }
 
 //-------------------------------------------------------------------------------------
@@ -453,7 +453,7 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;																					
 	}
@@ -464,8 +464,8 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 //-------------------------------------------------------------------------------------
 bool Proxy::hasClient()const
 {
-	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
-		getClientMailbox()->getChannel()->endpoint() == NULL)
+	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
+		clientMailbox()->getChannel()->endpoint() == NULL)
 		return false;
 
 	return true;
@@ -477,7 +477,7 @@ PyObject* Proxy::pyHasClient()
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;																				
 	}
@@ -496,22 +496,22 @@ PyObject* Proxy::pyClientAddr()
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;																				
 	}
 
 	PyObject* pyobj = PyTuple_New(2);
 
-	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
-		getClientMailbox()->getChannel()->endpoint() == NULL)
+	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
+		clientMailbox()->getChannel()->endpoint() == NULL)
 	{
 		PyTuple_SetItem(pyobj, 0, PyLong_FromLong(0));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromLong(0));
 	}
 	else
 	{
-		const Mercury::Address& addr = getClientMailbox()->getChannel()->endpoint()->addr();
+		const Mercury::Address& addr = clientMailbox()->getChannel()->endpoint()->addr();
 		PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
 	}
@@ -525,7 +525,7 @@ PyObject* Proxy::pyGetEntitiesEnabled()
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
-			getScriptName(), getID());		
+			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;																				
 	}
@@ -544,7 +544,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
 
-	if(pobj->getClientMailbox() == NULL)
+	if(pobj->clientMailbox() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamStringToClient: has no client.");
@@ -556,7 +556,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamFileToClient: args max require 3, gived %d! is script[%s].\n",
-			currargsSize, pobj->getScriptName());
+			currargsSize, pobj->scriptName());
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -629,7 +629,7 @@ int16 Proxy::streamFileToClient(PyObjectPtr objptr,
 	DataDownload* pDataDownload = DataDownloadFactory::create(
 		DataDownloadFactory::DATA_DOWNLOAD_STREAM_FILE, objptr, descr, id);
 
-	pDataDownload->entityID(this->getID());
+	pDataDownload->entityID(this->id());
 	return dataDownloads_.pushDownload(pDataDownload);
 }
 
@@ -639,7 +639,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
 
-	if(pobj->getClientMailbox() == NULL)
+	if(pobj->clientMailbox() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamStringToClient: has no client.");
@@ -651,7 +651,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamStringToClient: args max require 3, gived %d! is script[%s].\n",
-			currargsSize, pobj->getScriptName());
+			currargsSize, pobj->scriptName());
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -724,17 +724,17 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 	DataDownload* pDataDownload = DataDownloadFactory::create(
 		DataDownloadFactory::DATA_DOWNLOAD_STREAM_STRING, objptr, descr, id);
 
-	pDataDownload->entityID(this->getID());
+	pDataDownload->entityID(this->id());
 	return dataDownloads_.pushDownload(pDataDownload);
 }
 
 //-------------------------------------------------------------------------------------
 Proxy::Bundles* Proxy::pBundles()
 {
-	if(!getClientMailbox())
+	if(!clientMailbox())
 		return NULL;
 
-	Mercury::Channel* pChannel = getClientMailbox()->getChannel();
+	Mercury::Channel* pChannel = clientMailbox()->getChannel();
 	if(!pChannel)
 		return NULL;
 
@@ -758,7 +758,7 @@ bool Proxy::sendToClient(Mercury::Bundle* pBundle)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("Proxy::sendToClient: %1% pBundles is NULL, not found channel.\n") % getID());
+	ERROR_MSG(boost::format("Proxy::sendToClient: %1% pBundles is NULL, not found channel.\n") % id());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
@@ -766,10 +766,10 @@ bool Proxy::sendToClient(Mercury::Bundle* pBundle)
 //-------------------------------------------------------------------------------------
 bool Proxy::sendToClient(bool expectData)
 {
-	if(!getClientMailbox())
+	if(!clientMailbox())
 		return false;
 
-	Mercury::Channel* pChannel = getClientMailbox()->getChannel();
+	Mercury::Channel* pChannel = clientMailbox()->getChannel();
 	if(!pChannel)
 		return false;
 

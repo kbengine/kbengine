@@ -83,7 +83,7 @@ Entity::~Entity()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()
 { 
-	EntityMailbox* mailbox = getBaseMailbox();
+	EntityMailbox* mailbox = baseMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -94,7 +94,7 @@ PyObject* Entity::pyGetBaseMailbox()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetCellMailbox()
 { 
-	EntityMailbox* mailbox = getCellMailbox();
+	EntityMailbox* mailbox = cellMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -248,7 +248,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 #else
 			s >> size >> pos.x >> pos.y >> pos.z;
 #endif
-			setPosition(pos);
+			position(pos);
 			continue;
 		}
 		else if(uid == diruid)
@@ -271,23 +271,23 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			dir.roll(roll);
 #endif
 
-			setDirection(dir);
+			direction(dir);
 			continue;
 		}
 		else if(uid == spaceuid)
 		{
-			SPACE_ID spaceID;
-			s >> spaceID;
-			setSpaceID(spaceID);
+			SPACE_ID ispaceID;
+			s >> ispaceID;
+			spaceID(ispaceID);
 			continue;
 		}
 
 		PropertyDescription* pPropertyDescription = NULL;
 		
 		if(scriptModule_->usePropertyDescrAlias())
-			pPropertyDescription = getScriptModule()->findAliasPropertyDescription(aliasID);
+			pPropertyDescription = scriptModule()->findAliasPropertyDescription(aliasID);
 		else
-			pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+			pPropertyDescription = scriptModule()->findClientPropertyDescription(uid);
 
 		if(pPropertyDescription == NULL)
 		{
@@ -323,7 +323,7 @@ int Entity::pySetPosition(PyObject *value)
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
-	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
+	script::ScriptVector3::convertPyObjectToVector3(position(), value);
 	onPositionChanged();
 	return 0;
 }
@@ -331,13 +331,13 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition(), NULL);
+	return new script::ScriptVector3(&position(), NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_PositionChanged eventdata;
@@ -346,7 +346,7 @@ void Entity::onPositionChanged()
 	eventdata.z = position_.z;
 	eventdata.speed = velocity_;
 	
-	eventdata.entityID = getID();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -369,7 +369,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	Direction3D& dir = getDirection();
+	Direction3D& dir = direction();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
 	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
@@ -387,20 +387,20 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(&getDirection().dir, NULL);
+	return new script::ScriptVector3(&direction().dir, NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_DirectionChanged eventdata;
 	eventdata.yaw = direction_.yaw();
 	eventdata.pitch = direction_.pitch();
 	eventdata.roll = direction_.roll();
-	eventdata.entityID = getID();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -408,7 +408,7 @@ void Entity::onDirectionChanged()
 //-------------------------------------------------------------------------------------
 int Entity::pySetMoveSpeed(PyObject *value)
 {
-	setMoveSpeed((float)PyFloat_AsDouble(value));
+	moveSpeed((float)PyFloat_AsDouble(value));
 	return 0;
 }
 
@@ -423,7 +423,7 @@ void Entity::onMoveSpeedChanged()
 {
 	EventData_MoveSpeedChanged eventdata;
 	eventdata.speed = velocity_;
-	eventdata.entityID = getID();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -441,7 +441,7 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = false;
-	setSpaceID(0);
+	spaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
 }
 
@@ -456,7 +456,7 @@ void Entity::onEnterSpace()
 void Entity::onLeaveSpace()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	setSpaceID(0);
+	spaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 

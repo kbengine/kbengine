@@ -115,9 +115,9 @@ bool MoveToPointHandler::update()
 	
 	Entity* pEntity = pController_->pEntity();
 	const Position3D& dstPos = destPos();
-	Position3D currpos = pEntity->getPosition();
+	Position3D currpos = pEntity->position();
 	Position3D currpos_backup = currpos;
-	Direction3D direction = pEntity->getDirection();
+	Direction3D direction = pEntity->direction();
 
 	Vector3 movement = dstPos - currpos;
 	if (!moveVertically_) movement.y = 0.f;

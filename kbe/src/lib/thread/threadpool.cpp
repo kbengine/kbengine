@@ -62,7 +62,7 @@ bool TPThread::join(void)
 	while(true)
 	{
 		++i;
-		DWORD dw = WaitForSingleObject(getID(), 3000);  
+		DWORD dw = WaitForSingleObject(id(), 3000);  
 
 		switch (dw)
 		{
@@ -87,7 +87,7 @@ bool TPThread::join(void)
 	}
 #else
 	void* status;
-	if(pthread_join(getID(), &status))
+	if(pthread_join(id(), &status))
 	{
 		ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % this);
 		return false;
@@ -190,7 +190,7 @@ void ThreadPool::destroy()
 		{
 			if((*itr))
 			{
-				if((*itr)->getState() != TPThread::THREAD_STATE_END)
+				if((*itr)->state() != TPThread::THREAD_STATE_END)
 				{
 					(*itr)->sendCondSignal();
 					taskaddrs += (boost::format("%1%,") % (*itr)).str();
@@ -419,7 +419,7 @@ bool ThreadPool::addFreeThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
 		ERROR_MSG(boost::format("ThreadPool::addFreeThread: busyThreadList_ not found thread.%1%\n") %
-		 (uint32)tptd->getID());
+		 (uint32)tptd->id());
 		
 		delete tptd;
 		return false;
@@ -447,7 +447,7 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 		ERROR_MSG(boost::format("ThreadPool::addBusyThread: freeThreadList_ not "
 					"found thread.%1%\n") %
-					(uint32)tptd->getID());
+					(uint32)tptd->id());
 		
 		delete tptd;
 		return false;
@@ -477,7 +477,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 
 		INFO_MSG(boost::format("ThreadPool::removeHangThread: thread.%1% is destroy. "
 			"currentFreeThreadCount:%2%, currentThreadCount:%3%\n") %
-		(uint32)tptd->getID() % currentFreeThreadCount_ % currentThreadCount_);
+		(uint32)tptd->id() % currentFreeThreadCount_ % currentThreadCount_);
 		
 		SAFE_RELEASE(tptd);
 	}
@@ -486,7 +486,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
 		
 		ERROR_MSG(boost::format("ThreadPool::removeHangThread: not found thread.%1%\n") % 
-			(uint32)tptd->getID());
+			(uint32)tptd->id());
 		
 		return false;
 	}
@@ -510,7 +510,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
 		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
 		
-		tptd->setTask(tptask);												// 给线程设置新任务	
+		tptd->task(tptask);												// 给线程设置新任务	
 		
 #if KBE_PLATFORM == PLATFORM_WIN32
 		if(tptd->sendCondSignal()== 0){
@@ -603,7 +603,7 @@ void* TPThread::threadFunc(void* arg)
 
 	while(isRun)
 	{
-		if(tptd->getTask() != NULL)
+		if(tptd->task() != NULL)
 		{
 			isRun = true;
 		}
@@ -621,7 +621,7 @@ void* TPThread::threadFunc(void* arg)
 			goto __THREAD_END__;
 		}
 
-		TPTask * task = tptd->getTask();
+		TPTask * task = tptd->task();
 		if(task == NULL)
 			continue;
 
@@ -645,7 +645,7 @@ void* TPThread::threadFunc(void* arg)
 			{
 				pThreadPool->addFiniTask(task);
 				task = task1;
-				tptd->setTask(task1);
+				tptd->task(task1);
 			}
 		}
 	}
@@ -653,7 +653,7 @@ void* TPThread::threadFunc(void* arg)
 __THREAD_END__:
 	if(tptd)
 	{
-		TPTask * task = tptd->getTask();
+		TPTask * task = tptd->task();
 		if(task)
 		{
 			WARNING_MSG(boost::format("TPThread::threadFunc: task %1% not finish, thread.%2% will exit.\n") % 

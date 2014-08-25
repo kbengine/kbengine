@@ -31,7 +31,7 @@ NavigateHandler::NavigateHandler(Controller* pController, const Position3D& dest
 											 float velocity, float range, bool faceMovement, 
 											 float maxMoveDistance, float maxDistance, float girth,
 											PyObject* userarg):
-MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
+MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
 pNavHandle_(NULL),
@@ -41,11 +41,11 @@ maxDistance_(maxDistance)
 	Entity* pEntity = pController->pEntity();
 	if(pNavHandle_ == NULL)
 	{
-		Space* pSpace = Spaces::findSpace(pEntity->getSpaceID());
+		Space* pSpace = Spaces::findSpace(pEntity->spaceID());
 		if(pSpace == NULL)
 		{
 			ERROR_MSG(boost::format("NavigateHandler::NavigateHandler(): not found space(%1%), entityID(%2%)!\n") % 
-				pEntity->getSpaceID() % pEntity->getID());
+				pEntity->spaceID() % pEntity->id());
 
 			pController_ = NULL;
 		}
@@ -55,7 +55,7 @@ maxDistance_(maxDistance)
 
 			if(pNavHandle_)
 			{
-				Position3D currpos = pEntity->getPosition();
+				Position3D currpos = pEntity->position();
 				pNavHandle_->findStraightPath(pController->pEntity()->layer(), currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
@@ -68,7 +68,7 @@ maxDistance_(maxDistance)
 				pController_ = NULL;
 
 				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navhandle!\n") % 
-					pEntity->getSpaceID() % pEntity->getID());
+					pEntity->spaceID() % pEntity->id());
 			}
 		}
 	}

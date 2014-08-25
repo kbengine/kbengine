@@ -98,18 +98,18 @@ public:
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
 
-	EntityMailbox* getCellMailbox(void)const;
+	EntityMailbox* cellMailbox(void)const;
 
-	void setCellMailbox(EntityMailbox* mailbox);
+	void cellMailbox(EntityMailbox* mailbox);
 	
 	/** 
 		脚本获取mailbox 
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
 
-	EntityMailbox* getClientMailbox()const;
+	EntityMailbox* clientMailbox()const;
 
-	void setClientMailbox(EntityMailbox* mailbox);
+	void clientMailbox(EntityMailbox* mailbox);
 
 	/**
 		是否创建过space

@@ -207,9 +207,9 @@ namespace KBEngine{
 			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_createNamespace:add %4%(%5%).\n") %		\
-												getScriptName() %											\
+												scriptName() %												\
 												static_cast<PyObject*>(this)->ob_refcnt %					\
-												this->getID() %												\
+												this->id() %												\
 																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE %		\
 																cccpytsval);								\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
@@ -225,8 +225,8 @@ namespace KBEngine{
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_attr:op=%4%, %5%.\n") %				\
-												getScriptName() %											\
-												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
+												scriptName() %												\
+												static_cast<PyObject*>(this)->ob_refcnt % this->id() %		\
 															op % ccattr_DEBUG_OP_ATTRIBUTE);				\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
@@ -238,8 +238,8 @@ namespace KBEngine{
 		if(g_debugEntity)																					\
 		{																									\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_Persistent:op=%4%, %5%.\n") %			\
-												getScriptName() %											\
-												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
+												scriptName() %												\
+												static_cast<PyObject*>(this)->ob_refcnt % this->id() %		\
 															op % ccattr);									\
 		}																									\
 	}																										\
@@ -249,10 +249,10 @@ namespace KBEngine{
 		if(g_debugEntity)																					\
 		{																									\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_reduct_ex: utype=%4%.\n") %				\
-												tentity->getScriptName() %									\
+												tentity->scriptName() %										\
 												static_cast<PyObject*>(tentity)->ob_refcnt %				\
-												tentity->getID() %											\
-												tentity->getScriptModule()->getUType());					\
+												tentity->id() %												\
+												tentity->scriptModule()->getUType());					\
 		}																									\
 
 
@@ -269,7 +269,7 @@ namespace KBEngine{
 	if(ENTITY->isDestroyed())																				\
 	{																										\
 		PyErr_Format(PyExc_Exception, "%s::%s: %d is destroyed!\n",											\
-			OPNAME, ENTITY->getScriptName(), ENTITY->getID());												\
+			OPNAME, ENTITY->scriptName(), ENTITY->id());													\
 		PyErr_PrintEx(0);																					\
 		RETURN;																								\
 	}																										\
@@ -315,7 +315,7 @@ public:																										\
 	{																										\
 		if(fullReload)																						\
 		{																									\
-			scriptModule_ = EntityDef::findScriptModule(getScriptName());									\
+			scriptModule_ = EntityDef::findScriptModule(scriptName());										\
 			KBE_ASSERT(scriptModule_);																		\
 			lpPropertyDescrs_ = &scriptModule_->getPropertyDescrs();										\
 		}																									\
@@ -341,7 +341,7 @@ public:																										\
 		if(!PyDict_Check(dictData)){																		\
 			ERROR_MSG(boost::format(#CLASS"::createNamespace: create"#CLASS"[%1%:%2%] "						\
 				"args is not a dict.\n") %																	\
-				getScriptName() % id_);																		\
+				scriptName() % id_);																		\
 			return;																							\
 		}																									\
 																											\
@@ -437,7 +437,7 @@ public:																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				getScriptModule()->getClientPropertyDescriptions();											\
+				scriptModule()->getClientPropertyDescriptions();											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
@@ -452,7 +452,7 @@ public:																										\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-				if(getScriptModule()->usePropertyDescrAlias())												\
+				if(scriptModule()->usePropertyDescrAlias())												\
 				{																							\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
@@ -480,9 +480,9 @@ public:																										\
 		PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");								\
 		PyTuple_SET_ITEM(args, 0, unpickleMethod);															\
 		PyObject* args1 = PyTuple_New(4);																	\
-		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));								\
+		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->id()));									\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
-		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));			\
+		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->scriptModule()->getUType()));			\
 		if(g_componentType == BASEAPP_TYPE)																	\
 			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));							\
 		else																								\
@@ -513,33 +513,33 @@ public:																										\
 																											\
 	static PyObject* __pyget_pyGetID(CLASS *self, void *closure)											\
 	{																										\
-		return PyLong_FromLong(self->getID());																\
+		return PyLong_FromLong(self->id());																	\
 	}																										\
 																											\
-	INLINE ENTITY_ID getID()const																			\
+	INLINE ENTITY_ID id()const																				\
 	{																										\
 		return id_;																							\
 	}																										\
 																											\
-	INLINE void setID(int id)																				\
+	INLINE void id(int v)																					\
 	{																										\
-		id_ = id; 																							\
+		id_ = v; 																							\
 	}																										\
 																											\
-	INLINE SPACE_ID getSpaceID()const																		\
+	INLINE SPACE_ID spaceID()const																			\
 	{																										\
 		return spaceID_;																					\
 	}																										\
-	INLINE void setSpaceID(SPACE_ID id)																		\
+	INLINE void spaceID(SPACE_ID id)																		\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
 	static PyObject* __pyget_pyGetSpaceID(CLASS *self, void *closure)										\
 	{																										\
-		return PyLong_FromLong(self->getSpaceID());															\
+		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* getScriptModule(void)const														\
+	INLINE ScriptDefModule* scriptModule(void)const															\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
@@ -558,7 +558,7 @@ public:																										\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				char err[255];																				\
-				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());\
+				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, scriptName());	\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
 				free(ccattr);																				\
@@ -569,7 +569,7 @@ public:																										\
 		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
-			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());		\
+			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, scriptName());			\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
 			free(ccattr);																					\
@@ -598,7 +598,7 @@ public:																										\
 				if(isDestroyed_)																			\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
-													getScriptName(), ccattr, value->ob_type->tp_name);		\
+													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
 					free(ccattr);																			\
 					return 0;																				\
@@ -607,7 +607,7 @@ public:																										\
 				if(!dataType->isSameType(value))															\
 				{																							\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
-													getScriptName(), ccattr, value->ob_type->tp_name);		\
+													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
 					free(ccattr);																			\
 					return 0;																				\
@@ -650,7 +650,7 @@ public:																										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
 							"%s: args max require %d args, gived %d! is script[%s].\n",						\
-				__FUNCTION__, 1, currargsSize, pobj->getScriptName());										\
+				__FUNCTION__, 1, currargsSize, pobj->scriptName());											\
 			PyErr_PrintEx(0);																				\
 		}																									\
 																											\
@@ -837,7 +837,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		if(getScriptModule()->usePropertyDescrAlias() && useAliasID)										\
+		if(scriptModule()->usePropertyDescrAlias() && useAliasID)										\
 		{																									\
 			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		}																									\
@@ -923,7 +923,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(boost::format("%1%::~%2%(): %3%\n") % getScriptName() % getScriptName() % id_);				\
+	INFO_MSG(boost::format("%1%::~%2%(): %3%\n") % scriptName() % scriptName() % id_);						\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\

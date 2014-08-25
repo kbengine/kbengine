@@ -30,7 +30,7 @@ id_(0),
 pEntity_(pEntity),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
-	id_ = pEntity->getID();
+	id_ = pEntity->id();
 }
 
 //-------------------------------------------------------------------------------------
@@ -52,13 +52,13 @@ void EntityRef::pEntity(Entity* e)
 	pEntity_ = e; 
 
 	if(e)
-		id_ = e->getID(); 
+		id_ = e->id(); 
 }
 
 //-------------------------------------------------------------------------------------
 bool findif_vector_entityref_exist_by_entity_handler::operator()(const EntityRef* obj)
 {
-	return obj->id() == obj_->getID();
+	return obj->id() == obj_->id();
 }
 
 //-------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ void EntityRef::addToStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	if(pEntity_)
-		eid = pEntity_->getID();
+		eid = pEntity_->id();
 
 	s << id_ << flags_ << eid;
 }

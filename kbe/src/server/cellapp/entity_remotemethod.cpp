@@ -68,7 +68,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	if(pEntity == NULL || pEntity->pWitness() == NULL)
 	{
 		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->getID());
+		//	mailbox->id());
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
@@ -91,7 +91,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
 			DEBUG_MSG(boost::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
-				pEntity->getScriptName() % methodDescription->getName());
+				pEntity->scriptName() % methodDescription->getName());
 																								
 			switch(Mercury::g_trace_packet)																	
 			{																								
@@ -117,7 +117,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		MemoryStream::ObjPool().reclaimObject(mstream);
 
 		// 记录这个事件产生的数据量大小
-		g_privateClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
+		g_privateClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
 			methodDescription->getName(), 
 			pBundle->currMsgLength(), 
 			"::");
