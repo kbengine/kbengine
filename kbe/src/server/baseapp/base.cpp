@@ -717,7 +717,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	{
 		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
 			utype % id_ % this->scriptName());
-
+		
+		s.opfini();
 		return;
 	}
 
