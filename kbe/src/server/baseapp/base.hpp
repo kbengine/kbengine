@@ -71,8 +71,8 @@ public:
 	/** 
 		数据库关联ID
 	*/
-	INLINE DBID getDBID()const;
-	INLINE void setDBID(DBID id);
+	INLINE DBID dbid()const;
+	INLINE void dbid(DBID id);
 	DECLARE_PY_GET_MOTHOD(pyGetDBID);
 
 	/** 
@@ -233,6 +233,12 @@ public:
 		客户端直接发送消息给cell实体
 	*/
 	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	
+	/**
+		发送消息到cellapp上
+	*/
+	void sendToCellapp(Mercury::Bundle* pBundle);
+	void sendToCellapp(Mercury::Channel* pChannel, Mercury::Bundle* pBundle);
 
 	/** 
 		传送
@@ -253,10 +259,10 @@ public:
 		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
 
 	/** 网络接口
-		entity请求teleport到另一个cellapp上的space过程开始和结束。
+		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
-	void onTeleportCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
-	void onTeleportCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
 
 	/**
 		设置获取是否自动存档

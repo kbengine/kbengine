@@ -334,8 +334,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(CellappInterface::onResetWitness);
 			(*pBundle) << this->id();
-			cellMailbox()->postMail((*pBundle));
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			sendToCellapp(pBundle);
 		}
 
 		entitiesEnabled_ = false;
@@ -374,8 +373,7 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::onGetWitness);
 		(*pBundle) << this->id();
-		cellMailbox()->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		sendToCellapp(pBundle);
 	}
 	*/
 }

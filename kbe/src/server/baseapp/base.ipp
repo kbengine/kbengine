@@ -61,12 +61,12 @@ INLINE void Base::hasDB(bool has)
 	hasDB_ = has; 
 }
 
-INLINE DBID Base::getDBID()const
+INLINE DBID Base::dbid()const
 {
 	return DBID_;
 }
 
-INLINE void Base::setDBID(DBID id)
+INLINE void Base::dbid(DBID id)
 {
 	DBID_ = id;
 	if(DBID_ > 0)

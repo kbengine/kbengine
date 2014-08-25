@@ -117,11 +117,11 @@ void Base::eraseEntityLog()
 	// 这里没有使用hasDB()来进行判断
 	// 用户可能destroy( writeToDB = False ), 这个操作会导致hasDB为false， 因此这里
 	// 需要判断dbid是否大于0， 如果大于0则应该要去擦除在线等记录情况.
-	if(this->getDBID() > 0)
+	if(this->dbid() > 0)
 	{
 		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
 		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
-		(*(*bundleptr)) << this->getDBID();
+		(*(*bundleptr)) << this->dbid();
 		(*(*bundleptr)) << this->scriptModule()->getUType();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
@@ -381,6 +381,22 @@ PyObject* Base::createCellDataDict(uint32 flags)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::sendToCellapp(Mercury::Bundle* pBundle)
+{
+	KBE_ASSERT(cellMailbox_ != NULL && pBundle != NULL);
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::sendToCellapp(Mercury::Channel* pChannel, Mercury::Bundle* pBundle)
+{
+	KBE_ASSERT(pChannel != NULL && pBundle != NULL);
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Base::destroyCellData(void)
 {
 	// cellDataDict_ 继续保留， 以供备份时使用， 这里仅仅让脚步层无法访问到即可
@@ -409,8 +425,7 @@ bool Base::destroyCellEntity(void)
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
 	(*pBundle) << id_;
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	sendToCellapp(pBundle);
 	return true;
 }
 
@@ -492,7 +507,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 	{
 		// 有可能已经请求了writeToDB但还未返回写入的dbid
 		// 这种情况需要返回给用户一个错误， 用户可以继续尝试这个操作
-		if(pobj->hasDB() && pobj->getDBID() == 0)
+		if(pobj->hasDB() && pobj->dbid() == 0)
 		{
 			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, current dbid is 0. "
 				"please wait for dbmgr to processing!\n", 
@@ -530,7 +545,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		(*pBundle) << g_componentID;
 		(*pBundle) << this->id();
-		(*pBundle) << this->getDBID();
+		(*pBundle) << this->dbid();
 		(*pBundle) << this->scriptModule()->getUType();
 		(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -590,7 +605,7 @@ PyObject* Base::pyGetDBID()
 		return 0;																					
 	}
 
-	return PyLong_FromUnsignedLongLong(this->getDBID()); 
+	return PyLong_FromUnsignedLongLong(this->dbid()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -829,11 +844,9 @@ void Base::reqBackupCellData()
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::reqBackupEntityCellData);
 	(*pBundle) << this->id();
-	mb->postMail((*pBundle));
+	sendToCellapp(pBundle);
 
 	isGetingCellData_ = true;
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -874,7 +887,7 @@ void Base::writeToDB(void* data)
 		//	Py_DECREF(pyCallback);
 
 		WARNING_MSG(boost::format("%1%::writeToDB(): is archiveing! entityid=%2%, dbid=%3%.\n") % 
-			this->scriptName() % this->id() % this->getDBID());
+			this->scriptName() % this->id() % this->dbid());
 
 		return;
 	}
@@ -888,7 +901,7 @@ void Base::writeToDB(void* data)
 		//	Py_DECREF(pyCallback);
 
 		ERROR_MSG(boost::format("%1%::writeToDB(): is destroyed! entityid=%2%, dbid=%3%.\n") % 
-			this->scriptName() % this->id() % this->getDBID());
+			this->scriptName() % this->id() % this->dbid());
 
 		return;																							
 	}
@@ -912,8 +925,7 @@ void Base::writeToDB(void* data)
 		(*pBundle).newMessage(CellappInterface::reqWriteToDBFromBaseapp);
 		(*pBundle) << this->id();
 		(*pBundle) << callbackID;
-		this->cellMailbox()->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		sendToCellapp(pBundle);
 	}
 }
 
@@ -930,8 +942,8 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 	if(callbackID > 0)
 		pyCallback = callbackMgr().take(callbackID);
 
-	if(getDBID() <= 0)
-		setDBID(entityDBID);
+	if(dbid() <= 0)
+		dbid(entityDBID);
 
 	if(callbackID > 0)
 	{
@@ -999,12 +1011,12 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	(*pBundle) << g_componentID;
 	(*pBundle) << this->id();
-	(*pBundle) << this->getDBID();
+	(*pBundle) << this->dbid();
 	(*pBundle) << this->scriptModule()->getUType();
 	(*pBundle) << callbackID;
 
 	// 记录登录地址
-	if(this->getDBID() == 0)
+	if(this->dbid() == 0)
 	{
 		uint32 ip = 0;
 		uint16 port = 0;
@@ -1159,8 +1171,7 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 	(*pBundle).newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
 	(*pBundle) << this->id();
 	(*pBundle).append(s);
-	this->cellMailbox()->postMail((*pBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	sendToCellapp(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1319,24 +1330,27 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 
 	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->cellMailbox()->componentID(), 
 		this->id(), reqTeleportEntityBaseAppID);
-
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	
+	sendToCellapp(cinfos->pChannel, pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onTeleportCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
+void Base::onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
 {
 	DEBUG_MSG(boost::format("%1%::onTeleportCellappStart: %2%, targetCellappID=%3%\n") %											
 		scriptName() % id() % cellappID);
+
+	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
+	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onTeleportCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
+void Base::onMigrationCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
 {
 	DEBUG_MSG(boost::format("%1%::onTeleportCellappEnd: %2%, targetCellappID=%3%\n") %											
 		scriptName() % id() % cellappID);
 
+	// 改变cell的指向到新的cellapp
 	this->cellMailbox()->componentID(cellappID);
 }
 

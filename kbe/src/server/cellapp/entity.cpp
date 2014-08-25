@@ -2413,7 +2413,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
 			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-			(*pBundle).newMessage(BaseappInterface::onTeleportCellappStart);
+			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
 			(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), pBaseChannel);
@@ -2446,6 +2446,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	changeToGhost(nearbyMBRef->componentID(), *s);
+
 	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -2457,6 +2458,9 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 
 	nearbyMBRef->postMail((*pBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	// 序列化后将entity先停止移动， 如果传送失败了则可以根据序列化的内容进行恢复
+	stopMove();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2758,8 +2762,6 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	
 	// 必须放在前面
 	addToStream(s);
-	
-	stopMove();
 
 	witnesses_.clear();
 

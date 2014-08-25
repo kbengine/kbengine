@@ -932,7 +932,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
-		static_cast<Base*>(e)->setDBID(dbid);
+		static_cast<Base*>(e)->dbid(dbid);
 		static_cast<Base*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
 	}
@@ -1178,7 +1178,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel,
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
-		static_cast<Base*>(e)->setDBID(dbid);
+		static_cast<Base*>(e)->dbid(dbid);
 		static_cast<Base*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
 	}
@@ -2521,7 +2521,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
-	base->setDBID(dbid);
+	base->dbid(dbid);
 	base->setClientType(ptinfos->ctype);
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
@@ -2752,7 +2752,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append(s);
-	mailbox->postMail((*pBundle));
+	base->sendToCellapp(pBundle);
 	
 	if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
 	{
@@ -2782,8 +2782,6 @@ void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel,
 	}
 
 	s.read_skip(s.opsize());
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2910,9 +2908,8 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 	(*pBundle) << srcEntityID;
 	(*pBundle).append(s);
 	
-	e->cellMailbox()->postMail((*pBundle));
+	e->sendToCellapp(pBundle);
 	s.read_skip(s.opsize());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2952,9 +2949,8 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 	(*pBundle) << srcEntityID;
 	(*pBundle).append(s);
 	
-	e->cellMailbox()->postMail((*pBundle));
+	e->sendToCellapp(pBundle);
 	s.read_skip(s.opsize());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

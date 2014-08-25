@@ -1506,6 +1506,10 @@ void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& 
 	
 	e->createFromStream(s);
 
+	// 有可能序列化过来的ghost内容包含移动控制器， 之所以序列化过来是为了
+	// 在传送失败时可以用于恢复现场, 那么传送成功了我们应该停止以前的移动行为
+	e->stopMove();
+
 	COMPONENT_ID ghostCell;
 	s >> ghostCell;
 	
@@ -1560,7 +1564,7 @@ void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream
 	if(baseMB)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(BaseappInterface::onTeleportCellappEnd);
+		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 		(*pBundle) << baseMB->id();
 		(*pBundle) << targetCellappID;
 		baseMB->postMail((*pBundle));

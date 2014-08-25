@@ -295,12 +295,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASE_MESSAGE_DECLARE_ARGS1(onGetDBID,											MERCURY_FIXED_MESSAGE,
 								DBID,												dbid)
 
-	// entity请求teleport到另一个cellapp上的space过程开始
-	BASE_MESSAGE_DECLARE_ARGS1(onTeleportCellappStart,								MERCURY_FIXED_MESSAGE,
+	// entity请求迁移到另一个cellapp上的space过程开始
+	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappStart,								MERCURY_FIXED_MESSAGE,
 								COMPONENT_ID,										cellAppID)
 	
-	// entity请求teleport到另一个cellapp上的space过程结束
-	BASE_MESSAGE_DECLARE_ARGS1(onTeleportCellappEnd,								MERCURY_FIXED_MESSAGE,
+	// entity请求迁移到另一个cellapp上的space过程结束
+	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappEnd,								MERCURY_FIXED_MESSAGE,
 								COMPONENT_ID,										cellAppID)
 
 	//--------------------------------------------Proxy---------------------------------------------------------
