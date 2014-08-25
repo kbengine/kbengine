@@ -647,30 +647,34 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	if(loginName.size() == 0)
 	{
 		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
+		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
 		return;
 	}
 
 	if(loginName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: loginName too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::login: loginName is too long, size=%1%, limit=%2%.\n") %
 			loginName.size() % ACCOUNT_NAME_MAX_LENGTH);
-
+		
+		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
 		return;
 	}
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: password too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::login: password is too long, size=%1%, limit=%2%.\n") %
 			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
-
+		
+		_loginFailed(pChannel, loginName, SERVER_ERR_PASSWORD, datas);
 		return;
 	}
 	
 	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: bindatas too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::login: bindatas is too long, size=%1%, limit=%2%.\n") %
 			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
-
+		
+		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas);
 		return;
 	}
 
