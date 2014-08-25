@@ -383,9 +383,8 @@ PyObject* Base::createCellDataDict(uint32 flags)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Mercury::Bundle* pBundle)
 {
-	KBE_ASSERT(cellMailbox_ != NULL && pBundle != NULL);
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	KBE_ASSERT(cellMailbox_ != NULL);
+	sendToCellapp(cellMailbox_->getChannel(), pBundle);
 }
 
 //-------------------------------------------------------------------------------------
