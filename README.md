@@ -17,8 +17,7 @@ http://www.kbengine.org
 
 ##Docs
 	docs		: http://www.kbengine.org/docs/
-	API			: https://github.com/kbengine/kbengine/tree/master/kbe/doc
-	tutorial	: https://github.com/kbengine/kbengine/tree/master/tutorial
+	API			: https://github.com/kbengine/kbengine/tree/master/docs
 	
 ##Support
 	Email		: kbengine_maillist@googlegroups.com
