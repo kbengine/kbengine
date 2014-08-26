@@ -50,17 +50,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment( lib, "odbc32.lib" )
-#ifdef _DEBUG
-#pragma comment (lib, "apr-1_d.lib")
-#pragma comment (lib, "aprutil-1_d.lib")
-#pragma comment (lib, "log4cxx_d.lib")
-#pragma comment (lib, "expat_d.lib")
-#else
-#pragma comment (lib, "apr-1.lib")
-#pragma comment (lib, "aprutil-1.lib")
-#pragma comment (lib, "log4cxx.lib")
-#pragma comment (lib, "expat.lib")
-#endif
 #endif
 #endif
 
