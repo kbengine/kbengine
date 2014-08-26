@@ -997,5 +997,8 @@
     <ClInclude Include="..\src\main\include\log4cxx\rolling\zipcompressaction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\main\resources\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

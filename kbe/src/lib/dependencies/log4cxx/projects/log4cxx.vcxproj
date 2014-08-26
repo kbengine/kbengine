@@ -1199,6 +1199,7 @@
     <ClInclude Include="..\src\main\include\log4cxx\xml\xmllayout.h" />
     <ClInclude Include="..\src\main\include\log4cxx\net\xmlsocketappender.h" />
     <ClInclude Include="..\src\main\include\log4cxx\rolling\zipcompressaction.h" />
+    <ClInclude Include="..\src\main\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\apr-util\aprutil.vcxproj">
