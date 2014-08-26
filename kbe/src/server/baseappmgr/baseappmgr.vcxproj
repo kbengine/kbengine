@@ -133,6 +133,12 @@
       <Project>{a04109a7-46c9-42f9-ab29-8e3d84450172}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\lib\dependencies\openssl\vcbuild\libeay32\libeay32.vcxproj">
+      <Project>{26195a87-700c-42d6-a271-20b6cacc6249}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\dependencies\openssl\vcbuild\ssleay32\ssleay32.vcxproj">
+      <Project>{678e55f0-e0f7-4e52-82e4-9ad50f0753b8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\lib\entitydef\entitydef.vcxproj">
       <Project>{44fa54e8-0a60-4a6c-a449-118872e75502}</Project>
     </ProjectReference>

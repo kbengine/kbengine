@@ -1014,14 +1014,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\main\resources\log4cxx.rc">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">\kbe\kbengine-1\kbe\src\lib\dependencies\log4cxx\src\main\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">\kbe\kbengine-1\kbe\src\lib\dependencies\log4cxx\src\main\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\src\main\include\log4cxx\helpers\absolutetimedateformat.h" />
     <ClInclude Include="..\src\main\include\log4cxx\rolling\action.h" />
     <ClInclude Include="..\src\main\include\log4cxx\filter\andfilter.h" />
