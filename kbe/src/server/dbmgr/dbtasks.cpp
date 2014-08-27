@@ -1179,6 +1179,12 @@ bool DBTaskQueryAccount::db_thread_process()
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
 		{
 			error_ = "pTable->queryAccount() is failed!";
+			
+			if(pdbi_->getlasterror() > 0)
+			{
+				error_ += pdbi_->getstrerror();
+			}
+	
 			return false;
 		}
 
