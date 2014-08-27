@@ -1162,6 +1162,7 @@ bool DBTaskQueryAccount::db_thread_process()
 {
 	if(accountName_.size() == 0)
 	{
+		error_ = "accountName_ is NULL";
 		return false;
 	}
 
@@ -1176,11 +1177,17 @@ bool DBTaskQueryAccount::db_thread_process()
 	if(dbid_ == 0)
 	{
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
+		{
+			error_ = "pTable->queryAccount() is failed!";
 			return false;
+		}
 
 		if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
+		{
+			error_ = "dbid is 0 or flags != ACCOUNT_FLAG_NORMAL";
 			return false;
-		
+		}
+
 		unsigned char md[16];
 		MD5((unsigned char *)password_.c_str(), password_.length(), md);
 
@@ -1192,7 +1199,10 @@ bool DBTaskQueryAccount::db_thread_process()
 		}
 
 		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+		{
+			error_ = "password is error";
 			return false;
+		}
 	}
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
@@ -1610,7 +1620,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 
 	if(!this->send((*pBundle)))
 	{
-		ERROR_MSG(boost::format("DBTaskQueryAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(boost::format("DBTaskQueryEntity::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
