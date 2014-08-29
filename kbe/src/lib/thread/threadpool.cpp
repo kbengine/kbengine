@@ -146,11 +146,15 @@ std::string ThreadPool::printThreadWorks()
 	std::string ret;
 
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
-
+	int i = 0;
 	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
 	for(; itr != busyThreadList_.end(); itr++)
 	{
 		ret += (boost::format("%1%:(%2%), ") % (*itr) % (*itr)->printWorkState()).str();
+		i++;
+
+		if(i > 1024)
+			break;
 	}
 
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
