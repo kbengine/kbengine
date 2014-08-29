@@ -2279,7 +2279,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_NAME);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
 
