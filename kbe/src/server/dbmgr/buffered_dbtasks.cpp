@@ -160,13 +160,14 @@ EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 		dbid_tasks_.erase( range.first );
 	}
 	
-	mutex_.unlockMutex();
-
 	if(pNextTask != NULL)
 	{
-		INFO_MSG(boost::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%1%, dbid=%2%\n") % 
-			pNextTask->EntityDBTask_entityID() % pNextTask->EntityDBTask_entityDBID());
+		INFO_MSG(boost::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%1%, dbid=%2%, dbid_tasks_size=%3%, entityid_tasks_size=%4%.\n") % 
+			pNextTask->EntityDBTask_entityID() % pNextTask->EntityDBTask_entityDBID() % 
+			dbid_tasks_.size() % entityid_tasks_.size());
 	}
+
+	mutex_.unlockMutex();
 
 	return pNextTask;
 }
