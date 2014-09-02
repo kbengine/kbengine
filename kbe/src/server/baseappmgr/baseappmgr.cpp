@@ -312,13 +312,13 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseapp:%1%. allocBaseapp=[%2%].\n") %
 		accountName.c_str() % bestBaseappID_);
 
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
+	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-
-	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 }
 
 //-------------------------------------------------------------------------------------
@@ -338,13 +338,13 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 		return;
 	}
 
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
+	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-
-	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 }
 
 //-------------------------------------------------------------------------------------
