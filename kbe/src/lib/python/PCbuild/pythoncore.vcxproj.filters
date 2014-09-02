@@ -2,34 +2,34 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Include">
-      <UniqueIdentifier>{cb4ef2eb-cf71-49d3-b63b-082715ee8b88}</UniqueIdentifier>
+      <UniqueIdentifier>{086b0afb-270c-4603-a02a-63d46f0b2b92}</UniqueIdentifier>
     </Filter>
     <Filter Include="Modules">
-      <UniqueIdentifier>{57ca45e3-f562-4c9a-bbb5-35fd0432c7f5}</UniqueIdentifier>
+      <UniqueIdentifier>{8e81609f-13ca-4eae-9fdb-f8af20c710c7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Modules\_io">
-      <UniqueIdentifier>{60a3f18e-959c-44f4-9317-cf2f702e034e}</UniqueIdentifier>
+      <UniqueIdentifier>{8787c5bb-bab6-4586-a42e-4a27c7b3ffb6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Modules\zlib">
-      <UniqueIdentifier>{d783aac0-c2c6-407f-98f0-5dfa4e3314c0}</UniqueIdentifier>
+      <UniqueIdentifier>{5d6d2d6c-9e61-4a1d-b0b2-5cc2f446d69e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Modules\cjkcodecs">
-      <UniqueIdentifier>{e6d101ce-64d3-478c-818a-6eaa2c7eee14}</UniqueIdentifier>
+      <UniqueIdentifier>{9f12c4b1-322e-431e-abf1-e02550f50032}</UniqueIdentifier>
     </Filter>
     <Filter Include="Objects">
-      <UniqueIdentifier>{72713019-af73-4c2f-9017-437d2273d59b}</UniqueIdentifier>
+      <UniqueIdentifier>{ab29a558-143d-4fe7-a039-b431fb429856}</UniqueIdentifier>
     </Filter>
     <Filter Include="Parser">
-      <UniqueIdentifier>{b5ccada6-29a8-42de-b561-48b296935e6d}</UniqueIdentifier>
+      <UniqueIdentifier>{97349fee-0abf-48b0-a8f5-771bf39b8aee}</UniqueIdentifier>
     </Filter>
     <Filter Include="PC">
-      <UniqueIdentifier>{fa086ae4-6eee-479c-9b2c-96ebc115934d}</UniqueIdentifier>
+      <UniqueIdentifier>{ea21fc98-de89-4746-a979-c5616964329a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Python">
-      <UniqueIdentifier>{6f8d2e28-b85f-42a6-90af-5888573c6a0e}</UniqueIdentifier>
+      <UniqueIdentifier>{f2696406-14bc-48bd-90c5-e93ab82a21ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{72b9b794-09f3-4240-9022-dac03919f7fb}</UniqueIdentifier>
+      <UniqueIdentifier>{c3e03a5c-56c7-45fd-8543-e5d2326b907d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,10 +51,10 @@
     <ClInclude Include="..\Include\boolobject.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\bytearrayobject.h">
+    <ClInclude Include="..\Include\bytes_methods.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\bytes_methods.h">
+    <ClInclude Include="..\Include\bytearrayobject.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\bytesobject.h">
@@ -90,9 +90,6 @@
     <ClInclude Include="..\Include\dictobject.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\dtoa.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\dynamic_annotations.h">
       <Filter>Include</Filter>
     </ClInclude>
@@ -112,9 +109,6 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\floatobject.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Include\formatter_unicode.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\frameobject.h">
@@ -222,10 +216,13 @@
     <ClInclude Include="..\Include\pygetopt.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\pymactoolbox.h">
+    <ClInclude Include="..\Include\pymath.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\pymath.h">
+    <ClInclude Include="..\Include\pytime.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\pymacro.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\pymem.h">
@@ -243,6 +240,9 @@
     <ClInclude Include="..\Include\pystrtod.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\dtoa.h">
+      <Filter>Include</Filter>
+    </ClInclude>
     <ClInclude Include="..\Include\Python-ast.h">
       <Filter>Include</Filter>
     </ClInclude>
@@ -253,9 +253,6 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\pythread.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Include\pytime.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\rangeobject.h">
@@ -279,9 +276,6 @@
     <ClInclude Include="..\Include\sysmodule.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\timefuncs.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\token.h">
       <Filter>Include</Filter>
     </ClInclude>
@@ -303,10 +297,16 @@
     <ClInclude Include="..\Modules\_math.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_time.h">
+    <ClInclude Include="..\Modules\rotatingtree.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\rotatingtree.h">
+    <ClInclude Include="..\Modules\sre.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Modules\sre_constants.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Modules\sre_lib.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="..\Modules\_io\_iomodule.h">
@@ -387,6 +387,9 @@
     <ClInclude Include="..\Objects\stringlib\partition.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\Objects\stringlib\replace.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
     <ClInclude Include="..\Objects\stringlib\split.h">
       <Filter>Objects</Filter>
     </ClInclude>
@@ -411,7 +414,21 @@
     <ClInclude Include="..\Python\thread_nt.h">
       <Filter>Python</Filter>
     </ClInclude>
-    <ClInclude Include="..\PC\resource.h" />
+    <ClInclude Include="..\Python\condvar.h">
+      <Filter>Python</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Python\ceval_gil.h">
+      <Filter>Python</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\pyhash.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\namespaceobject.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Modules\hashtable.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Modules\_bisectmodule.c">
@@ -424,9 +441,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\_csv.c">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Modules\_datetimemodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\_functoolsmodule.c">
@@ -459,12 +473,6 @@
     <ClCompile Include="..\Modules\_struct.c">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_threadmodule.c">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Modules\_time.c">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\Modules\_weakref.c">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -483,7 +491,13 @@
     <ClCompile Include="..\Modules\cmathmodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\Modules\_datetimemodule.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\Modules\errnomodule.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\faulthandler.c">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\gcmodule.c">
@@ -504,7 +518,7 @@
     <ClCompile Include="..\Modules\mmapmodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\operator.c">
+    <ClCompile Include="..\Modules\_operator.c">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\parsermodule.c">
@@ -531,6 +545,9 @@
     <ClCompile Include="..\Modules\symtablemodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\Modules\_threadmodule.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\Modules\timemodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -543,25 +560,25 @@
     <ClCompile Include="..\Modules\zlibmodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_io\_iomodule.c">
-      <Filter>Modules\_io</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Modules\_io\bufferedio.c">
+    <ClCompile Include="..\Modules\_io\fileio.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\_io\bytesio.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_io\fileio.c">
+    <ClCompile Include="..\Modules\_io\stringio.c">
+      <Filter>Modules\_io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\_io\bufferedio.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\_io\iobase.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_io\stringio.c">
+    <ClCompile Include="..\Modules\_io\textio.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_io\textio.c">
+    <ClCompile Include="..\Modules\_io\_iomodule.c">
       <Filter>Modules\_io</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\zlib\adler32.c">
@@ -574,9 +591,6 @@
       <Filter>Modules\zlib</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\zlib\deflate.c">
-      <Filter>Modules\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Modules\zlib\gzio.c">
       <Filter>Modules\zlib</Filter>
     </ClCompile>
     <ClCompile Include="..\Modules\zlib\infback.c">
@@ -630,10 +644,10 @@
     <ClCompile Include="..\Objects\boolobject.c">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\Objects\bytearrayobject.c">
+    <ClCompile Include="..\Objects\bytes_methods.c">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\Objects\bytes_methods.c">
+    <ClCompile Include="..\Objects\bytearrayobject.c">
       <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Objects\bytesobject.c">
@@ -768,7 +782,7 @@
     <ClCompile Include="..\Parser\tokenizer.c">
       <Filter>Parser</Filter>
     </ClCompile>
-    <ClCompile Include="..\PC\_subprocess.c">
+    <ClCompile Include="..\PC\winreg.c">
       <Filter>PC</Filter>
     </ClCompile>
     <ClCompile Include="..\PC\config.c">
@@ -780,13 +794,7 @@
     <ClCompile Include="..\PC\getpathp.c">
       <Filter>PC</Filter>
     </ClCompile>
-    <ClCompile Include="..\PC\import_nt.c">
-      <Filter>PC</Filter>
-    </ClCompile>
     <ClCompile Include="..\PC\msvcrtmodule.c">
-      <Filter>PC</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PC\winreg.c">
       <Filter>PC</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\_warnings.c">
@@ -808,9 +816,6 @@
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\compile.c">
-      <Filter>Python</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Python\dtoa.c">
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\dynamic_annotations.c">
@@ -888,6 +893,9 @@
     <ClCompile Include="..\Python\pymath.c">
       <Filter>Python</Filter>
     </ClCompile>
+    <ClCompile Include="..\Python\pytime.c">
+      <Filter>Python</Filter>
+    </ClCompile>
     <ClCompile Include="..\Python\pystate.c">
       <Filter>Python</Filter>
     </ClCompile>
@@ -897,16 +905,13 @@
     <ClCompile Include="..\Python\pystrtod.c">
       <Filter>Python</Filter>
     </ClCompile>
+    <ClCompile Include="..\Python\dtoa.c">
+      <Filter>Python</Filter>
+    </ClCompile>
     <ClCompile Include="..\Python\Python-ast.c">
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\pythonrun.c">
-      <Filter>Python</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Python\pytime.c">
-      <Filter>Python</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Python\random.c">
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\structmember.c">
@@ -924,10 +929,29 @@
     <ClCompile Include="..\Python\traceback.c">
       <Filter>Python</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\PC\python_nt.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ClCompile Include="..\Python\random.c">
+      <Filter>Python</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\_winapi.c">
+      <Filter>PC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\_stat.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Python\pyhash.c">
+      <Filter>Python</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Objects\namespaceobject.c">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\_opcode.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\_tracemalloc.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Modules\hashtable.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

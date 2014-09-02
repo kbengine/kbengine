@@ -313,7 +313,7 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(TypeError, range, IN())
 
         # Test use of user-defined classes in slice indices.
-        self.assertEqual(list(range(10)[:I(5)]), list(range(5)))
+        self.assertEqual(range(10)[:I(5)], range(5))
 
         with self.assertRaises(RuntimeError):
             range(0, 10)[:IX()]
@@ -350,12 +350,59 @@ class RangeTest(unittest.TestCase):
 
     def test_pickling(self):
         testcases = [(13,), (0, 11), (-22, 10), (20, 3, -1),
-                     (13, 21, 3), (-2, 2, 2)]
+                     (13, 21, 3), (-2, 2, 2), (2**65, 2**65+2)]
         for proto in range(pickle.HIGHEST_PROTOCOL + 1):
             for t in testcases:
-                r = range(*t)
-                self.assertEqual(list(pickle.loads(pickle.dumps(r, proto))),
-                                 list(r))
+                with self.subTest(proto=proto, test=t):
+                    r = range(*t)
+                    self.assertEqual(list(pickle.loads(pickle.dumps(r, proto))),
+                                     list(r))
+
+    def test_iterator_pickling(self):
+        testcases = [(13,), (0, 11), (-22, 10), (20, 3, -1),
+                     (13, 21, 3), (-2, 2, 2), (2**65, 2**65+2)]
+        for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+            for t in testcases:
+                it = itorg = iter(range(*t))
+                data = list(range(*t))
+
+                d = pickle.dumps(it)
+                it = pickle.loads(d)
+                self.assertEqual(type(itorg), type(it))
+                self.assertEqual(list(it), data)
+
+                it = pickle.loads(d)
+                try:
+                    next(it)
+                except StopIteration:
+                    continue
+                d = pickle.dumps(it)
+                it = pickle.loads(d)
+                self.assertEqual(list(it), data[1:])
+
+    def test_exhausted_iterator_pickling(self):
+        r = range(2**65, 2**65+2)
+        i = iter(r)
+        while True:
+            r = next(i)
+            if r == 2**65+1:
+                break
+        d = pickle.dumps(i)
+        i2 = pickle.loads(d)
+        self.assertEqual(list(i), [])
+        self.assertEqual(list(i2), [])
+
+    def test_large_exhausted_iterator_pickling(self):
+        r = range(20)
+        i = iter(r)
+        while True:
+            r = next(i)
+            if r == 19:
+                break
+        d = pickle.dumps(i)
+        i2 = pickle.loads(d)
+        self.assertEqual(list(i), [])
+        self.assertEqual(list(i2), [])
 
     def test_odd_bug(self):
         # This used to raise a "SystemError: NULL result without error"
@@ -516,6 +563,87 @@ class RangeTest(unittest.TestCase):
                 for k in values - {0}:
                     r[i:j:k]
 
+    def test_comparison(self):
+        test_ranges = [range(0), range(0, -1), range(1, 1, 3),
+                       range(1), range(5, 6), range(5, 6, 2),
+                       range(5, 7, 2), range(2), range(0, 4, 2),
+                       range(0, 5, 2), range(0, 6, 2)]
+        test_tuples = list(map(tuple, test_ranges))
+
+        # Check that equality of ranges matches equality of the corresponding
+        # tuples for each pair from the test lists above.
+        ranges_eq = [a == b for a in test_ranges for b in test_ranges]
+        tuples_eq = [a == b for a in test_tuples for b in test_tuples]
+        self.assertEqual(ranges_eq, tuples_eq)
+
+        # Check that != correctly gives the logical negation of ==
+        ranges_ne = [a != b for a in test_ranges for b in test_ranges]
+        self.assertEqual(ranges_ne, [not x for x in ranges_eq])
+
+        # Equal ranges should have equal hashes.
+        for a in test_ranges:
+            for b in test_ranges:
+                if a == b:
+                    self.assertEqual(hash(a), hash(b))
+
+        # Ranges are unequal to other types (even sequence types)
+        self.assertIs(range(0) == (), False)
+        self.assertIs(() == range(0), False)
+        self.assertIs(range(2) == [0, 1], False)
+
+        # Huge integers aren't a problem.
+        self.assertEqual(range(0, 2**100 - 1, 2),
+                         range(0, 2**100, 2))
+        self.assertEqual(hash(range(0, 2**100 - 1, 2)),
+                         hash(range(0, 2**100, 2)))
+        self.assertNotEqual(range(0, 2**100, 2),
+                            range(0, 2**100 + 1, 2))
+        self.assertEqual(range(2**200, 2**201 - 2**99, 2**100),
+                         range(2**200, 2**201, 2**100))
+        self.assertEqual(hash(range(2**200, 2**201 - 2**99, 2**100)),
+                         hash(range(2**200, 2**201, 2**100)))
+        self.assertNotEqual(range(2**200, 2**201, 2**100),
+                            range(2**200, 2**201 + 1, 2**100))
+
+        # Order comparisons are not implemented for ranges.
+        with self.assertRaises(TypeError):
+            range(0) < range(0)
+        with self.assertRaises(TypeError):
+            range(0) > range(0)
+        with self.assertRaises(TypeError):
+            range(0) <= range(0)
+        with self.assertRaises(TypeError):
+            range(0) >= range(0)
+
+
+    def test_attributes(self):
+        # test the start, stop and step attributes of range objects
+        self.assert_attrs(range(0), 0, 0, 1)
+        self.assert_attrs(range(10), 0, 10, 1)
+        self.assert_attrs(range(-10), 0, -10, 1)
+        self.assert_attrs(range(0, 10, 1), 0, 10, 1)
+        self.assert_attrs(range(0, 10, 3), 0, 10, 3)
+        self.assert_attrs(range(10, 0, -1), 10, 0, -1)
+        self.assert_attrs(range(10, 0, -3), 10, 0, -3)
+
+    def assert_attrs(self, rangeobj, start, stop, step):
+        self.assertEqual(rangeobj.start, start)
+        self.assertEqual(rangeobj.stop, stop)
+        self.assertEqual(rangeobj.step, step)
+
+        with self.assertRaises(AttributeError):
+            rangeobj.start = 0
+        with self.assertRaises(AttributeError):
+            rangeobj.stop = 10
+        with self.assertRaises(AttributeError):
+            rangeobj.step = 1
+
+        with self.assertRaises(AttributeError):
+            del rangeobj.start
+        with self.assertRaises(AttributeError):
+            del rangeobj.stop
+        with self.assertRaises(AttributeError):
+            del rangeobj.step
 
 def test_main():
     test.support.run_unittest(RangeTest)

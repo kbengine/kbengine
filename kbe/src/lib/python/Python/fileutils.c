@@ -1,16 +1,67 @@
 #include "Python.h"
+#include "osdefs.h"
+#include <locale.h>
+
 #ifdef MS_WINDOWS
 #  include <windows.h>
 #endif
 
 #ifdef HAVE_LANGINFO_H
-#include <locale.h>
 #include <langinfo.h>
 #endif
+
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif /* HAVE_FCNTL_H */
 
 #ifdef __APPLE__
 extern wchar_t* _Py_DecodeUTF8_surrogateescape(const char *s, Py_ssize_t size);
 #endif
+
+#ifdef O_CLOEXEC
+/* Does open() support the O_CLOEXEC flag? Possible values:
+
+   -1: unknown
+    0: open() ignores O_CLOEXEC flag, ex: Linux kernel older than 2.6.23
+    1: open() supports O_CLOEXEC flag, close-on-exec is set
+
+   The flag is used by _Py_open(), io.FileIO and os.open() */
+int _Py_open_cloexec_works = -1;
+#endif
+
+PyObject *
+_Py_device_encoding(int fd)
+{
+#if defined(MS_WINDOWS)
+    UINT cp;
+#endif
+    if (!_PyVerify_fd(fd) || !isatty(fd)) {
+        Py_RETURN_NONE;
+    }
+#if defined(MS_WINDOWS)
+    if (fd == 0)
+        cp = GetConsoleCP();
+    else if (fd == 1 || fd == 2)
+        cp = GetConsoleOutputCP();
+    else
+        cp = 0;
+    /* GetConsoleCP() and GetConsoleOutputCP() return 0 if the application
+       has no console */
+    if (cp != 0)
+        return PyUnicode_FromFormat("cp%u", (unsigned int)cp);
+#elif defined(CODESET)
+    {
+        char *codeset = nl_langinfo(CODESET);
+        if (codeset != NULL && codeset[0] != 0)
+            return PyUnicode_FromString(codeset);
+    }
+#endif
+    Py_RETURN_NONE;
+}
 
 #if !defined(__APPLE__) && !defined(MS_WINDOWS)
 extern int _Py_normalize_encoding(const char *, char *, size_t);
@@ -29,7 +80,7 @@ extern int _Py_normalize_encoding(const char *, char *, size_t);
    workaround is also enabled on error, for example if getting the locale
    failed.
 
-   Values of locale_is_ascii:
+   Values of force_ascii:
 
        1: the workaround is used: _Py_wchar2char() uses
           encode_ascii_surrogateescape() and _Py_char2wchar() uses
@@ -170,7 +221,7 @@ decode_ascii_surrogateescape(const char *arg, size_t *size)
     unsigned char *in;
     wchar_t *out;
 
-    res = PyMem_Malloc((strlen(arg)+1)*sizeof(wchar_t));
+    res = PyMem_RawMalloc((strlen(arg)+1)*sizeof(wchar_t));
     if (!res)
         return NULL;
 
@@ -198,9 +249,11 @@ decode_ascii_surrogateescape(const char *arg, size_t *size)
    Use _Py_wchar2char() to encode the character string back to a byte string.
 
    Return a pointer to a newly allocated wide character string (use
-   PyMem_Free() to free the memory) and write the number of written wide
+   PyMem_RawFree() to free the memory) and write the number of written wide
    characters excluding the null character into *size if size is not NULL, or
-   NULL on error (conversion or memory allocation error).
+   NULL on error (decoding or memory allocation error). If size is not NULL,
+   *size is set to (size_t)-1 on memory error and (size_t)-2 on decoding
+   error.
 
    Conversion errors should never happen, unless there is a bug in the C
    library. */
@@ -221,9 +274,9 @@ _Py_char2wchar(const char* arg, size_t *size)
     wchar_t *res;
     size_t argsize;
     size_t count;
+#ifdef HAVE_MBRTOWC
     unsigned char *in;
     wchar_t *out;
-#ifdef HAVE_MBRTOWC
     mbstate_t mbs;
 #endif
 
@@ -250,7 +303,7 @@ _Py_char2wchar(const char* arg, size_t *size)
     argsize = mbstowcs(NULL, arg, 0);
 #endif
     if (argsize != (size_t)-1) {
-        res = (wchar_t *)PyMem_Malloc((argsize+1)*sizeof(wchar_t));
+        res = (wchar_t *)PyMem_RawMalloc((argsize+1)*sizeof(wchar_t));
         if (!res)
             goto oom;
         count = mbstowcs(res, arg, argsize+1);
@@ -259,7 +312,7 @@ _Py_char2wchar(const char* arg, size_t *size)
             /* Only use the result if it contains no
                surrogate characters. */
             for (tmp = res; *tmp != 0 &&
-                         (*tmp < 0xd800 || *tmp > 0xdfff); tmp++)
+                         !Py_UNICODE_IS_SURROGATE(*tmp); tmp++)
                 ;
             if (*tmp == 0) {
                 if (size != NULL)
@@ -267,7 +320,7 @@ _Py_char2wchar(const char* arg, size_t *size)
                 return res;
             }
         }
-        PyMem_Free(res);
+        PyMem_RawFree(res);
     }
     /* Conversion failed. Fall back to escaping with surrogateescape. */
 #ifdef HAVE_MBRTOWC
@@ -276,7 +329,7 @@ _Py_char2wchar(const char* arg, size_t *size)
     /* Overallocate; as multi-byte characters are in the argument, the
        actual output could use less memory. */
     argsize = strlen(arg) + 1;
-    res = (wchar_t*)PyMem_Malloc(argsize*sizeof(wchar_t));
+    res = (wchar_t*)PyMem_RawMalloc(argsize*sizeof(wchar_t));
     if (!res)
         goto oom;
     in = (unsigned char*)arg;
@@ -292,8 +345,9 @@ _Py_char2wchar(const char* arg, size_t *size)
                since we provide everything that we have -
                unless there is a bug in the C library, or I
                misunderstood how mbrtowc works. */
-            fprintf(stderr, "unexpected mbrtowc result -2\n");
-            PyMem_Free(res);
+            PyMem_RawFree(res);
+            if (size != NULL)
+                *size = (size_t)-2;
             return NULL;
         }
         if (converted == (size_t)-1) {
@@ -304,7 +358,7 @@ _Py_char2wchar(const char* arg, size_t *size)
             memset(&mbs, 0, sizeof mbs);
             continue;
         }
-        if (*out >= 0xd800 && *out <= 0xdfff) {
+        if (Py_UNICODE_IS_SURROGATE(*out)) {
             /* Surrogate character.  Escape the original
                byte sequence with surrogateescape. */
             argsize -= converted;
@@ -329,7 +383,8 @@ _Py_char2wchar(const char* arg, size_t *size)
 #endif   /* HAVE_MBRTOWC */
     return res;
 oom:
-    fprintf(stderr, "out of memory\n");
+    if (size != NULL)
+        *size = (size_t)-1;
     return NULL;
 #endif   /* __APPLE__ */
 }
@@ -341,10 +396,10 @@ oom:
    This function is the reverse of _Py_char2wchar().
 
    Return a pointer to a newly allocated byte string (use PyMem_Free() to free
-   the memory), or NULL on conversion or memory allocation error.
+   the memory), or NULL on encoding or memory allocation error.
 
    If error_pos is not NULL: *error_pos is the index of the invalid character
-   on conversion error, or (size_t)-1 otherwise. */
+   on encoding error, or (size_t)-1 otherwise. */
 char*
 _Py_wchar2char(const wchar_t *text, size_t *error_pos)
 {
@@ -357,9 +412,7 @@ _Py_wchar2char(const wchar_t *text, size_t *error_pos)
     if (unicode == NULL)
         return NULL;
 
-    bytes = PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(unicode),
-                                 PyUnicode_GET_SIZE(unicode),
-                                 "surrogateescape");
+    bytes = _PyUnicode_AsUTF8String(unicode, "surrogateescape");
     Py_DECREF(unicode);
     if (bytes == NULL) {
         PyErr_Clear();
@@ -483,8 +536,8 @@ _Py_wstat(const wchar_t* path, struct stat *buf)
 /* Call _wstat() on Windows, or encode the path to the filesystem encoding and
    call stat() otherwise. Only fill st_mode attribute on Windows.
 
-   Return 0 on success, -1 on _wstat() / stat() error or (if PyErr_Occurred())
-   unicode error. */
+   Return 0 on success, -1 on _wstat() / stat() error, -2 if an exception was
+   raised. */
 
 int
 _Py_stat(PyObject *path, struct stat *statbuf)
@@ -492,8 +545,12 @@ _Py_stat(PyObject *path, struct stat *statbuf)
 #ifdef MS_WINDOWS
     int err;
     struct _stat wstatbuf;
+    wchar_t *wpath;
 
-    err = _wstat(PyUnicode_AS_UNICODE(path), &wstatbuf);
+    wpath = PyUnicode_AsUnicode(path);
+    if (wpath == NULL)
+        return -2;
+    err = _wstat(wpath, &wstatbuf);
     if (!err)
         statbuf->st_mode = wstatbuf.st_mode;
     return err;
@@ -501,7 +558,7 @@ _Py_stat(PyObject *path, struct stat *statbuf)
     int ret;
     PyObject *bytes = PyUnicode_EncodeFSDefault(path);
     if (bytes == NULL)
-        return -1;
+        return -2;
     ret = stat(PyBytes_AS_STRING(bytes), statbuf);
     Py_DECREF(bytes);
     return ret;
@@ -510,14 +567,215 @@ _Py_stat(PyObject *path, struct stat *statbuf)
 
 #endif
 
-/* Open a file. Use _wfopen() on Windows, encode the path to the locale
-   encoding and use fopen() otherwise. */
+static int
+get_inheritable(int fd, int raise)
+{
+#ifdef MS_WINDOWS
+    HANDLE handle;
+    DWORD flags;
 
+    if (!_PyVerify_fd(fd)) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    handle = (HANDLE)_get_osfhandle(fd);
+    if (handle == INVALID_HANDLE_VALUE) {
+        if (raise)
+            PyErr_SetFromWindowsErr(0);
+        return -1;
+    }
+
+    if (!GetHandleInformation(handle, &flags)) {
+        if (raise)
+            PyErr_SetFromWindowsErr(0);
+        return -1;
+    }
+
+    return (flags & HANDLE_FLAG_INHERIT);
+#else
+    int flags;
+
+    flags = fcntl(fd, F_GETFD, 0);
+    if (flags == -1) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+    return !(flags & FD_CLOEXEC);
+#endif
+}
+
+/* Get the inheritable flag of the specified file descriptor.
+   Return 1 if the file descriptor can be inherited, 0 if it cannot,
+   raise an exception and return -1 on error. */
+int
+_Py_get_inheritable(int fd)
+{
+    return get_inheritable(fd, 1);
+}
+
+static int
+set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
+{
+#ifdef MS_WINDOWS
+    HANDLE handle;
+    DWORD flags;
+#elif defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX)
+    int request;
+    int err;
+#elif defined(HAVE_FCNTL_H)
+    int flags;
+    int res;
+#endif
+
+    /* atomic_flag_works can only be used to make the file descriptor
+       non-inheritable */
+    assert(!(atomic_flag_works != NULL && inheritable));
+
+    if (atomic_flag_works != NULL && !inheritable) {
+        if (*atomic_flag_works == -1) {
+            int inheritable = get_inheritable(fd, raise);
+            if (inheritable == -1)
+                return -1;
+            *atomic_flag_works = !inheritable;
+        }
+
+        if (*atomic_flag_works)
+            return 0;
+    }
+
+#ifdef MS_WINDOWS
+    if (!_PyVerify_fd(fd)) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    handle = (HANDLE)_get_osfhandle(fd);
+    if (handle == INVALID_HANDLE_VALUE) {
+        if (raise)
+            PyErr_SetFromWindowsErr(0);
+        return -1;
+    }
+
+    if (inheritable)
+        flags = HANDLE_FLAG_INHERIT;
+    else
+        flags = 0;
+    if (!SetHandleInformation(handle, HANDLE_FLAG_INHERIT, flags)) {
+        if (raise)
+            PyErr_SetFromWindowsErr(0);
+        return -1;
+    }
+    return 0;
+
+#elif defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX)
+    if (inheritable)
+        request = FIONCLEX;
+    else
+        request = FIOCLEX;
+    err = ioctl(fd, request, NULL);
+    if (err) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+    return 0;
+
+#else
+    flags = fcntl(fd, F_GETFD);
+    if (flags < 0) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    if (inheritable)
+        flags &= ~FD_CLOEXEC;
+    else
+        flags |= FD_CLOEXEC;
+    res = fcntl(fd, F_SETFD, flags);
+    if (res < 0) {
+        if (raise)
+            PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+    return 0;
+#endif
+}
+
+/* Make the file descriptor non-inheritable.
+   Return 0 on success, set errno and return -1 on error. */
+static int
+make_non_inheritable(int fd)
+{
+    return set_inheritable(fd, 0, 0, NULL);
+}
+
+/* Set the inheritable flag of the specified file descriptor.
+   On success: return 0, on error: raise an exception if raise is nonzero
+   and return -1.
+
+   If atomic_flag_works is not NULL:
+
+    * if *atomic_flag_works==-1, check if the inheritable is set on the file
+      descriptor: if yes, set *atomic_flag_works to 1, otherwise set to 0 and
+      set the inheritable flag
+    * if *atomic_flag_works==1: do nothing
+    * if *atomic_flag_works==0: set inheritable flag to False
+
+   Set atomic_flag_works to NULL if no atomic flag was used to create the
+   file descriptor.
+
+   atomic_flag_works can only be used to make a file descriptor
+   non-inheritable: atomic_flag_works must be NULL if inheritable=1. */
+int
+_Py_set_inheritable(int fd, int inheritable, int *atomic_flag_works)
+{
+    return set_inheritable(fd, inheritable, 1, atomic_flag_works);
+}
+
+/* Open a file with the specified flags (wrapper to open() function).
+   The file descriptor is created non-inheritable. */
+int
+_Py_open(const char *pathname, int flags)
+{
+    int fd;
+#ifdef MS_WINDOWS
+    fd = open(pathname, flags | O_NOINHERIT);
+    if (fd < 0)
+        return fd;
+#else
+
+    int *atomic_flag_works;
+#ifdef O_CLOEXEC
+    atomic_flag_works = &_Py_open_cloexec_works;
+    flags |= O_CLOEXEC;
+#else
+    atomic_flag_works = NULL;
+#endif
+    fd = open(pathname, flags);
+    if (fd < 0)
+        return fd;
+
+    if (set_inheritable(fd, 0, 0, atomic_flag_works) < 0) {
+        close(fd);
+        return -1;
+    }
+#endif   /* !MS_WINDOWS */
+    return fd;
+}
+
+/* Open a file. Use _wfopen() on Windows, encode the path to the locale
+   encoding and use fopen() otherwise. The file descriptor is created
+   non-inheritable. */
 FILE *
 _Py_wfopen(const wchar_t *path, const wchar_t *mode)
 {
-#ifndef MS_WINDOWS
     FILE *f;
+#ifndef MS_WINDOWS
     char *cpath;
     char cmode[10];
     size_t r;
@@ -531,51 +789,88 @@ _Py_wfopen(const wchar_t *path, const wchar_t *mode)
         return NULL;
     f = fopen(cpath, cmode);
     PyMem_Free(cpath);
-    return f;
 #else
-    return _wfopen(path, mode);
+    f = _wfopen(path, mode);
 #endif
+    if (f == NULL)
+        return NULL;
+    if (make_non_inheritable(fileno(f)) < 0) {
+        fclose(f);
+        return NULL;
+    }
+    return f;
 }
 
-/* Call _wfopen() on Windows, or encode the path to the filesystem encoding and
-   call fopen() otherwise.
+/* Wrapper to fopen(). The file descriptor is created non-inheritable. */
+FILE*
+_Py_fopen(const char *pathname, const char *mode)
+{
+    FILE *f = fopen(pathname, mode);
+    if (f == NULL)
+        return NULL;
+    if (make_non_inheritable(fileno(f)) < 0) {
+        fclose(f);
+        return NULL;
+    }
+    return f;
+}
+
+/* Open a file. Call _wfopen() on Windows, or encode the path to the filesystem
+   encoding and call fopen() otherwise. The file descriptor is created
+   non-inheritable.
 
    Return the new file object on success, or NULL if the file cannot be open or
-   (if PyErr_Occurred()) on unicode error */
-
+   (if PyErr_Occurred()) on unicode error. */
 FILE*
-_Py_fopen(PyObject *path, const char *mode)
+_Py_fopen_obj(PyObject *path, const char *mode)
 {
+    FILE *f;
 #ifdef MS_WINDOWS
+    wchar_t *wpath;
     wchar_t wmode[10];
     int usize;
+
+    if (!PyUnicode_Check(path)) {
+        PyErr_Format(PyExc_TypeError,
+                     "str file path expected under Windows, got %R",
+                     Py_TYPE(path));
+        return NULL;
+    }
+    wpath = PyUnicode_AsUnicode(path);
+    if (wpath == NULL)
+        return NULL;
 
     usize = MultiByteToWideChar(CP_ACP, 0, mode, -1, wmode, sizeof(wmode));
     if (usize == 0)
         return NULL;
 
-    return _wfopen(PyUnicode_AS_UNICODE(path), wmode);
+    f = _wfopen(wpath, wmode);
 #else
-    FILE *f;
-    PyObject *bytes = PyUnicode_EncodeFSDefault(path);
-    if (bytes == NULL)
+    PyObject *bytes;
+    if (!PyUnicode_FSConverter(path, &bytes))
         return NULL;
     f = fopen(PyBytes_AS_STRING(bytes), mode);
     Py_DECREF(bytes);
-    return f;
 #endif
+    if (f == NULL)
+        return NULL;
+    if (make_non_inheritable(fileno(f)) < 0) {
+        fclose(f);
+        return NULL;
+    }
+    return f;
 }
 
 #ifdef HAVE_READLINK
 
 /* Read value of symbolic link. Encode the path to the locale encoding, decode
-   the result from the locale encoding. */
+   the result from the locale encoding. Return -1 on error. */
 
 int
 _Py_wreadlink(const wchar_t *path, wchar_t *buf, size_t bufsiz)
 {
     char *cpath;
-    char cbuf[PATH_MAX];
+    char cbuf[MAXPATHLEN];
     wchar_t *wbuf;
     int res;
     size_t r1;
@@ -585,11 +880,11 @@ _Py_wreadlink(const wchar_t *path, wchar_t *buf, size_t bufsiz)
         errno = EINVAL;
         return -1;
     }
-    res = (int)readlink(cpath, cbuf, PATH_MAX);
+    res = (int)readlink(cpath, cbuf, Py_ARRAY_LENGTH(cbuf));
     PyMem_Free(cpath);
     if (res == -1)
         return -1;
-    if (res == PATH_MAX) {
+    if (res == Py_ARRAY_LENGTH(cbuf)) {
         errno = EINVAL;
         return -1;
     }
@@ -600,12 +895,12 @@ _Py_wreadlink(const wchar_t *path, wchar_t *buf, size_t bufsiz)
         return -1;
     }
     if (bufsiz <= r1) {
-        PyMem_Free(wbuf);
+        PyMem_RawFree(wbuf);
         errno = EINVAL;
         return -1;
     }
     wcsncpy(buf, wbuf, bufsiz);
-    PyMem_Free(wbuf);
+    PyMem_RawFree(wbuf);
     return (int)r1;
 }
 #endif
@@ -613,14 +908,15 @@ _Py_wreadlink(const wchar_t *path, wchar_t *buf, size_t bufsiz)
 #ifdef HAVE_REALPATH
 
 /* Return the canonicalized absolute pathname. Encode path to the locale
-   encoding, decode the result from the locale encoding. */
+   encoding, decode the result from the locale encoding.
+   Return NULL on error. */
 
 wchar_t*
 _Py_wrealpath(const wchar_t *path,
               wchar_t *resolved_path, size_t resolved_path_size)
 {
     char *cpath;
-    char cresolved_path[PATH_MAX];
+    char cresolved_path[MAXPATHLEN];
     wchar_t *wresolved_path;
     char *res;
     size_t r;
@@ -640,41 +936,112 @@ _Py_wrealpath(const wchar_t *path,
         return NULL;
     }
     if (resolved_path_size <= r) {
-        PyMem_Free(wresolved_path);
+        PyMem_RawFree(wresolved_path);
         errno = EINVAL;
         return NULL;
     }
     wcsncpy(resolved_path, wresolved_path, resolved_path_size);
-    PyMem_Free(wresolved_path);
+    PyMem_RawFree(wresolved_path);
     return resolved_path;
 }
 #endif
 
 /* Get the current directory. size is the buffer size in wide characters
-   including the null character. Decode the path from the locale encoding. */
+   including the null character. Decode the path from the locale encoding.
+   Return NULL on error. */
 
 wchar_t*
 _Py_wgetcwd(wchar_t *buf, size_t size)
 {
 #ifdef MS_WINDOWS
-    return _wgetcwd(buf, size);
+    int isize = (int)Py_MIN(size, INT_MAX);
+    return _wgetcwd(buf, isize);
 #else
-    char fname[PATH_MAX];
+    char fname[MAXPATHLEN];
     wchar_t *wname;
     size_t len;
 
-    if (getcwd(fname, PATH_MAX) == NULL)
+    if (getcwd(fname, Py_ARRAY_LENGTH(fname)) == NULL)
         return NULL;
     wname = _Py_char2wchar(fname, &len);
     if (wname == NULL)
         return NULL;
     if (size <= len) {
-        PyMem_Free(wname);
+        PyMem_RawFree(wname);
         return NULL;
     }
     wcsncpy(buf, wname, size);
-    PyMem_Free(wname);
+    PyMem_RawFree(wname);
     return buf;
 #endif
+}
+
+/* Duplicate a file descriptor. The new file descriptor is created as
+   non-inheritable. Return a new file descriptor on success, raise an OSError
+   exception and return -1 on error.
+
+   The GIL is released to call dup(). The caller must hold the GIL. */
+int
+_Py_dup(int fd)
+{
+#ifdef MS_WINDOWS
+    HANDLE handle;
+    DWORD ftype;
+#endif
+
+    if (!_PyVerify_fd(fd)) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+#ifdef MS_WINDOWS
+    handle = (HANDLE)_get_osfhandle(fd);
+    if (handle == INVALID_HANDLE_VALUE) {
+        PyErr_SetFromWindowsErr(0);
+        return -1;
+    }
+
+    /* get the file type, ignore the error if it failed */
+    ftype = GetFileType(handle);
+
+    Py_BEGIN_ALLOW_THREADS
+    fd = dup(fd);
+    Py_END_ALLOW_THREADS
+    if (fd < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    /* Character files like console cannot be make non-inheritable */
+    if (ftype != FILE_TYPE_CHAR) {
+        if (_Py_set_inheritable(fd, 0, NULL) < 0) {
+            close(fd);
+            return -1;
+        }
+    }
+#elif defined(HAVE_FCNTL_H) && defined(F_DUPFD_CLOEXEC)
+    Py_BEGIN_ALLOW_THREADS
+    fd = fcntl(fd, F_DUPFD_CLOEXEC, 0);
+    Py_END_ALLOW_THREADS
+    if (fd < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+#else
+    Py_BEGIN_ALLOW_THREADS
+    fd = dup(fd);
+    Py_END_ALLOW_THREADS
+    if (fd < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    if (_Py_set_inheritable(fd, 0, NULL) < 0) {
+        close(fd);
+        return -1;
+    }
+#endif
+    return fd;
 }
 

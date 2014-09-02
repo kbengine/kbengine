@@ -114,3 +114,92 @@ diff -r -N -u libffi.orig/configure.ac libffi/configure.ac
 +AC_CONFIG_FILES(fficonfig.py)
 +
  AC_OUTPUT
+--- libffi-3.0.11/fficonfig.py.in	1970-01-01 01:00:00.000000000 +0100
++++ libffi/fficonfig.py.in	2012-03-15 01:04:27.000000000 +0100
+@@ -0,0 +1,35 @@
++ffi_sources = """
++src/prep_cif.c
++src/closures.c
++src/dlmalloc.c
++""".split()
++
++ffi_platforms = {
++    'MIPS_IRIX': ['src/mips/ffi.c', 'src/mips/o32.S', 'src/mips/n32.S'],
++    'MIPS_LINUX': ['src/mips/ffi.c', 'src/mips/o32.S'],
++    'X86': ['src/x86/ffi.c', 'src/x86/sysv.S'],
++    'X86_FREEBSD': ['src/x86/ffi.c', 'src/x86/freebsd.S'],
++    'X86_WIN32': ['src/x86/ffi.c', 'src/x86/win32.S'],
++    'SPARC': ['src/sparc/ffi.c', 'src/sparc/v8.S', 'src/sparc/v9.S'],
++    'ALPHA': ['src/alpha/ffi.c', 'src/alpha/osf.S'],
++    'IA64': ['src/ia64/ffi.c', 'src/ia64/unix.S'],
++    'M32R': ['src/m32r/sysv.S', 'src/m32r/ffi.c'],
++    'M68K': ['src/m68k/ffi.c', 'src/m68k/sysv.S'],
++    'POWERPC': ['src/powerpc/ffi.c', 'src/powerpc/sysv.S', 'src/powerpc/ppc_closure.S', 'src/powerpc/linux64.S', 'src/powerpc/linux64_closure.S'],
++    'POWERPC_AIX': ['src/powerpc/ffi_darwin.c', 'src/powerpc/aix.S', 'src/powerpc/aix_closure.S'],
++    'POWERPC_FREEBSD': ['src/powerpc/ffi.c', 'src/powerpc/sysv.S', 'src/powerpc/ppc_closure.S'],
++    'ARM': ['src/arm/sysv.S', 'src/arm/ffi.c'],
++    'LIBFFI_CRIS': ['src/cris/sysv.S', 'src/cris/ffi.c'],
++    'FRV': ['src/frv/eabi.S', 'src/frv/ffi.c'],
++    'S390': ['src/s390/sysv.S', 'src/s390/ffi.c'],
++    'X86_64': ['src/x86/ffi64.c', 'src/x86/unix64.S', 'src/x86/ffi.c', 'src/x86/sysv.S'],
++    'SH': ['src/sh/sysv.S', 'src/sh/ffi.c'],
++    'SH64': ['src/sh64/sysv.S', 'src/sh64/ffi.c'],
++    'PA': ['src/pa/linux.S', 'src/pa/ffi.c'],
++    'PA_LINUX': ['src/pa/linux.S', 'src/pa/ffi.c'],
++    'PA_HPUX': ['src/pa/hpux32.S', 'src/pa/ffi.c'],
++}
++
++ffi_sources += ffi_platforms['@TARGET@']
++
++ffi_cflags = '@CFLAGS@'
+diff -urN libffi-3.0.11/src/dlmalloc.c libffi/src/dlmalloc.c
+--- libffi-3.0.11/src/dlmalloc.c	2012-04-12 04:46:06.000000000 +0200
++++ libffi/src/dlmalloc.c	2012-06-26 15:15:58.949547461 +0200
+@@ -457,6 +457,11 @@
+ #define LACKS_ERRNO_H
+ #define MALLOC_FAILURE_ACTION
+ #define MMAP_CLEARS 0 /* WINCE and some others apparently don't clear */
++#elif !defined _GNU_SOURCE
++/* mremap() on Linux requires this via sys/mman.h
++ * See roundup issue 10309
++ */
++#define _GNU_SOURCE 1
+ #endif  /* WIN32 */
+ 
+ #ifdef __OS2__
+@@ -3393,7 +3393,7 @@
+   *ss = m->seg; /* Push current record */
+   m->seg.base = tbase;
+   m->seg.size = tsize;
+-  set_segment_flags(&m->seg, mmapped);
++  (void)set_segment_flags(&m->seg, mmapped);
+   m->seg.next = ss;
+ 
+   /* Insert trailing fenceposts */
+@@ -3553,7 +3553,7 @@
+     if (!is_initialized(m)) { /* first-time initialization */
+       m->seg.base = m->least_addr = tbase;
+       m->seg.size = tsize;
+-      set_segment_flags(&m->seg, mmap_flag);
++      (void)set_segment_flags(&m->seg, mmap_flag);
+       m->magic = mparams.magic;
+       init_bins(m);
+       if (is_global(m)) 
+@@ -4502,7 +4502,7 @@
+     char* tbase = (char*)(CALL_MMAP(tsize));
+     if (tbase != CMFAIL) {
+       m = init_user_mstate(tbase, tsize);
+-      set_segment_flags(&m->seg, IS_MMAPPED_BIT);
++      (void)set_segment_flags(&m->seg, IS_MMAPPED_BIT);
+       set_lock(m, locked);
+     }
+   }
+@@ -4517,7 +4517,7 @@
+   if (capacity > msize + TOP_FOOT_SIZE &&
+       capacity < (size_t) -(msize + TOP_FOOT_SIZE + mparams.page_size)) {
+     m = init_user_mstate((char*)base, capacity);
+-    set_segment_flags(&m->seg, EXTERN_BIT);
++    (void)set_segment_flags(&m->seg, EXTERN_BIT);
+     set_lock(m, locked);
+   }
+   return (mspace)m;

@@ -18,15 +18,16 @@ class StyleTest(unittest.TestCase):
         style.configure('TButton', background='yellow')
         self.assertEqual(style.configure('TButton', 'background'),
             'yellow')
-        self.assertTrue(isinstance(style.configure('TButton'), dict))
+        self.assertIsInstance(style.configure('TButton'), dict)
 
 
     def test_map(self):
         style = self.style
         style.map('TButton', background=[('active', 'background', 'blue')])
         self.assertEqual(style.map('TButton', 'background'),
-            [('active', 'background', 'blue')])
-        self.assertTrue(isinstance(style.map('TButton'), dict))
+            [('active', 'background', 'blue')] if style.tk.wantobjects() else
+            [('active background', 'blue')])
+        self.assertIsInstance(style.map('TButton'), dict)
 
 
     def test_lookup(self):
@@ -57,7 +58,7 @@ class StyleTest(unittest.TestCase):
         self.assertEqual(style.layout('Treeview'), tv_style)
 
         # should return a list
-        self.assertTrue(isinstance(style.layout('TButton'), list))
+        self.assertIsInstance(style.layout('TButton'), list)
 
         # correct layout, but "option" doesn't exist as option
         self.assertRaises(tkinter.TclError, style.layout, 'Treeview',

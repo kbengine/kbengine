@@ -13,9 +13,6 @@
    support for AIX C++ shared extension modules. */
 /* #undef AIX_GENUINE_CPLUSPLUS */
 
-/* Define if you have the Mach cthreads package */
-/* #undef C_THREADS */
-
 /* Define if C doubles are 64-bit IEEE 754 binary format, stored in ARM
    mixed-endian order (byte order 45670123) */
 /* #undef DOUBLE_IS_ARM_MIXED_ENDIAN_IEEE754 */
@@ -42,7 +39,7 @@
 /* #undef GETTIMEOFDAY_NO_TZ */
 
 /* Define to 1 if you have the `accept4' function. */
-/* #undef HAVE_ACCEPT4 */
+#define HAVE_ACCEPT4 1
 
 /* Define to 1 if you have the `acosh' function. */
 #define HAVE_ACOSH 1
@@ -52,6 +49,12 @@
 
 /* Define to 1 if you have the `alarm' function. */
 #define HAVE_ALARM 1
+
+/* Define if aligned memory access is required */
+/* #undef HAVE_ALIGNED_REQUIRED */
+
+/* Define to 1 if you have the <alloca.h> header file. */
+#define HAVE_ALLOCA_H 1
 
 /* Define this if your time.h defines altzone. */
 /* #undef HAVE_ALTZONE */
@@ -64,9 +67,6 @@
 
 /* Define to 1 if you have the `atanh' function. */
 #define HAVE_ATANH 1
-
-/* Define if GCC supports __attribute__((format(PyArg_ParseTuple, 2, 3))) */
-/* #undef HAVE_ATTRIBUTE_FORMAT_PARSETUPLE */
 
 /* Define to 1 if you have the `bind_textdomain_codeset' function. */
 #define HAVE_BIND_TEXTDOMAIN_CODESET 1
@@ -117,6 +117,12 @@
 /* Define to 1 if you have the `clock' function. */
 #define HAVE_CLOCK 1
 
+/* Define to 1 if you have the `clock_getres' function. */
+#define HAVE_CLOCK_GETRES 1
+
+/* Define to 1 if you have the `clock_gettime' function. */
+#define HAVE_CLOCK_GETTIME 1
+
 /* Define if the C compiler supports computed gotos. */
 #define HAVE_COMPUTED_GOTOS 1
 
@@ -166,10 +172,10 @@
 /* Define to 1 if you have the device macros. */
 #define HAVE_DEVICE_MACROS 1
 
-/* Define if we have /dev/ptc. */
+/* Define to 1 if you have the /dev/ptc device file. */
 /* #undef HAVE_DEV_PTC */
 
-/* Define if we have /dev/ptmx. */
+/* Define to 1 if you have the /dev/ptmx device file. */
 #define HAVE_DEV_PTMX 1
 
 /* Define to 1 if you have the <direct.h> header file. */
@@ -191,11 +197,20 @@
 /* Define to 1 if you have the `dup2' function. */
 #define HAVE_DUP2 1
 
+/* Define to 1 if you have the `dup3' function. */
+#define HAVE_DUP3 1
+
 /* Defined when any dynamic module loading is enabled. */
 #define HAVE_DYNAMIC_LOADING 1
 
+/* Define to 1 if you have the <endian.h> header file. */
+#define HAVE_ENDIAN_H 1
+
 /* Define if you have the 'epoll' functions. */
 #define HAVE_EPOLL 1
+
+/* Define if you have the 'epoll_create1' function. */
+#define HAVE_EPOLL_CREATE1 1
 
 /* Define to 1 if you have the `erf' function. */
 #define HAVE_ERF 1
@@ -212,20 +227,35 @@
 /* Define to 1 if you have the `expm1' function. */
 #define HAVE_EXPM1 1
 
+/* Define to 1 if you have the `faccessat' function. */
+#define HAVE_FACCESSAT 1
+
 /* Define if you have the 'fchdir' function. */
 #define HAVE_FCHDIR 1
 
 /* Define to 1 if you have the `fchmod' function. */
 #define HAVE_FCHMOD 1
 
+/* Define to 1 if you have the `fchmodat' function. */
+#define HAVE_FCHMODAT 1
+
 /* Define to 1 if you have the `fchown' function. */
 #define HAVE_FCHOWN 1
+
+/* Define to 1 if you have the `fchownat' function. */
+#define HAVE_FCHOWNAT 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
 /* Define if you have the 'fdatasync' function. */
 #define HAVE_FDATASYNC 1
+
+/* Define to 1 if you have the `fdopendir' function. */
+#define HAVE_FDOPENDIR 1
+
+/* Define to 1 if you have the `fexecve' function. */
+#define HAVE_FEXECVE 1
 
 /* Define to 1 if you have the `finite' function. */
 #define HAVE_FINITE 1
@@ -248,6 +278,9 @@
 /* Define to 1 if you have the `fseeko' function. */
 #define HAVE_FSEEKO 1
 
+/* Define to 1 if you have the `fstatat' function. */
+#define HAVE_FSTATAT 1
+
 /* Define to 1 if you have the `fstatvfs' function. */
 #define HAVE_FSTATVFS 1
 
@@ -266,24 +299,39 @@
 /* Define to 1 if you have the `ftruncate' function. */
 #define HAVE_FTRUNCATE 1
 
+/* Define to 1 if you have the `futimens' function. */
+#define HAVE_FUTIMENS 1
+
+/* Define to 1 if you have the `futimes' function. */
+#define HAVE_FUTIMES 1
+
+/* Define to 1 if you have the `futimesat' function. */
+#define HAVE_FUTIMESAT 1
+
 /* Define to 1 if you have the `gai_strerror' function. */
 #define HAVE_GAI_STRERROR 1
 
 /* Define to 1 if you have the `gamma' function. */
 #define HAVE_GAMMA 1
 
+/* Define if we can use x64 gcc inline assembler */
+#define HAVE_GCC_ASM_FOR_X64 1
+
 /* Define if we can use gcc inline assembler to get and set x87 control word
    */
 #define HAVE_GCC_ASM_FOR_X87 1
 
+/* Define if your compiler provides __uint128_t */
+#define HAVE_GCC_UINT128_T 1
+
 /* Define if you have the getaddrinfo function. */
 #define HAVE_GETADDRINFO 1
 
-/* Define to 1 if you have the `getcwd' function. */
-#define HAVE_GETCWD 1
-
 /* Define this if you have flockfile(), getc_unlocked(), and funlockfile() */
 #define HAVE_GETC_UNLOCKED 1
+
+/* Define to 1 if you have the `getgrouplist' function. */
+#define HAVE_GETGROUPLIST 1
 
 /* Define to 1 if you have the `getgroups' function. */
 #define HAVE_GETGROUPS 1
@@ -357,17 +405,27 @@
 /* Define to 1 if you have the `getwd' function. */
 #define HAVE_GETWD 1
 
+/* Define if glibc has incorrect _FORTIFY_SOURCE wrappers for memmove and
+   bcopy. */
+/* #undef HAVE_GLIBC_MEMMOVE_BUG */
+
 /* Define to 1 if you have the <grp.h> header file. */
 #define HAVE_GRP_H 1
 
 /* Define if you have the 'hstrerror' function. */
 #define HAVE_HSTRERROR 1
 
+/* Define this if you have le64toh() */
+#define HAVE_HTOLE64 1
+
 /* Define to 1 if you have the `hypot' function. */
 #define HAVE_HYPOT 1
 
 /* Define to 1 if you have the <ieeefp.h> header file. */
 /* #undef HAVE_IEEEFP_H */
+
+/* Define to 1 if you have the `if_nameindex' function. */
+#define HAVE_IF_NAMEINDEX 1
 
 /* Define if you have the 'inet_aton' function. */
 #define HAVE_INET_ATON 1
@@ -389,6 +447,9 @@
 
 /* Define to 1 if you have the <io.h> header file. */
 /* #undef HAVE_IO_H */
+
+/* Define if gcc has the ipa-pure-const bug. */
+/* #undef HAVE_IPA_PURE_CONST_BUG */
 
 /* Define to 1 if you have the `kill' function. */
 #define HAVE_KILL 1
@@ -433,10 +494,13 @@
 #define HAVE_LIBINTL_H 1
 
 /* Define if you have the readline library (-lreadline). */
-#define HAVE_LIBREADLINE 1
+/* #undef HAVE_LIBREADLINE */
 
 /* Define to 1 if you have the `resolv' library (-lresolv). */
 /* #undef HAVE_LIBRESOLV */
+
+/* Define to 1 if you have the `sendfile' library (-lsendfile). */
+/* #undef HAVE_LIBSENDFILE */
 
 /* Define to 1 if you have the <libutil.h> header file. */
 /* #undef HAVE_LIBUTIL_H */
@@ -444,14 +508,32 @@
 /* Define if you have the 'link' function. */
 #define HAVE_LINK 1
 
+/* Define to 1 if you have the `linkat' function. */
+#define HAVE_LINKAT 1
+
+/* Define to 1 if you have the <linux/can/bcm.h> header file. */
+/* #undef HAVE_LINUX_CAN_BCM_H */
+
+/* Define to 1 if you have the <linux/can.h> header file. */
+#define HAVE_LINUX_CAN_H 1
+
+/* Define to 1 if you have the <linux/can/raw.h> header file. */
+#define HAVE_LINUX_CAN_RAW_H 1
+
 /* Define to 1 if you have the <linux/netlink.h> header file. */
 #define HAVE_LINUX_NETLINK_H 1
 
 /* Define to 1 if you have the <linux/tipc.h> header file. */
 #define HAVE_LINUX_TIPC_H 1
 
+/* Define to 1 if you have the `lockf' function. */
+#define HAVE_LOCKF 1
+
 /* Define to 1 if you have the `log1p' function. */
 #define HAVE_LOG1P 1
+
+/* Define to 1 if you have the `log2' function. */
+#define HAVE_LOG2 1
 
 /* Define this if you have the type long double. */
 #define HAVE_LONG_DOUBLE 1
@@ -461,6 +543,9 @@
 
 /* Define to 1 if you have the `lstat' function. */
 #define HAVE_LSTAT 1
+
+/* Define to 1 if you have the `lutimes' function. */
+#define HAVE_LUTIMES 1
 
 /* Define this if you have the makedev macro. */
 #define HAVE_MAKEDEV 1
@@ -474,14 +559,29 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
+/* Define to 1 if you have the `memrchr' function. */
+#define HAVE_MEMRCHR 1
+
+/* Define to 1 if you have the `mkdirat' function. */
+#define HAVE_MKDIRAT 1
+
 /* Define to 1 if you have the `mkfifo' function. */
 #define HAVE_MKFIFO 1
+
+/* Define to 1 if you have the `mkfifoat' function. */
+#define HAVE_MKFIFOAT 1
 
 /* Define to 1 if you have the `mknod' function. */
 #define HAVE_MKNOD 1
 
+/* Define to 1 if you have the `mknodat' function. */
+#define HAVE_MKNODAT 1
+
 /* Define to 1 if you have the `mktime' function. */
 #define HAVE_MKTIME 1
+
+/* Define to 1 if you have the `mmap' function. */
+#define HAVE_MMAP 1
 
 /* Define to 1 if you have the `mremap' function. */
 #define HAVE_MREMAP 1
@@ -495,8 +595,14 @@
 /* Define to 1 if you have the <netpacket/packet.h> header file. */
 #define HAVE_NETPACKET_PACKET_H 1
 
+/* Define to 1 if you have the <net/if.h> header file. */
+#define HAVE_NET_IF_H 1
+
 /* Define to 1 if you have the `nice' function. */
 #define HAVE_NICE 1
+
+/* Define to 1 if you have the `openat' function. */
+#define HAVE_OPENAT 1
 
 /* Define to 1 if you have the `openpty' function. */
 #define HAVE_OPENPTY 1
@@ -510,8 +616,8 @@
 /* Define to 1 if you have the `pause' function. */
 #define HAVE_PAUSE 1
 
-/* Define if the OS supports pipe2() */
-/* #undef HAVE_PIPE2 */
+/* Define to 1 if you have the `pipe2' function. */
+#define HAVE_PIPE2 1
 
 /* Define to 1 if you have the `plock' function. */
 /* #undef HAVE_PLOCK */
@@ -522,11 +628,26 @@
 /* Define to 1 if you have the <poll.h> header file. */
 #define HAVE_POLL_H 1
 
+/* Define to 1 if you have the `posix_fadvise' function. */
+#define HAVE_POSIX_FADVISE 1
+
+/* Define to 1 if you have the `posix_fallocate' function. */
+#define HAVE_POSIX_FALLOCATE 1
+
+/* Define to 1 if you have the `pread' function. */
+#define HAVE_PREAD 1
+
+/* Define if you have the 'prlimit' functions. */
+/* #undef HAVE_PRLIMIT */
+
 /* Define to 1 if you have the <process.h> header file. */
 /* #undef HAVE_PROCESS_H */
 
 /* Define if your compiler supports function prototype */
 #define HAVE_PROTOTYPES 1
+
+/* Define to 1 if you have the `pthread_atfork' function. */
+#define HAVE_PTHREAD_ATFORK 1
 
 /* Defined for Solaris 2.6 bug in pthread header. */
 /* #undef HAVE_PTHREAD_DESTRUCTOR */
@@ -537,6 +658,9 @@
 /* Define to 1 if you have the `pthread_init' function. */
 /* #undef HAVE_PTHREAD_INIT */
 
+/* Define to 1 if you have the `pthread_kill' function. */
+#define HAVE_PTHREAD_KILL 1
+
 /* Define to 1 if you have the `pthread_sigmask' function. */
 #define HAVE_PTHREAD_SIGMASK 1
 
@@ -546,35 +670,65 @@
 /* Define to 1 if you have the `putenv' function. */
 #define HAVE_PUTENV 1
 
+/* Define to 1 if you have the `pwrite' function. */
+#define HAVE_PWRITE 1
+
 /* Define to 1 if you have the `readlink' function. */
 #define HAVE_READLINK 1
+
+/* Define to 1 if you have the `readlinkat' function. */
+#define HAVE_READLINKAT 1
+
+/* Define to 1 if you have the `readv' function. */
+#define HAVE_READV 1
 
 /* Define to 1 if you have the `realpath' function. */
 #define HAVE_REALPATH 1
 
+/* Define to 1 if you have the `renameat' function. */
+#define HAVE_RENAMEAT 1
+
 /* Define if you have readline 2.1 */
-#define HAVE_RL_CALLBACK 1
+/* #undef HAVE_RL_CALLBACK */
 
 /* Define if you can turn off readline's signal handling. */
-#define HAVE_RL_CATCH_SIGNAL 1
+/* #undef HAVE_RL_CATCH_SIGNAL */
 
 /* Define if you have readline 2.2 */
-#define HAVE_RL_COMPLETION_APPEND_CHARACTER 1
+/* #undef HAVE_RL_COMPLETION_APPEND_CHARACTER */
 
 /* Define if you have readline 4.0 */
-#define HAVE_RL_COMPLETION_DISPLAY_MATCHES_HOOK 1
+/* #undef HAVE_RL_COMPLETION_DISPLAY_MATCHES_HOOK */
 
 /* Define if you have readline 4.2 */
-#define HAVE_RL_COMPLETION_MATCHES 1
+/* #undef HAVE_RL_COMPLETION_MATCHES */
 
 /* Define if you have rl_completion_suppress_append */
-#define HAVE_RL_COMPLETION_SUPPRESS_APPEND 1
+/* #undef HAVE_RL_COMPLETION_SUPPRESS_APPEND */
 
 /* Define if you have readline 4.0 */
-#define HAVE_RL_PRE_INPUT_HOOK 1
+/* #undef HAVE_RL_PRE_INPUT_HOOK */
 
 /* Define to 1 if you have the `round' function. */
 #define HAVE_ROUND 1
+
+/* Define to 1 if you have the `sched_get_priority_max' function. */
+#define HAVE_SCHED_GET_PRIORITY_MAX 1
+
+/* Define to 1 if you have the <sched.h> header file. */
+#define HAVE_SCHED_H 1
+
+/* Define to 1 if you have the `sched_rr_get_interval' function. */
+#define HAVE_SCHED_RR_GET_INTERVAL 1
+
+/* Define to 1 if you have the `sched_setaffinity' function. */
+#define HAVE_SCHED_SETAFFINITY 1
+
+/* Define to 1 if you have the `sched_setparam' function. */
+#define HAVE_SCHED_SETPARAM 1
+
+/* Define to 1 if you have the `sched_setscheduler' function. */
+#define HAVE_SCHED_SETSCHEDULER 1
 
 /* Define to 1 if you have the `select' function. */
 #define HAVE_SELECT 1
@@ -591,6 +745,9 @@
 /* Define to 1 if you have the `sem_unlink' function. */
 #define HAVE_SEM_UNLINK 1
 
+/* Define to 1 if you have the `sendfile' function. */
+#define HAVE_SENDFILE 1
+
 /* Define to 1 if you have the `setegid' function. */
 #define HAVE_SETEGID 1
 
@@ -603,6 +760,9 @@
 /* Define if you have the 'setgroups' function. */
 #define HAVE_SETGROUPS 1
 
+/* Define to 1 if you have the `sethostname' function. */
+#define HAVE_SETHOSTNAME 1
+
 /* Define to 1 if you have the `setitimer' function. */
 #define HAVE_SETITIMER 1
 
@@ -614,6 +774,9 @@
 
 /* Define to 1 if you have the `setpgrp' function. */
 #define HAVE_SETPGRP 1
+
+/* Define to 1 if you have the `setpriority' function. */
+#define HAVE_SETPRIORITY 1
 
 /* Define to 1 if you have the `setregid' function. */
 #define HAVE_SETREGID 1
@@ -642,14 +805,29 @@
 /* Define to 1 if you have the `sigaction' function. */
 #define HAVE_SIGACTION 1
 
+/* Define to 1 if you have the `sigaltstack' function. */
+#define HAVE_SIGALTSTACK 1
+
 /* Define to 1 if you have the `siginterrupt' function. */
 #define HAVE_SIGINTERRUPT 1
 
 /* Define to 1 if you have the <signal.h> header file. */
 #define HAVE_SIGNAL_H 1
 
+/* Define to 1 if you have the `sigpending' function. */
+#define HAVE_SIGPENDING 1
+
 /* Define to 1 if you have the `sigrelse' function. */
 #define HAVE_SIGRELSE 1
+
+/* Define to 1 if you have the `sigtimedwait' function. */
+#define HAVE_SIGTIMEDWAIT 1
+
+/* Define to 1 if you have the `sigwait' function. */
+#define HAVE_SIGWAIT 1
+
+/* Define to 1 if you have the `sigwaitinfo' function. */
+#define HAVE_SIGWAITINFO 1
 
 /* Define to 1 if you have the `snprintf' function. */
 #define HAVE_SNPRINTF 1
@@ -704,7 +882,7 @@
 /* #undef HAVE_STRLCPY */
 
 /* Define to 1 if you have the <stropts.h> header file. */
-#define HAVE_STROPTS_H 1
+/* #undef HAVE_STROPTS_H */
 
 /* Define to 1 if `st_birthtime' is a member of `struct stat'. */
 /* #undef HAVE_STRUCT_STAT_ST_BIRTHTIME */
@@ -734,6 +912,12 @@
 /* Define if you have the 'symlink' function. */
 #define HAVE_SYMLINK 1
 
+/* Define to 1 if you have the `symlinkat' function. */
+#define HAVE_SYMLINKAT 1
+
+/* Define to 1 if you have the `sync' function. */
+#define HAVE_SYNC 1
+
 /* Define to 1 if you have the `sysconf' function. */
 #define HAVE_SYSCONF 1
 
@@ -746,9 +930,15 @@
 /* Define to 1 if you have the <sys/bsdtty.h> header file. */
 /* #undef HAVE_SYS_BSDTTY_H */
 
+/* Define to 1 if you have the <sys/devpoll.h> header file. */
+/* #undef HAVE_SYS_DEVPOLL_H */
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 /* #undef HAVE_SYS_DIR_H */
+
+/* Define to 1 if you have the <sys/endian.h> header file. */
+/* #undef HAVE_SYS_ENDIAN_H */
 
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #define HAVE_SYS_EPOLL_H 1
@@ -758,6 +948,12 @@
 
 /* Define to 1 if you have the <sys/file.h> header file. */
 #define HAVE_SYS_FILE_H 1
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#define HAVE_SYS_IOCTL_H 1
+
+/* Define to 1 if you have the <sys/kern_control.h> header file. */
+/* #undef HAVE_SYS_KERN_CONTROL_H */
 
 /* Define to 1 if you have the <sys/loadavg.h> header file. */
 /* #undef HAVE_SYS_LOADAVG_H */
@@ -787,6 +983,9 @@
 /* Define to 1 if you have the <sys/select.h> header file. */
 #define HAVE_SYS_SELECT_H 1
 
+/* Define to 1 if you have the <sys/sendfile.h> header file. */
+#define HAVE_SYS_SENDFILE_H 1
+
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #define HAVE_SYS_SOCKET_H 1
 
@@ -798,6 +997,9 @@
 
 /* Define to 1 if you have the <sys/syscall.h> header file. */
 #define HAVE_SYS_SYSCALL_H 1
+
+/* Define to 1 if you have the <sys/sys_domain.h> header file. */
+/* #undef HAVE_SYS_SYS_DOMAIN_H */
 
 /* Define to 1 if you have the <sys/termio.h> header file. */
 /* #undef HAVE_SYS_TERMIO_H */
@@ -811,6 +1013,9 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#define HAVE_SYS_UIO_H 1
+
 /* Define to 1 if you have the <sys/un.h> header file. */
 #define HAVE_SYS_UN_H 1
 
@@ -819,6 +1024,9 @@
 
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #define HAVE_SYS_WAIT_H 1
+
+/* Define to 1 if you have the <sys/xattr.h> header file. */
+#define HAVE_SYS_XATTR_H 1
 
 /* Define to 1 if you have the `tcgetpgrp' function. */
 #define HAVE_TCGETPGRP 1
@@ -837,9 +1045,6 @@
 
 /* Define to 1 if you have the `tgamma' function. */
 #define HAVE_TGAMMA 1
-
-/* Define to 1 if you have the <thread.h> header file. */
-/* #undef HAVE_THREAD_H */
 
 /* Define to 1 if you have the `timegm' function. */
 #define HAVE_TIMEGM 1
@@ -885,6 +1090,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Define to 1 if you have the `unlinkat' function. */
+#define HAVE_UNLINKAT 1
+
 /* Define to 1 if you have the `unsetenv' function. */
 #define HAVE_UNSETENV 1
 
@@ -895,6 +1103,9 @@
 
 /* Define to 1 if you have the <util.h> header file. */
 /* #undef HAVE_UTIL_H */
+
+/* Define to 1 if you have the `utimensat' function. */
+#define HAVE_UTIMENSAT 1
 
 /* Define to 1 if you have the `utimes' function. */
 #define HAVE_UTIMES 1
@@ -907,6 +1118,9 @@
 
 /* Define to 1 if you have the `wait4' function. */
 #define HAVE_WAIT4 1
+
+/* Define to 1 if you have the `waitid' function. */
+#define HAVE_WAITID 1
 
 /* Define to 1 if you have the `waitpid' function. */
 #define HAVE_WAITPID 1
@@ -923,9 +1137,15 @@
 /* Define to 1 if you have the `wcsxfrm' function. */
 #define HAVE_WCSXFRM 1
 
+/* Define to 1 if you have the `wmemcmp' function. */
+#define HAVE_WMEMCMP 1
+
 /* Define if tzset() actually switches the local timezone in a meaningful way.
    */
 #define HAVE_WORKING_TZSET 1
+
+/* Define to 1 if you have the `writev' function. */
+#define HAVE_WRITEV 1
 
 /* Define if the zlib library has inflateCopy */
 #define HAVE_ZLIB_COPY 1
@@ -933,14 +1153,8 @@
 /* Define to 1 if you have the `_getpty' function. */
 /* #undef HAVE__GETPTY */
 
-/* Define if you are using Mach cthreads directly under /include */
-/* #undef HURD_C_THREADS */
-
 /* Define if log1p(-0.) is 0. rather than -0. */
 /* #undef LOG1P_DROPS_ZERO_SIGN */
-
-/* Define if you are using Mach cthreads under mach / */
-/* #undef MACH_C_THREADS */
 
 /* Define to 1 if `major', `minor', and `makedev' are declared in <mkdev.h>.
    */
@@ -986,17 +1200,15 @@
 /* Define to printf format modifier for Py_ssize_t */
 #define PY_FORMAT_SIZE_T "z"
 
-/* Define as the integral type used for Unicode representation. */
-#define PY_UNICODE_TYPE unsigned short
-
 /* Define if you want to build an interpreter with many run-time checks. */
 /* #undef Py_DEBUG */
 
 /* Defined if Python is built as a shared library. */
 /* #undef Py_ENABLE_SHARED */
 
-/* Define as the size of the unicode type. */
-#define Py_UNICODE_SIZE 2
+/* Define hash algorithm for str, bytes and memoryview. SipHash24: 1, FNV: 2,
+   externally defined: 0 */
+/* #undef Py_HASH_ALGORITHM */
 
 /* assume C89 semantics that RETSIGTYPE is always void */
 #define RETSIGTYPE void
@@ -1067,6 +1279,9 @@
 
 /* Define if tanh(-0.) is -0., or if platform doesn't have signed zeros */
 #define TANH_PRESERVES_ZERO_SIGN 1
+
+/* Library needed by timemodule.c: librt may be needed for clock_gettime() */
+#define TIMEMODULE_LIB rt
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
@@ -1168,6 +1383,9 @@
 /* Define on Linux to activate all library features */
 #define _GNU_SOURCE 1
 
+/* Define to include mbstate_t for mbrtowc */
+/* #undef _INCLUDE__STDC_A1_SOURCE */
+
 /* This must be defined on some systems to enable large file support. */
 #define _LARGEFILE_SOURCE 1
 
@@ -1180,15 +1398,12 @@
 /* Define on NetBSD to activate all library features */
 #define _NETBSD_SOURCE 1
 
-/* Define _OSF_SOURCE to get the makedev macro. */
-/* #undef _OSF_SOURCE */
-
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */
 /* #undef _POSIX_1_SOURCE */
 
-/* Define to activate features from IEEE Stds 1003.1-2001 */
-#define _POSIX_C_SOURCE 200112L
+/* Define to activate features from IEEE Stds 1003.1-2008 */
+#define _POSIX_C_SOURCE 200809L
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
@@ -1210,7 +1425,7 @@
 /* #undef _UINT64_T */
 
 /* Define to the level of X/Open that your system supports */
-#define _XOPEN_SOURCE 600
+#define _XOPEN_SOURCE 700
 
 /* Define to activate Unix95-and-earlier features */
 #define _XOPEN_SOURCE_EXTENDED 1

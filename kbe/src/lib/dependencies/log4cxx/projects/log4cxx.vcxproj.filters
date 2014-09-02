@@ -461,11 +461,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\main\resources\log4cxx.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\src\main\include\log4cxx\helpers\absolutetimedateformat.h">
       <Filter>Header Files</Filter>
     </ClInclude>

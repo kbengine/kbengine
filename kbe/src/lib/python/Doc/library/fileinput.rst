@@ -28,7 +28,10 @@ as the first argument to :func:`.input`.  A single file name is also allowed.
 All files are opened in text mode by default, but you can override this by
 specifying the *mode* parameter in the call to :func:`.input` or
 :class:`FileInput`.  If an I/O error occurs during opening or reading a file,
-:exc:`IOError` is raised.
+:exc:`OSError` is raised.
+
+.. versionchanged:: 3.3
+   :exc:`IOError` used to be raised; it is now an alias of :exc:`OSError`.
 
 If ``sys.stdin`` is used more than once, the second and further use will return
 no lines, except perhaps for interactive use, or if it has been explicitly reset
@@ -133,11 +136,12 @@ available for subclassing as well:
 
    Class :class:`FileInput` is the implementation; its methods :meth:`filename`,
    :meth:`fileno`, :meth:`lineno`, :meth:`filelineno`, :meth:`isfirstline`,
-   :meth:`isstdin`, :meth:`nextfile` and :meth:`close` correspond to the functions
-   of the same name in the module. In addition it has a :meth:`readline` method
-   which returns the next input line, and a :meth:`__getitem__` method which
-   implements the sequence behavior.  The sequence must be accessed in strictly
-   sequential order; random access and :meth:`readline` cannot be mixed.
+   :meth:`isstdin`, :meth:`nextfile` and :meth:`close` correspond to the
+   functions of the same name in the module. In addition it has a
+   :meth:`~io.TextIOBase.readline` method which returns the next input line,
+   and a :meth:`__getitem__` method which implements the sequence behavior.
+   The sequence must be accessed in strictly sequential order; random access
+   and :meth:`~io.TextIOBase.readline` cannot be mixed.
 
    With *mode* you can specify which file mode will be passed to :func:`open`. It
    must be one of ``'r'``, ``'rU'``, ``'U'`` and ``'rb'``.
@@ -156,6 +160,9 @@ available for subclassing as well:
    .. versionchanged:: 3.2
       Can be used as a context manager.
 
+   .. deprecated:: 3.4
+        The ``'rU'`` and ``'U'`` modes.
+
 
 **Optional in-place filtering:** if the keyword argument ``inplace=True`` is
 passed to :func:`fileinput.input` or to the :class:`FileInput` constructor, the
@@ -167,10 +174,6 @@ input file in place.  If the *backup* parameter is given (typically as
 and the backup file remains around; by default, the extension is ``'.bak'`` and
 it is deleted when the output file is closed.  In-place filtering is disabled
 when standard input is read.
-
-.. note::
-
-   The current implementation does not work for MS-DOS 8+3 filesystems.
 
 
 The two following opening hooks are provided by this module:

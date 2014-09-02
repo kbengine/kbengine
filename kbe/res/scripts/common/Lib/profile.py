@@ -40,6 +40,40 @@ __all__ = ["run", "runctx", "Profile"]
 #       return i_count
 #itimes = integer_timer # replace with C coded timer returning integers
 
+class _Utils:
+    """Support class for utility functions which are shared by
+    profile.py and cProfile.py modules.
+    Not supposed to be used directly.
+    """
+
+    def __init__(self, profiler):
+        self.profiler = profiler
+
+    def run(self, statement, filename, sort):
+        prof = self.profiler()
+        try:
+            prof.run(statement)
+        except SystemExit:
+            pass
+        finally:
+            self._show(prof, filename, sort)
+
+    def runctx(self, statement, globals, locals, filename, sort):
+        prof = self.profiler()
+        try:
+            prof.runctx(statement, globals, locals)
+        except SystemExit:
+            pass
+        finally:
+            self._show(prof, filename, sort)
+
+    def _show(self, prof, filename, sort):
+        if filename is not None:
+            prof.dump_stats(filename)
+        else:
+            prof.print_stats(sort)
+
+
 #**************************************************************************
 # The following are the static member functions for the profiler class
 # Note that an instance of Profile() is *not* needed to call them.
@@ -56,15 +90,7 @@ def run(statement, filename=None, sort=-1):
     standard name string (file/line/function-name) that is presented in
     each line.
     """
-    prof = Profile()
-    try:
-        prof = prof.run(statement)
-    except SystemExit:
-        pass
-    if filename is not None:
-        prof.dump_stats(filename)
-    else:
-        return prof.print_stats(sort)
+    return _Utils(Profile).run(statement, filename, sort)
 
 def runctx(statement, globals, locals, filename=None, sort=-1):
     """Run statement under profiler, supplying your own globals and locals,
@@ -72,36 +98,8 @@ def runctx(statement, globals, locals, filename=None, sort=-1):
 
     statement and filename have the same semantics as profile.run
     """
-    prof = Profile()
-    try:
-        prof = prof.runctx(statement, globals, locals)
-    except SystemExit:
-        pass
+    return _Utils(Profile).runctx(statement, globals, locals, filename, sort)
 
-    if filename is not None:
-        prof.dump_stats(filename)
-    else:
-        return prof.print_stats(sort)
-
-if hasattr(os, "times"):
-    def _get_time_times(timer=os.times):
-        t = timer()
-        return t[0] + t[1]
-
-# Using getrusage(3) is better than clock(3) if available:
-# on some systems (e.g. FreeBSD), getrusage has a higher resolution
-# Furthermore, on a POSIX system, returns microseconds, which
-# wrap around after 36min.
-_has_res = 0
-try:
-    import resource
-    resgetrusage = lambda: resource.getrusage(resource.RUSAGE_SELF)
-    def _get_time_resource(timer=resgetrusage):
-        t = timer()
-        return t[0] + t[1]
-    _has_res = 1
-except ImportError:
-    pass
 
 class Profile:
     """Profiler class.
@@ -155,20 +153,8 @@ class Profile:
         self.bias = bias     # Materialize in local dict for lookup speed.
 
         if not timer:
-            if _has_res:
-                self.timer = resgetrusage
-                self.dispatcher = self.trace_dispatch
-                self.get_time = _get_time_resource
-            elif hasattr(time, 'clock'):
-                self.timer = self.get_time = time.clock
-                self.dispatcher = self.trace_dispatch_i
-            elif hasattr(os, 'times'):
-                self.timer = os.times
-                self.dispatcher = self.trace_dispatch
-                self.get_time = _get_time_times
-            else:
-                self.timer = self.get_time = time.time
-                self.dispatcher = self.trace_dispatch_i
+            self.timer = self.get_time = time.process_time
+            self.dispatcher = self.trace_dispatch_i
         else:
             self.timer = timer
             t = self.timer() # test out timer function
@@ -405,10 +391,9 @@ class Profile:
                   print_stats()
 
     def dump_stats(self, file):
-        f = open(file, 'wb')
-        self.create_stats()
-        marshal.dump(self.stats, f)
-        f.close()
+        with open(file, 'wb') as f:
+            self.create_stats()
+            marshal.dump(self.stats, f)
 
     def create_stats(self):
         self.simulate_cmd_complete()

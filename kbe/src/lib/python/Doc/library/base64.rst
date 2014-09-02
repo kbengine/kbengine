@@ -1,26 +1,41 @@
-:mod:`base64` --- RFC 3548: Base16, Base32, Base64 Data Encodings
-=================================================================
+:mod:`base64` --- Base16, Base32, Base64, Base85 Data Encodings
+===============================================================
 
 .. module:: base64
-   :synopsis: RFC 3548: Base16, Base32, Base64 Data Encodings
+   :synopsis: RFC 3548: Base16, Base32, Base64 Data Encodings;
+              Base85 and Ascii85
 
 
 .. index::
    pair: base64; encoding
    single: MIME; base64 encoding
 
-This module provides data encoding and decoding as specified in :rfc:`3548`.
-This standard defines the Base16, Base32, and Base64 algorithms for encoding
-and decoding arbitrary binary strings into ASCII-only byte strings that can be
+This module provides functions for encoding binary data to printable
+ASCII characters and decoding such encodings back to binary data.
+It provides encoding and decoding functions for the encodings specified in
+in :rfc:`3548`, which defines the Base16, Base32, and Base64 algorithms,
+and for the de-facto standard Ascii85 and Base85 encodings.
+
+The :rfc:`3548` encodings are suitable for encoding binary data so that it can
 safely sent by email, used as parts of URLs, or included as part of an HTTP
 POST request.  The encoding algorithm is not the same as the
 :program:`uuencode` program.
 
-There are two interfaces provided by this module.  The modern interface
-supports encoding and decoding ASCII byte string objects using all three
-alphabets.  The legacy interface provides for encoding and decoding to and from
-file-like objects as well as byte strings, but only using the Base64 standard
-alphabet.
+There are two :rfc:`3548` interfaces provided by this module.  The modern
+interface supports encoding and decoding ASCII byte string objects using all
+three :rfc:`3548` defined alphabets (normal, URL-safe, and filesystem-safe).
+Additionally, the decoding functions of the modern interface also accept
+Unicode strings containing only ASCII characters. The legacy interface provides
+for encoding and decoding to and from file-like objects as well as byte
+strings, but only using the Base64 standard alphabet.
+
+.. versionchanged:: 3.3
+   ASCII-only Unicode strings are now accepted by the decoding functions of
+   the modern interface.
+
+.. versionchanged:: 3.4
+   Any :term:`bytes-like object`\ s are now accepted by all
+   encoding and decoding functions in this module.  Ascii85/Base85 support added.
 
 The modern interface provides:
 
@@ -98,7 +113,7 @@ The modern interface provides:
    digit 0 is always mapped to the letter O).  For security purposes the default is
    ``None``, so that 0 and 1 are not allowed in the input.
 
-   The decoded byte string is returned.  A :exc:`TypeError` is raised if *s* were
+   The decoded byte string is returned.  A :exc:`binascii.Error` is raised if *s* is
    incorrectly padded or if there are non-alphabet characters present in the
    string.
 
@@ -121,6 +136,76 @@ The modern interface provides:
    The decoded byte string is returned.  A :exc:`TypeError` is raised if *s* were
    incorrectly padded or if there are non-alphabet characters present in the
    string.
+
+
+.. function:: a85encode(s, *, foldspaces=False, wrapcol=0, pad=False, adobe=False)
+
+   Encode a byte string using Ascii85.
+
+   *s* is the string to encode. The encoded byte string is returned.
+
+   *foldspaces* is an optional flag that uses the special short sequence 'y'
+   instead of 4 consecutive spaces (ASCII 0x20) as supported by 'btoa'. This
+   feature is not supported by the "standard" Ascii85 encoding.
+
+   *wrapcol* controls whether the output should have newline ('\n')
+   characters added to it. If this is non-zero, each output line will be
+   at most this many characters long.
+
+   *pad* controls whether the input string is padded to a multiple of 4
+   before encoding. Note that the ``btoa`` implementation always pads.
+
+   *adobe* controls whether the encoded byte sequence is framed with ``<~``
+   and ``~>``, which is used by the Adobe implementation.
+
+   .. versionadded:: 3.4
+
+
+.. function:: a85decode(s, *, foldspaces=False, adobe=False, ignorechars=b' \t\n\r\v')
+
+   Decode an Ascii85 encoded byte string.
+
+   *s* is the byte string to decode.
+
+   *foldspaces* is a flag that specifies whether the 'y' short sequence
+   should be accepted as shorthand for 4 consecutive spaces (ASCII 0x20).
+   This feature is not supported by the "standard" Ascii85 encoding.
+
+   *adobe* controls whether the input sequence is in Adobe Ascii85 format
+   (i.e. is framed with <~ and ~>).
+
+   *ignorechars* should be a byte string containing characters to ignore
+   from the input. This should only contain whitespace characters, and by
+   default contains all whitespace characters in ASCII.
+
+   .. versionadded:: 3.4
+
+
+.. function:: b85encode(s, pad=False)
+
+   Encode a byte string using base85, as used in e.g. git-style binary
+   diffs.
+
+   If *pad* is true, the input is padded with "\\0" so its length is a
+   multiple of 4 characters before encoding.
+
+   .. versionadded:: 3.4
+
+
+.. function:: b85decode(b)
+
+   Decode base85-encoded byte string.  Padding is implicitly removed, if
+   necessary.
+
+   .. versionadded:: 3.4
+
+
+.. note::
+   Both Base85 and Ascii85 have an expansion factor of 5 to 4 (5 Base85 or
+   Ascii85 characters can encode 4 binary bytes), while the better-known
+   Base64 has an expansion factor of 6 to 4.  They are therefore more
+   efficient when space expensive.  They differ by details such as the
+   character map used for encoding.
 
 
 The legacy interface:

@@ -50,7 +50,7 @@
 
 This article explains the new features in Python 3.2 as compared to 3.1.  It
 focuses on a few highlights and gives a few examples.  For full details, see the
-:source:`Misc/NEWS <Misc/NEWS>` file.
+`Misc/NEWS <http://hg.python.org/cpython/file/3.2/Misc/NEWS>`_ file.
 
 .. seealso::
 
@@ -268,7 +268,7 @@ launch of four parallel threads for copying files::
       e.submit(shutil.copy, 'src1.txt', 'dest1.txt')
       e.submit(shutil.copy, 'src2.txt', 'dest2.txt')
       e.submit(shutil.copy, 'src3.txt', 'dest3.txt')
-      e.submit(shutil.copy, 'src4.txt', 'dest4.txt')
+      e.submit(shutil.copy, 'src3.txt', 'dest4.txt')
 
 .. seealso::
 
@@ -2352,7 +2352,7 @@ A number of small performance enhancements have been added:
   (Contributed by Antoine Pitrou; :issue:`3001`.)
 
 * The fast-search algorithm in stringlib is now used by the :meth:`split`,
-  :meth:`splitlines` and :meth:`replace` methods on
+  :meth:`rsplit`, :meth:`splitlines` and :meth:`replace` methods on
   :class:`bytes`, :class:`bytearray` and :class:`str` objects. Likewise, the
   algorithm is also used by :meth:`rfind`, :meth:`rindex`, :meth:`rsplit` and
   :meth:`rpartition`.
@@ -2469,14 +2469,14 @@ Code Repository
 
 In addition to the existing Subversion code repository at http://svn.python.org
 there is now a `Mercurial <http://mercurial.selenic.com/>`_ repository at
-http://hg.python.org/\.
+http://hg.python.org/\ .
 
 After the 3.2 release, there are plans to switch to Mercurial as the primary
 repository.  This distributed version control system should make it easier for
 members of the community to create and share external changesets.  See
 :pep:`385` for details.
 
-To learn the new version control system, see the `tutorial by Joel
+To learn to use the new version control system, see the `tutorial by Joel
 Spolsky <http://hginit.com>`_ or the `Guide to Mercurial Workflows
 <http://mercurial.selenic.com/guide/>`_.
 

@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{ namespace script{
 
 bool install_py_dlls(void);
+bool uninstall_py_dlls(void);
 
 }
 }

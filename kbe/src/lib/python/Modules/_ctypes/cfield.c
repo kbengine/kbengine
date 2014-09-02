@@ -9,7 +9,6 @@
 
 #define CTYPES_CFIELD_CAPSULE_NAME_PYMEM "_ctypes/cfield.c pymem"
 
-#if Py_UNICODE_SIZE != SIZEOF_WCHAR_T
 static void pymem_destructor(PyObject *ptr)
 {
     void *p = PyCapsule_GetPointer(ptr, CTYPES_CFIELD_CAPSULE_NAME_PYMEM);
@@ -17,7 +16,6 @@ static void pymem_destructor(PyObject *ptr)
         PyMem_Free(p);
     }
 }
-#endif
 
 
 /******************************************************************/
@@ -52,7 +50,7 @@ PyCField_FromDesc(PyObject *desc, Py_ssize_t index,
 {
     CFieldObject *self;
     PyObject *proto;
-    Py_ssize_t size, align, length;
+    Py_ssize_t size, align;
     SETFUNC setfunc = NULL;
     GETFUNC getfunc = NULL;
     StgDictObject *dict;
@@ -106,7 +104,6 @@ PyCField_FromDesc(PyObject *desc, Py_ssize_t index,
     }
 
     size = dict->size;
-    length = dict->length;
     proto = desc;
 
     /*  Field descriptors for 'c_char * n' are be scpecial cased to
@@ -1214,37 +1211,30 @@ u_get(void *ptr, Py_ssize_t size)
 static PyObject *
 U_get(void *ptr, Py_ssize_t size)
 {
-    PyObject *result;
     Py_ssize_t len;
-    Py_UNICODE *p;
+    wchar_t *p;
 
     size /= sizeof(wchar_t); /* we count character units here, not bytes */
 
-    result = PyUnicode_FromWideChar((wchar_t *)ptr, size);
-    if (!result)
-        return NULL;
     /* We need 'result' to be able to count the characters with wcslen,
        since ptr may not be NUL terminated.  If the length is smaller (if
        it was actually NUL terminated, we construct a new one and throw
        away the result.
     */
     /* chop off at the first NUL character, if any. */
-    p = PyUnicode_AS_UNICODE(result);
-    for (len = 0; len < size; ++len)
+    p = (wchar_t*)ptr;
+    for (len = 0; len < size; ++len) {
         if (!p[len])
             break;
-
-    if (len < size) {
-        PyObject *ob = PyUnicode_FromWideChar((wchar_t *)ptr, len);
-        Py_DECREF(result);
-        return ob;
     }
-    return result;
+
+    return PyUnicode_FromWideChar((wchar_t *)ptr, len);
 }
 
 static PyObject *
 U_set(void *ptr, PyObject *value, Py_ssize_t length)
 {
+    Py_UNICODE *wstr;
     Py_ssize_t size;
 
     /* It's easier to calculate in characters than in bytes */
@@ -1257,7 +1247,10 @@ U_set(void *ptr, PyObject *value, Py_ssize_t length)
         return NULL;
     } else
         Py_INCREF(value);
-    size = PyUnicode_GET_SIZE(value);
+
+    wstr = PyUnicode_AsUnicodeAndSize(value, &size);
+    if (wstr == NULL)
+        return NULL;
     if (size > length) {
         PyErr_Format(PyExc_ValueError,
                      "string too long (%zd, maximum length %zd)",
@@ -1267,7 +1260,11 @@ U_set(void *ptr, PyObject *value, Py_ssize_t length)
     } else if (size < length-1)
         /* copy terminating NUL character if there is space */
         size += 1;
-    PyUnicode_AsWideChar(value, (wchar_t *)ptr, size);
+
+    if (PyUnicode_AsWideChar(value, (wchar_t *)ptr, size) == -1) {
+        return NULL;
+    }
+
     return value;
 }
 
@@ -1377,6 +1374,9 @@ z_get(void *ptr, Py_ssize_t size)
 static PyObject *
 Z_set(void *ptr, PyObject *value, Py_ssize_t size)
 {
+    PyObject *keep;
+    wchar_t *buffer;
+
     if (value == Py_None) {
         *(wchar_t **)ptr = NULL;
         Py_INCREF(value);
@@ -1396,37 +1396,20 @@ Z_set(void *ptr, PyObject *value, Py_ssize_t size)
                      "unicode string or integer address expected instead of %s instance",
                      value->ob_type->tp_name);
         return NULL;
-    } else
-        Py_INCREF(value);
-#if Py_UNICODE_SIZE == SIZEOF_WCHAR_T
-    /* We can copy directly.  Hm, are unicode objects always NUL
-       terminated in Python, internally?
-     */
-    *(wchar_t **)ptr = (wchar_t *) PyUnicode_AS_UNICODE(value);
-    return value;
-#else
-    {
-        /* We must create a wchar_t* buffer from the unicode object,
-           and keep it alive */
-        PyObject *keep;
-        wchar_t *buffer;
-
-        buffer = PyUnicode_AsWideCharString(value, NULL);
-        if (!buffer) {
-            Py_DECREF(value);
-            return NULL;
-        }
-        keep = PyCapsule_New(buffer, CTYPES_CFIELD_CAPSULE_NAME_PYMEM, pymem_destructor);
-        if (!keep) {
-            Py_DECREF(value);
-            PyMem_Free(buffer);
-            return NULL;
-        }
-        *(wchar_t **)ptr = (wchar_t *)buffer;
-        Py_DECREF(value);
-        return keep;
     }
-#endif
+
+    /* We must create a wchar_t* buffer from the unicode object,
+       and keep it alive */
+    buffer = PyUnicode_AsWideCharString(value, NULL);
+    if (!buffer)
+        return NULL;
+    keep = PyCapsule_New(buffer, CTYPES_CFIELD_CAPSULE_NAME_PYMEM, pymem_destructor);
+    if (!keep) {
+        PyMem_Free(buffer);
+        return NULL;
+    }
+    *(wchar_t **)ptr = buffer;
+    return keep;
 }
 
 static PyObject *
@@ -1471,13 +1454,16 @@ BSTR_set(void *ptr, PyObject *value, Py_ssize_t size)
 
     /* create a BSTR from value */
     if (value) {
-        Py_ssize_t size = PyUnicode_GET_SIZE(value);
+        wchar_t* wvalue;
+        Py_ssize_t size;
+        wvalue = PyUnicode_AsUnicodeAndSize(value, &size);
+        if (wvalue == NULL)
+            return NULL;
         if ((unsigned) size != size) {
             PyErr_SetString(PyExc_ValueError, "String too long for BSTR");
             return NULL;
         }
-        bstr = SysAllocStringLen(PyUnicode_AS_UNICODE(value),
-                                 (unsigned)size);
+        bstr = SysAllocStringLen(wvalue, (unsigned)size);
         Py_DECREF(value);
     } else
         bstr = NULL;
@@ -1654,9 +1640,9 @@ typedef struct { char c; void *x; } s_void_p;
 /*
 #define CHAR_ALIGN (sizeof(s_char) - sizeof(char))
 #define SHORT_ALIGN (sizeof(s_short) - sizeof(short))
-#define INT_ALIGN (sizeof(s_int) - sizeof(int))
 #define LONG_ALIGN (sizeof(s_long) - sizeof(long))
 */
+#define INT_ALIGN (sizeof(s_int) - sizeof(int))
 #define FLOAT_ALIGN (sizeof(s_float) - sizeof(float))
 #define DOUBLE_ALIGN (sizeof(s_double) - sizeof(double))
 #define LONGDOUBLE_ALIGN (sizeof(s_long_double) - sizeof(long double))
@@ -1698,8 +1684,8 @@ ffi_type ffi_type_sint8 = { 1, 1, FFI_TYPE_SINT8 };
 ffi_type ffi_type_uint16 = { 2, 2, FFI_TYPE_UINT16 };
 ffi_type ffi_type_sint16 = { 2, 2, FFI_TYPE_SINT16 };
 
-ffi_type ffi_type_uint32 = { 4, 4, FFI_TYPE_UINT32 };
-ffi_type ffi_type_sint32 = { 4, 4, FFI_TYPE_SINT32 };
+ffi_type ffi_type_uint32 = { 4, INT_ALIGN, FFI_TYPE_UINT32 };
+ffi_type ffi_type_sint32 = { 4, INT_ALIGN, FFI_TYPE_SINT32 };
 
 ffi_type ffi_type_uint64 = { 8, LONG_LONG_ALIGN, FFI_TYPE_UINT64 };
 ffi_type ffi_type_sint64 = { 8, LONG_LONG_ALIGN, FFI_TYPE_SINT64 };

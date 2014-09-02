@@ -2,7 +2,7 @@ from test import support
 gdbm = support.import_module("dbm.gnu") #skip if not supported
 import unittest
 import os
-from test.support import verbose, TESTFN, run_unittest, unlink
+from test.support import verbose, TESTFN, unlink
 
 
 filename = TESTFN
@@ -24,6 +24,7 @@ class TestGdbm(unittest.TestCase):
         self.g[b'bytes'] = b'data'
         key_set = set(self.g.keys())
         self.assertEqual(key_set, set([b'a', b'bytes', b'12345678910']))
+        self.assertIn('a', self.g)
         self.assertIn(b'a', self.g)
         self.assertEqual(self.g[b'bytes'], b'data')
         key = self.g.firstkey()
@@ -80,9 +81,17 @@ class TestGdbm(unittest.TestCase):
         size2 = os.path.getsize(filename)
         self.assertTrue(size1 > size2 >= size0)
 
+    def test_context_manager(self):
+        with gdbm.open(filename, 'c') as db:
+            db["gdbm context manager"] = "context manager"
 
-def test_main():
-    run_unittest(TestGdbm)
+        with gdbm.open(filename, 'r') as db:
+            self.assertEqual(list(db.keys()), [b"gdbm context manager"])
+
+        with self.assertRaises(gdbm.error) as cm:
+            db.keys()
+        self.assertEqual(str(cm.exception),
+                         "GDBM object has already been closed")
 
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

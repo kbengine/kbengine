@@ -14,14 +14,14 @@ import time
 import locale
 import calendar
 from re import compile as re_compile
-from re import IGNORECASE, ASCII
+from re import IGNORECASE
 from re import escape as re_escape
 from datetime import (date as datetime_date,
                       timedelta as datetime_timedelta,
                       timezone as datetime_timezone)
 try:
     from _thread import allocate_lock as _thread_allocate_lock
-except:
+except ImportError:
     from _dummy_thread import allocate_lock as _thread_allocate_lock
 
 __all__ = []
@@ -225,7 +225,7 @@ class TimeRE(dict):
         """Convert a list to a regex string for matching a directive.
 
         Want possible matching values to be from longest to shortest.  This
-        prevents the possibility of a match occuring for a value that also
+        prevents the possibility of a match occurring for a value that also
         a substring of a larger value that should have matched (e.g., 'abc'
         matching when 'abcdef' should have been the match).
 
@@ -326,10 +326,10 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                     bad_directive = "%"
                 del err
                 raise ValueError("'%s' is a bad directive in format '%s'" %
-                                    (bad_directive, format))
+                                    (bad_directive, format)) from None
             # IndexError only occurs when the format string is "%"
             except IndexError:
-                raise ValueError("stray %% in format '%s'" % format)
+                raise ValueError("stray %% in format '%s'" % format) from None
             _regex_cache[format] = format_regex
     found = format_regex.match(data_string)
     if not found:
@@ -486,19 +486,19 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
 
     return (year, month, day,
             hour, minute, second,
-            weekday, julian, tz, gmtoff, tzname), fraction
+            weekday, julian, tz, tzname, gmtoff), fraction
 
 def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     """Return a time struct based on the input string and the
     format string."""
     tt = _strptime(data_string, format)[0]
-    return time.struct_time(tt[:9])
+    return time.struct_time(tt[:time._STRUCT_TM_ITEMS])
 
 def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
     """Return a class cls instance based on the input string and the
     format string."""
     tt, fraction = _strptime(data_string, format)
-    gmtoff, tzname = tt[-2:]
+    tzname, gmtoff = tt[-2:]
     args = tt[:6] + (fraction,)
     if gmtoff is not None:
         tzdelta = datetime_timedelta(seconds=gmtoff)

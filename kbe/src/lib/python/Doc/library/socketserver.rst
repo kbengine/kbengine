@@ -111,13 +111,13 @@ can be implemented by using a synchronous server and doing an explicit fork in
 the request handler class :meth:`handle` method.
 
 Another approach to handling multiple simultaneous requests in an environment
-that supports neither threads nor :func:`fork` (or where these are too expensive
-or inappropriate for the service) is to maintain an explicit table of partially
-finished requests and to use :func:`select` to decide which request to work on
-next (or whether to handle a new incoming request).  This is particularly
-important for stream services where each client can potentially be connected for
-a long time (if threads or subprocesses cannot be used).  See :mod:`asyncore`
-for another way to manage this.
+that supports neither threads nor :func:`~os.fork` (or where these are too
+expensive or inappropriate for the service) is to maintain an explicit table of
+partially finished requests and to use :func:`~select.select` to decide which
+request to work on next (or whether to handle a new incoming request).  This is
+particularly important for stream services where each client can potentially be
+connected for a long time (if threads or subprocesses cannot be used).  See
+:mod:`asyncore` for another way to manage this.
 
 .. XXX should data and methods be intermingled, or separate?
    how should the distinction between class and instance variables be drawn?
@@ -153,10 +153,24 @@ Server Objects
 
 .. method:: BaseServer.serve_forever(poll_interval=0.5)
 
-   Handle requests until an explicit :meth:`shutdown` request.
-   Poll for shutdown every *poll_interval* seconds. Ignores :attr:`self.timeout`.
-   If you need to do periodic tasks, do them in another thread.
+   Handle requests until an explicit :meth:`shutdown` request.  Poll for
+   shutdown every *poll_interval* seconds. Ignores :attr:`self.timeout`.  It
+   also calls :meth:`service_actions`, which may be used by a subclass or mixin
+   to provide actions specific to a given service.  For example, the
+   :class:`ForkingMixIn` class uses :meth:`service_actions` to clean up zombie
+   child processes.
 
+   .. versionchanged:: 3.3
+       Added ``service_actions`` call to the ``serve_forever`` method.
+
+
+.. method:: BaseServer.service_actions()
+
+   This is called in the :meth:`serve_forever` loop. This method can be
+   overridden by subclasses or mixin classes to perform actions specific to
+   a given service, such as cleanup actions.
+
+   .. versionadded:: 3.3
 
 .. method:: BaseServer.shutdown()
 

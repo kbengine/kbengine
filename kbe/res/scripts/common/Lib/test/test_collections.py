@@ -1,6 +1,7 @@
 """Unit tests for collections.py."""
 
 import unittest, doctest, operator
+from test.support import TESTFN, forget, unlink
 import inspect
 from test import support
 from collections import namedtuple, Counter, OrderedDict, _count_elements
@@ -10,20 +11,19 @@ from random import randrange, shuffle
 import keyword
 import re
 import sys
-from collections import _ChainMap
-from collections import Hashable, Iterable, Iterator
-from collections import Sized, Container, Callable
-from collections import Set, MutableSet
-from collections import Mapping, MutableMapping, KeysView, ItemsView, UserDict
-from collections import Sequence, MutableSequence
-from collections import ByteString
+from collections import UserDict
+from collections import ChainMap
+from collections.abc import Hashable, Iterable, Iterator
+from collections.abc import Sized, Container, Callable
+from collections.abc import Set, MutableSet
+from collections.abc import Mapping, MutableMapping, KeysView, ItemsView
+from collections.abc import Sequence, MutableSequence
+from collections.abc import ByteString
 
 
 ################################################################################
-### _ChainMap (helper class for configparser)
+### ChainMap (helper class for configparser and the string module)
 ################################################################################
-
-ChainMap = _ChainMap  # rename to keep test code in sync with 3.3 version
 
 class TestChainMap(unittest.TestCase):
 
@@ -112,6 +112,38 @@ class TestChainMap(unittest.TestCase):
         self.assertEqual(dict(d), dict(a=1, b=2, c=30))
         self.assertEqual(dict(d.items()), dict(a=1, b=2, c=30))
 
+    def test_new_child(self):
+        'Tests for changes for issue #16613.'
+        c = ChainMap()
+        c['a'] = 1
+        c['b'] = 2
+        m = {'b':20, 'c': 30}
+        d = c.new_child(m)
+        self.assertEqual(d.maps, [{'b':20, 'c':30}, {'a':1, 'b':2}])  # check internal state
+        self.assertIs(m, d.maps[0])
+
+        # Use a different map than a dict
+        class lowerdict(dict):
+            def __getitem__(self, key):
+                if isinstance(key, str):
+                    key = key.lower()
+                return dict.__getitem__(self, key)
+            def __contains__(self, key):
+                if isinstance(key, str):
+                    key = key.lower()
+                return dict.__contains__(self, key)
+
+        c = ChainMap()
+        c['a'] = 1
+        c['b'] = 2
+        m = lowerdict(b=20, c=30)
+        d = c.new_child(m)
+        self.assertIs(m, d.maps[0])
+        for key in 'abc':                                             # check contains
+            self.assertIn(key, d)
+        for k, v in dict(a=1, B=20, C=30, z=100).items():             # check get
+            self.assertEqual(d.get(k, 100), v)
+
 
 ################################################################################
 ### Named Tuples
@@ -128,6 +160,7 @@ class TestNamedTuple(unittest.TestCase):
         self.assertEqual(Point.__module__, __name__)
         self.assertEqual(Point.__getitem__, tuple.__getitem__)
         self.assertEqual(Point._fields, ('x', 'y'))
+        self.assertIn('class Point(tuple)', Point._source)
 
         self.assertRaises(ValueError, namedtuple, 'abc%', 'efg ghi')       # type has non-alpha char
         self.assertRaises(ValueError, namedtuple, 'class', 'efg ghi')      # type has keyword
@@ -268,7 +301,7 @@ class TestNamedTuple(unittest.TestCase):
         for module in (pickle,):
             loads = getattr(module, 'loads')
             dumps = getattr(module, 'dumps')
-            for protocol in -1, 0, 1, 2:
+            for protocol in range(-1, module.HIGHEST_PROTOCOL + 1):
                 q = loads(dumps(p, protocol))
                 self.assertEqual(p, q)
                 self.assertEqual(p._fields, q._fields)
@@ -327,6 +360,17 @@ class TestNamedTuple(unittest.TestCase):
         class B(A):
             pass
         self.assertEqual(repr(B(1)), 'B(x=1)')
+
+    def test_source(self):
+        # verify that _source can be run through exec()
+        tmp = namedtuple('NTColor', 'red green blue')
+        globals().pop('NTColor', None)          # remove artifacts from other tests
+        exec(tmp._source, globals())
+        self.assertIn('NTColor', globals())
+        c = NTColor(10, 20, 30)
+        self.assertEqual((c.red, c.green, c.blue), (10, 20, 30))
+        self.assertEqual(NTColor._fields, ('red', 'green', 'blue'))
+        globals().pop('NTColor', None)          # clean-up after this test
 
 
 ################################################################################
@@ -738,6 +782,8 @@ class TestCollectionABCs(ABCTestCase):
             self.assertTrue(issubclass(sample, Sequence))
         self.assertIsInstance(range(10), Sequence)
         self.assertTrue(issubclass(range, Sequence))
+        self.assertIsInstance(memoryview(b""), Sequence)
+        self.assertTrue(issubclass(memoryview, Sequence))
         self.assertTrue(issubclass(str, Sequence))
         self.validate_abstract_methods(Sequence, '__contains__', '__iter__', '__len__',
             '__getitem__')
@@ -763,10 +809,66 @@ class TestCollectionABCs(ABCTestCase):
         self.validate_abstract_methods(MutableSequence, '__contains__', '__iter__',
             '__len__', '__getitem__', '__setitem__', '__delitem__', 'insert')
 
+    def test_MutableSequence_mixins(self):
+        # Test the mixins of MutableSequence by creating a miminal concrete
+        # class inherited from it.
+        class MutableSequenceSubclass(MutableSequence):
+            def __init__(self):
+                self.lst = []
+
+            def __setitem__(self, index, value):
+                self.lst[index] = value
+
+            def __getitem__(self, index):
+                return self.lst[index]
+
+            def __len__(self):
+                return len(self.lst)
+
+            def __delitem__(self, index):
+                del self.lst[index]
+
+            def insert(self, index, value):
+                self.lst.insert(index, value)
+
+        mss = MutableSequenceSubclass()
+        mss.append(0)
+        mss.extend((1, 2, 3, 4))
+        self.assertEqual(len(mss), 5)
+        self.assertEqual(mss[3], 3)
+        mss.reverse()
+        self.assertEqual(mss[3], 1)
+        mss.pop()
+        self.assertEqual(len(mss), 4)
+        mss.remove(3)
+        self.assertEqual(len(mss), 3)
+        mss += (10, 20, 30)
+        self.assertEqual(len(mss), 6)
+        self.assertEqual(mss[-1], 30)
+        mss.clear()
+        self.assertEqual(len(mss), 0)
 
 ################################################################################
 ### Counter
 ################################################################################
+
+class CounterSubclassWithSetItem(Counter):
+    # Test a counter subclass that overrides __setitem__
+    def __init__(self, *args, **kwds):
+        self.called = False
+        Counter.__init__(self, *args, **kwds)
+    def __setitem__(self, key, value):
+        self.called = True
+        Counter.__setitem__(self, key, value)
+
+class CounterSubclassWithGet(Counter):
+    # Test a counter subclass that overrides get()
+    def __init__(self, *args, **kwds):
+        self.called = False
+        Counter.__init__(self, *args, **kwds)
+    def get(self, key, default):
+        self.called = True
+        return Counter.get(self, key, default)
 
 class TestCounter(unittest.TestCase):
 
@@ -836,23 +938,26 @@ class TestCounter(unittest.TestCase):
         words = Counter('which witch had which witches wrist watch'.split())
         update_test = Counter()
         update_test.update(words)
-        for i, dup in enumerate([
-                    words.copy(),
-                    copy.copy(words),
-                    copy.deepcopy(words),
-                    pickle.loads(pickle.dumps(words, 0)),
-                    pickle.loads(pickle.dumps(words, 1)),
-                    pickle.loads(pickle.dumps(words, 2)),
-                    pickle.loads(pickle.dumps(words, -1)),
-                    eval(repr(words)),
-                    update_test,
-                    Counter(words),
-                    ]):
-            msg = (i, dup, words)
-            self.assertTrue(dup is not words)
-            self.assertEqual(dup, words)
-            self.assertEqual(len(dup), len(words))
-            self.assertEqual(type(dup), type(words))
+        for label, dup in [
+                    ('words.copy()', words.copy()),
+                    ('copy.copy(words)', copy.copy(words)),
+                    ('copy.deepcopy(words)', copy.deepcopy(words)),
+                    ('pickle.loads(pickle.dumps(words, 0))',
+                        pickle.loads(pickle.dumps(words, 0))),
+                    ('pickle.loads(pickle.dumps(words, 1))',
+                        pickle.loads(pickle.dumps(words, 1))),
+                    ('pickle.loads(pickle.dumps(words, 2))',
+                        pickle.loads(pickle.dumps(words, 2))),
+                    ('pickle.loads(pickle.dumps(words, -1))',
+                        pickle.loads(pickle.dumps(words, -1))),
+                    ('eval(repr(words))', eval(repr(words))),
+                    ('update_test', update_test),
+                    ('Counter(words)', Counter(words)),
+                    ]:
+            with self.subTest(label=label):
+                msg = "\ncopy: %s\nwords: %s" % (dup, words)
+                self.assertIsNot(dup, words, msg)
+                self.assertEqual(dup, words)
 
     def test_copy_subclass(self):
         class MyCounter(Counter):
@@ -916,6 +1021,27 @@ class TestCounter(unittest.TestCase):
                 set_result = setop(set(p.elements()), set(q.elements()))
                 self.assertEqual(counter_result, dict.fromkeys(set_result, 1))
 
+    def test_inplace_operations(self):
+        elements = 'abcd'
+        for i in range(1000):
+            # test random pairs of multisets
+            p = Counter(dict((elem, randrange(-2,4)) for elem in elements))
+            p.update(e=1, f=-1, g=0)
+            q = Counter(dict((elem, randrange(-2,4)) for elem in elements))
+            q.update(h=1, i=-1, j=0)
+            for inplace_op, regular_op in [
+                (Counter.__iadd__, Counter.__add__),
+                (Counter.__isub__, Counter.__sub__),
+                (Counter.__ior__, Counter.__or__),
+                (Counter.__iand__, Counter.__and__),
+            ]:
+                c = p.copy()
+                c_id = id(c)
+                regular_result = regular_op(c, q)
+                inplace_result = inplace_op(c, q)
+                self.assertEqual(inplace_result, regular_result)
+                self.assertEqual(id(inplace_result), c_id)
+
     def test_subtract(self):
         c = Counter(a=-5, b=0, c=5, d=10, e=15,g=40)
         c.subtract(a=1, b=2, c=-3, d=10, e=20, f=30, h=-50)
@@ -926,6 +1052,11 @@ class TestCounter(unittest.TestCase):
         c = Counter('aaabbcd')
         c.subtract('aaaabbcce')
         self.assertEqual(c, Counter(a=-1, b=0, c=-1, d=1, e=-1))
+
+    def test_unary(self):
+        c = Counter(a=-5, b=0, c=5, d=10, e=15,g=40)
+        self.assertEqual(dict(+c), dict(c=5, d=10, e=15, g=40))
+        self.assertEqual(dict(-c), dict(a=5))
 
     def test_repr_nonsortable(self):
         c = Counter(a=2, b=None)
@@ -945,6 +1076,14 @@ class TestCounter(unittest.TestCase):
         _count_elements(m, elems)
         self.assertEqual(m,
              OrderedDict([('a', 5), ('b', 2), ('r', 2), ('c', 1), ('d', 1)]))
+
+        # test fidelity to the pure python version
+        c = CounterSubclassWithSetItem('abracadabra')
+        self.assertTrue(c.called)
+        self.assertEqual(dict(c), {'a': 5, 'b': 2, 'c': 1, 'd': 1, 'r':2 })
+        c = CounterSubclassWithGet('abracadabra')
+        self.assertTrue(c.called)
+        self.assertEqual(dict(c), {'a': 5, 'b': 2, 'c': 1, 'd': 1, 'r':2 })
 
 
 ################################################################################
@@ -1105,24 +1244,28 @@ class TestOrderedDict(unittest.TestCase):
         od = OrderedDict(pairs)
         update_test = OrderedDict()
         update_test.update(od)
-        for i, dup in enumerate([
-                    od.copy(),
-                    copy.copy(od),
-                    copy.deepcopy(od),
-                    pickle.loads(pickle.dumps(od, 0)),
-                    pickle.loads(pickle.dumps(od, 1)),
-                    pickle.loads(pickle.dumps(od, 2)),
-                    pickle.loads(pickle.dumps(od, 3)),
-                    pickle.loads(pickle.dumps(od, -1)),
-                    eval(repr(od)),
-                    update_test,
-                    OrderedDict(od),
-                    ]):
-            self.assertTrue(dup is not od)
-            self.assertEqual(dup, od)
-            self.assertEqual(list(dup.items()), list(od.items()))
-            self.assertEqual(len(dup), len(od))
-            self.assertEqual(type(dup), type(od))
+        for label, dup in [
+                    ('od.copy()', od.copy()),
+                    ('copy.copy(od)', copy.copy(od)),
+                    ('copy.deepcopy(od)', copy.deepcopy(od)),
+                    ('pickle.loads(pickle.dumps(od, 0))',
+                        pickle.loads(pickle.dumps(od, 0))),
+                    ('pickle.loads(pickle.dumps(od, 1))',
+                        pickle.loads(pickle.dumps(od, 1))),
+                    ('pickle.loads(pickle.dumps(od, 2))',
+                        pickle.loads(pickle.dumps(od, 2))),
+                    ('pickle.loads(pickle.dumps(od, 3))',
+                        pickle.loads(pickle.dumps(od, 3))),
+                    ('pickle.loads(pickle.dumps(od, -1))',
+                        pickle.loads(pickle.dumps(od, -1))),
+                    ('eval(repr(od))', eval(repr(od))),
+                    ('update_test', update_test),
+                    ('OrderedDict(od)', OrderedDict(od)),
+                    ]:
+            with self.subTest(label=label):
+                msg = "\ncopy: %s\nod: %s" % (dup, od)
+                self.assertIsNot(dup, od, msg)
+                self.assertEqual(dup, od)
 
     def test_yaml_linkage(self):
         # Verify that __reduce__ is setup in a way that supports PyYAML's dump() feature.
@@ -1137,9 +1280,18 @@ class TestOrderedDict(unittest.TestCase):
         # do not save instance dictionary if not needed
         pairs = [('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)]
         od = OrderedDict(pairs)
-        self.assertEqual(len(od.__reduce__()), 2)
+        self.assertIsNone(od.__reduce__()[2])
         od.x = 10
-        self.assertEqual(len(od.__reduce__()), 3)
+        self.assertIsNotNone(od.__reduce__()[2])
+
+    def test_pickle_recursive(self):
+        od = OrderedDict()
+        od[1] = od
+        for proto in range(-1, pickle.HIGHEST_PROTOCOL + 1):
+            dup = pickle.loads(pickle.dumps(od, proto))
+            self.assertIsNot(dup, od)
+            self.assertEqual(list(dup.keys()), [1])
+            self.assertIs(dup[1], dup)
 
     def test_repr(self):
         od = OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])

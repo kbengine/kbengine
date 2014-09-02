@@ -48,7 +48,7 @@ namespace KBEngine{ namespace script{
 #endif
 
 // 脚本编译后的后缀名和缓存文件夹
-#define SCRIPT_BIN_TAG "cpython-32"
+#define SCRIPT_BIN_TAG "cpython-34"
 #define SCRIPT_BIN_CACHEDIR "__pycache__"
 
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v);

@@ -12,8 +12,8 @@ sys.path.append(os.path.abspath('tools/sphinxext'))
 # General configuration
 # ---------------------
 
-extensions = ['sphinx.ext.refcounting', 'sphinx.ext.coverage',
-              'sphinx.ext.doctest', 'pyspecific']
+extensions = ['sphinx.ext.coverage', 'sphinx.ext.doctest',
+              'pyspecific', 'c_annotations']
 templates_path = ['tools/sphinxext']
 
 # General substitutions.
@@ -61,6 +61,8 @@ add_module_names = True
 # By default, highlight as Python 3.
 highlight_language = 'python3'
 
+needs_sphinx = '1.1'
+
 
 # Options for HTML output
 # -----------------------
@@ -91,7 +93,7 @@ html_additional_pages = {
 }
 
 # Output an OpenSearch description file.
-html_use_opensearch = 'http://docs.python.org/3.2'
+html_use_opensearch = 'http://docs.python.org/' + version
 
 # Additional static files.
 html_static_path = ['tools/sphinxext/static']
@@ -118,11 +120,11 @@ _stdauthor = r'Guido van Rossum\\Fred L. Drake, Jr., editor'
 latex_documents = [
     ('c-api/index', 'c-api.tex',
      'The Python/C API', _stdauthor, 'manual'),
-    ('distutils/index', 'distutils.tex',
+    ('distributing/index', 'distributing.tex',
      'Distributing Python Modules', _stdauthor, 'manual'),
     ('extending/index', 'extending.tex',
      'Extending and Embedding Python', _stdauthor, 'manual'),
-    ('install/index', 'install.tex',
+    ('installing/index', 'installing.tex',
      'Installing Python Modules', _stdauthor, 'manual'),
     ('library/index', 'library.tex',
      'The Python Library Reference', _stdauthor, 'manual'),

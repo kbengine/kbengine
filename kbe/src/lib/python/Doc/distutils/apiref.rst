@@ -26,6 +26,8 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
    The setup function takes a large number of arguments. These are laid out in the
    following table.
 
+   .. tabularcolumns:: |l|L|L|
+
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | argument name      | value                          | type                                                        |
    +====================+================================+=============================================================+
@@ -125,6 +127,8 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
 
    *stop_after* tells :func:`setup` when to stop processing; possible  values:
 
+   .. tabularcolumns:: |l|L|
+
    +---------------+---------------------------------------------+
    | value         | description                                 |
    +===============+=============================================+
@@ -163,7 +167,9 @@ the full reference.
 .. class:: Extension
 
    The Extension class describes a single C or C++extension module in a setup
-   script. It accepts the following keyword arguments in its constructor
+   script. It accepts the following keyword arguments in its constructor:
+
+   .. tabularcolumns:: |l|L|l|
 
    +------------------------+--------------------------------+---------------------------+
    | argument name          | value                          | type                      |
@@ -728,7 +734,7 @@ This module provides the following functions.
 
    .. method:: CCompiler.execute(func, args[, msg=None, level=1])
 
-      Invokes :func:`distutils.util.execute` This method invokes a  Python function
+      Invokes :func:`distutils.util.execute`. This method invokes a  Python function
       *func* with the given arguments *args*, after  logging and taking into account
       the *dry_run* flag.
 
@@ -845,17 +851,6 @@ This module provides the :class:`CygwinCCompiler` class, a subclass of
 :class:`UnixCCompiler` that handles the Cygwin port of the GNU C compiler to
 Windows.  It also contains the Mingw32CCompiler class which handles the mingw32
 port of GCC (same as cygwin in no-cygwin mode).
-
-
-:mod:`distutils.emxccompiler` --- OS/2 EMX Compiler
-===================================================
-
-.. module:: distutils.emxccompiler
-   :synopsis: OS/2 EMX Compiler support
-
-
-This module provides the EMXCCompiler class, a subclass of
-:class:`UnixCCompiler` that handles the EMX port of the GNU C compiler to OS/2.
 
 
 :mod:`distutils.archive_util` ---  Archiving utilities
@@ -988,8 +983,9 @@ directories.
    simply the list of all files under *src*, with the names changed to be under
    *dst*.
 
-   *preserve_mode* and *preserve_times* are the same as for :func:`copy_file` in
-   :mod:`distutils.file_util`; note that they only apply to regular files, not to
+   *preserve_mode* and *preserve_times* are the same as for
+   :func:`distutils.file_util.copy_file`; note that they only apply to
+   regular files, not to
    directories.  If *preserve_symlinks* is true, symlinks will be copied as
    symlinks (on platforms that support them!); otherwise (the default), the
    destination of the symlink will be copied.  *update* and *verbose* are the same
@@ -997,9 +993,9 @@ directories.
 
    Files in *src* that begin with :file:`.nfs` are skipped (more information on
    these files is available in answer D2 of the `NFS FAQ page
-   <http://nfs.sourceforge.net/#section_d>`_.
+   <http://nfs.sourceforge.net/#section_d>`_).
 
-   .. versionchanged:: 3.2.4
+   .. versionchanged:: 3.3.1
       NFS files are ignored.
 
 .. function:: remove_tree(directory[, verbose=0, dry_run=0])
@@ -1164,16 +1160,6 @@ other utility module.
    underscore. No { } or ( ) style quoting is available.
 
 
-.. function:: grok_environment_error(exc[, prefix='error: '])
-
-   Generate a useful error message from an :exc:`EnvironmentError`  (:exc:`IOError`
-   or :exc:`OSError`) exception object.   Handles Python 1.5.1 and later styles,
-   and does what it can to deal with  exception objects that don't have a filename
-   (which happens when the error  is due to a two-file operation, such as
-   :func:`rename` or  :func:`link`).  Returns the error message as a string
-   prefixed  with *prefix*.
-
-
 .. function:: split_quoted(s)
 
    Split a string up according to Unix shell-like rules for quotes and backslashes.
@@ -1260,8 +1246,8 @@ other utility module.
               built/installed/distributed
 
 
-This module provides the :class:`Distribution` class, which represents the
-module distribution being built/installed/distributed.
+This module provides the :class:`~distutils.core.Distribution` class, which
+represents the module distribution being built/installed/distributed.
 
 
 :mod:`distutils.extension` --- The Extension class
@@ -1563,6 +1549,8 @@ lines, and joining lines with backslashes.
 
    The options are all boolean, and affect the values returned by :meth:`readline`
 
+   .. tabularcolumns:: |l|L|l|
+
    +------------------+--------------------------------+---------+
    | option name      | description                    | default |
    +==================+================================+=========+
@@ -1705,8 +1693,8 @@ This module supplies the abstract base class :class:`Command`.
    options, is the :meth:`run` method, which must also be implemented by every
    command class.
 
-   The class constructor takes a single argument *dist*, a :class:`Distribution`
-   instance.
+   The class constructor takes a single argument *dist*, a
+   :class:`~distutils.core.Distribution` instance.
 
 
 Creating a new Distutils command
@@ -1935,8 +1923,12 @@ Subclasses of :class:`Command` must define the following methods.
 .. module:: distutils.command.clean
    :synopsis: Clean a package build area
 
+This command removes the temporary files created by :command:`build`
+and its subcommands, like intermediary compiled object files.  With
+the ``--all`` option, the complete build directory will be removed.
 
-.. % todo
+Extension modules built :ref:`in place <distutils-build-ext-inplace>`
+will not be cleaned, as they are not in the build directory.
 
 
 :mod:`distutils.command.config` --- Perform package configuration

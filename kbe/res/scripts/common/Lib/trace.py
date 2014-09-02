@@ -39,8 +39,8 @@ Sample use, programmatically
 
   # create a Trace object, telling it what to ignore, and whether to
   # do tracing or line-counting or both.
-  tracer = trace.Trace(ignoredirs=[sys.prefix, sys.exec_prefix,], trace=0,
-                    count=1)
+  tracer = trace.Trace(ignoredirs=[sys.base_prefix, sys.base_exec_prefix,],
+                       trace=0, count=1)
   # run the new command using the given tracer
   tracer.run('main()')
   # make a report, placing output in /tmp
@@ -48,12 +48,10 @@ Sample use, programmatically
   r.write_results(show_missing=True, coverdir="/tmp")
 """
 __all__ = ['Trace', 'CoverageResults']
-import io
 import linecache
 import os
 import re
 import sys
-import time
 import token
 import tokenize
 import inspect
@@ -61,6 +59,10 @@ import gc
 import dis
 import pickle
 from warnings import warn as _warn
+try:
+    from time import monotonic as _time
+except ImportError:
+    from time import time as _time
 
 try:
     import threading
@@ -236,7 +238,7 @@ class CoverageResults:
                 counts, calledfuncs, callers = \
                         pickle.load(open(self.infile, 'rb'))
                 self.update(self.__class__(counts, calledfuncs, callers))
-            except (IOError, EOFError, ValueError) as err:
+            except (OSError, EOFError, ValueError) as err:
                 print(("Skipping counts file %r: %s"
                                       % (self.infile, err)), file=sys.stderr)
 
@@ -244,8 +246,7 @@ class CoverageResults:
         """Return True if the filename does not refer to a file
         we want to have reported.
         """
-        return (filename == "<string>" or
-                filename.startswith("<doctest "))
+        return filename.startswith('<') and filename.endswith('>')
 
     def update(self, other):
         """Merge in the data from another CoverageResults"""
@@ -347,7 +348,7 @@ class CoverageResults:
             try:
                 pickle.dump((self.counts, self.calledfuncs, self.callers),
                             open(self.outfile, 'wb'), 1)
-            except IOError as err:
+            except OSError as err:
                 print("Can't save counts files because %s" % err, file=sys.stderr)
 
     def write_results_file(self, path, lines, lnotab, lines_hit, encoding=None):
@@ -355,7 +356,7 @@ class CoverageResults:
 
         try:
             outfile = open(path, "w", encoding=encoding)
-        except IOError as err:
+        except OSError as err:
             print(("trace: Could not open %r for writing: %s"
                                   "- skipping" % (path, err)), file=sys.stderr)
             return 0, 0
@@ -436,7 +437,7 @@ def _find_executable_linenos(filename):
         with tokenize.open(filename) as f:
             prog = f.read()
             encoding = f.encoding
-    except IOError as err:
+    except OSError as err:
         print(("Not printing coverage data for %r: %s"
                               % (filename, err)), file=sys.stderr)
         return {}
@@ -477,7 +478,7 @@ class Trace:
         self._caller_cache = {}
         self.start_time = None
         if timing:
-            self.start_time = time.time()
+            self.start_time = _time()
         if countcallers:
             self.globaltrace = self.globaltrace_trackcallers
         elif countfuncs:
@@ -615,7 +616,7 @@ class Trace:
             self.counts[key] = self.counts.get(key, 0) + 1
 
             if self.start_time:
-                print('%.2f' % (time.time() - self.start_time), end=' ')
+                print('%.2f' % (_time() - self.start_time), end=' ')
             bname = os.path.basename(filename)
             print("%s(%d): %s" % (bname, lineno,
                                   linecache.getline(filename, lineno)), end='')
@@ -628,7 +629,7 @@ class Trace:
             lineno = frame.f_lineno
 
             if self.start_time:
-                print('%.2f' % (time.time() - self.start_time), end=' ')
+                print('%.2f' % (_time() - self.start_time), end=' ')
             bname = os.path.basename(filename)
             print("%s(%d): %s" % (bname, lineno,
                                   linecache.getline(filename, lineno)), end='')
@@ -750,10 +751,10 @@ def main(argv=None):
                 # should I also call expanduser? (after all, could use $HOME)
 
                 s = s.replace("$prefix",
-                              os.path.join(sys.prefix, "lib",
+                              os.path.join(sys.base_prefix, "lib",
                                            "python" + sys.version[:3]))
                 s = s.replace("$exec_prefix",
-                              os.path.join(sys.exec_prefix, "lib",
+                              os.path.join(sys.base_exec_prefix, "lib",
                                            "python" + sys.version[:3]))
                 s = os.path.normpath(s)
                 ignore_dirs.append(s)
@@ -801,7 +802,7 @@ def main(argv=None):
                 '__cached__': None,
             }
             t.runctx(code, globs, globs)
-        except IOError as err:
+        except OSError as err:
             _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
         except SystemExit:
             pass

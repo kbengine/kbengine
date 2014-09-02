@@ -22,6 +22,11 @@ Functions such as :func:`expanduser` and :func:`expandvars` can be invoked
 explicitly when an application desires shell-like path expansion.  (See also
 the :mod:`glob` module.)
 
+
+.. seealso::
+   The :mod:`pathlib` module offers high-level path objects.
+
+
 .. note::
 
    All of these functions accept either only bytes or only string objects as
@@ -42,7 +47,6 @@ the :mod:`glob` module.)
    * :mod:`posixpath` for UNIX-style paths
    * :mod:`ntpath` for Windows paths
    * :mod:`macpath` for old-style MacOS paths
-   * :mod:`os2emxpath` for OS/2 EMX paths
 
 
 .. function:: abspath(path)
@@ -77,10 +81,15 @@ the :mod:`glob` module.)
 
 .. function:: exists(path)
 
-   Return ``True`` if *path* refers to an existing path.  Returns ``False`` for
-   broken symbolic links. On some platforms, this function may return ``False`` if
-   permission is not granted to execute :func:`os.stat` on the requested file, even
+   Return ``True`` if *path* refers to an existing path or an open
+   file descriptor.  Returns ``False`` for broken symbolic links.  On
+   some platforms, this function may return ``False`` if permission is
+   not granted to execute :func:`os.stat` on the requested file, even
    if the *path* physically exists.
+
+   .. versionchanged:: 3.3
+      *path* can now be an integer: ``True`` is returned if it is an
+       open file descriptor, ``False`` otherwise.
 
 
 .. function:: lexists(path)
@@ -126,9 +135,9 @@ the :mod:`glob` module.)
 
    Return the time of last access of *path*.  The return value is a number giving
    the number of seconds since the epoch (see the  :mod:`time` module).  Raise
-   :exc:`os.error` if the file does not exist or is inaccessible.
+   :exc:`OSError` if the file does not exist or is inaccessible.
 
-   If :func:`os.stat_float_times` returns True, the result is a floating point
+   If :func:`os.stat_float_times` returns ``True``, the result is a floating point
    number.
 
 
@@ -136,24 +145,24 @@ the :mod:`glob` module.)
 
    Return the time of last modification of *path*.  The return value is a number
    giving the number of seconds since the epoch (see the  :mod:`time` module).
-   Raise :exc:`os.error` if the file does not exist or is inaccessible.
+   Raise :exc:`OSError` if the file does not exist or is inaccessible.
 
-   If :func:`os.stat_float_times` returns True, the result is a floating point
+   If :func:`os.stat_float_times` returns ``True``, the result is a floating point
    number.
 
 
 .. function:: getctime(path)
 
    Return the system's ctime which, on some systems (like Unix) is the time of the
-   last change, and, on others (like Windows), is the creation time for *path*.
+   last metadata change, and, on others (like Windows), is the creation time for *path*.
    The return value is a number giving the number of seconds since the epoch (see
-   the  :mod:`time` module).  Raise :exc:`os.error` if the file does not exist or
+   the  :mod:`time` module).  Raise :exc:`OSError` if the file does not exist or
    is inaccessible.
 
 
 .. function:: getsize(path)
 
-   Return the size, in bytes, of *path*.  Raise :exc:`os.error` if the file does
+   Return the size, in bytes, of *path*.  Raise :exc:`OSError` if the file does
    not exist or is inaccessible.
 
 
@@ -184,11 +193,17 @@ the :mod:`glob` module.)
 
 .. function:: ismount(path)
 
-   Return ``True`` if pathname *path* is a :dfn:`mount point`: a point in a file
-   system where a different file system has been mounted.  The function checks
-   whether *path*'s parent, :file:`path/..`, is on a different device than *path*,
-   or whether :file:`path/..` and *path* point to the same i-node on the same
-   device --- this should detect mount points for all Unix and POSIX variants.
+   Return ``True`` if pathname *path* is a :dfn:`mount point`: a point in a
+   file system where a different file system has been mounted.  On POSIX, the
+   function checks whether *path*'s parent, :file:`path/..`, is on a different
+   device than *path*, or whether :file:`path/..` and *path* point to the same
+   i-node on the same device --- this should detect mount points for all Unix
+   and POSIX variants.  On Windows, a drive letter root and a share UNC are
+   always mount points, and for any other path ``GetVolumePathName`` is called
+   to see if it is different from the input path.
+
+   .. versionadded:: 3.4
+      Support for detecting non-root mount points on Windows.
 
 
 .. function:: join(path1[, path2[, ...]])
@@ -227,10 +242,12 @@ the :mod:`glob` module.)
    links encountered in the path (if they are supported by the operating system).
 
 
-.. function:: relpath(path, start=None)
+.. function:: relpath(path, start=os.curdir)
 
-   Return a relative filepath to *path* either from the current directory or from
-   an optional *start* point.
+   Return a relative filepath to *path* either from the current directory or
+   from an optional *start* directory.  This is a path computation:  the
+   filesystem is not accessed to confirm the existence or nature of *path* or
+   *start*.
 
    *start* defaults to :attr:`os.curdir`.
 
@@ -240,17 +257,16 @@ the :mod:`glob` module.)
 .. function:: samefile(path1, path2)
 
    Return ``True`` if both pathname arguments refer to the same file or directory.
-   On Unix, this is determined by the device number and i-node number and raises an
+   This is determined by the device number and i-node number and raises an
    exception if a :func:`os.stat` call on either pathname fails.
-
-   On Windows, two files are the same if they resolve to the same final path
-   name using the Windows API call GetFinalPathNameByHandle. This function
-   raises an exception if handles cannot be obtained to either file.
 
    Availability: Unix, Windows.
 
    .. versionchanged:: 3.2
       Added Windows support.
+
+   .. versionchanged:: 3.4
+      Windows now uses the same implementation as all other platforms.
 
 
 .. function:: sameopenfile(fp1, fp2)
@@ -259,17 +275,21 @@ the :mod:`glob` module.)
 
    Availability: Unix, Windows.
 
-   .. versionchanged:: 3.2 Added Windows support.
+   .. versionchanged:: 3.2
+      Added Windows support.
 
 
 .. function:: samestat(stat1, stat2)
 
    Return ``True`` if the stat tuples *stat1* and *stat2* refer to the same file.
-   These structures may have been returned by :func:`fstat`, :func:`lstat`, or
-   :func:`stat`.  This function implements the underlying comparison used by
-   :func:`samefile` and :func:`sameopenfile`.
+   These structures may have been returned by :func:`os.fstat`,
+   :func:`os.lstat`, or :func:`os.stat`.  This function implements the
+   underlying comparison used by :func:`samefile` and :func:`sameopenfile`.
 
-   Availability: Unix.
+   Availability: Unix, Windows.
+
+   .. versionchanged:: 3.4
+      Added Windows support.
 
 
 .. function:: split(path)
@@ -326,5 +346,5 @@ the :mod:`glob` module.)
 
 .. data:: supports_unicode_filenames
 
-   True if arbitrary Unicode strings can be used as file names (within limitations
+   ``True`` if arbitrary Unicode strings can be used as file names (within limitations
    imposed by the file system).

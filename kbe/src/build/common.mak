@@ -52,9 +52,9 @@ endif
 # this even when not explicitly requiring Python. This assists in setting up
 # the target for libpython<version>.a when common.mak is re-included.
 ifeq ($(KBE_CONFIG), Hybrid64)
-PYTHONLIB = python64_3.2
+PYTHONLIB = python64_34
 else
-PYTHONLIB = python32_3.2
+PYTHONLIB = python32_34
 endif
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable
@@ -138,9 +138,8 @@ endif
 
 # Include and lib paths
 LDFLAGS += -L$(LIBDIR)
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
@@ -181,6 +180,7 @@ ifdef USE_PYTHON
 
  # This is the version of python kbengine is redistributing
  KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
+ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python
  LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
 
 
@@ -500,7 +500,7 @@ $(KBE_PYTHONLIB): always
 	
 	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python
 	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
-	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.2" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
+	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.4" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 endif
 
 ifeq ($(USE_OPENSSL),1)

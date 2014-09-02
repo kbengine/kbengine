@@ -170,10 +170,12 @@ dates or times.
    * ``0 <= seconds < 3600*24`` (the number of seconds in one day)
    * ``-999999999 <= days <= 999999999``
 
-   If any argument is a float and there are fractional microseconds, the fractional
-   microseconds left over from all arguments are combined and their sum is rounded
-   to the nearest microsecond.  If no argument is a float, the conversion and
-   normalization processes are exact (no information is lost).
+   If any argument is a float and there are fractional microseconds,
+   the fractional microseconds left over from all arguments are
+   combined and their sum is rounded to the nearest microsecond using
+   round-half-to-even tiebreaker.  If no argument is a float, the
+   conversion and normalization processes are exact (no information is
+   lost).
 
    If the normalized value of days lies outside the indicated range,
    :exc:`OverflowError` is raised.
@@ -404,11 +406,18 @@ Other constructors, all class methods:
 .. classmethod:: date.fromtimestamp(timestamp)
 
    Return the local date corresponding to the POSIX timestamp, such as is returned
-   by :func:`time.time`.  This may raise :exc:`ValueError`, if the timestamp is out
-   of the range of values supported by the platform C :c:func:`localtime` function.
+   by :func:`time.time`.  This may raise :exc:`OverflowError`, if the timestamp is out
+   of the range of values supported by the platform C :c:func:`localtime` function,
+   and :exc:`OSError` on :c:func:`localtime` failure.
    It's common for this to be restricted to years from 1970 through 2038.  Note
    that on non-POSIX systems that include leap seconds in their notion of a
    timestamp, leap seconds are ignored by :meth:`fromtimestamp`.
+
+   .. versionchanged:: 3.3
+      Raise :exc:`OverflowError` instead of :exc:`ValueError` if the timestamp
+      is out of the range of values supported by the platform C
+      :c:func:`localtime` function. Raise :exc:`OSError` instead of
+      :exc:`ValueError` on :c:func:`localtime` failure.
 
 
 .. classmethod:: date.fromordinal(ordinal)
@@ -586,8 +595,17 @@ Instance methods:
 .. method:: date.strftime(format)
 
    Return a string representing the date, controlled by an explicit format string.
-   Format codes referring to hours, minutes or seconds will see 0 values. See
-   section :ref:`strftime-strptime-behavior`.
+   Format codes referring to hours, minutes or seconds will see 0 values. For a
+   complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
+
+
+.. method:: date.__format__(format)
+
+   Same as :meth:`.date.strftime`. This makes it possible to specify format
+   string for a :class:`.date` object when using :meth:`str.format`. For a
+   complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
 
 
 Example of counting days to an event::
@@ -640,6 +658,8 @@ Example of working with :class:`date`:
     '11/03/02'
     >>> d.strftime("%A %d. %B %Y")
     'Monday 11. March 2002'
+    >>> 'The {1} is {0:%d}, the {2} is {0:%B}.'.format(d, "day", "month")
+    'The day is 11, the month is March.'
 
 
 .. _datetime-datetime:
@@ -713,22 +733,43 @@ Other constructors, all class methods:
    equivalent to
    ``tz.fromutc(datetime.utcfromtimestamp(timestamp).replace(tzinfo=tz))``.
 
-   :meth:`fromtimestamp` may raise :exc:`ValueError`, if the timestamp is out of
+   :meth:`fromtimestamp` may raise :exc:`OverflowError`, if the timestamp is out of
    the range of values supported by the platform C :c:func:`localtime` or
-   :c:func:`gmtime` functions.  It's common for this to be restricted to years in
+   :c:func:`gmtime` functions, and :exc:`OSError` on :c:func:`localtime` or
+   :c:func:`gmtime` failure.
+   It's common for this to be restricted to years in
    1970 through 2038. Note that on non-POSIX systems that include leap seconds in
    their notion of a timestamp, leap seconds are ignored by :meth:`fromtimestamp`,
    and then it's possible to have two timestamps differing by a second that yield
    identical :class:`.datetime` objects. See also :meth:`utcfromtimestamp`.
 
+   .. versionchanged:: 3.3
+      Raise :exc:`OverflowError` instead of :exc:`ValueError` if the timestamp
+      is out of the range of values supported by the platform C
+      :c:func:`localtime` or :c:func:`gmtime` functions. Raise :exc:`OSError`
+      instead of :exc:`ValueError` on :c:func:`localtime` or :c:func:`gmtime`
+      failure.
+
 
 .. classmethod:: datetime.utcfromtimestamp(timestamp)
 
    Return the UTC :class:`.datetime` corresponding to the POSIX timestamp, with
-   :attr:`tzinfo` ``None``. This may raise :exc:`ValueError`, if the timestamp is
-   out of the range of values supported by the platform C :c:func:`gmtime` function.
+   :attr:`tzinfo` ``None``. This may raise :exc:`OverflowError`, if the timestamp is
+   out of the range of values supported by the platform C :c:func:`gmtime` function,
+   and :exc:`OSError` on :c:func:`gmtime` failure.
    It's common for this to be restricted to years in 1970 through 2038. See also
    :meth:`fromtimestamp`.
+
+   On the POSIX compliant platforms, ``utcfromtimestamp(timestamp)``
+   is equivalent to the following expression::
+
+     datetime(1970, 1, 1) + timedelta(seconds=timestamp)
+
+   .. versionchanged:: 3.3
+      Raise :exc:`OverflowError` instead of :exc:`ValueError` if the timestamp
+      is out of the range of values supported by the platform C
+      :c:func:`gmtime` function. Raise :exc:`OSError` instead of
+      :exc:`ValueError` on :c:func:`gmtime` failure.
 
 
 .. classmethod:: datetime.fromordinal(ordinal)
@@ -756,7 +797,8 @@ Other constructors, all class methods:
    *format*.  This is equivalent to ``datetime(*(time.strptime(date_string,
    format)[0:6]))``. :exc:`ValueError` is raised if the date_string and format
    can't be parsed by :func:`time.strptime` or if it returns a value which isn't a
-   time tuple. See section :ref:`strftime-strptime-behavior`.
+   time tuple. For a complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
 
 
 
@@ -873,12 +915,19 @@ Supported operations:
    *datetime1* is considered less than *datetime2* when *datetime1* precedes
    *datetime2* in time.
 
-   If one comparand is naive and the other is aware, :exc:`TypeError` is raised.
+   If one comparand is naive and the other is aware, :exc:`TypeError`
+   is raised if an order comparison is attempted.  For equality
+   comparisons, naive instances are never equal to aware instances.
+
    If both comparands are aware, and have the same :attr:`tzinfo` attribute, the
    common :attr:`tzinfo` attribute is ignored and the base datetimes are
    compared.  If both comparands are aware and have different :attr:`tzinfo`
    attributes, the comparands are first adjusted by subtracting their UTC
    offsets (obtained from ``self.utcoffset()``).
+
+   .. versionchanged:: 3.3
+      Equality comparisons between naive and aware :class:`datetime`
+      instances don't raise :exc:`TypeError`.
 
    .. note::
 
@@ -922,16 +971,21 @@ Instance methods:
    datetime with no conversion of date and time data.
 
 
-.. method:: datetime.astimezone(tz)
+.. method:: datetime.astimezone(tz=None)
 
-   Return a :class:`.datetime` object with new :attr:`tzinfo` attribute *tz*,
+   Return a :class:`datetime` object with new :attr:`tzinfo` attribute *tz*,
    adjusting the date and time data so the result is the same UTC time as
    *self*, but in *tz*'s local time.
 
-   *tz* must be an instance of a :class:`tzinfo` subclass, and its
+   If provided, *tz* must be an instance of a :class:`tzinfo` subclass, and its
    :meth:`utcoffset` and :meth:`dst` methods must not return ``None``.  *self* must
    be aware (``self.tzinfo`` must not be ``None``, and ``self.utcoffset()`` must
    not return ``None``).
+
+   If called without arguments (or with ``tz=None``) the system local
+   timezone is assumed.  The ``tzinfo`` attribute of the converted
+   datetime instance will be set to an instance of :class:`timezone`
+   with the zone name and offset obtained from the OS.
 
    If ``self.tzinfo`` is *tz*, ``self.astimezone(tz)`` is equal to *self*:  no
    adjustment of date or time data is performed. Else the result is local
@@ -958,6 +1012,9 @@ Instance methods:
           utc = (self - self.utcoffset()).replace(tzinfo=tz)
           # Convert from UTC to tz's local time.
           return tz.fromutc(utc)
+
+   .. versionchanged:: 3.3
+      *tz* now can be omitted.
 
 
 .. method:: datetime.utcoffset()
@@ -1015,6 +1072,39 @@ Instance methods:
    Return the proleptic Gregorian ordinal of the date.  The same as
    ``self.date().toordinal()``.
 
+.. method:: datetime.timestamp()
+
+   Return POSIX timestamp corresponding to the :class:`datetime`
+   instance.  The return value is a :class:`float` similar to that
+   returned by :func:`time.time`.
+
+   Naive :class:`datetime` instances are assumed to represent local
+   time and this method relies on the platform C :c:func:`mktime`
+   function to perform the conversion.  Since :class:`datetime`
+   supports wider range of values than :c:func:`mktime` on many
+   platforms, this method may raise :exc:`OverflowError` for times far
+   in the past or far in the future.
+
+   For aware :class:`datetime` instances, the return value is computed
+   as::
+
+      (dt - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+
+   .. versionadded:: 3.3
+
+   .. note::
+
+      There is no method to obtain the POSIX timestamp directly from a
+      naive :class:`datetime` instance representing UTC time.  If your
+      application uses this convention and your system timezone is not
+      set to UTC, you can obtain the POSIX timestamp by supplying
+      ``tzinfo=timezone.utc``::
+
+         timestamp = dt.replace(tzinfo=timezone.utc).timestamp()
+
+      or by calculating the timestamp directly::
+
+         timestamp = (dt - datetime(1970, 1, 1)) / timedelta(seconds=1)
 
 .. method:: datetime.weekday()
 
@@ -1075,7 +1165,16 @@ Instance methods:
 .. method:: datetime.strftime(format)
 
    Return a string representing the date and time, controlled by an explicit format
-   string.  See section :ref:`strftime-strptime-behavior`.
+   string.  For a complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
+
+
+.. method:: datetime.__format__(format)
+
+   Same as :meth:`.datetime.strftime`.  This makes it possible to specify format
+   string for a :class:`.datetime` object when using :meth:`str.format`.  For a
+   complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
 
 
 Examples of working with datetime objects:
@@ -1122,6 +1221,8 @@ Examples of working with datetime objects:
     >>> # Formatting datetime
     >>> dt.strftime("%A, %d. %B %Y %I:%M%p")
     'Tuesday, 21. November 2006 04:30PM'
+    >>> 'The {1} is {0:%d}, the {2} is {0:%B}, the {3} is {0:%I:%M%p}.'.format(dt, "day", "month", "time")
+    'The day is 21, the month is November, the time is 04:30PM.'
 
 Using datetime with tzinfo:
 
@@ -1254,7 +1355,10 @@ Supported operations:
 
 * comparison of :class:`.time` to :class:`.time`, where *a* is considered less
   than *b* when *a* precedes *b* in time.  If one comparand is naive and the other
-  is aware, :exc:`TypeError` is raised.  If both comparands are aware, and have
+  is aware, :exc:`TypeError` is raised if an order comparison is attempted. For equality
+  comparisons, naive instances are never equal to aware instances.
+
+  If both comparands are aware, and have
   the same :attr:`tzinfo` attribute, the common :attr:`tzinfo` attribute is
   ignored and the base times are compared.  If both comparands are aware and
   have different :attr:`tzinfo` attributes, the comparands are first adjusted by
@@ -1263,6 +1367,10 @@ Supported operations:
   object address, when a :class:`.time` object is compared to an object of a
   different type, :exc:`TypeError` is raised unless the comparison is ``==`` or
   ``!=``.  The latter cases return :const:`False` or :const:`True`, respectively.
+
+  .. versionchanged:: 3.3
+     Equality comparisons between naive and aware :class:`time` instances
+     don't raise :exc:`TypeError`.
 
 * hash, use as dict key
 
@@ -1298,8 +1406,17 @@ Instance methods:
 
 .. method:: time.strftime(format)
 
-   Return a string representing the time, controlled by an explicit format string.
-   See section :ref:`strftime-strptime-behavior`.
+   Return a string representing the time, controlled by an explicit format
+   string.  For a complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
+
+
+.. method:: time.__format__(format)
+
+   Same as :meth:`.time.strftime`. This makes it possible to specify format string
+   for a :class:`.time` object when using :meth:`str.format`.  For a
+   complete list of formatting directives, see
+   :ref:`strftime-strptime-behavior`.
 
 
 .. method:: time.utcoffset()
@@ -1348,6 +1465,8 @@ Example:
     'Europe/Prague'
     >>> t.strftime("%H:%M:%S %Z")
     '12:10:30 Europe/Prague'
+    >>> 'The {} is {:%H:%M}.'.format("time", t)
+    'The time is 12:10.'
 
 
 .. _datetime-tzinfo:
@@ -1587,11 +1706,12 @@ only EST (fixed offset -5 hours), or only EDT (fixed offset -4 hours)).
 :class:`timezone` Objects
 --------------------------
 
-A :class:`timezone` object represents a timezone that is defined by a
-fixed offset from UTC.  Note that objects of this class cannot be used
-to represent timezone information in the locations where different
-offsets are used in different days of the year or where historical
-changes have been made to civil time.
+The :class:`timezone` class is a subclass of :class:`tzinfo`, each
+instance of which represents a timezone defined by a fixed offset from
+UTC.  Note that objects of this class cannot be used to represent
+timezone information in the locations where different offsets are used
+in different days of the year or where historical changes have been
+made to civil time.
 
 
 .. class:: timezone(offset[, name])
@@ -1662,158 +1782,180 @@ For :class:`date` objects, the format codes for hours, minutes, seconds, and
 microseconds should not be used, as :class:`date` objects have no such
 values.  If they're used anyway, ``0`` is substituted for them.
 
-For a naive object, the ``%z`` and ``%Z`` format codes are replaced by empty
-strings.
-
-For an aware object:
-
-``%z``
-   :meth:`utcoffset` is transformed into a 5-character string of the form +HHMM or
-   -HHMM, where HH is a 2-digit string giving the number of UTC offset hours, and
-   MM is a 2-digit string giving the number of UTC offset minutes.  For example, if
-   :meth:`utcoffset` returns ``timedelta(hours=-3, minutes=-30)``, ``%z`` is
-   replaced with the string ``'-0330'``.
-
-``%Z``
-   If :meth:`tzname` returns ``None``, ``%Z`` is replaced by an empty string.
-   Otherwise ``%Z`` is replaced by the returned value, which must be a string.
-
 The full set of format codes supported varies across platforms, because Python
 calls the platform C library's :func:`strftime` function, and platform
-variations are common.
+variations are common.  To see the full set of format codes supported on your
+platform, consult the :manpage:`strftime(3)` documentation.
 
 The following is a list of all the format codes that the C standard (1989
 version) requires, and these work on all platforms with a standard C
 implementation.  Note that the 1999 version of the C standard added additional
 format codes.
 
-+-----------+--------------------------------+-------+
-| Directive | Meaning                        | Notes |
-+===========+================================+=======+
-| ``%a``    | Locale's abbreviated weekday   |       |
-|           | name.                          |       |
-+-----------+--------------------------------+-------+
-| ``%A``    | Locale's full weekday name.    |       |
-+-----------+--------------------------------+-------+
-| ``%b``    | Locale's abbreviated month     |       |
-|           | name.                          |       |
-+-----------+--------------------------------+-------+
-| ``%B``    | Locale's full month name.      |       |
-+-----------+--------------------------------+-------+
-| ``%c``    | Locale's appropriate date and  |       |
-|           | time representation.           |       |
-+-----------+--------------------------------+-------+
-| ``%d``    | Day of the month as a decimal  |       |
-|           | number [01,31].                |       |
-+-----------+--------------------------------+-------+
-| ``%f``    | Microsecond as a decimal       | \(1)  |
-|           | number [0,999999], zero-padded |       |
-|           | on the left                    |       |
-+-----------+--------------------------------+-------+
-| ``%H``    | Hour (24-hour clock) as a      |       |
-|           | decimal number [00,23].        |       |
-+-----------+--------------------------------+-------+
-| ``%I``    | Hour (12-hour clock) as a      |       |
-|           | decimal number [01,12].        |       |
-+-----------+--------------------------------+-------+
-| ``%j``    | Day of the year as a decimal   |       |
-|           | number [001,366].              |       |
-+-----------+--------------------------------+-------+
-| ``%m``    | Month as a decimal number      |       |
-|           | [01,12].                       |       |
-+-----------+--------------------------------+-------+
-| ``%M``    | Minute as a decimal number     |       |
-|           | [00,59].                       |       |
-+-----------+--------------------------------+-------+
-| ``%p``    | Locale's equivalent of either  | \(2)  |
-|           | AM or PM.                      |       |
-+-----------+--------------------------------+-------+
-| ``%S``    | Second as a decimal number     | \(3)  |
-|           | [00,59].                       |       |
-+-----------+--------------------------------+-------+
-| ``%U``    | Week number of the year        | \(4)  |
-|           | (Sunday as the first day of    |       |
-|           | the week) as a decimal number  |       |
-|           | [00,53].  All days in a new    |       |
-|           | year preceding the first       |       |
-|           | Sunday are considered to be in |       |
-|           | week 0.                        |       |
-+-----------+--------------------------------+-------+
-| ``%w``    | Weekday as a decimal number    |       |
-|           | [0(Sunday),6].                 |       |
-+-----------+--------------------------------+-------+
-| ``%W``    | Week number of the year        | \(4)  |
-|           | (Monday as the first day of    |       |
-|           | the week) as a decimal number  |       |
-|           | [00,53].  All days in a new    |       |
-|           | year preceding the first       |       |
-|           | Monday are considered to be in |       |
-|           | week 0.                        |       |
-+-----------+--------------------------------+-------+
-| ``%x``    | Locale's appropriate date      |       |
-|           | representation.                |       |
-+-----------+--------------------------------+-------+
-| ``%X``    | Locale's appropriate time      |       |
-|           | representation.                |       |
-+-----------+--------------------------------+-------+
-| ``%y``    | Year without century as a      |       |
-|           | decimal number [00,99].        |       |
-+-----------+--------------------------------+-------+
-| ``%Y``    | Year with century as a decimal | \(5)  |
-|           | number [0001,9999] (strptime), |       |
-|           | [1000,9999] (strftime).        |       |
-+-----------+--------------------------------+-------+
-| ``%z``    | UTC offset in the form +HHMM   | \(6)  |
-|           | or -HHMM (empty string if the  |       |
-|           | the object is naive).          |       |
-+-----------+--------------------------------+-------+
-| ``%Z``    | Time zone name (empty string   |       |
-|           | if the object is naive).       |       |
-+-----------+--------------------------------+-------+
-| ``%%``    | A literal ``'%'`` character.   |       |
-+-----------+--------------------------------+-------+
++-----------+--------------------------------+------------------------+-------+
+| Directive | Meaning                        | Example                | Notes |
++===========+================================+========================+=======+
+| ``%a``    | Weekday as locale's            || Sun, Mon, ..., Sat    | \(1)  |
+|           | abbreviated name.              |  (en_US);              |       |
+|           |                                || So, Mo, ..., Sa       |       |
+|           |                                |  (de_DE)               |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%A``    | Weekday as locale's full name. || Sunday, Monday, ...,  | \(1)  |
+|           |                                |  Saturday (en_US);     |       |
+|           |                                || Sonntag, Montag, ..., |       |
+|           |                                |  Samstag (de_DE)       |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%w``    | Weekday as a decimal number,   | 0, 1, ..., 6           |       |
+|           | where 0 is Sunday and 6 is     |                        |       |
+|           | Saturday.                      |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%d``    | Day of the month as a          | 01, 02, ..., 31        |       |
+|           | zero-padded decimal number.    |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%b``    | Month as locale's abbreviated  || Jan, Feb, ..., Dec    | \(1)  |
+|           | name.                          |  (en_US);              |       |
+|           |                                || Jan, Feb, ..., Dez    |       |
+|           |                                |  (de_DE)               |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%B``    | Month as locale's full name.   || January, February,    | \(1)  |
+|           |                                |  ..., December (en_US);|       |
+|           |                                || Januar, Februar, ..., |       |
+|           |                                |  Dezember (de_DE)      |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%m``    | Month as a zero-padded         | 01, 02, ..., 12        |       |
+|           | decimal number.                |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%y``    | Year without century as a      | 00, 01, ..., 99        |       |
+|           | zero-padded decimal number.    |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%Y``    | Year with century as a decimal | 0001, 0002, ..., 2013, | \(2)  |
+|           | number.                        | 2014, ..., 9998, 9999  |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%H``    | Hour (24-hour clock) as a      | 00, 01, ..., 23        |       |
+|           | zero-padded decimal number.    |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%I``    | Hour (12-hour clock) as a      | 01, 02, ..., 12        |       |
+|           | zero-padded decimal number.    |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%p``    | Locale's equivalent of either  || AM, PM (en_US);       | \(1), |
+|           | AM or PM.                      || am, pm (de_DE)        | \(3)  |
++-----------+--------------------------------+------------------------+-------+
+| ``%M``    | Minute as a zero-padded        | 00, 01, ..., 59        |       |
+|           | decimal number.                |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%S``    | Second as a zero-padded        | 00, 01, ..., 59        | \(4)  |
+|           | decimal number.                |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%f``    | Microsecond as a decimal       | 000000, 000001, ...,   | \(5)  |
+|           | number, zero-padded on the     | 999999                 |       |
+|           | left.                          |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%z``    | UTC offset in the form +HHMM   | (empty), +0000, -0400, | \(6)  |
+|           | or -HHMM (empty string if the  | +1030                  |       |
+|           | the object is naive).          |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%Z``    | Time zone name (empty string   | (empty), UTC, EST, CST |       |
+|           | if the object is naive).       |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%j``    | Day of the year as a           | 001, 002, ..., 366     |       |
+|           | zero-padded decimal number.    |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%U``    | Week number of the year        | 00, 01, ..., 53        | \(7)  |
+|           | (Sunday as the first day of    |                        |       |
+|           | the week) as a zero padded     |                        |       |
+|           | decimal number. All days in a  |                        |       |
+|           | new year preceding the first   |                        |       |
+|           | Sunday are considered to be in |                        |       |
+|           | week 0.                        |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%W``    | Week number of the year        | 00, 01, ..., 53        | \(7)  |
+|           | (Monday as the first day of    |                        |       |
+|           | the week) as a decimal number. |                        |       |
+|           | All days in a new year         |                        |       |
+|           | preceding the first Monday     |                        |       |
+|           | are considered to be in        |                        |       |
+|           | week 0.                        |                        |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%c``    | Locale's appropriate date and  || Tue Aug 16 21:30:00   | \(1)  |
+|           | time representation.           |  1988 (en_US);         |       |
+|           |                                || Di 16 Aug 21:30:00    |       |
+|           |                                |  1988 (de_DE)          |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%x``    | Locale's appropriate date      || 08/16/88 (None);      | \(1)  |
+|           | representation.                || 08/16/1988 (en_US);   |       |
+|           |                                || 16.08.1988 (de_DE)    |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%X``    | Locale's appropriate time      || 21:30:00 (en_US);     | \(1)  |
+|           | representation.                || 21:30:00 (de_DE)      |       |
++-----------+--------------------------------+------------------------+-------+
+| ``%%``    | A literal ``'%'`` character.   | %                      |       |
++-----------+--------------------------------+------------------------+-------+
 
 Notes:
 
 (1)
+   Because the format depends on the current locale, care should be taken when
+   making assumptions about the output value. Field orderings will vary (for
+   example, "month/day/year" versus "day/month/year"), and the output may
+   contain Unicode characters encoded using the locale's default encoding (for
+   example, if the current locale is ``ja_JP``, the default encoding could be
+   any one of ``eucJP``, ``SJIS``, or ``utf-8``; use :meth:`locale.getlocale`
+   to determine the current locale's encoding).
+
+(2)
+   The :meth:`strptime` method can parse years in the full [1, 9999] range, but
+   years < 1000 must be zero-filled to 4-digit width.
+
+   .. versionchanged:: 3.2
+      In previous versions, :meth:`strftime` method was restricted to
+      years >= 1900.
+
+   .. versionchanged:: 3.3
+      In version 3.2, :meth:`strftime` method was restricted to
+      years >= 1000.
+
+(3)
+   When used with the :meth:`strptime` method, the ``%p`` directive only affects
+   the output hour field if the ``%I`` directive is used to parse the hour.
+
+(4)
+   Unlike the :mod:`time` module, the :mod:`datetime` module does not support
+   leap seconds.
+
+(5)
    When used with the :meth:`strptime` method, the ``%f`` directive
    accepts from one to six digits and zero pads on the right.  ``%f`` is
    an extension to the set of format characters in the C standard (but
    implemented separately in datetime objects, and therefore always
    available).
 
-(2)
-   When used with the :meth:`strptime` method, the ``%p`` directive only affects
-   the output hour field if the ``%I`` directive is used to parse the hour.
+(6)
+   For a naive object, the ``%z`` and ``%Z`` format codes are replaced by empty
+   strings.
 
-(3)
-   Unlike :mod:`time` module, :mod:`datetime` module does not support
-   leap seconds.
+   For an aware object:
 
-(4)
-   When used with the :meth:`strptime` method, ``%U`` and ``%W`` are only used in
-   calculations when the day of the week and the year are specified.
+   ``%z``
+      :meth:`utcoffset` is transformed into a 5-character string of the form
+      +HHMM or -HHMM, where HH is a 2-digit string giving the number of UTC
+      offset hours, and MM is a 2-digit string giving the number of UTC offset
+      minutes.  For example, if :meth:`utcoffset` returns
+      ``timedelta(hours=-3, minutes=-30)``, ``%z`` is replaced with the string
+      ``'-0330'``.
 
-(5)
-   For technical reasons, :meth:`strftime` method does not support
-   dates before year 1000: ``t.strftime(format)`` will raise a
-   :exc:`ValueError` when ``t.year < 1000`` even if ``format`` does
-   not contain ``%Y`` directive.  The :meth:`strptime` method can
-   parse years in the full [1, 9999] range, but years < 1000 must be
-   zero-filled to 4-digit width.
+   ``%Z``
+      If :meth:`tzname` returns ``None``, ``%Z`` is replaced by an empty
+      string.  Otherwise ``%Z`` is replaced by the returned value, which must
+      be a string.
 
    .. versionchanged:: 3.2
-      In previous versions, :meth:`strftime` method was restricted to
-      years >= 1900.
+      When the ``%z`` directive is provided to the :meth:`strptime` method, an
+      aware :class:`.datetime` object will be produced.  The ``tzinfo`` of the
+      result will be set to a :class:`timezone` instance.
 
-(6)
-   For example, if :meth:`utcoffset` returns ``timedelta(hours=-3, minutes=-30)``,
-   ``%z`` is replaced with the string ``'-0330'``.
-
-.. versionchanged:: 3.2
-   When the ``%z`` directive is provided to the :meth:`strptime` method, an
-   aware :class:`.datetime` object will be produced.  The ``tzinfo`` of the
-   result will be set to a :class:`timezone` instance.
+(7)
+   When used with the :meth:`strptime` method, ``%U`` and ``%W`` are only used
+   in calculations when the day of the week and the year are specified.
 
 .. rubric:: Footnotes
 

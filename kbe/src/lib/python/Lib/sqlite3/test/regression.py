@@ -161,7 +161,8 @@ class RegressionTests(unittest.TestCase):
 
     def CheckCursorConstructorCallCheck(self):
         """
-        Verifies that cursor methods check wether base class __init__ was called.
+        Verifies that cursor methods check whether base class __init__ was
+        called.
         """
         class Cursor(sqlite.Cursor):
             def __init__(self, con):
@@ -187,7 +188,8 @@ class RegressionTests(unittest.TestCase):
 
     def CheckConnectionConstructorCallCheck(self):
         """
-        Verifies that connection methods check wether base class __init__ was called.
+        Verifies that connection methods check whether base class __init__ was
+        called.
         """
         class Connection(sqlite.Connection):
             def __init__(self, name):
@@ -327,6 +329,11 @@ class RegressionTests(unittest.TestCase):
             datetime.datetime(2012, 4, 4, 15, 6, 0, 456000),
             datetime.datetime(2012, 4, 4, 15, 6, 0, 123456),
         ])
+
+    def CheckInvalidIsolationLevelType(self):
+        # isolation level is a string, not an integer
+        self.assertRaises(TypeError,
+                          sqlite.connect, ":memory:", isolation_level=123)
 
 
 def suite():

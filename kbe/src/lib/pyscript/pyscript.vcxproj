@@ -174,16 +174,8 @@
       <Project>{17e1e049-c309-4d79-843f-ae483c264aea}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\python\PCbuild\_hashlib.vcxproj">
-      <Project>{447f05a8-f581-4cac-a466-5ac7936e207e}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\python\PCbuild\_socket.vcxproj">
       <Project>{86937f53-c189-40ef-8ce8-8759d8e7d480}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\python\PCbuild\_ssl.vcxproj">
-      <Project>{c6e20f84-3247-4ad6-b051-b073268f73ba}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

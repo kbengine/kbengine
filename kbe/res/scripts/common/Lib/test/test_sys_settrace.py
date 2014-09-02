@@ -251,6 +251,7 @@ class TraceTestCase(unittest.TestCase):
     def setUp(self):
         self.using_gc = gc.isenabled()
         gc.disable()
+        self.addCleanup(sys.settrace, sys.gettrace())
 
     def tearDown(self):
         if self.using_gc:
@@ -389,6 +390,9 @@ class TraceTestCase(unittest.TestCase):
 
 
 class RaisingTraceFuncTestCase(unittest.TestCase):
+    def setUp(self):
+        self.addCleanup(sys.settrace, sys.gettrace())
+
     def trace(self, frame, event, arg):
         """A trace function that raises an exception in response to a
         specific trace event."""
@@ -452,6 +456,29 @@ class RaisingTraceFuncTestCase(unittest.TestCase):
             gc.collect()
         else:
             self.fail("exception not propagated")
+
+
+    def test_exception_arguments(self):
+        def f():
+            x = 0
+            # this should raise an error
+            x.no_such_attr
+        def g(frame, event, arg):
+            if (event == 'exception'):
+                type, exception, trace = arg
+                self.assertIsInstance(exception, Exception)
+            return g
+
+        existing = sys.gettrace()
+        try:
+            sys.settrace(g)
+            try:
+                f()
+            except AttributeError:
+                # this is expected
+                pass
+        finally:
+            sys.settrace(existing)
 
 
 # 'Jump' tests: assigning to frame.f_lineno within a trace function
@@ -696,6 +723,10 @@ def no_jump_without_trace_function():
 
 
 class JumpTestCase(unittest.TestCase):
+    def setUp(self):
+        self.addCleanup(sys.settrace, sys.gettrace())
+        sys.settrace(None)
+
     def compare_jump_output(self, expected, received):
         if received != expected:
             self.fail( "Outputs don't match:\n" +
@@ -747,6 +778,8 @@ class JumpTestCase(unittest.TestCase):
     def test_18_no_jump_to_non_integers(self):
         self.run_test(no_jump_to_non_integers)
     def test_19_no_jump_without_trace_function(self):
+        # Must set sys.settrace(None) in setUp(), else condition is not
+        # triggered.
         no_jump_without_trace_function()
     def test_jump_across_with(self):
         self.addCleanup(support.unlink, support.TESTFN)

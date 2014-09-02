@@ -6,7 +6,7 @@ one of the other *util.py modules.
 
 import os
 import re
-import imp
+import importlib.util
 import sys
 import string
 from distutils.errors import DistutilsPlatformError
@@ -52,6 +52,10 @@ def get_platform ():
         if look == 'itanium':
             return 'win-ia64'
         return sys.platform
+
+    # Set for cross builds explicitly
+    if "_PYTHON_HOST_PLATFORM" in os.environ:
+        return os.environ["_PYTHON_HOST_PLATFORM"]
 
     if os.name != "posix" or not hasattr(os, 'uname'):
         # XXX what about the architecture? NT is Intel or Alpha,
@@ -150,12 +154,6 @@ def change_root (new_root, pathname):
             path = path[1:]
         return os.path.join(new_root, path)
 
-    elif os.name == 'os2':
-        (drive, path) = os.path.splitdrive(pathname)
-        if path[0] == os.sep:
-            path = path[1:]
-        return os.path.join(new_root, path)
-
     else:
         raise DistutilsPlatformError("nothing known about platform '%s'" % os.name)
 
@@ -209,25 +207,10 @@ def subst_vars (s, local_vars):
 
 
 def grok_environment_error (exc, prefix="error: "):
-    """Generate a useful error message from an EnvironmentError (IOError or
-    OSError) exception object.  Handles Python 1.5.1 and 1.5.2 styles, and
-    does what it can to deal with exception objects that don't have a
-    filename (which happens when the error is due to a two-file operation,
-    such as 'rename()' or 'link()'.  Returns the error message as a string
-    prefixed with 'prefix'.
-    """
-    # check for Python 1.5.2-style {IO,OS}Error exception objects
-    if hasattr(exc, 'filename') and hasattr(exc, 'strerror'):
-        if exc.filename:
-            error = prefix + "%s: %s" % (exc.filename, exc.strerror)
-        else:
-            # two-argument functions in posix module don't
-            # include the filename in the exception object!
-            error = prefix + "%s" % exc.strerror
-    else:
-        error = prefix + str(exc.args[-1])
-
-    return error
+    # Function kept for backward compatibility.
+    # Used to try clever things with EnvironmentErrors,
+    # but nowadays str(exception) produces good messages.
+    return prefix + str(exc)
 
 
 # Needed by 'split_quoted()'
@@ -455,9 +438,10 @@ byte_compile(files, optimize=%r, force=%r,
             #   cfile - byte-compiled file
             #   dfile - purported source filename (same as 'file' by default)
             if optimize >= 0:
-                cfile = imp.cache_from_source(file, debug_override=not optimize)
+                cfile = importlib.util.cache_from_source(
+                    file, debug_override=not optimize)
             else:
-                cfile = imp.cache_from_source(file)
+                cfile = importlib.util.cache_from_source(file)
             dfile = file
             if prefix:
                 if file[:len(prefix)] != prefix:

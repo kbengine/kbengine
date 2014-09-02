@@ -234,7 +234,7 @@ class HyperParser:
                     # We can't continue after other types of brackets
                     if rawtext[pos] in "'\"":
                         # Scan a string prefix
-                        while pos > 0 and rawtext[pos - 1] in "rRbB":
+                        while pos > 0 and rawtext[pos - 1] in "rRbBuU":
                             pos -= 1
                         last_identifier_pos = pos
                     break

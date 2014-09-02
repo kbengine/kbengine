@@ -1,6 +1,8 @@
 import datetime
 import warnings
+import weakref
 import unittest
+from itertools import product
 
 
 class Test_Assertions(unittest.TestCase):
@@ -32,6 +34,10 @@ class Test_Assertions(unittest.TestCase):
         self.assertAlmostEqual(1.0, 1.1, delta=0.5)
         self.assertNotAlmostEqual(1.1, 1.0, delta=0.05)
         self.assertNotAlmostEqual(1.0, 1.1, delta=0.05)
+
+        self.assertAlmostEqual(1.0, 1.0, delta=0.5)
+        self.assertRaises(self.failureException, self.assertNotAlmostEqual,
+                          1.0, 1.0, delta=0.5)
 
         self.assertRaises(self.failureException, self.assertAlmostEqual,
                           1.1, 1.0, delta=0.05)
@@ -92,6 +98,36 @@ class Test_Assertions(unittest.TestCase):
         else:
             self.fail("assertRaises() didn't let exception pass through")
 
+    def test_assertRaises_frames_survival(self):
+        # Issue #9815: assertRaises should avoid keeping local variables
+        # in a traceback alive.
+        class A:
+            pass
+        wr = None
+
+        class Foo(unittest.TestCase):
+
+            def foo(self):
+                nonlocal wr
+                a = A()
+                wr = weakref.ref(a)
+                try:
+                    raise IOError
+                except IOError:
+                    raise ValueError
+
+            def test_functional(self):
+                self.assertRaises(ValueError, self.foo)
+
+            def test_with(self):
+                with self.assertRaises(ValueError):
+                    self.foo()
+
+        Foo("test_functional").run()
+        self.assertIsNone(wr())
+        Foo("test_with").run()
+        self.assertIsNone(wr())
+
     def testAssertNotRegex(self):
         self.assertNotRegex('Ala ma kota', r'r+')
         try:
@@ -145,6 +181,14 @@ class TestLongMessage(unittest.TestCase):
         self.testableTrue._formatMessage(one, '\uFFFD')
 
     def assertMessages(self, methodName, args, errors):
+        """
+        Check that methodName(*args) raises the correct error messages.
+        errors should be a list of 4 regex that match the error when:
+          1) longMessage = False and no msg passed;
+          2) longMessage = False and msg passed;
+          3) longMessage = True and no msg passed;
+          4) longMessage = True and msg passed;
+        """
         def getMethod(i):
             useTestableFalse  = i < 2
             if useTestableFalse:
@@ -284,3 +328,71 @@ class TestLongMessage(unittest.TestCase):
                             ["^unexpectedly identical: None$", "^oops$",
                              "^unexpectedly identical: None$",
                              "^unexpectedly identical: None : oops$"])
+
+
+    def assertMessagesCM(self, methodName, args, func, errors):
+        """
+        Check that the correct error messages are raised while executing:
+          with method(*args):
+              func()
+        *errors* should be a list of 4 regex that match the error when:
+          1) longMessage = False and no msg passed;
+          2) longMessage = False and msg passed;
+          3) longMessage = True and no msg passed;
+          4) longMessage = True and msg passed;
+        """
+        p = product((self.testableFalse, self.testableTrue),
+                    ({}, {"msg": "oops"}))
+        for (cls, kwargs), err in zip(p, errors):
+            method = getattr(cls, methodName)
+            with self.assertRaisesRegex(cls.failureException, err):
+                with method(*args, **kwargs) as cm:
+                    func()
+
+    def testAssertRaises(self):
+        self.assertMessagesCM('assertRaises', (TypeError,), lambda: None,
+                              ['^TypeError not raised$', '^oops$',
+                               '^TypeError not raised$',
+                               '^TypeError not raised : oops$'])
+
+    def testAssertRaisesRegex(self):
+        # test error not raised
+        self.assertMessagesCM('assertRaisesRegex', (TypeError, 'unused regex'),
+                              lambda: None,
+                              ['^TypeError not raised$', '^oops$',
+                               '^TypeError not raised$',
+                               '^TypeError not raised : oops$'])
+        # test error raised but with wrong message
+        def raise_wrong_message():
+            raise TypeError('foo')
+        self.assertMessagesCM('assertRaisesRegex', (TypeError, 'regex'),
+                              raise_wrong_message,
+                              ['^"regex" does not match "foo"$', '^oops$',
+                               '^"regex" does not match "foo"$',
+                               '^"regex" does not match "foo" : oops$'])
+
+    def testAssertWarns(self):
+        self.assertMessagesCM('assertWarns', (UserWarning,), lambda: None,
+                              ['^UserWarning not triggered$', '^oops$',
+                               '^UserWarning not triggered$',
+                               '^UserWarning not triggered : oops$'])
+
+    def testAssertWarnsRegex(self):
+        # test error not raised
+        self.assertMessagesCM('assertWarnsRegex', (UserWarning, 'unused regex'),
+                              lambda: None,
+                              ['^UserWarning not triggered$', '^oops$',
+                               '^UserWarning not triggered$',
+                               '^UserWarning not triggered : oops$'])
+        # test warning raised but with wrong message
+        def raise_wrong_message():
+            warnings.warn('foo')
+        self.assertMessagesCM('assertWarnsRegex', (UserWarning, 'regex'),
+                              raise_wrong_message,
+                              ['^"regex" does not match "foo"$', '^oops$',
+                               '^"regex" does not match "foo"$',
+                               '^"regex" does not match "foo" : oops$'])
+
+
+if __name__ == "__main__":
+    unittest.main()

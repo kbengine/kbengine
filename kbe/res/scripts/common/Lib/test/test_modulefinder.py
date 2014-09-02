@@ -1,7 +1,9 @@
-import __future__
 import os
+import errno
+import importlib.machinery
+import py_compile
+import shutil
 import unittest
-import distutils.dir_util
 import tempfile
 
 from test import support
@@ -9,7 +11,7 @@ from test import support
 import modulefinder
 
 TEST_DIR = tempfile.mkdtemp()
-TEST_PATH = [TEST_DIR, os.path.dirname(__future__.__file__)]
+TEST_PATH = [TEST_DIR, os.path.dirname(tempfile.__file__)]
 
 # Each test description is a list of 5 items:
 #
@@ -196,11 +198,36 @@ a/module.py
                                 from . import bar
 """]
 
+relative_import_test_4 = [
+    "a.module",
+    ["a", "a.module"],
+    [],
+    [],
+    """\
+a/__init__.py
+                                def foo(): pass
+a/module.py
+                                from . import *
+"""]
+
+bytecode_test = [
+    "a",
+    ["a"],
+    [],
+    [],
+    ""
+]
+
+
 def open_file(path):
-    ##print "#", os.path.abspath(path)
     dirname = os.path.dirname(path)
-    distutils.dir_util.mkpath(dirname)
+    try:
+        os.makedirs(dirname)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     return open(path, "w")
+
 
 def create_package(source):
     ofi = None
@@ -215,6 +242,7 @@ def create_package(source):
     finally:
         if ofi:
             ofi.close()
+
 
 class ModuleFinderTest(unittest.TestCase):
     def _do_test(self, info, report=False):
@@ -234,19 +262,17 @@ class ModuleFinderTest(unittest.TestCase):
 ##                    import traceback; traceback.print_exc()
 ##                sys.path = opath
 ##                return
-            modules = set(modules)
-            found = set(mf.modules.keys())
-            more = list(found - modules)
-            less = list(modules - found)
+            modules = sorted(set(modules))
+            found = sorted(mf.modules)
             # check if we found what we expected, not more, not less
-            self.assertEqual((more, less), ([], []))
+            self.assertEqual(found, modules)
 
             # check for missing and maybe missing modules
             bad, maybe = mf.any_missing_maybe()
             self.assertEqual(bad, missing)
             self.assertEqual(maybe, maybe_missing)
         finally:
-            distutils.dir_util.remove_tree(TEST_DIR)
+            shutil.rmtree(TEST_DIR)
 
     def test_package(self):
         self._do_test(package_test)
@@ -254,25 +280,36 @@ class ModuleFinderTest(unittest.TestCase):
     def test_maybe(self):
         self._do_test(maybe_test)
 
-    if getattr(__future__, "absolute_import", None):
+    def test_maybe_new(self):
+        self._do_test(maybe_test_new)
 
-        def test_maybe_new(self):
-            self._do_test(maybe_test_new)
+    def test_absolute_imports(self):
+        self._do_test(absolute_import_test)
 
-        def test_absolute_imports(self):
-            self._do_test(absolute_import_test)
+    def test_relative_imports(self):
+        self._do_test(relative_import_test)
 
-        def test_relative_imports(self):
-            self._do_test(relative_import_test)
+    def test_relative_imports_2(self):
+        self._do_test(relative_import_test_2)
 
-        def test_relative_imports_2(self):
-            self._do_test(relative_import_test_2)
+    def test_relative_imports_3(self):
+        self._do_test(relative_import_test_3)
 
-        def test_relative_imports_3(self):
-            self._do_test(relative_import_test_3)
+    def test_relative_imports_4(self):
+        self._do_test(relative_import_test_4)
+
+    def test_bytecode(self):
+        base_path = os.path.join(TEST_DIR, 'a')
+        source_path = base_path + importlib.machinery.SOURCE_SUFFIXES[0]
+        bytecode_path = base_path + importlib.machinery.BYTECODE_SUFFIXES[0]
+        with open_file(source_path) as file:
+            file.write('testing_modulefinder = True\n')
+        py_compile.compile(source_path, cfile=bytecode_path)
+        os.remove(source_path)
+        self._do_test(bytecode_test)
+
 
 def test_main():
-    distutils.log.set_threshold(distutils.log.WARN)
     support.run_unittest(ModuleFinderTest)
 
 if __name__ == "__main__":

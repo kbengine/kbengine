@@ -35,7 +35,9 @@ NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 WITH THE USE OR PERFORMANCE OF THIS SOFTWARE !
 """
 
-import sys, time, operator, platform
+import sys
+import time
+import platform
 from CommandLine import *
 
 try:
@@ -73,11 +75,15 @@ ALLOW_SKIPPING_CALIBRATION = 1
 
 # Timer types
 TIMER_TIME_TIME = 'time.time'
+TIMER_TIME_PROCESS_TIME = 'time.process_time'
+TIMER_TIME_PERF_COUNTER = 'time.perf_counter'
 TIMER_TIME_CLOCK = 'time.clock'
 TIMER_SYSTIMES_PROCESSTIME = 'systimes.processtime'
 
 # Choose platform default timer
-if sys.platform[:3] == 'win':
+if hasattr(time, 'perf_counter'):
+    TIMER_PLATFORM_DEFAULT = TIMER_TIME_PERF_COUNTER
+elif sys.platform[:3] == 'win':
     # On WinXP this has 2.5ms resolution
     TIMER_PLATFORM_DEFAULT = TIMER_TIME_CLOCK
 else:
@@ -93,6 +99,10 @@ def get_timer(timertype):
 
     if timertype == TIMER_TIME_TIME:
         return time.time
+    elif timertype == TIMER_TIME_PROCESS_TIME:
+        return time.process_time
+    elif timertype == TIMER_TIME_PERF_COUNTER:
+        return time.perf_counter
     elif timertype == TIMER_TIME_CLOCK:
         return time.clock
     elif timertype == TIMER_SYSTIMES_PROCESSTIME:
@@ -107,6 +117,7 @@ def get_machine_details():
         print('Getting machine details...')
     buildno, builddate = platform.python_build()
     python = platform.python_version()
+    # XXX this is now always UCS4, maybe replace it with 'PEP393' in 3.3+?
     if sys.maxunicode == 65535:
         # UCS2 build (standard)
         unitype = 'UCS2'
@@ -865,7 +876,18 @@ python pybench.py -s p25.pybench -c p21.pybench
             print('* using timer: systimes.processtime (%s)' % \
                   systimes.SYSTIMES_IMPLEMENTATION)
         else:
+            # Check that the clock function does exist
+            try:
+                get_timer(timer)
+            except TypeError:
+                print("* Error: Unknown timer: %s" % timer)
+                return
+
             print('* using timer: %s' % timer)
+            if hasattr(time, 'get_clock_info'):
+                info = time.get_clock_info(timer[5:])
+                print('* timer: resolution=%s, implementation=%s'
+                      % (info.resolution, info.implementation))
 
         print()
 
@@ -942,8 +964,6 @@ python pybench.py -s p25.pybench -c p21.pybench
                 bench.name = reportfile
                 pickle.dump(bench,f)
                 f.close()
-            except IOError as reason:
-                print('* Error opening/writing reportfile')
             except IOError as reason:
                 print('* Error opening/writing reportfile %s: %s' % (
                     reportfile,

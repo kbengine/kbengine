@@ -24,11 +24,7 @@ TIMEOUT_MAX = 2**31
 # imports are done when needed on a function-by-function basis.  Since threads
 # are disabled, the import lock should not be an issue anyway (??).
 
-class error(Exception):
-    """Dummy implementation of _thread.error."""
-
-    def __init__(self, *args):
-        self.args = args
+error = RuntimeError
 
 def start_new_thread(function, args, kwargs={}):
     """Dummy implementation of _thread.start_new_thread().
@@ -84,6 +80,10 @@ def stack_size(size=None):
     if size is not None:
         raise error("setting thread stack size not supported")
     return 0
+
+def _set_sentinel():
+    """Dummy implementation of _thread._set_sentinel()."""
+    return LockType()
 
 class LockType(object):
     """Class implementing dummy implementation of _thread.LockType.

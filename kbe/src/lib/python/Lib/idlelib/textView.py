@@ -66,7 +66,7 @@ def view_file(parent, title, filename, encoding=None, modal=True):
     try:
         with open(filename, 'r', encoding=encoding) as file:
             contents = file.read()
-    except IOError:
+    except OSError:
         import tkinter.messagebox as tkMessageBox
         tkMessageBox.showerror(title='File Load Error',
                                message='Unable to load file %r .' % filename,
@@ -80,7 +80,8 @@ if __name__ == '__main__':
     root=Tk()
     root.title('textView test')
     filename = './textView.py'
-    text = file(filename, 'r').read()
+    with open(filename, 'r') as f:
+        text = f.read()
     btn1 = Button(root, text='view_text',
                   command=lambda:view_text(root, 'view_text', text))
     btn1.pack(side=LEFT)

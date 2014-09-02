@@ -14,36 +14,54 @@ them is constrained.  The type is specified at object creation time by using a
 :dfn:`type code`, which is a single character.  The following type codes are
 defined:
 
-+-----------+----------------+-------------------+-----------------------+
-| Type code | C Type         | Python Type       | Minimum size in bytes |
-+===========+================+===================+=======================+
-| ``'b'``   | signed char    | int               | 1                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'B'``   | unsigned char  | int               | 1                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'u'``   | Py_UNICODE     | Unicode character | 2 (see note)          |
-+-----------+----------------+-------------------+-----------------------+
-| ``'h'``   | signed short   | int               | 2                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'H'``   | unsigned short | int               | 2                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'i'``   | signed int     | int               | 2                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'I'``   | unsigned int   | int               | 2                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'l'``   | signed long    | int               | 4                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'L'``   | unsigned long  | int               | 4                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'f'``   | float          | float             | 4                     |
-+-----------+----------------+-------------------+-----------------------+
-| ``'d'``   | double         | float             | 8                     |
-+-----------+----------------+-------------------+-----------------------+
++-----------+--------------------+-------------------+-----------------------+-------+
+| Type code | C Type             | Python Type       | Minimum size in bytes | Notes |
++===========+====================+===================+=======================+=======+
+| ``'b'``   | signed char        | int               | 1                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'B'``   | unsigned char      | int               | 1                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'u'``   | Py_UNICODE         | Unicode character | 2                     | \(1)  |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'h'``   | signed short       | int               | 2                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'H'``   | unsigned short     | int               | 2                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'i'``   | signed int         | int               | 2                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'I'``   | unsigned int       | int               | 2                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'l'``   | signed long        | int               | 4                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'L'``   | unsigned long      | int               | 4                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'q'``   | signed long long   | int               | 8                     | \(2)  |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'Q'``   | unsigned long long | int               | 8                     | \(2)  |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'f'``   | float              | float             | 4                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
+| ``'d'``   | double             | float             | 8                     |       |
++-----------+--------------------+-------------------+-----------------------+-------+
 
-.. note::
+Notes:
 
-   The ``'u'`` typecode corresponds to Python's unicode character.  On narrow
-   Unicode builds this is 2-bytes, on wide builds this is 4-bytes.
+(1)
+   The ``'u'`` type code corresponds to Python's obsolete unicode character
+   (:c:type:`Py_UNICODE` which is :c:type:`wchar_t`). Depending on the
+   platform, it can be 16 bits or 32 bits.
+
+   ``'u'`` will be removed together with the rest of the :c:type:`Py_UNICODE`
+   API.
+
+   .. deprecated-removed:: 3.3 4.0
+
+(2)
+   The ``'q'`` and ``'Q'`` type codes are available only if
+   the platform C compiler used to build Python supports C :c:type:`long long`,
+   or, on Windows, :c:type:`__int64`.
+
+   .. versionadded:: 3.3
 
 The actual representation of values is determined by the machine architecture
 (strictly speaking, by the C implementation).  The actual size can be accessed
@@ -55,8 +73,8 @@ The module defines the following type:
 .. class:: array(typecode[, initializer])
 
    A new array whose items are restricted by *typecode*, and initialized
-   from the optional *initializer* value, which must be a list, object
-   supporting the buffer interface, or iterable over elements of the
+   from the optional *initializer* value, which must be a list, a
+   :term:`bytes-like object`, or iterable over elements of the
    appropriate type.
 
    If given a list or string, the initializer is passed to the new array's
@@ -73,7 +91,7 @@ Array objects support the ordinary sequence operations of indexing, slicing,
 concatenation, and multiplication.  When using slice assignment, the assigned
 value must be an array object with the same type code; in all other cases,
 :exc:`TypeError` is raised. Array objects also implement the buffer interface,
-and may be used wherever buffer objects are supported.
+and may be used wherever :term:`bytes-like object`\ s are supported.
 
 The following data items and methods are also supported:
 
@@ -253,9 +271,7 @@ Examples::
       Packing and unpacking of External Data Representation (XDR) data as used in some
       remote procedure call systems.
 
-   `The Numerical Python Manual <http://numpy.sourceforge.net/numdoc/HTML/numdoc.htm>`_
+   `The Numerical Python Documentation <http://docs.scipy.org/doc/>`_
       The Numeric Python extension (NumPy) defines another array type; see
-      http://numpy.sourceforge.net/ for further information about Numerical Python.
-      (A PDF version of the NumPy manual is available at
-      http://numpy.sourceforge.net/numdoc/numdoc.pdf).
+      http://www.numpy.org/ for further information about Numerical Python.
 

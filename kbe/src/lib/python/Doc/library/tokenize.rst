@@ -17,9 +17,11 @@ colorizers for on-screen displays.
 
 To simplify token stream handling, all :ref:`operators` and :ref:`delimiters`
 tokens are returned using the generic :data:`token.OP` token type.  The exact
-type can be determined by checking the token ``string`` field on the
-:term:`named tuple` returned from :func:`tokenize.tokenize` for the character
-sequence that identifies a specific operator token.
+type can be determined by checking the ``exact_type`` property on the
+:term:`named tuple` returned from :func:`tokenize.tokenize`.
+
+Tokenizing Input
+----------------
 
 The primary entry point is a :term:`generator`:
 
@@ -39,8 +41,16 @@ The primary entry point is a :term:`generator`:
    returned as a :term:`named tuple` with the field names:
    ``type string start end line``.
 
+   The returned :term:`named tuple` has a additional property named
+   ``exact_type`` that contains the exact operator type for
+   :data:`token.OP` tokens.  For all other token types ``exact_type``
+   equals the named tuple ``type`` field.
+
    .. versionchanged:: 3.1
       Added support for named tuples.
+
+   .. versionchanged:: 3.3
+      Added support for ``exact_type``.
 
    :func:`tokenize` determines the source encoding of the file by looking for a
    UTF-8 BOM or encoding cookie, according to :pep:`263`.
@@ -122,6 +132,38 @@ function it uses to do this is available:
    .. versionadded:: 3.2
 
 
+.. _tokenize-cli:
+
+Command-Line Usage
+------------------
+
+.. versionadded:: 3.3
+
+The :mod:`tokenize` module can be executed as a script from the command line.
+It is as simple as:
+
+.. code-block:: sh
+
+   python -m tokenize [-e] [filename.py]
+
+The following options are accepted:
+
+.. program:: tokenize
+
+.. cmdoption:: -h, --help
+
+   show this help message and exit
+
+.. cmdoption:: -e, --exact
+
+   display token names using the exact type
+
+If :file:`filename.py` is specified its contents are tokenized to stdout.
+Otherwise, tokenization is performed on stdin.
+
+Examples
+------------------
+
 Example of a script rewriter that transforms float literals into Decimal
 objects::
 
@@ -164,3 +206,63 @@ objects::
                 result.append((toknum, tokval))
         return untokenize(result).decode('utf-8')
 
+Example of tokenizing from the command line.  The script::
+
+    def say_hello():
+        print("Hello, World!")
+
+    say_hello()
+
+will be tokenized to the following output where the first column is the range
+of the line/column coordinates where the token is found, the second column is
+the name of the token, and the final column is the value of the token (if any)
+
+.. code-block:: sh
+
+    $ python -m tokenize hello.py
+    0,0-0,0:            ENCODING       'utf-8'
+    1,0-1,3:            NAME           'def'
+    1,4-1,13:           NAME           'say_hello'
+    1,13-1,14:          OP             '('
+    1,14-1,15:          OP             ')'
+    1,15-1,16:          OP             ':'
+    1,16-1,17:          NEWLINE        '\n'
+    2,0-2,4:            INDENT         '    '
+    2,4-2,9:            NAME           'print'
+    2,9-2,10:           OP             '('
+    2,10-2,25:          STRING         '"Hello, World!"'
+    2,25-2,26:          OP             ')'
+    2,26-2,27:          NEWLINE        '\n'
+    3,0-3,1:            NL             '\n'
+    4,0-4,0:            DEDENT         ''
+    4,0-4,9:            NAME           'say_hello'
+    4,9-4,10:           OP             '('
+    4,10-4,11:          OP             ')'
+    4,11-4,12:          NEWLINE        '\n'
+    5,0-5,0:            ENDMARKER      ''
+
+The exact token type names can be displayed using the ``-e`` option:
+
+.. code-block:: sh
+
+    $ python -m tokenize -e hello.py
+    0,0-0,0:            ENCODING       'utf-8'
+    1,0-1,3:            NAME           'def'
+    1,4-1,13:           NAME           'say_hello'
+    1,13-1,14:          LPAR           '('
+    1,14-1,15:          RPAR           ')'
+    1,15-1,16:          COLON          ':'
+    1,16-1,17:          NEWLINE        '\n'
+    2,0-2,4:            INDENT         '    '
+    2,4-2,9:            NAME           'print'
+    2,9-2,10:           LPAR           '('
+    2,10-2,25:          STRING         '"Hello, World!"'
+    2,25-2,26:          RPAR           ')'
+    2,26-2,27:          NEWLINE        '\n'
+    3,0-3,1:            NL             '\n'
+    4,0-4,0:            DEDENT         ''
+    4,0-4,9:            NAME           'say_hello'
+    4,9-4,10:           LPAR           '('
+    4,10-4,11:          RPAR           ')'
+    4,11-4,12:          NEWLINE        '\n'
+    5,0-5,0:            ENDMARKER      ''

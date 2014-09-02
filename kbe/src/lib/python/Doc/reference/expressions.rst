@@ -84,14 +84,13 @@ exception.
 definition begins with two or more underscore characters and does not end in two
 or more underscores, it is considered a :dfn:`private name` of that class.
 Private names are transformed to a longer form before code is generated for
-them.  The transformation inserts the class name in front of the name, with
-leading underscores removed, and a single underscore inserted in front of the
-class name.  For example, the identifier ``__spam`` occurring in a class named
-``Ham`` will be transformed to ``_Ham__spam``.  This transformation is
-independent of the syntactical context in which the identifier is used.  If the
-transformed name is extremely long (longer than 255 characters), implementation
-defined truncation may happen.  If the class name consists only of underscores,
-no transformation is done.
+them.  The transformation inserts the class name, with leading underscores
+removed and a single underscore inserted, in front of the name.  For example,
+the identifier ``__spam`` occurring in a class named ``Ham`` will be transformed
+to ``_Ham__spam``.  This transformation is independent of the syntactical
+context in which the identifier is used.  If the transformed name is extremely
+long (longer than 255 characters), implementation defined truncation may happen.
+If the class name consists only of underscores, no transformation is done.
 
 
 .. _atom-literals:
@@ -318,25 +317,27 @@ Yield expressions
 
 .. productionlist::
    yield_atom: "(" `yield_expression` ")"
-   yield_expression: "yield" [`expression_list`]
+   yield_expression: "yield" [`expression_list` | "from" `expression`]
 
-The :keyword:`yield` expression is only used when defining a generator function,
-and can only be used in the body of a function definition.  Using a
-:keyword:`yield` expression in a function definition is sufficient to cause that
-definition to create a generator function instead of a normal function.
+The yield expression is only used when defining a :term:`generator` function and
+thus can only be used in the body of a function definition.  Using a yield
+expression in a function's body causes that function to be a generator.
 
 When a generator function is called, it returns an iterator known as a
 generator.  That generator then controls the execution of a generator function.
 The execution starts when one of the generator's methods is called.  At that
-time, the execution proceeds to the first :keyword:`yield` expression, where it
-is suspended again, returning the value of :token:`expression_list` to
-generator's caller.  By suspended we mean that all local state is retained,
-including the current bindings of local variables, the instruction pointer, and
-the internal evaluation stack.  When the execution is resumed by calling one of
-the generator's methods, the function can proceed exactly as if the
-:keyword:`yield` expression was just another external call.  The value of the
-:keyword:`yield` expression after resuming depends on the method which resumed
-the execution.
+time, the execution proceeds to the first yield expression, where it is
+suspended again, returning the value of :token:`expression_list` to generator's
+caller.  By suspended, we mean that all local state is retained, including the
+current bindings of local variables, the instruction pointer, and the internal
+evaluation stack.  When the execution is resumed by calling one of the
+generator's methods, the function can proceed exactly as if the yield expression
+was just another external call.  The value of the yield expression after
+resuming depends on the method which resumed the execution.  If
+:meth:`~generator.__next__` is used (typically via either a :keyword:`for` or
+the :func:`next` builtin) then the result is :const:`None`.  Otherwise, if
+:meth:`~generator.send` is used, then the result will be the value passed in to
+that method.
 
 .. index:: single: coroutine
 
@@ -346,14 +347,47 @@ suspended.  The only difference is that a generator function cannot control
 where should the execution continue after it yields; the control is always
 transferred to the generator's caller.
 
-The :keyword:`yield` statement is allowed in the :keyword:`try` clause of a
-:keyword:`try` ...  :keyword:`finally` construct.  If the generator is not
-resumed before it is finalized (by reaching a zero reference count or by being
-garbage collected), the generator-iterator's :meth:`close` method will be
-called, allowing any pending :keyword:`finally` clauses to execute.
+yield expressions are allowed in the :keyword:`try` clause of a :keyword:`try`
+...  :keyword:`finally` construct.  If the generator is not resumed before it is
+finalized (by reaching a zero reference count or by being garbage collected),
+the generator-iterator's :meth:`~generator.close` method will be called,
+allowing any pending :keyword:`finally` clauses to execute.
+
+When ``yield from <expr>`` is used, it treats the supplied expression as
+a subiterator. All values produced by that subiterator are passed directly
+to the caller of the current generator's methods. Any values passed in with
+:meth:`~generator.send` and any exceptions passed in with
+:meth:`~generator.throw` are passed to the underlying iterator if it has the
+appropriate methods.  If this is not the case, then :meth:`~generator.send`
+will raise :exc:`AttributeError` or :exc:`TypeError`, while
+:meth:`~generator.throw` will just raise the passed in exception immediately.
+
+When the underlying iterator is complete, the :attr:`~StopIteration.value`
+attribute of the raised :exc:`StopIteration` instance becomes the value of
+the yield expression. It can be either set explicitly when raising
+:exc:`StopIteration`, or automatically when the sub-iterator is a generator
+(by returning a value from the sub-generator).
+
+   .. versionchanged:: 3.3
+      Added ``yield from <expr>`` to delegate control flow to a subiterator
+
+The parentheses may be omitted when the yield expression is the sole expression
+on the right hand side of an assignment statement.
+
+.. seealso::
+
+   :pep:`0255` - Simple Generators
+      The proposal for adding generators and the :keyword:`yield` statement to Python.
+
+   :pep:`0342` - Coroutines via Enhanced Generators
+      The proposal to enhance the API and syntax of generators, making them
+      usable as simple coroutines.
+
+   :pep:`0380` - Syntax for Delegating to a Subgenerator
+      The proposal to introduce the :token:`yield_from` syntax, making delegation
+      to sub-generators easy.
 
 .. index:: object: generator
-
 
 Generator-iterator methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -365,18 +399,18 @@ Note that calling any of the generator methods below when the generator
 is already executing raises a :exc:`ValueError` exception.
 
 .. index:: exception: StopIteration
+.. class:: generator
 
 
 .. method:: generator.__next__()
 
    Starts the execution of a generator function or resumes it at the last
-   executed :keyword:`yield` expression.  When a generator function is resumed
-   with a :meth:`~generator.__next__` method, the current :keyword:`yield`
-   expression always evaluates to :const:`None`.  The execution then continues
-   to the next :keyword:`yield` expression, where the generator is suspended
-   again, and the value of the :token:`expression_list` is returned to
-   :meth:`next`'s caller.
-   If the generator exits without yielding another value, a :exc:`StopIteration`
+   executed yield expression.  When a generator function is resumed with a
+   :meth:`~generator.__next__` method, the current yield expression always
+   evaluates to :const:`None`.  The execution then continues to the next yield
+   expression, where the generator is suspended again, and the value of the
+   :token:`expression_list` is returned to :meth:`next`'s caller.  If the
+   generator exits without yielding another value, a :exc:`StopIteration`
    exception is raised.
 
    This method is normally called implicitly, e.g. by a :keyword:`for` loop, or
@@ -386,12 +420,12 @@ is already executing raises a :exc:`ValueError` exception.
 .. method:: generator.send(value)
 
    Resumes the execution and "sends" a value into the generator function.  The
-   ``value`` argument becomes the result of the current :keyword:`yield`
-   expression.  The :meth:`send` method returns the next value yielded by the
-   generator, or raises :exc:`StopIteration` if the generator exits without
-   yielding another value.  When :meth:`send` is called to start the generator,
-   it must be called with :const:`None` as the argument, because there is no
-   :keyword:`yield` expression that could receive the value.
+   *value* argument becomes the result of the current yield expression.  The
+   :meth:`send` method returns the next value yielded by the generator, or
+   raises :exc:`StopIteration` if the generator exits without yielding another
+   value.  When :meth:`send` is called to start the generator, it must be called
+   with :const:`None` as the argument, because there is no yield expression that
+   could receive the value.
 
 
 .. method:: generator.throw(type[, value[, traceback]])
@@ -414,6 +448,13 @@ is already executing raises a :exc:`ValueError` exception.
    yields a value, a :exc:`RuntimeError` is raised.  If the generator raises any
    other exception, it is propagated to the caller.  :meth:`close` does nothing
    if the generator has already exited due to an exception or normal exit.
+
+.. class:: .
+
+.. index:: single: yield; examples
+
+Examples
+^^^^^^^^
 
 Here is a simple example that demonstrates the behavior of generators and
 generator functions::
@@ -442,15 +483,8 @@ generator functions::
    >>> generator.close()
    Don't forget to clean up when 'close()' is called.
 
-
-.. seealso::
-
-   :pep:`0255` - Simple Generators
-      The proposal for adding generators and the :keyword:`yield` statement to Python.
-
-   :pep:`0342` - Coroutines via Enhanced Generators
-      The proposal to enhance the API and syntax of generators, making them
-      usable as simple coroutines.
+For examples using ``yield from``, see :ref:`pep-380` in "What's New in
+Python."
 
 
 .. _primaries:
@@ -594,10 +628,10 @@ follows.  If the slice list contains at least one comma, the key is a tuple
 containing the conversion of the slice items; otherwise, the conversion of the
 lone slice item is the key.  The conversion of a slice item that is an
 expression is that expression.  The conversion of a proper slice is a slice
-object (see section :ref:`types`) whose :attr:`start`, :attr:`stop` and
-:attr:`step` attributes are the values of the expressions given as lower bound,
-upper bound and stride, respectively, substituting ``None`` for missing
-expressions.
+object (see section :ref:`types`) whose :attr:`~slice.start`,
+:attr:`~slice.stop` and :attr:`~slice.step` attributes are the values of the
+expressions given as lower bound, upper bound and stride, respectively,
+substituting ``None`` for missing expressions.
 
 
 .. index::
@@ -876,7 +910,7 @@ repetition is performed; a negative repetition factor yields an empty sequence.
 
 The ``/`` (division) and ``//`` (floor division) operators yield the quotient of
 their arguments.  The numeric arguments are first converted to a common type.
-Integer division yields a float, while floor division of integers results in an
+Division of integers yields a float, while floor division of integers results in an
 integer; the result is that of mathematical division with the 'floor' function
 applied to the result.  Division by zero raises the :exc:`ZeroDivisionError`
 exception.
@@ -936,8 +970,8 @@ the left or right by the number of bits given by the second argument.
 
 .. index:: exception: ValueError
 
-A right shift by *n* bits is defined as division by ``pow(2,n)``.  A left shift
-by *n* bits is defined as multiplication with ``pow(2,n)``.
+A right shift by *n* bits is defined as floor division by ``pow(2,n)``.  A left
+shift by *n* bits is defined as multiplication with ``pow(2,n)``.
 
 .. note::
 
@@ -1182,8 +1216,8 @@ Conditional expressions
 
 .. productionlist::
    conditional_expression: `or_test` ["if" `or_test` "else" `expression`]
-   expression: `conditional_expression` | `lambda_form`
-   expression_nocond: `or_test` | `lambda_form_nocond`
+   expression: `conditional_expression` | `lambda_expr`
+   expression_nocond: `or_test` | `lambda_expr_nocond`
 
 Conditional expressions (sometimes called a "ternary operator") have the lowest
 priority of all Python operations.
@@ -1207,10 +1241,10 @@ Lambdas
    pair: anonymous; function
 
 .. productionlist::
-   lambda_form: "lambda" [`parameter_list`]: `expression`
-   lambda_form_nocond: "lambda" [`parameter_list`]: `expression_nocond`
+   lambda_expr: "lambda" [`parameter_list`]: `expression`
+   lambda_expr_nocond: "lambda" [`parameter_list`]: `expression_nocond`
 
-Lambda forms (lambda expressions) have the same syntactic position as
+Lambda expressions (sometimes called lambda forms) have the same syntactic position as
 expressions.  They are a shorthand to create anonymous functions; the expression
 ``lambda arguments: expression`` yields a function object.  The unnamed object
 behaves like a function object defined with ::
@@ -1219,7 +1253,8 @@ behaves like a function object defined with ::
        return expression
 
 See section :ref:`function` for the syntax of parameter lists.  Note that
-functions created with lambda forms cannot contain statements or annotations.
+functions created with lambda expressions cannot contain statements or
+annotations.
 
 
 .. _exprlists:
@@ -1298,7 +1333,7 @@ groups from right to left).
 | :keyword:`not` ``x``                          | Boolean NOT                         |
 +-----------------------------------------------+-------------------------------------+
 | :keyword:`in`, :keyword:`not in`,             | Comparisons, including membership   |
-| :keyword:`is`, :keyword:`is not`, ``<``,      | tests and identity tests,           |
+| :keyword:`is`, :keyword:`is not`, ``<``,      | tests and identity tests            |
 | ``<=``, ``>``, ``>=``, ``!=``, ``==``         |                                     |
 +-----------------------------------------------+-------------------------------------+
 | ``|``                                         | Bitwise OR                          |

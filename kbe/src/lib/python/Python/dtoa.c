@@ -204,7 +204,24 @@ typedef union { double d; ULong L[2]; } U;
    MAX_ABS_EXP in absolute value get truncated to +-MAX_ABS_EXP.  MAX_ABS_EXP
    should fit into an int. */
 #ifndef MAX_ABS_EXP
-#define MAX_ABS_EXP 19999U
+#define MAX_ABS_EXP 1100000000U
+#endif
+/* Bound on length of pieces of input strings in _Py_dg_strtod; specifically,
+   this is used to bound the total number of digits ignoring leading zeros and
+   the number of digits that follow the decimal point.  Ideally, MAX_DIGITS
+   should satisfy MAX_DIGITS + 400 < MAX_ABS_EXP; that ensures that the
+   exponent clipping in _Py_dg_strtod can't affect the value of the output. */
+#ifndef MAX_DIGITS
+#define MAX_DIGITS 1000000000U
+#endif
+
+/* Guard against trying to use the above values on unusual platforms with ints
+ * of width less than 32 bits. */
+#if MAX_ABS_EXP > INT_MAX
+#error "MAX_ABS_EXP should fit in an int"
+#endif
+#if MAX_DIGITS > INT_MAX
+#error "MAX_DIGITS should fit in an int"
 #endif
 
 /* The following definition of Storeinc is appropriate for MIPS processors.
@@ -264,6 +281,16 @@ typedef union { double d; ULong L[2]; } U;
 
 #define Big0 (Frac_mask1 | Exp_msk1*(DBL_MAX_EXP+Bias-1))
 #define Big1 0xffffffff
+
+/* Standard NaN used by _Py_dg_stdnan. */
+
+#define NAN_WORD0 0x7ff80000
+#define NAN_WORD1 0
+
+/* Bits of the representation of positive infinity. */
+
+#define POSINF_WORD0 0x7ff00000
+#define POSINF_WORD1 0
 
 /* struct BCinfo is used to pass information from _Py_dg_strtod to bigcomp */
 
@@ -1486,6 +1513,36 @@ bigcomp(U *rv, const char *s0, BCinfo *bc)
     return 0;
 }
 
+/* Return a 'standard' NaN value.
+
+   There are exactly two quiet NaNs that don't arise by 'quieting' signaling
+   NaNs (see IEEE 754-2008, section 6.2.1).  If sign == 0, return the one whose
+   sign bit is cleared.  Otherwise, return the one whose sign bit is set.
+*/
+
+double
+_Py_dg_stdnan(int sign)
+{
+    U rv;
+    word0(&rv) = NAN_WORD0;
+    word1(&rv) = NAN_WORD1;
+    if (sign)
+        word0(&rv) |= Sign_bit;
+    return dval(&rv);
+}
+
+/* Return positive or negative infinity, according to the given sign (0 for
+ * positive infinity, 1 for negative infinity). */
+
+double
+_Py_dg_infinity(int sign)
+{
+    U rv;
+    word0(&rv) = POSINF_WORD0;
+    word1(&rv) = POSINF_WORD1;
+    return sign ? -dval(&rv) : dval(&rv);
+}
+
 double
 _Py_dg_strtod(const char *s00, char **se)
 {
@@ -1498,6 +1555,7 @@ _Py_dg_strtod(const char *s00, char **se)
     Long L;
     BCinfo bc;
     Bigint *bb, *bb1, *bd, *bd0, *bs, *delta;
+    size_t ndigits, fraclen;
 
     dval(&rv) = 0.;
 
@@ -1520,39 +1578,52 @@ _Py_dg_strtod(const char *s00, char **se)
         c = *++s;
     lz = s != s1;
 
-    /* Point s0 at the first nonzero digit (if any).  nd0 will be the position
-       of the point relative to s0.  nd will be the total number of digits
-       ignoring leading zeros. */
+    /* Point s0 at the first nonzero digit (if any).  fraclen will be the
+       number of digits between the decimal point and the end of the
+       digit string.  ndigits will be the total number of digits ignoring
+       leading zeros. */
     s0 = s1 = s;
     while ('0' <= c && c <= '9')
         c = *++s;
-    nd0 = nd = s - s1;
+    ndigits = s - s1;
+    fraclen = 0;
 
     /* Parse decimal point and following digits. */
     if (c == '.') {
         c = *++s;
-        if (!nd) {
+        if (!ndigits) {
             s1 = s;
             while (c == '0')
                 c = *++s;
             lz = lz || s != s1;
-            nd0 -= s - s1;
+            fraclen += (s - s1);
             s0 = s;
         }
         s1 = s;
         while ('0' <= c && c <= '9')
             c = *++s;
-        nd += s - s1;
+        ndigits += s - s1;
+        fraclen += s - s1;
     }
 
-    /* Now lz is true if and only if there were leading zero digits, and nd
-       gives the total number of digits ignoring leading zeros.  A valid input
-       must have at least one digit. */
-    if (!nd && !lz) {
+    /* Now lz is true if and only if there were leading zero digits, and
+       ndigits gives the total number of digits ignoring leading zeros.  A
+       valid input must have at least one digit. */
+    if (!ndigits && !lz) {
         if (se)
             *se = (char *)s00;
         goto parse_error;
     }
+
+    /* Range check ndigits and fraclen to make sure that they, and values
+       computed with them, can safely fit in an int. */
+    if (ndigits > MAX_DIGITS || fraclen > MAX_DIGITS) {
+        if (se)
+            *se = (char *)s00;
+        goto parse_error;
+    }
+    nd = (int)ndigits;
+    nd0 = (int)ndigits - (int)fraclen;
 
     /* Parse exponent. */
     e = 0;
@@ -1886,20 +1957,20 @@ _Py_dg_strtod(const char *s00, char **se)
         bd2++;
 
         /* At this stage bd5 - bb5 == e == bd2 - bb2 + bbe, bb2 - bs2 == 1,
-	   and bs == 1, so:
+           and bs == 1, so:
 
               tdv == bd * 10**e = bd * 2**(bbe - bb2 + bd2) * 5**(bd5 - bb5)
               srv == bb * 2**bbe = bb * 2**(bbe - bb2 + bb2)
-	      0.5 ulp(srv) == 2**(bbe-1) = bs * 2**(bbe - bb2 + bs2)
+              0.5 ulp(srv) == 2**(bbe-1) = bs * 2**(bbe - bb2 + bs2)
 
-	   It follows that:
+           It follows that:
 
               M * tdv = bd * 2**bd2 * 5**bd5
               M * srv = bb * 2**bb2 * 5**bb5
               M * 0.5 ulp(srv) = bs * 2**bs2 * 5**bb5
 
-	   for some constant M.  (Actually, M == 2**(bb2 - bbe) * 5**bb5, but
-	   this fact is not needed below.)
+           for some constant M.  (Actually, M == 2**(bb2 - bbe) * 5**bb5, but
+           this fact is not needed below.)
         */
 
         /* Remove factor of 2**i, where i = min(bb2, bd2, bs2). */
@@ -2055,7 +2126,7 @@ _Py_dg_strtod(const char *s00, char **se)
                         + Exp_msk1
                         ;
                     word1(&rv) = 0;
-                    dsign = 0;
+                    /* dsign = 0; */
                     break;
                 }
             }
@@ -2092,7 +2163,7 @@ _Py_dg_strtod(const char *s00, char **se)
                     goto undfl;
                 }
             }
-            dsign = 1 - dsign;
+            /* dsign = 1 - dsign; */
             break;
         }
         if ((aadj = ratio(delta, bs)) <= 2.) {

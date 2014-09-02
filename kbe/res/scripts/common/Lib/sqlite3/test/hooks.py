@@ -1,4 +1,4 @@
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 # pysqlite2/test/hooks.py: tests for various SQLite-specific hooks
 #
 # Copyright (C) 2006-2007 Gerhard Häring <gh@ghaering.de>
@@ -162,7 +162,7 @@ class ProgressTests(unittest.TestCase):
             create table bar (a, b)
             """)
         second_count = len(progress_calls)
-        self.assertTrue(first_count > second_count)
+        self.assertGreaterEqual(first_count, second_count)
 
     def CheckCancelOperation(self):
         """
@@ -195,10 +195,60 @@ class ProgressTests(unittest.TestCase):
         con.execute("select 1 union select 2 union select 3").fetchall()
         self.assertEqual(action, 0, "progress handler was not cleared")
 
+class TraceCallbackTests(unittest.TestCase):
+    def CheckTraceCallbackUsed(self):
+        """
+        Test that the trace callback is invoked once it is set.
+        """
+        con = sqlite.connect(":memory:")
+        traced_statements = []
+        def trace(statement):
+            traced_statements.append(statement)
+        con.set_trace_callback(trace)
+        con.execute("create table foo(a, b)")
+        self.assertTrue(traced_statements)
+        self.assertTrue(any("create table foo" in stmt for stmt in traced_statements))
+
+    def CheckClearTraceCallback(self):
+        """
+        Test that setting the trace callback to None clears the previously set callback.
+        """
+        con = sqlite.connect(":memory:")
+        traced_statements = []
+        def trace(statement):
+            traced_statements.append(statement)
+        con.set_trace_callback(trace)
+        con.set_trace_callback(None)
+        con.execute("create table foo(a, b)")
+        self.assertFalse(traced_statements, "trace callback was not cleared")
+
+    def CheckUnicodeContent(self):
+        """
+        Test that the statement can contain unicode literals.
+        """
+        unicode_value = '\xf6\xe4\xfc\xd6\xc4\xdc\xdf\u20ac'
+        con = sqlite.connect(":memory:")
+        traced_statements = []
+        def trace(statement):
+            traced_statements.append(statement)
+        con.set_trace_callback(trace)
+        con.execute("create table foo(x)")
+        # Can't execute bound parameters as their values don't appear
+        # in traced statements before SQLite 3.6.21
+        # (cf. http://www.sqlite.org/draft/releaselog/3_6_21.html)
+        con.execute('insert into foo(x) values ("%s")' % unicode_value)
+        con.commit()
+        self.assertTrue(any(unicode_value in stmt for stmt in traced_statements),
+                        "Unicode data %s garbled in trace callback: %s"
+                        % (ascii(unicode_value), ', '.join(map(ascii, traced_statements))))
+
+
+
 def suite():
     collation_suite = unittest.makeSuite(CollationTests, "Check")
     progress_suite = unittest.makeSuite(ProgressTests, "Check")
-    return unittest.TestSuite((collation_suite, progress_suite))
+    trace_suite = unittest.makeSuite(TraceCallbackTests, "Check")
+    return unittest.TestSuite((collation_suite, progress_suite, trace_suite))
 
 def test():
     runner = unittest.TextTestRunner()

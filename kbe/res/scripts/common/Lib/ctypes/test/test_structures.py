@@ -83,7 +83,7 @@ class StructureTestCase(unittest.TestCase):
         class Y(Structure):
             _fields_ = [("x", c_char * 3),
                         ("y", c_int)]
-        self.assertEqual(alignment(Y), calcsize("i"))
+        self.assertEqual(alignment(Y), alignment(c_int))
         self.assertEqual(sizeof(Y), calcsize("3si"))
 
         class SI(Structure):
@@ -108,7 +108,7 @@ class StructureTestCase(unittest.TestCase):
     def test_emtpy(self):
         # I had problems with these
         #
-        # Although these are patological cases: Empty Structures!
+        # Although these are pathological cases: Empty Structures!
         class X(Structure):
             _fields_ = []
 
@@ -175,13 +175,6 @@ class StructureTestCase(unittest.TestCase):
         self.assertEqual(sizeof(X), 10)
         self.assertEqual(X.b.offset, 2)
 
-        class X(Structure):
-            _fields_ = [("a", c_byte),
-                        ("b", c_longlong)]
-            _pack_ = 4
-        self.assertEqual(sizeof(X), 12)
-        self.assertEqual(X.b.offset, 4)
-
         import struct
         longlong_size = struct.calcsize("q")
         longlong_align = struct.calcsize("bq") - longlong_size
@@ -189,9 +182,16 @@ class StructureTestCase(unittest.TestCase):
         class X(Structure):
             _fields_ = [("a", c_byte),
                         ("b", c_longlong)]
+            _pack_ = 4
+        self.assertEqual(sizeof(X), min(4, longlong_align) + longlong_size)
+        self.assertEqual(X.b.offset, min(4, longlong_align))
+
+        class X(Structure):
+            _fields_ = [("a", c_byte),
+                        ("b", c_longlong)]
             _pack_ = 8
 
-        self.assertEqual(sizeof(X), longlong_align + longlong_size)
+        self.assertEqual(sizeof(X), min(8, longlong_align) + longlong_size)
         self.assertEqual(X.b.offset, min(8, longlong_align))
 
 
@@ -374,9 +374,9 @@ class StructureTestCase(unittest.TestCase):
 ##        class X(Structure):
 ##            _fields_ = []
 
-        self.assertTrue("in_dll" in dir(type(Structure)))
-        self.assertTrue("from_address" in dir(type(Structure)))
-        self.assertTrue("in_dll" in dir(type(Structure)))
+        self.assertIn("in_dll", dir(type(Structure)))
+        self.assertIn("from_address", dir(type(Structure)))
+        self.assertIn("in_dll", dir(type(Structure)))
 
     def test_positional_args(self):
         # see also http://bugs.python.org/issue5042
@@ -446,8 +446,8 @@ class TestRecursiveStructure(unittest.TestCase):
         try:
             Recursive._fields_ = [("next", Recursive)]
         except AttributeError as details:
-            self.assertTrue("Structure or union cannot contain itself" in
-                            str(details))
+            self.assertIn("Structure or union cannot contain itself",
+                          str(details))
         else:
             self.fail("Structure or union cannot contain itself")
 
@@ -463,8 +463,7 @@ class TestRecursiveStructure(unittest.TestCase):
         try:
             Second._fields_ = [("first", First)]
         except AttributeError as details:
-            self.assertTrue("_fields_ is final" in
-                            str(details))
+            self.assertIn("_fields_ is final", str(details))
         else:
             self.fail("AttributeError not raised")
 

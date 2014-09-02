@@ -45,7 +45,8 @@ class UserDictTest(mapping_tests.TestHashMappingProtocol):
         # Test __repr__
         self.assertEqual(str(u0), str(d0))
         self.assertEqual(repr(u1), repr(d1))
-        self.assertEqual(repr(u2), repr(d2))
+        self.assertIn(repr(u2), ("{'one': 1, 'two': 2}",
+                                 "{'two': 2, 'one': 1}"))
 
         # Test rich comparison and __len__
         all = [d0, d1, d2, u, u0, u1, u2, uu, uu0, uu1, uu2]
@@ -89,9 +90,9 @@ class UserDictTest(mapping_tests.TestHashMappingProtocol):
         self.assertNotEqual(m2a, m2)
 
         # Test keys, items, values
-        self.assertEqual(u2.keys(), d2.keys())
-        self.assertEqual(u2.items(), d2.items())
-        self.assertEqual(list(u2.values()), list(d2.values()))
+        self.assertEqual(sorted(u2.keys()), sorted(d2.keys()))
+        self.assertEqual(sorted(u2.items()), sorted(d2.items()))
+        self.assertEqual(sorted(u2.values()), sorted(d2.values()))
 
         # Test "in".
         for i in u2.keys():

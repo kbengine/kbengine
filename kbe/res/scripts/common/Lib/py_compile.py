@@ -3,16 +3,13 @@
 This module has intimate knowledge of the format of .pyc files.
 """
 
-import builtins
-import errno
-import imp
-import marshal
+import importlib._bootstrap
+import importlib.machinery
+import importlib.util
 import os
+import os.path
 import sys
-import tokenize
 import traceback
-
-MAGIC = imp.get_magic()
 
 __all__ = ["compile", "main", "PyCompileError"]
 
@@ -65,13 +62,6 @@ class PyCompileError(Exception):
         return self.msg
 
 
-def wr_long(f, x):
-    """Internal; write a 32-bit int to a file in little-endian order."""
-    f.write(bytes([x         & 0xff,
-                   (x >> 8)  & 0xff,
-                   (x >> 16) & 0xff,
-                   (x >> 24) & 0xff]))
-
 def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     """Byte-compile one Python source file to Python bytecode.
 
@@ -107,16 +97,31 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     See compileall.py for a script/module that uses this module to
     byte-compile all installed files (or all files in selected
     directories).
+
+    Do note that FileExistsError is raised if cfile ends up pointing at a
+    non-regular file or symlink. Because the compilation uses a file renaming,
+    the resulting file would be regular and thus not the same type of file as
+    it was previously.
     """
-    with tokenize.open(file) as f:
-        try:
-            timestamp = int(os.fstat(f.fileno()).st_mtime)
-        except AttributeError:
-            timestamp = int(os.stat(file).st_mtime)
-        codestring = f.read()
+    if cfile is None:
+        if optimize >= 0:
+            cfile = importlib.util.cache_from_source(file,
+                                                     debug_override=not optimize)
+        else:
+            cfile = importlib.util.cache_from_source(file)
+    if os.path.islink(cfile):
+        msg = ('{} is a symlink and will be changed into a regular file if '
+               'import writes a byte-compiled file to it')
+        raise FileExistsError(msg.format(cfile))
+    elif os.path.exists(cfile) and not os.path.isfile(cfile):
+        msg = ('{} is a non-regular file and will be changed into a regular '
+               'one if import writes a byte-compiled file to it')
+        raise FileExistsError(msg.format(cfile))
+    loader = importlib.machinery.SourceFileLoader('<py_compile>', file)
+    source_bytes = loader.get_data(file)
     try:
-        codeobject = builtins.compile(codestring, dfile or file, 'exec',
-                                      optimize=optimize)
+        code = loader.source_to_code(source_bytes, dfile or file,
+                                     _optimize=optimize)
     except Exception as err:
         py_exc = PyCompileError(err.__class__, err, dfile or file)
         if doraise:
@@ -124,26 +129,19 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
         else:
             sys.stderr.write(py_exc.msg + '\n')
             return
-    if cfile is None:
-        if optimize >= 0:
-            cfile = imp.cache_from_source(file, debug_override=not optimize)
-        else:
-            cfile = imp.cache_from_source(file)
     try:
         dirname = os.path.dirname(cfile)
         if dirname:
             os.makedirs(dirname)
-    except OSError as error:
-        if error.errno != errno.EEXIST:
-            raise
-    with open(cfile, 'wb') as fc:
-        fc.write(b'\0\0\0\0')
-        wr_long(fc, timestamp)
-        marshal.dump(codeobject, fc)
-        fc.flush()
-        fc.seek(0, 0)
-        fc.write(MAGIC)
+    except FileExistsError:
+        pass
+    source_stats = loader.path_stats(file)
+    bytecode = importlib._bootstrap._code_to_bytecode(
+            code, source_stats['mtime'], source_stats['size'])
+    mode = importlib._bootstrap._calc_mode(file)
+    importlib._bootstrap._write_atomic(cfile, bytecode, mode)
     return cfile
+
 
 def main(args=None):
     """Compile several source files.
@@ -170,7 +168,7 @@ def main(args=None):
             except PyCompileError as error:
                 rv = 1
                 sys.stderr.write("%s\n" % error.msg)
-            except IOError as error:
+            except OSError as error:
                 rv = 1
                 sys.stderr.write("%s\n" % error)
     else:

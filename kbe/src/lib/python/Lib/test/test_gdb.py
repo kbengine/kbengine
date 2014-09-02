@@ -5,11 +5,20 @@
 
 import os
 import re
+import pprint
 import subprocess
 import sys
+import sysconfig
 import unittest
 import locale
 
+# Is this Python configured to support threads?
+try:
+    import _thread
+except ImportError:
+    _thread = None
+
+from test import support
 from test.support import run_unittest, findfile, python_is_optimized
 
 try:
@@ -26,9 +35,14 @@ if gdb_major_version < 7:
     raise unittest.SkipTest("gdb versions before 7.0 didn't support python embedding"
                             " Saw:\n" + gdb_version.decode('ascii', 'replace'))
 
+if not sysconfig.is_python_build():
+    raise unittest.SkipTest("test_gdb only works on source builds at the moment.")
+
 # Location of custom hooks file in a repository checkout.
 checkout_hook_path = os.path.join(os.path.dirname(sys.executable),
                                   'python-gdb.py')
+
+PYTHONHASHSEED = '123'
 
 def run_gdb(*args, **env_vars):
     """Runs gdb in --batch mode with the additional arguments given by *args.
@@ -49,13 +63,12 @@ def run_gdb(*args, **env_vars):
     return out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
 
 # Verify that "gdb" was built with the embedded python support enabled:
-gdbpy_version, _ = run_gdb("--eval-command=python import sys; print sys.version_info")
+gdbpy_version, _ = run_gdb("--eval-command=python import sys; print(sys.version_info)")
 if not gdbpy_version:
     raise unittest.SkipTest("gdb not built with embedded python support")
 
-# Verify that "gdb" can load our custom hooks.  In theory this should never
-# fail, but we don't handle the case of the hooks file not existing if the
-# tests are run from an installed Python (we'll produce failures in that case).
+# Verify that "gdb" can load our custom hooks, as OS security settings may
+# disallow this without a customised .gdbinit.
 cmd = ['--args', sys.executable]
 _, gdbpy_errors = run_gdb('--args', sys.executable)
 if "auto-loading has been declined" in gdbpy_errors:
@@ -132,35 +145,41 @@ class DebuggerTests(unittest.TestCase):
             args += [script]
 
         # print args
-        # print ' '.join(args)
+        # print (' '.join(args))
 
         # Use "args" to invoke gdb, capturing stdout, stderr:
-        out, err = run_gdb(*args, PYTHONHASHSEED='0')
+        out, err = run_gdb(*args, PYTHONHASHSEED=PYTHONHASHSEED)
 
-        # Ignore some noise on stderr due to the pending breakpoint:
-        err = err.replace('Function "%s" not defined.\n' % breakpoint, '')
-        # Ignore some other noise on stderr (http://bugs.python.org/issue8600)
-        err = err.replace("warning: Unable to find libthread_db matching"
-                          " inferior's thread library, thread debugging will"
-                          " not be available.\n",
-                          '')
-        err = err.replace("warning: Cannot initialize thread debugging"
-                          " library: Debugger service failed\n",
-                          '')
-        err = err.replace('warning: Could not load shared library symbols for '
-                          'linux-vdso.so.1.\n'
-                          'Do you need "set solib-search-path" or '
-                          '"set sysroot"?\n',
-                          '')
-        err = err.replace('warning: Could not load shared library symbols for '
-                          'linux-gate.so.1.\n'
-                          'Do you need "set solib-search-path" or '
-                          '"set sysroot"?\n',
-                          '')
+        errlines = err.splitlines()
+        unexpected_errlines = []
+
+        # Ignore some benign messages on stderr.
+        ignore_patterns = (
+            'Function "%s" not defined.' % breakpoint,
+            "warning: no loadable sections found in added symbol-file"
+            " system-supplied DSO",
+            "warning: Unable to find libthread_db matching"
+            " inferior's thread library, thread debugging will"
+            " not be available.",
+            "warning: Cannot initialize thread debugging"
+            " library: Debugger service failed",
+            'warning: Could not load shared library symbols for '
+            'linux-vdso.so',
+            'warning: Could not load shared library symbols for '
+            'linux-gate.so',
+            'Do you need "set solib-search-path" or '
+            '"set sysroot"?',
+            'warning: Source file is more recent than executable.',
+            # Issue #19753: missing symbols on System Z
+            'Missing separate debuginfo for ',
+            'Try: zypper install -C ',
+            )
+        for line in errlines:
+            if not line.startswith(ignore_patterns):
+                unexpected_errlines.append(line)
 
         # Ensure no unexpected error messages:
-        self.assertEqual(err, '')
-
+        self.assertEqual(unexpected_errlines, [])
         return out
 
     def get_gdb_repr(self, source,
@@ -175,13 +194,18 @@ class DebuggerTests(unittest.TestCase):
         #
         # For a nested structure, the first time we hit the breakpoint will
         # give us the top-level structure
+
+        # NOTE: avoid decoding too much of the traceback as some
+        # undecodable characters may lurk there in optimized mode
+        # (issue #19743).
+        cmds_after_breakpoint = cmds_after_breakpoint or ["backtrace 1"]
         gdb_output = self.get_stack_trace(source, breakpoint=BREAKPOINT_FN,
                                           cmds_after_breakpoint=cmds_after_breakpoint,
                                           import_site=import_site)
         # gdb can insert additional '\n' and space characters in various places
         # in its output, depending on the width of the terminal it's connected
         # to (using its "wrap_here" function)
-        m = re.match('.*#0\s+builtin_id\s+\(self\=.*,\s+v=\s*(.*?)\)\s+at\s+Python/bltinmodule.c.*',
+        m = re.match('.*#0\s+builtin_id\s+\(self\=.*,\s+v=\s*(.*?)\)\s+at\s+\S*Python/bltinmodule.c.*',
                      gdb_output, re.DOTALL)
         if not m:
             self.fail('Unexpected gdb output: %r\n%s' % (gdb_output, gdb_output))
@@ -205,11 +229,10 @@ class PrettyPrintTests(DebuggerTests):
         gdb_output = self.get_stack_trace('id(42)')
         self.assertTrue(BREAKPOINT_FN in gdb_output)
 
-    def assertGdbRepr(self, val, exp_repr=None, cmds_after_breakpoint=None):
+    def assertGdbRepr(self, val, exp_repr=None):
         # Ensure that gdb's rendering of the value in a debugged process
         # matches repr(value) in this process:
-        gdb_repr, gdb_output = self.get_gdb_repr('id(' + ascii(val) + ')',
-                                                 cmds_after_breakpoint)
+        gdb_repr, gdb_output = self.get_gdb_repr('id(' + ascii(val) + ')')
         if not exp_repr:
             exp_repr = repr(val)
         self.assertEqual(gdb_repr, exp_repr,
@@ -217,7 +240,7 @@ class PrettyPrintTests(DebuggerTests):
                           % (gdb_repr, exp_repr, gdb_output)))
 
     def test_int(self):
-        'Verify the pretty-printing of various "int"/long values'
+        'Verify the pretty-printing of various int values'
         self.assertGdbRepr(42)
         self.assertGdbRepr(0)
         self.assertGdbRepr(-7)
@@ -233,9 +256,8 @@ class PrettyPrintTests(DebuggerTests):
     def test_dicts(self):
         'Verify the pretty-printing of dictionaries'
         self.assertGdbRepr({})
-        self.assertGdbRepr({'foo': 'bar'})
-        self.assertGdbRepr({'foo': 'bar', 'douglas': 42},
-                           "{'foo': 'bar', 'douglas': 42}")
+        self.assertGdbRepr({'foo': 'bar'}, "{'foo': 'bar'}")
+        self.assertGdbRepr({'foo': 'bar', 'douglas': 42}, "{'douglas': 42, 'foo': 'bar'}")
 
     def test_lists(self):
         'Verify the pretty-printing of lists'
@@ -290,26 +312,30 @@ class PrettyPrintTests(DebuggerTests):
 
     def test_tuples(self):
         'Verify the pretty-printing of tuples'
-        self.assertGdbRepr(tuple())
+        self.assertGdbRepr(tuple(), '()')
         self.assertGdbRepr((1,), '(1,)')
         self.assertGdbRepr(('foo', 'bar', 'baz'))
 
     def test_sets(self):
         'Verify the pretty-printing of sets'
-        self.assertGdbRepr(set())
+        if (gdb_major_version, gdb_minor_version) < (7, 3):
+            self.skipTest("pretty-printing of sets needs gdb 7.3 or later")
+        self.assertGdbRepr(set(), 'set()')
         self.assertGdbRepr(set(['a', 'b']), "{'a', 'b'}")
         self.assertGdbRepr(set([4, 5, 6]), "{4, 5, 6}")
 
         # Ensure that we handle sets containing the "dummy" key value,
         # which happens on deletion:
         gdb_repr, gdb_output = self.get_gdb_repr('''s = set(['a','b'])
-s.pop()
+s.remove('a')
 id(s)''')
         self.assertEqual(gdb_repr, "{'b'}")
 
     def test_frozensets(self):
         'Verify the pretty-printing of frozensets'
-        self.assertGdbRepr(frozenset())
+        if (gdb_major_version, gdb_minor_version) < (7, 3):
+            self.skipTest("pretty-printing of frozensets needs gdb 7.3 or later")
+        self.assertGdbRepr(frozenset(), 'frozenset()')
         self.assertGdbRepr(frozenset(['a', 'b']), "frozenset({'a', 'b'})")
         self.assertGdbRepr(frozenset([4, 5, 6]), "frozenset({4, 5, 6})")
 
@@ -343,7 +369,7 @@ class Foo:
 foo = Foo()
 foo.an_int = 42
 id(foo)''')
-        m = re.match(r'<Foo\(an_int=42\) at remote 0x[0-9a-f]+>', gdb_repr)
+        m = re.match(r'<Foo\(an_int=42\) at remote 0x-?[0-9a-f]+>', gdb_repr)
         self.assertTrue(m,
                         msg='Unexpected new-style class rendering %r' % gdb_repr)
 
@@ -356,7 +382,7 @@ foo = Foo()
 foo += [1, 2, 3]
 foo.an_int = 42
 id(foo)''')
-        m = re.match(r'<Foo\(an_int=42\) at remote 0x[0-9a-f]+>', gdb_repr)
+        m = re.match(r'<Foo\(an_int=42\) at remote 0x-?[0-9a-f]+>', gdb_repr)
 
         self.assertTrue(m,
                         msg='Unexpected new-style class rendering %r' % gdb_repr)
@@ -371,7 +397,7 @@ class Foo(tuple):
 foo = Foo((1, 2, 3))
 foo.an_int = 42
 id(foo)''')
-        m = re.match(r'<Foo\(an_int=42\) at remote 0x[0-9a-f]+>', gdb_repr)
+        m = re.match(r'<Foo\(an_int=42\) at remote 0x-?[0-9a-f]+>', gdb_repr)
 
         self.assertTrue(m,
                         msg='Unexpected new-style class rendering %r' % gdb_repr)
@@ -398,7 +424,7 @@ id(foo)''')
 
         # Match anything for the type name; 0xDEADBEEF could point to
         # something arbitrary (see  http://bugs.python.org/issue8330)
-        pattern = '<.* at remote 0x[0-9a-f]+>'
+        pattern = '<.* at remote 0x-?[0-9a-f]+>'
 
         m = re.match(pattern, gdb_repr)
         if not m:
@@ -444,7 +470,7 @@ id(foo)''')
         #  http://bugs.python.org/issue8032#msg100537 )
         gdb_repr, gdb_output = self.get_gdb_repr('id(__builtins__.help)', import_site=True)
 
-        m = re.match(r'<_Helper at remote 0x[0-9a-f]+>', gdb_repr)
+        m = re.match(r'<_Helper at remote 0x-?[0-9a-f]+>', gdb_repr)
         self.assertTrue(m,
                         msg='Unexpected rendering %r' % gdb_repr)
 
@@ -475,7 +501,7 @@ class Foo:
 foo = Foo()
 foo.an_attr = foo
 id(foo)''')
-        self.assertTrue(re.match('<Foo\(an_attr=<\.\.\.>\) at remote 0x[0-9a-f]+>',
+        self.assertTrue(re.match('<Foo\(an_attr=<\.\.\.>\) at remote 0x-?[0-9a-f]+>',
                                  gdb_repr),
                         'Unexpected gdb representation: %r\n%s' % \
                             (gdb_repr, gdb_output))
@@ -488,7 +514,7 @@ class Foo(object):
 foo = Foo()
 foo.an_attr = foo
 id(foo)''')
-        self.assertTrue(re.match('<Foo\(an_attr=<\.\.\.>\) at remote 0x[0-9a-f]+>',
+        self.assertTrue(re.match('<Foo\(an_attr=<\.\.\.>\) at remote 0x-?[0-9a-f]+>',
                                  gdb_repr),
                         'Unexpected gdb representation: %r\n%s' % \
                             (gdb_repr, gdb_output))
@@ -502,7 +528,7 @@ b = Foo()
 a.an_attr = b
 b.an_attr = a
 id(a)''')
-        self.assertTrue(re.match('<Foo\(an_attr=<Foo\(an_attr=<\.\.\.>\) at remote 0x[0-9a-f]+>\) at remote 0x[0-9a-f]+>',
+        self.assertTrue(re.match('<Foo\(an_attr=<Foo\(an_attr=<\.\.\.>\) at remote 0x-?[0-9a-f]+>\) at remote 0x-?[0-9a-f]+>',
                                  gdb_repr),
                         'Unexpected gdb representation: %r\n%s' % \
                             (gdb_repr, gdb_output))
@@ -537,7 +563,7 @@ id(a)''')
 
     def test_builtin_method(self):
         gdb_repr, gdb_output = self.get_gdb_repr('import sys; id(sys.stdout.readlines)')
-        self.assertTrue(re.match('<built-in method readlines of _io.TextIOWrapper object at remote 0x[0-9a-f]+>',
+        self.assertTrue(re.match('<built-in method readlines of _io.TextIOWrapper object at remote 0x-?[0-9a-f]+>',
                                  gdb_repr),
                         'Unexpected gdb representation: %r\n%s' % \
                             (gdb_repr, gdb_output))
@@ -552,7 +578,7 @@ id(foo.__code__)''',
                                           breakpoint='builtin_id',
                                           cmds_after_breakpoint=['print (PyFrameObject*)(((PyCodeObject*)v)->co_zombieframe)']
                                           )
-        self.assertTrue(re.match('.*\s+\$1 =\s+Frame 0x[0-9a-f]+, for file <string>, line 3, in foo \(\)\s+.*',
+        self.assertTrue(re.match('.*\s+\$1 =\s+Frame 0x-?[0-9a-f]+, for file <string>, line 3, in foo \(\)\s+.*',
                                  gdb_output,
                                  re.DOTALL),
                         'Unexpected gdb representation: %r\n%s' % (gdb_output, gdb_output))
@@ -609,7 +635,7 @@ class StackNavigationTests(DebuggerTests):
                                   cmds_after_breakpoint=['py-up'])
         self.assertMultilineMatches(bt,
                                     r'''^.*
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
     baz\(a, b, c\)
 $''')
 
@@ -638,9 +664,9 @@ $''')
                                   cmds_after_breakpoint=['py-up', 'py-down'])
         self.assertMultilineMatches(bt,
                                     r'''^.*
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
     baz\(a, b, c\)
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 10, in baz \(args=\(1, 2, 3\)\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 10, in baz \(args=\(1, 2, 3\)\)
     id\(42\)
 $''')
 
@@ -672,13 +698,105 @@ Traceback \(most recent call first\):
                                   cmds_after_breakpoint=['py-bt-full'])
         self.assertMultilineMatches(bt,
                                     r'''^.*
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 7, in bar \(a=1, b=2, c=3\)
     baz\(a, b, c\)
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 4, in foo \(a=1, b=2, c=3\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 4, in foo \(a=1, b=2, c=3\)
     bar\(a, b, c\)
-#[0-9]+ Frame 0x[0-9a-f]+, for file .*gdb_sample.py, line 12, in <module> \(\)
+#[0-9]+ Frame 0x-?[0-9a-f]+, for file .*gdb_sample.py, line 12, in <module> \(\)
     foo\(1, 2, 3\)
 ''')
+
+    @unittest.skipUnless(_thread,
+                         "Python was compiled without thread support")
+    def test_threads(self):
+        'Verify that "py-bt" indicates threads that are waiting for the GIL'
+        cmd = '''
+from threading import Thread
+
+class TestThread(Thread):
+    # These threads would run forever, but we'll interrupt things with the
+    # debugger
+    def run(self):
+        i = 0
+        while 1:
+             i += 1
+
+t = {}
+for i in range(4):
+   t[i] = TestThread()
+   t[i].start()
+
+# Trigger a breakpoint on the main thread
+id(42)
+
+'''
+        # Verify with "py-bt":
+        gdb_output = self.get_stack_trace(cmd,
+                                          cmds_after_breakpoint=['thread apply all py-bt'])
+        self.assertIn('Waiting for the GIL', gdb_output)
+
+        # Verify with "py-bt-full":
+        gdb_output = self.get_stack_trace(cmd,
+                                          cmds_after_breakpoint=['thread apply all py-bt-full'])
+        self.assertIn('Waiting for the GIL', gdb_output)
+
+    @unittest.skipIf(python_is_optimized(),
+                     "Python was compiled with optimizations")
+    # Some older versions of gdb will fail with
+    #  "Cannot find new threads: generic error"
+    # unless we add LD_PRELOAD=PATH-TO-libpthread.so.1 as a workaround
+    @unittest.skipUnless(_thread,
+                         "Python was compiled without thread support")
+    def test_gc(self):
+        'Verify that "py-bt" indicates if a thread is garbage-collecting'
+        cmd = ('from gc import collect\n'
+               'id(42)\n'
+               'def foo():\n'
+               '    collect()\n'
+               'def bar():\n'
+               '    foo()\n'
+               'bar()\n')
+        # Verify with "py-bt":
+        gdb_output = self.get_stack_trace(cmd,
+                                          cmds_after_breakpoint=['break update_refs', 'continue', 'py-bt'],
+                                          )
+        self.assertIn('Garbage-collecting', gdb_output)
+
+        # Verify with "py-bt-full":
+        gdb_output = self.get_stack_trace(cmd,
+                                          cmds_after_breakpoint=['break update_refs', 'continue', 'py-bt-full'],
+                                          )
+        self.assertIn('Garbage-collecting', gdb_output)
+
+    @unittest.skipIf(python_is_optimized(),
+                     "Python was compiled with optimizations")
+    # Some older versions of gdb will fail with
+    #  "Cannot find new threads: generic error"
+    # unless we add LD_PRELOAD=PATH-TO-libpthread.so.1 as a workaround
+    @unittest.skipUnless(_thread,
+                         "Python was compiled without thread support")
+    def test_pycfunction(self):
+        'Verify that "py-bt" displays invocations of PyCFunction instances'
+        cmd = ('from time import sleep\n'
+               'def foo():\n'
+               '    sleep(1)\n'
+               'def bar():\n'
+               '    foo()\n'
+               'bar()\n')
+        # Verify with "py-bt":
+        gdb_output = self.get_stack_trace(cmd,
+                                          breakpoint='time_sleep',
+                                          cmds_after_breakpoint=['bt', 'py-bt'],
+                                          )
+        self.assertIn('<built-in method sleep', gdb_output)
+
+        # Verify with "py-bt-full":
+        gdb_output = self.get_stack_trace(cmd,
+                                          breakpoint='time_sleep',
+                                          cmds_after_breakpoint=['py-bt-full'],
+                                          )
+        self.assertIn('#0 <built-in method sleep', gdb_output)
+
 
 class PyPrintTests(DebuggerTests):
     @unittest.skipIf(python_is_optimized(),
@@ -713,7 +831,7 @@ class PyPrintTests(DebuggerTests):
         bt = self.get_stack_trace(script=self.get_sample_script(),
                                   cmds_after_breakpoint=['py-print len'])
         self.assertMultilineMatches(bt,
-                                    r".*\nbuiltin 'len' = <built-in method len of module object at remote 0x[0-9a-f]+>\n.*")
+                                    r".*\nbuiltin 'len' = <built-in method len of module object at remote 0x-?[0-9a-f]+>\n.*")
 
 class PyLocalsTests(DebuggerTests):
     @unittest.skipIf(python_is_optimized(),
@@ -734,6 +852,10 @@ class PyLocalsTests(DebuggerTests):
                                     r".*\na = 1\nb = 2\nc = 3\n.*")
 
 def test_main():
+    if support.verbose:
+        print("GDB version:")
+        for line in os.fsdecode(gdb_version).splitlines():
+            print(" " * 4 + line)
     run_unittest(PrettyPrintTests,
                  PyListTests,
                  StackNavigationTests,

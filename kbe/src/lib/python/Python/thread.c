@@ -7,7 +7,6 @@
 
 #include "Python.h"
 
-
 #ifndef _POSIX_THREADS
 /* This means pthreads are not implemented in libc headers, hence the macro
    not present in unistd.h. But they still can be implemented as an external
@@ -26,18 +25,6 @@
 #include "pythread.h"
 
 #ifndef _POSIX_THREADS
-
-#ifdef __sgi
-#define SGI_THREADS
-#endif
-
-#ifdef HAVE_THREAD_H
-#define SOLARIS_THREADS
-#endif
-
-#if defined(sun) && !defined(SOLARIS_THREADS)
-#define SUN_LWP
-#endif
 
 /* Check if we're running on HP-UX and _SC_THREADS is defined. If so, then
    enough of the Posix threads package is implemented to support python
@@ -94,46 +81,16 @@ PyThread_init_thread(void)
    or the size specified by the THREAD_STACK_SIZE macro. */
 static size_t _pythread_stacksize = 0;
 
-#ifdef SGI_THREADS
-#error SGI Irix threads are now unsupported, and code will be removed in 3.3.
-#include "thread_sgi.h"
-#endif
-
-#ifdef SOLARIS_THREADS
-#include "thread_solaris.h"
-#endif
-
-#ifdef SUN_LWP
-#error SunOS lightweight processes are now unsupported, and code will be removed in 3.3.
-#include "thread_lwp.h"
-#endif
-
-#ifdef HAVE_PTH
-#error GNU pth threads are now unsupported, and code will be removed in 3.3.
-#include "thread_pth.h"
-#undef _POSIX_THREADS
-#endif
-
 #ifdef _POSIX_THREADS
+#define PYTHREAD_NAME "pthread"
 #include "thread_pthread.h"
 #endif
 
-#ifdef C_THREADS
-#error Mach C Threads are now unsupported, and code will be removed in 3.3.
-#include "thread_cthread.h"
-#endif
-
 #ifdef NT_THREADS
+#define PYTHREAD_NAME "nt"
 #include "thread_nt.h"
 #endif
 
-#ifdef OS2_THREADS
-#include "thread_os2.h"
-#endif
-
-#ifdef PLAN9_THREADS
-#include "thread_plan9.h"
-#endif
 
 /*
 #ifdef FOOBAR_THREADS
@@ -248,7 +205,7 @@ static int nkeys = 0;  /* PyThread_create_key() hands out nkeys+1 next */
  * segfaults.  Now we lock the whole routine.
  */
 static struct key *
-find_key(int key, void *value)
+find_key(int set_value, int key, void *value)
 {
     struct key *p, *prev_p;
     long id = PyThread_get_thread_ident();
@@ -258,8 +215,11 @@ find_key(int key, void *value)
     PyThread_acquire_lock(keymutex, 1);
     prev_p = NULL;
     for (p = keyhead; p != NULL; p = p->next) {
-        if (p->id == id && p->key == key)
+        if (p->id == id && p->key == key) {
+            if (set_value)
+                p->value = value;
             goto Done;
+        }
         /* Sanity check.  These states should never happen but if
          * they do we must abort.  Otherwise we'll end up spinning in
          * in a tight loop with the lock held.  A similar check is done
@@ -270,11 +230,11 @@ find_key(int key, void *value)
         if (p->next == keyhead)
             Py_FatalError("tls find_key: circular list(!)");
     }
-    if (value == NULL) {
+    if (!set_value && value == NULL) {
         assert(p == NULL);
         goto Done;
     }
-    p = (struct key *)malloc(sizeof(struct key));
+    p = (struct key *)PyMem_RawMalloc(sizeof(struct key));
     if (p != NULL) {
         p->id = id;
         p->key = key;
@@ -313,7 +273,7 @@ PyThread_delete_key(int key)
     while ((p = *q) != NULL) {
         if (p->key == key) {
             *q = p->next;
-            free((void *)p);
+            PyMem_RawFree((void *)p);
             /* NB This does *not* free p->value! */
         }
         else
@@ -322,19 +282,12 @@ PyThread_delete_key(int key)
     PyThread_release_lock(keymutex);
 }
 
-/* Confusing:  If the current thread has an association for key,
- * value is ignored, and 0 is returned.  Else an attempt is made to create
- * an association of key to value for the current thread.  0 is returned
- * if that succeeds, but -1 is returned if there's not enough memory
- * to create the association.  value must not be NULL.
- */
 int
 PyThread_set_key_value(int key, void *value)
 {
     struct key *p;
 
-    assert(value != NULL);
-    p = find_key(key, value);
+    p = find_key(1, key, value);
     if (p == NULL)
         return -1;
     else
@@ -347,7 +300,7 @@ PyThread_set_key_value(int key, void *value)
 void *
 PyThread_get_key_value(int key)
 {
-    struct key *p = find_key(key, NULL);
+    struct key *p = find_key(0, key, NULL);
 
     if (p == NULL)
         return NULL;
@@ -367,7 +320,7 @@ PyThread_delete_key_value(int key)
     while ((p = *q) != NULL) {
         if (p->key == key && p->id == id) {
             *q = p->next;
-            free((void *)p);
+            PyMem_RawFree((void *)p);
             /* NB This does *not* free p->value! */
             break;
         }
@@ -400,7 +353,7 @@ PyThread_ReInitTLS(void)
     while ((p = *q) != NULL) {
         if (p->id != id) {
             *q = p->next;
-            free((void *)p);
+            PyMem_RawFree((void *)p);
             /* NB This does *not* free p->value! */
         }
         else
@@ -409,3 +362,86 @@ PyThread_ReInitTLS(void)
 }
 
 #endif /* Py_HAVE_NATIVE_TLS */
+
+PyDoc_STRVAR(threadinfo__doc__,
+"sys.thread_info\n\
+\n\
+A struct sequence holding information about the thread implementation.");
+
+static PyStructSequence_Field threadinfo_fields[] = {
+    {"name",    "name of the thread implementation"},
+    {"lock",    "name of the lock implementation"},
+    {"version", "name and version of the thread library"},
+    {0}
+};
+
+static PyStructSequence_Desc threadinfo_desc = {
+    "sys.thread_info",           /* name */
+    threadinfo__doc__,           /* doc */
+    threadinfo_fields,           /* fields */
+    3
+};
+
+static PyTypeObject ThreadInfoType;
+
+PyObject*
+PyThread_GetInfo(void)
+{
+    PyObject *threadinfo, *value;
+    int pos = 0;
+#if (defined(_POSIX_THREADS) && defined(HAVE_CONFSTR) \
+     && defined(_CS_GNU_LIBPTHREAD_VERSION))
+    char buffer[255];
+    int len;
+#endif
+
+    if (ThreadInfoType.tp_name == 0) {
+        if (PyStructSequence_InitType2(&ThreadInfoType, &threadinfo_desc) < 0)
+            return NULL;
+    }
+
+    threadinfo = PyStructSequence_New(&ThreadInfoType);
+    if (threadinfo == NULL)
+        return NULL;
+
+    value = PyUnicode_FromString(PYTHREAD_NAME);
+    if (value == NULL) {
+        Py_DECREF(threadinfo);
+        return NULL;
+    }
+    PyStructSequence_SET_ITEM(threadinfo, pos++, value);
+
+#ifdef _POSIX_THREADS
+#ifdef USE_SEMAPHORES
+    value = PyUnicode_FromString("semaphore");
+#else
+    value = PyUnicode_FromString("mutex+cond");
+#endif
+    if (value == NULL) {
+        Py_DECREF(threadinfo);
+        return NULL;
+    }
+#else
+    Py_INCREF(Py_None);
+    value = Py_None;
+#endif
+    PyStructSequence_SET_ITEM(threadinfo, pos++, value);
+
+#if (defined(_POSIX_THREADS) && defined(HAVE_CONFSTR) \
+     && defined(_CS_GNU_LIBPTHREAD_VERSION))
+    value = NULL;
+    len = confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
+    if (1 < len && len < sizeof(buffer)) {
+        value = PyUnicode_DecodeFSDefaultAndSize(buffer, len-1);
+        if (value == NULL)
+            PyErr_Clear();
+    }
+    if (value == NULL)
+#endif
+    {
+        Py_INCREF(Py_None);
+        value = Py_None;
+    }
+    PyStructSequence_SET_ITEM(threadinfo, pos++, value);
+    return threadinfo;
+}

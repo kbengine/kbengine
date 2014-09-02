@@ -6,9 +6,11 @@ from test.support import run_unittest, TESTFN, unlink
 # rip off all interesting stuff from test_profile
 import cProfile
 from test.test_profile import ProfileTest, regenerate_expected_output
+from test.profilee import testfunc
 
 class CProfileTest(ProfileTest):
     profilerclass = cProfile.Profile
+    profilermodule = cProfile
     expected_max_output = "{built-in method max}"
 
     def get_expected_output(self):
@@ -18,16 +20,20 @@ class CProfileTest(ProfileTest):
     def test_bad_counter_during_dealloc(self):
         import _lsprof
         # Must use a file as StringIO doesn't trigger the bug.
-        with open(TESTFN, 'w') as file:
-            sys.stderr = file
-            try:
-                obj = _lsprof.Profiler(lambda: int)
-                obj.enable()
-                obj = _lsprof.Profiler(1)
-                obj.disable()
-            finally:
-                sys.stderr = sys.__stderr__
-        unlink(TESTFN)
+        orig_stderr = sys.stderr
+        try:
+            with open(TESTFN, 'w') as file:
+                sys.stderr = file
+                try:
+                    obj = _lsprof.Profiler(lambda: int)
+                    obj.enable()
+                    obj = _lsprof.Profiler(1)
+                    obj.disable()
+                    obj.clear()
+                finally:
+                    sys.stderr = orig_stderr
+        finally:
+            unlink(TESTFN)
 
 
 def test_main():

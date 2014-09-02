@@ -14,13 +14,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import sys
 import urllib.parse
 from wsgiref.handlers import SimpleHandler
+from platform import python_implementation
 
 __version__ = "0.2"
 __all__ = ['WSGIServer', 'WSGIRequestHandler', 'demo_app', 'make_server']
 
 
 server_version = "WSGIServer/" + __version__
-sys_version = "Python/" + sys.version.split()[0]
+sys_version = python_implementation() + "/" + sys.version.split()[0]
 software_version = server_version + ' ' + sys_version
 
 
@@ -154,3 +155,4 @@ if __name__ == '__main__':
     import webbrowser
     webbrowser.open('http://localhost:8000/xyz?abc')
     httpd.handle_request()  # serve one request, then exit
+    httpd.server_close()

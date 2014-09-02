@@ -63,6 +63,8 @@ The logging functions are named after the level or severity of the events
 they are used to track. The standard levels and their applicability are
 described below (in increasing order of severity):
 
+.. tabularcolumns:: |l|L|
+
 +--------------+---------------------------------------------+
 | Level        | When it's used                              |
 +==============+=============================================+
@@ -120,7 +122,8 @@ Logging to a file
 ^^^^^^^^^^^^^^^^^
 
 A very common situation is that of recording logging events in a file, so let's
-look at that next::
+look at that next. Be sure to try the following in a newly-started Python
+interpreter, and don't just continue from the session described above::
 
    import logging
    logging.basicConfig(filename='example.log',level=logging.DEBUG)
@@ -236,7 +239,7 @@ uses the old, %-style of string formatting. This is for backwards
 compatibility: the logging package pre-dates newer formatting options such as
 :meth:`str.format` and :class:`string.Template`. These newer formatting
 options *are* supported, but exploring them is outside the scope of this
-tutorial.
+tutorial: see :ref:`formatting-styles` for more information.
 
 
 Changing the format of displayed messages
@@ -467,12 +470,13 @@ Handlers
 
 :class:`~logging.Handler` objects are responsible for dispatching the
 appropriate log messages (based on the log messages' severity) to the handler's
-specified destination.  Logger objects can add zero or more handler objects to
-themselves with an :func:`addHandler` method.  As an example scenario, an
-application may want to send all log messages to a log file, all log messages
-of error or higher to stdout, and all messages of critical to an email address.
-This scenario requires three individual handlers where each handler is
-responsible for sending messages of a specific severity to a specific location.
+specified destination.  :class:`Logger` objects can add zero or more handler
+objects to themselves with an :meth:`~Logger.addHandler` method.  As an example
+scenario, an application may want to send all log messages to a log file, all
+log messages of error or higher to stdout, and all messages of critical to an
+email address. This scenario requires three individual handlers where each
+handler is responsible for sending messages of a specific severity to a specific
+location.
 
 The standard library includes quite a few handler types (see
 :ref:`useful-handlers`); the tutorials use mainly :class:`StreamHandler` and
@@ -483,16 +487,17 @@ themselves with.  The only handler methods that seem relevant for application
 developers who are using the built-in handler objects (that is, not creating
 custom handlers) are the following configuration methods:
 
-* The :meth:`Handler.setLevel` method, just as in logger objects, specifies the
+* The :meth:`~Handler.setLevel` method, just as in logger objects, specifies the
   lowest severity that will be dispatched to the appropriate destination.  Why
   are there two :func:`setLevel` methods?  The level set in the logger
   determines which severity of messages it will pass to its handlers.  The level
   set in each handler determines which messages that handler will send on.
 
-* :func:`setFormatter` selects a Formatter object for this handler to use.
+* :meth:`~Handler.setFormatter` selects a Formatter object for this handler to
+  use.
 
-* :func:`addFilter` and :func:`removeFilter` respectively configure and
-  deconfigure filter objects on handlers.
+* :meth:`~Handler.addFilter` and :meth:`~Handler.removeFilter` respectively
+  configure and deconfigure filter objects on handlers.
 
 Application code should not directly instantiate and use instances of
 :class:`Handler`.  Instead, the :class:`Handler` class is a base class that
@@ -896,10 +901,10 @@ provided:
    disk files, rotating the log file at certain timed intervals.
 
 #. :class:`~handlers.SocketHandler` instances send messages to TCP/IP
-   sockets.
+   sockets. Since 3.4, Unix domain sockets are also supported.
 
 #. :class:`~handlers.DatagramHandler` instances send messages to UDP
-   sockets.
+   sockets. Since 3.4, Unix domain sockets are also supported.
 
 #. :class:`~handlers.SMTPHandler` instances send messages to a designated
    email address.
@@ -946,16 +951,16 @@ Logged messages are formatted for presentation through instances of the
 use with the % operator and a dictionary.
 
 For formatting multiple messages in a batch, instances of
-:class:`BufferingFormatter` can be used. In addition to the format string (which
-is applied to each message in the batch), there is provision for header and
-trailer format strings.
+:class:`~handlers.BufferingFormatter` can be used. In addition to the format
+string (which is applied to each message in the batch), there is provision for
+header and trailer format strings.
 
 When filtering based on logger level and/or handler level is not enough,
 instances of :class:`Filter` can be added to both :class:`Logger` and
-:class:`Handler` instances (through their :meth:`addFilter` method). Before
-deciding to process a message further, both loggers and handlers consult all
-their filters for permission. If any filter returns a false value, the message
-is not processed further.
+:class:`Handler` instances (through their :meth:`~Handler.addFilter` method).
+Before deciding to process a message further, both loggers and handlers consult
+all their filters for permission. If any filter returns a false value, the
+message is not processed further.
 
 The basic :class:`Filter` functionality allows filtering by specific logger
 name. If this feature is used, messages sent to the named logger and its
@@ -973,12 +978,14 @@ in production. This is so that errors which occur while handling logging events
 cause the application using logging to terminate prematurely.
 
 :class:`SystemExit` and :class:`KeyboardInterrupt` exceptions are never
-swallowed. Other exceptions which occur during the :meth:`emit` method of a
-:class:`Handler` subclass are passed to its :meth:`handleError` method.
+swallowed. Other exceptions which occur during the :meth:`~Handler.emit` method
+of a :class:`Handler` subclass are passed to its :meth:`~Handler.handleError`
+method.
 
-The default implementation of :meth:`handleError` in :class:`Handler` checks
-to see if a module-level variable, :data:`raiseExceptions`, is set. If set, a
-traceback is printed to :data:`sys.stderr`. If not set, the exception is swallowed.
+The default implementation of :meth:`~Handler.handleError` in :class:`Handler`
+checks to see if a module-level variable, :data:`raiseExceptions`, is set. If
+set, a traceback is printed to :data:`sys.stderr`. If not set, the exception is
+swallowed.
 
 .. note:: The default value of :data:`raiseExceptions` is ``True``. This is
    because during development, you typically want to be notified of any
@@ -995,11 +1002,11 @@ Using arbitrary objects as messages
 In the preceding sections and examples, it has been assumed that the message
 passed when logging the event is a string. However, this is not the only
 possibility. You can pass an arbitrary object as a message, and its
-:meth:`__str__` method will be called when the logging system needs to convert
-it to a string representation. In fact, if you want to, you can avoid
+:meth:`~object.__str__` method will be called when the logging system needs to
+convert it to a string representation. In fact, if you want to, you can avoid
 computing a string representation altogether - for example, the
-:class:`SocketHandler` emits an event by pickling it and sending it over the
-wire.
+:class:`~handlers.SocketHandler` emits an event by pickling it and sending it
+over the wire.
 
 
 Optimization
@@ -1008,9 +1015,10 @@ Optimization
 Formatting of message arguments is deferred until it cannot be avoided.
 However, computing the arguments passed to the logging method can also be
 expensive, and you may want to avoid doing it if the logger will just throw
-away your event. To decide what to do, you can call the :meth:`isEnabledFor`
-method which takes a level argument and returns true if the event would be
-created by the Logger for that level of call. You can write code like this::
+away your event. To decide what to do, you can call the
+:meth:`~Logger.isEnabledFor` method which takes a level argument and returns
+true if the event would be created by the Logger for that level of call.
+You can write code like this::
 
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug('Message with %s, %s', expensive_func1(),

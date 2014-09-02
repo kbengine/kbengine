@@ -20,7 +20,6 @@ configuration problem notification and resolution.
 import os
 import sys
 
-from idlelib import macosxSupport
 from configparser import ConfigParser, NoOptionError, NoSectionError
 
 class InvalidConfigType(Exception): pass
@@ -142,10 +141,11 @@ class IdleUserConfParser(IdleConfParser):
             fname = self.file
             try:
                 cfgFile = open(fname, 'w')
-            except IOError:
+            except OSError:
                 os.unlink(fname)
                 cfgFile = open(fname, 'w')
-            self.write(cfgFile)
+            with cfgFile:
+                self.write(cfgFile)
         else:
             self.RemoveFile()
 
@@ -206,7 +206,7 @@ class IdleConf:
                         userDir+',\n but the path does not exist.\n')
                 try:
                     sys.stderr.write(warn)
-                except IOError:
+                except OSError:
                     pass
                 userDir = '~'
         if userDir == "~": # still no path to home!
@@ -216,7 +216,7 @@ class IdleConf:
         if not os.path.exists(userDir):
             try:
                 os.mkdir(userDir)
-            except (OSError, IOError):
+            except OSError:
                 warn = ('\n Warning: unable to create user config directory\n'+
                         userDir+'\n Check path and permissions.\n Exiting!\n\n')
                 sys.stderr.write(warn)
@@ -250,7 +250,7 @@ class IdleConf:
                                                      raw=raw)))
             try:
                 sys.stderr.write(warning)
-            except IOError:
+            except OSError:
                 pass
         try:
             if self.defaultCfg[configType].has_option(section,option):
@@ -267,7 +267,7 @@ class IdleConf:
                        (option, section, default))
             try:
                 sys.stderr.write(warning)
-            except IOError:
+            except OSError:
                 pass
         return default
 
@@ -379,7 +379,7 @@ class IdleConf:
                            (element, themeName, theme[element]))
                 try:
                     sys.stderr.write(warning)
-                except IOError:
+                except OSError:
                     pass
             colour=cfgParser.Get(themeName,element,default=theme[element])
             theme[element]=colour
@@ -526,10 +526,13 @@ class IdleConf:
     def GetCurrentKeySet(self):
         result = self.GetKeySet(self.CurrentKeys())
 
-        if macosxSupport.runningAsOSXApp():
-            # We're using AquaTk, replace all keybingings that use the
-            # Alt key by ones that use the Option key because the former
-            # don't work reliably.
+        if sys.platform == "darwin":
+            # OS X Tk variants do not support the "Alt" keyboard modifier.
+            # So replace all keybingings that use "Alt" with ones that
+            # use the "Option" keyboard modifier.
+            # TO DO: the "Option" modifier does not work properly for
+            #        Cocoa Tk and XQuartz Tk so we should not use it
+            #        in default OS X KeySets.
             for k, v in result.items():
                 v2 = [ x.replace('<Alt-', '<Option-') for x in v ]
                 if v != v2:
@@ -636,7 +639,7 @@ class IdleConf:
                                (event, keySetName, keyBindings[event]))
                     try:
                         sys.stderr.write(warning)
-                    except IOError:
+                    except OSError:
                         pass
         return keyBindings
 

@@ -1,52 +1,50 @@
-from test.support import run_unittest, verbose
+from test.support import verbose
 import unittest
 import locale
 import sys
 import codecs
-
-enUS_locale = None
-
-def get_enUS_locale():
-    global enUS_locale
-    if sys.platform == 'darwin':
-        import os
-        tlocs = ("en_US.UTF-8", "en_US.ISO8859-1", "en_US")
-        if int(os.uname()[2].split('.')[0]) < 10:
-            # The locale test work fine on OSX 10.6, I (ronaldoussoren)
-            # haven't had time yet to verify if tests work on OSX 10.5
-            # (10.4 is known to be bad)
-            raise unittest.SkipTest("Locale support on MacOSX is minimal")
-    elif sys.platform.startswith("win"):
-        tlocs = ("En", "English")
-    else:
-        tlocs = ("en_US.UTF-8", "en_US.ISO8859-1", "en_US.US-ASCII", "en_US")
-    oldlocale = locale.setlocale(locale.LC_NUMERIC)
-    for tloc in tlocs:
-        try:
-            locale.setlocale(locale.LC_NUMERIC, tloc)
-        except locale.Error:
-            continue
-        break
-    else:
-        raise unittest.SkipTest(
-            "Test locale not supported (tried %s)" % (', '.join(tlocs)))
-    enUS_locale = tloc
-    locale.setlocale(locale.LC_NUMERIC, oldlocale)
-
 
 class BaseLocalizedTest(unittest.TestCase):
     #
     # Base class for tests using a real locale
     #
 
-    def setUp(self):
-        self.oldlocale = locale.setlocale(self.locale_type)
-        locale.setlocale(self.locale_type, enUS_locale)
-        if verbose:
-            print("testing with \"%s\"..." % enUS_locale, end=' ')
+    @classmethod
+    def setUpClass(cls):
+        if sys.platform == 'darwin':
+            import os
+            tlocs = ("en_US.UTF-8", "en_US.ISO8859-1", "en_US")
+            if int(os.uname().release.split('.')[0]) < 10:
+                # The locale test work fine on OSX 10.6, I (ronaldoussoren)
+                # haven't had time yet to verify if tests work on OSX 10.5
+                # (10.4 is known to be bad)
+                raise unittest.SkipTest("Locale support on MacOSX is minimal")
+        elif sys.platform.startswith("win"):
+            tlocs = ("En", "English")
+        else:
+            tlocs = ("en_US.UTF-8", "en_US.ISO8859-1",
+                     "en_US.US-ASCII", "en_US")
+        try:
+            oldlocale = locale.setlocale(locale.LC_NUMERIC)
+            for tloc in tlocs:
+                try:
+                    locale.setlocale(locale.LC_NUMERIC, tloc)
+                except locale.Error:
+                    continue
+                break
+            else:
+                raise unittest.SkipTest("Test locale not supported "
+                                        "(tried %s)" % (', '.join(tlocs)))
+            cls.enUS_locale = tloc
+        finally:
+            locale.setlocale(locale.LC_NUMERIC, oldlocale)
 
-    def tearDown(self):
-        locale.setlocale(self.locale_type, self.oldlocale)
+    def setUp(self):
+        oldlocale = locale.setlocale(self.locale_type)
+        self.addCleanup(locale.setlocale, self.locale_type, oldlocale)
+        locale.setlocale(self.locale_type, self.enUS_locale)
+        if verbose:
+            print("testing with %r..." % self.enUS_locale, end=' ', flush=True)
 
 
 class BaseCookedTest(unittest.TestCase):
@@ -367,6 +365,117 @@ class TestEnUSCollation(BaseLocalizedTest, TestCollation):
         self.assertLess(locale.strxfrm('à'), locale.strxfrm('b'))
 
 
+class NormalizeTest(unittest.TestCase):
+    def check(self, localename, expected):
+        self.assertEqual(locale.normalize(localename), expected, msg=localename)
+
+    def test_locale_alias(self):
+        for localename, alias in locale.locale_alias.items():
+            with self.subTest(locale=(localename, alias)):
+                self.check(localename, alias)
+
+    def test_empty(self):
+        self.check('', '')
+
+    def test_c(self):
+        self.check('c', 'C')
+        self.check('posix', 'C')
+
+    def test_english(self):
+        self.check('en', 'en_US.ISO8859-1')
+        self.check('EN', 'en_US.ISO8859-1')
+        self.check('en.iso88591', 'en_US.ISO8859-1')
+        self.check('en_US', 'en_US.ISO8859-1')
+        self.check('en_us', 'en_US.ISO8859-1')
+        self.check('en_GB', 'en_GB.ISO8859-1')
+        self.check('en_US.UTF-8', 'en_US.UTF-8')
+        self.check('en_US.utf8', 'en_US.UTF-8')
+        self.check('en_US:UTF-8', 'en_US.UTF-8')
+        self.check('en_US.ISO8859-1', 'en_US.ISO8859-1')
+        self.check('en_US.US-ASCII', 'en_US.ISO8859-1')
+        self.check('en_US.88591', 'en_US.ISO8859-1')
+        self.check('en_US.885915', 'en_US.ISO8859-15')
+        self.check('english', 'en_EN.ISO8859-1')
+        self.check('english_uk.ascii', 'en_GB.ISO8859-1')
+
+    def test_hyphenated_encoding(self):
+        self.check('az_AZ.iso88599e', 'az_AZ.ISO8859-9E')
+        self.check('az_AZ.ISO8859-9E', 'az_AZ.ISO8859-9E')
+        self.check('tt_RU.koi8c', 'tt_RU.KOI8-C')
+        self.check('tt_RU.KOI8-C', 'tt_RU.KOI8-C')
+        self.check('lo_LA.cp1133', 'lo_LA.IBM-CP1133')
+        self.check('lo_LA.ibmcp1133', 'lo_LA.IBM-CP1133')
+        self.check('lo_LA.IBM-CP1133', 'lo_LA.IBM-CP1133')
+        self.check('uk_ua.microsoftcp1251', 'uk_UA.CP1251')
+        self.check('uk_ua.microsoft-cp1251', 'uk_UA.CP1251')
+        self.check('ka_ge.georgianacademy', 'ka_GE.GEORGIAN-ACADEMY')
+        self.check('ka_GE.GEORGIAN-ACADEMY', 'ka_GE.GEORGIAN-ACADEMY')
+        self.check('cs_CZ.iso88592', 'cs_CZ.ISO8859-2')
+        self.check('cs_CZ.ISO8859-2', 'cs_CZ.ISO8859-2')
+
+    def test_euro_modifier(self):
+        self.check('de_DE@euro', 'de_DE.ISO8859-15')
+        self.check('en_US.ISO8859-15@euro', 'en_US.ISO8859-15')
+        self.check('de_DE.utf8@euro', 'de_DE.UTF-8')
+
+    def test_latin_modifier(self):
+        self.check('be_BY.UTF-8@latin', 'be_BY.UTF-8@latin')
+        self.check('sr_RS.UTF-8@latin', 'sr_RS.UTF-8@latin')
+        self.check('sr_RS.UTF-8@latn', 'sr_RS.UTF-8@latin')
+
+    def test_valencia_modifier(self):
+        self.check('ca_ES.UTF-8@valencia', 'ca_ES.UTF-8@valencia')
+        self.check('ca_ES@valencia', 'ca_ES.ISO8859-1@valencia')
+        self.check('ca@valencia', 'ca_ES.ISO8859-1@valencia')
+
+    def test_devanagari_modifier(self):
+        self.check('ks_IN.UTF-8@devanagari', 'ks_IN.UTF-8@devanagari')
+        self.check('ks_IN@devanagari', 'ks_IN.UTF-8@devanagari')
+        self.check('ks@devanagari', 'ks_IN.UTF-8@devanagari')
+        self.check('ks_IN.UTF-8', 'ks_IN.UTF-8')
+        self.check('ks_IN', 'ks_IN.UTF-8')
+        self.check('ks', 'ks_IN.UTF-8')
+        self.check('sd_IN.UTF-8@devanagari', 'sd_IN.UTF-8@devanagari')
+        self.check('sd_IN@devanagari', 'sd_IN.UTF-8@devanagari')
+        self.check('sd@devanagari', 'sd_IN.UTF-8@devanagari')
+        self.check('sd_IN.UTF-8', 'sd_IN.UTF-8')
+        self.check('sd_IN', 'sd_IN.UTF-8')
+        self.check('sd', 'sd_IN.UTF-8')
+
+    def test_euc_encoding(self):
+        self.check('ja_jp.euc', 'ja_JP.eucJP')
+        self.check('ja_jp.eucjp', 'ja_JP.eucJP')
+        self.check('ko_kr.euc', 'ko_KR.eucKR')
+        self.check('ko_kr.euckr', 'ko_KR.eucKR')
+        self.check('zh_cn.euc', 'zh_CN.eucCN')
+        self.check('zh_tw.euc', 'zh_TW.eucTW')
+        self.check('zh_tw.euctw', 'zh_TW.eucTW')
+
+    def test_japanese(self):
+        self.check('ja', 'ja_JP.eucJP')
+        self.check('ja.jis', 'ja_JP.JIS7')
+        self.check('ja.sjis', 'ja_JP.SJIS')
+        self.check('ja_jp', 'ja_JP.eucJP')
+        self.check('ja_jp.ajec', 'ja_JP.eucJP')
+        self.check('ja_jp.euc', 'ja_JP.eucJP')
+        self.check('ja_jp.eucjp', 'ja_JP.eucJP')
+        self.check('ja_jp.iso-2022-jp', 'ja_JP.JIS7')
+        self.check('ja_jp.iso2022jp', 'ja_JP.JIS7')
+        self.check('ja_jp.jis', 'ja_JP.JIS7')
+        self.check('ja_jp.jis7', 'ja_JP.JIS7')
+        self.check('ja_jp.mscode', 'ja_JP.SJIS')
+        self.check('ja_jp.pck', 'ja_JP.SJIS')
+        self.check('ja_jp.sjis', 'ja_JP.SJIS')
+        self.check('ja_jp.ujis', 'ja_JP.eucJP')
+        self.check('ja_jp.utf8', 'ja_JP.UTF-8')
+        self.check('japan', 'ja_JP.eucJP')
+        self.check('japanese', 'ja_JP.eucJP')
+        self.check('japanese-euc', 'ja_JP.eucJP')
+        self.check('japanese.euc', 'ja_JP.eucJP')
+        self.check('japanese.sjis', 'ja_JP.SJIS')
+        self.check('jp_jp', 'ja_JP.eucJP')
+
+
 class TestMiscellaneous(unittest.TestCase):
     def test_getpreferredencoding(self):
         # Invoke getpreferredencoding to make sure it does not cause exceptions.
@@ -401,6 +510,8 @@ class TestMiscellaneous(unittest.TestCase):
             # Unsupported locale on this system
             self.skipTest('test needs Turkish locale')
         loc = locale.getlocale(locale.LC_CTYPE)
+        if verbose:
+            print('got locale %a' % (loc,))
         locale.setlocale(locale.LC_CTYPE, loc)
         self.assertEqual(loc, locale.getlocale(locale.LC_CTYPE))
 
@@ -413,25 +524,5 @@ class TestMiscellaneous(unittest.TestCase):
             locale.setlocale(locale.LC_ALL, (b'not', b'valid'))
 
 
-def test_main():
-    tests = [
-        TestMiscellaneous,
-        TestFormatPatternArg,
-        TestLocaleFormatString,
-        TestEnUSNumberFormatting,
-        TestCNumberFormatting,
-        TestFrFRNumberFormatting,
-        TestCollation
-    ]
-    # SkipTest can't be raised inside unittests, handle it manually instead
-    try:
-        get_enUS_locale()
-    except unittest.SkipTest as e:
-        if verbose:
-            print("Some tests will be disabled: %s" % e)
-    else:
-        tests += [TestNumberFormatting, TestEnUSCollation]
-    run_unittest(*tests)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

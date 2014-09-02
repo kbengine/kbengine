@@ -5,6 +5,7 @@ import pickle
 import subprocess
 
 import unittest
+from unittest.case import _Outcome
 
 from .support import LoggingResult, ResultWithNoStartTestRunStopTestRun
 
@@ -42,12 +43,8 @@ class TestCleanUp(unittest.TestCase):
             def testNothing(self):
                 pass
 
-        class MockOutcome(object):
-            success = True
-            errors = []
-
         test = TestableTest('testNothing')
-        test._outcomeForDoCleanups = MockOutcome
+        outcome = test._outcome = _Outcome()
 
         exc1 = Exception('foo')
         exc2 = Exception('bar')
@@ -61,9 +58,10 @@ class TestCleanUp(unittest.TestCase):
         test.addCleanup(cleanup2)
 
         self.assertFalse(test.doCleanups())
-        self.assertFalse(MockOutcome.success)
+        self.assertFalse(outcome.success)
 
-        (Type1, instance1, _), (Type2, instance2, _) = reversed(MockOutcome.errors)
+        ((_, (Type1, instance1, _)),
+         (_, (Type2, instance2, _))) = reversed(outcome.errors)
         self.assertEqual((Type1, instance1), (Exception, exc1))
         self.assertEqual((Type2, instance2), (Exception, exc2))
 
@@ -138,6 +136,18 @@ class TestCleanUp(unittest.TestCase):
 
 class Test_TextTestRunner(unittest.TestCase):
     """Tests for TextTestRunner."""
+
+    def setUp(self):
+        # clean the environment from pre-existing PYTHONWARNINGS to make
+        # test_warnings results consistent
+        self.pythonwarnings = os.environ.get('PYTHONWARNINGS')
+        if self.pythonwarnings:
+            del os.environ['PYTHONWARNINGS']
+
+    def tearDown(self):
+        # bring back pre-existing PYTHONWARNINGS if present
+        if self.pythonwarnings:
+            os.environ['PYTHONWARNINGS'] = self.pythonwarnings
 
     def test_init(self):
         runner = unittest.TextTestRunner()
@@ -329,3 +339,7 @@ class Test_TextTestRunner(unittest.TestCase):
         f = io.StringIO()
         runner = unittest.TextTestRunner(f)
         self.assertTrue(runner.stream.stream is f)
+
+
+if __name__ == "__main__":
+    unittest.main()

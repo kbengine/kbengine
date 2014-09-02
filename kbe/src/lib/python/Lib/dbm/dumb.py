@@ -29,7 +29,7 @@ __all__ = ["error", "open"]
 
 _BLOCKSIZE = 512
 
-error = IOError
+error = OSError
 
 class _Database(collections.MutableMapping):
 
@@ -67,7 +67,7 @@ class _Database(collections.MutableMapping):
         # Mod by Jack: create data file if needed
         try:
             f = _io.open(self._datfile, 'r', encoding="Latin-1")
-        except IOError:
+        except OSError:
             f = _io.open(self._datfile, 'w', encoding="Latin-1")
             self._chmod(self._datfile)
         f.close()
@@ -78,7 +78,7 @@ class _Database(collections.MutableMapping):
         self._index = {}
         try:
             f = _io.open(self._dirfile, 'r', encoding="Latin-1")
-        except IOError:
+        except OSError:
             pass
         else:
             for line in f:
@@ -100,12 +100,12 @@ class _Database(collections.MutableMapping):
 
         try:
             self._os.unlink(self._bakfile)
-        except self._os.error:
+        except OSError:
             pass
 
         try:
             self._os.rename(self._dirfile, self._bakfile)
-        except self._os.error:
+        except OSError:
             pass
 
         f = self._io.open(self._dirfile, 'w', encoding="Latin-1")
@@ -118,9 +118,14 @@ class _Database(collections.MutableMapping):
 
     sync = _commit
 
+    def _verify_open(self):
+        if self._index is None:
+            raise error('DBM object has already been closed')
+
     def __getitem__(self, key):
         if isinstance(key, str):
             key = key.encode('utf-8')
+        self._verify_open()
         pos, siz = self._index[key]     # may raise KeyError
         f = _io.open(self._datfile, 'rb')
         f.seek(pos)
@@ -173,6 +178,7 @@ class _Database(collections.MutableMapping):
             val = val.encode('utf-8')
         elif not isinstance(val, (bytes, bytearray)):
             raise TypeError("values must be bytes or strings")
+        self._verify_open()
         if key not in self._index:
             self._addkey(key, self._addval(val))
         else:
@@ -200,6 +206,7 @@ class _Database(collections.MutableMapping):
     def __delitem__(self, key):
         if isinstance(key, str):
             key = key.encode('utf-8')
+        self._verify_open()
         # The blocks used by the associated value are lost.
         del self._index[key]
         # XXX It's unclear why we do a _commit() here (the code always
@@ -209,21 +216,26 @@ class _Database(collections.MutableMapping):
         self._commit()
 
     def keys(self):
+        self._verify_open()
         return list(self._index.keys())
 
     def items(self):
+        self._verify_open()
         return [(key, self[key]) for key in self._index.keys()]
 
     def __contains__(self, key):
         if isinstance(key, str):
             key = key.encode('utf-8')
+        self._verify_open()
         return key in self._index
 
     def iterkeys(self):
+        self._verify_open()
         return iter(self._index.keys())
     __iter__ = iterkeys
 
     def __len__(self):
+        self._verify_open()
         return len(self._index)
 
     def close(self):
@@ -235,6 +247,12 @@ class _Database(collections.MutableMapping):
     def _chmod(self, file):
         if hasattr(self._os, 'chmod'):
             self._os.chmod(file, self._mode)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
 
 
 def open(file, flag=None, mode=0o666):

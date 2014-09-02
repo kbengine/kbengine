@@ -88,7 +88,8 @@ def join(a, *p):
                           for s in (a, ) + p)
         if valid_types:
             # Must have a mixture of text and binary data
-            raise TypeError("Can't mix strings and bytes in path components.")
+            raise TypeError("Can't mix strings and bytes in path "
+                            "components.") from None
         raise
     return path
 
@@ -161,7 +162,7 @@ def islink(path):
     """Test whether a path is a symbolic link"""
     try:
         st = os.lstat(path)
-    except (os.error, AttributeError):
+    except (OSError, AttributeError):
         return False
     return stat.S_ISLNK(st.st_mode)
 
@@ -171,37 +172,9 @@ def lexists(path):
     """Test whether a path exists.  Returns True for broken symbolic links"""
     try:
         os.lstat(path)
-    except os.error:
+    except OSError:
         return False
     return True
-
-
-# Are two filenames really pointing to the same file?
-
-def samefile(f1, f2):
-    """Test whether two pathnames reference the same actual file"""
-    s1 = os.stat(f1)
-    s2 = os.stat(f2)
-    return samestat(s1, s2)
-
-
-# Are two open files really referencing the same file?
-# (Not necessarily the same file descriptor!)
-
-def sameopenfile(fp1, fp2):
-    """Test whether two open file objects reference the same file"""
-    s1 = os.fstat(fp1)
-    s2 = os.fstat(fp2)
-    return samestat(s1, s2)
-
-
-# Are two stat buffers (obtained from stat, fstat or lstat)
-# describing the same file?
-
-def samestat(s1, s2):
-    """Test whether two stat buffers reference the same file"""
-    return s1.st_ino == s2.st_ino and \
-           s1.st_dev == s2.st_dev
 
 
 # Is a path a mount point?
@@ -209,18 +182,25 @@ def samestat(s1, s2):
 
 def ismount(path):
     """Test whether a path is a mount point"""
-    if islink(path):
-        # A symlink can never be a mount point
-        return False
     try:
         s1 = os.lstat(path)
-        if isinstance(path, bytes):
-            parent = join(path, b'..')
-        else:
-            parent = join(path, '..')
+    except OSError:
+        # It doesn't exist -- so not a mount point. :-)
+        return False
+    else:
+        # A symlink can never be a mount point
+        if stat.S_ISLNK(s1.st_mode):
+            return False
+
+    if isinstance(path, bytes):
+        parent = join(path, b'..')
+    else:
+        parent = join(path, '..')
+    try:
         s2 = os.lstat(parent)
-    except os.error:
-        return False # It doesn't exist -- so not a mount point :-)
+    except OSError:
+        return False
+
     dev1 = s1.st_dev
     dev2 = s2.st_dev
     if dev1 != dev2:
@@ -299,6 +279,7 @@ def expandvars(path):
         search = _varprogb.search
         start = b'{'
         end = b'}'
+        environ = getattr(os, 'environb', None)
     else:
         if '$' not in path:
             return path
@@ -308,6 +289,7 @@ def expandvars(path):
         search = _varprog.search
         start = '{'
         end = '}'
+        environ = os.environ
     i = 0
     while True:
         m = search(path, i)
@@ -317,18 +299,18 @@ def expandvars(path):
         name = m.group(1)
         if name.startswith(start) and name.endswith(end):
             name = name[1:-1]
-        if isinstance(name, bytes):
-            name = str(name, 'ASCII')
-        if name in os.environ:
+        try:
+            if environ is None:
+                value = os.fsencode(os.environ[os.fsdecode(name)])
+            else:
+                value = environ[name]
+        except KeyError:
+            i = j
+        else:
             tail = path[j:]
-            value = os.environ[name]
-            if isinstance(path, bytes):
-                value = value.encode('ASCII')
             path = path[:i] + value
             i = len(path)
             path += tail
-        else:
-            i = j
     return path
 
 

@@ -36,12 +36,19 @@ at a later point(for example at the next :term:`bytecode` instruction).
 This has consequences:
 
 * It makes little sense to catch synchronous errors like :const:`SIGFPE` or
-  :const:`SIGSEGV`.
+  :const:`SIGSEGV` that are caused by an invalid operation in C code.  Python
+  will return from the signal handler to the C code, which is likely to raise
+  the same signal again, causing Python to apparently hang.  From Python 3.3
+  onwards, you can use the :mod:`faulthandler` module to report on synchronous
+  errors.
 
 * A long-running calculation implemented purely in C (such as regular
   expression matching on a large body of text) may run uninterrupted for an
   arbitrary amount of time, regardless of any signals received.  The Python
   signal handlers will be called when the calculation finishes.
+
+
+.. _signals-and-threads:
 
 
 Signals and threads
@@ -131,6 +138,28 @@ The variables defined in the :mod:`signal` module are:
    in user and kernel space. SIGPROF is delivered upon expiration.
 
 
+.. data:: SIG_BLOCK
+
+   A possible value for the *how* parameter to :func:`pthread_sigmask`
+   indicating that signals are to be blocked.
+
+   .. versionadded:: 3.3
+
+.. data:: SIG_UNBLOCK
+
+   A possible value for the *how* parameter to :func:`pthread_sigmask`
+   indicating that signals are to be unblocked.
+
+   .. versionadded:: 3.3
+
+.. data:: SIG_SETMASK
+
+   A possible value for the *how* parameter to :func:`pthread_sigmask`
+   indicating that the signal mask is to be replaced.
+
+   .. versionadded:: 3.3
+
+
 The :mod:`signal` module defines one exception:
 
 .. exception:: ItimerError
@@ -138,7 +167,11 @@ The :mod:`signal` module defines one exception:
    Raised to signal an error from the underlying :func:`setitimer` or
    :func:`getitimer` implementation. Expect this error if an invalid
    interval timer or a negative time is passed to :func:`setitimer`.
-   This error is a subtype of :exc:`IOError`.
+   This error is a subtype of :exc:`OSError`.
+
+   .. versionadded:: 3.3
+      This error used to be a subtype of :exc:`IOError`, which is now an
+      alias of :exc:`OSError`.
 
 
 The :mod:`signal` module defines the following functions:
@@ -172,6 +205,65 @@ The :mod:`signal` module defines the following functions:
    will then be called.  Returns nothing.  Not on Windows. (See the Unix man page
    :manpage:`signal(2)`.)
 
+   See also :func:`sigwait`, :func:`sigwaitinfo`, :func:`sigtimedwait` and
+   :func:`sigpending`.
+
+
+.. function:: pthread_kill(thread_id, signum)
+
+   Send the signal *signum* to the thread *thread_id*, another thread in the
+   same process as the caller.  The target thread can be executing any code
+   (Python or not).  However, if the target thread is executing the Python
+   interpreter, the Python signal handlers will be :ref:`executed by the main
+   thread <signals-and-threads>`.  Therefore, the only point of sending a signal to a particular
+   Python thread would be to force a running system call to fail with
+   :exc:`InterruptedError`.
+
+   Use :func:`threading.get_ident()` or the :attr:`~threading.Thread.ident`
+   attribute of :class:`threading.Thread` objects to get a suitable value
+   for *thread_id*.
+
+   If *signum* is 0, then no signal is sent, but error checking is still
+   performed; this can be used to check if the target thread is still running.
+
+   Availability: Unix (see the man page :manpage:`pthread_kill(3)` for further
+   information).
+
+   See also :func:`os.kill`.
+
+   .. versionadded:: 3.3
+
+
+.. function:: pthread_sigmask(how, mask)
+
+   Fetch and/or change the signal mask of the calling thread.  The signal mask
+   is the set of signals whose delivery is currently blocked for the caller.
+   Return the old signal mask as a set of signals.
+
+   The behavior of the call is dependent on the value of *how*, as follows.
+
+   * :data:`SIG_BLOCK`: The set of blocked signals is the union of the current
+     set and the *mask* argument.
+   * :data:`SIG_UNBLOCK`: The signals in *mask* are removed from the current
+     set of blocked signals.  It is permissible to attempt to unblock a
+     signal which is not blocked.
+   * :data:`SIG_SETMASK`: The set of blocked signals is set to the *mask*
+     argument.
+
+   *mask* is a set of signal numbers (e.g. {:const:`signal.SIGINT`,
+   :const:`signal.SIGTERM`}). Use ``range(1, signal.NSIG)`` for a full mask
+   including all signals.
+
+   For example, ``signal.pthread_sigmask(signal.SIG_BLOCK, [])`` reads the
+   signal mask of the calling thread.
+
+   Availability: Unix. See the man page :manpage:`sigprocmask(3)` and
+   :manpage:`pthread_sigmask(3)` for further information.
+
+   See also :func:`pause`, :func:`sigpending` and :func:`sigwait`.
+
+   .. versionadded:: 3.3
+
 
 .. function:: setitimer(which, seconds[, interval])
 
@@ -201,12 +293,16 @@ The :mod:`signal` module defines the following functions:
 
 .. function:: set_wakeup_fd(fd)
 
-   Set the wakeup fd to *fd*.  When a signal is received, a ``'\0'`` byte is
-   written to the fd.  This can be used by a library to wakeup a poll or select
-   call, allowing the signal to be fully processed.
+   Set the wakeup file descriptor to *fd*.  When a signal is received, the
+   signal number is written as a single byte into the fd.  This can be used by
+   a library to wakeup a poll or select call, allowing the signal to be fully
+   processed.
 
    The old wakeup fd is returned.  *fd* must be non-blocking.  It is up to the
    library to remove any bytes before calling poll or select again.
+
+   Use for example ``struct.unpack('%uB' % len(data), data)`` to decode the
+   signal numbers list.
 
    When threads are enabled, this function can only be called from the main thread;
    attempting to call it from other threads will cause a :exc:`ValueError`
@@ -247,6 +343,73 @@ The :mod:`signal` module defines the following functions:
    :const:`SIGTERM`. A :exc:`ValueError` will be raised in any other case.
 
 
+.. function:: sigpending()
+
+   Examine the set of signals that are pending for delivery to the calling
+   thread (i.e., the signals which have been raised while blocked).  Return the
+   set of the pending signals.
+
+   Availability: Unix (see the man page :manpage:`sigpending(2)` for further
+   information).
+
+   See also :func:`pause`, :func:`pthread_sigmask` and :func:`sigwait`.
+
+   .. versionadded:: 3.3
+
+
+.. function:: sigwait(sigset)
+
+   Suspend execution of the calling thread until the delivery of one of the
+   signals specified in the signal set *sigset*.  The function accepts the signal
+   (removes it from the pending list of signals), and returns the signal number.
+
+   Availability: Unix (see the man page :manpage:`sigwait(3)` for further
+   information).
+
+   See also :func:`pause`, :func:`pthread_sigmask`, :func:`sigpending`,
+   :func:`sigwaitinfo` and :func:`sigtimedwait`.
+
+   .. versionadded:: 3.3
+
+
+.. function:: sigwaitinfo(sigset)
+
+   Suspend execution of the calling thread until the delivery of one of the
+   signals specified in the signal set *sigset*.  The function accepts the
+   signal and removes it from the pending list of signals. If one of the
+   signals in *sigset* is already pending for the calling thread, the function
+   will return immediately with information about that signal. The signal
+   handler is not called for the delivered signal. The function raises an
+   :exc:`InterruptedError` if it is interrupted by a signal that is not in
+   *sigset*.
+
+   The return value is an object representing the data contained in the
+   :c:type:`siginfo_t` structure, namely: :attr:`si_signo`, :attr:`si_code`,
+   :attr:`si_errno`, :attr:`si_pid`, :attr:`si_uid`, :attr:`si_status`,
+   :attr:`si_band`.
+
+   Availability: Unix (see the man page :manpage:`sigwaitinfo(2)` for further
+   information).
+
+   See also :func:`pause`, :func:`sigwait` and :func:`sigtimedwait`.
+
+   .. versionadded:: 3.3
+
+
+.. function:: sigtimedwait(sigset, timeout)
+
+   Like :func:`sigwaitinfo`, but takes an additional *timeout* argument
+   specifying a timeout. If *timeout* is specified as :const:`0`, a poll is
+   performed. Returns :const:`None` if a timeout occurs.
+
+   Availability: Unix (see the man page :manpage:`sigtimedwait(2)` for further
+   information).
+
+   See also :func:`pause`, :func:`sigwait` and :func:`sigwaitinfo`.
+
+   .. versionadded:: 3.3
+
+
 .. _signal-example:
 
 Example
@@ -263,7 +426,7 @@ be sent, and the handler raises an exception. ::
 
    def handler(signum, frame):
        print('Signal handler called with signal', signum)
-       raise IOError("Couldn't open device!")
+       raise OSError("Couldn't open device!")
 
    # Set the signal handler and a 5-second alarm
    signal.signal(signal.SIGALRM, handler)

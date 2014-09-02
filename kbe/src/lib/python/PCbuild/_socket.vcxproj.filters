@@ -2,10 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{49aea3c3-bb8c-4cb0-a02f-044e2638ed24}</UniqueIdentifier>
+      <UniqueIdentifier>{1452207f-707c-4e84-b532-307193a0fd85}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{d2b22279-f35b-4ff8-967c-06f5045e2202}</UniqueIdentifier>
+      <UniqueIdentifier>{1edfe0d0-7b9d-4dc8-a335-b21fef7cc77a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -17,6 +17,5 @@
     <ClCompile Include="..\Modules\socketmodule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\getbuildinfo.c" />
   </ItemGroup>
 </Project>

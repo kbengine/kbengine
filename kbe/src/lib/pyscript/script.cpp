@@ -151,7 +151,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	Py_SetPath(pyPaths.c_str()); 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
-	DEBUG_MSG(boost::format("Script::install: paths=%1%.\n") % tmpchar);
+	DEBUG_MSG(boost::format("Script::install(): paths=%1%.\n") % tmpchar);
 	free(tmpchar);
 	
 #endif
@@ -166,7 +166,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	Py_Initialize();                      											// python解释器的初始化  
     if (!Py_IsInitialized())
     {
-    	ERROR_MSG("Script::install::Py_Initialize is failed!\n");
+    	ERROR_MSG("Script::install(): Py_Initialize is failed!\n");
         return false;
     } 
 
@@ -183,7 +183,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
-		ERROR_MSG(boost::format("Script::init: Unable to set KBEngine.component to %1%\n") %
+		ERROR_MSG(boost::format("Script::install(): Unable to set KBEngine.component to %1%\n") %
 			componentName );
 		return false;
 	}
@@ -193,7 +193,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	if(!install_py_dlls())
 	{
-		ERROR_MSG("Script::init: install_py_dlls() is failed!\n");
+		ERROR_MSG("Script::install(): install_py_dlls() is failed!\n");
 		return false;
 	}
 
@@ -238,7 +238,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
-	INFO_MSG("Script::install is successfully!\n");
+	INFO_MSG(boost::format("Script::install(): is successfully, python_infos=(%1%)!\n") % Py_GetVersion());
 	return installExtraModule("KBExtra");
 }
 
@@ -255,7 +255,7 @@ bool Script::uninstall()
 	if(pyStdouterr_)
 	{
 		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
-			ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+			ERROR_MSG("Script::uninstall(): pyStdouterr_->uninstall() is failed!\n");
 		}
 		else
 			Py_DECREF(pyStdouterr_);
@@ -264,7 +264,7 @@ bool Script::uninstall()
 	if(pyStdouterrHook_)
 	{
 		if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
-			ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
+			ERROR_MSG("Script::uninstall(): pyStdouterrHook_->uninstall() is failed!\n");
 		}
 		else
 			Py_DECREF(pyStdouterrHook_);
@@ -272,6 +272,12 @@ bool Script::uninstall()
 
 	ScriptStdOutErr::uninstallScript();	
 	ScriptStdOutErrHook::uninstallScript();
+
+	if(!uninstall_py_dlls())
+	{
+		ERROR_MSG("Script::uninstall(): uninstall_py_dlls() is failed!\n");
+		return false;
+	}
 
 #ifndef KBE_SINGLE_THREADED
 	if (s_pOurInitTimeModules != NULL)
@@ -282,7 +288,7 @@ bool Script::uninstall()
 #endif
 
 	Py_Finalize();																// 卸载python解释器
-	INFO_MSG("Script::uninstall is successfully!\n");
+	INFO_MSG("Script::uninstall(): is successfully!\n");
 	return true;	
 }
 
@@ -300,7 +306,7 @@ bool Script::installExtraModule(const char* moduleName)
 
 	PyObject_SetAttrString(m, moduleName, extraModule_);						// 将扩展模块对象加入main
 
-	INFO_MSG(boost::format("Script::install %1% is successfully!\n") 
+	INFO_MSG(boost::format("Script::install(): %1% is successfully!\n") 
 		% moduleName);
 
 	return true;

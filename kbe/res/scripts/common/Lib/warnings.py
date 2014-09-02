@@ -1,9 +1,5 @@
 """Python part of the warnings subsystem."""
 
-# Note: function level imports should *not* be used
-# in this module as it may cause import lock deadlock.
-# See bug 683658.
-import linecache
 import sys
 
 __all__ = ["warn", "showwarning", "formatwarning", "filterwarnings",
@@ -16,11 +12,12 @@ def showwarning(message, category, filename, lineno, file=None, line=None):
         file = sys.stderr
     try:
         file.write(formatwarning(message, category, filename, lineno, line))
-    except IOError:
+    except OSError:
         pass # the file (probably stderr) is invalid - this warning gets lost.
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Function to format a warning the standard way."""
+    import linecache
     s =  "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
     line = linecache.getline(filename, lineno) if line is None else line
     if line:
@@ -233,6 +230,7 @@ def warn_explicit(message, category, filename, lineno,
 
     # Prime the linecache for formatting, in case the
     # "file" is actually in a zipfile or something.
+    import linecache
     linecache.getlines(filename, module_globals)
 
     if action == "error":

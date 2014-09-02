@@ -6,29 +6,75 @@
 
 
 This module provides access to the :c:func:`select` and :c:func:`poll` functions
-available in most operating systems, :c:func:`epoll` available on Linux 2.5+ and
+available in most operating systems, :c:func:`devpoll` available on
+Solaris and derivatives, :c:func:`epoll` available on Linux 2.5+ and
 :c:func:`kqueue` available on most BSD.
 Note that on Windows, it only works for sockets; on other operating systems,
 it also works for other file types (in particular, on Unix, it works on pipes).
 It cannot be used on regular files to determine whether a file has grown since
 it was last read.
 
+.. note::
+
+   The :mod:`selectors` module allows high-level and efficient I/O
+   multiplexing, built upon the :mod:`select` module primitives. Users are
+   encouraged to use the :mod:`selectors` module instead, unless they want
+   precise control over the OS-level primitives used.
+
+
 The module defines the following:
 
 
 .. exception:: error
 
-   The exception raised when an error occurs.  The accompanying value is a pair
-   containing the numeric error code from :c:data:`errno` and the corresponding
-   string, as would be printed by the C function :c:func:`perror`.
+   A deprecated alias of :exc:`OSError`.
+
+   .. versionchanged:: 3.3
+      Following :pep:`3151`, this class was made an alias of :exc:`OSError`.
 
 
-.. function:: epoll(sizehint=-1)
+.. function:: devpoll()
 
-   (Only supported on Linux 2.5.44 and newer.)  Returns an edge polling object,
-   which can be used as Edge or Level Triggered interface for I/O events; see
-   section :ref:`epoll-objects` below for the methods supported by epolling
-   objects.
+   (Only supported on Solaris and derivatives.)  Returns a ``/dev/poll``
+   polling object; see section :ref:`devpoll-objects` below for the
+   methods supported by devpoll objects.
+
+   :c:func:`devpoll` objects are linked to the number of file
+   descriptors allowed at the time of instantiation. If your program
+   reduces this value, :c:func:`devpoll` will fail. If your program
+   increases this value, :c:func:`devpoll` may return an
+   incomplete list of active file descriptors.
+
+   The new file descriptor is :ref:`non-inheritable <fd_inheritance>`.
+
+   .. versionadded:: 3.3
+
+   .. versionchanged:: 3.4
+      The new file descriptor is now non-inheritable.
+
+.. function:: epoll(sizehint=-1, flags=0)
+
+   (Only supported on Linux 2.5.44 and newer.) Return an edge polling object,
+   which can be used as Edge or Level Triggered interface for I/O
+   events. *sizehint* is deprecated and completely ignored. *flags* can be set
+   to :const:`EPOLL_CLOEXEC`, which causes the epoll descriptor to be closed
+   automatically when :func:`os.execve` is called.
+
+   See the :ref:`epoll-objects` section below for the methods supported by
+   epolling objects.
+
+   ``epoll`` objects support the context management protocol: when used in a
+   :keyword:`with` statement, the new file descriptor is automatically closed
+   at the end of the block.
+
+   The new file descriptor is :ref:`non-inheritable <fd_inheritance>`.
+
+   .. versionchanged:: 3.3
+      Added the *flags* parameter.
+
+   .. versionchanged:: 3.4
+      Support for the :keyword:`with` statement was added.
+      The new file descriptor is now non-inheritable.
 
 
 .. function:: poll()
@@ -44,6 +90,11 @@ The module defines the following:
    (Only supported on BSD.)  Returns a kernel queue object; see section
    :ref:`kqueue-objects` below for the methods supported by kqueue objects.
 
+   The new file descriptor is :ref:`non-inheritable <fd_inheritance>`.
+
+   .. versionchanged:: 3.4
+      The new file descriptor is now non-inheritable.
+
 
 .. function:: kevent(ident, filter=KQ_FILTER_READ, flags=KQ_EV_ADD, fflags=0, data=0, udata=0)
 
@@ -56,7 +107,7 @@ The module defines the following:
    This is a straightforward interface to the Unix :c:func:`select` system call.
    The first three arguments are sequences of 'waitable objects': either
    integers representing file descriptors or objects with a parameterless method
-   named :meth:`fileno` returning such an integer:
+   named :meth:`~io.IOBase.fileno` returning such an integer:
 
    * *rlist*: wait until ready for reading
    * *wlist*: wait until ready for writing
@@ -82,8 +133,8 @@ The module defines the following:
    objects <file object>` (e.g. ``sys.stdin``, or objects returned by
    :func:`open` or :func:`os.popen`), socket objects returned by
    :func:`socket.socket`.  You may also define a :dfn:`wrapper` class yourself,
-   as long as it has an appropriate :meth:`fileno` method (that really returns
-   a file descriptor, not just a random integer).
+   as long as it has an appropriate :meth:`~io.IOBase.fileno` method (that
+   really returns a file descriptor, not just a random integer).
 
    .. note::
 
@@ -97,13 +148,102 @@ The module defines the following:
 .. attribute:: PIPE_BUF
 
    The minimum number of bytes which can be written without blocking to a pipe
-   when the pipe has been reported as ready for writing by :func:`select`,
+   when the pipe has been reported as ready for writing by :func:`~select.select`,
    :func:`poll` or another interface in this module.  This doesn't apply
    to other kind of file-like objects such as sockets.
 
    This value is guaranteed by POSIX to be at least 512.  Availability: Unix.
 
    .. versionadded:: 3.2
+
+
+.. _devpoll-objects:
+
+``/dev/poll`` Polling Objects
+----------------------------------------------
+
+   http://developers.sun.com/solaris/articles/using_devpoll.html
+   http://developers.sun.com/solaris/articles/polling_efficient.html
+
+Solaris and derivatives have ``/dev/poll``. While :c:func:`select` is
+O(highest file descriptor) and :c:func:`poll` is O(number of file
+descriptors), ``/dev/poll`` is O(active file descriptors).
+
+``/dev/poll`` behaviour is very close to the standard :c:func:`poll`
+object.
+
+
+.. method:: devpoll.close()
+
+   Close the file descriptor of the polling object.
+
+   .. versionadded:: 3.4
+
+
+.. attribute:: devpoll.closed
+
+   ``True`` if the polling object is closed.
+
+   .. versionadded:: 3.4
+
+
+.. method:: devpoll.fileno()
+
+   Return the file descriptor number of the polling object.
+
+   .. versionadded:: 3.4
+
+
+.. method:: devpoll.register(fd[, eventmask])
+
+   Register a file descriptor with the polling object.  Future calls to the
+   :meth:`poll` method will then check whether the file descriptor has any
+   pending I/O events.  *fd* can be either an integer, or an object with a
+   :meth:`~io.IOBase.fileno` method that returns an integer.  File objects
+   implement :meth:`!fileno`, so they can also be used as the argument.
+
+   *eventmask* is an optional bitmask describing the type of events you want to
+   check for. The constants are the same that with :c:func:`poll`
+   object. The default value is a combination of the constants :const:`POLLIN`,
+   :const:`POLLPRI`, and :const:`POLLOUT`.
+
+   .. warning::
+
+      Registering a file descriptor that's already registered is not an
+      error, but the result is undefined. The appropiate action is to
+      unregister or modify it first. This is an important difference
+      compared with :c:func:`poll`.
+
+
+.. method:: devpoll.modify(fd[, eventmask])
+
+   This method does an :meth:`unregister` followed by a
+   :meth:`register`. It is (a bit) more efficient that doing the same
+   explicitly.
+
+
+.. method:: devpoll.unregister(fd)
+
+   Remove a file descriptor being tracked by a polling object.  Just like the
+   :meth:`register` method, *fd* can be an integer or an object with a
+   :meth:`~io.IOBase.fileno` method that returns an integer.
+
+   Attempting to remove a file descriptor that was never registered is
+   safely ignored.
+
+
+.. method:: devpoll.poll([timeout])
+
+   Polls the set of registered file descriptors, and returns a possibly-empty list
+   containing ``(fd, event)`` 2-tuples for the descriptors that have events or
+   errors to report. *fd* is the file descriptor, and *event* is a bitmask with
+   bits set for the reported events for that descriptor --- :const:`POLLIN` for
+   waiting input, :const:`POLLOUT` to indicate that the descriptor can be written
+   to, and so forth. An empty list indicates that the call timed out and no file
+   descriptors had any events to report. If *timeout* is given, it specifies the
+   length of time in milliseconds which the system will wait for events before
+   returning. If *timeout* is omitted, -1, or :const:`None`, the call will
+   block until there is an event for this poll object.
 
 
 .. _epoll-objects:
@@ -151,6 +291,11 @@ Edge and Level Trigger Polling (epoll) Objects
    Close the control file descriptor of the epoll object.
 
 
+.. attribute:: epoll.closed
+
+   ``True`` if the epoll object is closed.
+
+
 .. method:: epoll.fileno()
 
    Return the file descriptor number of the control fd.
@@ -165,15 +310,10 @@ Edge and Level Trigger Polling (epoll) Objects
 
    Register a fd descriptor with the epoll object.
 
-   .. note::
-
-     Registering a file descriptor that's already registered raises an
-     IOError -- contrary to :ref:`poll-objects`'s register.
-
 
 .. method:: epoll.modify(fd, eventmask)
 
-   Modify a register file descriptor.
+   Modify a registered file descriptor.
 
 
 .. method:: epoll.unregister(fd)
@@ -203,10 +343,10 @@ linearly scanned again. :c:func:`select` is O(highest file descriptor), while
 .. method:: poll.register(fd[, eventmask])
 
    Register a file descriptor with the polling object.  Future calls to the
-   :meth:`poll` method will then check whether the file descriptor has any pending
-   I/O events.  *fd* can be either an integer, or an object with a :meth:`fileno`
-   method that returns an integer.  File objects implement :meth:`fileno`, so they
-   can also be used as the argument.
+   :meth:`poll` method will then check whether the file descriptor has any
+   pending I/O events.  *fd* can be either an integer, or an object with a
+   :meth:`~io.IOBase.fileno` method that returns an integer.  File objects
+   implement :meth:`!fileno`, so they can also be used as the argument.
 
    *eventmask* is an optional bitmask describing the type of events you want to
    check for, and can be a combination of the constants :const:`POLLIN`,
@@ -237,7 +377,7 @@ linearly scanned again. :c:func:`select` is O(highest file descriptor), while
 
    Modifies an already registered fd. This has the same effect as
    ``register(fd, eventmask)``.  Attempting to modify a file descriptor
-   that was never registered causes an :exc:`IOError` exception with errno
+   that was never registered causes an :exc:`OSError` exception with errno
    :const:`ENOENT` to be raised.
 
 
@@ -245,7 +385,7 @@ linearly scanned again. :c:func:`select` is O(highest file descriptor), while
 
    Remove a file descriptor being tracked by a polling object.  Just like the
    :meth:`register` method, *fd* can be an integer or an object with a
-   :meth:`fileno` method that returns an integer.
+   :meth:`~io.IOBase.fileno` method that returns an integer.
 
    Attempting to remove a file descriptor that was never registered causes a
    :exc:`KeyError` exception to be raised.
@@ -273,6 +413,11 @@ Kqueue Objects
 .. method:: kqueue.close()
 
    Close the control file descriptor of the kqueue object.
+
+
+.. attribute:: kqueue.closed
+
+   ``True`` if the kqueue object is closed.
 
 
 .. method:: kqueue.fileno()
@@ -305,8 +450,8 @@ http://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
 
    Value used to identify the event. The interpretation depends on the filter
    but it's usually the file descriptor. In the constructor ident can either
-   be an int or an object with a fileno() function. kevent stores the integer
-   internally.
+   be an int or an object with a :meth:`~io.IOBase.fileno` method. kevent
+   stores the integer internally.
 
 .. attribute:: kevent.filter
 

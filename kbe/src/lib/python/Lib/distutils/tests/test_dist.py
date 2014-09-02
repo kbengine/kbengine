@@ -6,7 +6,9 @@ import unittest
 import warnings
 import textwrap
 
-from distutils.dist import Distribution, fix_help_options
+from unittest import mock
+
+from distutils.dist import Distribution, fix_help_options, DistributionMetadata
 from distutils.cmd import Command
 
 from test.support import TESTFN, captured_stdout, run_unittest
@@ -18,7 +20,7 @@ class test_dist(Command):
 
     user_options = [
         ("sample-option=", "S", "help text"),
-        ]
+    ]
 
     def initialize_options(self):
         self.sample_option = None
@@ -37,6 +39,7 @@ class TestDistribution(Distribution):
 
 
 class DistributionTestCase(support.LoggingSilencer,
+                           support.TempdirManager,
                            support.EnvironGuard,
                            unittest.TestCase):
 
@@ -76,6 +79,64 @@ class DistributionTestCase(support.LoggingSilencer,
         cmd = d.get_command_obj("test_dist")
         self.assertIsInstance(cmd, test_dist)
         self.assertEqual(cmd.sample_option, "sometext")
+
+    def test_venv_install_options(self):
+        sys.argv.append("install")
+        self.addCleanup(os.unlink, TESTFN)
+
+        fakepath = '/somedir'
+
+        with open(TESTFN, "w") as f:
+            print(("[install]\n"
+                   "install-base = {0}\n"
+                   "install-platbase = {0}\n"
+                   "install-lib = {0}\n"
+                   "install-platlib = {0}\n"
+                   "install-purelib = {0}\n"
+                   "install-headers = {0}\n"
+                   "install-scripts = {0}\n"
+                   "install-data = {0}\n"
+                   "prefix = {0}\n"
+                   "exec-prefix = {0}\n"
+                   "home = {0}\n"
+                   "user = {0}\n"
+                   "root = {0}").format(fakepath), file=f)
+
+        # Base case: Not in a Virtual Environment
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/a') as values:
+            d = self.create_distribution([TESTFN])
+
+        option_tuple = (TESTFN, fakepath)
+
+        result_dict = {
+            'install_base': option_tuple,
+            'install_platbase': option_tuple,
+            'install_lib': option_tuple,
+            'install_platlib': option_tuple,
+            'install_purelib': option_tuple,
+            'install_headers': option_tuple,
+            'install_scripts': option_tuple,
+            'install_data': option_tuple,
+            'prefix': option_tuple,
+            'exec_prefix': option_tuple,
+            'home': option_tuple,
+            'user': option_tuple,
+            'root': option_tuple,
+        }
+
+        self.assertEqual(
+            sorted(d.command_options.get('install').keys()),
+            sorted(result_dict.keys()))
+
+        for (key, value) in d.command_options.get('install').items():
+            self.assertEqual(value, result_dict[key])
+
+        # Test case: In a Virtual Environment
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/b') as values:
+            d = self.create_distribution([TESTFN])
+
+        for key in result_dict.keys():
+            self.assertNotIn(key, d.command_options.get('install', {}))
 
     def test_command_packages_configfile(self):
         sys.argv.append("build")
@@ -152,6 +213,34 @@ class DistributionTestCase(support.LoggingSilencer,
         kwargs = {'level': 'ok2'}
         self.assertRaises(ValueError, dist.announce, args, kwargs)
 
+
+    def test_find_config_files_disable(self):
+        # Ticket #1180: Allow user to disable their home config file.
+        temp_home = self.mkdtemp()
+        if os.name == 'posix':
+            user_filename = os.path.join(temp_home, ".pydistutils.cfg")
+        else:
+            user_filename = os.path.join(temp_home, "pydistutils.cfg")
+
+        with open(user_filename, 'w') as f:
+            f.write('[distutils]\n')
+
+        def _expander(path):
+            return temp_home
+
+        old_expander = os.path.expanduser
+        os.path.expanduser = _expander
+        try:
+            d = Distribution()
+            all_files = d.find_config_files()
+
+            d = Distribution(attrs={'script_args': ['--no-user-cfg']})
+            files = d.find_config_files()
+        finally:
+            os.path.expanduser = old_expander
+
+        # make sure --no-user-cfg disables the user cfg file
+        self.assertEqual(len(all_files)-1, len(files))
 
 class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
                        unittest.TestCase):
@@ -304,7 +393,7 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
                 os.environ['HOME'] = temp_dir
                 files = dist.find_config_files()
                 self.assertIn(user_filename, files,
-                             '%r not found in %r' % (user_filename, files))
+                              '%r not found in %r' % (user_filename, files))
         finally:
             os.remove(user_filename)
 
@@ -327,6 +416,33 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
                   if line.strip() != '']
         self.assertTrue(output)
 
+
+    def test_read_metadata(self):
+        attrs = {"name": "package",
+                 "version": "1.0",
+                 "long_description": "desc",
+                 "description": "xxx",
+                 "download_url": "http://example.com",
+                 "keywords": ['one', 'two'],
+                 "requires": ['foo']}
+
+        dist = Distribution(attrs)
+        metadata = dist.metadata
+
+        # write it then reloads it
+        PKG_INFO = io.StringIO()
+        metadata.write_pkg_file(PKG_INFO)
+        PKG_INFO.seek(0)
+        metadata.read_pkg_file(PKG_INFO)
+
+        self.assertEqual(metadata.name, "package")
+        self.assertEqual(metadata.version, "1.0")
+        self.assertEqual(metadata.description, "xxx")
+        self.assertEqual(metadata.download_url, 'http://example.com')
+        self.assertEqual(metadata.keywords, ['one', 'two'])
+        self.assertEqual(metadata.platforms, ['UNKNOWN'])
+        self.assertEqual(metadata.obsoletes, None)
+        self.assertEqual(metadata.requires, ['foo'])
 
 def test_suite():
     suite = unittest.TestSuite()

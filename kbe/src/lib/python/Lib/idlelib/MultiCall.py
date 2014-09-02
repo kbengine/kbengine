@@ -32,7 +32,6 @@ Each function will be called at most once for each event.
 import sys
 import re
 import tkinter
-from idlelib import macosxSupport
 
 # the event type constants, which define the meaning of mc_type
 MC_KEYPRESS=0; MC_KEYRELEASE=1; MC_BUTTONPRESS=2; MC_BUTTONRELEASE=3;
@@ -45,7 +44,7 @@ MC_SHIFT = 1<<0; MC_CONTROL = 1<<2; MC_ALT = 1<<3; MC_META = 1<<5
 MC_OPTION = 1<<6; MC_COMMAND = 1<<7
 
 # define the list of modifiers, to be used in complex event types.
-if macosxSupport.runningAsOSXApp():
+if sys.platform == "darwin":
     _modifiers = (("Shift",), ("Control",), ("Option",), ("Command",))
     _modifier_masks = (MC_SHIFT, MC_CONTROL, MC_OPTION, MC_COMMAND)
 else:
@@ -56,6 +55,13 @@ else:
 _modifier_names = dict([(name, number)
                          for number in range(len(_modifiers))
                          for name in _modifiers[number]])
+
+# In 3.4, if no shell window is ever open, the underlying Tk widget is
+# destroyed before .__del__ methods here are called.  The following
+# is used to selectively ignore shutdown exceptions to avoid
+# 'Exception ignored' messages.  See http://bugs.python.org/issue20167
+APPLICATION_GONE = '''\
+can't invoke "bind" command:  application has been destroyed'''
 
 # A binder is a class which binds functions to one type of event. It has two
 # methods: bind and unbind, which get a function and a parsed sequence, as
@@ -98,7 +104,14 @@ class _SimpleBinder:
 
     def __del__(self):
         if self.handlerid:
-            self.widget.unbind(self.widgetinst, self.sequence, self.handlerid)
+            try:
+                self.widget.unbind(self.widgetinst, self.sequence,
+                        self.handlerid)
+            except tkinter.TclError as e:
+                if e.args[0] == APPLICATION_GONE:
+                    pass
+                else:
+                    raise
 
 # An int in range(1 << len(_modifiers)) represents a combination of modifiers
 # (if the least significent bit is on, _modifiers[0] is on, and so on).
@@ -170,8 +183,9 @@ class _ComplexBinder:
                     break
             ishandlerrunning[:] = []
             # Call all functions in doafterhandler and remove them from list
-            while doafterhandler:
-                doafterhandler.pop()()
+            for f in doafterhandler:
+                f()
+            doafterhandler[:] = []
             if r:
                 return r
         return handler
@@ -226,7 +240,13 @@ class _ComplexBinder:
 
     def __del__(self):
         for seq, id in self.handlerids:
-            self.widget.unbind(self.widgetinst, seq, id)
+            try:
+                self.widget.unbind(self.widgetinst, seq, id)
+            except tkinter.TclError as e:
+                if e.args[0] == APPLICATION_GONE:
+                    break
+                else:
+                    raise
 
 # define the list of event types to be handled by MultiEvent. the order is
 # compatible with the definition of event type constants.
@@ -389,8 +409,13 @@ def MultiCallCreator(widget):
                 func, triplets = self.__eventinfo[virtual]
                 if func:
                     for triplet in triplets:
-                        self.__binders[triplet[1]].unbind(triplet, func)
-
+                        try:
+                            self.__binders[triplet[1]].unbind(triplet, func)
+                        except tkinter.TclError as e:
+                            if e.args[0] == APPLICATION_GONE:
+                                break
+                            else:
+                                raise
 
     _multicall_dict[widget] = MultiCall
     return MultiCall
