@@ -59,6 +59,9 @@ public:
 	
 	bool initialize();
 
+	void autoSetPaths();
+	void updatePaths();
+
 	const Resmgr::KBEEnv& getEnv() { return kb_env_; }
 
 	/*
