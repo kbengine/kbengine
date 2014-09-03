@@ -188,9 +188,9 @@ endif # USE_PYTHON
 
 ifdef USE_MYSQL
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
-	MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 else
-	MYSQL_CONFIG_PATH=/usr/lib/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 endif
 
 LDLIBS += `$(MYSQL_CONFIG_PATH) --libs_r`
