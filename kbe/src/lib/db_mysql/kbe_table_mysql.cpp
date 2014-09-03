@@ -399,7 +399,7 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, info.deadline);
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRIu64, info.deadline);
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
