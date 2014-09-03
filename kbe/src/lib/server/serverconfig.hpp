@@ -225,9 +225,7 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getCellAppMgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getKBMachine(void);
-	INLINE ENGINE_COMPONENT_INFO& getKBCenter(void);
 	INLINE ENGINE_COMPONENT_INFO& getBots(void);
-	INLINE ENGINE_COMPONENT_INFO& getResourcemgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getMessagelog(void);
 	INLINE ENGINE_COMPONENT_INFO& getBilling(void);
 
@@ -272,9 +270,7 @@ private:
 	ENGINE_COMPONENT_INFO _cellAppMgrInfo;
 	ENGINE_COMPONENT_INFO _baseAppMgrInfo;
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
-	ENGINE_COMPONENT_INFO _kbCenterInfo;
 	ENGINE_COMPONENT_INFO _botsInfo;
-	ENGINE_COMPONENT_INFO _resourcemgrInfo;
 	ENGINE_COMPONENT_INFO _messagelogInfo;
 	ENGINE_COMPONENT_INFO _billingInfo;
 public:

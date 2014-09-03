@@ -36,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
-#include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
 #include "../../server/tools/bots/bots_interface.hpp"
 #include "../../server/tools/billing_system/billingsystem_interface.hpp"
@@ -58,7 +57,6 @@ _cellappmgrs(),
 _baseappmgrs(),
 _machines(),
 _messagelogs(),
-_resourcemgrs(),
 _billings(),
 _bots(),
 _consoles(),
@@ -368,16 +366,6 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
-			else if(componentType == RESOURCEMGR_TYPE)
-			{
-				(*pBundle).newMessage(ResourcemgrInterface::onRegisterNewApp);
-				
-				ResourcemgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					g_componentGlobalOrder, g_componentGroupOrder,
-					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
-			}
 			else
 			{
 				KBE_ASSERT(false && "invalid componentType.\n");
@@ -408,7 +396,6 @@ void Components::clear(int32 uid, bool shouldShowLog)
 	delComponent(uid, BASEAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, LOGINAPP_TYPE, uid, true, shouldShowLog);
 	//delComponent(uid, MESSAGELOG_TYPE, uid, true, shouldShowLog);
-	//delComponent(uid, RESOURCEMGR_TYPE, uid, true, shouldShowLog);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -431,9 +418,7 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 	case MACHINE_TYPE:
 		return _machines;
 	case MESSAGELOG_TYPE:
-		return _messagelogs;		
-	case RESOURCEMGR_TYPE:
-		return _resourcemgrs;	
+		return _messagelogs;			
 	case BILLING_TYPE:
 		return _billings;	
 	case BOTS_TYPE:
@@ -718,12 +703,6 @@ Components::ComponentInfos* Components::getDbmgr()
 }
 
 //-------------------------------------------------------------------------------------		
-Components::ComponentInfos* Components::getResourcemgr()
-{
-	return findComponent(RESOURCEMGR_TYPE, getUserUID(), 0);
-}
-
-//-------------------------------------------------------------------------------------		
 Components::ComponentInfos* Components::getMessagelog()
 {
 	return findComponent(MESSAGELOG_TYPE, getUserUID(), 0);
@@ -759,16 +738,6 @@ Mercury::Channel* Components::getCellappmgrChannel()
 Mercury::Channel* Components::getDbmgrChannel()
 {
 	Components::ComponentInfos* cinfo = getDbmgr();
-	if(cinfo == NULL)
-		 return NULL;
-
-	return cinfo->pChannel;
-}
-
-//-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getResourcemgrChannel()
-{
-	Components::ComponentInfos* cinfo = getResourcemgr();
 	if(cinfo == NULL)
 		 return NULL;
 

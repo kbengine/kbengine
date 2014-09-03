@@ -453,27 +453,6 @@ else
 install::
 endif
 
-ifneq ($(wildcard unit_test), )	# only if it has some cpps/c or object files!
-HAS_UNIT_TEST=1
-endif
-
-unit_tests:: unit_tests_build unit_tests_run
-
-unit_tests_build::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test
-endif
-
-unit_tests_run::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test run
-endif
-
-unit_tests_clean::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test clean
-endif
-
 #----------------------------------------------------------------------------
 # Library dependencies
 #----------------------------------------------------------------------------

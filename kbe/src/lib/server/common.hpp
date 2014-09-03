@@ -103,11 +103,6 @@ namespace KBEngine {
 				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
-		case RESOURCEMGR_TYPE:																				\
-			{																								\
-				BUNDLE.newMessage(ResourcemgrInterface::MESSAGENAME);										\
-			}																								\
-			break;																							\
 		case BILLING_TYPE:																					\
 			{																								\
 				BUNDLE.newMessage(BillingSystemInterface::MESSAGENAME);										\

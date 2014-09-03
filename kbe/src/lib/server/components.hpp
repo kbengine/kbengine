@@ -163,14 +163,12 @@ public:
 	Components::ComponentInfos* getBaseappmgr();
 	Components::ComponentInfos* getCellappmgr();
 	Components::ComponentInfos* getDbmgr();
-	Components::ComponentInfos* getResourcemgr();
 	Components::ComponentInfos* getMessagelog();
 	Components::ComponentInfos* getBillings();
 
 	Mercury::Channel* getBaseappmgrChannel();
 	Mercury::Channel* getCellappmgrChannel();
 	Mercury::Channel* getDbmgrChannel();
-	Mercury::Channel* getResourcemgrChannel();
 	Mercury::Channel* getMessagelogChannel();
 
 private:
@@ -182,7 +180,6 @@ private:
 	COMPONENTS								_baseappmgrs;
 	COMPONENTS								_machines;
 	COMPONENTS								_messagelogs;
-	COMPONENTS								_resourcemgrs;
 	COMPONENTS								_billings;
 	COMPONENTS								_bots;
 	COMPONENTS								_consoles;

@@ -960,19 +960,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 	}
-
-	rootNode = xml->getRootNode("kbcenter");
-	if(rootNode != NULL)
-	{
-		node = xml->enterNode(rootNode, "internalInterface");	
-		if(node != NULL)
-			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "SOMAXCONN");
-		if(node != NULL){
-			_kbCenterInfo.tcp_SOMAXCONN = xml->getValInt(node);
-		}
-	}
 	
 	rootNode = xml->getRootNode("bots");
 	if(rootNode != NULL)
@@ -1075,38 +1062,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "tick_max_sync_logs");
 		if(node != NULL){
 			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
-		}
-	}
-
-	rootNode = xml->getRootNode("resourcemgr");
-	if(rootNode != NULL)
-	{
-		node = xml->enterNode(rootNode, "resourcemgr");	
-		if(node != NULL)
-			strncpy((char*)&_resourcemgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "SOMAXCONN");
-		if(node != NULL){
-			_resourcemgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
-		}
-
-		node = xml->enterNode(rootNode, "respool");
-		if(node != NULL)
-		{
-			TiXmlNode* childnode = xml->enterNode(node, "buffer_size");
-			if(childnode)
-				_resourcemgrInfo.respool_buffersize = xml->getValInt(childnode);
-
-			childnode = xml->enterNode(node, "timeout");
-			if(childnode)
-				_resourcemgrInfo.respool_timeout = uint64(xml->getValInt(childnode));
-
-			childnode = xml->enterNode(node, "checktick");
-			if(childnode)
-				Resmgr::respool_checktick = xml->getValInt(childnode);
-
-			Resmgr::respool_timeout = _resourcemgrInfo.respool_timeout;
-			Resmgr::respool_buffersize = _resourcemgrInfo.respool_buffersize;
 		}
 	}
 

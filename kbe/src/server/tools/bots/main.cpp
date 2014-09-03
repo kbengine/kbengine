@@ -71,11 +71,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFINE_IN_INTERFACE
 #include "tools/billing_system/billingsystem_interface.hpp"
 
-#undef DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
-
 using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])

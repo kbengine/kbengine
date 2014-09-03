@@ -58,17 +58,15 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 	{
 	case CELLAPP_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
-		findComponentTypes_[1] = RESOURCEMGR_TYPE;
-		findComponentTypes_[2] = DBMGR_TYPE;
-		findComponentTypes_[3] = CELLAPPMGR_TYPE;
-		findComponentTypes_[4] = BASEAPPMGR_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = CELLAPPMGR_TYPE;
+		findComponentTypes_[3] = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
-		findComponentTypes_[1] = RESOURCEMGR_TYPE;
-		findComponentTypes_[2] = DBMGR_TYPE;
-		findComponentTypes_[3] = BASEAPPMGR_TYPE;
-		findComponentTypes_[4] = CELLAPPMGR_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		findComponentTypes_[3] = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
@@ -263,15 +261,24 @@ RESTART_RECV:
 					}
 
 					// 如果是这些辅助组件没找到则跳过
-					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+					int helperComponentIdx = 0;
+					while(1)
 					{
-						WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+						COMPONENT_TYPE helperComponentType = ALL_HELPER_COMPONENT_TYPE[helperComponentIdx++];
+						if(helperComponentType == UNKNOWN_COMPONENT_TYPE)
+						{
+							break;
+						}
+						else if(findComponentType == helperComponentType)
+						{
+							WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
+								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
-						findComponentTypes_[findIdx_] = -1; // 跳过标志
-						count = 0;
-						findIdx_++;
-						return false;
+							findComponentTypes_[findIdx_] = -1; // 跳过标志
+							count = 0;
+							findIdx_++;
+							return false;
+						}
 					}
 				}
 
