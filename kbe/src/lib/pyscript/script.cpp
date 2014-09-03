@@ -135,9 +135,13 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	pyPaths += pySysPaths;
 	free(pwpySysResPath);
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
-#else
+
+	wchar_t* programName = strutil::char2wchar(const_cast<char*>(COMPONENT_NAME[componentType]));
+	Py_SetProgramName(programName);
+	free(programName);
+
+#if KBE_PLATFORM != PLATFORM_WIN32
 	std::wstring fs = L";";
 	std::wstring rs = L":";
 	size_t pos = 0; 
@@ -149,7 +153,6 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		pyPaths.replace(pos, fs.length(), rs);
 	}  
 
-	Py_SetPath(pyPaths.c_str()); 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
 	DEBUG_MSG(boost::format("Script::install(): paths=%1%.\n") % tmpchar);
 	free(tmpchar);
@@ -163,16 +166,14 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	// Py_TabcheckFlag = 1;
 	Py_NoSiteFlag = 1;
 	Py_IgnoreEnvironmentFlag = 1;
+
+	Py_SetPath(pyPaths.c_str());
 	Py_Initialize();                      											// python解释器的初始化  
     if (!Py_IsInitialized())
     {
     	ERROR_MSG("Script::install(): Py_Initialize is failed!\n");
         return false;
     } 
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	PySys_SetPath(pyPaths.c_str());
-#endif
 
 	PyObject *m = PyImport_AddModule("__main__");
 
