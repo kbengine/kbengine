@@ -2261,8 +2261,8 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		return;
 	}
 
-	INFO_MSG(boost::format("Baseapp::loginGateway: new user[%1%], channel[%2%].\n") % 
-		accountName.c_str() % pChannel->c_str());
+	INFO_MSG(fmt::format("Baseapp::loginGateway: new user[{0}], channel[{1}].\n", 
+		accountName, pChannel->c_str()));
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;

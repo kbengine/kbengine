@@ -96,6 +96,7 @@
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="blowfish.cpp" />
     <ClCompile Include="cstdkbe.cpp" />
+    <ClCompile Include="format.cpp" />
     <ClCompile Include="kbekey.cpp" />
     <ClCompile Include="kbeversion.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -112,6 +113,7 @@
     <ClInclude Include="blowfish.hpp" />
     <ClInclude Include="cstdkbe.hpp" />
     <ClInclude Include="deadline.hpp" />
+    <ClInclude Include="format.hpp" />
     <ClInclude Include="kbekey.hpp" />
     <ClInclude Include="kbemalloc.hpp" />
     <ClInclude Include="kbeversion.hpp" />

@@ -588,7 +588,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	}
 	else
 	{
-		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%)\n") % entityType % id);
+		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {0} {1}\n", entityType, id));
 	}
 
 	return entity;

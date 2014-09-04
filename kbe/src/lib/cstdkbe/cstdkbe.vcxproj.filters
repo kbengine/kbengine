@@ -54,6 +54,9 @@
     <ClCompile Include="timestamp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="format.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base64.hpp">
@@ -126,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="timestamp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="format.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
