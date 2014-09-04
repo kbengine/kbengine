@@ -68,8 +68,10 @@ bool Resmgr::initializeWatcher()
 void Resmgr::autoSetPaths()
 {
 	char path[MAX_BUF];
-	getcwd(path, MAX_BUF);
-
+	char* ret = getcwd(path, MAX_BUF);
+	if(ret == NULL)
+		return;
+	
 	std::string s = path;
 	size_t pos1;
 
