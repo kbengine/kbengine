@@ -24,7 +24,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/kbeversion.hpp"
 #include "cstdkbe/kbemalloc.hpp"
 #include "cstdkbe/stringconv.hpp"
+
+#if KBE_PLATFORM == PLATFORM_WIN32
 #include "cstdkbe/format.hpp"
+#else
+#include "cstdkbe/format.cpp"
+#endif
 
 namespace KBEngine{
 /** 安全的释放一个指针内存 */

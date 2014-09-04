@@ -150,6 +150,12 @@
     <None Include="sequence.ipp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dependencies\openssl\vcbuild\libeay32\libeay32.vcxproj">
+      <Project>{26195a87-700c-42d6-a271-20b6cacc6249}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependencies\openssl\vcbuild\ssleay32\ssleay32.vcxproj">
+      <Project>{678e55f0-e0f7-4e52-82e4-9ad50f0753b8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\python\PCbuild\pyexpat.vcxproj">
       <Project>{d06b6426-4762-44cc-8bad-d79052507f2f}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
