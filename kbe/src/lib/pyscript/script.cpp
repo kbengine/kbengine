@@ -137,10 +137,6 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
 
-	wchar_t* programName = strutil::char2wchar(const_cast<char*>(COMPONENT_NAME[componentType]));
-	Py_SetProgramName(programName);
-	free(programName);
-
 #if KBE_PLATFORM != PLATFORM_WIN32
 	std::wstring fs = L";";
 	std::wstring rs = L":";
