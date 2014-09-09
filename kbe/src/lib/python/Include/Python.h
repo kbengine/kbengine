@@ -4,6 +4,14 @@
 
 /* Include nearly all Python header files */
 
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
+
 #include "patchlevel.h"
 #include "pyconfig.h"
 #include "pymacconfig.h"
