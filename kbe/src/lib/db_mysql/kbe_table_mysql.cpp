@@ -875,18 +875,8 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	// —∞’“dblog «∑Ò”–¥À’À∫≈
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
-	
-	unsigned char md[16];
-	MD5((unsigned char *)password.c_str(), password.length(), md);
 
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	if(!pTable->updatePassword(dbi, name, md5password))
+	if(!pTable->updatePassword(dbi, name, KBE_MD5::getDigest(password.data(), password.length())))
 	{
 		ERROR_MSG(boost::format("KBEEmailVerificationTableMysql::resetpassword(%1%): update password is error(%2%)!\n") % 
 				code % dbi->getstrerror());

@@ -34,6 +34,7 @@ class KBE_MD5
 {
 public:
 	KBE_MD5();
+	KBE_MD5(const void * data, int numBytes);
 	~KBE_MD5();
 
 	void append(const void * data, int numBytes);
@@ -49,6 +50,8 @@ public:
 		{ return !(*this == other); }
 
 	bool operator<( const KBE_MD5 & other ) const;
+
+	static std::string getDigest(const void * data, int numBytes);
 private:
 	MD5_CTX state_;
 	unsigned char bytes_[16];

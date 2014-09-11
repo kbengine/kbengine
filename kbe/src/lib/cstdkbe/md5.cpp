@@ -24,10 +24,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
+//-------------------------------------------------------------------------------------
 KBE_MD5::KBE_MD5()
 {
 	MD5_Init(&state_);
 	isFinal_ = false;
+}
+
+//-------------------------------------------------------------------------------------
+KBE_MD5::KBE_MD5(const void * data, int numBytes)
+{
+	MD5_Init(&state_);
+	isFinal_ = false;
+
+	append(data, numBytes);
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,6 +101,12 @@ bool KBE_MD5::operator<(const KBE_MD5 & other) const
 	return memcmp(this->bytes_, other.bytes_, sizeof(bytes_)) < 0;
 }
 
+//-------------------------------------------------------------------------------------
+std::string KBE_MD5::getDigest(const void * data, int numBytes)
+{
+	KBE_MD5 md5 = KBE_MD5(data, numBytes);
+	return md5.getDigestStr();
+}
 
 //-------------------------------------------------------------------------------------
 } 

@@ -629,16 +629,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 std::string genmail_code(const std::string& str)
 {
 	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
-
-	unsigned char md[16];
-	MD5((unsigned char *)str.c_str(), str.length(), md);
-
-	char tmp[3] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2x", md[i]);
-		datas += tmp;
-	}
+	datas += KBE_MD5::getDigest(str.data(), str.length());
 
 	srand(getSystemTime());
 	datas += KBEngine::StringConv::val2str(rand());
@@ -716,17 +707,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 			pdbi_->getstrerror() % pdbi_->lastquery());
 	}
 
-	unsigned char md[16];
-	MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	password_ = md5password;
+	password_ = KBE_MD5::getDigest(password_.data(), password_.length());
 
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, 
 		registerName_, password_, getdatas_);
@@ -1078,31 +1059,12 @@ bool DBTaskAccountNewPassword::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	unsigned char md[16];
-	MD5((unsigned char *)oldpassword_.c_str(), oldpassword_.length(), md);
-
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+	if(info.password != KBE_MD5::getDigest(oldpassword_.data(), oldpassword_.length()))
 	{
 		return false;
 	}
 
-	MD5((unsigned char *)newpassword_.c_str(), newpassword_.length(), md);
-	md5password[0] = '\0';
-
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	success_ = pTable->updatePassword(pdbi_, accountName_, md5password);
+	success_ = pTable->updatePassword(pdbi_, accountName_, KBE_MD5::getDigest(newpassword_.data(), newpassword_.length()));
 	return false;
 }
 
@@ -1194,17 +1156,7 @@ bool DBTaskQueryAccount::db_thread_process()
 			return false;
 		}
 
-		unsigned char md[16];
-		MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-		char tmp[3]={'\0'}, md5password[33] = {'\0'};
-		for (int i = 0; i < 16; i++)
-		{
-			sprintf(tmp,"%2.2X", md[i]);
-			strcat(md5password, tmp);
-		}
-
-		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+		if(info.password != KBE_MD5::getDigest(password_.data(), password_.length()))
 		{
 			error_ = "password is error";
 			return false;
@@ -1439,17 +1391,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 			if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
 			{
-				unsigned char md[16];
-				MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-				char tmp[3]={'\0'}, md5password[33] = {'\0'};
-				for (int i = 0; i < 16; i++)
-				{
-					sprintf(tmp,"%2.2X", md[i]);
-					strcat(md5password, tmp);
-				}
-
-				info.password = md5password;
+				info.password = KBE_MD5::getDigest(password_.data(), password_.length());
 			}
 		}
 		else
@@ -1465,17 +1407,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
 	{
-		unsigned char md[16];
-		MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-		char tmp[3]={'\0'}, md5password[33] = {'\0'};
-		for (int i = 0; i < 16; i++)
-		{
-			sprintf(tmp,"%2.2X", md[i]);
-			strcat(md5password, tmp);
-		}
-
-		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+		if(info.password != KBE_MD5::getDigest(password_.data(), password_.length()))
 		{
 			success_ = false;
 			return false;
