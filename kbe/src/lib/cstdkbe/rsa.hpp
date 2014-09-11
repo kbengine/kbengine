@@ -43,8 +43,10 @@ public:
 	bool generateKey(const std::string& pubkeyname, 
 		const std::string& prikeyname, int keySize = 1024, int e = 65537);
 
+	std::string encrypt(const std::string& instr);
 	int encrypt(const std::string& instr, std::string& outCertifdata);
 	int decrypt(const std::string& inCertifdata, std::string& outstr);
+	std::string decrypt(const std::string& instr);
 
 	static void hexCertifData(const std::string& inCertifdata);
 

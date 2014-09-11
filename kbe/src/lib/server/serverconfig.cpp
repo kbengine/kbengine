@@ -1205,27 +1205,13 @@ void ServerConfig::_updateEmailInfos()
 	// 如果小于64则表示目前还是明文密码
 	if(emailServerInfo_.password.size() < 64)
 	{
-		std::string encrypted;
-		KBEKey::getSingleton().encrypt(emailServerInfo_.password, encrypted);
-		
-		char* strencrypted = new char[1024];
-		memset(strencrypted, 0, 1024);
-		strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
 		WARNING_MSG(boost::format("ServerConfig::loadConfig: email password(email_service.xml) is not encrypted!\nplease use password(rsa):\n%1%\n") 
-			% strencrypted);
-		delete[] strencrypted;
+			% KBEKey::getSingleton().encrypt(emailServerInfo_.password));
 	}
 	else
 	{
-		unsigned char* strencrypted = new unsigned char[1024];
-		memset(strencrypted, 0, 1024);
-		strutil::string2bytes((unsigned char *)emailServerInfo_.password.c_str(), strencrypted, 1024);
-		std::string encrypted;
-		encrypted.assign((char*)strencrypted, 1024);
-		delete[] strencrypted;
-		std::string out;
-
-		if(KBEKey::getSingleton().decrypt(encrypted, out) < 0)
+		std::string out = KBEKey::getSingleton().decrypt(emailServerInfo_.password);
+		if(out.size() == 0)
 		{
 			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt is error!\n");
 		}

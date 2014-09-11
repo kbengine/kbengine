@@ -87,27 +87,14 @@ bool DBUtil::initialize()
 		// 如果小于64则表示目前还是明文密码
 		if(strlen(dbcfg.db_password) < 64)
 		{
-			std::string encrypted;
-			KBEKey::getSingleton().encrypt(dbcfg.db_password, encrypted);
-			
-			char* strencrypted = new char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
 			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n%1%\n") 
-				% strencrypted);
-			delete[] strencrypted;
+				% KBEKey::getSingleton().encrypt(dbcfg.db_password));
 		}
 		else
 		{
-			unsigned char* strencrypted = new unsigned char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::string2bytes((unsigned char *)dbcfg.db_password, strencrypted, 1024);
-			std::string encrypted;
-			encrypted.assign((char*)strencrypted, 1024);
-			delete[] strencrypted;
-			std::string out;
+			std::string out = KBEKey::getSingleton().decrypt(dbcfg.db_password);
 
-			if(KBEKey::getSingleton().decrypt(encrypted, out) < 0)
+			if(out.size() == 0)
 				return false;
 
 			kbe_snprintf(dbcfg.db_password, MAX_BUF, "%s", out.c_str());
@@ -161,7 +148,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG(boost::format("DBUtil::createInterface[%1%]: %2%\n") % &dbinterface % dbinterface->c_str());
+			INFO_MSG(boost::format("DBUtil::createInterface[%1%]: %2%") % &dbinterface % dbinterface->c_str());
 		}
 	}
 

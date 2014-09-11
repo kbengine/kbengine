@@ -207,6 +207,19 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 }
 
 //-------------------------------------------------------------------------------------
+std::string KBE_RSA::encrypt(const std::string& instr)
+{
+	std::string encrypted;
+	if(encrypt(instr, encrypted) < 0)
+		return "";
+
+	char strencrypted[1024];
+	memset(strencrypted, 0, 1024);
+	strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
+	return strencrypted;
+}
+
+//-------------------------------------------------------------------------------------
 int KBE_RSA::encrypt(const std::string& instr, std::string& outCertifdata)
 {
 	KBE_ASSERT(rsa_public != NULL);
@@ -274,6 +287,22 @@ int KBE_RSA::decrypt(const std::string& inCertifdata, std::string& outstr)
 	outstr.assign((const char*)keydata, keysize);
 	free(keydata);
 	return keysize;
+}
+
+//-------------------------------------------------------------------------------------
+std::string KBE_RSA::decrypt(const std::string& instr)
+{
+	unsigned char strencrypted[1024];
+	memset(strencrypted, 0, 1024);
+	strutil::string2bytes((unsigned char *)instr.data(), (unsigned char *)&strencrypted[0], 1024);
+	std::string encrypted;
+	encrypted.assign((char*)strencrypted, 1024);
+
+	std::string out;
+	if(decrypt(encrypted, out) < 0)
+		return "";
+
+	return out;
 }
 
 //-------------------------------------------------------------------------------------
