@@ -269,16 +269,8 @@
     <ClCompile Include="..\Modules\_hashopenssl.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="python.vcxproj">
-      <Project>{b11d750f-cd1f-4a96-85ce-e69a5c5259f9}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="pythoncore.vcxproj">
       <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="ssl.vcxproj">
-      <Project>{e5b04cc0-eb4c-42ab-b4dc-18ef95f864b0}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
