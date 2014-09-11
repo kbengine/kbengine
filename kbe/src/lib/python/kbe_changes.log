@@ -16,6 +16,9 @@ pyconfig.h
 	#define _XOPEN_SOURCE 700
 	#endif
 
+pgupdate.props:
+   <Import Project="$(SolutionDir)\lib\python\pginstrument.props" />
+
 script.hpp   
 	#define SCRIPT_BIN_TAG "cpython-34"
 	#define SCRIPT_BIN_CACHEDIR "__pycache__"
