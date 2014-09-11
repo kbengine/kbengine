@@ -172,6 +172,11 @@ public:
 	virtual void queryLoad(Mercury::Channel* pChannel);
 
 	/** 网络接口
+		请求关闭服务器
+	*/
+	void reqKillServer(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		客户端与服务端第一次建立交互, 客户端发送自己的版本号与通讯密钥等信息
 		给服务端， 服务端返回是否握手成功
 	*/

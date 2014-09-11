@@ -360,6 +360,29 @@ void Bots::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::reqKillServer(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	COMPONENT_ID componentID;
+	COMPONENT_TYPE componentType;
+	std::string username;
+	int32 uid;
+	std::string reason;
+
+	s >> componentID >> componentType >> username >> uid >> reason;
+
+	INFO_MSG(boost::format("Bots::reqKillServer: requester(uid:%1%, username:%2%, componentType:%3%, "
+				"componentID:%4%, reason:%5%, from %6%)\n") %
+				uid % 
+				username % 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
+				componentID %
+				reason %
+				pChannel->c_str());
+
+	CRITICAL_MSG("The application was killed!\n");
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string cmd;

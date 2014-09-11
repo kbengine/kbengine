@@ -313,6 +313,10 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 	{
 		DebugHelper::getSingleton().unregisterMessagelog(MessagelogInterface::writeLog.msgID, pInfos->pIntAddr.get());
 	}
+	else if(pInfos->componentType == DBMGR_TYPE)
+	{
+		this->shutDown(0.f);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -353,6 +357,32 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
 		cinfos->pChannel = pChannel;
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::reqKillServer(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+
+	COMPONENT_ID componentID;
+	COMPONENT_TYPE componentType;
+	std::string username;
+	int32 uid;
+	std::string reason;
+
+	s >> componentID >> componentType >> username >> uid >> reason;
+
+	INFO_MSG(boost::format("ServerApp::reqKillServer: requester(uid:%1%, username:%2%, componentType:%3%, "
+				"componentID:%4%, reason:%5%, from %6%)\n") %
+				uid % 
+				username % 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
+				componentID %
+				reason %
+				pChannel->c_str());
+
+	CRITICAL_MSG("The application was killed!\n");
 }
 
 //-------------------------------------------------------------------------------------

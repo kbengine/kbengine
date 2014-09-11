@@ -217,11 +217,11 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 			//SAFE_RELEASE((*iter).pIntAddr);
 			//SAFE_RELEASE((*iter).pExtAddr);
 			//(*iter).pChannel->decRef();
-			iter = components.erase(iter);
 
 			if(_pHandler)
 				_pHandler->onRemoveComponent(componentInfos);
 
+			iter = components.erase(iter);
 			if(!ignoreComponentID)
 				return;
 		}
@@ -261,6 +261,12 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				printf("[ERROR]: %s.\n", (boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
 					COMPONENT_NAME_EX(componentType) % (*iter).cid).str().c_str());
 #endif
+
+				ComponentInfos* componentInfos = &(*iter);
+
+				if(_pHandler)
+					_pHandler->onRemoveComponent(componentInfos);
+
 				iter = components.erase(iter);
 				return;
 			}

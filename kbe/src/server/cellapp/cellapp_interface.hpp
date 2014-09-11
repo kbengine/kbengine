@@ -166,6 +166,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// real请求更新易变数据到ghost
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostVolatileData,				MERCURY_VARIABLE_MESSAGE)
 
+	// 请求强制杀死当前app
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqKillServer,							MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

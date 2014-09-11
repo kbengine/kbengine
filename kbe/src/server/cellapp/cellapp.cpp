@@ -276,6 +276,35 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
+	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
+		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
+
+	if(cinfos)
+	{
+		if(cinfos->pIntAddr->ip != intaddr || cinfos->pIntAddr->port != intport)
+		{
+			ERROR_MSG(boost::format("Cellapp::onGetEntityAppFromDbmgr: Illegal app(uid:%1%, username:%2%, componentType:%3%, "
+					"componentID:%4%, globalorderID=%10%, grouporderID=%11%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%)\n") %
+					uid % 
+					username.c_str() % 
+					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
+					componentID %
+					inet_ntoa((struct in_addr&)intaddr) %
+					ntohs(intport) %
+					(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
+					ntohs(extport) %
+					pChannel->c_str() %
+					((int32)globalorderID) % 
+					((int32)grouporderID));
+
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(DbmgrInterface::reqKillServer);
+			(*pBundle) << g_componentID << g_componentType << KBEngine::getUsername() << KBEngine::getUserUID() << "Duplicate app-id.";
+			(*pBundle).send(this->getNetworkInterface(), pChannel);
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		}
+	}
+
 	EntityApp<Entity>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
 									intaddr, intport, extaddr, extport, extaddrEx);
 
@@ -284,7 +313,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
-	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
 	cinfos->pChannel = NULL;
 
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);

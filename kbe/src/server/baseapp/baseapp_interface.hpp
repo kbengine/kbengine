@@ -268,6 +268,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									accountName,
 									SERVER_ERROR_CODE,								failedcode)
 
+	// 请求强制杀死当前app
+	BASEAPP_MESSAGE_DECLARE_STREAM(reqKillServer,									MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_EXPOSED(onRemoteMethodCall)

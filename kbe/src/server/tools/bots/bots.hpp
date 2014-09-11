@@ -107,6 +107,11 @@ public:
 	*/
 	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+		请求关闭服务器
+	*/
+	void reqKillServer(Mercury::Channel* pChannel, MemoryStream& s);
+
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	typedef std::map< Mercury::Channel*, ClientObjectPtr > CLIENTS;
