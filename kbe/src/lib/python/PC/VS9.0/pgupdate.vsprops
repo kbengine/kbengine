@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="pgupdate"
 	OutputDirectory="$(SolutionDir)$(PlatformName)-pgo\"
-	InheritedPropertySheets="$(SolutionDir)\pginstrument.vsprops"
+	InheritedPropertySheets="$(SolutionDir)\lib\python\PC\VS9.0\pginstrument.vsprops"
 	>
 	<Tool
 		Name="VCLinkerTool"
