@@ -17,7 +17,7 @@ pyconfig.h
 	#endif
 
 pgupdate.props:
-   <Import Project="$(SolutionDir)\lib\python\pginstrument.props" />
+   <Import Project="$(SolutionDir)\lib\python\PCbuild\pginstrument.props" />
 
 script.hpp   
 	#define SCRIPT_BIN_TAG "cpython-34"
