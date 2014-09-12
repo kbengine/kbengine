@@ -1059,7 +1059,7 @@ bool DBTaskAccountNewPassword::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if(info.password != KBE_MD5::getDigest(oldpassword_.data(), oldpassword_.length()))
+	if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(oldpassword_.data(), oldpassword_.length()).c_str()) != 0)
 	{
 		return false;
 	}
@@ -1156,7 +1156,7 @@ bool DBTaskQueryAccount::db_thread_process()
 			return false;
 		}
 
-		if(info.password != KBE_MD5::getDigest(password_.data(), password_.length()))
+		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
 		{
 			error_ = "password is error";
 			return false;
@@ -1407,7 +1407,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
 	{
-		if(info.password != KBE_MD5::getDigest(password_.data(), password_.length()))
+		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
 		{
 			success_ = false;
 			return false;
