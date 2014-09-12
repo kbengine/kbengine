@@ -181,10 +181,10 @@
       <PreprocessorDefinitions>_DEBUG;APR_DECLARE_STATIC;WIN32;WINNT;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\LibD/apr.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>../../../_objs\$(ProjectName)_d\</AssemblerListingLocation>
-      <ObjectFileName>../../../_objs\$(ProjectName)_d\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\..\libs\apr-1_d.pdb</ProgramDataBaseFileName>
-      <XMLDocumentationFileName>../../../_objs\$(ProjectName)_d\</XMLDocumentationFileName>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
