@@ -73,10 +73,10 @@ DBTask::~DBTask()
 //-------------------------------------------------------------------------------------
 bool DBTask::send(Mercury::Bundle& bundle)
 {
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
+	Mercury::Channel* pChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		bundle.send(Dbmgr::getSingleton().networkInterface(), pChannel);
 	}
 	else{
 		return false;
@@ -240,7 +240,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 		}
 		else
 		{
-			(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+			(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 		}
 	}
 	else
@@ -283,7 +283,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 	}
 	else
 	{

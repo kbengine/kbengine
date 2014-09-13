@@ -69,7 +69,7 @@ void GhostManager::start()
 	if(pTimerHandle_ == NULL)
 	{
 		pTimerHandle_ = new TimerHandle();
-		(*pTimerHandle_) = Cellapp::getSingleton().getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.getCellApp().ghostUpdateHertz, this,
+		(*pTimerHandle_) = Cellapp::getSingleton().mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.getCellApp().ghostUpdateHertz, this,
 								NULL);
 	}
 }
@@ -148,7 +148,7 @@ void GhostManager::syncMessages()
 
 		for(; iter1 != iter->second.end(); iter1++)
 		{
-			(*iter1)->send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+			(*iter1)->send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
 
 			// 将消息同步到ghost
 			Mercury::Bundle::ObjPool().reclaimObject((*iter1));

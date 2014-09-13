@@ -44,7 +44,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
+
 class EntityMailbox;
+class BaseMessagesForwardHandler;
 
 namespace Mercury
 {
@@ -74,12 +76,6 @@ public:
 	INLINE DBID dbid()const;
 	INLINE void dbid(DBID id);
 	DECLARE_PY_GET_MOTHOD(pyGetDBID);
-
-	/** 
-		定义属性数据被改变了 
-	*/
-	void onDefDataChanged(const PropertyDescription* propertyDescription, 
-			PyObject* pyData);
 
 	/** 
 		销毁cell部分的实体 
@@ -208,11 +204,6 @@ public:
 	*/
 	void onDestroyEntity(bool deleteFromDB, bool writeToDB);
 
-	/**
-		从db擦除在线log
-	*/
-	void eraseEntityLog();
-
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
@@ -282,6 +273,24 @@ public:
 		cellapp宕了
 	*/
 	void onCellAppDeath();
+
+	/** 
+		转发消息完成 
+	*/
+	void onBufferedForwardToCellappMessagesOver();
+
+protected:
+	/** 
+		定义属性数据被改变了 
+	*/
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
+			PyObject* pyData);
+
+	/**
+		从db擦除在线log
+	*/
+	void eraseEntityLog();
+
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
 	EntityMailbox*							clientMailbox_;			
@@ -314,6 +323,9 @@ protected:
 
 	// 是否正在恢复
 	bool									inRestore_;
+
+	// 在一些状态下(传送过程中)，发往cellapp的数据包需要被缓存, 合适的状态需要继续转发
+	BaseMessagesForwardHandler*				pBufferedSendToCellappMessages_;
 };
 
 }

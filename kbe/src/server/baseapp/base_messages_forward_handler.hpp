@@ -18,32 +18,35 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "proxy.hpp"
-#include "proxy_forwarder.hpp"
-#include "server/serverconfig.hpp"
+#ifndef KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP
+#define KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP
 
-namespace KBEngine{	
+#include "helper/debug_helper.hpp"
+#include "cstdkbe/cstdkbe.hpp"
 
-//-------------------------------------------------------------------------------------
-ProxyForwarder::ProxyForwarder(Proxy * pProxy) : 
-pProxy_(pProxy)
+namespace KBEngine{
+
+class Base;
+class BaseMessagesForwardHandler : public Task
 {
-	timerHandle_ = Baseapp::getSingleton().mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
-							NULL);
+public:
+	BaseMessagesForwardHandler(Base* pBase);
+	~BaseMessagesForwardHandler();
+	
+	bool process();
+
+	void pushMessages(Mercury::Bundle* pBundle);
+
+	void startForward(){ startForward_ = true; }
+	void stopForward(){ startForward_ = false; }
+private:
+	Base* pBase_;
+	bool completed_;
+	std::vector<Mercury::Bundle*> bufferedSendToCellappMessages_;
+	bool startForward_;
+};
+
+
 }
 
-//-------------------------------------------------------------------------------------
-ProxyForwarder::~ProxyForwarder()
-{
-	timerHandle_.cancel();
-}
-
-//-------------------------------------------------------------------------------------
-void ProxyForwarder::handleTimeout(TimerHandle, void * arg)
-{
-	pProxy_->sendToClient(false);
-}
-
-
-}
+#endif // KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP

@@ -224,7 +224,7 @@ bool RestoreEntityHandler::process()
 						Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
 						(*pBundle) << baseappID << cellappID << spaceID << spaceEntityID << utype << destroyed;
-						pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+						pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
 						Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 					}
 				}

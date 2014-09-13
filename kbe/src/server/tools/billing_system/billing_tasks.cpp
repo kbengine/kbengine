@@ -270,11 +270,11 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
+	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
@@ -328,11 +328,11 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
+	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
@@ -492,14 +492,14 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		(*(*bundle)) << orders.cbid;
 		(*(*bundle)) << success;
 
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orders.address);
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{
 			WARNING_MSG(boost::format("ChargeTask::presentMainThread: orders=%1% commit is failed!\n") % 
 				pOrders->ordersID);
 
-			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+			(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 		}
 		else
 		{

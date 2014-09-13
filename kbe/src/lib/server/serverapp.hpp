@@ -110,8 +110,8 @@ public:
 
 	thread::ThreadPool& threadPool(){ return threadPool_; }
 
-	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
+	Mercury::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Mercury::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }

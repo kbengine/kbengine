@@ -159,7 +159,7 @@ public:
 			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
 			uint16 nport = KBE_PORT_START + (rand() % 1000);
-			Mercury::BundleBroadcast bhandler(dlg->getNetworkInterface(), nport);
+			Mercury::BundleBroadcast bhandler(dlg->networkInterface(), nport);
 
 			if(!bhandler.good())
 			{
@@ -175,7 +175,7 @@ public:
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				dlg->componentType(), dlg->componentID(), findComponentType, dlg->getNetworkInterface().intaddr().ip, 
+				dlg->componentType(), dlg->componentID(), findComponentType, dlg->networkInterface().intaddr().ip, 
 				bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())
@@ -580,7 +580,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		ArraySize size = outcmd.size();
 		bundle << size;
 		bundle.append(outcmd.data(), size);
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 
 		CString str1, str2;
 		m_debugWnd.displaybufferWnd()->GetWindowText(str2);
@@ -829,7 +829,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 				bundle << _componentType;
 				bundle << _componentID;
-				bundle.send(getNetworkInterface(), pChannel);
+				bundle.send(networkInterface(), pChannel);
 
 				pChannel->updateLastReceivedTime();
 			}
@@ -1679,7 +1679,7 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 		bundle << name;
 		bundle << type;
 		bundle << timinglen;
-		bundle.send(getNetworkInterface(), pChannel);
+		bundle.send(networkInterface(), pChannel);
 		return true;
 	}
 

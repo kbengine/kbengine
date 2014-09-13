@@ -78,13 +78,13 @@ Proxy::~Proxy()
 	Baseapp::getSingleton().decProxicesCount();
 
 	// 如果被销毁频道仍然存活则将其关闭
-	Mercury::Channel* pChannel = Baseapp::getSingleton().getNetworkInterface().findChannel(addr_);
+	Mercury::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDead())
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
-		//pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
 		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		this->sendToClient(ClientInterface::onKicked, pBundle);
 		this->sendToClient();

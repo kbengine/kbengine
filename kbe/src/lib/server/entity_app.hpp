@@ -286,7 +286,7 @@ bool EntityApp<E>::initialize()
 	bool ret = ServerApp::initialize();
 	if(ret)
 	{
-		gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 								reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	}
 	return ret;
@@ -681,7 +681,7 @@ void EntityApp<E>::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }
 
 template<class E>
@@ -1149,7 +1149,7 @@ void EntityApp<E>::startProfile_(Mercury::Channel* pChannel, std::string profile
 	switch(profileType)
 	{
 	case 0:	// pyprofile
-		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new PyProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		return;
 	default:
 		break;
@@ -1269,7 +1269,7 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->networkInterface(), pChannel);
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);

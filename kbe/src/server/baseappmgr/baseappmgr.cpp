@@ -89,7 +89,7 @@ void Baseappmgr::handleGameTick()
 	g_kbetime++;
 	updateBestBaseapp();
 	threadPool_.onMainThreadTick();
-	getNetworkInterface().processAllChannelPackets(&BaseappmgrInterface::messageHandlers);
+	networkInterface().processAllChannelPackets(&BaseappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ bool Baseappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeEnd()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / 50, this,
+	gameTimer_ = this->mainDispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	return true;
 }
@@ -175,7 +175,7 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -245,7 +245,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -278,7 +278,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Mercury::Channel* pChannel, Memor
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -317,7 +317,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -343,7 +343,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -376,7 +376,7 @@ void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel,
 	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
 		accountName, addr, port);
 
-	(*pBundleToLoginapp).send(this->getNetworkInterface(), lpChannel);
+	(*pBundleToLoginapp).send(this->networkInterface(), lpChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
 }
 

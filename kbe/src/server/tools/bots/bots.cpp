@@ -77,14 +77,14 @@ Bots::~Bots()
 bool Bots::initialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
-	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 	return ClientApp::initialize();
 }
 
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeBegin()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
@@ -94,7 +94,7 @@ bool Bots::initializeBegin()
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeEnd()
 {
-	pTelnetServer_ = new TelnetServer(&getMainDispatcher(), &getNetworkInterface());
+	pTelnetServer_ = new TelnetServer(&mainDispatcher(), &networkInterface());
 	pTelnetServer_->pScript(&getScript());
 	if(!pTelnetServer_->start(g_kbeSrvConfig.getBots().telnet_passwd, 
 		g_kbeSrvConfig.getBots().telnet_deflayer, 
@@ -338,7 +338,7 @@ void Bots::lookApp(Mercury::Channel* pChannel)
 	int8 istate = 0;
 	(*pBundle) << istate;
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -352,7 +352,7 @@ void Bots::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 	
 	bool success = true;
 	(*pBundle) << success;
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
@@ -408,7 +408,7 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 		ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 		bundle.newMessage(msgHandler);
 		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 	}
 
 	Py_DECREF(pycmd);
@@ -1035,7 +1035,7 @@ void Bots::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	uint8 type = 0;
 	bundle << type;
 	bundle.append(readStreamPtr.get()->get());
-	bundle.send(getNetworkInterface(), pChannel);
+	bundle.send(networkInterface(), pChannel);
 
 	Mercury::Bundle bundle1;
 	bundle1.newMessage(msgHandler);
@@ -1043,7 +1043,7 @@ void Bots::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	type = 1;
 	bundle1 << type;
 	bundle1.append(readStreamPtr1.get()->get());
-	bundle1.send(getNetworkInterface(), pChannel);
+	bundle1.send(networkInterface(), pChannel);
 }
 
 
@@ -1065,16 +1065,16 @@ void Bots::startProfile_(Mercury::Channel* pChannel, std::string profileName, in
 	switch(profileType)
 	{
 	case 0:	// pyprofile
-		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new PyProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 1:	// cprofile
-		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new CProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 2:	// eventprofile
-		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new EventProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 3:	// mercuryprofile
-		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new MercuryProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	default:
 		ERROR_MSG(boost::format("Bots::startProfile_: type(%1%:%2%) not support!\n") % 

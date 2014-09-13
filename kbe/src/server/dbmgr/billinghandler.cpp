@@ -204,7 +204,7 @@ bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::s
 			return false;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pBillingChannel_);
 	return true;
 }
 
@@ -254,7 +254,7 @@ bool BillingHandler_ThirdParty::loginAccount(Mercury::Channel* pChannel, std::st
 			return false;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pBillingChannel_);
 	return true;
 }
 
@@ -297,7 +297,7 @@ bool BillingHandler_ThirdParty::reconnect()
 	if(pBillingChannel_)
 	{
 		if(!pBillingChannel_->isDestroyed())
-			Dbmgr::getSingleton().getNetworkInterface().deregisterChannel(pBillingChannel_);
+			Dbmgr::getSingleton().networkInterface().deregisterChannel(pBillingChannel_);
 
 		pBillingChannel_->decRef();
 	}
@@ -315,7 +315,7 @@ bool BillingHandler_ThirdParty::reconnect()
 	pEndPoint->setnonblocking(true);
 	pEndPoint->setnodelay(true);
 
-	pBillingChannel_ = new Mercury::Channel(Dbmgr::getSingleton().getNetworkInterface(), pEndPoint, Mercury::Channel::INTERNAL);
+	pBillingChannel_ = new Mercury::Channel(Dbmgr::getSingleton().networkInterface(), pEndPoint, Mercury::Channel::INTERNAL);
 	pBillingChannel_->incRef();
 
 	int trycount = 0;
@@ -353,7 +353,7 @@ bool BillingHandler_ThirdParty::reconnect()
 
 	// ²»¼ì²é³¬Ê±
 	pBillingChannel_->stopInactivityDetection();
-	Dbmgr::getSingleton().getNetworkInterface().registerChannel(pBillingChannel_);
+	Dbmgr::getSingleton().networkInterface().registerChannel(pBillingChannel_);
 	return true;
 }
 
@@ -396,7 +396,7 @@ void BillingHandler_ThirdParty::charge(Mercury::Channel* pChannel, KBEngine::Mem
 			return;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pBillingChannel_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -437,7 +437,7 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	(*(*bundle)) << cbid;
 	(*(*bundle)) << success;
 
-	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -456,7 +456,7 @@ void BillingHandler_ThirdParty::eraseClientReq(Mercury::Channel* pChannel, std::
 			return;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pBillingChannel_);
 }
 
 

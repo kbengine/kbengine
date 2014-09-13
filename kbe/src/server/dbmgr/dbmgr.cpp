@@ -146,7 +146,7 @@ void Dbmgr::handleMainTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	DBUtil::pThreadPool()->onMainThreadTick();
-	getNetworkInterface().processAllChannelPackets(&DbmgrInterface::messageHandlers);
+	networkInterface().processAllChannelPackets(&DbmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -177,10 +177,10 @@ bool Dbmgr::inInitialize()
 bool Dbmgr::initializeEnd()
 {
 	// 添加一个timer， 每秒检查一些状态
-	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+	loopCheckTimerHandle_ = this->mainDispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
-	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	mainProcessTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	// 添加globalData, baseAppData, cellAppData支持
@@ -285,7 +285,7 @@ void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, C
 
 	(*pBundle) << idRange.first;
 	(*pBundle) << idRange.second;
-	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -312,7 +312,7 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		startGlobalOrder = globalorderID;
 
 	if(pSyncAppDatasHandler_ == NULL)
-		pSyncAppDatasHandler_ = new SyncAppDatasHandler(this->getNetworkInterface());
+		pSyncAppDatasHandler_ = new SyncAppDatasHandler(this->networkInterface());
 
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息

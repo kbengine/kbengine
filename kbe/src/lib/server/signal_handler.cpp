@@ -90,7 +90,7 @@ SignalHandlers::~SignalHandlers()
 void SignalHandlers::attachApp(ServerApp* app)
 { 
 	papp_ = app; 
-	app->getMainDispatcher().addFrequentTask(this);
+	app->mainDispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------	

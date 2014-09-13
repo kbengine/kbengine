@@ -69,6 +69,9 @@
     <ClCompile Include="sync_entitystreamtemplate_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base_messages_forward_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="archiver.hpp">
@@ -126,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sync_entitystreamtemplate_handler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base_messages_forward_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

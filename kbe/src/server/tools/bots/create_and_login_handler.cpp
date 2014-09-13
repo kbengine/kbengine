@@ -35,7 +35,7 @@ uint64 g_accountID = 0;
 //-------------------------------------------------------------------------------------
 CreateAndLoginHandler::CreateAndLoginHandler()
 {
-	timerHandle_ = Bots::getSingleton().getNetworkInterface().dispatcher().addTimer(
+	timerHandle_ = Bots::getSingleton().networkInterface().dispatcher().addTimer(
 							1 * 1000000, this);
 
 	g_accountID = KBEngine::genUUID64() * 100000;
@@ -73,7 +73,7 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 	{
 		ClientObject* pClient = new ClientObject(g_kbeSrvConfig.getBots().bots_account_name_prefix + 
 			KBEngine::StringConv::val2str(g_componentID) + "_" + KBEngine::StringConv::val2str(g_accountID++), 
-			Bots::getSingleton().getNetworkInterface());
+			Bots::getSingleton().networkInterface());
 
 		Bots::getSingleton().addClient(pClient);
 	}

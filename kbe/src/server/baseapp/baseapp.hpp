@@ -344,7 +344,7 @@ public:
 	/**
 		获得numClients计数
 	*/
-	int32 numClients(){ return this->getNetworkInterface().numExtChannels(); }
+	int32 numClients(){ return this->networkInterface().numExtChannels(); }
 	
 	/** 
 		请求充值

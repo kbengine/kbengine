@@ -437,7 +437,7 @@ void Baseapp::updateLoad()
 		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
 			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), this->getLoad());
 
-		(*pBundle).send(this->getNetworkInterface(), pChannel);
+		(*pBundle).send(this->networkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
@@ -476,12 +476,12 @@ bool Baseapp::initializeBegin()
 bool Baseapp::initializeEnd()
 {
 	// 添加一个timer， 每秒检查一些状态
-	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+	loopCheckTimerHandle_ = this->mainDispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
 	if(Resmgr::respool_checktick > 0)
 	{
-		pResmgrTimerHandle_ = this->getMainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
+		pResmgrTimerHandle_ = this->mainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
 			Resmgr::getSingletonPtr(), NULL);
 
 		INFO_MSG(boost::format("Baseapp::initializeEnd: started resmgr tick(%1%s)!\n") % 
@@ -491,7 +491,7 @@ bool Baseapp::initializeEnd()
 	pBackuper_.reset(new Backuper());
 	pArchiver_.reset(new Archiver());
 
-	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());
+	new SyncEntityStreamTemplateHandler(this->networkInterface());
 
 	_g_lastTimestamp = timestamp();
 
@@ -502,7 +502,7 @@ bool Baseapp::initializeEnd()
 		script::PyProfile::start("kbengine");
 	}
 
-	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher(), &this->getNetworkInterface());
+	pTelnetServer_ = new TelnetServer(&this->mainDispatcher(), &this->networkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 	return pTelnetServer_->start(g_kbeSrvConfig.getBaseApp().telnet_passwd, 
 		g_kbeSrvConfig.getBaseApp().telnet_deflayer, 
@@ -550,7 +550,7 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 		SCRIPT_ERROR_CHECK();
 
 
-	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(pChannel->componentID(), this->getNetworkInterface());
+	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(pChannel->componentID(), this->networkInterface());
 	Entities<Base>::ENTITYS_MAP& entitiesMap = pEntities_->getEntities();
 	Entities<Base>::ENTITYS_MAP::const_iterator iter = entitiesMap.begin();
 	while (iter != entitiesMap.end())
@@ -672,7 +672,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(DbmgrInterface::reqKillServer);
 			(*pBundle) << g_componentID << g_componentType << KBEngine::getUsername() << KBEngine::getUserUID() << "Duplicate app-id.";
-			(*pBundle).send(this->getNetworkInterface(), pChannel);
+			(*pBundle).send(this->networkInterface(), pChannel);
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
@@ -701,22 +701,22 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
+			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
-			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
+			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
 		break;
 	};
 	
-	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -902,7 +902,7 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
 		g_componentID, 0, dbid, entityType, callbackID, entityID);
 	
-	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	pBundle->send(this->networkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -1103,7 +1103,7 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
 		g_componentID, 1, dbid, entityType, callbackID, entityID);
 	
-	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	pBundle->send(this->networkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -1179,7 +1179,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, K
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBID);
 	pBundle->append((*stream));
-	pBundle->send(this->getNetworkInterface(), pBaseappmgrChannel);
+	pBundle->send(this->networkInterface(), pBaseappmgrChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	MemoryStream::ObjPool().reclaimObject(stream);
 }
@@ -1238,7 +1238,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel,
 			return;
 		}
 		
-		pBundle->send(this->getNetworkInterface(), baseappinfos->pChannel);
+		pBundle->send(this->networkInterface(), baseappinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
@@ -1321,7 +1321,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	{
 		if((*iter).pChannel != NULL)
 		{
-			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
 		}
 		else
 		{
@@ -1362,7 +1362,7 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	{
 		if((*iter).pChannel != NULL)
 		{
-			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
 		}
 		else
 		{
@@ -1412,7 +1412,7 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 	{
 		if((*iter).pChannel != NULL)
 		{
-			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
 		}
 		else
 		{
@@ -1484,7 +1484,7 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 		(*pForwardbundle) << entityType;
 		(*pForwardbundle) << base->id();
 		(*pForwardbundle) << componentID_;
-		(*pForwardbundle).send(this->getNetworkInterface(), lpChannel);
+		(*pForwardbundle).send(this->networkInterface(), lpChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardbundle);
 	}
 	else
@@ -1641,7 +1641,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 		return;
 	}
 
-	(*pBundle).send(this->getNetworkInterface(), createToCellMailbox->getChannel());
+	(*pBundle).send(this->networkInterface(), createToCellMailbox->getChannel());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -1681,7 +1681,7 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 
 		(*(*pBundle)).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
 		(*(*pBundle)) << id;
-		(*(*pBundle)).send(this->getNetworkInterface(), pChannel);
+		(*(*pBundle)).send(this->networkInterface(), pChannel);
 		ERROR_MSG(boost::format("Baseapp::onEntityGetCell: not found entity(%1%), I will destroyEntityCell!\n") % id);
 		return;
 	}
@@ -1800,7 +1800,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 	(*pBundle) << callbackID;
 	(*pBundle) << size;
 	(*pBundle).append(datas, size);
-	(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle).send(this->networkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -2027,7 +2027,7 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 		return;
 	}
 
-	(*(*pBundle)).send(this->getNetworkInterface(), pChannel);
+	(*(*pBundle)).send(this->networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2131,7 +2131,7 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	else
 		SCRIPT_ERROR_CHECK();
 
-	new InitProgressHandler(this->getNetworkInterface());
+	new InitProgressHandler(this->networkInterface());
 }
 
 //-------------------------------------------------------------------------------------
@@ -2220,11 +2220,11 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 	}
 	else
 	{
-		(*pBundle) << this->getNetworkInterface().extaddr().ip;
+		(*pBundle) << this->networkInterface().extaddr().ip;
 	}
 
-	(*pBundle) << this->getNetworkInterface().extaddr().port;
-	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	(*pBundle) << this->networkInterface().extaddr().port;
+	(*pBundle).send(this->networkInterface(), pChannel);
 
 	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
@@ -2264,7 +2264,7 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
 	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle((*pBundle), failedcode);
-	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -2417,7 +2417,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		DbmgrInterface::queryAccountArgs7::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
 			entityID, ptinfos->entityDBID, pChannel->addr().ip, pChannel->addr().port);
 
-		(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+		(*pBundle).send(this->networkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
@@ -2481,7 +2481,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
-	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -2497,7 +2497,7 @@ void Baseapp::kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedco
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onKicked);
 	ClientInterface::onKickedArgs1::staticAddToBundle((*pBundle), failedcode);
-	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	pChannel->proxyID(0);
@@ -2533,7 +2533,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
 		NULL, false, entityID));
 
-	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
+	Mercury::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
 
 	if(!success)
 	{
@@ -2584,7 +2584,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle((*pBundle), accountName, 
 			componentID_, base->id());
 
-		(*pBundle).send(this->getNetworkInterface(), pChannel);
+		(*pBundle).send(this->networkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		*/
 	}
@@ -3064,7 +3064,7 @@ void Baseapp::onHello(Mercury::Channel* pChannel,
 	(*pBundle) << KBEVersion::versionString();
 	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle) << g_componentType;
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
@@ -3109,7 +3109,7 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 
 	(*pBundle) << port;
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -3165,7 +3165,7 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(getNetworkInterface(), pChannel);
+	bundle.resend(networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3333,7 +3333,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(getNetworkInterface(), pChannel);
+	bundle.resend(networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3384,7 +3384,7 @@ PyObject* Baseapp::__py_isShuttingDown(PyObject* self, PyObject* args)
 PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 {
 	PyObject* pyobj = PyTuple_New(2);
-	const Mercury::Address& addr = Baseapp::getSingleton().getNetworkInterface().intEndpoint().addr();
+	const Mercury::Address& addr = Baseapp::getSingleton().networkInterface().intEndpoint().addr();
 	PyTuple_SetItem(pyobj, 0,  PyLong_FromUnsignedLong(addr.ip));
 	PyTuple_SetItem(pyobj, 1,  PyLong_FromUnsignedLong(addr.port));
 	return pyobj;
@@ -3453,7 +3453,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	(*pBundle) << dbid;
 	(*pBundle) << callbackID;
 	(*pBundle) << sm->getUType();
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	S_Return;
@@ -3582,14 +3582,14 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID
 		bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
 		bundle << retcode;
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 		return;
 	}
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::accountReqBindMail);
 	bundle << entityID << accountName << password << email;
-	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3630,7 +3630,7 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID enti
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
-	bundle.send(this->getNetworkInterface(), base->clientMailbox()->getChannel());
+	bundle.send(this->networkInterface(), base->clientMailbox()->getChannel());
 }
 
 //-------------------------------------------------------------------------------------
@@ -3687,14 +3687,14 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 		bundle.newMessage(ClientInterface::onReqAccountNewPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
 		bundle << retcode;
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 		return;
 	}
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::accountNewPassword);
 	bundle << entityID << accountName << oldpassworld << newpassword;
-	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3714,7 +3714,7 @@ void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID en
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
-	bundle.send(this->getNetworkInterface(), base->clientMailbox()->getChannel());
+	bundle.send(this->networkInterface(), base->clientMailbox()->getChannel());
 }
 
 //-------------------------------------------------------------------------------------
@@ -3724,7 +3724,7 @@ void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
 	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
 	(*pBundle) << KBEVersion::versionString();
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -3736,7 +3736,7 @@ void Baseapp::onScriptVersionNotMatch(Mercury::Channel* pChannel)
 	
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }

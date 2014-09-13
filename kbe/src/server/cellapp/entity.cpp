@@ -2177,7 +2177,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
 		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
-		(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		(*pBundle).send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
@@ -2416,7 +2416,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
-			(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), pBaseChannel);
+			(*pBundle).send(Cellapp::getSingleton().networkInterface(), pBaseChannel);
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		else

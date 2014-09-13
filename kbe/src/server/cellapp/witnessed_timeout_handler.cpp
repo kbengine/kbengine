@@ -101,7 +101,7 @@ void WitnessedTimeoutHandler::addWitnessed(Entity* pEntity)
 	if(pTimerHandle_ == NULL)
 	{
 		pTimerHandle_ = new TimerHandle();
-		(*pTimerHandle_) = Cellapp::getSingleton().getMainDispatcher().addTimer(TICKSECS * 1000000, this,
+		(*pTimerHandle_) = Cellapp::getSingleton().mainDispatcher().addTimer(TICKSECS * 1000000, this,
 								NULL);
 	}
 }

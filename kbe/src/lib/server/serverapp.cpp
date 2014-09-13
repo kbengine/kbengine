@@ -158,7 +158,7 @@ bool ServerApp::initialize()
 	// 广播自己的地址给网上上的所有kbemachine
 	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
 	Componentbridge::getSingleton().getComponents().pHandler(this);
-	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
 	bool ret = initializeEnd();
 
@@ -206,7 +206,7 @@ void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	uint8 type = 0;
 	bundle << type;
 	bundle.append(readStreamPtr.get()->get());
-	bundle.send(getNetworkInterface(), pChannel);
+	bundle.send(networkInterface(), pChannel);
 
 	Mercury::Bundle bundle1;
 	bundle1.newMessage(msgHandler);
@@ -214,7 +214,7 @@ void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	type = 1;
 	bundle1 << type;
 	bundle1.append(readStreamPtr1.get()->get());
-	bundle1.send(getNetworkInterface(), pChannel);
+	bundle1.send(networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -423,7 +423,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 void ServerApp::reqClose(Mercury::Channel* pChannel)
 {
 	DEBUG_MSG(boost::format("ServerApp::reqClose: %1%\n") % pChannel->c_str());
-	// this->getNetworkInterface().deregisterChannel(pChannel);
+	// this->networkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
 }
 
@@ -444,7 +444,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	int8 istate = int8(state);
 	(*pBundle) << istate;
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -458,7 +458,7 @@ void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 	
 	bool success = true;
 	(*pBundle) << success;
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
@@ -545,13 +545,13 @@ void ServerApp::startProfile_(Mercury::Channel* pChannel, std::string profileNam
 	switch(profileType)
 	{
 	case 1:	// cprofile
-		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new CProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 2:	// eventprofile
-		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new EventProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 3:	// mercuryprofile
-		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
+		new MercuryProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	default:
 		ERROR_MSG(boost::format("ServerApp::startProfile_: type(%1%:%2%) not support!\n") % 

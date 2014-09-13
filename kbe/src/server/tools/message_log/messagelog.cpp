@@ -55,11 +55,11 @@ bool Messagelog::run()
 {
 	bool ret = true;
 
-	while(!this->getMainDispatcher().isBreakProcessing())
+	while(!this->mainDispatcher().isBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
+		this->mainDispatcher().processOnce(false);
+		networkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
 		KBEngine::sleep(10);
 	};
 

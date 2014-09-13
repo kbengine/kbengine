@@ -114,7 +114,7 @@ void Cellappmgr::handleGameTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	getNetworkInterface().processAllChannelPackets(&CellappmgrInterface::messageHandlers);
+	networkInterface().processAllChannelPackets(&CellappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ bool Cellappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Cellappmgr::initializeEnd()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / 50, this,
+	gameTimer_ = this->mainDispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	return true;
 }
@@ -155,7 +155,7 @@ void Cellappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 
 	Mercury::Bundle bundle;
 	bundle.append((char*)s.data() + s.rpos(), s.opsize());
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	bundle.send(this->networkInterface(), cinfos->pChannel);
 	s.opfini();
 }
 
@@ -228,7 +228,7 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	}
 	else
 	{
-		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}
@@ -277,7 +277,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	}
 	else
 	{
-		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}

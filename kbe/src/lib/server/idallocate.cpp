@@ -66,7 +66,7 @@ void EntityIDClient::onAlloc(void)
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
-	(*pBundle).send(pApp_->getNetworkInterface(), pChannel);
+	(*pBundle).send(pApp_->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	setReqServerAllocFlag(true);

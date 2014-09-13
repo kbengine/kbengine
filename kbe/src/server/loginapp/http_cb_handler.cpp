@@ -48,7 +48,7 @@ clients_()
 	}
 
 	if (pEndPoint_->bind(htons(g_kbeSrvConfig.getLoginApp().http_cbport), 
-		Loginapp::getSingleton().getNetworkInterface().extaddr().ip) == -1)
+		Loginapp::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
 		ERROR_MSG(boost::format("HTTPCBHandler::bind(%1%): \n") %
 			 kbe_strerror());
@@ -68,10 +68,10 @@ clients_()
 
 	pEndPoint_->setnonblocking(true);
 
-	Loginapp::getSingleton().getNetworkInterface().dispatcher().registerFileDescriptor(*pEndPoint_, this);
+	Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*pEndPoint_, this);
 
 	INFO_MSG(boost::format("HTTPCBHandler::bind: %1%:%2%\n") %
-		inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip) % 
+		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip) % 
 		g_kbeSrvConfig.getLoginApp().http_cbport);
 }
 
@@ -79,7 +79,7 @@ clients_()
 HTTPCBHandler::~HTTPCBHandler()
 {
 	clients_.clear();
-	Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*pEndPoint_);
+	Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*pEndPoint_);
 	SAFE_RELEASE(pEndPoint_);
 }
 
@@ -106,7 +106,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		CLIENT& client = clients_[*newclient];
 		client.endpoint = KBEShared_ptr< Mercury::EndPoint >(newclient);
 		client.state = 0;
-		Loginapp::getSingleton().getNetworkInterface().dispatcher().registerFileDescriptor(*newclient, this);
+		Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*newclient, this);
 	}
 	else
 	{
@@ -131,7 +131,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		
 			if(len == 0)
 			{
-				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 			return 0;
@@ -139,7 +139,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(client.state == 1)
 		{
-			Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+			Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 			clients_.erase(iter);
 		}
 
@@ -154,7 +154,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			{
 				std::string response = "<?xml version='1.0'?><cross-domain-policy><allow-access-from domain=""*"" to-ports=""*"" /></cross-domain-policy>";
 				iter->second.endpoint->send(response.c_str(), response.size());
-				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 
@@ -234,7 +234,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				Mercury::Bundle bundle;
 				bundle.newMessage(DbmgrInterface::accountActivate);
 				bundle << code;
-				bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+				bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 
 				hellomessage = g_kbeSrvConfig.emailAtivationInfo_.backlink_hello_message;
 			}
@@ -283,7 +283,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					bundle << KBEngine::strutil::kbe_trim(username);
 					bundle << KBEngine::strutil::kbe_trim(password);
 					bundle << code;
-					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+					bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 				}
 
 				hellomessage = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_hello_message;
@@ -313,7 +313,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					bundle.newMessage(DbmgrInterface::accountBindMail);
 					bundle << KBEngine::strutil::kbe_trim(username);
 					bundle << code;
-					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+					bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 				}
 
 				hellomessage = g_kbeSrvConfig.emailBindInfo_.backlink_hello_message;
@@ -322,7 +322,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(hellomessage.size() > 0 && client.state < 2)
 			{
 				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", (boost::format("http://%1%:%2%/%3%%4%") % 
-					Loginapp::getSingleton().getNetworkInterface().extaddr().ipAsString() %
+					Loginapp::getSingleton().networkInterface().extaddr().ipAsString() %
 					g_kbeSrvConfig.getLoginApp().http_cbport %
 					keys %
 					code).str());
@@ -341,7 +341,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		{
 			if(client.state != 2)
 			{
-				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 		}

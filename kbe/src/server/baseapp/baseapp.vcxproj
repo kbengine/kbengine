@@ -117,6 +117,7 @@
     <ClCompile Include="archiver.cpp" />
     <ClCompile Include="backuper.cpp" />
     <ClCompile Include="base.cpp" />
+    <ClCompile Include="base_messages_forward_handler.cpp" />
     <ClCompile Include="base_remotemethod.cpp" />
     <ClCompile Include="baseapp.cpp" />
     <ClCompile Include="baseapp_interface.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="backuper.hpp" />
     <ClInclude Include="base.hpp" />
     <ClInclude Include="base_interface_macros.hpp" />
+    <ClInclude Include="base_messages_forward_handler.hpp" />
     <ClInclude Include="base_remotemethod.hpp" />
     <ClInclude Include="baseapp.hpp" />
     <ClInclude Include="baseapp_interface.hpp" />

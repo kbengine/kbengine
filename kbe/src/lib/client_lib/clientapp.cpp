@@ -109,7 +109,7 @@ int ClientApp::unregisterPyObjectToScript(const char* attrName)
 //-------------------------------------------------------------------------------------	
 bool ClientApp::initializeBegin()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
@@ -267,7 +267,7 @@ bool ClientApp::uninstallPyModules()
 void ClientApp::finalise(void)
 {
 	if(pServerChannel_ && pServerChannel_->endpoint())
-		getNetworkInterface().deregisterChannel(pServerChannel_);
+		networkInterface().deregisterChannel(pServerChannel_);
 
 	SAFE_RELEASE(pTCPPacketReceiver_);
 
@@ -314,12 +314,12 @@ void ClientApp::handleGameTick()
 	
 	if(lastAddr.ip != 0)
 	{
-		getNetworkInterface().deregisterChannel(lastAddr);
-		getNetworkInterface().registerChannel(pServerChannel_);
+		networkInterface().deregisterChannel(lastAddr);
+		networkInterface().registerChannel(pServerChannel_);
 		lastAddr.ip = 0;
 	}
 
-	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	tickSend();
 
 	switch(state_)
@@ -350,8 +350,8 @@ void ClientApp::handleGameTick()
 				if(pServerChannel_->endpoint())
 				{
 					lastAddr = pServerChannel_->endpoint()->addr();
-					getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
-					exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+					networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+					exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 				}
 
 				bool ret = initBaseappChannel() != NULL;
@@ -359,15 +359,15 @@ void ClientApp::handleGameTick()
 				{
 					if(!exist)
 					{
-						getNetworkInterface().registerChannel(pServerChannel_);
-						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+						networkInterface().registerChannel(pServerChannel_);
+						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 					}
 					else
 					{
 						pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 					}
 
-					getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+					networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 					
 					// 先握手然后等helloCB之后再进行登录
 					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -564,8 +564,8 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	if(pServerChannel_->endpoint())
 	{
 		lastAddr = pServerChannel_->endpoint()->addr();
-		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
-		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+		networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+		exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 	}
 
 	bool ret = initLoginappChannel(accountName, passwd, ip, port) != NULL;
@@ -573,15 +573,15 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	{
 		if(!exist)
 		{
-			getNetworkInterface().registerChannel(pServerChannel_);
-			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+			networkInterface().registerChannel(pServerChannel_);
+			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 		}
 		else
 		{
 			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 		}
 
-		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
 		// 先握手然后等helloCB之后再进行登录
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

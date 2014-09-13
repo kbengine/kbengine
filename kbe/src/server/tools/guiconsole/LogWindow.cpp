@@ -133,7 +133,7 @@ void CLogWindow::OnBnClickedButton1()
 
 	Mercury::Address addr = dlg->getTreeItemAddr(item);
 
-	Mercury::Channel* pChannel = dlg->getNetworkInterface().findChannel(addr);
+	Mercury::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
 		::AfxMessageBox(L"messagelog is error!");
@@ -164,7 +164,7 @@ void CLogWindow::OnBnClickedButton1()
 		bundle << (*iter);
 	}
 
-	bundle.send(dlg->getNetworkInterface(), pChannel);
+	bundle.send(dlg->networkInterface(), pChannel);
 }
 
 std::vector<KBEngine::COMPONENT_TYPE> CLogWindow::getSelComponents()

@@ -89,7 +89,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 	if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
 		return;
 
-	if(intaddr == this->getNetworkInterface().intaddr().ip)
+	if(intaddr == this->networkInterface().intaddr().ip)
 	{
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
@@ -180,8 +180,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 		if(usable)
 		{
-			if(ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
-				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
+			if(ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+				this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
 				MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, pinfos->uid, 
@@ -226,7 +226,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 	if(finderAddr != 0 && finderRecvPort != 0)
 		bundle.sendto(ep, finderRecvPort, finderAddr);
 	else
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -272,7 +272,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 		if(finderRecvPort != 0)
 			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
 		else
-			bundle.send(this->getNetworkInterface(), pChannel);
+			bundle.send(this->networkInterface(), pChannel);
 	}
 
 	int i = 0;
@@ -296,8 +296,8 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 
 			const Components::ComponentInfos* pinfos = &(*iter);
 			
-			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
-					this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip;
+			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+					this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip;
 
 			bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
 
@@ -317,7 +317,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 					if(finderRecvPort != 0)
 						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
 					else
-						bundle.send(this->getNetworkInterface(), pChannel);
+						bundle.send(this->networkInterface(), pChannel);
 				}
 
 				++iter;
@@ -434,9 +434,9 @@ bool Machine::initNetwork()
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
-	pEPPacketReceiver_ = new Mercury::UDPPacketReceiver(ep_, this->getNetworkInterface());
+	pEPPacketReceiver_ = new Mercury::UDPPacketReceiver(ep_, this->networkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
+	if(!this->mainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
 	{
 		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
 		return false;
@@ -466,9 +466,9 @@ bool Machine::initNetwork()
 		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
-		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->getNetworkInterface());
+		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->networkInterface());
 	
-		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
+		if(!this->mainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
 			ERROR_MSG("Machine::initNetwork: registerFileDescriptor epBroadcast is failed!\n");
 			return false;
@@ -489,9 +489,9 @@ bool Machine::initNetwork()
 	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
-	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->getNetworkInterface());
+	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->networkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
+	if(!this->mainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
 		ERROR_MSG("Machine::initNetwork: registerFileDescriptor epLocal is failed!\n");
 		return false;
@@ -506,11 +506,11 @@ bool Machine::run()
 {
 	bool ret = true;
 
-	while(!this->getMainDispatcher().isBreakProcessing())
+	while(!this->mainDispatcher().isBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
+		this->mainDispatcher().processOnce(false);
+		networkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 
@@ -631,7 +631,7 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 	else
 	{
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 	}
 }
 
@@ -756,7 +756,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 	else
 	{
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 	}
 }
 

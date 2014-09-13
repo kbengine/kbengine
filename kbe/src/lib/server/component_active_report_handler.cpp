@@ -60,7 +60,7 @@ void ComponentActiveReportHandler::cancel()
 void ComponentActiveReportHandler::startActiveTick(float period)
 {
 	cancel();
-	pActiveTimerHandle_ = pApp_->getMainDispatcher().addTimer(int(period * 1000000),
+	pActiveTimerHandle_ = pApp_->mainDispatcher().addTimer(int(period * 1000000),
 									this, (void *)TIMEOUT_ACTIVE_TICK);
 }
 
@@ -89,7 +89,7 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 					(*pBundle) << g_componentType;
 					(*pBundle) << g_componentID;
 					if((*iter).pChannel != NULL)
-						(*pBundle).send(pApp_->getNetworkInterface(), (*iter).pChannel);
+						(*pBundle).send(pApp_->networkInterface(), (*iter).pChannel);
 
 					Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 				}

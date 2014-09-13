@@ -43,8 +43,8 @@ public:
 	void historyCommandCheck();
 	CString getHistoryCommand(bool isNextCommand);
 	void commitPythonCommand(CString strCommand);
-	Mercury::EventDispatcher & getMainDispatcher()				{ return _dispatcher; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return _networkInterface; }
+	Mercury::EventDispatcher & mainDispatcher()				{ return _dispatcher; }
+	Mercury::NetworkInterface & networkInterface()			{ return _networkInterface; }
 	HTREEITEM hasCheckApp(COMPONENT_TYPE type);
 
 	void autoWndSize();

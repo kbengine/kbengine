@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.hpp"
 #include "base.hpp"
 #include "profile.hpp"
+#include "base_messages_forward_handler.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/fixed_messages.hpp"
@@ -71,7 +72,8 @@ shouldAutoArchive_(1),
 shouldAutoBackup_(1),
 creatingCell_(false),
 createdSpace_(false),
-inRestore_(false)
+inRestore_(false),
+pBufferedSendToCellappMessages_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -86,6 +88,7 @@ Base::~Base()
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(cellMailbox_);
 	S_RELEASE(cellDataDict_);
+	SAFE_RELEASE(pBufferedSendToCellappMessages_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -136,7 +139,7 @@ void Base::eraseEntityLog()
 			return;
 		}
 
-		(*bundleptr)->send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+		(*bundleptr)->send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 	}
 }
 
@@ -384,6 +387,13 @@ PyObject* Base::createCellDataDict(uint32 flags)
 void Base::sendToCellapp(Mercury::Bundle* pBundle)
 {
 	KBE_ASSERT(cellMailbox_ != NULL);
+
+	if(pBufferedSendToCellappMessages_)
+	{
+		pBufferedSendToCellappMessages_->pushMessages(pBundle);
+		return;
+	}
+
 	sendToCellapp(cellMailbox_->getChannel(), pBundle);
 }
 
@@ -391,7 +401,7 @@ void Base::sendToCellapp(Mercury::Bundle* pBundle)
 void Base::sendToCellapp(Mercury::Channel* pChannel, Mercury::Bundle* pBundle)
 {
 	KBE_ASSERT(pChannel != NULL && pBundle != NULL);
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+	(*pBundle).send(Baseapp::getSingleton().networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -546,7 +556,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 		(*pBundle) << this->id();
 		(*pBundle) << this->dbid();
 		(*pBundle) << this->scriptModule()->getUType();
-		(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+		(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 		this->hasDB(false);
@@ -1033,7 +1043,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	(*pBundle).append(*s);
 
-	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
 	MemoryStream::ObjPool().reclaimObject(s);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -1324,6 +1334,15 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 		return;
 	}
 
+	if(pBufferedSendToCellappMessages_)
+	{
+		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, is transfer, "
+			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
+			this->scriptName() % this->id() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+
+		return;
+	}
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::teleportFromBaseapp);
 	(*pBundle) << reqTeleportEntityID;
@@ -1342,6 +1361,11 @@ void Base::onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cell
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
 	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
+
+	if(pBufferedSendToCellappMessages_ == NULL)
+		pBufferedSendToCellappMessages_ = new BaseMessagesForwardHandler(this);
+
+	pBufferedSendToCellappMessages_->stopForward();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1352,6 +1376,15 @@ void Base::onMigrationCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellap
 
 	// 改变cell的指向到新的cellapp
 	this->cellMailbox()->componentID(cellappID);
+
+	KBE_ASSERT(pBufferedSendToCellappMessages_);
+	pBufferedSendToCellappMessages_->startForward();
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onBufferedForwardToCellappMessagesOver()
+{
+	SAFE_RELEASE(pBufferedSendToCellappMessages_);
 }
 
 //-------------------------------------------------------------------------------------

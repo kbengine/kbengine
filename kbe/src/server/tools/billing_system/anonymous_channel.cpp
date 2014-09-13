@@ -38,7 +38,7 @@ AnonymousChannel::AnonymousChannel()
 	}
 
 	if (listen.bind(htons(g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort()), 
-		BillingSystem::getSingleton().getNetworkInterface().extaddr().ip) == -1)
+		BillingSystem::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
 		ERROR_MSG(boost::format("AnonymousChannel::bind(%1%): \n") %
 			 kbe_strerror());
@@ -59,7 +59,7 @@ AnonymousChannel::AnonymousChannel()
 	listen.setnonblocking(true);
 
 	INFO_MSG(boost::format("AnonymousChannel::bind: %1%:%2%\n") %
-		inet_ntoa((struct in_addr&)BillingSystem::getSingleton().getNetworkInterface().extaddr().ip) % 
+		inet_ntoa((struct in_addr&)BillingSystem::getSingleton().networkInterface().extaddr().ip) % 
 		g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort());
 }
 
@@ -200,11 +200,11 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			bool success = false;
 			(*(*bundle)) << success;
 
-			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(oiter->second->address);
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(oiter->second->address);
 
 			if(pChannel)
 			{
-				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
@@ -260,7 +260,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		
 		if(orderiter != orders.end())
 		{
-			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orderiter->second->address);
 			if(pChannel)
 			{
 				Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
@@ -270,7 +270,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 				(*(*bundle)).appendBlob(iter->second.data);
 				(*(*bundle)) << cbid;
 				(*(*bundle)) << success;
-				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
@@ -280,7 +280,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		}
 		else
 		{
-			const Mercury::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().getNetworkInterface().channels();
+			const Mercury::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().networkInterface().channels();
 			if(channels.size() > 0)
 			{
 				Mercury::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
@@ -296,7 +296,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 						(*(*bundle)).appendBlob(iter->second.data);
 						(*(*bundle)) << cbid;
 						(*(*bundle)) << success;
-						(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+						(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 					}
 					else
 					{
