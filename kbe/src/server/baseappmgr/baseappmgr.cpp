@@ -309,8 +309,8 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	}
 
 
-	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseapp:%1%. allocBaseapp=[%2%].\n") %
-		accountName.c_str() % bestBaseappID_);
+	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
+		accountName, bestBaseappID_));
 
 	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 	
@@ -327,8 +327,8 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
 								COMPONENT_TYPE componentType)
 {
-	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseappAddr:%1%, componentID=%2%, entityID=%3%.\n") % 
-		accountName.c_str() % componentID % entityID);
+	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
+		accountName, componentID, entityID));
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -385,8 +385,8 @@ void Baseappmgr::onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID 
 {
 	if(progress > 1.f)
 	{
-		INFO_MSG(boost::format("Baseappmgr::onBaseappInitProgress: cid=%1%, progress=%2%.\n") % 
-			cid % (progress > 1.f ? 1.f : progress));
+		INFO_MSG(fmt::format("Baseappmgr::onBaseappInitProgress: cid={0}, progress={1}.\n",
+			cid , (progress > 1.f ? 1.f : progress)));
 	}
 
 	KBE_ASSERT(baseapps_.find(cid) != baseapps_.end());

@@ -168,8 +168,8 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG(boost::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%1%, startGroupOrder=%2%, digest=%3%.\n") %
-		startGlobalOrder % startGroupOrder % digest);
+	INFO_MSG(fmt::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder={0}, startGroupOrder={1}, digest={2}.\n",
+		startGlobalOrder, startGroupOrder, digest));
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -733,8 +733,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	INFO_MSG(boost::format("Loginapp::login: new client[%1%], loginName=%2%, datas=%3%.\n") %
-		COMPONENT_CLIENT_NAME[ctype] % loginName.c_str() % datas.c_str());
+	INFO_MSG(fmt::format("Loginapp::login: new client[{0}], loginName={1}, datas={2}.\n",
+		COMPONENT_CLIENT_NAME[ctype], loginName, datas));
 
 	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
@@ -775,8 +775,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
-	ERROR_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%, datas=%3%.\n") %
-		loginName.c_str() % SERVER_ERR_STR[failedcode] % datas);
+	ERROR_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
+		loginName, SERVER_ERR_STR[failedcode], datas));
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
 	if(infos == NULL && !force)
@@ -930,8 +930,8 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 
 	Mercury::Address address(addr, port);
 
-	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName=%1%, addr=%2%.\n") % 
-		loginName % address.c_str());
+	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
+		loginName, address.c_str()));
 
 	// 这里可以不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);

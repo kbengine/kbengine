@@ -358,7 +358,7 @@ bool DBTaskWriteEntity::db_thread_process()
 thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG(boost::format("Dbmgr::writeEntity: %1%(%2%).\n") % pModule->getName() % entityDBID_);
+	DEBUG_MSG(fmt::format("Dbmgr::writeEntity: {0}({1}).\n", pModule->getName(), entityDBID_));
 
 	// 返回写entity的结果， 成功或者失败
 
@@ -369,7 +369,7 @@ thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 
 	if(!this->send((*pBundle)))
 	{
-		ERROR_MSG(boost::format("DBTaskWriteEntity::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskWriteEntity::presentMainThread: channel({0}) not found.\n", addr_.c_str()));
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1439,15 +1439,15 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:loginName=%1%, accountName=%2%, success=%3%, componentID=%4%, dbid=%5%, flags=%6%, deadline=%7%.\n") % 
-		loginName_ %
-		accountName_ %
-		success_ %
-		componentID_ %
-		dbid_ %
-		flags_ %
+	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName{0}, accountName={1}, success={2}, componentID={3}, dbid={4}, flags={5}, deadline={6}.\n", 
+		loginName_,
+		accountName_,
+		success_,
+		componentID_,
+		dbid_,
+		flags_,
 		deadline_
-		);
+		));
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

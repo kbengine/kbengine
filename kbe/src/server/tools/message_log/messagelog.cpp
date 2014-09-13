@@ -172,8 +172,8 @@ void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::Memory
 
 	pLogwatcher->addr(pChannel->addr());
 
-	INFO_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is successfully!\n") %
-		pChannel->addr().c_str());
+	INFO_MSG(fmt::format("Messagelog::registerLogWatcher: addr={0} is successfully!\n",
+		pChannel->addr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------

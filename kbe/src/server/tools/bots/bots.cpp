@@ -329,7 +329,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Bots::lookApp(Mercury::Channel* pChannel)
 {
-	DEBUG_MSG(boost::format("Bots::lookApp: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("Bots::lookApp: {0}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -346,7 +346,7 @@ void Bots::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Bots::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	DEBUG_MSG(boost::format("Bots::reqCloseServer: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("Bots::reqCloseServer: {0}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	

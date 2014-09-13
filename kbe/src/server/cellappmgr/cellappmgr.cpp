@@ -88,8 +88,8 @@ void Cellappmgr::onChannelDeregister(Mercury::Channel * pChannel)
 			std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cinfo->cid);
 			if(iter != cellapps_.end())
 			{
-				WARNING_MSG(boost::format("Cellappmgr::onChannelDeregister: erase cellapp[%1%], currsize=%2%\n") % 
-					cinfo->cid % (cellapps_.size() - 1));
+				WARNING_MSG(fmt::format("Cellappmgr::onChannelDeregister: erase cellapp[{0}], currsize={1}\n",
+					cinfo->cid, (cellapps_.size() - 1)));
 
 				cellapps_.erase(iter);
 				updateBestCellapp();
@@ -180,7 +180,7 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 		index = 0;
 
 	Components::COMPONENTS::iterator iter = components.begin();
-	DEBUG_MSG(boost::format("Cellappmgr::findFreeCellapp: index=%1%.\n") % index);
+	DEBUG_MSG(fmt::format("Cellappmgr::findFreeCellapp: index={0}.\n", index));
 	std::advance(iter, index++);
 	return (*iter).cid;
 }
@@ -212,8 +212,8 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	(*pBundle).append(&s);
 	s.opfini();
 
-	DEBUG_MSG(boost::format("Cellappmgr::reqCreateInNewSpace: entityType=%1%, entityID=%2%, componentID=%3%.\n") %
-		entityType.c_str() % id % componentID);
+	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={0}, entityID={1}, componentID={2}.\n",
+		entityType, id, componentID));
 
 	updateBestCellapp();
 
@@ -261,8 +261,8 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	(*pBundle).append(&s);
 	s.opfini();
 
-	DEBUG_MSG(boost::format("Cellappmgr::reqRestoreSpaceInCell: entityType=%1%, entityID=%2%, componentID=%3%, spaceID=%4%.\n") %
-		entityType.c_str() % id % componentID % spaceID);
+	DEBUG_MSG(fmt::format("Cellappmgr::reqRestoreSpaceInCell: entityType={0}, entityID={1}, componentID={2}, spaceID={3}.\n",
+		entityType, id, componentID, spaceID));
 
 	updateBestCellapp();
 

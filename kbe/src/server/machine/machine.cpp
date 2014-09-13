@@ -101,25 +101,25 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
 		if(iter == localuids_.end())
 		{
-			INFO_MSG(boost::format("Machine::onBroadcastInterface: added newUID %1%.\n") % uid);
+			INFO_MSG(fmt::format("Machine::onBroadcastInterface: added newUID {0}.\n", uid));
 			localuids_.push_back(uid);
 		}
 	}
 
-	INFO_MSG(boost::format("Machine::onBroadcastInterface[%1%]: uid:%2%, username:%3%, componentType:%4%, "
-			"componentID:%5%, globalorderid=%10%, grouporderid=%11%, pid:%12%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
-			pChannel->c_str() % 
-			uid %
-			username.c_str() %
-			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) %
-			componentID %
-			inet_ntoa((struct in_addr&)intaddr) %
-			ntohs(intport) %
-			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-			ntohs(extport) %
-			((int32)globalorderid) %
-			((int32)grouporderid) %
-			pid);
+	INFO_MSG(fmt::format("Machine::onBroadcastInterface[{0}]: uid:{1}, username:{2}, componentType:{3}, "
+		"componentID:{4}, globalorderid={9}, grouporderid={10}, pid:{11}, intaddr:{5}, intport:{6}, extaddr:{7}, extport:{8}.\n",
+			pChannel->c_str(),
+			uid,
+			username.c_str(),
+			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+			componentID,
+			inet_ntoa((struct in_addr&)intaddr),
+			ntohs(intport),
+			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+			ntohs(extport),
+			((int32)globalorderid),
+			((int32)grouporderid),
+			pid));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
 		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,

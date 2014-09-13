@@ -283,19 +283,19 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	{
 		if(cinfos->pIntAddr->ip != intaddr || cinfos->pIntAddr->port != intport)
 		{
-			ERROR_MSG(boost::format("Cellapp::onGetEntityAppFromDbmgr: Illegal app(uid:%1%, username:%2%, componentType:%3%, "
-					"componentID:%4%, globalorderID=%10%, grouporderID=%11%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%)\n") %
-					uid % 
-					username.c_str() % 
-					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
-					componentID %
-					inet_ntoa((struct in_addr&)intaddr) %
-					ntohs(intport) %
-					(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-					ntohs(extport) %
-					pChannel->c_str() %
-					((int32)globalorderID) % 
-					((int32)grouporderID));
+			ERROR_MSG(fmt::format("Cellapp::onGetEntityAppFromDbmgr: Illegal app(uid:{0}, username:{1}, componentType:{2}, "
+					"componentID:{3}, globalorderID={9}, grouporderID={10}, intaddr:{4}, intport:{5}, extaddr:{6}, extport:{7},  from {8})\n",
+					uid, 
+					username,
+					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
+					componentID,
+					inet_ntoa((struct in_addr&)intaddr),
+					ntohs(intport),
+					(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+					ntohs(extport),
+					pChannel->c_str(),
+					((int32)globalorderID), 
+					((int32)grouporderID)));
 
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(DbmgrInterface::reqKillServer);

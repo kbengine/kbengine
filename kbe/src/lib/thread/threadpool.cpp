@@ -150,7 +150,7 @@ std::string ThreadPool::printThreadWorks()
 	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
 	for(; itr != busyThreadList_.end(); itr++)
 	{
-		ret += (boost::format("%1%:(%2%), ") % (*itr) % (*itr)->printWorkState()).str();
+		ret += (fmt::format("{0}:({1}), ", (uintptr)(*itr), (*itr)->printWorkState()));
 		i++;
 
 		if(i > 1024)
@@ -562,8 +562,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 		
 	}
 	
-	INFO_MSG(boost::format("ThreadPool::addTask: new Thread, currThreadCount: %1%\n") % 
-		currentThreadCount_);
+	INFO_MSG(fmt::format("ThreadPool::addTask: new Thread, currThreadCount: {0}\n", 
+		currentThreadCount_));
 
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 	return true;
