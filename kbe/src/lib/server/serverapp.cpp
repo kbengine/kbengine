@@ -290,8 +290,8 @@ void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG(boost::format("ServerApp::onChannelTimeOut: "
-		"Channel %1% timed out.\n") % pChannel->c_str());
+	INFO_MSG(fmt::format("ServerApp::onChannelTimeOut: "
+		"Channel {0} timed out.\n", pChannel->c_str()));
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
@@ -327,19 +327,19 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG(boost::format("ServerApp::onRegisterNewApp: uid:%1%, username:%2%, componentType:%3%, "
-			"componentID:%4%, globalorderID=%10%, grouporderID=%11%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%.\n") %
-			uid % 
-			username.c_str() % 
-			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
-			componentID %
-			inet_ntoa((struct in_addr&)intaddr) %
-			ntohs(intport) %
-			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-			ntohs(extport) %
-			pChannel->c_str() %
-			((int32)globalorderID) % 
-			((int32)grouporderID));
+	INFO_MSG(fmt::format("ServerApp::onRegisterNewApp: uid:{0}, username:{1}, componentType:{2}, "
+			"componentID:{3}, globalorderID={9}, grouporderID={10}, intaddr:{4}, intport:{5}, extaddr:{6}, extport:{7},  from {8}.\n",
+			uid,
+			username.c_str(),
+			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
+			componentID,
+			inet_ntoa((struct in_addr&)intaddr),
+			ntohs(intport),
+			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+			ntohs(extport),
+			pChannel->c_str(),
+			((int32)globalorderID),
+			((int32)grouporderID)));
 
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
