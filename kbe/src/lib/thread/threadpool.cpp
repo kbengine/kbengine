@@ -150,7 +150,7 @@ std::string ThreadPool::printThreadWorks()
 	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
 	for(; itr != busyThreadList_.end(); itr++)
 	{
-		ret += (fmt::format("{0:p}:({1}), ", (uintptr)(*itr), (*itr)->printWorkState()));
+		ret += (fmt::format("0x{0:X}:({1}), ", (uintptr)(*itr), (*itr)->printWorkState()));
 		i++;
 
 		if(i > 1024)
@@ -197,7 +197,7 @@ void ThreadPool::destroy()
 				if((*itr)->state() != TPThread::THREAD_STATE_END)
 				{
 					(*itr)->sendCondSignal();
-					taskaddrs += (fmt::format("%p,", (uintptr)(*itr)));
+					taskaddrs += (fmt::format("0x{0:X},", (uintptr)(*itr)));
 				}
 				else
 				{
