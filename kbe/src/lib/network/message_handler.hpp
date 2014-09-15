@@ -27,6 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine{
+
+class KBE_MD5;
+
 namespace Mercury
 {
 class Channel;
@@ -134,11 +137,17 @@ public:
 	static std::vector<MessageHandlers*>& messageHandlers();
 
 	const MessageHandlerMap& msgHandlers(){ return msgHandlers_; }
+
+	static KBE_MD5& md5(){ return __md5; }
+
+	static std::string getDigestStr();
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
 
 	std::vector< std::string > exposedMessages_;
+
+	static KBE_MD5 __md5;
 };
 
 }

@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "message_handler.hpp"
+#include "cstdkbe/md5.hpp"
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
@@ -33,6 +34,7 @@ Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
 std::vector<MessageHandlers*>* g_pMessageHandlers;
 
 static Mercury::FixedMessages* g_fm;
+KBE_MD5 MessageHandlers::__md5;
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
@@ -197,7 +199,36 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	//if(isfixedMsg)
 	//	printf("\t\t!!!message is fixed.!!!\n");
 
+	MessageHandlers::md5().append((void*)ihName.c_str(), ihName.size());
+	MessageHandlers::md5().append((void*)&msgHandler->msgID, sizeof(MessageID));
+	MessageHandlers::md5().append((void*)&msgLen, sizeof(int32));
+	MessageHandlers::md5().append((void*)&msgHandler->exposed, sizeof(bool));
+	 
+	int32 argsize = args->strArgsTypes.size();
+	MessageHandlers::md5().append((void*)&argsize, sizeof(int32));
+
+	int32 argsdataSize = args->dataSize();
+	MessageHandlers::md5().append((void*)&argsdataSize, sizeof(int32));
+
+	int32 argstype = (int32)args->type();
+	MessageHandlers::md5().append((void*)&argstype, sizeof(int32));
+
+	std::vector<std::string>::iterator saiter = args->strArgsTypes.begin();
+	for(; saiter != args->strArgsTypes.end(); saiter++)
+	{
+		MessageHandlers::md5().append((void*)(*saiter).c_str(), (*saiter).size());
+	}
+
+	int32 currsize = msgHandlers_.size();
+	MessageHandlers::md5().append((void*)&currsize, sizeof(int32));
+
 	return msgHandlers_[msgHandler->msgID];
+}
+
+//-------------------------------------------------------------------------------------
+std::string MessageHandlers::getDigestStr()
+{
+	return MessageHandlers::md5().getDigestStr();
 }
 
 //-------------------------------------------------------------------------------------

@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "network/message_handler.hpp"
 #include "server/machine_infos.hpp"
 #include "server/serverconfig.hpp"
 #include "resmgr/resmgr.hpp"
@@ -36,18 +37,20 @@ namespace KBEngine{
 inline void START_MSG(const char * name, uint64 appuid)
 {
 	MachineInfos machineInfo;
-	
-	std::string s = (boost::format("---- %1% "
-			"Version: %2%. "
-			"ScriptVersion: %3%. "
-			"Config: %4%. "
-			"Built: %5% %6%. "
-			"AppID: %7%. "
-			"UID: %8%. "
-			"PID: %9% ----\n") %
-		name % KBEVersion::versionString() % KBEVersion::scriptVersionString() %
-		KBE_CONFIG % __TIME__ % __DATE__ %
-		appuid % getUserUID() % getProcessPID()).str();
+
+	std::string s = (fmt::format("---- {} "
+			"Version: {}. "
+			"ScriptVersion: {}. "
+			"Protocol: {}. "
+			"Config: {}. "
+			"Built: {} {}. "
+			"AppID: {}. "
+			"UID: {}. "
+			"PID: {} ----\n",
+		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
+		Mercury::MessageHandlers::getDigestStr(),
+		KBE_CONFIG, __TIME__, __DATE__,
+		appuid, getUserUID(), getProcessPID()));
 
 	INFO_MSG(s);
 	
@@ -55,10 +58,10 @@ inline void START_MSG(const char * name, uint64 appuid)
 	printf("%s", s.c_str());
 #endif
 
-	s = (boost::format("Server %1%: %2% with %3% RAM\n") %
-		machineInfo.machineName().c_str() %
-		machineInfo.cpuInfo().c_str() %
-		machineInfo.memInfo().c_str() ).str();
+	s = (fmt::format("Server {}: {} with {} RAM\n",
+		machineInfo.machineName(),
+		machineInfo.cpuInfo(),
+		machineInfo.memInfo()));
 
 	INFO_MSG(s);
 
@@ -296,12 +299,12 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		return -1;
 	}
 	
-	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
+	INFO_MSG(fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType)));
 	int ret = pApp->run();
 	pApp->finalise();
 	Py_DECREF(pApp);
 	uninstallPyScript(script);
-	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
+	INFO_MSG(fmt::format("{} has shut down.\n", COMPONENT_NAME_EX(componentType)));
 	return ret;
 }
 
