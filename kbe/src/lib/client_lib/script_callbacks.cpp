@@ -48,8 +48,8 @@ ScriptID ScriptCallbacks::addCallback( float initialOffset, TimerHandler * pHand
 {
 	if (initialOffset < 0.f)
 	{
-		WARNING_MSG(boost::format("ScriptCallbacks::addTimer: Negative timer offset (%1%)\n") %
-				initialOffset );
+		WARNING_MSG(fmt::format("ScriptCallbacks::addTimer: Negative timer offset ({})\n",
+				initialOffset));
 
 		initialOffset = 0.f;
 	}

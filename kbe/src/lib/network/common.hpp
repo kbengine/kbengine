@@ -197,9 +197,9 @@ const char * reasonToString(Reason reason)
 			if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
 															&& retries <= 3)							\
 			{																							\
-				WARNING_MSG( "%s: "																		\
+				WARNING_MSG(fmt::format("%s: "															\
 					"Transmit queue full, waiting for space... (%d)\n",									\
-					__FUNCTION__, retries );															\
+					__FUNCTION__, retries));															\
 																										\
 				KBEngine::sleep(10);																	\
 				continue;																				\
@@ -207,8 +207,8 @@ const char * reasonToString(Reason reason)
 																										\
 			if(retries > 3 && reason != Mercury::REASON_SUCCESS)										\
 			{																							\
-				ERROR_MSG(boost::format("MERCURY_SEND::send: packet discarded(reason=%1%).\n")			\
-															% (reasonToString(reason)));				\
+				ERROR_MSG(fmt::format("MERCURY_SEND::send: packet discarded(reason={}).\n",				\
+															(reasonToString(reason))));					\
 				break;																					\
 			}																							\
 		}																								\

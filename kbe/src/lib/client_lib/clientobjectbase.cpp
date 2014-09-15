@@ -208,7 +208,7 @@ bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
+	ERROR_MSG(fmt::format("EntityApp::destroyEntity: not found {}!\n", entityID));
 	return false;
 }
 
@@ -221,7 +221,7 @@ Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("ClientObjectBase::onKicked: code=%1%\n") % failedcode);
+	INFO_MSG(fmt::format("ClientObjectBase::onKicked: code={}\n", failedcode));
 
 	EventData_onKicked eventdata;
 	eventdata.failedcode = failedcode;
@@ -345,13 +345,13 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%) refc=%3%.\n") % 
-			entityType % eid % obj->ob_refcnt);
+		INFO_MSG(fmt::format("ClientObjectBase::createEntityCommon: new {} ({}) refc={}.\n", 
+			entityType, eid, obj->ob_refcnt));
 	}
 	else
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%)\n") % 
-			entityType % eid);
+		INFO_MSG(fmt::format("ClientObjectBase::createEntityCommon: new {} ({})\n",
+			entityType, eid));
 	}
 
 	EventData_CreatedEntity eventdata;
@@ -441,8 +441,8 @@ Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	pEndpoint->convertAddress(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::initLoginappChannel: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
+			kbe_strerror()));
 
 		delete pEndpoint;
 		return NULL;
@@ -478,8 +478,8 @@ Mercury::Channel* ClientObjectBase::initBaseappChannel()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::initBaseappChannel: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
+			kbe_strerror()));
 
 		delete pEndpoint;
 		return NULL;
@@ -521,8 +521,8 @@ void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
 	COMPONENT_TYPE ctype;
 	s >> ctype;
 
-	INFO_MSG(boost::format("ClientObjectBase::onHelloCB: verInfo=%1%, scriptVerInfo=%2%, addr:%3%\n") % 
-		verInfo % scriptVerInfo % pChannel->c_str());
+	INFO_MSG(fmt::format("ClientObjectBase::onHelloCB: verInfo={}, scriptVerInfo={}, addr:{}\n",
+		verInfo, scriptVerInfo, pChannel->c_str()));
 
 	onHelloCB_(pChannel, verInfo, scriptVerInfo, ctype);
 }
@@ -533,8 +533,8 @@ void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStrea
 	std::string verInfo;
 	s >> verInfo;
 	
-	INFO_MSG(boost::format("ClientObjectBase::onVersionNotMatch: verInfo=%1% not match(server:%2%)\n") % 
-		KBEVersion::versionString() % verInfo);
+	INFO_MSG(fmt::format("ClientObjectBase::onVersionNotMatch: verInfo={} not match(server:{})\n",
+		KBEVersion::versionString(), verInfo));
 
 	EventData_VersionNotMatch eventdata;
 	eventdata.verInfo = KBEVersion::versionString();
@@ -548,8 +548,8 @@ void ClientObjectBase::onScriptVersionNotMatch(Mercury::Channel* pChannel, Memor
 	std::string verInfo;
 	s >> verInfo;
 	
-	INFO_MSG(boost::format("ClientObjectBase::onScriptVersionNotMatch: verInfo=%1% not match(server:%2%)\n") % 
-		KBEVersion::scriptVersionString() % verInfo);
+	INFO_MSG(fmt::format("ClientObjectBase::onScriptVersionNotMatch: verInfo={} not match(server:{})\n", 
+		KBEVersion::scriptVersionString(), verInfo));
 
 	EventData_ScriptVersionNotMatch eventdata;
 	eventdata.verInfo = KBEVersion::scriptVersionString();
@@ -614,13 +614,13 @@ void ClientObjectBase::onCreateAccountResult(Mercury::Channel * pChannel, Memory
 
 	if(retcode != 0)
 	{
-		INFO_MSG(boost::format("ClientObjectBase::onCreateAccountResult: %1% create is failed! code=%2%.\n") % 
-			name_ % retcode);
+		INFO_MSG(fmt::format("ClientObjectBase::onCreateAccountResult: {} create is failed! code={}.\n", 
+			name_, retcode));
 
 		return;
 	}
 
-	INFO_MSG(boost::format("ClientObjectBase::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(fmt::format("ClientObjectBase::onCreateAccountResult: {} create is successfully!\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -634,7 +634,7 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 	s.readBlob(extradatas_);
 	
 	connectedGateway_ = false;
-	INFO_MSG(boost::format("ClientObjectBase::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
@@ -652,7 +652,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 	s.readBlob(extradatas_);
 	
 	connectedGateway_ = false;
-	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginFailed: {} failedcode={}!\n", name_, failedcode));
 	EventData_LoginFailed eventdata;
 	eventdata.failedcode = failedcode;
 	eventHandler_.fire(&eventdata);
@@ -661,7 +661,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("ClientObjectBase::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
 
 	// 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
@@ -674,7 +674,7 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
 {
-	INFO_MSG(boost::format("ClientObjectBase::onReLoginGatewaySuccessfully! name=%1%.\n") % name_);
+	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewaySuccessfully! name={}.\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -683,8 +683,8 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity != NULL)
 	{
-		WARNING_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%. has exist!\n") % 
-			name_ % rndUUID % eid % entityType);
+		WARNING_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}. has exist!\n", 
+			name_, rndUUID, eid, entityType));
 		return;
 	}
 
@@ -700,8 +700,8 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 	entityID_ = eid;
 	rndUUID_ = rndUUID;
 
-	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
-		name_ % rndUUID % eid % entityType);
+	INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
+		name_, rndUUID, eid, entityType));
 
 	// 设置entity的baseMailbox
 	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
@@ -755,12 +755,12 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			bufferedCreateEntityMessage_.erase(iter);
 			entity->isOnGound(isOnGound > 0);
 
-			DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-				entity->scriptName() % eid  % (int)isOnGound);
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}).\n", 
+				entity->scriptName(), eid, (int)isOnGound));
 		}
 		else
 		{
-			ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+			ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: not found entity({}).\n", eid));
 			return;
 		}
 	}
@@ -773,8 +773,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		// 初始化一下服务端当前的位置
 		entity->serverPosition(entity->position());
 
-		DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-			entity->scriptName() % eid  % (int)isOnGound);
+		DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}).\n",
+			entity->scriptName(), eid, (int)isOnGound));
 
 		KBE_ASSERT(!entity->isEnterword());
 		KBE_ASSERT(entity->cellMailbox() == NULL);

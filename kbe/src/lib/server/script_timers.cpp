@@ -64,8 +64,8 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 {
 	if (initialOffset < 0.f)
 	{
-		WARNING_MSG(boost::format("ScriptTimers::addTimer: Negative timer offset (%1%)\n") %
-				initialOffset );
+		WARNING_MSG(fmt::format("ScriptTimers::addTimer: Negative timer offset ({})\n",
+				initialOffset));
 
 		initialOffset = 0.f;
 	}

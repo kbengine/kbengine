@@ -43,7 +43,7 @@ ScriptObject::ScriptObject(PyTypeObject* pyType, bool isInitialised)
 {
 	if (PyType_Ready(pyType) < 0)
 	{
-		ERROR_MSG(boost::format("ScriptObject: Type %1% is not ready\n") % pyType->tp_name);
+		ERROR_MSG(fmt::format("ScriptObject: Type {} is not ready\n", pyType->tp_name));
 	}
 
 	if (!isInitialised)

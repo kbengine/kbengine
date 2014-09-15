@@ -61,7 +61,7 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 		EntityTableItem* pTableItem = this->findItem(pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG(boost::format("EntityTable::writeTable: not found item[%1%].\n") % pid);
+			ERROR_MSG(fmt::format("EntityTable::writeTable: not found item[{}].\n", pid));
 			return dbid;
 		}
 
@@ -205,7 +205,7 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 	}
 	catch (std::exception& e)
 	{
-		ERROR_MSG(boost::format("EntityTables::syncToDB: %1%\n") % e.what());
+		ERROR_MSG(fmt::format("EntityTables::syncToDB: {}\n", e.what()));
 		return false;
 	}
 

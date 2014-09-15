@@ -370,14 +370,14 @@ void Bots::reqKillServer(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s >> componentID >> componentType >> username >> uid >> reason;
 
-	INFO_MSG(boost::format("Bots::reqKillServer: requester(uid:%1%, username:%2%, componentType:%3%, "
-				"componentID:%4%, reason:%5%, from %6%)\n") %
-				uid % 
-				username % 
-				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
-				componentID %
-				reason %
-				pChannel->c_str());
+	INFO_MSG(fmt::format("Bots::reqKillServer: requester(uid:{}, username:{}, componentType:{}, "
+				"componentID:{}, reason:{}, from {})\n",
+				uid ,
+				username , 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+				componentID,
+				reason,
+				pChannel->c_str()));
 
 	CRITICAL_MSG("The application was killed!\n");
 }
@@ -395,8 +395,8 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 		return;
 	}
 
-	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: size(%1%), command=%2%.\n") % 
-		cmd.size() % cmd);
+	DEBUG_MSG(fmt::format("EntityApp::onExecScriptCommand: size({}), command={}.\n",
+		cmd.size(), cmd));
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
@@ -473,8 +473,8 @@ void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 
 		if(cinfos == NULL)
 		{
-			ERROR_MSG(boost::format("Bots::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
-				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
+			ERROR_MSG(fmt::format("Bots::onAppActiveTick[{0:p}]: {1}:{2} not found.\n", 
+				(uintptr)pChannel, COMPONENT_NAME_EX(componentType), componentID));
 
 			return;
 		}
@@ -1077,8 +1077,8 @@ void Bots::startProfile_(Mercury::Channel* pChannel, std::string profileName, in
 		new MercuryProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	default:
-		ERROR_MSG(boost::format("Bots::startProfile_: type(%1%:%2%) not support!\n") % 
-			profileType % profileName);
+		ERROR_MSG(fmt::format("Bots::startProfile_: type({}:{}) not support!\n", 
+			profileType, profileName));
 
 		break;
 	};

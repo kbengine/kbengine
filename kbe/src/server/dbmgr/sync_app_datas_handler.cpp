@@ -65,7 +65,7 @@ void SyncAppDatasHandler::pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32
 	{
 		if((*iter).cid == cid)
 		{
-			ERROR_MSG(boost::format("SyncAppDatasHandler::pushApp: cid(%1%) is exist!\n") % cid);
+			ERROR_MSG(fmt::format("SyncAppDatasHandler::pushApp: cid({}) is exist!\n", cid));
 			return;
 		}
 	}

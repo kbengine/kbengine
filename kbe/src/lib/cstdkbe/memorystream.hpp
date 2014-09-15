@@ -51,8 +51,8 @@ class MemoryStreamException
 
         void PrintPosError() const
         {
-			ERROR_MSG(boost::format("Attempted to %1% in MemoryStream (pos:%2%  size: %3%).\n") % 
-				(_m_add ? "put" : "get") % _m_pos % _m_size);
+			ERROR_MSG(fmt::format("Attempted to {} in MemoryStream (pos:{}  size: {}).\n", 
+				(_m_add ? "put" : "get"), _m_pos, _m_size));
         }
     private:
         bool 		_m_add;

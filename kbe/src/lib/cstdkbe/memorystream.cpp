@@ -31,8 +31,8 @@ ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 //-------------------------------------------------------------------------------------
 void MemoryStream::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("MemoryStream::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("MemoryStream::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

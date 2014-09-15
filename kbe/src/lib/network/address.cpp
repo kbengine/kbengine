@@ -42,8 +42,8 @@ ObjectPool<Address>& Address::ObjPool()
 //-------------------------------------------------------------------------------------
 void Address::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("Address::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("Address::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

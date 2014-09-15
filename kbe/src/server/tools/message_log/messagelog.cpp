@@ -163,8 +163,8 @@ void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::Memory
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->loadFromStream(&s))
 	{
-		ERROR_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is failed!\n") %
-			pChannel->addr().c_str());
+		ERROR_MSG(fmt::format("Messagelog::registerLogWatcher: addr={} is failed!\n",
+			pChannel->addr().c_str()));
 
 		logWatchers_.erase(pChannel->addr());
 		return;

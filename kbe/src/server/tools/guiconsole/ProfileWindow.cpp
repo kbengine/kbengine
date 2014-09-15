@@ -236,8 +236,8 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 		onReceiveMercuryProfileData(s);
 		break;
 	default:
-		ERROR_MSG(boost::format("CProfileWindow::onReceiveData: type(%1%) not support!\n") % 
-			type);
+		ERROR_MSG(fmt::format("CProfileWindow::onReceiveData: type({}) not support!\n", 
+			type));
 		break;
 	};
 }

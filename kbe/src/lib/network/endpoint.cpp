@@ -66,8 +66,8 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 //-------------------------------------------------------------------------------------
 void EndPoint::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("EndPoint::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("EndPoint::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

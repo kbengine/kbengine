@@ -531,7 +531,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------	
 void ClientApp::shutDown()
 {
-	INFO_MSG( "ClientApp::shutDown: shutting down\n" );
+	INFO_MSG("ClientApp::shutDown: shutting down\n");
 	mainDispatcher_.breakProcessing();
 }
 
@@ -543,8 +543,8 @@ void ClientApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG(boost::format("ClientApp::onChannelTimeOut: "
-		"Channel %1% timed out.\n") % pChannel->c_str());
+	INFO_MSG(fmt::format("ClientApp::onChannelTimeOut: "
+		"Channel {} timed out.\n", pChannel->c_str()));
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();

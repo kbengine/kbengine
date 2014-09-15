@@ -64,8 +64,8 @@ public:
 
 		if(!ret)
 		{
-			ERROR_MSG(boost::format("SqlStatement::query: %1%\n\tsql:%2%\n") % 
-				(dbi != NULL ? dbi : dbi_)->getstrerror() % sqlstr_);
+			ERROR_MSG(fmt::format("SqlStatement::query: {}\n\tsql:{}\n", 
+				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}
@@ -151,8 +151,8 @@ public:
 		bool ret = SqlStatement::query(dbi);
 		if(!ret)
 		{
-			ERROR_MSG(boost::format("SqlStatementInsert::query: %1%\n\tsql:%2%\n") % 
-				(dbi != NULL ? dbi : dbi_)->getstrerror() % sqlstr_);
+			ERROR_MSG(fmt::format("SqlStatementInsert::query: {}\n\tsql:{}\n",
+				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}

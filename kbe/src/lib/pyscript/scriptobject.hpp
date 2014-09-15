@@ -328,7 +328,7 @@ public:																						\
 			Py_INCREF(&_scriptType);														\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG(boost::format("PyModule_AddObject(%1%) is error!") % name);		\
+				ERROR_MSG(fmt::format("PyModule_AddObject({}) is error!", name));			\
 			}																				\
 		}																					\
 																							\

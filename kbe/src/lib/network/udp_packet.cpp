@@ -41,8 +41,8 @@ ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 //-------------------------------------------------------------------------------------
 void UDPPacket::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("UDPPacket::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("UDPPacket::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

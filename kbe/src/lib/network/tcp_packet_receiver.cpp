@@ -47,8 +47,8 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 //-------------------------------------------------------------------------------------
 void TCPPacketReceiver::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("TCPPacketReceiver::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("TCPPacketReceiver::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

@@ -52,8 +52,8 @@ OrdersCharge::OrdersCharge()
 //-------------------------------------------------------------------------------------
 OrdersCharge::~OrdersCharge()
 {
-	//INFO_MSG(boost::format("OrdersCharge::~OrdersCharge(%1%): orders=%2%\n") % 
-	//	this % ordersID);
+	//INFO_MSG(fmt::format("OrdersCharge::~OrdersCharge({0:p}): orders={1}\n", 
+	//	(uintptr)this, ordersID));
 }
 
 //-------------------------------------------------------------------------------------

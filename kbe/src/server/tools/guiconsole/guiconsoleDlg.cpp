@@ -217,8 +217,8 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(boost::format("CguiconsoleDlg::OnTimer: found %1%, addr:%2%:%3%\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intport));
+					INFO_MSG(fmt::format("CguiconsoleDlg::OnTimer: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
@@ -238,8 +238,8 @@ RESTART_RECV:
 				}
 				else
 				{
-					ERROR_MSG(boost::format("CguiconsoleDlg::OnTimer: %1% not found. receive data is error!\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+					ERROR_MSG(fmt::format("CguiconsoleDlg::OnTimer: {} not found. receive data is error!\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				}
 
 				//timeout = 10000;
@@ -842,7 +842,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CguiconsoleDlg::onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command)
 {
-	DEBUG_MSG(boost::format("CguiconsoleDlg::onExecScriptCommandCB: %1%\n") % command.c_str());
+	DEBUG_MSG(fmt::format("CguiconsoleDlg::onExecScriptCommandCB: {}\n", command.c_str()));
 
 	std::wstring wcmd;
 	strutil::utf82wchar(command, wcmd);

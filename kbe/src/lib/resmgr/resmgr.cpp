@@ -291,7 +291,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 	dir = opendir(pathstr);
 	if(dir == NULL)
 	{
-		ERROR_MSG(boost::format("Resmgr::listPathRes: open dir [%1%] error!\n") % pathstr);
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", pathstr));
 		return false;
 	}
 
@@ -356,7 +356,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 	if(INVALID_HANDLE_VALUE == hFind)
 	{
 		char* cstr = strutil::wchar2char(path.c_str());
-		ERROR_MSG(boost::format("Resmgr::listPathRes: open dir [%1%] error!\n") % cstr);
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", cstr));
 		free(cstr);
 		return false;
 	}
