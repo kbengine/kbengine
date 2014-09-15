@@ -584,7 +584,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % id % obj->ob_refcnt);
+		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
 	}
 	else
 	{
@@ -609,12 +609,12 @@ void EntityApp<E>::onSignalled(int sigNum)
 	switch (sigNum)
 	{
 	case SIGQUIT:
-		CRITICAL_MSG(boost::format("Received QUIT signal. This is likely caused by the "
-					"%1%Mgr killing this %2% because it has been "
+		CRITICAL_MSG(fmt::format("Received QUIT signal. This is likely caused by the "
+				"{}Mgr killing this {} because it has been "
 					"unresponsive for too long. Look at the callstack from "
-					"the core dump to find the likely cause.\n") %
-				COMPONENT_NAME_EX(componentType_) % 
-				COMPONENT_NAME_EX(componentType_) );
+					"the core dump to find the likely cause.\n",
+				COMPONENT_NAME_EX(componentType_), 
+				COMPONENT_NAME_EX(componentType_)));
 		
 		break;
 	default: 
@@ -630,7 +630,7 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 	
 	E* entity = pEntities_->find(eid);
 	if(entity == NULL){
-		ERROR_MSG(boost::format("EntityApp::tryGetEntityByMailbox: can't found entity:%1%.\n") % eid);
+		ERROR_MSG(fmt::format("EntityApp::tryGetEntityByMailbox: can't found entity:{}.\n", eid));
 		return NULL;
 	}
 
@@ -694,7 +694,7 @@ bool EntityApp<E>::destroyEntity(ENTITY_ID entityID, bool callScript)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
+	ERROR_MSG(fmt::format("EntityApp::destroyEntity: not found {}!\n", entityID));
 	return false;
 }
 
@@ -1162,8 +1162,8 @@ template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
-	INFO_MSG(boost::format("EntityApp::onDbmgrInitCompleted: entityID alloc(%1%-%2%), startGlobalOrder=%3%, startGroupOrder=%4%, digest=%5%.\n") %
-		startID % endID % startGlobalOrder % startGroupOrder % digest);
+	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
+		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -1175,8 +1175,8 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	if(digest != EntityDef::md5().getDigestStr())
 	{
-		ERROR_MSG(boost::format("EntityApp::onDbmgrInitCompleted: digest not match. curr(%1%) != dbmgr(%2%)\n") %
-			EntityDef::md5().getDigestStr() % digest);
+		ERROR_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: digest not match. curr({}) != dbmgr({})\n",
+			EntityDef::md5().getDigestStr(), digest));
 
 		this->shutDown();
 	}
@@ -1252,8 +1252,8 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 		return;
 	}
 
-	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: size(%1%), command=%2%.\n") % 
-		cmd.size() % cmd);
+	DEBUG_MSG(fmt::format("EntityApp::onExecScriptCommand: size({}), command={}.\n", 
+		cmd.size(), cmd));
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
