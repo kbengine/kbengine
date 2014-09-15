@@ -114,7 +114,7 @@ void BillingSystem::eraseOrders_s(std::string ordersid)
 	ORDERS::iterator iter = orders_.find(ordersid);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::eraseOrders_s: chargeID=%1% not found!\n") % ordersid);
+		ERROR_MSG(fmt::format("BillingSystem::eraseOrders_s: chargeID={} not found!\n", ordersid));
 	}
 
 	orders_.erase(iter);
@@ -300,15 +300,15 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	s.readBlob(pOrdersCharge->postDatas);
 	s >> pOrdersCharge->cbid;
 
-	INFO_MSG(boost::format("BillingSystem::charge: componentID=%5%, chargeID=%1%, dbid=%2%, cbid=%3%, datas=%4%!\n") %
-		pOrdersCharge->ordersID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
+	INFO_MSG(fmt::format("BillingSystem::charge: componentID={4}, chargeID={0}, dbid={1}, cbid={2}, datas={3}!\n",
+		pOrdersCharge->ordersID, pOrdersCharge->dbid, pOrdersCharge->cbid, pOrdersCharge->postDatas, pOrdersCharge->baseappID));
 
 	lockthread();
 
 	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->ordersID);
+		ERROR_MSG(fmt::format("BillingSystem::charge: chargeID={} is exist!\n", pOrdersCharge->ordersID));
 		delete pOrdersCharge;
 		unlockthread();
 		return;
@@ -332,14 +332,14 @@ void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logk
 	if(citer != reqCreateAccount_requests_.end())
 	{
 		citer->second->enable = false;
-		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey=%1% set disabled!\n") % logkey);
+		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey={} set disabled!\n", logkey));
 	}
 
 	REQLOGIN_MAP::iterator liter = reqAccountLogin_requests_.find(logkey);
 	if(liter != reqAccountLogin_requests_.end())
 	{
 		liter->second->enable = false;
-		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey=%1% set disabled!\n") % logkey);
+		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
 	}
 
 	unlockthread();

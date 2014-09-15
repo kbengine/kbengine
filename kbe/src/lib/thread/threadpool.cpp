@@ -130,13 +130,13 @@ ThreadPool::~ThreadPool()
 //-------------------------------------------------------------------------------------
 bool ThreadPool::initializeWatcher()
 {
-	WATCH_OBJECT((boost::format("%1%/maxThreadCount") % name()).str().c_str(), this->maxThreadCount_);
-	WATCH_OBJECT((boost::format("%1%/extraNewAddThreadCount") % name()).str().c_str(), this->extraNewAddThreadCount_);
-	WATCH_OBJECT((boost::format("%1%/currentFreeThreadCount") % name()).str().c_str(), this->currentFreeThreadCount_);
-	WATCH_OBJECT((boost::format("%1%/normalThreadCount") % name()).str().c_str(), this->normalThreadCount_);
-	WATCH_OBJECT((boost::format("%1%/bufferedTaskSize") % name()).str().c_str(), this, &ThreadPool::bufferTaskSize);
-	WATCH_OBJECT((boost::format("%1%/finiTaskSize") % name()).str().c_str(), this, &ThreadPool::finiTaskSize);
-	WATCH_OBJECT((boost::format("%1%/busyThreadStates") % name()).str().c_str(), this, &ThreadPool::printThreadWorks);
+	WATCH_OBJECT((fmt::format("{}/maxThreadCount", name())).c_str(), this->maxThreadCount_);
+	WATCH_OBJECT((fmt::format("{}/extraNewAddThreadCount", name())).c_str(), this->extraNewAddThreadCount_);
+	WATCH_OBJECT((fmt::format("{}/currentFreeThreadCount", name())).c_str(), this->currentFreeThreadCount_);
+	WATCH_OBJECT((fmt::format("{}/normalThreadCount", name())).c_str(), this->normalThreadCount_);
+	WATCH_OBJECT((fmt::format("{}/bufferedTaskSize", name())).c_str(), this, &ThreadPool::bufferTaskSize);
+	WATCH_OBJECT((fmt::format("{}/finiTaskSize", name()).c_str()), this, &ThreadPool::finiTaskSize);
+	WATCH_OBJECT((fmt::format("{}/busyThreadStates", name())).c_str(), this, &ThreadPool::printThreadWorks);
 	return true;
 }
 
@@ -536,8 +536,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
-		//WARNING_MSG(boost::format("ThreadPool::addTask: can't createthread, the poolsize is full(%1%).\n") % 
-		//	maxThreadCount_);
+		//WARNING_MSG(fmt::format("ThreadPool::addTask: can't createthread, the poolsize is full({}).\n,
+		//	maxThreadCount_));
 
 		return false;
 	}
