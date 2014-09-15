@@ -646,14 +646,14 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	loginName = KBEngine::strutil::kbe_trim(loginName);
 	if(loginName.size() == 0)
 	{
-		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
-		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
+		INFO_MSG("Loginapp::login: loginName is NULL.\n");
+		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas, true);
 		return;
 	}
 
 	if(loginName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: loginName is too long, size=%1%, limit=%2%.\n") %
+		INFO_MSG(boost::format("Loginapp::login: loginName is too long, size=%1%, limit=%2%.\n") %
 			loginName.size() % ACCOUNT_NAME_MAX_LENGTH);
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
@@ -662,7 +662,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: password is too long, size=%1%, limit=%2%.\n") %
+		INFO_MSG(boost::format("Loginapp::login: password is too long, size=%1%, limit=%2%.\n") %
 			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_PASSWORD, datas);
@@ -671,7 +671,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	
 	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: bindatas is too long, size=%1%, limit=%2%.\n") %
+		INFO_MSG(boost::format("Loginapp::login: bindatas is too long, size=%1%, limit=%2%.\n") %
 			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas);
@@ -687,7 +687,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 		if(clientDigest != digest_)
 		{
-			ERROR_MSG(boost::format("Loginapp::login: loginName(%1%), digest not match. curr(%2%) != dbmgr(%3%)\n") %
+			INFO_MSG(boost::format("Loginapp::login: loginName(%1%), digest not match. curr(%2%) != dbmgr(%3%)\n") %
 				loginName % clientDigest % digest_);
 
 			datas = "";
@@ -775,7 +775,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
-	ERROR_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
+	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
 		loginName, SERVER_ERR_STR[failedcode], datas));
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
