@@ -388,7 +388,7 @@ void Base::sendToCellapp(Mercury::Bundle* pBundle)
 {
 	KBE_ASSERT(cellMailbox_ != NULL);
 
-	if(pBufferedSendToCellappMessages_)
+	if(pBufferedSendToCellappMessages_ && pBufferedSendToCellappMessages_->isStop())
 	{
 		pBufferedSendToCellappMessages_->pushMessages(pBundle);
 		return;

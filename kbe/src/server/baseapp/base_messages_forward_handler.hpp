@@ -37,8 +37,10 @@ public:
 
 	void pushMessages(Mercury::Bundle* pBundle);
 
-	void startForward(){ startForward_ = true; }
+	void startForward();
 	void stopForward(){ startForward_ = false; }
+
+	bool isStop()const{ return !startForward_; }
 private:
 	Base* pBase_;
 	bool completed_;

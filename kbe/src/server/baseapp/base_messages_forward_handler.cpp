@@ -38,6 +38,9 @@ startForward_(false)
 //-------------------------------------------------------------------------------------
 BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 {
+	DEBUG_MSG(fmt::format("BaseMessagesForwardHandler::~BaseMessagesForwardHandler(): size({})!\n", 
+		bufferedSendToCellappMessages_.size()));
+
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().mainDispatcher().cancelFrequentTask(this);
 
@@ -57,6 +60,13 @@ void BaseMessagesForwardHandler::pushMessages(Mercury::Bundle* pBundle)
 }
 
 //-------------------------------------------------------------------------------------
+void BaseMessagesForwardHandler::startForward()
+{
+	startForward_ = true;
+	DEBUG_MSG(fmt::format("BaseMessagesForwardHandler::startForward(): size({})!\n", bufferedSendToCellappMessages_.size()));
+}
+
+//-------------------------------------------------------------------------------------
 bool BaseMessagesForwardHandler::process()
 {
 	if(!startForward_)
@@ -72,16 +82,15 @@ bool BaseMessagesForwardHandler::process()
 	if(pBase_->cellMailbox() == NULL || pBase_->cellMailbox()->getChannel() == NULL)
 		return true;
 
-	int remainPacketSize = PACKET_MAX_SIZE_TCP;
+	int remainPacketSize = PACKET_MAX_SIZE_TCP * 10;
 
 	std::vector<Mercury::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
 	for(; iter != bufferedSendToCellappMessages_.end(); )
 	{
-		pBase_->sendToCellapp((*iter));
-
-		remainPacketSize -= (*iter)->packetsLength();
-
+		Mercury::Bundle* pBundle = (*iter); 
+		remainPacketSize -= pBundle->packetsLength();
 		iter = bufferedSendToCellappMessages_.erase(iter);
+		pBase_->sendToCellapp(pBundle);
 
 		if(remainPacketSize <= 0)
 			return true;
