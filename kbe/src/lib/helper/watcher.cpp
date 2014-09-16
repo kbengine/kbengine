@@ -106,8 +106,8 @@ bool Watchers::addWatcher(const std::string& path, WatcherObject* pwo)
 
 	watcherObjs_[pwo->name()].reset(pwo);
 
-	//DEBUG_MSG(boost::format("Watchers::addWatcher: path=%1%, name=%2%, id=%3%\n") % 
-	//	pwo->path() % pwo->name() % pwo->id());
+	//DEBUG_MSG(fmt::format("Watchers::addWatcher: path={}, name={}, id={}\n", 
+	//	pwo->path(), pwo->name(), pwo->id()));
 
 	return true;
 }
@@ -119,7 +119,7 @@ bool Watchers::delWatcher(const std::string& name)
 		return false;
 
 	watcherObjs_.erase(name);
-	DEBUG_MSG(boost::format("Watchers::delWatcher: %1%\n") % name);
+	DEBUG_MSG(fmt::format("Watchers::delWatcher: {}\n", name));
 	return true;
 }
 
@@ -331,7 +331,7 @@ bool WatcherPaths::delWatcher(const std::string& fullpath)
 {
 	if(hasWatcher(fullpath) == false)
 	{
-		DEBUG_MSG(boost::format("WatcherPaths::delWatcher: not found %1%\n") % fullpath);
+		DEBUG_MSG(fmt::format("WatcherPaths::delWatcher: not found {}\n", fullpath));
 		return false;
 	}
 
@@ -392,7 +392,7 @@ KBEShared_ptr< WatcherObject > WatcherPaths::getWatcher(const std::string& fullp
 {
 	if(hasWatcher(fullpath) == false)
 	{
-		DEBUG_MSG(boost::format("WatcherPaths::delWatcher: not found %1%\n") % fullpath);
+		DEBUG_MSG(fmt::format("WatcherPaths::delWatcher: not found {}\n", fullpath));
 		return KBEShared_ptr< WatcherObject > ((WatcherObject*)NULL);
 	}
 

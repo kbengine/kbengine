@@ -258,9 +258,9 @@ int EndPoint::findDefaultInterface(char * name)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EndPoint::findDefaultInterface: "
-							"if_nameindex returned NULL (%1%)\n") %
-						kbe_strerror());
+		ERROR_MSG(fmt::format("EndPoint::findDefaultInterface: "
+							"if_nameindex returned NULL ({})\n",
+						kbe_strerror()));
 	}
 
 	return ret;
@@ -296,8 +296,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 
 		if (!ok)
 		{
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"netmask match %1% length %2% is not valid.\n") % iftemp % (slash+1));
+			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+				"netmask match {} length {} is not valid.\n", iftemp, (slash+1)));
 			return -1;
 		}
 	}
@@ -313,8 +313,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-			"No interface matching interface spec '%1%' found\n") % spec);
+		ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+			"No interface matching interface spec '{}' found\n", spec));
 		return -1;
 	}
 
@@ -364,10 +364,10 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 		if (name[0] == 0)
 		{
 			uint8 * qik = (uint8*)&addr;
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"No interface matching netmask spec '%1%' found "
-				"(evals to %2%.%3%.%4%.%5%/%6%)\n") % spec %
-				qik[0] % qik[1] % qik[2] % qik[3] % netmaskbits);
+			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+				"No interface matching netmask spec '{}' found "
+				"(evals to {}.{}.{}.{}/{})\n", spec,
+				qik[0], qik[1], qik[2], qik[3], netmaskbits));
 
 			return -2; // parsing ok, just didn't match
 		}
@@ -415,10 +415,10 @@ int EndPoint::getBufferSize(int optname) const
 	if (rberr == 0 && rbargsize == sizeof(int))
 		return recvbuf;
 
-	ERROR_MSG(boost::format("EndPoint::getBufferSize: "
-		"Failed to read option %1%: %2%\n") %
-		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
-		kbe_strerror());
+	ERROR_MSG(fmt::format("EndPoint::getBufferSize: "
+		"Failed to read option {}: {}\n",
+		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF"),
+		kbe_strerror()));
 
 	return -1;
 }
@@ -446,8 +446,8 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 			}
 			else
 			{
-				WARNING_MSG(boost::format("EndPoint::recvAll: Got error '%1%'\n") %
-					kbe_strerror());
+				WARNING_MSG(fmt::format("EndPoint::recvAll: Got error '{}'\n",
+					kbe_strerror()));
 			}
 
 			return false;

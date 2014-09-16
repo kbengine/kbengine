@@ -33,7 +33,7 @@ watcherNodes_()
 	flags(COORDINATE_NODE_FLAG_ENTITY);
 
 #ifdef _DEBUG
-	descr_ = (boost::format("EntityCoordinateNode(%1%_%2%)") % pEntity->scriptName() % pEntity->id()).str();
+	descr_ = (fmt::format("EntityCoordinateNode({}_{})", pEntity->scriptName(), pEntity->id()));
 #endif
 }
 
