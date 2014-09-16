@@ -109,8 +109,8 @@ EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 
 	if(g_kbeSrvConfig.getDBMgr().debugDBMgr)
 	{
-		DEBUG_MSG(boost::format("Buffered_DBTasks::tryGetNextTask(): finiTask(dbid=%1%, entityID=%2%\ndbidlist=%3%\nentityidlist=%4%\n") % 
-			pTask->EntityDBTask_entityDBID() % pTask->EntityDBTask_entityID() % printBuffered_dbid_() % printBuffered_entityID_()); 
+		DEBUG_MSG(fmt::format("Buffered_DBTasks::tryGetNextTask(): finiTask(dbid={}, entityID={}\ndbidlist={}\nentityidlist={}\n", 
+			pTask->EntityDBTask_entityDBID(), pTask->EntityDBTask_entityID(), printBuffered_dbid_(), printBuffered_entityID_())); 
 	}
 
 	EntityDBTask * pNextTask = NULL;
@@ -162,9 +162,9 @@ EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 	
 	if(pNextTask != NULL)
 	{
-		INFO_MSG(boost::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%1%, dbid=%2%, dbid_tasks_size=%3%, entityid_tasks_size=%4%.\n") % 
-			pNextTask->EntityDBTask_entityID() % pNextTask->EntityDBTask_entityDBID() % 
-			dbid_tasks_.size() % entityid_tasks_.size());
+		INFO_MSG(fmt::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID={}, dbid={}, dbid_tasks_size={}, entityid_tasks_size={}.\n", 
+			pNextTask->EntityDBTask_entityID(), pNextTask->EntityDBTask_entityDBID(), 
+			dbid_tasks_.size(), entityid_tasks_.size()));
 	}
 
 	mutex_.unlockMutex();
@@ -207,7 +207,7 @@ std::string Buffered_DBTasks::printBuffered_dbid_()
 			++count;
         } 
 
-		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
+		ret += fmt::format("{}:{}, ", iter->first, count);
     }  
 
 	return ret;
@@ -227,7 +227,7 @@ std::string Buffered_DBTasks::printBuffered_entityID_()
 			++count;
         }  
 
-		ret += (boost::format("%1%:%2%, ") % iter->first % count).str();
+		ret += fmt::format("{}:{}, ", iter->first, count);
     }  
 
 	return ret;

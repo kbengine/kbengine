@@ -342,8 +342,8 @@ bool BillingHandler_ThirdParty::reconnect()
 
 			if(trycount > 3)
 			{
-				ERROR_MSG(boost::format("BillingHandler_ThirdParty::reconnect(): couldn't connect to:%1%\n") % 
-					pBillingChannel_->endpoint()->addr().c_str());
+				ERROR_MSG(fmt::format("BillingHandler_ThirdParty::reconnect(): couldn't connect to:{}\n", 
+					pBillingChannel_->endpoint()->addr().c_str()));
 				
 				pBillingChannel_->destroy();
 				return false;
@@ -376,8 +376,8 @@ void BillingHandler_ThirdParty::charge(Mercury::Channel* pChannel, KBEngine::Mem
 	s.readBlob(datas);
 	s >> cbid;
 
-	INFO_MSG(boost::format("BillingHandler_ThirdParty::charge: chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
-		chargeID % cbid % datas % dbid);
+	INFO_MSG(fmt::format("BillingHandler_ThirdParty::charge: chargeID={0}, dbid={3}, cbid={1}, datas={2}!\n",
+		chargeID, cbid, datas, dbid));
 
 	KBE_ASSERT(pBillingChannel_);
 
@@ -416,14 +416,14 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	s >> cbid;
 	s >> success;
 
-	INFO_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: chargeID=%1%, dbid=%4%, cbid=%2%, cid=%5%, datas=%3%!\n") %
-		chargeID % cbid % datas % dbid % cid);
+	INFO_MSG(fmt::format("BillingHandler_ThirdParty::onChargeCB: chargeID={0}, dbid={3}, cbid={1}, cid={4}, datas={2}!\n",
+		chargeID, cbid, datas, dbid, cid));
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
 	{
-		ERROR_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: baseapp not found!, chargeID=%1%, cid=%2%.\n") 
-			% chargeID % cid);
+		ERROR_MSG(fmt::format("BillingHandler_ThirdParty::onChargeCB: baseapp not found!, chargeID={}, cid={}.\n", 
+			chargeID, cid));
 
 		return;
 	}
