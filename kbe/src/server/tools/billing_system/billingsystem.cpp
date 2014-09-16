@@ -69,8 +69,8 @@ BillingSystem::~BillingSystem()
 		REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.begin();
 		for(; iter != reqCreateAccount_requests_.end(); iter++)
 		{
-			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqCreateAccount[{2:X}] tasks.\n", 
-				++i, reqCreateAccount_requests_.size(), (uintptr)iter->second));
+			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqCreateAccount[{2:p}] tasks.\n", 
+				++i, reqCreateAccount_requests_.size(), (void*)iter->second));
 		}
 	}
 
@@ -80,8 +80,8 @@ BillingSystem::~BillingSystem()
 		REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.begin();
 		for(; iter != reqAccountLogin_requests_.end(); iter++)
 		{
-			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqAccountLogin[{2:X}] tasks.\n", 
-				++i, reqAccountLogin_requests_.size(), (uintptr)iter->second));
+			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqAccountLogin[{2:p}] tasks.\n", 
+				++i, reqAccountLogin_requests_.size(), (void*)iter->second));
 		}
 	}
 

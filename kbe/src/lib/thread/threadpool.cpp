@@ -71,17 +71,17 @@ bool TPThread::join(void)
 		case WAIT_TIMEOUT:
 			if(i > 20)
 			{
-				ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:X})\n", (uintptr)this));
+				ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:p})\n", (void*)this));
 				return false;
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("TPThread::join: waiting for thread({0:X}), try={1}\n", (uintptr)this, i));
+				WARNING_MSG(fmt::format("TPThread::join: waiting for thread({0:p}), try={1}\n", (void*)this, i));
 			}
 			break;
 		case WAIT_FAILED:
 		default:
-			ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:X})\n", (uintptr)this));
+			ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:p})\n", (void*)this));
 			return false;
 		};
 	}
@@ -89,7 +89,7 @@ bool TPThread::join(void)
 	void* status;
 	if(pthread_join(id(), &status))
 	{
-		ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:X})\n", (uintptr)this));
+		ERROR_MSG(fmt::format("TPThread::join: can't join thread({0:p})\n", (void*)this));
 		return false;
 	}
 #endif
@@ -150,7 +150,7 @@ std::string ThreadPool::printThreadWorks()
 	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
 	for(; itr != busyThreadList_.end(); itr++)
 	{
-		ret += (fmt::format("0x{0:X}:({1}), ", (uintptr)(*itr), (*itr)->printWorkState()));
+		ret += (fmt::format("{0:p}:({1}), ", (void*)(*itr), (*itr)->printWorkState()));
 		i++;
 
 		if(i > 1024)
@@ -197,7 +197,7 @@ void ThreadPool::destroy()
 				if((*itr)->state() != TPThread::THREAD_STATE_END)
 				{
 					(*itr)->sendCondSignal();
-					taskaddrs += (fmt::format("0x{0:X},", (uintptr)(*itr)));
+					taskaddrs += (fmt::format("{0:p},", (void*)(*itr)));
 				}
 				else
 				{
@@ -660,8 +660,8 @@ __THREAD_END__:
 		TPTask * task = tptd->task();
 		if(task)
 		{
-			WARNING_MSG(fmt::format("TPThread::threadFunc: task {0:X} not finish, thread.{1:X} will exit.\n", 
-				(uintptr)task, (uintptr)tptd));
+			WARNING_MSG(fmt::format("TPThread::threadFunc: task {0:p} not finish, thread.{1:p} will exit.\n", 
+				(void*)task, (void*)tptd));
 
 			delete task;
 		}

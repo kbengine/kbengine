@@ -473,8 +473,8 @@ void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 
 		if(cinfos == NULL)
 		{
-			ERROR_MSG(fmt::format("Bots::onAppActiveTick[{0:X}]: {1}:{2} not found.\n", 
-				(uintptr)pChannel, COMPONENT_NAME_EX(componentType), componentID));
+			ERROR_MSG(fmt::format("Bots::onAppActiveTick[{0:p}]: {1}:{2} not found.\n", 
+				(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID));
 
 			return;
 		}

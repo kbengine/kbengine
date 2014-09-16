@@ -44,7 +44,7 @@ public:
 			ERROR_MSG("DBThread:: can't create dbinterface!\n");
 		}
 
-		DEBUG_MSG(fmt::format("DBThread::onStart(): {0:X}!\n", (uintptr)this));
+		DEBUG_MSG(fmt::format("DBThread::onStart(): {0:p}!\n", (void*)this));
 	}
 
 	virtual void onEnd()
@@ -56,7 +56,7 @@ public:
 			DBUtil::finiThread();
 		}
 
-		DEBUG_MSG(fmt::format("DBThread::onEnd(): {0:X}!\n", (uintptr)this));
+		DEBUG_MSG(fmt::format("DBThread::onEnd(): {0:p}!\n", (void*)this));
 	}
 
 	~DBThread()
