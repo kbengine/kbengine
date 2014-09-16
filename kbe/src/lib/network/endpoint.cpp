@@ -185,7 +185,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[count];
 				interfaces[addrs] = "eth0";
 				char *ip = inet_ntoa (*(struct in_addr *)inaddrs->h_addr_list[count]);
-				DEBUG_MSG(boost::format("EndPoint::getInterfaces: found eth0 %1%\n") % ip);
+				DEBUG_MSG(fmt::format("EndPoint::getInterfaces: found eth0 {}\n", ip));
 				++count;
 			}
 		}

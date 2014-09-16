@@ -314,7 +314,7 @@ void Config::writeAccountName(const char* name)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(fmt::format("Config::writeAccountName: load %1% is failed!\n",
+		ERROR_MSG(fmt::format("Config::writeAccountName: load {} is failed!\n",
 			fileName_.c_str()));
 
 		SAFE_RELEASE(xml);

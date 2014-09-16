@@ -109,8 +109,8 @@ bool ClientObject::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork(%2%): connect server(%3%:%4%) is error(%1%)!\n") %
-			kbe_strerror() % name_ % infos.login_ip % infos.login_port);
+		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
+			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
 		delete pEndpoint;
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
@@ -186,9 +186,9 @@ bool ClientObject::processSocket(bool expectingPacket)
 
 	if(ret != Mercury::REASON_SUCCESS)
 	{
-		ERROR_MSG(boost::format("ClientObject::processSocket: "
-					"Throwing %1%\n") %
-					Mercury::reasonToString(ret));
+		ERROR_MSG(fmt::format("ClientObject::processSocket: "
+					"Throwing {}\n",
+					Mercury::reasonToString(ret)));
 	}
 
 	return true;
@@ -214,8 +214,8 @@ bool ClientObject::initLoginGateWay()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initLogin(%2%): connect server is error(%1%)!\n") %
-			kbe_strerror() % name_);
+		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
+			kbe_strerror(), name_));
 
 		delete pEndpoint;
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
@@ -269,7 +269,9 @@ void ClientObject::gameTick()
 			connectedGateway_ = false;
 			canReset_ = true;
 			state_ = C_STATE_INIT;
-			DEBUG_MSG(boost::format("ClientObject(%1%)::tickSend: serverCloased! name(%2%)!\n") % this->appID() % this->name());
+			
+			DEBUG_MSG(fmt::format("ClientObject({})::tickSend: serverCloased! name({})!\n", 
+			this->appID(), this->name()));
 		}
 	}
 
@@ -364,12 +366,15 @@ void ClientObject::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStre
 
 		// ¼ÌÐø³¢ÊÔµÇÂ¼
 		state_ = C_STATE_LOGIN;
-		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % SERVER_ERR_STR[retcode]);
+		
+		INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is failed! code={}.\n", 
+			name_, SERVER_ERR_STR[retcode]));
+		
 		return;
 	}
 
 	state_ = C_STATE_LOGIN;
-	INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is successfully!\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -382,7 +387,8 @@ void ClientObject::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream
 	s >> port_;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	INFO_MSG(fmt::format("ClientObject::onLoginSuccessfully: {} addr={}:{}!\n", 
+		name_, ip_, port_));
 
 	state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 }
@@ -395,7 +401,8 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	s >> failedcode;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % SERVER_ERR_STR[failedcode]);
+	INFO_MSG(fmt::format("ClientObject::onLoginFailed: {} failedcode={}!\n", 
+		name_, SERVER_ERR_STR[failedcode]));
 
 	// error_ = C_ERROR_LOGIN_FAILED;
 
