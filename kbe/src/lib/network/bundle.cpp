@@ -67,9 +67,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 				if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
 																					&& retries <= 60)		\
 				{																							\
-					WARNING_MSG(boost::format("%1%: "														\
-						"Transmit queue full, waiting for space... (%2%)\n") %								\
-						__FUNCTION__ % retries );															\
+					WARNING_MSG(fmt::format("{}: "															\
+						"Transmit queue full, waiting for space... ({})\n",									\
+						__FUNCTION__, retries));															\
 																											\
 					ep.waitSend();																			\
 					continue;																				\
@@ -77,8 +77,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 																											\
 				if(retries > 60 && reason != REASON_SUCCESS)												\
 				{																							\
-					ERROR_MSG(boost::format("Bundle::basicSendWithRetries: packet discarded(reason=%1%).\n")\
-															% (reasonToString(reason)));					\
+					ERROR_MSG(fmt::format("Bundle::basicSendWithRetries: packet discarded(reason={}).\n",	\
+															(reasonToString(reason))));						\
 					break;																					\
 				}																							\
 			}																								\

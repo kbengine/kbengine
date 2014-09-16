@@ -72,9 +72,9 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 		
 		if (!isGood_)
 		{
-			WARNING_MSG(boost::format("BlowfishFilter::send: "
-				"Dropping packet to %1% due to invalid filter\n") %
-				pChannel->addr().c_str() );
+			WARNING_MSG(fmt::format("BlowfishFilter::send: "
+				"Dropping packet to {} due to invalid filter\n",
+				pChannel->addr().c_str()));
 
 			return REASON_GENERAL_NETWORK;
 		}
@@ -108,8 +108,8 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 		/*
 		if(Mercury::g_trace_packet > 0)
 		{
-			DEBUG_MSG(boost::format("BlowfishFilter::send: packetLen=%1%, padSize=%2%\n") % 
-				packetLen % (int)padSize);
+			DEBUG_MSG(fmt::format("BlowfishFilter::send: packetLen={}, padSize={}\n",
+				packetLen, (int)padSize));
 		}
 		*/
 	}
@@ -126,9 +126,9 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 
 		if (!isGood_)
 		{
-			WARNING_MSG(boost::format("BlowfishFilter::recv: "
-				"Dropping packet to %1% due to invalid filter\n") %
-				pChannel->addr().c_str() );
+			WARNING_MSG(fmt::format("BlowfishFilter::recv: "
+				"Dropping packet to {} due to invalid filter\n",
+				pChannel->addr().c_str()));
 
 			return REASON_GENERAL_NETWORK;
 		}
@@ -224,8 +224,8 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		/*
 		if(Mercury::g_trace_packet > 0)
 		{
-			DEBUG_MSG(boost::format("BlowfishFilter::recv: packetLen=%1%, padSize=%2%\n") % 
-				(packetLen_ + 1) % (int)padSize_);
+			DEBUG_MSG(fmt::format("BlowfishFilter::recv: packetLen={}, padSize={}\n",
+				(packetLen_ + 1), (int)padSize_));
 		}
 		*/
 

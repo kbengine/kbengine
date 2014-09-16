@@ -84,7 +84,9 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 				Py_DECREF(pyVal);
 			}
 			
-			ERROR_MSG(boost::format("Baseapp::createCellDataDictFromPersistentStream: %1%.%2% is error, set to default!\n") % entityType % attrname);
+			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} is error, set to default!\n", 
+				entityType, attrname));
+
 			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
 		}
 
@@ -353,8 +355,8 @@ uint64 Baseapp::checkTickPeriod()
 
 	if (percent > 200)
 	{
-		WARNING_MSG(boost::format("Baseapp::handleGameTick: tick took %d%% (%.2f seconds)!\n") %
-			percent % (float(percent)/1000.f));
+		WARNING_MSG(fmt::format("Baseapp::handleGameTick: tick took {0}% ({1:.2f} seconds)!\n",
+			percent, (float(percent)/1000.f)));
 	}
 
 	uint64 elapsed = curr - _g_lastTimestamp;
@@ -988,8 +990,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: can't found callback:{}.\n",
+				callbackID));
 		}
 	}
 }
@@ -1128,8 +1130,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, K
 
 	if(!success)
 	{
-		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed.\n") % 
-			entityType.c_str() % dbid);
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed.\n", 
+			entityType.c_str(), dbid));
 
 		if(callbackID > 0)
 		{
@@ -1151,8 +1153,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, K
 			}
 			else
 			{
-				ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: can't found callback:%1%.\n") %
-					callbackID);
+				ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: can't found callback:{}.\n",
+					callbackID));
 			}
 		}
 		
@@ -1163,8 +1165,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, K
 	Mercury::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
 	if(pBaseappmgrChannel == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: create %1%(%2%) is failed, not found baseappmgr.\n") % 
-			entityType.c_str() % dbid);
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed, not found baseappmgr.\n", 
+			entityType.c_str(), dbid));
 		return;
 	}
 
@@ -1234,7 +1236,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel,
 			pFI->pHandler = NULL;
 			pFI->pBundle = pBundle;
 			forward_messagebuffer_.push(sourceBaseappID, pFI);
-			WARNING_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found sourceBaseapp(%1%), message is buffered.\n") % sourceBaseappID);
+			WARNING_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: not found sourceBaseapp({}), message is buffered.\n", sourceBaseappID));
 			return;
 		}
 		
@@ -1252,8 +1254,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel*
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
 		if(sm == NULL)
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback: not found entityType:%1%.\n") %
-				entityType.c_str());
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback: not found entityType:{}.\n",
+				entityType.c_str()));
 
 			return;
 		}
@@ -1290,8 +1292,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel*
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::createBaseAnywhereFromDBID: not found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: not found callback:{}.\n",
+				callbackID));
 		}
 	}
 }
@@ -1527,8 +1529,8 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
 		if(sm == NULL)
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found entityType:%1%.\n") %
-				entityType.c_str());
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereCallback: can't found entityType:{}.\n",
+				entityType.c_str()));
 
 			Py_DECREF(pyargs);
 			return;
@@ -1554,8 +1556,8 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:{}.\n",
+				callbackID));
 		}
 
 		//Py_DECREF(mb);
@@ -1565,7 +1567,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		Base* base = pEntities_->find(eid);
 		if(base == NULL)
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found entity:%1%.\n") % eid);
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereCallback: can't found entity:{}.\n", eid));
 			Py_DECREF(pyargs);
 			return;
 		}
@@ -1589,8 +1591,8 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:{}.\n",
+				callbackID));
 		}
 	}
 
@@ -1603,8 +1605,8 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 {
 	if(base->cellMailbox())
 	{
-		ERROR_MSG(boost::format("Baseapp::createCellEntity: %1% %2% has a cell!\n") %
-			base->scriptName() % base->id());
+		ERROR_MSG(fmt::format("Baseapp::createCellEntity: {} {} has a cell!\n",
+			base->scriptName(), base->id()));
 
 		return;
 	}
@@ -1632,9 +1634,9 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	
 	if(createToCellMailbox->getChannel() == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
-			"componentID=%1%, entityID=%2%), create is error!\n") %
-			createToCellMailbox->componentID() % createToCellMailbox->id());
+		ERROR_MSG(fmt::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
+			"componentID={}, entityID={}), create is error!\n",
+			createToCellMailbox->componentID(), createToCellMailbox->id()));
 
 		base->onCreateCellFailure();
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1656,7 +1658,7 @@ void Baseapp::onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID
 	// 可能客户端在期间掉线了
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onCreateCellFailure: not found entity(%1%)!\n") % entityID);
+		ERROR_MSG(fmt::format("Baseapp::onCreateCellFailure: not found entity({})!\n", entityID));
 		return;
 	}
 
@@ -1682,7 +1684,7 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 		(*(*pBundle)).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
 		(*(*pBundle)) << id;
 		(*(*pBundle)).send(this->networkInterface(), pChannel);
-		ERROR_MSG(boost::format("Baseapp::onEntityGetCell: not found entity(%1%), I will destroyEntityCell!\n") % id);
+		ERROR_MSG(fmt::format("Baseapp::onEntityGetCell: not found entity({}), I will destroyEntityCell!\n", id));
 		return;
 	}
 
@@ -1785,7 +1787,8 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	INFO_MSG(boost::format("KBEngine::executeRawDatabaseCommand%1%:%2%.\n") % (eid > 0 ? (boost::format("(entityID=%1%)") % eid).str() : "") % datas);
+	INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", 
+		(eid > 0 ? (fmt::format("(entityID={})", eid)) : ""), datas));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
@@ -1885,8 +1888,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
-	DEBUG_MSG(boost::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows=%1%, nfields=%2%, err=%3%.\n") % 
-		nrows % nfields % err.c_str());
+	DEBUG_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
+		nrows, nfields, err.c_str()));
 
 	if(callbackID > 0)
 	{
@@ -1906,8 +1909,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::onExecuteRawDatabaseCommandCB: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+				callbackID));
 		}
 	}
 
@@ -2005,11 +2008,11 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ + 
 		g_kbeSrvConfig.callback_timeout_));
 
-	INFO_MSG(boost::format("Baseapp::charge: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
-		chargeID %
-		datas %
-		callbackID %
-		dbid);
+	INFO_MSG(fmt::format("Baseapp::charge: chargeID={0}, dbid={3}, datas={1}, pycallback={2}.\n", 
+		chargeID,
+		datas,
+		callbackID,
+		dbid));
 
 	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
 
@@ -2045,11 +2048,11 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> callbackID;
 	s >> success;
 
-	INFO_MSG(boost::format("Baseapp::onChargeCB: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
-		chargeID %
-		datas %
-		callbackID %
-		dbid);
+	INFO_MSG(fmt::format("Baseapp::onChargeCB: chargeID={0}, dbid={3}, datas={1}, pycallback={2}.\n", 
+		chargeID,
+		datas,
+		callbackID,
+		dbid));
 
 	PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
 	PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
@@ -2075,8 +2078,8 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::onChargeCB: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::onChargeCB: can't found callback:{}.\n",
+				callbackID));
 		}
 	}
 	else
@@ -2245,15 +2248,15 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 {
 	if(failedcode == SERVER_ERR_NAME)
 	{
-		DEBUG_MSG(boost::format("Baseapp::login: not found user[%1%], login is failed!\n") %
-			accountName.c_str());
+		DEBUG_MSG(fmt::format("Baseapp::login: not found user[{}], login is failed!\n",
+			accountName.c_str()));
 
 		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
 	else if(failedcode == SERVER_ERR_PASSWORD)
 	{
-		DEBUG_MSG(boost::format("Baseapp::login: user[%1%] password is error, login is failed!\n") %
-			accountName.c_str());
+		DEBUG_MSG(fmt::format("Baseapp::login: user[{}] password is error, login is failed!\n",
+			accountName.c_str()));
 
 		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
@@ -2276,16 +2279,16 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	accountName = KBEngine::strutil::kbe_trim(accountName);
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Baseapp::loginGateway: accountName too big, size=%1%, limit=%2%.\n") %
-			accountName.size() % ACCOUNT_NAME_MAX_LENGTH);
+		ERROR_MSG(fmt::format("Baseapp::loginGateway: accountName too big, size={}, limit={}.\n",
+			accountName.size(), ACCOUNT_NAME_MAX_LENGTH));
 
 		return;
 	}
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Baseapp::loginGateway: password too big, size=%1%, limit=%2%.\n") %
-			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+		ERROR_MSG(fmt::format("Baseapp::loginGateway: password too big, size={}, limit={}.\n",
+			password.size(), ACCOUNT_PASSWD_MAX_LENGTH));
 
 		return;
 	}
@@ -2346,8 +2349,8 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
-		INFO_MSG(boost::format("Baseapp::loginGateway: user[%1%] has entity(%2%).\n") %
-			accountName.c_str() % ptinfos->entityID);
+		INFO_MSG(fmt::format("Baseapp::loginGateway: user[{}] has entity({}).\n",
+			accountName.c_str(), ptinfos->entityID));
 
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL || base->isDestroyed())
@@ -2369,8 +2372,8 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 				Mercury::Channel* pOldClientChannel = base->clientMailbox()->getChannel();
 				if(pOldClientChannel != NULL)
 				{
-					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
-						pOldClientChannel->c_str());
+					INFO_MSG(fmt::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel={}\n",
+						pOldClientChannel->c_str()));
 					
 					kickChannel(pOldClientChannel, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
 				}
@@ -2430,8 +2433,8 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
-	INFO_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, entityID=%3%.\n") %
-		accountName % key % entityID);
+	INFO_MSG(fmt::format("Baseapp::reLoginGateway: accountName={}, key={}, entityID={}.\n",
+		accountName, key, entityID));
 
 	Base* base = findEntity(entityID);
 	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()) || base->isDestroyed())
@@ -2453,10 +2456,10 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	{
 		Mercury::Channel* pMBChannel = entityClientMailbox->getChannel();
 
-		WARNING_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, "
-			"entityID=%3%, ClientMailbox(%4%) is exist, will be kicked out!\n") %
-			accountName % key % entityID % 
-			(pMBChannel ? pMBChannel->c_str() : "unknown"));
+		WARNING_MSG(fmt::format("Baseapp::reLoginGateway: accountName={}, key={}, "
+			"entityID={}, ClientMailbox({}) is exist, will be kicked out!\n",
+			accountName, key, entityID, 
+			(pMBChannel ? pMBChannel->c_str() : "unknown")));
 		
 		if(pMBChannel)
 			pMBChannel->condemn();
@@ -2491,8 +2494,8 @@ void Baseapp::kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedco
 	if(pChannel == NULL)
 		return;
 
-	INFO_MSG(boost::format("Baseapp::kickChannel: pChannel=%1%, failedcode=%2%, proxyID=%3%.\n") %
-		pChannel->c_str() % failedcode % pChannel->proxyID());
+	INFO_MSG(fmt::format("Baseapp::kickChannel: pChannel={}, failedcode={}, proxyID={}.\n",
+		pChannel->c_str(), failedcode, pChannel->proxyID()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onKicked);
@@ -2523,8 +2526,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: PendingLoginMgr not found(%1%)\n") %
-			accountName.c_str());
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: PendingLoginMgr not found({})\n",
+			accountName.c_str()));
 
 		s.opfini();
 		return;
@@ -2539,8 +2542,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	{
 		std::string error;
 		s >> error;
-		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: query %1% is failed! error(%2%)\n") %
-			accountName.c_str() % error);
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
+			accountName.c_str(), error));
 		
 		s.opfini();
 		
@@ -2589,8 +2592,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		*/
 	}
 
-	INFO_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: user=%1%, uuid=%2%, entityID=%3%, flags=%4%, deadline=%5%.\n") %
-		accountName % base->rndUUID() % base->id() % flags % deadline);
+	INFO_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: user={}, uuid={}, entityID={}, flags={}, deadline={}.\n",
+		accountName, base->rndUUID(), base->id(), flags, deadline));
 
 	SAFE_RELEASE(ptinfos);
 }
@@ -2631,17 +2634,17 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 
 				if(isprint)
 				{
-					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found, %2%(msgid=%3%).\n") % 
-						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found, {}(msgid={}).\n", 
+						eid, (pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
-					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
 				}
 			}
 			else
 			{
-				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
 			}
 		}
 
@@ -2675,22 +2678,22 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 
 				if(isprint)
 				{
-					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID(%1%), %2%(msgid=%3%).\n") % 
-						eid % (pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID({}), {}(msgid={}).\n", 
+						eid,(pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
-					ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID(%1%).\n") % 
-						eid);
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
+						"is error(not found clientMailbox)! entityID({}).\n",
+						eid));
 				}
 			}
 			else
 			{
-				ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-					"is error(not found clientMailbox)! entityID(%1%).\n") % 
-					eid);
+				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
+					"is error(not found clientMailbox)! entityID({}).\n",
+					eid));
 			}
 		}
 
@@ -2729,8 +2732,8 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 
 		if(isprint)
 		{
-			DEBUG_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: %1%(msgid=%2%).\n") %
-				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+			DEBUG_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: {}(msgid={}).\n",
+				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 		}
 	}
 
@@ -2750,7 +2753,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel,
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: entityID %1% not found.\n") % eid);
+		ERROR_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: entityID {} not found.\n", eid));
 		s.opfini();
 		return;
 	}
@@ -2758,9 +2761,9 @@ void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel,
 	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->cellMailbox());
 	if(mailbox == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: "
-			"is error(not found cellMailbox)! entityID=%1%.\n") % 
-			eid);
+		ERROR_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: "
+			"is error(not found cellMailbox)! entityID={}.\n", 
+			eid));
 
 		s.opfini();
 		return;
@@ -2795,8 +2798,8 @@ void Baseapp::forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel,
 
 		if(isprint)
 		{
-			DEBUG_MSG(boost::format("Baseapp::forwardMessageToCellappFromCellapp: %1%(msgid=%2%).\n") %
-				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+			DEBUG_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: {}(msgid={}).\n",
+				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 		}
 	}
 
@@ -2825,7 +2828,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onEntityMail: entityID %1% not found.\n") % eid);
+		ERROR_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
 		s.opfini();
 		return;
 	}
@@ -2844,8 +2847,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->cellMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG(boost::format("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! "
-						"mailboxType=%1%, entityID=%2%.\n") % mailtype %  eid);
+					ERROR_MSG(fmt::format("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! "
+						"mailboxType={}, entityID={}.\n", mailtype, eid));
 
 					break;
 				}
@@ -2860,9 +2863,9 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->clientMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG(boost::format("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! "
-						"mailboxType=%1%, entityID=%2%.\n") % 
-						mailtype % eid);
+					ERROR_MSG(fmt::format("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! "
+						"mailboxType={}, entityID={}.\n", 
+						mailtype, eid));
 
 					break;
 				}
@@ -2874,8 +2877,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				{
 					ENTITY_METHOD_UID utype = 0;
 					s >> utype;
-					DEBUG_MSG(boost::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID=%1%, method=%2%).\n") %
-						eid % utype);
+					DEBUG_MSG(fmt::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID={}, method={}).\n",
+						eid, utype));
 				}
 
 				s.read_skip(s.opsize());
@@ -2886,8 +2889,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		default:
 			{
-				ERROR_MSG(boost::format("Baseapp::onEntityMail: mailboxType %1% is error! must a baseType. entityID=%2%.\n") %
-					mailtype % eid);
+				ERROR_MSG(fmt::format("Baseapp::onEntityMail: mailboxType {} is error! must a baseType. entityID={}.\n",
+					mailtype, eid));
 			}
 	};
 
@@ -2915,8 +2918,8 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onRemoteCallCellMethodFromClient: %1% %2% has no cell.\n") %
-			e->scriptName() % srcEntityID);
+		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
+			e->scriptName(), srcEntityID));
 		
 		s.read_skip(s.opsize());
 		return;
@@ -2944,8 +2947,8 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 	static size_t datasize = (sizeof(float) * 6 + sizeof(uint8) + sizeof(uint32));
 	if(s.opsize() <= 0 || s.opsize() != datasize)
 	{
-		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: invalid data, size(%1% != %2%), srcEntityID=%3%.\n") %
-			datasize % s.opsize() % srcEntityID);
+		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: invalid data, size({} != {}), srcEntityID={}.\n",
+			datasize, s.opsize(), srcEntityID));
 
 		s.opfini();
 		return;
@@ -2956,8 +2959,8 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: %1% %2% has no cell.\n") %
-			(e == NULL ? "unknown" : e->scriptName()) % srcEntityID);
+		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} has no cell.\n",
+			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.read_skip(s.opsize());
 		return;
@@ -2985,14 +2988,14 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 
 	if(base)
 	{
-		INFO_MSG(boost::format("Baseapp::onBackupEntityCellData: %1%(%2%), size=%3%.\n") % 
-			base->scriptName() % baseID % s.opsize());
+		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), size={}.\n",
+			base->scriptName(), baseID, s.opsize()));
 
 		base->onBackupCellData(pChannel, s);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Baseapp::onBackupEntityCellData: not found entityID=%1%\n") % baseID);
+		ERROR_MSG(fmt::format("Baseapp::onBackupEntityCellData: not found entityID={}\n", baseID));
 		s.read_skip(s.opsize());
 	}
 }
@@ -3014,15 +3017,15 @@ void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::Mem
 	if(base)
 	{
 
-		INFO_MSG(boost::format("Baseapp::onCellWriteToDBCompleted: %1%(%2%).\n") %
-			base->scriptName() % baseID);
+		INFO_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: {}({}).\n",
+			base->scriptName(), baseID));
 
 		base->onCellWriteToDBCompleted(callbackID);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Baseapp::onCellWriteToDBCompleted: not found entityID=%1%\n") %
-			baseID);
+		ERROR_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: not found entityID={}\n",
+			baseID));
 	}
 }
 
@@ -3077,8 +3080,8 @@ void Baseapp::onHello(Mercury::Channel* pChannel,
 		}
 		else
 		{
-			WARNING_MSG(boost::format("Baseapp::onHello: client is not encrypted, addr=%1%\n") 
-				% pChannel->c_str());
+			WARNING_MSG(fmt::format("Baseapp::onHello: client is not encrypted, addr={}\n"
+				, pChannel->c_str()));
 		}
 	}
 }
@@ -3089,7 +3092,7 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(boost::format("Baseapp::lookApp: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("Baseapp::lookApp: {}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -3441,7 +3444,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG("KBEngine::deleteBaseByDBID(%1%): not found dbmgr!\n");
+		ERROR_MSG("KBEngine::deleteBaseByDBID({}): not found dbmgr!\n");
 		return NULL;
 	}
 
@@ -3474,7 +3477,7 @@ void Baseapp::deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStr
 	ScriptDefModule* sm = EntityDef::findScriptModule(sid);
 	if(sm == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::deleteBaseByDBIDCB: entityUType(%1%) not found!\n") % sid);
+		ERROR_MSG(fmt::format("Baseapp::deleteBaseByDBIDCB: entityUType({}) not found!\n", sid));
 		return;
 	}
 
@@ -3524,8 +3527,8 @@ void Baseapp::deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStr
 		}
 		else
 		{
-			ERROR_MSG(boost::format("Baseapp::deleteBaseByDBIDCB: can't found callback:%1%.\n") %
-				callbackID);
+			ERROR_MSG(fmt::format("Baseapp::deleteBaseByDBIDCB: can't found callback:{}.\n",
+				callbackID));
 		}
 	}
 }
@@ -3536,14 +3539,14 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID
 	Base* base = pEntities_->find(entityID);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::reqAccountBindEmail: can't found entity:%1%.\n") % entityID);
+		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail: can't found entity:{}.\n", entityID));
 		return;
 	}
 	
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(base, "__account_name__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(boost::format("Baseapp::reqAccountBindEmail: entity(%1%) __account_name__ is NULL\n") % entityID);
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __account_name__ is NULL\n", entityID));
 		return;
 	}
 
@@ -3558,14 +3561,14 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(boost::format("Baseapp::reqAccountBindEmail: entity(%1%) __account_name__ is NULL\n") % entityID);
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __account_name__ is NULL\n", entityID));
 		return;
 	}
 
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
-	INFO_MSG(boost::format("Baseapp::reqAccountBindEmail: %1%(%2%) email=%3%!\n") % accountName % entityID % email);
+	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) email={}!\n", accountName, entityID, email));
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -3575,8 +3578,8 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Baseapp::reqAccountBindEmail: accountName(%1%), not found dbmgr!\n") % 
-			accountName);
+		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName({}), not found dbmgr!\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
@@ -3596,7 +3599,8 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID
 void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
-	INFO_MSG(boost::format("Baseapp::onReqAccountBindEmailCB: %1%(%2%) failedcode=%3%!\n") % accountName % entityID % failedcode);
+	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: {}({}) failedcode={}!\n", 
+		accountName, entityID, failedcode));
 
 	if(failedcode == SERVER_SUCCESS)
 	{
@@ -3623,7 +3627,7 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID enti
 	Base* base = pEntities_->find(entityID);
 	if(base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onReqAccountBindEmailCB: entity:%1%, channel is NULL.\n") % entityID);
+		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: entity:{}, channel is NULL.\n", entityID));
 		return;
 	}
 
@@ -3640,14 +3644,14 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 	Base* base = pEntities_->find(entityID);
 	if(base == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::reqAccountNewPassword: can't found entity:%1%.\n") % entityID);
+		ERROR_MSG(fmt::format("Baseapp::reqAccountNewPassword: can't found entity:{}.\n", entityID));
 		return;
 	}
 	
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(base, "__account_name__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(boost::format("Baseapp::reqAccountNewPassword: entity(%1%) __account_name__ is NULL\n") % entityID);
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __account_name__ is NULL\n", entityID));
 		return;
 	}
 
@@ -3662,15 +3666,15 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(boost::format("Baseapp::reqAccountNewPassword: entity(%1%) __account_name__ is NULL\n") % entityID);
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __account_name__ is NULL\n", entityID));
 		return;
 	}
 
 	oldpassworld = KBEngine::strutil::kbe_trim(oldpassworld);
 	newpassword = KBEngine::strutil::kbe_trim(newpassword);
 
-	INFO_MSG(boost::format("Baseapp::reqAccountNewPassword: %1%(%2%)!\n") % 
-		accountName % entityID);
+	INFO_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({})!\n", 
+		accountName, entityID));
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -3680,8 +3684,8 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Baseapp::reqAccountNewPassword: accountName(%1%), not found dbmgr!\n") % 
-			accountName);
+		ERROR_MSG(fmt::format("Baseapp::reqAccountNewPassword: accountName({}), not found dbmgr!\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onReqAccountNewPasswordCB);
@@ -3701,13 +3705,13 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 	SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("Baseapp::onReqAccountNewPasswordCB: %1%(%2%) failedcode=%3%!\n") % 
-		accountName % entityID % failedcode);
+	INFO_MSG(fmt::format("Baseapp::onReqAccountNewPasswordCB: {}({}) failedcode={}!\n", 
+		accountName, entityID, failedcode));
 
 	Base* base = pEntities_->find(entityID);
 	if(base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(boost::format("Baseapp::onReqAccountNewPasswordCB: entity:%1%, channel is NULL.\n") % entityID);
+		ERROR_MSG(fmt::format("Baseapp::onReqAccountNewPasswordCB: entity:{}, channel is NULL.\n", entityID));
 		return;
 	}
 
