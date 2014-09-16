@@ -28,12 +28,7 @@ const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
 KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
 #endif // KBE_USE_RDTSC
 
-#ifdef unix
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-const char* timingMethod()
+const char* getTimingMethodName()
 {
 	switch (g_timingMethod)
 	{
@@ -53,6 +48,11 @@ const char* timingMethod()
 			return "Unknown";
 	}
 }
+
+#ifdef unix
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static uint64 calcStampsPerSecond_rdtsc()
 {
@@ -169,9 +169,7 @@ double stampsPerSecondD_gettimeofday()
 
 #elif defined(_WIN32)
 
-#ifndef _XBOX360
 #include <windows.h>
-#endif // _XBOX360
 
 #ifdef KBE_USE_RDTSC
 static uint64 calcStampsPerSecond()

@@ -408,15 +408,15 @@ void Baseapp::updateLoad()
 	{
 		if (g_timingMethod == RDTSC_TIMING_METHOD)
 		{
-			CRITICAL_MSG(boost::format("Baseapp::handleGameTick: "
-				"Invalid timing result %.3f.\n"
-				"please  to change for timingMethod(curr = RDTSC_TIMING_METHOD)!") %
-				spareTime );
+			CRITICAL_MSG(fmt::format("Baseapp::handleGameTick: "
+				"Invalid timing result {:.3f}.\n"
+				"Please change the environment variable KBE_TIMING_METHOD to [rdtsc|gettimeofday|gettime](curr = {1})!",
+				spareTime, getTimingMethodName()));
 		}
 		else
 		{
-			CRITICAL_MSG(boost::format("Baseapp::handleGameTick: Invalid timing result %.3f.\n") %
-				spareTime);
+			CRITICAL_MSG(fmt::format("Baseapp::handleGameTick: Invalid timing result {:.3f}.\n",
+				spareTime));
 		}
 	}
 
@@ -484,8 +484,8 @@ bool Baseapp::initializeEnd()
 		pResmgrTimerHandle_ = this->mainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
 			Resmgr::getSingletonPtr(), NULL);
 
-		INFO_MSG(boost::format("Baseapp::initializeEnd: started resmgr tick(%1%s)!\n") % 
-			Resmgr::respool_checktick);
+		INFO_MSG(fmt::format("Baseapp::initializeEnd: started resmgr tick({}s)!\n", 
+			Resmgr::respool_checktick));
 	}
 
 	pBackuper_.reset(new Backuper());
@@ -598,9 +598,9 @@ void Baseapp::onRestoreSpaceCellFromOtherBaseapp(Mercury::Channel* pChannel, KBE
 
 	s >> baseappID >> cellappID >> spaceID >> spaceEntityID >> utype >> destroyed;
 
-	INFO_MSG(boost::format("Baseapp::onRestoreSpaceCellFromOtherBaseapp: baseappID=%1%, cellappID=%6%, spaceID=%2%, spaceEntityID=%3%, destroyed=%4%, "
-		"restoreEntityHandlers(%5%)\n") %
-		baseappID % spaceID % spaceEntityID % destroyed % pRestoreEntityHandlers_.size() % cellappID);
+	INFO_MSG(fmt::format("Baseapp::onRestoreSpaceCellFromOtherBaseapp: baseappID={0}, cellappID={5}, spaceID={1}, spaceEntityID={2}, destroyed={3}, "
+		"restoreEntityHandlers({4})\n",
+		baseappID, spaceID, spaceEntityID, destroyed, pRestoreEntityHandlers_.size(), cellappID));
 
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
 	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
@@ -925,8 +925,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 
 	if(!success)
 	{
-		ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: create %1%(%2%) is failed.\n") % 
-			entityType.c_str() % dbid);
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed.\n",
+			entityType.c_str(), dbid));
 
 		if(callbackID > 0)
 		{
@@ -948,8 +948,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 			}
 			else
 			{
-				ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: can't found callback:%1%.\n") %
-					callbackID);
+				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: can't found callback:{}.\n",
+					callbackID));
 			}
 		}
 		

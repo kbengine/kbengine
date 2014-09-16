@@ -28,13 +28,11 @@ namespace KBEngine{
 // 指示是否可以通过调用RDTSC（时间戳计数器）
 // 计算时间戳。使用此的好处是，它能快速和精确的返回实际的时钟滴答
 // 。不足之处是，这并不使用SpeedStep技术来改变他们的时钟速度的CPU。
-#ifndef _XBOX360
 #ifdef unix
-// #define KBE_USE_RDTSC
+//#define KBE_USE_RDTSC
 #else // unix
-# define KBE_USE_RDTSC
+//#define KBE_USE_RDTSC
 #endif // unix
-#endif // _XBOX360
 
 enum KBETimingMethod
 {
@@ -45,6 +43,8 @@ enum KBETimingMethod
 };
 
 extern KBETimingMethod g_timingMethod;
+
+const char* getTimingMethodName();
 
 #ifdef unix
 
@@ -109,11 +109,7 @@ inline uint64 timestamp()
 #pragma warning (pop)
 #else // KBE_USE_RDTSC
 
-#ifdef _XBOX360
-#include <xtl.h>
-#else // _XBOX360
 #include <windows.h>
-#endif // _XBOX360
 
 inline uint64 timestamp()
 {
