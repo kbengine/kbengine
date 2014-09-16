@@ -86,8 +86,8 @@ bool DBUtil::initialize()
 		// 如果小于64则表示目前还是明文密码
 		if(strlen(dbcfg.db_password) < 64)
 		{
-			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n%1%\n") 
-				% KBEKey::getSingleton().encrypt(dbcfg.db_password));
+			WARNING_MSG(fmt::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n{}\n",
+				KBEKey::getSingleton().encrypt(dbcfg.db_password)));
 		}
 		else
 		{
@@ -136,8 +136,8 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
-		ERROR_MSG(boost::format("DBUtil::createInterface: can't attach to database!\n\tdbinterface=%1%\n\targs=%2%") %
-			&dbinterface % dbinterface->c_str());
+		ERROR_MSG(fmt::format("DBUtil::createInterface: can't attach to database!\n\tdbinterface={0:p}\n\targs={1}",
+			(void*)&dbinterface, dbinterface->c_str()));
 
 		delete dbinterface;
 		return NULL;
@@ -146,7 +146,8 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG(boost::format("DBUtil::createInterface[%1%]: %2%") % &dbinterface % dbinterface->c_str());
+			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}", (void*)&dbinterface, 
+				dbinterface->c_str()));
 		}
 	}
 
