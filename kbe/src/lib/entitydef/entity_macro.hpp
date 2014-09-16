@@ -206,12 +206,12 @@ namespace KBEngine{
 			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
 			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
 			Py_DECREF(pytsval);																				\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_createNamespace:add %4%(%5%).\n") %		\
-												scriptName() %												\
-												static_cast<PyObject*>(this)->ob_refcnt %					\
-												this->id() %												\
-																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE %		\
-																cccpytsval);								\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt,					\
+												this->id(),													\
+																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
+																cccpytsval));								\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
 			free(cccpytsval);																				\
@@ -224,10 +224,10 @@ namespace KBEngine{
 		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_attr:op=%4%, %5%.\n") %				\
-												scriptName() %												\
-												static_cast<PyObject*>(this)->ob_refcnt % this->id() %		\
-															op % ccattr_DEBUG_OP_ATTRIBUTE);				\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",							\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
+															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
@@ -237,10 +237,10 @@ namespace KBEngine{
 	{																										\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_Persistent:op=%4%, %5%.\n") %			\
-												scriptName() %												\
-												static_cast<PyObject*>(this)->ob_refcnt % this->id() %		\
-															op % ccattr);									\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_Persistent:op={}, {}.\n",					\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
+															op, ccattr));									\
 		}																									\
 	}																										\
 
@@ -248,11 +248,11 @@ namespace KBEngine{
 #define DEBUG_REDUCE_EX(tentity)																			\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_reduct_ex: utype=%4%.\n") %				\
-												tentity->scriptName() %										\
-												static_cast<PyObject*>(tentity)->ob_refcnt %				\
-												tentity->id() %												\
-												tentity->scriptModule()->getUType());					\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_reduct_ex: utype={}.\n",						\
+												tentity->scriptName(),										\
+												static_cast<PyObject*>(tentity)->ob_refcnt,					\
+												tentity->id(),												\
+												tentity->scriptModule()->getUType()));						\
 		}																									\
 
 
@@ -322,9 +322,9 @@ public:																										\
 																											\
 		if(PyObject_SetAttrString(this, "__class__", (PyObject*)scriptModule_->getScriptType()) == -1)		\
 		{																									\
-			WARNING_MSG(boost::format("Base::reload: "														\
-				"%s %1% could not change __class__ to new class!\n") %										\
-				scriptModule_->getName() % id_);															\
+			WARNING_MSG(fmt::format("Base::reload: "														\
+				"{} {} could not change __class__ to new class!\n",											\
+				scriptModule_->getName(), id_));															\
 			PyErr_Print();																					\
 			return false;																					\
 		}																									\
@@ -339,9 +339,9 @@ public:																										\
 			return;																							\
 																											\
 		if(!PyDict_Check(dictData)){																		\
-			ERROR_MSG(boost::format(#CLASS"::createNamespace: create"#CLASS"[%1%:%2%] "						\
-				"args is not a dict.\n") %																	\
-				scriptName() % id_);																		\
+			ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "							\
+				"args is not a dict.\n",																	\
+				scriptName(), id_));																		\
 			return;																							\
 		}																									\
 																											\
@@ -391,7 +391,7 @@ public:																										\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
 			if(iter == propertyDescrs.end())																\
 			{																								\
-				ERROR_MSG(boost::format(#CLASS"::createCellDataFromStream: not found uid(%1%)\n") % uid);	\
+				ERROR_MSG(fmt::format(#CLASS"::createCellDataFromStream: not found uid({})\n", uid));		\
 				break;																						\
 			}																								\
 																											\
@@ -452,7 +452,7 @@ public:																										\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-				if(scriptModule()->usePropertyDescrAlias())												\
+				if(scriptModule()->usePropertyDescrAlias())													\
 				{																							\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
@@ -837,7 +837,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		if(scriptModule()->usePropertyDescrAlias() && useAliasID)										\
+		if(scriptModule()->usePropertyDescrAlias() && useAliasID)											\
 		{																									\
 			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		}																									\
@@ -863,8 +863,8 @@ public:																										\
 										EntityDef::findOldScriptModule(scriptModule_->getName());			\
 			if(!pOldScriptDefModule)																		\
 			{																								\
-				ERROR_MSG(boost::format("%1%::initProperty: not found oldmodule!\n") %						\
-					scriptModule_->getName());																\
+				ERROR_MSG(fmt::format("{}::initProperty: not found oldmodule!\n",							\
+					scriptModule_->getName()));																\
 				KBE_ASSERT(false && "Entity::initProperty: not found oldmodule");							\
 			}																								\
 																											\
@@ -898,13 +898,13 @@ public:																										\
 							propertyDescription->getName(), defObj);										\
 				Py_DECREF(defObj);																			\
 																											\
-				/* DEBUG_MSG(boost::format(#CLASS"::"#CLASS": added [%1%] property ref=%2%.\n") %
-								propertyDescription->getName() % defObj->ob_refcnt);*/						\
+				/* DEBUG_MSG(fmt::format(#CLASS"::"#CLASS": added [{}] property ref={}.\n",
+								propertyDescription->getName(), defObj->ob_refcnt));*/						\
 			}																								\
 			else																							\
 			{																								\
-				ERROR_MSG(boost::format(#CLASS"::initProperty: %1% dataType is NULL.\n") %					\
-					propertyDescription->getName());														\
+				ERROR_MSG(fmt::format(#CLASS"::initProperty: {} dataType is NULL.\n",						\
+					propertyDescription->getName()));														\
 			}																								\
 		}																									\
 																											\
@@ -923,7 +923,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(boost::format("%1%::~%2%(): %3%\n") % scriptName() % scriptName() % id_);						\
+	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\

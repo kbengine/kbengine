@@ -51,7 +51,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strInitData);
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize(pyInitData);
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ FixedArray::~FixedArray()
 {
 	_dataType->decRef();
 
-//	DEBUG_MSG(boost::format("FixedArray::~FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::~FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------

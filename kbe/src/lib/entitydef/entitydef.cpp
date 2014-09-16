@@ -194,8 +194,8 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 加载def文件中的定义
 		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: failed to load entity:%1% parentClass.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} parentClass.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -203,8 +203,8 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 尝试在主entity文件中加载detailLevel数据
 		if(!loadDetailLevelInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: failed to load entity:%1% DetailLevelInfo.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} DetailLevelInfo.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -229,8 +229,8 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 {
 	if(!loadAllDefDescription(moduleName, defxml, defNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to loadAllDefDescription(), entity:%1%\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to loadAllDefDescription(), entity:{}\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -238,8 +238,8 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
 	if(!loadInterfaces(defFilePath, moduleName, defxml, defNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% interface.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} interface.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -247,8 +247,8 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 	// 加载父类所有的内容
 	if(!loadParentClass(defFilePath, moduleName, defxml, defNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% parentClass.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} parentClass.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -256,8 +256,8 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 	// 尝试加载detailLevel数据
 	if(!loadDetailLevelInfo(defFilePath, moduleName, defxml, defNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -265,8 +265,8 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 	// 尝试加载VolatileInfo数据
 	if(!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% VolatileInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} VolatileInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -293,8 +293,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 	TiXmlNode* hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% NEAR-DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} NEAR-DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -307,8 +307,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 	hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% MEDIUM-DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} MEDIUM-DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -325,8 +325,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 	hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% FAR-DetailLevelInfo.\n") % 
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} FAR-DetailLevelInfo.\n", 
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -433,8 +433,8 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		TiXmlNode* interfaceRootNode = interfaceXml.get()->getRootNode();
 		if(!loadAllDefDescription(moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: interface[%1%] is error!\n") % 
-				interfaceName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
+				interfaceName.c_str()));
 
 			return false;
 		}
@@ -442,8 +442,8 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		// 尝试加载detailLevel数据
 		if(!loadDetailLevelInfo(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::loadInterfaces: failed to load entity:%1% DetailLevelInfo.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::loadInterfaces: failed to load entity:{} DetailLevelInfo.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -451,8 +451,8 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		// 遍历所有的interface， 并将他们的方法和属性加入到模块中
 		if(!loadInterfaces(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::loadInterfaces: failed to load entity:%1% interface.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::loadInterfaces: failed to load entity:{} interface.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -486,8 +486,8 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 	// 加载def文件中的定义
 	if(!loadDefInfo(defFilePath, parentClassName, parentClassXml.get(), parentClassdefNode, scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadParentClass: failed to load entity:%1% parentClass.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadParentClass: failed to load entity:{} parentClass.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -507,8 +507,8 @@ bool EntityDef::loadAllDefDescription(const std::string& moduleName,
 	// 加载cell方法描述
 	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefCellMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefCellMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -516,8 +516,8 @@ bool EntityDef::loadAllDefDescription(const std::string& moduleName,
 	// 加载base方法描述
 	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefBaseMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefBaseMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -525,8 +525,8 @@ bool EntityDef::loadAllDefDescription(const std::string& moduleName,
 	// 加载client方法描述
 	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefClientMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefClientMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -572,8 +572,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") % 
-						strFlags.c_str() % name.c_str());
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n", 
+						strFlags.c_str(), name.c_str()));
 
 					return false;
 				}
@@ -593,8 +593,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") %
-						strFlags.c_str() % name.c_str());
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n",
+						strFlags.c_str(), name.c_str()));
 					return false;
 				}
 			}
@@ -718,8 +718,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			
 			if(!ret)
 			{
-				ERROR_MSG(boost::format("EntityDef::addPropertyDescription(%1%): %2%.\n") % 
-					moduleName.c_str() % xml->getTxdoc()->Value());
+				ERROR_MSG(fmt::format("EntityDef::addPropertyDescription({}): {}.\n", 
+					moduleName.c_str(), xml->getTxdoc()->Value()));
 			}
 		}
 		XML_FOR_END(defPropertyNode);
@@ -771,8 +771,8 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefCellMethods: dataType[%1%] not found, in %2%!\n") % 
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: dataType[{}] not found, in {}!\n", 
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
@@ -862,8 +862,8 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefBaseMethods: dataType[%1%] not found, in %2%!\n") %
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: dataType[{}] not found, in {}!\n",
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
@@ -949,8 +949,8 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefClientMethods: dataType[%1%] not found, in %2%!\n") %
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: dataType[{}] not found, in {}!\n",
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
@@ -1064,8 +1064,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 		}
 		else
 		{
-			ERROR_MSG(boost::format("EntityDef::checkDefMethod:class %1% does not have method[%2%].\n") %
-					moduleName.c_str() % iter->first.c_str());
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod:class {} does not have method[{}].\n",
+					moduleName.c_str(), iter->first.c_str()));
 
 			return false;
 		}
@@ -1126,8 +1126,8 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
 			if(isLoadScriptModule(scriptModule))
 			{
-				ERROR_MSG(boost::format("EntityDef::initialize:Could not load module[%1%]\n") % 
-					moduleName.c_str());
+				ERROR_MSG(fmt::format("EntityDef::initialize:Could not load module[{}]\n", 
+					moduleName.c_str()));
 
 				PyErr_Print();
 				return false;
@@ -1145,8 +1145,8 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 
 		if (pyClass == NULL)
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:Could not find class[%1%]\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:Could not find class[{}]\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -1172,8 +1172,8 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 			
 			if(!valid)
 			{
-				ERROR_MSG(boost::format("EntityDef::initialize:Class %1% is not derived from KBEngine.[%2%]\n") %
-					moduleName.c_str() % typeNames.c_str());
+				ERROR_MSG(fmt::format("EntityDef::initialize:Class {} is not derived from KBEngine.[{}]\n",
+					moduleName.c_str(), typeNames.c_str()));
 
 				return false;
 			}
@@ -1181,22 +1181,22 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 
 		if(!PyType_Check(pyClass))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:class[%1%] is valid!\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] is valid!\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 		
 		if(!checkDefMethod(scriptModule, pyClass, moduleName))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:class[%1%] checkDefMethod is failed!\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] checkDefMethod is failed!\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 		
-		DEBUG_MSG(boost::format("loaded script:%1%(%2%).\n") % moduleName.c_str() % 
-			scriptModule->getUType());
+		DEBUG_MSG(fmt::format("loaded script:{}({}).\n", moduleName.c_str(), 
+			scriptModule->getUType()));
 
 		scriptModule->setScriptType((PyTypeObject *)pyClass);
 		S_RELEASE(pyModule);
@@ -1211,7 +1211,7 @@ ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
 	if (utype >= __scriptModules.size() + 1)
 	{
-		ERROR_MSG(boost::format("EntityDef::findScriptModule: is not exist(utype:%1%)!\n") % utype);
+		ERROR_MSG(fmt::format("EntityDef::findScriptModule: is not exist(utype:{})!\n", utype));
 		return NULL;
 	}
 
@@ -1226,7 +1226,7 @@ ScriptDefModule* EntityDef::findScriptModule(const char* scriptName)
 
 	if(iter == __scriptTypeMappingUType.end())
 	{
-		ERROR_MSG(boost::format("EntityDef::findScriptModule: [%1%] not found!\n") % scriptName);
+		ERROR_MSG(fmt::format("EntityDef::findScriptModule: [{}] not found!\n", scriptName));
 		return NULL;
 	}
 
@@ -1241,13 +1241,13 @@ ScriptDefModule* EntityDef::findOldScriptModule(const char* scriptName)
 
 	if(iter == __oldScriptTypeMappingUType.end())
 	{
-		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: [%1%] not found!\n") % scriptName);
+		ERROR_MSG(fmt::format("EntityDef::findOldScriptModule: [{}] not found!\n", scriptName));
 		return NULL;
 	}
 
 	if (iter->second >= __oldScriptModules.size() + 1)
 	{
-		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: is not exist(utype:%1%)!\n") % iter->second);
+		ERROR_MSG(fmt::format("EntityDef::findOldScriptModule: is not exist(utype:{})!\n", iter->second));
 		return NULL;
 	}
 

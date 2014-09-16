@@ -118,8 +118,8 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:parse FIXED_DICT [%1%] is error!\n") % 
-						aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias:parse FIXED_DICT [{}] is error!\n", 
+						aliasName.c_str()));
 					
 					delete fixedDict;
 					return false;
@@ -135,8 +135,8 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:parse ARRAY [%1%] is error!\n") % 
-						aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias:parse ARRAY [{}] is error!\n", 
+						aliasName.c_str()));
 					
 					delete fixedArray;
 					return false;
@@ -147,8 +147,8 @@ bool DataTypes::loadAlias(std::string& file)
 				DataType* dataType = getDataType(type);
 				if(dataType == NULL)
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:can't fount type %1% by alias[%2%].\n") % 
-						type.c_str() % aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias:can't fount type {} by alias[{}].\n", 
+						type.c_str(), aliasName.c_str()));
 					
 					return false;
 				}
@@ -173,7 +173,7 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
 	if (iter != dataTypesLowerName_.end())
 	{ 
-		ERROR_MSG(boost::format("DataTypes::addDateType(name): name %1% exist.\n") % name.c_str());
+		ERROR_MSG(fmt::format("DataTypes::addDateType(name): name {} exist.\n", name.c_str()));
 		return false;
 	}
 
@@ -185,8 +185,8 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("DataTypes::addDateType(name): %1% name=%2%, aliasName=%3%, uid=%4%.\n") % 
-			dataType % name % dataType->aliasName() % dataType->id());
+		DEBUG_MSG(fmt::format("DataTypes::addDateType(name): {:p} name={}, aliasName={}, uid={}.\n", 
+			(void*)dataType, name, dataType->aliasName(), dataType->id()));
 	}
 
 	return true;
@@ -198,7 +198,7 @@ bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
 	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
 	if (iter != uid_dataTypes_.end())
 	{
-		ERROR_MSG(boost::format("DataTypes(uid)::addDateType: utype %1% exist.\n") % uid);
+		ERROR_MSG(fmt::format("DataTypes(uid)::addDateType: utype {} exist.\n", uid));
 		return false;
 	}
 
@@ -206,8 +206,8 @@ bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("DataTypes::addDateType(uid): %1% aliasName=%2%, uid=%3%.\n") % 
-			dataType % dataType->aliasName() % uid);
+		DEBUG_MSG(fmt::format("DataTypes::addDateType(uid): {:p} aliasName={}, uid={}.\n", 
+			(void*)dataType, dataType->aliasName(), uid));
 	}
 
 	return true;
@@ -219,7 +219,7 @@ void DataTypes::delDataType(std::string name)
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter == dataTypes_.end())
 	{
-		ERROR_MSG(boost::format("DataTypes::delDataType:not found type %1%.\n") % name.c_str());
+		ERROR_MSG(fmt::format("DataTypes::delDataType:not found type {}.\n", name.c_str()));
 	}
 	else
 	{
@@ -237,7 +237,7 @@ DataType* DataTypes::getDataType(std::string name)
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % name.c_str());
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
 	return NULL;
 }
 
@@ -248,7 +248,7 @@ DataType* DataTypes::getDataType(const char* name)
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % name);
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
 	return NULL;
 }
 
@@ -259,7 +259,7 @@ DataType* DataTypes::getDataType(DATATYPE_UID uid)
 	if (iter != uid_dataTypes_.end()) 
 		return iter->second;
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % uid);
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", uid));
 	return NULL;
 }
 

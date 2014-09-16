@@ -56,8 +56,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strDictInitData);
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(1): %1%---%2%\n") % this %
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(1): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
@@ -68,8 +68,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(pyDictInitData);
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(2): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
@@ -80,8 +80,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(streamInitData, isPersistentsStream);
 	
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(3): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(3): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,8 +92,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(4): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(4): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 
@@ -102,7 +102,7 @@ FixedDict::~FixedDict()
 {
 	_dataType->decRef();
 
-//	DEBUG_MSG(boost::format("FixedDict::~FixedDict(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedDict::~FixedDict(): {:p}\n", (void*)this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,8 +119,8 @@ void FixedDict::initialize(std::string strDictInitData)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("FixedDict::initialize: is error! strDictInitData=%1%.\n") %
-				strDictInitData.c_str());
+			ERROR_MSG(fmt::format("FixedDict::initialize: is error! strDictInitData={}.\n",
+				strDictInitData.c_str()));
 		}
 	}
 }

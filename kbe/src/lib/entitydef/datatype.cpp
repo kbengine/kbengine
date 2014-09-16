@@ -1294,8 +1294,8 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("FixedArrayType::initialize: can't found type[%1%] by key[%2%].\n") % 
-				strType.c_str() % "ARRAY");
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: can't found type[{}] by key[{}].\n", 
+				strType.c_str(), "ARRAY"));
 			
 			return false;
 		}			
@@ -1402,8 +1402,8 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 		{
 			if(mstream->opsize() == 0)
 			{
-				ERROR_MSG(boost::format("FixedArrayType::createFromStream: invalid(size=%1%), stream no space!\n") %
-					size);
+				ERROR_MSG(fmt::format("FixedArrayType::createFromStream: invalid(size={}), stream no space!\n",
+					size));
 
 				break;
 			}
@@ -1601,8 +1601,8 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG(boost::format("FixedDictType::initialize: can't found array type[%1%] by key[%2%].\n") % 
-						strType.c_str() % typeName.c_str());
+					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found array type[{}] by key[{}].\n", 
+						strType.c_str(), typeName.c_str()));
 
 					return false;
 				}
@@ -1633,8 +1633,8 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG(boost::format("FixedDictType::initialize: can't found type[%1%] by key[%2%].\n") % 
-						strType.c_str() % typeName.c_str());
+					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found type[{}] by key[{}].\n", 
+						strType.c_str(), typeName.c_str()));
 					
 					return false;
 				}
@@ -1674,8 +1674,8 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 	
 	if(res_.size() != 2)
 	{
-		ERROR_MSG(boost::format("FixedDictType::loadImplModule: %1% impl is error! like:[moduleName.inst]\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl is error! like:[moduleName.inst]\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -1738,8 +1738,8 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		SCRIPT_ERROR_CHECK();
-		ERROR_MSG(boost::format("FixedDictType::impl_createObjFromDict: %1%.isSameType() is failed!\n") %
-			moduleName_.c_str());
+		ERROR_MSG(fmt::format("FixedDictType::impl_createObjFromDict: {}.isSameType() is failed!\n",
+			moduleName_.c_str()));
 		
 		Py_RETURN_NONE;
 	}
@@ -1933,8 +1933,8 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 		
 		if(pyObject == NULL)
 		{
-			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames[%3%]\n") % 
-				this->aliasName_ % iter->first % this->debugInfos());
+			ERROR_MSG(fmt::format("FixedDictType::addToStreamEx: {} not found key[{}]. keyNames[{}]\n",
+				this->aliasName_, iter->first, this->debugInfos()));
 
 			// KBE_ASSERT(pyObject != NULL);
 			PyObject* pobj = iter->second->dataType->parseDefaultStr("");

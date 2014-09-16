@@ -226,58 +226,58 @@ void ScriptDefModule::c_str()
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 	for(; iter1 != cellPropertyDescr_.end(); iter1++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = basePropertyDescr_.begin();
 	for(; iter1 != basePropertyDescr_.end(); iter1++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = clientPropertyDescr_.begin();
 	for(; iter1 != clientPropertyDescr_.end(); iter1++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
 	for(; iter2 != methodCellDescr_.end(); iter2++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.CellMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
-			getName() % iter2->second->getName() % iter2->second->getUType() % 
-			iter2->second->getArgSize() % iter2->second->aliasID() % (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.CellMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+			getName(), iter2->second->getName(), iter2->second->getUType(),
+			iter2->second->getArgSize(), iter2->second->aliasID(), (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false")));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
 	for(; iter3 != methodBaseDescr_.end(); iter3++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.BaseMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
-			getName() % iter3->second->getName() % iter3->second->getUType() % 
-			iter3->second->getArgSize() % iter3->second->aliasID() % (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.BaseMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+			getName(), iter3->second->getName(), iter3->second->getUType(),
+			iter3->second->getArgSize(), iter3->second->aliasID(), (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false")));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
 	for(; iter4 != methodClientDescr_.end(); iter4++)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.ClientMethod %2% uid=%3%, argssize=%4%, aliasID=%5%.\n") % 
-			getName() % iter4->second->getName() % iter4->second->getUType() % iter4->second->getArgSize() % iter4->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.ClientMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+			getName(), iter4->second->getName(), iter4->second->getUType(), iter4->second->getArgSize(), iter4->second->aliasID()));
 	}
 
-	DEBUG_MSG(boost::format("ScriptDefModule::c_str: [%1%], cellPropertys=%2%, basePropertys=%2%, "
-		"clientPropertys=%4%, cellMethods=%5%(%6%), baseMethods=%7%(%8%), clientMethods=%9%\n") %
-		getName() % 
-		getCellPropertyDescriptions().size() % 
-		getBasePropertyDescriptions().size() % 
-		getClientPropertyDescriptions().size() % 
-		getCellMethodDescriptions().size() % 
-		getCellExposedMethodDescriptions().size() % 
-		getBaseMethodDescriptions().size() % 
-		getBaseExposedMethodDescriptions().size() % 
-		getClientMethodDescriptions().size());
+	DEBUG_MSG(fmt::format("ScriptDefModule::c_str: [{}], cellPropertys={}, basePropertys={}, "
+		"clientPropertys={}, cellMethods={}({}), baseMethods={}({}), clientMethods={}\n",
+		getName(), 
+		getCellPropertyDescriptions().size(), 
+		getBasePropertyDescriptions().size(), 
+		getClientPropertyDescriptions().size(), 
+		getCellMethodDescriptions().size(), 
+		getCellExposedMethodDescriptions().size(), 
+		getBaseMethodDescriptions().size(), 
+		getBaseExposedMethodDescriptions().size(), 
+		getClientMethodDescriptions().size()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -402,8 +402,8 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 
 	if(f_propertyDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addPropertyDescription: [%1%] is exist! componentType=%2%.\n") %
-			attrName % componentType);
+		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: [{}] is exist! componentType={}.\n",
+			attrName, componentType));
 
 		return false;
 	}
@@ -673,7 +673,7 @@ bool ScriptDefModule::addCellMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findCellMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addCellMethodDescription: [%1%] is exist!\n") % attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addCellMethodDescription: [{}] is exist!\n", attrName));
 		return false;
 	}
 	
@@ -718,8 +718,8 @@ bool ScriptDefModule::addBaseMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findBaseMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addBaseMethodDescription: [%1%] is exist!\n") % 
-			attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addBaseMethodDescription: [{}] is exist!\n", 
+			attrName));
 
 		return false;
 	}
@@ -765,8 +765,8 @@ bool ScriptDefModule::addClientMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findClientMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addClientMethodDescription: [%1%] is exist!\n") %
-			attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addClientMethodDescription: [{}] is exist!\n",
+			attrName));
 
 		return false;
 	}
@@ -778,25 +778,25 @@ bool ScriptDefModule::addClientMethodDescription(const char* attrName,
 }
 
 //-------------------------------------------------------------------------------------
-ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPropertyDescrs()										
-{																										
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;										
-																										
-	switch(g_componentType)																				
-	{																									
-		case CELLAPP_TYPE:																				
-			lpPropertyDescrs = &getCellPropertyDescriptions();							
-			break;																						
-		case BASEAPP_TYPE:																				
-			lpPropertyDescrs = &getBasePropertyDescriptions();							
-			break;																						
-		default:																						
-			lpPropertyDescrs = &getClientPropertyDescriptions();							
-			break;																						
-	};																									
-																									
-	return *lpPropertyDescrs;																			
-}																										
+ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPropertyDescrs()
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;	
+
+	switch(g_componentType)	
+	{					
+		case CELLAPP_TYPE:
+			lpPropertyDescrs = &getCellPropertyDescriptions();
+			break;
+		case BASEAPP_TYPE:
+			lpPropertyDescrs = &getBasePropertyDescriptions();
+			break;	
+		default:
+			lpPropertyDescrs = &getClientPropertyDescriptions();
+			break;	
+	};
+	
+	return *lpPropertyDescrs;	
+}
 
 //-------------------------------------------------------------------------------------
 }
