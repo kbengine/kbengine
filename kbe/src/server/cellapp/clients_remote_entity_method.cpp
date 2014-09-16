@@ -75,8 +75,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	if(pEntity == NULL || /*pEntity->pWitness() == NULL ||*/
 		pEntity->isDestroyed() /*|| pEntity->clientMailbox() == NULL*/)
 	{
-		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->id());
+		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n", 
+		//	mailbox->id()));
 
 		S_Return;
 	}
@@ -108,8 +108,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				if(Mercury::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger("packetlogs");
 
-				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
-					pEntity->scriptName() % methodDescription->getName());
+				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n", 
+					pEntity->scriptName(), methodDescription->getName()));
 																									
 				switch(Mercury::g_trace_packet)																	
 				{																								
@@ -173,8 +173,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				if(Mercury::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger("packetlogs");
 
-				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall(%1%::%2%)\n") % 
-					pAoiEntity->scriptName() % methodDescription->getName());
+				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n", 
+					pAoiEntity->scriptName(), methodDescription->getName()));
 																									
 				switch(Mercury::g_trace_packet)																	
 				{																								

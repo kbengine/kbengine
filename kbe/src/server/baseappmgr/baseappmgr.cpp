@@ -104,8 +104,8 @@ void Baseappmgr::onChannelDeregister(Mercury::Channel * pChannel)
 			std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.find(cinfo->cid);
 			if(iter != baseapps_.end())
 			{
-				WARNING_MSG(boost::format("Baseappmgr::onChannelDeregister: erase baseapp[%1%], currsize=%2%\n") % 
-					cinfo->cid % (baseapps_.size() - 1));
+				WARNING_MSG(fmt::format("Baseappmgr::onChannelDeregister: erase baseapp[{}], currsize={}\n", 
+					cinfo->cid, (baseapps_.size() - 1)));
 
 				baseapps_.erase(iter);
 				updateBestBaseapp();
@@ -168,7 +168,9 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(boost::format("Baseappmgr::forwardMessage: not found forwardComponent(%1%, at:%2%)!\n") % forward_componentID % cinfos);
+		ERROR_MSG(fmt::format("Baseappmgr::forwardMessage: not found forwardComponent({}, at:{:p})!\n", 
+			forward_componentID, (void*)cinfos));
+
 		KBE_ASSERT(false && "Baseappmgr::forwardMessage: not found forwardComponent!\n");
 		return;
 	}
@@ -333,7 +335,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(boost::format("Baseappmgr::onPendingAccountGetBaseappAddr: not found baseapp(%1%).\n") % componentID);
+		ERROR_MSG(fmt::format("Baseappmgr::onPendingAccountGetBaseappAddr: not found baseapp({}).\n", componentID));
 		sendAllocatedBaseappAddr(pChannel, loginName, accountName, 0, 0);
 		return;
 	}

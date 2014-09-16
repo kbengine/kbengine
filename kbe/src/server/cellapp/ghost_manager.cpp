@@ -137,7 +137,7 @@ void GhostManager::syncMessages()
 
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG(boost::format("GhostManager::syncMessages: not found cellapp(%1%)!\n") % iter->first);
+			ERROR_MSG(fmt::format("GhostManager::syncMessages: not found cellapp({})!\n", iter->first));
 			
 			for(; iter1 != iter->second.end(); iter1++)
 				Mercury::Bundle::ObjPool().reclaimObject((*iter1));
@@ -173,7 +173,7 @@ void GhostManager::syncGhosts()
 			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(ghostCell);
 			if(cinfos == NULL || cinfos->pChannel == NULL)
 			{
-				ERROR_MSG(boost::format("GhostManager::syncGhosts: not found cellapp(%1%)!\n") % iter->first);
+				ERROR_MSG(fmt::format("GhostManager::syncGhosts: not found cellapp({})!\n", iter->first));
 				continue;
 			}
 

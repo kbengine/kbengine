@@ -143,7 +143,7 @@ public:
 	*/
 	bool processTimeout(CALLBACK_ID cbID, T callback)
 	{
-		INFO_MSG(boost::format("CallbackMgr::processTimeout: %1% timeout!\n") % cbID);
+		INFO_MSG(fmt::format("CallbackMgr::processTimeout: {} timeout!\n", cbID));
 		return true;
 	}
 protected:
@@ -197,7 +197,7 @@ inline void CallbackMgr<PyObjectPtr>::createFromStream(KBEngine::MemoryStream& s
 
 		if(pyCallback == NULL || cbID == 0)
 		{
-			ERROR_MSG(boost::format("CallbackMgr::createFromStream: pyCallback(%1%) is error!\n") % cbID);
+			ERROR_MSG(fmt::format("CallbackMgr::createFromStream: pyCallback({}) is error!\n", cbID));
 			continue;
 		}
 
@@ -224,8 +224,8 @@ template<>
 inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* callback)
 {
 	std::string name = callback->ob_type->tp_name;
-	INFO_MSG(boost::format("CallbackMgr::processTimeout: callbackID:%1%, callback(%2%) timeout!\n") % cbID % 
-		name);
+	INFO_MSG(fmt::format("CallbackMgr::processTimeout: callbackID:{}, callback({}) timeout!\n", cbID , 
+		name));
 
 	Py_DECREF(callback);
 	return true;

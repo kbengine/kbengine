@@ -67,8 +67,8 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	Entity* pEntity = Cellapp::getSingleton().findEntity(mailbox->id());
 	if(pEntity == NULL || pEntity->pWitness() == NULL)
 	{
-		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->id());
+		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n", 
+		//	mailbox->id()));
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
@@ -90,8 +90,8 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 			if(Mercury::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
-			DEBUG_MSG(boost::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
-				pEntity->scriptName() % methodDescription->getName());
+			DEBUG_MSG(fmt::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n",
+				pEntity->scriptName(), methodDescription->getName()));
 																								
 			switch(Mercury::g_trace_packet)																	
 			{																								

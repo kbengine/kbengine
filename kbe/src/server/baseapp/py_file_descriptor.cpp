@@ -197,8 +197,8 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleInputNotification(int fd)
 {
-	INFO_MSG(boost::format("PyFileDescriptor:handleInputNotification: fd = %1%\n") %
-				fd );
+	INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
+				fd));
 
 	callback();
 	return 0;
@@ -220,7 +220,7 @@ void PyFileDescriptor::callback()
 	}
 	else
 	{
-		ERROR_MSG(boost::format("PyFileDescriptor::callback: can't found callback:%1%.\n") % fd_);
+		ERROR_MSG(fmt::format("PyFileDescriptor::callback: can't found callback:{}.\n", fd_));
 	}
 }
 

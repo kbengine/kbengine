@@ -61,9 +61,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 
@@ -116,9 +116,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 
@@ -173,9 +173,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 
