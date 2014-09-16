@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-#ifdef USE_OPENSSL
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::BlowfishFilter(const Key & key):
@@ -330,6 +329,5 @@ void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 
 //-------------------------------------------------------------------------------------
 
-#endif
 } 
 }

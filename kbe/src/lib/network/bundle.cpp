@@ -32,9 +32,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
-#ifdef USE_OPENSSL
 #include "cstdkbe/blowfish.hpp"
-#endif
+
 
 #define BUNDLE_SEND_OP(op)																					\
 	finish();																								\
@@ -189,12 +188,10 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 
 	int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 
-#ifdef USE_OPENSSL
 	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
 	// 这样我们在加密一个满载包时不需要额外填充字节
 	if(g_channelExternalEncryptType == 1)
 		packetmaxsize -=  packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
-#endif
 
 	int32 totalsize = (int32)pCurrPacket_->totalSize();
 	int32 fwpos = (int32)pCurrPacket_->wpos();

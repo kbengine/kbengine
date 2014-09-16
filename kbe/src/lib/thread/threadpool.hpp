@@ -97,7 +97,7 @@ public:
 		deleteCond();
 		deleteMutex();
 
-		DEBUG_MSG(boost::format("TPThread::~TPThread(): %1%\n") % this);
+		DEBUG_MSG(fmt::format("TPThread::~TPThread(): {}\n", (void*)this));
 	}
 	
 	virtual void onStart(){}

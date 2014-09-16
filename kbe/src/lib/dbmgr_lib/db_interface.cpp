@@ -83,7 +83,6 @@ bool DBUtil::initialize()
 
 	if(dbcfg.db_passwordEncrypt)
 	{
-#ifdef USE_OPENSSL
 		// 如果小于64则表示目前还是明文密码
 		if(strlen(dbcfg.db_password) < 64)
 		{
@@ -99,7 +98,6 @@ bool DBUtil::initialize()
 
 			kbe_snprintf(dbcfg.db_password, MAX_BUF, "%s", out.c_str());
 		}
-#endif
 	}
 
 	return true;

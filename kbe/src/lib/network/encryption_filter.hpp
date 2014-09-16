@@ -41,7 +41,7 @@ public:
 	virtual void decrypt(Packet * pInPacket, Packet * pOutPacket) = 0;
 };
 
-#ifdef USE_OPENSSL
+
 
 class BlowfishFilter : public EncryptionFilter, public KBEBlowfish
 {
@@ -62,20 +62,6 @@ private:
 	Mercury::PacketLength packetLen_;
 	uint8 padSize_;
 };
-
-#else
-
-class BlowfishFilter : public EncryptionFilter
-{
-public:
-	BlowfishFilter(const std::string & key){}
-	BlowfishFilter(){}
-	virtual ~BlowfishFilter() {}
-	void encrypt(Packet * pInPacket, Packet * pOutPacket){}
-	void decrypt(Packet * pInPacket, Packet * pOutPacket){}
-};
-
-#endif
 
 typedef SmartPointer<BlowfishFilter> BlowfishFilterPtr;
 

@@ -116,7 +116,7 @@ struct SOCKADDR_IN {
   }
   operator const sockaddr () const {
     sockaddr addr;
-    std::copy((char*)&ADDR, (char*)&ADDR + sizeof(ADDR), (char*)&addr);
+	memcpy((void*)&addr, (void*)&ADDR, sizeof(ADDR));
     return addr;
   }
 

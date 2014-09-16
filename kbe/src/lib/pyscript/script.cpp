@@ -150,7 +150,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	}  
 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
-	DEBUG_MSG(boost::format("Script::install(): paths=%1%.\n") % tmpchar);
+	DEBUG_MSG(fmt::format("Script::install(): paths={}.\n", tmpchar));
 	free(tmpchar);
 	
 #endif
@@ -180,8 +180,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
-		ERROR_MSG(boost::format("Script::install(): Unable to set KBEngine.component to %1%\n") %
-			componentName );
+		ERROR_MSG(fmt::format("Script::install(): Unable to set KBEngine.component to {}\n",
+			componentName));
 		return false;
 	}
 	
@@ -235,7 +235,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
-	INFO_MSG(boost::format("Script::install(): is successfully, Python=(%1%)!\n") % Py_GetVersion());
+	INFO_MSG(fmt::format("Script::install(): is successfully, Python=({})!\n", Py_GetVersion()));
 	return installExtraModule("KBExtra");
 }
 
@@ -303,9 +303,7 @@ bool Script::installExtraModule(const char* moduleName)
 
 	PyObject_SetAttrString(m, moduleName, extraModule_);						// 将扩展模块对象加入main
 
-	INFO_MSG(boost::format("Script::install(): %1% is successfully!\n") 
-		% moduleName);
-
+	INFO_MSG(fmt::format("Script::install(): {} is successfully!\n", moduleName));
 	return true;
 }
 
