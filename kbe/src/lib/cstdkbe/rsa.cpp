@@ -88,8 +88,8 @@ bool KBE_RSA::loadPublic(const std::string& keyname)
 			ERR_load_crypto_strings();
 			char err[1024];
 			char* errret = ERR_error_string(ERR_get_error(), err);
-			ERROR_MSG(boost::format("KBE_RSA::loadPublic: PEM_read_RSAPublicKey is error.(%1% : %2%)\n") %
-				errret % err);
+			ERROR_MSG(fmt::format("KBE_RSA::loadPublic: PEM_read_RSAPublicKey is error.({} : {})\n",
+				errret, err));
 
 			fclose(fp);
 			return false;
@@ -119,8 +119,8 @@ bool KBE_RSA::loadPrivate(const std::string& keyname)
 			ERR_load_crypto_strings();
 			char err[1024];
 			char* errret = ERR_error_string(ERR_get_error(), err);
-			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error.(%1% : %2%)\n") %
-				errret % err);
+			ERROR_MSG(fmt::format("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error.({} : {})\n",
+				errret, err));
 
 			fclose(fp);
 			return false;
@@ -146,8 +146,8 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 		ERR_load_crypto_strings();
 		char err[1024];
 		char* errret = ERR_error_string(ERR_get_error(), err);
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: RSA_generate_key is error.(%1% : %2%)\n") %
-			errret % err);
+		ERROR_MSG(fmt::format("KBE_RSA::generateKey: RSA_generate_key is error.({} : {})\n",
+			errret, err));
 
 		return false;
 	}
@@ -170,8 +170,8 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 		ERR_load_crypto_strings();
 		char err[1024];
 		char* errret = ERR_error_string(ERR_get_error(), err);
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: PEM_write_RSAPrivateKey is error.(%1% : %2%)\n") %
-			errret % err);
+		ERROR_MSG(fmt::format("KBE_RSA::generateKey: PEM_write_RSAPrivateKey is error.({} : {})\n",
+			errret, err));
 
 		fclose(fp);
 		RSA_free(rsa);
@@ -190,15 +190,15 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 		ERR_load_crypto_strings();
 		char err[1024];
 		char* errret = ERR_error_string(ERR_get_error(), err);
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: PEM_write_RSAPublicKey is error.(%1% : %2%)\n") %
-			errret % err);
+		ERROR_MSG(fmt::format("KBE_RSA::generateKey: PEM_write_RSAPublicKey is error.({} : {})\n",
+			errret, err));
 
 		fclose(fp);
 		RSA_free(rsa);
 		return false;
 	}
 
-	INFO_MSG(boost::format("KBE_RSA::generateKey: RSA key generated. keysize(%1%) bits.\n") % keySize);
+	INFO_MSG(fmt::format("KBE_RSA::generateKey: RSA key generated. keysize({}) bits.\n", keySize));
 
 	RSA_free(rsa);
 	fclose(fp);
@@ -234,8 +234,8 @@ int KBE_RSA::encrypt(const std::string& instr, std::string& outCertifdata)
 		ERR_load_crypto_strings();
 		char err[1024];
 		char* errret = ERR_error_string(ERR_get_error(), err);
-		ERROR_MSG(boost::format("KBE_RSA::encrypt: RSA_public_encrypt is error.(%1% : %2%)\n") %
-			errret % err);
+		ERROR_MSG(fmt::format("KBE_RSA::encrypt: RSA_public_encrypt is error.({} : {})\n",
+			errret, err));
 
 		free(certifdata);
 		return certifsize;
@@ -252,8 +252,8 @@ void KBE_RSA::hexCertifData(const std::string& inCertifdata)
 	std::string s = "KBE_RSA::encrypt: encrypted string = \n";
 
 	for (int i=0; i<(int)inCertifdata.size(); ++i) {
-		s += (boost::format("%x%x") % ((inCertifdata.data()[i] >> 4) & 0xf) %
-			(inCertifdata.data()[i] & 0xf)).str();
+		s += fmt::format("{:x}{:x}", ((inCertifdata.data()[i] >> 4) & 0xf),
+			(inCertifdata.data()[i] & 0xf));
 	}
 	
 	s += "\n";
@@ -277,8 +277,8 @@ int KBE_RSA::decrypt(const std::string& inCertifdata, std::string& outstr)
 		ERR_load_crypto_strings();
 		char err[1024];
 		char* errret = ERR_error_string(ERR_get_error(), err);
-		ERROR_MSG(boost::format("KBE_RSA::decrypt: RSA_private_decrypt is error.(%1% : %2%)\n") %
-			errret % err);
+		ERROR_MSG(fmt::format("KBE_RSA::decrypt: RSA_private_decrypt is error.({} : {})\n",
+			errret, err));
 
 		free(keydata);
 		return keysize;

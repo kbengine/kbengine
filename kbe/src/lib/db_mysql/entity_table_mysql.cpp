@@ -58,7 +58,7 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 	}
 
-	DEBUG_MSG(boost::format("syncToDB(): %1%->%2%(%3%).\n") % tablename % itemname % datatype);
+	DEBUG_MSG(fmt::format("syncToDB(): {}->{}({}).\n", tablename, itemname, datatype));
 
 	char __sql_str__[MAX_BUF];
 
@@ -85,8 +85,8 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(boost::format("syncToDB(): %1%->%2%(%3%) is error(%4%: %5%)\n lastQuery: %6%.\n") % 
-				tablename % itemname % datatype % dbi->getlasterror() % dbi->getstrerror() % static_cast<DBInterfaceMysql*>(dbi)->lastquery());
+			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}) is error({}: {})\n lastQuery: {}.\n", 
+				tablename, itemname, datatype, dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
 
 			return false;
 		}
@@ -205,7 +205,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	if(hasSync())
 		return true;
 
-	// DEBUG_MSG(boost::format("EntityTableMysql::syncToDB(): %1%.\n") % tableName());
+	// DEBUG_MSG(fmt::format("EntityTableMysql::syncToDB(): {}.\n", tableName()));
 
 	char sql_str[MAX_BUF];
 	std::string exItems = "";
@@ -416,7 +416,7 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 		EntityTableItem* pTableItem = this->findItem(pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG(boost::format("EntityTable::writeTable: not found item[%1%].\n") % pid);
+			ERROR_MSG(fmt::format("EntityTable::writeTable: not found item[{}].\n", pid));
 			return dbid;
 		}
 		
