@@ -75,8 +75,8 @@ bool g_shouldWriteToSyslog = false;
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
 	DebugHelper::getSingleton().backtrace_msg();
-	boost::format s = (boost::format("assertion failed: %1%, file %2%, line %3%, at: %4%\n") % exp % file % line % func);
-	printf("%s", (std::string("[ASSERT]: ") + s.str()).c_str());
+	std::string s = (fmt::format("assertion failed: {}, file {}, line {}, at: {}\n", exp, file, line, func));
+	printf("%s", (std::string("[ASSERT]: ") + s).c_str());
 	dbghelper.print_msg(s);
     abort();
 }
@@ -660,9 +660,9 @@ void DebugHelper::backtrace_msg()
 			}
 		}
 
-		std::string ss = (boost::format("Stack: #%1% %2%\n") % 
-			i %
-			((gotFunctionName) ? functionName.c_str() : traceString.c_str())).str();
+		std::string ss = fmt::format("Stack: #{} {}\n", 
+			i,
+			((gotFunctionName) ? functionName.c_str() : traceString.c_str()));
 
 #ifdef NO_USE_LOG4CXX
 #else

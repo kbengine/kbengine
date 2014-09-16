@@ -71,7 +71,7 @@ void EntityIDClient::onAlloc(void)
 
 	setReqServerAllocFlag(true);
 
-	WARNING_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % id_enough_limit);
+	WARNING_MSG(fmt::format("EntityIDClient::onAlloc: not enough({}) entityIDs!\n", id_enough_limit));
 }
 
 //-------------------------------------------------------------------------------------

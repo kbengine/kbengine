@@ -36,11 +36,11 @@ bool SendEMailTask::process()
 
 	std::string mailmessage = message();
 
-	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/%3%_%4%") % 
-		cbaddr_ %
-		cbport_ %
-		getopkey() %
-		code_).str());
+	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", fmt::format("http://{}:{}/{}_{}", 
+		cbaddr_,
+		cbport_,
+		getopkey(),
+		code_));
 
 	KBEngine::strutil::kbe_replace(mailmessage, "${username}", emailaddr_);
 	KBEngine::strutil::kbe_replace(mailmessage, "${code}", code_);
@@ -51,7 +51,7 @@ bool SendEMailTask::process()
 	m.password(g_kbeSrvConfig.emailServerInfo_.password.c_str());
 	m.send(); // send the mail
 
-	INFO_MSG(boost::format("SendEMailTask::process: sendmail[%1%]: %2%\n") % getopkey() % m.response());
+	INFO_MSG(fmt::format("SendEMailTask::process: sendmail[{}]: {}\n", getopkey(), m.response()));
 	return false;
 }
 

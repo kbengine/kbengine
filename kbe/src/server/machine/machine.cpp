@@ -141,13 +141,13 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 			return;
 	}
 
-	INFO_MSG(boost::format("Machine::onFindInterfaceAddr[%1%]: uid:%2%, username:%3%, "
-			"componentType:%4%, componentID:%8%, find:%5%, finderaddr:%6%, finderRecvPort:%7%.\n") %
-		pChannel->c_str() % uid % username.c_str() % 
-		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) %
-		COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) %
-		inet_ntoa((struct in_addr&)finderAddr) % ntohs(finderRecvPort) %
-		componentID);
+	INFO_MSG(fmt::format("Machine::onFindInterfaceAddr[{0}]: uid:{1}, username:{2}, "
+			"componentType:{3}, componentID:{7}, find:{4}, finderaddr:{5}, finderRecvPort:{6}.\n",
+		pChannel->c_str(), uid, username.c_str(), 
+		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+		COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType),
+		inet_ntoa((struct in_addr&)finderAddr), ntohs(finderRecvPort),
+		componentID));
 
 	Mercury::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
@@ -195,10 +195,10 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		}
 		else
 		{
-			WARNING_MSG(boost::format("Machine::onFindInterfaceAddr: %1%[%2%] invalid, erase %3%.\n") %
-				COMPONENT_NAME_EX(pinfos->componentType) %
-				pinfos->cid %
-				COMPONENT_NAME_EX(pinfos->componentType));
+			WARNING_MSG(fmt::format("Machine::onFindInterfaceAddr: {}[{}] invalid, erase {}.\n",
+				COMPONENT_NAME_EX(pinfos->componentType),
+				pinfos->cid,
+				COMPONENT_NAME_EX(pinfos->componentType)));
 
 			iter = components.erase(iter);
 		}
@@ -215,9 +215,9 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 				return;
 		}
 
-		WARNING_MSG(boost::format("Machine::onFindInterfaceAddr: %1% not found %2%.\n") %
-			COMPONENT_NAME_EX(tComponentType) % 
-			COMPONENT_NAME_EX(tfindComponentType));
+		WARNING_MSG(fmt::format("Machine::onFindInterfaceAddr: {} not found {}.\n",
+			COMPONENT_NAME_EX(tComponentType),
+			COMPONENT_NAME_EX(tfindComponentType)));
 
 		MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, KBEngine::getUserUID(), 
 			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0);
@@ -240,10 +240,10 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			return;
 	}
 
-	INFO_MSG(boost::format("Machine::onQueryAllInterfaceInfos[%1%]: uid:%2%, username:%3%, "
-			"finderRecvPort:%4%.\n") %
-		pChannel->c_str() % uid % username.c_str() % 
-		ntohs(finderRecvPort));
+	INFO_MSG(fmt::format("Machine::onQueryAllInterfaceInfos[{}]: uid:{}, username:{}, "
+			"finderRecvPort:{}.\n",
+		pChannel->c_str(), uid, username.c_str(),
+		ntohs(finderRecvPort)));
 
 	Mercury::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
@@ -324,10 +324,10 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			}
 			else
 			{
-				WARNING_MSG(boost::format("Machine::onQueryAllInterfaceInfos: %1%[%2%] invalid, erase %3%.\n") %
-					COMPONENT_NAME_EX(pinfos->componentType) %
-					pinfos->cid %
-					COMPONENT_NAME_EX(pinfos->componentType));
+				WARNING_MSG(fmt::format("Machine::onQueryAllInterfaceInfos: {}[{}] invalid, erase {}.\n",
+					COMPONENT_NAME_EX(pinfos->componentType),
+					pinfos->cid,
+					COMPONENT_NAME_EX(pinfos->componentType)));
 
 				iter = components.erase(iter);
 
@@ -355,8 +355,8 @@ bool Machine::findBroadcastInterface()
 	bhandler << data;
 	if (!bhandler.broadcast(KBE_PORT_BROADCAST_DISCOVERY))
 	{
-		ERROR_MSG(boost::format("Machine::findBroadcastInterface:Failed to send broadcast discovery message. error:%1%\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::findBroadcastInterface:Failed to send broadcast discovery message. error:{}\n",
+			kbe_strerror()));
 		return false;
 	}
 	
@@ -364,17 +364,17 @@ bool Machine::findBroadcastInterface()
 
 	if(bhandler.receive(NULL, &sin))
 	{
-		INFO_MSG(boost::format("Machine::findBroadcastInterface:Machine::findBroadcastInterface: Broadcast discovery receipt from %1%.\n") %
-					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
+		INFO_MSG(fmt::format("Machine::findBroadcastInterface:Machine::findBroadcastInterface: Broadcast discovery receipt from {}.\n",
+					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr)));
 
 		std::map< u_int32_t, std::string >::iterator iter;
 
 		iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );
 		if (iter != interfaces.end())
 		{
-			INFO_MSG(boost::format("Machine::findBroadcastInterface: Confirmed %1% (%2%) as default broadcast route interface.\n") %
-				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) %
-				iter->second.c_str());
+			INFO_MSG(fmt::format("Machine::findBroadcastInterface: Confirmed {} ({}) as default broadcast route interface.\n",
+				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr),
+				iter->second.c_str()));
 
 			broadcastAddr_ = sin.sin_addr.s_addr;
 			return true;
@@ -391,9 +391,9 @@ bool Machine::findBroadcastInterface()
 
 	sinterface += "]";
 
-	ERROR_MSG(boost::format("Machine::findBroadcastInterface: Broadcast discovery [%1%] "
-		"not a valid interface. available interfaces:%2%\n") %
-		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) % sinterface.c_str());
+	ERROR_MSG(fmt::format("Machine::findBroadcastInterface: Broadcast discovery [{}] "
+		"not a valid interface. available interfaces:{}\n",
+		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr), sinterface.c_str()));
 
 	return false;
 }
@@ -421,10 +421,10 @@ bool Machine::initNetwork()
 	if (!ep_.good() ||
 		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to '%1%:%2%'. %3%.\n") %
-							inet_ntoa((struct in_addr &)broadcastAddr_) %
-							(KBE_MACHINE_BRAODCAST_SEND_PORT) %
-							kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+							inet_ntoa((struct in_addr &)broadcastAddr_),
+							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							kbe_strerror()));
 
 		return false;
 	}
@@ -451,10 +451,10 @@ bool Machine::initNetwork()
 	if (!epBroadcast_.good() ||
 		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), baddr) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to '%1%:%2%'. %3%.\n") %
-							inet_ntoa((struct in_addr &)baddr) %
-							(KBE_MACHINE_BRAODCAST_SEND_PORT) %
-							kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+							inet_ntoa((struct in_addr &)baddr),
+							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							kbe_strerror()));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 		return false;
@@ -479,8 +479,8 @@ bool Machine::initNetwork()
 	if (!epLocal_.good() ||
 		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::LOCALHOST) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to (lo). %1%.\n") %
-							kbe_strerror() );
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to (lo). {}.\n",
+							kbe_strerror()));
 
 		return false;
 	}
@@ -497,7 +497,7 @@ bool Machine::initNetwork()
 		return false;
 	}
 
-	INFO_MSG(boost::format("Machine::initNetwork: bind broadcast successfully! addr:%1%\n") % ep_.addr().c_str());
+	INFO_MSG(fmt::format("Machine::initNetwork: bind broadcast successfully! addr:{}\n", ep_.addr().c_str()));
 	return true;
 }
 
@@ -570,8 +570,8 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
@@ -603,8 +603,8 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		&pi )           // Pointer to PROCESS_INFORMATION structure
 	)
 	{
-		ERROR_MSG(boost::format("Machine::startserver:CreateProcess failed (%1%).\n") %
-			GetLastError());
+		ERROR_MSG(fmt::format("Machine::startserver:CreateProcess failed ({}).\n",
+			GetLastError()));
 
 		success = false;
 	}
@@ -653,8 +653,8 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(boost::format("Machine::stopserver: request uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
@@ -684,8 +684,8 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			continue;
 		}
 
-		INFO_MSG(boost::format("--> stop %1%(%2%), addr=%3%\n") % 
-			(*iter).cid % COMPONENT_NAME[componentType] % (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown"));
+		INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
+			(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
 
 		bool usable = Componentbridge::getComponents().checkComponentUsable(&(*iter));
 		
@@ -719,7 +719,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		
 		if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
 		{
-			ERROR_MSG(boost::format("Machine::stopserver: connect server is error(%1%)!\n") % kbe_strerror());
+			ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
 			success = false;
 			break;
 		}
