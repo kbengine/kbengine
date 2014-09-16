@@ -69,8 +69,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-			fileName.c_str());
+		ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+			fileName.c_str()));
 
 		SAFE_RELEASE(xml);
 		return false;
@@ -1073,8 +1073,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 		if(!xml->isGood())
 		{
-			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-				email_service_config.c_str());
+			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+				email_service_config.c_str()));
 
 			SAFE_RELEASE(xml);
 			return false;
@@ -1204,8 +1204,8 @@ void ServerConfig::_updateEmailInfos()
 	// 如果小于64则表示目前还是明文密码
 	if(emailServerInfo_.password.size() < 64)
 	{
-		WARNING_MSG(boost::format("ServerConfig::loadConfig: email password(email_service.xml) is not encrypted!\nplease use password(rsa):\n%1%\n") 
-			% KBEKey::getSingleton().encrypt(emailServerInfo_.password));
+		WARNING_MSG(fmt::format("ServerConfig::loadConfig: email password(email_service.xml) is not encrypted!\nplease use password(rsa):\n{}\n"
+			, KBEKey::getSingleton().encrypt(emailServerInfo_.password)));
 	}
 	else
 	{
@@ -1236,22 +1236,22 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
-			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
-			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
-			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			INFO_MSG(fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
+			INFO_MSG(fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz()).str();
-			infostr += (boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius).str();
-			infostr += (boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea).str();
-			infostr += (boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile).str();
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			//infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			infostr += (fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
+			infostr += (fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == BASEAPP_TYPE)
@@ -1263,18 +1263,18 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
-			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz()).str();
-			infostr += (boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile).str();
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 
 		_updateEmailInfos();
@@ -1288,13 +1288,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == CELLAPPMGR_TYPE)
@@ -1306,13 +1306,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == DBMGR_TYPE)
@@ -1324,13 +1324,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == LOGINAPP_TYPE)
@@ -1342,14 +1342,14 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\texternalAddr : %1%\n") % externalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 
 		_updateEmailInfos();
@@ -1363,13 +1363,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
-			infostr += (boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str()).str();
-			infostr += (boost::format("\tcomponentID : %1%\n") % info.componentID).str();
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 
