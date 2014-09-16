@@ -36,15 +36,15 @@ bool DBTaskBase::process()
 	uint64 duration = startTime - initTime_;
 	if(duration > stampsPerSecond())
 	{
-		WARNING_MSG(boost::format("DBTask::process(): delay %.2f seconds, try adjusting the kbengine_defs.xml(numConnections)!\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
+		WARNING_MSG(fmt::format("DBTask::process(): delay {0:.2f} seconds, try adjusting the kbengine_defs.xml(numConnections)!\nsql:({1})\n", 
+			(double(duration)/stampsPerSecondD()), pdbi_->lastquery()));
 	}
 
 	duration = timestamp() - startTime;
 	if (duration > stampsPerSecond())
 	{
-		WARNING_MSG(boost::format("DBTask::process(): took %.2f seconds\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % pdbi_->lastquery());
+		WARNING_MSG(fmt::format("DBTask::process(): took {0:.2f} seconds\nsql:({})\n", 
+			(double(duration)/stampsPerSecondD()), pdbi_->lastquery()));
 	}
 
 	return ret;

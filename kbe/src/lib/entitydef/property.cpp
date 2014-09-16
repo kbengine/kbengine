@@ -82,8 +82,8 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 
 	if(dataType == NULL)
 	{
-		ERROR_MSG(boost::format("PropertyDescription::PropertyDescription: %1% DataType is NULL, in property[%2%].\n") % 
-			dataTypeName.c_str() % name_.c_str());
+		ERROR_MSG(fmt::format("PropertyDescription::PropertyDescription: {} DataType is NULL, in property[{}].\n",
+			dataTypeName.c_str(), name_.c_str()));
 	}
 }
 

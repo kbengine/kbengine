@@ -59,7 +59,7 @@ bool Navigation::removeNavigation(std::string name)
 		navhandles_.erase(iter);
 		iter->second->decRef();
 
-		DEBUG_MSG(boost::format("Navigation::removeNavigation: (%1%) is destroyed!\n") % name);
+		DEBUG_MSG(fmt::format("Navigation::removeNavigation: ({}) is destroyed!\n", name));
 		return true;
 	}
 
@@ -81,7 +81,7 @@ NavigationHandlePtr Navigation::findNavigation(std::string name)
 		{
 			// 由于tile需要做碰撞， 每一个space都需要一份新的数据， 我们这里采用拷贝的方式来增加构造速度
 			NavTileHandle* pNavTileHandle = new NavTileHandle(*(KBEngine::NavTileHandle*)iter->second.get());
-			DEBUG_MSG(boost::format("Navigation::findNavigation: copy NavTileHandle(%1%)!\n") % pNavTileHandle);
+			DEBUG_MSG(fmt::format("Navigation::findNavigation: copy NavTileHandle({:p})!\n", (void*)pNavTileHandle));
 			return NavigationHandlePtr(pNavTileHandle);
 		}
 

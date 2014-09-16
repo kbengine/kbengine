@@ -73,8 +73,8 @@ void PyProfileHandler::sendStream(MemoryStream* s)
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("PyProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
-			name_ % addr_.c_str());
+		WARNING_MSG(fmt::format("PyProfileHandler::sendStream: not found {} addr({})\n",
+			name_, addr_.c_str()));
 		return;
 	}
 

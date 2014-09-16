@@ -64,7 +64,7 @@ bool Controllers::add(Controller* pController)
 
 	if(objects_.size() > 32)
 	{
-		WARNING_MSG(boost::format("Controllers::add: size = %1%.\n") % objects_.size());
+		WARNING_MSG(fmt::format("Controllers::add: size = {}.\n", objects_.size()));
 	}
 
 	return true;

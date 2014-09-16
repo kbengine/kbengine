@@ -55,8 +55,8 @@ void Controller::destroy()
 {
 	if(pControllers_ && !pControllers_->remove(this))
 	{
-		ERROR_MSG(boost::format("Controller::destroy(): not found %1%.\n") % 
-			id_);
+		ERROR_MSG(fmt::format("Controller::destroy(): not found {}.\n",
+			id_));
 	}
 }
 

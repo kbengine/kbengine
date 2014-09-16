@@ -62,8 +62,8 @@ bool Config::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::loadConfig: load %1% is failed!\n") %
-			fileName.c_str());
+		ERROR_MSG(fmt::format("Config::loadConfig: load {} is failed!\n",
+			fileName.c_str()));
 
 		SAFE_RELEASE(xml);
 		return false;
@@ -314,8 +314,8 @@ void Config::writeAccountName(const char* name)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::writeAccountName: load %1% is failed!\n") %
-			fileName_.c_str());
+		ERROR_MSG(fmt::format("Config::writeAccountName: load %1% is failed!\n",
+			fileName_.c_str()));
 
 		SAFE_RELEASE(xml);
 		return;

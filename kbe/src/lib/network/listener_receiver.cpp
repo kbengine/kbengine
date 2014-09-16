@@ -62,8 +62,8 @@ int ListenerReceiver::handleInputNotification(int fd)
 
 			if(tickcount == 1)
 			{
-				WARNING_MSG(boost::format("PacketReceiver::handleInputNotification: accept endpoint(%1%) %2%!\n") %
-					 fd % kbe_strerror());
+				WARNING_MSG(fmt::format("PacketReceiver::handleInputNotification: accept endpoint({}) {}!\n",
+					 fd, kbe_strerror()));
 				
 				this->dispatcher().errorReporter().reportException(
 						REASON_GENERAL_NETWORK);
@@ -76,8 +76,8 @@ int ListenerReceiver::handleInputNotification(int fd)
 			Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
 			if(!networkInterface_.registerChannel(pchannel))
 			{
-				ERROR_MSG(boost::format("ListenerReceiver::handleInputNotification:registerChannel(%1%) is failed!\n") %
-					pchannel->c_str());
+				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification:registerChannel({}) is failed!\n",
+					pchannel->c_str()));
 			}
 		}
 	}

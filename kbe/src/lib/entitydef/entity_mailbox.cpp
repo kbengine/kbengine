@@ -250,7 +250,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	ScriptDefModule* sm = EntityDef::findScriptModule(utype);
 	if(sm == NULL)
 	{
-		ERROR_MSG(boost::format("EntityMailbox::__unpickle__: not found utype %1%!\n") % utype);
+		ERROR_MSG(fmt::format("EntityMailbox::__unpickle__: not found utype {}!\n", utype));
 		S_Return;
 	}
 

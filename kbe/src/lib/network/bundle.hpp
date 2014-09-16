@@ -71,12 +71,12 @@ class Channel;
 			}																								\
 			else																							\
 			{																								\
-				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%5%\n") %				\
-						((isrecv == true) ? "====>" : "<====") %											\
-						pCurrMsgHandler->name.c_str() %														\
-						pCurrMsgHandler->msgID %															\
-						length %																			\
-						addr);																				\
+				DEBUG_MSG(fmt::format("{} {}:msgID:{}, currMsgLength:{}, addr:{}\n",						\
+						((isrecv == true) ? "====>" : "<===="),												\
+						pCurrMsgHandler->name.c_str(),														\
+						pCurrMsgHandler->msgID,																\
+						length,																				\
+						addr));																				\
 			}																								\
 		}																									\
 																											\

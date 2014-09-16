@@ -96,8 +96,8 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 			}
 			else
 			{
-				ERROR_MSG(boost::format("EntityMailboxAbstract::newMail: not found component(%1%)!\n") 
-					% componentID_);
+				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({})!\n",
+					componentID_));
 			}
 		}
 
@@ -140,8 +140,8 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EntityMailboxAbstract::postMail: invalid channel(%1%)!\n") %
-			addr_.c_str());
+		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({})!\n",
+			addr_.c_str()));
 	}
 
 	return false;

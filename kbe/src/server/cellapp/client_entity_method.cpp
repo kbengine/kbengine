@@ -135,10 +135,10 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(Mercury::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
-			DEBUG_MSG(boost::format("ClientEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall(%1%::%2%)\n") % 
-				srcEntity->scriptName() % methodDescription->getName());
+			DEBUG_MSG(fmt::format("ClientEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n",
+				srcEntity->scriptName(), methodDescription->getName()));
 																								
-			switch(Mercury::g_trace_packet)																	
+			switch(Mercury::g_trace_packet)							
 			{																								
 			case 1:																							
 				mstream->hexlike();																			

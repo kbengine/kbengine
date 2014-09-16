@@ -44,8 +44,8 @@ maxDistance_(maxDistance)
 		Space* pSpace = Spaces::findSpace(pEntity->spaceID());
 		if(pSpace == NULL)
 		{
-			ERROR_MSG(boost::format("NavigateHandler::NavigateHandler(): not found space(%1%), entityID(%2%)!\n") % 
-				pEntity->spaceID() % pEntity->id());
+			ERROR_MSG(fmt::format("NavigateHandler::NavigateHandler(): not found space({}), entityID({})!\n",
+				pEntity->spaceID(), pEntity->id()));
 
 			pController_ = NULL;
 		}
@@ -67,8 +67,8 @@ maxDistance_(maxDistance)
 			{
 				pController_ = NULL;
 
-				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navhandle!\n") % 
-					pEntity->spaceID() % pEntity->id());
+				WARNING_MSG(fmt::format("NavigateHandler::NavigateHandler(): space({}), entityID({}), not found navhandle!\n",
+					pEntity->spaceID(), pEntity->id()));
 			}
 		}
 	}

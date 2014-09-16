@@ -84,8 +84,8 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(Mercury::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
-			DEBUG_MSG(boost::format("RealEntityMethod::callmethod: pushUpdateData: CellappInterface::onRemoteRealMethodCall(%3%(%1%)::%2%)\n") % 
-				ghostEntityID_ % methodDescription->getName() % scriptName_);
+			DEBUG_MSG(fmt::format("RealEntityMethod::callmethod: pushUpdateData: CellappInterface::onRemoteRealMethodCall({2}({0})::{1})\n",
+				ghostEntityID_, methodDescription->getName(), scriptName_));
 
 			switch(Mercury::g_trace_packet)
 			{

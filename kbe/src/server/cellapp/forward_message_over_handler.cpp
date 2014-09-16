@@ -46,8 +46,8 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	
 	if(space == NULL)
 	{
-		ERROR_MSG(boost::format("FMH_Baseapp_onEntityGetCell::process: not found space(%1%), %2% %3%.\n") %
-			_spaceID % _e->scriptName() % _e->id());
+		ERROR_MSG(fmt::format("FMH_Baseapp_onEntityGetCell::process: not found space({}), {} {}.\n",
+			_spaceID, _e->scriptName(), _e->id()));
 
 		return;
 	}

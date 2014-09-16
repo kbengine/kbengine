@@ -70,7 +70,7 @@ bool install_py_dlls(void)
 		if(g_funs[i] == NULL)
 			break;
 
-		DEBUG_MSG(boost::format("Script::install_py_dlls(): %1%\n") % g_sfuns[i]);
+		DEBUG_MSG(fmt::format("Script::install_py_dlls(): {}\n", g_sfuns[i]));
 		PyObject * m = (*g_funs[i++])();
 		if(m == NULL)
 		{
@@ -107,7 +107,7 @@ bool uninstall_py_dlls(void)
 		if(g_funs[i] == NULL)
 			break;
 
-		DEBUG_MSG(boost::format("Script::uninstall_py_dlls(): %1%\n") % g_sfuns[i]);
+		DEBUG_MSG(fmt::format("Script::uninstall_py_dlls(): {}\n", g_sfuns[i]));
 		PyObject * m = g_importedModules[i++];
 		if(m == NULL)
 		{

@@ -35,7 +35,7 @@ pMoveToPointHandler_(pMoveToPointHandler)
 //-------------------------------------------------------------------------------------
 MoveController::~MoveController()
 {
-	// DEBUG_MSG(boost::format("MoveController::~MoveController(): %1%\n") % this);
+	// DEBUG_MSG(fmt::format("MoveController::~MoveController(): {:p}\n", (void*)this);
 	pMoveToPointHandler_->pController(NULL);
 	pMoveToPointHandler_ = NULL;
 }

@@ -65,7 +65,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
-	// DEBUG_MSG(boost::format("RemoteEntityMethod::tp_call:%1%.\n") % methodDescription->getName());
+	// DEBUG_MSG(fmt::format("RemoteEntityMethod::tp_call:{}.\n"), methodDescription->getName()));
 
 	if(methodDescription->checkArgs(args))
 	{
@@ -83,8 +83,8 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 	}
 	else
 	{
-        ERROR_MSG(boost::format("RemoteEntityMethod::tp_call:%1% checkArgs is error!\n") %
-                methodDescription->getName());
+        ERROR_MSG(fmt::format("RemoteEntityMethod::tp_call:{} checkArgs is error!\n",
+                methodDescription->getName()));
 	}
 
 	S_Return;

@@ -129,11 +129,11 @@ public:
 		if(!txdoc_->LoadFile())
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32
-			printf("%s", (boost::format("TiXmlNode::openXML: %1%, is error!\n") % pathbuf).str().c_str());
+			printf("%s", (fmt::format("TiXmlNode::openXML: {}, is error!\n", pathbuf)).c_str());
 #endif
 			if(DebugHelper::isInit())
 			{
-				ERROR_MSG(boost::format("TiXmlNode::openXML: %1%, is error!\n") % pathbuf);
+				ERROR_MSG(fmt::format("TiXmlNode::openXML: {}, is error!\n", pathbuf));
 			}
 
 			return NULL;

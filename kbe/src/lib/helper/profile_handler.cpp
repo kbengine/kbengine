@@ -147,8 +147,8 @@ void CProfileHandler::sendStream(MemoryStream* s)
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("CProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
-			name_ % addr_.c_str());
+		WARNING_MSG(fmt::format("CProfileHandler::sendStream: not found {} addr({})\n",
+			name_, addr_.c_str()));
 		return;
 	}
 
@@ -268,8 +268,8 @@ void EventProfileHandler::sendStream(MemoryStream* s)
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("EventProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
-			name_ % addr_.c_str());
+		WARNING_MSG(fmt::format("EventProfileHandler::sendStream: not found {} addr({})\n",
+			name_, addr_.c_str()));
 		return;
 	}
 
@@ -376,8 +376,8 @@ void MercuryProfileHandler::sendStream(MemoryStream* s)
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("MercuryProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
-			name_ % addr_.c_str());
+		WARNING_MSG(fmt::format("MercuryProfileHandler::sendStream: not found {} addr({})\n",
+			name_, addr_.c_str()));
 		return;
 	}
 
