@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <memory.h>
 typedef int SOCKET; // get round windows definitions.
 #endif
 
