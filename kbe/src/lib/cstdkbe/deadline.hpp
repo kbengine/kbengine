@@ -54,7 +54,7 @@ public:
 
 	std::string print()
 	{
-		return (boost::format("%1%days/%2%:%3%:%4%") % days % hours % minutes % seconds).str();
+		return fmt::format("{}days/{}:{}:{}", days, hours, minutes, seconds);
 	}
 	
 	uint32 days, hours, minutes, seconds;

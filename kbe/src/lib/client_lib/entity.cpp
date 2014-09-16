@@ -147,16 +147,16 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_);
+		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
+			utype, id_));
 
 		return;
 	}
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
+		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: entityID {}, methodType {}.\n", 
+				id_, utype));
 	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
@@ -291,7 +291,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
 			return;
 		}
 
@@ -492,7 +492,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
-			ERROR_MSG(boost::format("%1%::onBecomePlayer(): please implement %2%.\n") % this->scriptModule_->getName() % moduleName);
+			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->scriptModule_->getName(), moduleName));
 		}
 		else
 		{

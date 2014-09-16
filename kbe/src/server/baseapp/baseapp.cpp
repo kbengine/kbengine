@@ -2644,7 +2644,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
+				// ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
 			}
 		}
 
@@ -2691,9 +2691,11 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 			}
 			else
 			{
+				/*
 				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
 					"is error(not found clientMailbox)! entityID({}).\n",
 					eid));
+				*/
 			}
 		}
 

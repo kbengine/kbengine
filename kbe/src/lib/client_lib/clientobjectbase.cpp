@@ -819,12 +819,12 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%(%2%).\n") % 
-		entity->scriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}).\n", 
+		entity->scriptName(), eid));
 
 	EventData_LeaveWorld eventdata;
 	eventdata.spaceID = entity->spaceID();
@@ -863,12 +863,12 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStr
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterSpace: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%(%2%).\n") % 
-		entity->scriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterSpace: {}({}).\n", 
+		entity->scriptName(), eid));
 
 	entity->isOnGound(isOnGound > 0);
 
@@ -900,12 +900,12 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveSpace: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%(%2%).\n") % 
-		entity->scriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveSpace: {}({}).\n", 
+		entity->scriptName(), eid));
 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID_;
@@ -922,12 +922,12 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityDestroyed: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityDestroyed: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%(%2%).\n") % 
-		entity->scriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityDestroyed: {}({}).\n", 
+		entity->scriptName(), eid));
 
 	destroyEntity(eid, false);
 }
@@ -954,7 +954,7 @@ void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream
 	if(entity == NULL)
 	{	
 		s.opfini();
-		ERROR_MSG(boost::format("ClientObjectBase::onRemoteMethodCall: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onRemoteMethodCall: not found entity({}).\n", eid));
 		return;
 	}
 
@@ -992,7 +992,7 @@ void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("ClientObjectBase::onUpdatePropertys: not found entity(%1%).\n") % eid);
+			ERROR_MSG(fmt::format("ClientObjectBase::onUpdatePropertys: not found entity({}).\n", eid));
 		}
 
 		return;
@@ -1106,7 +1106,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onSetEntityPosAndDir: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onSetEntityPosAndDir: not found entity({}).\n", eid));
 		s.opfini();
 		return;
 	}
@@ -1149,7 +1149,7 @@ void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onUpdateData: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onUpdateData: not found entity({}).\n", eid));
 		return;
 	}
 }
@@ -1596,14 +1596,14 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onUpdateData_xz_yp: not found entity(%1%).\n") % entityID);
+		ERROR_MSG(fmt::format("ClientObjectBase::onUpdateData_xz_yp: not found entity({}).\n", entityID));
 		return;
 	}
 
 	client::Entity* player = pPlayer();
 	if(player == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::_updateVolatileData: not found player(%1%).\n") % entityID_);
+		ERROR_MSG(fmt::format("ClientObjectBase::_updateVolatileData: not found player({}).\n", entityID_));
 		return;
 	}
 
@@ -1621,7 +1621,7 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		Position3D basepos = player->serverPosition();
 		basepos += relativePos;
 		
-		// DEBUG_MSG(boost::format("ClientObjectBase::_updateVolatileData: %1%-%2%-%3%--%4%-%5%-%6%-\n") % x % y % z % basepos.x % basepos.y % basepos.z);
+		// DEBUG_MSG(fmt::format("ClientObjectBase::_updateVolatileData: {}-{}-{}--{}-{}-{}-\n", x, y, z, basepos.x, basepos.y, basepos.z));
 		entity->position(basepos);
 	}
 
@@ -1658,8 +1658,8 @@ void ClientObjectBase::onStreamDataCompleted(Mercury::Channel* pChannel, int16 i
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
-	INFO_MSG(boost::format("ClientObjectBase::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
-		spaceID % respath);
+	INFO_MSG(fmt::format("ClientObjectBase::addSpaceGeometryMapping: spaceID={}, respath={}!\n",
+		spaceID, respath));
 
 	isLoadedGeometry_ = false;
 	onAddSpaceGeometryMapping(spaceID, respath);
@@ -1744,8 +1744,8 @@ void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s
 		setSpaceData(pChannel, spaceID_, key, value);
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::initSpaceData: spaceID(%1%), datasize=%2%.\n") % 
-		spaceID_ % spacedatas_.size());
+	DEBUG_MSG(fmt::format("ClientObjectBase::initSpaceData: spaceID({}), datasize={}.\n", 
+		spaceID_, spacedatas_.size()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1759,13 +1759,13 @@ void ClientObjectBase::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID
 {
 	if(spaceID_ != spaceID)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%, value=%4%.\n") % 
-			spaceID_ % spaceID % key % value);
+		ERROR_MSG(fmt::format("ClientObjectBase::setSpaceData: spaceID(curr:{}->{}) not match, key={}, value={}.\n", 
+			spaceID_, spaceID, key, value));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(%1%), key=%2%, value=%3%.\n") % 
-		spaceID_ % key % value);
+	DEBUG_MSG(fmt::format("ClientObjectBase::setSpaceData: spaceID({}), key={}, value={}.\n", 
+		spaceID_, key, value));
 
 	SPACE_DATA::iterator iter = spacedatas_.find(key);
 	if(iter == spacedatas_.end())
@@ -1811,13 +1811,13 @@ void ClientObjectBase::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID
 {
 	if(spaceID_ != spaceID)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%.\n") % 
-			spaceID_ % spaceID % key);
+		ERROR_MSG(fmt::format("ClientObjectBase::delSpaceData: spaceID(curr:{}->{}) not match, key={}.\n", 
+			spaceID_, spaceID, key));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(%1%), key=%2%.\n") % 
-		spaceID_ % key);
+	DEBUG_MSG(fmt::format("ClientObjectBase::delSpaceData: spaceID({}), key={}.\n", 
+		spaceID_, key));
 
 	SPACE_DATA::iterator iter = spacedatas_.find(key);
 	if(iter == spacedatas_.end())
