@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4819)
 #endif
-#include "boost/format.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
