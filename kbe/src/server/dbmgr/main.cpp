@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "server/kbemain.hpp"
 #include "dbmgr.hpp"
+
+#undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
