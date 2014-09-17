@@ -196,16 +196,16 @@ void Proxy::onClientDeath(void)
 {
 	if(clientMailbox() == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::onClientDeath: %2%, channel is null!\n") % 
-			this->scriptName() % this->id());
+		ERROR_MSG(fmt::format("{}::onClientDeath: {}, channel is null!\n", 
+			this->scriptName(), this->id()));
 
 		return;
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % 
-		this->scriptName() % this->id());
+	DEBUG_MSG(fmt::format("{}::onClientDeath: {}.\n", 
+		this->scriptName(), this->id()));
 
 	Py_DECREF(clientMailbox());
 	clientMailbox(NULL);
@@ -317,12 +317,12 @@ void Proxy::giveClientTo(Proxy* proxy)
 		EntityMailbox* mb = proxy->clientMailbox();
 		if(mb != NULL)
 		{
-			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% has clientMailbox.\n") % 
-					scriptName() %
-					id() %
-					proxy->scriptName() % 
-					proxy->id() %
-					proxy->scriptName());
+			ERROR_MSG(fmt::format("Proxy::giveClientTo: {}[{}] give client to {}[{}], {} has clientMailbox.\n", 
+					scriptName(),
+					id(),
+					proxy->scriptName(), 
+					proxy->id(),
+					proxy->scriptName()));
 
 			onGiveClientToFailure();
 			return;
@@ -756,7 +756,7 @@ bool Proxy::sendToClient(Mercury::Bundle* pBundle)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("Proxy::sendToClient: %1% pBundles is NULL, not found channel.\n") % id());
+	ERROR_MSG(fmt::format("Proxy::sendToClient: {} pBundles is NULL, not found channel.\n", id()));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }

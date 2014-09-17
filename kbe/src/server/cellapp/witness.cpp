@@ -118,8 +118,8 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
-	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).\n") % 
-		pEntity->scriptName() % pEntity->id());
+	DEBUG_MSG(fmt::format("Witness::attach: {}({}).\n", 
+		pEntity->scriptName(), pEntity->id()));
 
 	pEntity_ = pEntity;
 
@@ -165,8 +165,8 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
-	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).\n") % 
-		pEntity->scriptName() % pEntity->id());
+	DEBUG_MSG(fmt::format("Witness::detach: {}({}).\n", 
+		pEntity->scriptName(), pEntity->id()));
 
 	Mercury::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
 	if(pChannel)
@@ -279,8 +279,8 @@ void Witness::onEnterAOI(Entity* pEntity)
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
-			DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % 
-				pEntity_->id() % pEntity->id());
+			DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+				pEntity_->id(), pEntity->id()));
 
 			(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 			(*iter)->pEntity(pEntity);
@@ -290,8 +290,8 @@ void Witness::onEnterAOI(Entity* pEntity)
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % 
-		pEntity_->id() % pEntity->id());
+	DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+		pEntity_->id(), pEntity->id()));
 	
 	EntityRef* pEntityRef = new EntityRef(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
@@ -315,8 +315,8 @@ void Witness::onLeaveAOI(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 {
-	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % 
-		pEntity_->id() % pEntityRef->id());
+	DEBUG_MSG(fmt::format("Witness::onLeaveAOI: {} entity={}\n", 
+		pEntity_->id(), pEntityRef->id()));
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);
@@ -694,8 +694,8 @@ bool Witness::update()
 			{
 				if(packetsLength > PACKET_MAX_SIZE_TCP)
 				{
-					WARNING_MSG(boost::format("Witness::update(%1%): sendToClient %2% Bytes.\n") % 
-						pEntity_->id() % packetsLength);
+					WARNING_MSG(fmt::format("Witness::update({}): sendToClient {} Bytes.\n", 
+						pEntity_->id(), packetsLength));
 				}
 
 				pChannel->bundles().push_back(pSendBundle);
@@ -997,7 +997,7 @@ bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::B
 		return true;
 	}
 
-	ERROR_MSG(boost::format("Witness::sendToClient: %1% pBundles is NULL, not found channel.\n") % pEntity_->id());
+	ERROR_MSG(fmt::format("Witness::sendToClient: {} pBundles is NULL, not found channel.\n", pEntity_->id()));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }

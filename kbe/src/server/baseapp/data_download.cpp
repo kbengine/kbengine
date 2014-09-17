@@ -72,8 +72,8 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 {
 	if(error_)
 	{
-		ERROR_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread error.\n") 
-			% entityID() % id() % type());
+		ERROR_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread error.\n", 
+			entityID(), id(), type()));
 
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
@@ -95,8 +95,8 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			sentStart_ = true;
 			if(!send(ClientInterface::onStreamDataStarted, pBundle))
 			{
-				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
-					% entityID() % id() % type());
+				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
+					entityID(), id(), type()));
 
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
@@ -117,8 +117,8 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
-				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
-					% entityID() % id() % type());
+				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
+					entityID(), id(), type()));
 
 				error_ = true;
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -132,8 +132,8 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
-				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
-					% entityID() % id() % type());
+				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
+					entityID(), id(), type()));
 
 				error_ = true;
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -146,8 +146,8 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if(totalSentBytes_ == totalBytes_)
 	{
-		DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%7%), sentBytes=%6%,%3%/%4% (%5$.2f%%).\n") % 
-			entityID() % id() % totalSentBytes_ % this->totalBytes() % 100.0f % datasize % type());
+		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({:.2f}%).\n",
+			entityID(), id(), totalSentBytes_, this->totalBytes(), 100.0f, datasize, type()));
 
 		pDataDownloads_->onDownloadCompleted(this);
 
@@ -161,14 +161,14 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	
-	DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%7%), sentBytes=%6%,%3%/%4% (%5$.2f%%).\n") % 
-		entityID() % id() % totalSentBytes_ % this->totalBytes() % 
-		(((float)totalSentBytes_ / (float)this->totalBytes()) * 100.0f) % datasize % type());
+	DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({:.2f}%).\n",
+		entityID(), id(), totalSentBytes_, this->totalBytes(), 
+		(((float)totalSentBytes_ / (float)this->totalBytes()) * 100.0f), datasize, type()));
 
 	if(currSent_ == remainSent_)
 	{
-		DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread-continue.\n") 
-			% entityID() % id() % type());
+		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread-continue.\n",
+			entityID(), id(), type()));
 
 		return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 	}
@@ -250,8 +250,8 @@ bool FileDataDownload::process()
 	ResourceObjectPtr fptr = Resmgr::getSingleton().openResource(path_.c_str(), "rb");
 	if(fptr == NULL || !fptr->valid())
 	{
-		ERROR_MSG(boost::format("FileDataDownload::process(): can't open %1%.\n") % 
-			Resmgr::getSingleton().matchRes(path_).c_str());
+		ERROR_MSG(fmt::format("FileDataDownload::process(): can't open {}.\n", 
+			Resmgr::getSingleton().matchRes(path_).c_str()));
 		
 		error_ = true;
 		return false;

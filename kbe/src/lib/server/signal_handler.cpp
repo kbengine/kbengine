@@ -69,7 +69,7 @@ SignalHandlers g_signalHandlers;
 
 void signalHandler(int signum)
 {
-	DEBUG_MSG(boost::format("SignalHandlers: receive sigNum %1%.\n") % SIGNAL_NAMES[signum]);
+	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL_NAMES[signum]));
 	g_signalHandlers.onSignalled(signum);
 };
 
@@ -155,13 +155,13 @@ bool SignalHandlers::process()
 			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
 			if(iter1 == singnalHandlerMap_.end())
 			{
-				DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% unhandled, singnalHandlerMap(%2%).\n") % 
-					SIGNAL_NAMES[sigNum] % singnalHandlerMap_.size());
+				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
+					SIGNAL_NAMES[sigNum], singnalHandlerMap_.size()));
 				continue;
 			}
 			
-			DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% handle.\n") % SIGNAL_NAMES[sigNum]);
-			iter1->second->onSignalled(sigNum);
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL_NAMES[sigNum]));
+				iter1->second->onSignalled(sigNum);
 		}
 
 		signalledVec_.clear();

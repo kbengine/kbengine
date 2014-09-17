@@ -142,8 +142,8 @@ bool Componentbridge::findInterfaces()
 			int8 findComponentType = findComponentTypes_[findIdx_];
 
 			static int count = 0;
-			INFO_MSG(boost::format("Componentbridge::process: finding %1%(%2%)...\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % ++count);
+			INFO_MSG(fmt::format("Componentbridge::process: finding {}({})...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			
 			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 			if(!bhandler.good())
@@ -194,8 +194,8 @@ RESTART_RECV:
 					
 					if(args.componentIDEx != componentID_)
 					{
-						WARNING_MSG(boost::format("Componentbridge::process: msg.componentID %1% != %2%.\n") % 
-							args.componentIDEx % componentID_);
+						WARNING_MSG(fmt::format("Componentbridge::process: msg.componentID {} != {}.\n", 
+							args.componentIDEx, componentID_));
 						
 						args.componentIDEx = 0;
 						goto RESTART_RECV;
@@ -208,10 +208,10 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
-						inet_ntoa((struct in_addr&)args.intaddr) %
-						ntohs(args.intport));
+					INFO_MSG(fmt::format("Componentbridge::process: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+						inet_ntoa((struct in_addr&)args.intaddr),
+						ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
@@ -230,8 +230,8 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+							ERROR_MSG(fmt::format("Componentbridge::register self to {} is error!\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
 							return false;
@@ -271,8 +271,8 @@ RESTART_RECV:
 						}
 						else if(findComponentType == helperComponentType)
 						{
-							WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+							WARNING_MSG(fmt::format("Componentbridge::process: not found {}!\n",
+								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 							findComponentTypes_[findIdx_] = -1; // Ìø¹ý±êÖ¾
 							count = 0;
@@ -307,13 +307,13 @@ RESTART_RECV:
 				return false;
 			}
 
-			INFO_MSG(boost::format("Componentbridge::process: register self to %1%...\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+			INFO_MSG(fmt::format("Componentbridge::process: register self to {}...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 			if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				ERROR_MSG(fmt::format("Componentbridge::register self to {} is error!\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;
 			}

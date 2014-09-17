@@ -197,8 +197,8 @@ const char * reasonToString(Reason reason)
 			if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
 															&& retries <= 3)							\
 			{																							\
-				WARNING_MSG(fmt::format("%s: "															\
-					"Transmit queue full, waiting for space... (%d)\n",									\
+				WARNING_MSG(fmt::format("{}: "															\
+					"Transmit queue full, waiting for space... ({})\n",									\
 					__FUNCTION__, retries));															\
 																										\
 				KBEngine::sleep(10);																	\

@@ -39,7 +39,7 @@ ResourceObject::~ResourceObject()
 {
 	if(Resmgr::respool_timeout > 0)
 	{
-		DEBUG_MSG(boost::format("ResourceObject::~ResourceObject(): %1%\n") % resName_);
+		DEBUG_MSG(fmt::format("ResourceObject::~ResourceObject(): {}\n", resName_));
 	}
 }
 
@@ -64,7 +64,7 @@ ResourceObject(res, flags)
 	if(fd_ == NULL)
 	{
 		invalid_ = true;
-		ERROR_MSG(boost::format("FileObject::FileObject(): open(%1%) %2% error!\n") % model % resName_);
+		ERROR_MSG(fmt::format("FileObject::FileObject(): open({}) {} error!\n", model, resName_));
 	}
 }
 
@@ -79,7 +79,7 @@ bool FileObject::seek(uint32 idx, int flags)
 {
 	if(invalid_ || fd_ == NULL)
 	{
-		ERROR_MSG(boost::format("FileObject::seek: %1% invalid!\n") % resName_);
+		ERROR_MSG(fmt::format("FileObject::seek: {} invalid!\n", resName_));
 		return false;
 	}
 
@@ -92,7 +92,7 @@ uint32 FileObject::read(char* buf, uint32 limit)
 {
 	if(invalid_ || fd_ == NULL)
 	{
-		ERROR_MSG(boost::format("FileObject::read: %1% invalid!\n") % resName_);
+		ERROR_MSG(fmt::format("FileObject::read: {} invalid!\n", resName_));
 		return 0;
 	}
 
@@ -105,7 +105,7 @@ uint32 FileObject::tell()
 {
 	if(invalid_ || fd_ == NULL)
 	{
-		ERROR_MSG(boost::format("FileObject::tell: %1% invalid!\n") % resName_);
+		ERROR_MSG(fmt::format("FileObject::tell: {} invalid!\n", resName_));
 		return 0;
 	}
 

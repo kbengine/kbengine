@@ -130,27 +130,13 @@ public:
 	Mercury:: EventDispatcher* pDispatcher()const{ return pDispatcher_; }
 	Mercury:: NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
-	void print_msg(boost::format& fmt);
 	void print_msg(const std::string& s);
-
-	void debug_msg(boost::format& fmt);
 	void debug_msg(const std::string& s);
-
-	void error_msg(boost::format& fmt);
 	void error_msg(const std::string& s);
-
-	void info_msg(boost::format& fmt);
 	void info_msg(const std::string& s);
-
-	void warning_msg(boost::format& fmt);
 	void warning_msg(const std::string& s);
-
-	void critical_msg(boost::format& fmt);
 	void critical_msg(const std::string& s);
-	
-	void script_msg(boost::format& fmt);
 	void script_msg(const std::string& s);
-
 	void backtrace_msg();
 
 	void onMessage(uint32 logType, const char * str, uint32 length);

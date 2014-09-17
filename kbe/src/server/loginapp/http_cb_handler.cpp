@@ -50,8 +50,8 @@ clients_()
 	if (pEndPoint_->bind(htons(g_kbeSrvConfig.getLoginApp().http_cbport), 
 		Loginapp::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
-		ERROR_MSG(boost::format("HTTPCBHandler::bind(%1%): \n") %
-			 kbe_strerror());
+		ERROR_MSG(fmt::format("HTTPCBHandler::bind({}): \n",
+			 kbe_strerror()));
 
 		pEndPoint_->close();
 		return;
@@ -59,8 +59,8 @@ clients_()
 
 	if(pEndPoint_->listen() == -1)
 	{
-		ERROR_MSG(boost::format("HTTPCBHandler::listeningSocket(%1%): \n") %
-			 kbe_strerror());
+		ERROR_MSG(fmt::format("HTTPCBHandler::listeningSocket({}): \n",
+			 kbe_strerror()));
 
 		pEndPoint_->close();
 		return;
@@ -70,9 +70,9 @@ clients_()
 
 	Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*pEndPoint_, this);
 
-	INFO_MSG(boost::format("HTTPCBHandler::bind: %1%:%2%\n") %
-		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip) % 
-		g_kbeSrvConfig.getLoginApp().http_cbport);
+	INFO_MSG(fmt::format("HTTPCBHandler::bind: {}:{}\n",
+		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+		g_kbeSrvConfig.getLoginApp().http_cbport));
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,12 +95,12 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(newclient == NULL)
 		{
-			ERROR_MSG(boost::format("HTTPCBHandler::handleInputNotification: accept is error:%1%.\n") % kbe_strerror());
+			ERROR_MSG(fmt::format("HTTPCBHandler::handleInputNotification: accept is error:{}.\n", kbe_strerror()));
 			return 0;
 		}
 
-		INFO_MSG(boost::format("HTTPCBHandler:handleInputNotification: newclient = %1%\n") %
-			newclient->c_str());
+		INFO_MSG(fmt::format("HTTPCBHandler:handleInputNotification: newclient = {}\n",
+			newclient->c_str()));
 		
 		newclient->setnonblocking(true);
 		CLIENT& client = clients_[*newclient];
@@ -113,8 +113,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		std::map< int, CLIENT >::iterator iter = clients_.find(fd);
 		if(iter == clients_.end())
 		{
-			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: fd(%1%) not found!\n") %
-				fd);
+			ERROR_MSG(fmt::format("HTTPCBHandler:handleInputNotification: fd({}) not found!\n",
+				fd));
 			return 0;
 		}
 
@@ -126,8 +126,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(len <= 0)
 		{
-			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: recv error, newclient = %1%, recv=%2%.\n") %
-				newclient->c_str() % len);
+			ERROR_MSG(fmt::format("HTTPCBHandler:handleInputNotification: recv error, newclient = {}, recv={}.\n",
+				newclient->c_str(), len));
 		
 			if(len == 0)
 			{
@@ -210,8 +210,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(code.size() > 0)
 		{
-			INFO_MSG(boost::format("HTTPCBHandler:handleInputNotification: code = %1%\n") %
-				code.c_str());
+			INFO_MSG(fmt::format("HTTPCBHandler:handleInputNotification: code = {}\n",
+				code.c_str()));
 
 			client.code = code;
 
@@ -321,16 +321,16 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 			if(hellomessage.size() > 0 && client.state < 2)
 			{
-				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", (boost::format("http://%1%:%2%/%3%%4%") % 
-					Loginapp::getSingleton().networkInterface().extaddr().ipAsString() %
-					g_kbeSrvConfig.getLoginApp().http_cbport %
-					keys %
-					code).str());
+				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", fmt::format("http://{}:{}/{}{}", 
+					Loginapp::getSingleton().networkInterface().extaddr().ipAsString(),
+					g_kbeSrvConfig.getLoginApp().http_cbport,
+					keys,
+					code));
 
 				KBEngine::strutil::kbe_replace(hellomessage, "${code}", code);
 
-				std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
-					hellomessage.size() % hellomessage).str();
+				std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+					hellomessage.size(), hellomessage);
 
 				newclient->send(response.c_str(), response.size());
 			}
@@ -368,8 +368,8 @@ void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message;
 
-			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
-				message.size() % message).str();
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
 		}
@@ -394,8 +394,8 @@ void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailBindInfo_.backlink_fail_message;
 
-			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
-				message.size() % message).str();
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
 		}
@@ -420,8 +420,8 @@ void HTTPCBHandler::onAccountResetPassword(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_fail_message;
 
-			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
-				message.size() % message).str();
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
 		}

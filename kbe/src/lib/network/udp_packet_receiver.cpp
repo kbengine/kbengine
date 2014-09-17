@@ -47,8 +47,8 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 //-------------------------------------------------------------------------------------
 void UDPPacketReceiver::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("UDPPacketReceiver::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("UDPPacketReceiver::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -98,8 +98,8 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 
 		if(!pNetworkInterface_->registerChannel(pSrcChannel))
 		{
-			ERROR_MSG(boost::format("UDPPacketReceiver::processSocket:registerChannel(%1%) is failed!\n") %
-				pSrcChannel->c_str());
+			ERROR_MSG(fmt::format("UDPPacketReceiver::processSocket:registerChannel({}) is failed!\n",
+				pSrcChannel->c_str()));
 
 			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
 			pSrcChannel->destroy();
@@ -143,9 +143,9 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 {
 	if (len == 0)
 	{
-		WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
-			"Throwing REASON_GENERAL_NETWORK (1)- %1%\n") %
-			strerror( errno ) );
+		WARNING_MSG(fmt::format("PacketReceiver::processPendingEvents: "
+			"Throwing REASON_GENERAL_NETWORK (1)- {}\n",
+			strerror( errno )));
 
 		this->dispatcher().errorReporter().reportException(
 				REASON_GENERAL_NETWORK );
@@ -212,13 +212,13 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-				wsaErr);
+	WARNING_MSG(fmt::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+				wsaErr));
 #else
-	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-			kbe_strerror());
+	WARNING_MSG(fmt::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

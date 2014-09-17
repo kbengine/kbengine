@@ -576,8 +576,8 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n")
-			% utype % id_ % this->scriptName());
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n"
+			, utype, id_, this->scriptName()));
 
 		return;
 	}
@@ -596,8 +596,8 @@ void Entity::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStre
 	{
 		if(!md->isExposed())
 		{
-			ERROR_MSG(boost::format("%3%::onRemoteMethodCall: %1% not is exposed, call is illegal! entityID:%2%.\n") %
-				md->getName() % this->id() % this->scriptName());
+			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! entityID:{1}.\n",
+				md->getName(), this->id(), this->scriptName()));
 
 			s.opfini();
 			return;
@@ -605,8 +605,8 @@ void Entity::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStre
 	}
 	else
 	{
-		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n")
-			% utype % id_ % this->scriptName());
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n",
+			utype, id_, this->scriptName()));
 
 		return;
 	}
@@ -621,8 +621,8 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 
 	if (isDestroyed())
 	{
-		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %
-			scriptName() % id());
+		ERROR_MSG(fmt::format("{}::onRemoteMethodCall: {} is destroyed!\n",
+			scriptName(), id()));
 
 		s.opfini();
 		return;
@@ -630,16 +630,16 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("%2%::onRemoteMethodCall: can't found method, callerID:%1%.\n")
-			% id_ % this->scriptName());
+		ERROR_MSG(fmt::format("{1}::onRemoteMethodCall: can't found method, callerID:{0}.\n",
+			id_, this->scriptName()));
 
 		return;
 	}
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") %
-			id_ % md->getName() % md->getUType() % this->scriptName());
+		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n",
+			id_, md->getName(), md->getUType(), this->scriptName()));
 	}
 
 	md->currCallerID(this->id());
@@ -693,7 +693,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 		PropertyDescription* propertyDescription = iter->second;
 		if((flags & propertyDescription->getFlags()) > 0)
 		{
-			// DEBUG_MSG(boost::format("Entity::addCellDataToStream: %1%.\n") % propertyDescription->getName());
+			// DEBUG_MSG(fmt::format("Entity::addCellDataToStream: {}.\n", propertyDescription->getName()));
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 
 			if(useAliasID && scriptModule_->usePropertyDescrAlias())
@@ -707,8 +707,8 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 
 			if(!propertyDescription->getDataType()->isSameType(pyVal))
 			{
-				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->scriptName() % 
-					propertyDescription->getName() % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+				ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(), 
+					propertyDescription->getName(), pyVal->ob_type->tp_name, propertyDescription->getDataType()->getName()));
 				
 				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
 				propertyDescription->getDataType()->addToStream(mstream, pydefval);
@@ -722,8 +722,8 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 			if (PyErr_Occurred())
  			{	
 				PyErr_PrintEx(0);
-				DEBUG_MSG(boost::format("%1%::addCellDataToStream: %2% is error!\n") % this->scriptName() % 
-					propertyDescription->getName());
+				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} is error!\n", this->scriptName(),
+					propertyDescription->getName()));
 			}
 		}
 	}
@@ -754,8 +754,8 @@ void Entity::backupCellData()
 	}
 	else
 	{
-		WARNING_MSG(boost::format("Entity::backupCellData(): %1% %2% has no base!\n") % 
-			this->scriptName() % this->id());
+		WARNING_MSG(fmt::format("Entity::backupCellData(): {} {} has no base!\n", 
+			this->scriptName(), this->id()));
 	}
 
 	SCRIPT_ERROR_CHECK();
@@ -790,8 +790,8 @@ void Entity::onWriteToDB()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	DEBUG_MSG(boost::format("%1%::onWriteToDB(): %2%.\n") % 
-		this->scriptName() % this->id());
+	DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
+		this->scriptName(), this->id()));
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"));
 }
@@ -896,16 +896,16 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 {
 	if(range_xz <= 0.0f || (CoordinateSystem::hasY && range_y <= 0.0f))
 	{
-		ERROR_MSG(boost::format("Entity::addProximity: range(xz=%1%, y=%2%) <= 0.0f! entity[%3%:%4%]\n") % 
-			range_xz % range_y % scriptName() % id());
+		ERROR_MSG(fmt::format("Entity::addProximity: range(xz={}, y={}) <= 0.0f! entity[{}:{}]\n", 
+			range_xz, range_y, scriptName(), id()));
 
 		return 0;
 	}
 	
 	if(this->pEntityCoordinateNode() == NULL || this->pEntityCoordinateNode()->pCoordinateSystem() == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::addProximity: %1%(%2%) not in world!\n") % 
-			scriptName() % id());
+		ERROR_MSG(fmt::format("Entity::addProximity: {}({}) not in world!\n", 
+			scriptName(), id()));
 
 		return 0;
 	}
@@ -971,8 +971,8 @@ void Entity::cancelController(uint32 id)
 
 	if(!pControllers_->remove(id))
 	{
-		ERROR_MSG(boost::format("%1%::cancel: %2% not found %3%.\n") % 
-			this->scriptName() % this->id() % id);
+		ERROR_MSG(fmt::format("{}::cancel: {} not found {}.\n", 
+			this->scriptName(), this->id(), id));
 	}
 }
 
@@ -1394,8 +1394,8 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Entity::onResetWitness(Mercury::Channel* pChannel)
 {
-	INFO_MSG(boost::format("%1%::onResetWitness: %2%.\n") % 
-		this->scriptName() % this->id());
+	INFO_MSG(fmt::format("{}::onResetWitness: {}.\n", 
+		this->scriptName(), this->id()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1493,12 +1493,12 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		float ydist = fabs(movment.y);
 		movment.y = 0.f;
 
-		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), (xzDist=%9%)>(topSpeed=%10%) || (yDist=%11%)>(topSpeedY=%12%)] invalid. reset client!\n") % 
-			this->scriptName() % this->id() %
-			this->position().x % this->position().y % this->position().z %
-			pos.x % pos.y % pos.z %
-			movment.length() % topSpeed_ %
-			ydist % topSpeedY_);
+		DEBUG_MSG(fmt::format("{}::onUpdateDataFromClient: {} position[({},{},{}) -> ({},{},{}), (xzDist={})>(topSpeed={}) || (yDist={})>(topSpeedY={})] invalid. reset client!\n", 
+			this->scriptName(), this->id(),
+			this->position().x, this->position().y, this->position().z,
+			pos.x, pos.y, pos.z,
+			movment.length(), topSpeed_,
+			ydist, topSpeedY_));
 		
 		// this->position(currpos);
 
@@ -1583,16 +1583,16 @@ int Entity::raycast(int layer, const Position3D& start, const Position3D& end, s
 	Space* pSpace = Spaces::findSpace(spaceID());
 	if(pSpace == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::raycast: not found space(%1%), entityID(%2%)!\n") % 
-			spaceID() % id());
+		ERROR_MSG(fmt::format("Entity::raycast: not found space({}), entityID({})!\n", 
+			spaceID(), id()));
 
 		return -1;
 	}
 	
 	if(pSpace->pNavHandle() == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::raycast: space(%1%) not addSpaceGeometryMapping!\n") % 
-			spaceID() % id());
+		ERROR_MSG(fmt::format("Entity::raycast: space({}) not addSpaceGeometryMapping!\n", 
+			spaceID(), id()));
 
 		return -1;
 	}
@@ -1941,12 +1941,12 @@ void Entity::debugAOI()
 {
 	if(pWitness_ == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::debugAOI: %2% has no witness!\n") % scriptName() % this->id());
+		ERROR_MSG(fmt::format("{}::debugAOI: {} has no witness!\n", scriptName(), this->id()));
 		return;
 	}
 	
-	INFO_MSG(boost::format("%1%::debugAOI: %2% size=%3%\n") % scriptName() % this->id() % 
-		pWitness_->aoiEntities().size());
+	INFO_MSG(fmt::format("{}::debugAOI: {} size={}\n", scriptName(), this->id(), 
+		pWitness_->aoiEntities().size()));
 
 	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
 	for(; iter != pWitness_->aoiEntities().end(); iter++)
@@ -1962,13 +1962,13 @@ void Entity::debugAOI()
 			dist = KBEVec3Length(&distvec);
 		}
 
-		INFO_MSG(boost::format("%8%::debugAOI: %1% %2%(%3%), position(%4%.%5%.%6%), dist=%7%\n") % 
-			this->id() % 
-			(pEntity != NULL ? pEntity->scriptName() : "unknown") % 
-			(*iter)->id() % 
-			epos.x % epos.y % epos.z %
-			dist % 
-			this->scriptName());
+		INFO_MSG(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}\n", 
+			this->id(), 
+			(pEntity != NULL ? pEntity->scriptName() : "unknown"),
+			(*iter)->id(),
+			epos.x, epos.y, epos.z,
+			dist,
+			this->scriptName()));
 	}
 }
 
@@ -2185,8 +2185,8 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 //-------------------------------------------------------------------------------------
 void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
 {
-	DEBUG_MSG(boost::format("%1%::teleportFromBaseapp: %2%, targetEntityID=%3%, cell=%4%, sourceBaseAppID=%5%.\n") % 
-		this->scriptName() % this->id() % targetEntityID % cellAppID % sourceBaseAppID);
+	DEBUG_MSG(fmt::format("{}::teleportFromBaseapp: {}, targetEntityID={}, cell={}, sourceBaseAppID={}.\n", 
+		this->scriptName(), this->id(), targetEntityID, cellAppID, sourceBaseAppID));
 	
 	SPACE_ID lastSpaceID = this->spaceID();
 
@@ -2196,8 +2196,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellAppID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, teleport is error, not found cellapp, targetEntityID, cellAppID=%3%.\n") %
-				this->scriptName() % this->id() % targetEntityID % cellAppID);
+			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, teleport is error, not found cellapp, targetEntityID, cellAppID={}.\n",
+				this->scriptName(), this->id(), targetEntityID, cellAppID));
 
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
 			return;
@@ -2210,8 +2210,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		Entity* entity = Cellapp::getSingleton().findEntity(targetEntityID);
 		if(entity == NULL || entity->isDestroyed())
 		{
-			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found targetEntity(%3%).\n") %
-				this->scriptName() % this->id() % targetEntityID);
+			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found targetEntity({}).\n",
+				this->scriptName(), this->id(), targetEntityID));
 
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
 			return;
@@ -2226,8 +2226,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			Space* space = Spaces::findSpace(spaceID);
 			if(space == NULL)
 			{
-				ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found space(%3%).\n") %
-					this->scriptName() % this->id() % spaceID);
+				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
+					this->scriptName(), this->id(), spaceID));
 
 				_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
 				return;
@@ -2240,8 +2240,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		}
 		else
 		{
-			WARNING_MSG(boost::format("%1%::teleportFromBaseapp: %2% targetSpace(%3%) == currSpaceID(%4%).\n") %
-				this->scriptName() % this->id() % spaceID % this->spaceID());
+			WARNING_MSG(fmt::format("{}::teleportFromBaseapp: {} targetSpace({}) == currSpaceID({}).\n",
+				this->scriptName(), this->id(), spaceID, this->spaceID()));
 
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, spaceID, lastSpaceID, false);
 		}
@@ -2557,8 +2557,8 @@ void Entity::onTeleport()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportFailure()
 {
-	ERROR_MSG(boost::format("%1%::onTeleportFailure(): entityID=%2%\n") % 
-		this->scriptName() % id());
+	ERROR_MSG(fmt::format("{}::onTeleportFailure(): entityID={}\n", 
+		this->scriptName(), id()));
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -2686,21 +2686,21 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 	PropertyDescription* pPropertyDescription = scriptModule()->findCellPropertyDescription(utype);
 	if(pPropertyDescription == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::onUpdateGhostPropertys: not found propertyID(%2%), entityID(%3%)\n") % 
-			scriptName() % utype % id());
+		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: not found propertyID({}), entityID({})\n", 
+			scriptName(), utype, id()));
 
 		s.opfini();
 		return;
 	}
 
-	DEBUG_MSG(boost::format("%1%::onUpdateGhostPropertys: property(%2%), entityID(%3%)\n") % 
-		scriptName() % pPropertyDescription->getName() % id());
+	DEBUG_MSG(fmt::format("{}::onUpdateGhostPropertys: property({}), entityID({})\n", 
+		scriptName(), pPropertyDescription->getName(), id()));
 
 	PyObject* pyVal = pPropertyDescription->createFromStream(&s);
 	if(pyVal == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::onUpdateGhostPropertys: entityID=%2%, create(%3%) is error!\n") % 
-			scriptName() % id() % pPropertyDescription->getName());
+		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: entityID={}, create({}) is error!\n", 
+			scriptName(), id(), pPropertyDescription->getName()));
 
 		s.opfini();
 		return;
@@ -2721,8 +2721,8 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 	MethodDescription* pMethodDescription = scriptModule()->findCellMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::onRemoteRealMethodCall: not found propertyID(%2%), entityID(%3%)\n") % 
-			scriptName() % utype % id());
+		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found propertyID({}), entityID({})\n", 
+			scriptName(), utype, id()));
 
 		s.opfini();
 		return;
@@ -2734,8 +2734,8 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::onUpdateGhostVolatileData(KBEngine::MemoryStream& s)
 {
-	DEBUG_MSG(boost::format("%1%::onUpdateGhostVolatileData: entityID(%3%)\n") % 
-		scriptName() % id());
+	DEBUG_MSG(fmt::format("{}::onUpdateGhostVolatileData: entityID({})\n", 
+		scriptName(), id()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -2757,8 +2757,8 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 		gm->addRoute(id(), realCell_);
 	}
 
-	DEBUG_MSG(boost::format("%1%::changeToGhost(): %2%, realCell=%3%.\n") % 
-		scriptName() % id() % realCell);
+	DEBUG_MSG(fmt::format("{}::changeToGhost(): {}, realCell={}.\n", 
+		scriptName(), id(), realCell));
 	
 	// 必须放在前面
 	addToStream(s);
@@ -2795,8 +2795,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	ghostCell_ = ghostCell;
 	realCell_ = 0;
 
-	DEBUG_MSG(boost::format("%1%::changeToReal(): %2%, ghostCell=%3%.\n") % 
-		scriptName() % id() % ghostCell_);
+	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n", 
+		scriptName(), id(), ghostCell_));
 
 	createFromStream(s);
 }

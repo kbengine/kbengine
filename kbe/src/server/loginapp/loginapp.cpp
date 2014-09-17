@@ -199,7 +199,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 
 	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
-		WARNING_MSG(boost::format("Loginapp::_createAccount(%1%): not available!\n") % accountName);
+		WARNING_MSG(fmt::format("Loginapp::_createAccount({}): not available!\n", accountName));
 
 		std::string retdatas = "";
 		Mercury::Bundle bundle;
@@ -216,24 +216,24 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::_createAccount: accountName too big, size=%1%, limit=%2%.\n") %
-			accountName.size() % ACCOUNT_NAME_MAX_LENGTH);
+		ERROR_MSG(fmt::format("Loginapp::_createAccount: accountName too big, size={}, limit={}.\n",
+			accountName.size(), ACCOUNT_NAME_MAX_LENGTH));
 
 		return false;
 	}
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::_createAccount: password too big, size=%1%, limit=%2%.\n") %
-			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+		ERROR_MSG(fmt::format("Loginapp::_createAccount: password too big, size={}, limit={}.\n",
+			password.size(), ACCOUNT_PASSWD_MAX_LENGTH));
 
 		return false;
 	}
 
 	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::_createAccount: bindatas too big, size=%1%, limit=%2%.\n") %
-			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
+		ERROR_MSG(fmt::format("Loginapp::_createAccount: bindatas too big, size={}, limit={}.\n",
+			datas.size(), ACCOUNT_DATA_MAX_LENGTH));
 
 		return false;
 	}
@@ -241,7 +241,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	std::string retdatas = "";
 	if(shuttingdown_)
 	{
-		WARNING_MSG(boost::format("Loginapp::_createAccount: shutting down, create %1% failed!\n") % accountName);
+		WARNING_MSG(fmt::format("Loginapp::_createAccount: shutting down, create {} failed!\n", accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -255,8 +255,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.find(const_cast<std::string&>(accountName));
 	if(ptinfos != NULL)
 	{
-		WARNING_MSG(boost::format("Loginapp::_createAccount: pendingCreateMgr has %1%, request create failed!\n") % 
-			accountName);
+		WARNING_MSG(fmt::format("Loginapp::_createAccount: pendingCreateMgr has {}, request create failed!\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -277,8 +277,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 		{
 			if(!validName(accountName))
 			{
-				ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
-					accountName);
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
+					accountName));
 
 				Mercury::Bundle bundle;
 				bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -296,8 +296,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	{
 		if(!validName(accountName))
 		{
-			ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
-				accountName);
+			ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
+				accountName));
 
 			Mercury::Bundle bundle;
 			bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -315,8 +315,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
         user_name = regex_replace(accountName, _g_mail_pattern, std::string("$1") );
         domain_name = regex_replace(accountName, _g_mail_pattern, std::string("$2") );
 		*/
-		WARNING_MSG(boost::format("Loginapp::_createAccount: invalid mail=%1%\n") % 
-			accountName);
+		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid mail={}\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -327,8 +327,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 		return false;
     }
 
-	DEBUG_MSG(boost::format("Loginapp::_createAccount: accountName=%1%, passwordsize=%2%, type=%3%, oldType=%4%.\n") %
-		accountName.c_str() % password.size() % type % oldType);
+	DEBUG_MSG(fmt::format("Loginapp::_createAccount: accountName={}, passwordsize={}, type={}, oldType={}.\n",
+		accountName.c_str(), password.size(), type, oldType));
 
 	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
@@ -345,8 +345,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Loginapp::_createAccount: create(%1%), not found dbmgr!\n") % 
-			accountName);
+		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -388,8 +388,8 @@ void Loginapp::reqCreateMailAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	s >> accountName >> password;
 	s.readBlob(datas);
 
-	DEBUG_MSG(boost::format("Loginapp::reqCreateMailAccount: accountName=%1%, passwordsize=%2%.\n") %
-		accountName.c_str() % password.size());
+	DEBUG_MSG(fmt::format("Loginapp::reqCreateMailAccount: accountName={}, passwordsize={}.\n",
+		accountName.c_str(), password.size()));
 
 	if(!_createAccount(pChannel, accountName, password, datas, ACCOUNT_TYPE_MAIL))
 		return;
@@ -406,8 +406,8 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream
 	s >> failedcode >> accountName >> password;
 	s.readBlob(retdatas);
 
-	DEBUG_MSG(boost::format("Loginapp::onReqCreateAccountResult: accountName=%1%, failedcode=%2%.\n") %
-		accountName.c_str() % failedcode);
+	DEBUG_MSG(fmt::format("Loginapp::onReqCreateAccountResult: accountName={}, failedcode={}.\n",
+		accountName.c_str(), failedcode));
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.remove(accountName);
 	if(ptinfos == NULL)
@@ -440,8 +440,8 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 	s >> failedcode >> accountName >> password;
 	s.readBlob(retdatas);
 
-	DEBUG_MSG(boost::format("Loginapp::onReqCreateMailAccountResult: accountName=%1%, failedcode=%2%.\n") %
-		accountName.c_str() % failedcode);
+	DEBUG_MSG(fmt::format("Loginapp::onReqCreateMailAccountResult: accountName={}, failedcode={}.\n",
+		accountName.c_str(), failedcode));
 
 	if(failedcode == SERVER_SUCCESS)
 	{
@@ -499,7 +499,7 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success)
 {
-	DEBUG_MSG(boost::format("Loginapp::onAccountActivated: code=%1%, success=%2%\n") % code % success);
+	DEBUG_MSG(fmt::format("Loginapp::onAccountActivated: code={}, success={}\n", code, success));
 	if(!pHttpCBHandler)
 	{
 		WARNING_MSG("Loginapp::onAccountActivated: pHttpCBHandler is NULL!\n");
@@ -512,7 +512,7 @@ void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code,
 //-------------------------------------------------------------------------------------
 void Loginapp::onAccountBindedEmail(Mercury::Channel* pChannel, std::string& code, bool success)
 {
-	DEBUG_MSG(boost::format("Loginapp::onAccountBindedEmail: code=%1%, success=%2%\n") % code % success);
+	DEBUG_MSG(fmt::format("Loginapp::onAccountBindedEmail: code={}, success={}\n", code, success));
 	if(!pHttpCBHandler)
 	{
 		WARNING_MSG("Loginapp::onAccountBindedEmail: pHttpCBHandler is NULL!\n");
@@ -525,7 +525,7 @@ void Loginapp::onAccountBindedEmail(Mercury::Channel* pChannel, std::string& cod
 //-------------------------------------------------------------------------------------
 void Loginapp::onAccountResetPassword(Mercury::Channel* pChannel, std::string& code, bool success)
 {
-	DEBUG_MSG(boost::format("Loginapp::onAccountResetPassword: code=%1%, success=%2%\n") % code % success);
+	DEBUG_MSG(fmt::format("Loginapp::onAccountResetPassword: code={}, success={}\n", code, success));
 	if(!pHttpCBHandler)
 	{
 		WARNING_MSG("Loginapp::onAccountResetPassword: pHttpCBHandler is NULL!\n");
@@ -541,8 +541,8 @@ void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& 
 	AUTO_SCOPED_PROFILE("reqAccountResetPassword");
 
 	accountName = KBEngine::strutil::kbe_trim(accountName);
-	INFO_MSG(boost::format("Loginapp::reqAccountResetPassword: accountName(%1%)\n") %
-		accountName);
+	INFO_MSG(fmt::format("Loginapp::reqAccountResetPassword: accountName({})\n",
+		accountName));
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -552,8 +552,8 @@ void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& 
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Loginapp::_createAccount: create(%1%), not found dbmgr!\n") % 
-			accountName);
+		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
+			accountName));
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onReqAccountResetPasswordCB);
@@ -583,8 +583,8 @@ void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& 
 void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
-	INFO_MSG(boost::format("Loginapp::onReqAccountResetPasswordCB: %1%, email=%2%, failedcode=%3%!\n") % 
-		accountName % email % failedcode);
+	INFO_MSG(fmt::format("Loginapp::onReqAccountResetPasswordCB: {}, email={}, failedcode={}!\n", 
+		accountName, email, failedcode));
 
 	if(failedcode == SERVER_SUCCESS)
 	{
@@ -653,8 +653,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(loginName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		INFO_MSG(boost::format("Loginapp::login: loginName is too long, size=%1%, limit=%2%.\n") %
-			loginName.size() % ACCOUNT_NAME_MAX_LENGTH);
+		INFO_MSG(fmt::format("Loginapp::login: loginName is too long, size={}, limit={}.\n",
+			loginName.size(), ACCOUNT_NAME_MAX_LENGTH));
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
 		return;
@@ -662,8 +662,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		INFO_MSG(boost::format("Loginapp::login: password is too long, size=%1%, limit=%2%.\n") %
-			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+		INFO_MSG(fmt::format("Loginapp::login: password is too long, size={}, limit={}.\n",
+			password.size(), ACCOUNT_PASSWD_MAX_LENGTH));
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_PASSWORD, datas);
 		return;
@@ -671,8 +671,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	
 	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
 	{
-		INFO_MSG(boost::format("Loginapp::login: bindatas is too long, size=%1%, limit=%2%.\n") %
-			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
+		INFO_MSG(fmt::format("Loginapp::login: bindatas is too long, size={}, limit={}.\n",
+			datas.size(), ACCOUNT_DATA_MAX_LENGTH));
 		
 		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas);
 		return;
@@ -687,8 +687,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 		if(clientDigest != digest_)
 		{
-			INFO_MSG(boost::format("Loginapp::login: loginName(%1%), digest not match. curr(%2%) != dbmgr(%3%)\n") %
-				loginName % clientDigest % digest_);
+			INFO_MSG(fmt::format("Loginapp::login: loginName({}), digest not match. curr({}) != dbmgr({})\n",
+				loginName, clientDigest, digest_));
 
 			datas = "";
 			_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
@@ -719,7 +719,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(shuttingdown_)
 	{
-		INFO_MSG(boost::format("Loginapp::login: shutting down, %1% login failed!\n") % loginName);
+		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
 
 		datas = "";
 		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
@@ -728,7 +728,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(initProgress_ < 1.f)
 	{
-		datas = (boost::format("initProgress: %1%") % initProgress_).str();
+		datas = fmt::format("initProgress: {}", initProgress_);
 		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas);
 		return;
 	}
@@ -834,8 +834,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	s.readBlob(datas);
 
-	//DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryResultFromDbmgr: loginName=%1%.\n") %
-	//	loginName);
+	//DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryResultFromDbmgr: loginName={}.\n",
+	//	loginName));
 
 	if((flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
@@ -921,8 +921,8 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	
 	if(addr == 0)
 	{
-		ERROR_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName=%1%, not found baseapp.\n") % 
-			loginName);
+		ERROR_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={}, not found baseapp.\n", 
+			loginName));
 		
 		std::string datas;
 		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
@@ -984,8 +984,8 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 		}
 		else
 		{
-			WARNING_MSG(boost::format("Loginapp::onHello: client is not encrypted, addr=%1%\n") 
-				% pChannel->c_str());
+			WARNING_MSG(fmt::format("Loginapp::onHello: client is not encrypted, addr={}\n"
+				, pChannel->c_str()));
 		}
 	}
 }
@@ -1117,8 +1117,8 @@ void Loginapp::importServerErrorsDescr(Mercury::Channel* pChannel)
 
 		if(!xml->isGood())
 		{
-			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-				"server/server_errors.xml");
+			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+				"server/server_errors.xml"));
 
 			SAFE_RELEASE(xml);
 			return;
@@ -1156,8 +1156,8 @@ void Loginapp::onBaseappInitProgress(Mercury::Channel* pChannel, float progress)
 {
 	if(progress > 1.f)
 	{
-		INFO_MSG(boost::format("Loginapp::onBaseappInitProgress: progress=%1%.\n") % 
-			(progress > 1.f ? 1.f : progress));
+		INFO_MSG(fmt::format("Loginapp::onBaseappInitProgress: progress={}.\n", 
+			(progress > 1.f ? 1.f : progress)));
 	}
 
 	initProgress_ = progress;

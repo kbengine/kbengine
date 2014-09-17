@@ -185,13 +185,13 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-				wsaErr);
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+				wsaErr));
 #else
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-			kbe_strerror());
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

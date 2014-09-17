@@ -64,10 +64,10 @@ void CoordinateNode::update()
 //-------------------------------------------------------------------------------------
 void CoordinateNode::c_str()
 {
-	DEBUG_MSG(boost::format("CoordinateNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% pPreZ=%10% pNextZ=%11% descr=%12%\n") % 
-		this % x() % y() % z() %
-		old_xx_ % old_yy_ % old_zz_ %
-		pPrevX_ % pNextX_ % pPrevZ_ % pNextZ_ % descr());
+	DEBUG_MSG(fmt::format("CoordinateNode::c_str(): {:p} curr({}, {}, {}), old({}, {}, {}) pPreX={:p} pNextX={:p} pPreZ={:p} pNextZ={:p} descr={}\n", 
+		(void*)this, x(), y(), z(),
+		old_xx_, old_yy_, old_zz_,
+		(void*)pPrevX_, (void*)pNextX_, (void*)pPrevZ_, (void*)pNextZ_, descr()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ void CoordinateNode::debugX()
 
 		if(this->pNextX_->x() < x())
 		{
-			ERROR_MSG(boost::format("CoordinateNode::debugX():: %1% > %2%\n") % this % pNextX_);
+			ERROR_MSG(fmt::format("CoordinateNode::debugX():: {:p} > {:p}\n", (void*)this, (void*)pNextX_));
 		}
 	}
 }
@@ -97,7 +97,7 @@ void CoordinateNode::debugY()
 
 		if(this->pNextY_->y() < y())
 		{
-			ERROR_MSG(boost::format("CoordinateNode::debugY():: %1% > %2%\n") % this % pNextY_);
+			ERROR_MSG(fmt::format("CoordinateNode::debugY():: {:p} > {:p}\n", (void*)this, (void*)pNextY_));
 		}
 	}
 }
@@ -113,7 +113,7 @@ void CoordinateNode::debugZ()
 
 		if(this->pNextZ_->z() < z())
 		{
-			ERROR_MSG(boost::format("CoordinateNode::debugZ():: %1% > %2%\n") % this % pNextZ_);
+			ERROR_MSG(fmt::format("CoordinateNode::debugZ():: {:p} > {:p}\n", (void*)this, (void*)pNextZ_));
 		}
 	}
 }

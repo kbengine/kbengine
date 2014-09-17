@@ -424,7 +424,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 {
 	AUTO_SCOPED_PROFILE("coordinateSystemUpdates");
 
-	// DEBUG_MSG(boost::format("CoordinateSystem::update:[%1%]:  (%2%  %3%  %4%)\n") % pNode % pNode->xx() % pNode->yy() % pNode->zz());
+	// DEBUG_MSG(fmt::format("CoordinateSystem::update:[{}]:  ({}  {}  {})\n") % pNode % pNode->xx(), pNode->yy(), pNode->zz()));
 	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
 	++updating_;
 
@@ -443,9 +443,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz % pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode));
 					*/
 
 					pCurrNode->onNodePassX(pNode, true);
@@ -471,9 +471,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode));
 					*/
 
 					pCurrNode->onNodePassX(pNode, true);
@@ -512,9 +512,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode));
 					*/
 
 					pCurrNode->onNodePassY(pNode, true);
@@ -540,9 +540,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode));
 					*/
 
 					pCurrNode->onNodePassY(pNode, true);
@@ -581,9 +581,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode));
 					*/
 
 					pCurrNode->onNodePassZ(pNode, true);
@@ -609,9 +609,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
 				{
 					/*
-					DEBUG_MSG(boost::format("CoordinateSystem::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
-						pNode->old_x() % pNode->old_y() % pNode->old_z() % pNode->x() % pNode->y() % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
-						pNode % pCurrNode);
+					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode, pCurrNode);
 					*/
 
 					pCurrNode->onNodePassZ(pNode, true);
@@ -643,11 +643,11 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 	if(updating_ == 0)
 		removeDelNodes();
 
-//	DEBUG_MSG(boost::format("CoordinateSystem::update[ x ]:[%1%]\n") % pNode);
+//	DEBUG_MSG(fmt::format("CoordinateSystem::update[ x ]:[{}]\n", pNode));
 //	first_x_coordinateNode_->debugX();
-//	DEBUG_MSG(boost::format("CoordinateSystem::update[ y ]:[%1%]\n") % pNode);
+//	DEBUG_MSG(fmt::format("CoordinateSystem::update[ y ]:[{}]\n", pNode));
 //	if(first_y_coordinateNode_)first_y_coordinateNode_->debugY();
-//	DEBUG_MSG(boost::format("CoordinateSystem::update[ z ]:[%1%]\n") % pNode);
+//	DEBUG_MSG(fmt::format("CoordinateSystem::update[ z ]:[{}]\n", pNode));
 //	first_z_coordinateNode_->debugZ();
 }
 

@@ -442,12 +442,6 @@ void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Addres
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::print_msg(boost::format& fmt)
-{
-	print_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
 void DebugHelper::print_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
@@ -459,12 +453,6 @@ void DebugHelper::print_msg(const std::string& s)
 #endif
 
 	onMessage(KBELOG_PRINT, s.c_str(), s.size());
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::error_msg(boost::format& fmt)
-{
-	error_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------
@@ -485,12 +473,6 @@ void DebugHelper::error_msg(const std::string& s)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::info_msg(boost::format& fmt)
-{
-	info_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
 void DebugHelper::info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
@@ -502,12 +484,6 @@ void DebugHelper::info_msg(const std::string& s)
 #endif
 
 	onMessage(KBELOG_INFO, s.c_str(), s.size());
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(boost::format& fmt)
-{
-	script_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------
@@ -545,12 +521,6 @@ void DebugHelper::setScriptMsgType(int msgtype)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::debug_msg(boost::format& fmt)
-{
-	debug_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
 void DebugHelper::debug_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
@@ -565,12 +535,6 @@ void DebugHelper::debug_msg(const std::string& s)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::warning_msg(boost::format& fmt)
-{
-	warning_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
 void DebugHelper::warning_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
@@ -582,12 +546,6 @@ void DebugHelper::warning_msg(const std::string& s)
 #endif
 
 	onMessage(KBELOG_WARNING, s.c_str(), s.size());
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::critical_msg(boost::format& fmt)
-{
-	critical_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------

@@ -185,8 +185,8 @@ void Base::createCellData(void)
 		{
 			if(!scriptModule_->hasCell())
 			{
-				WARNING_MSG(boost::format("%1%::createCellData: do not create cellData, cannot find the cellapp script(%2%)!\n") % 
-					scriptModule_->getName() % scriptModule_->getName());
+				WARNING_MSG(fmt::format("{}::createCellData: do not create cellData, cannot find the cellapp script({})!\n", 
+					scriptModule_->getName(), scriptModule_->getName()));
 			}
 		}
 
@@ -208,8 +208,8 @@ void Base::createCellData(void)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("%1%::createCellData: %2% PropertyDescription the dataType is NULL.\n") %
-				this->scriptName() % propertyDescription->getName());	
+			ERROR_MSG(fmt::format("{}::createCellData: {} PropertyDescription the dataType is NULL.\n",
+				this->scriptName(), propertyDescription->getName()));	
 		}
 		
 		SCRIPT_ERROR_CHECK();
@@ -261,8 +261,8 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 
 			if(!propertyDescription->getDataType()->isSameType(pyVal))
 			{
-				ERROR_MSG(boost::format("%1%::addCellDataToStream: %2%(%3%) not is (%4%)!\n") % this->scriptName() % 
-					propertyDescription->getName() % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+				ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(), 
+					propertyDescription->getName(), pyVal->ob_type->tp_name, propertyDescription->getDataType()->getName()));
 				
 				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
 				propertyDescription->getDataType()->addToStream(s, pydefval);
@@ -276,8 +276,8 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 			if (PyErr_Occurred())
  			{	
 				PyErr_PrintEx(0);
-				DEBUG_MSG(boost::format("%1%::addCellDataToStream: %2% is error!\n") % this->scriptName() % 
-					propertyDescription->getName());
+				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} is error!\n", this->scriptName(),
+					propertyDescription->getName()));
 			}
 		}
 	}
@@ -319,8 +319,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
-						this->scriptName() % this->id() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+						this->scriptName(), this->id(), attrname, pyVal->ob_type->tp_name, propertyDescription->getDataType()->getName()));
 				}
 				else
 				{
@@ -335,8 +335,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type(curr_py: %4% != %5%) is error.\n") %
-						this->scriptName() % this->id() % attrname % pyVal->ob_type->tp_name % propertyDescription->getDataType()->getName());
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+						this->scriptName(), this->id(), attrname, pyVal->ob_type->tp_name, propertyDescription->getDataType()->getName()));
 				}
 				else
 				{
@@ -348,8 +348,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% not found Persistent[%3%].\n") %
-					this->scriptName() % this->id() % attrname);
+				CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent[{}].\n",
+					this->scriptName(), this->id(), attrname));
 			}
 
 			Py_DECREF(key);
@@ -412,7 +412,7 @@ void Base::destroyCellData(void)
 	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
-		ERROR_MSG(boost::format("%1%::destroyCellData: delete cellData is error!\n") % this->scriptName());
+		ERROR_MSG(fmt::format("{}::destroyCellData: delete cellData is error!\n", this->scriptName()));
 		SCRIPT_ERROR_CHECK();
 	}
 }
@@ -545,7 +545,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 		{
-			ERROR_MSG(boost::format("%1%::onDestroyEntity(%2%): writeToDB not found dbmgr!\n") % this->scriptName() % this->id());
+			ERROR_MSG(fmt::format("{}::onDestroyEntity({}): writeToDB not found dbmgr!\n", this->scriptName(), this->id()));
 			return;
 		}
 
@@ -712,8 +712,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(isDestroyed())																				
 	{																										
-		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
-			scriptName() % id());
+		ERROR_MSG(fmt::format("{}::onRemoteMethodCall: {} is destroyed!\n",											
+			scriptName(), id()));
 
 		s.opfini();
 		return;																							
@@ -725,8 +725,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("%3%::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_ % this->scriptName());
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
+			utype, id_, this->scriptName()));
 		
 		s.opfini();
 		return;
@@ -738,8 +738,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if (srcEntityID <= 0 || srcEntityID != this->id())
 		{
-			WARNING_MSG(boost::format("%3%::onRemoteMethodCall(%4%): srcEntityID:%1% != thisEntityID:%2%.\n") %
-				srcEntityID % this->id() % this->scriptName() % md->getName());
+			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}.\n",
+				srcEntityID, this->id(), this->scriptName(), md->getName()));
 
 			s.opfini();
 			return;
@@ -747,8 +747,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 		if(!md->isExposed())
 		{
-			ERROR_MSG(boost::format("%3%::onRemoteMethodCall: %1% not is exposed, call is illegal! srcEntityID:%2%.\n") %
-				md->getName() % srcEntityID % this->scriptName());
+			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}.\n",
+				md->getName(), srcEntityID, this->scriptName()));
 
 			s.opfini();
 			return;
@@ -757,8 +757,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(boost::format("%4%::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
-			id_ % (md ? md->getName() : "unknown") % utype % this->scriptName());
+		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
+			id_, (md ? md->getName() : "unknown"), utype, this->scriptName()));
 	}
 
 	md->currCallerID(this->id());
@@ -896,8 +896,8 @@ void Base::writeToDB(void* data)
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
 
-		WARNING_MSG(boost::format("%1%::writeToDB(): is archiveing! entityid=%2%, dbid=%3%.\n") % 
-			this->scriptName() % this->id() % this->dbid());
+		WARNING_MSG(fmt::format("{}::writeToDB(): is archiveing! entityid={}, dbid={}.\n", 
+			this->scriptName(), this->id(), this->dbid()));
 
 		return;
 	}
@@ -910,8 +910,8 @@ void Base::writeToDB(void* data)
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
 
-		ERROR_MSG(boost::format("%1%::writeToDB(): is destroyed! entityid=%2%, dbid=%3%.\n") % 
-			this->scriptName() % this->id() % this->dbid());
+		ERROR_MSG(fmt::format("{}::writeToDB(): is destroyed! entityid={}, dbid={}.\n", 
+			this->scriptName(), this->id(), this->dbid()));
 
 		return;																							
 	}
@@ -977,8 +977,8 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		}
 		else
 		{
-			ERROR_MSG(boost::format("%1%::onWriteToDBCallback: can't found callback:%2%.\n") %
-				this->scriptName() % callbackID);
+			ERROR_MSG(fmt::format("{}::onWriteToDBCallback: can't found callback:{}.\n",
+				this->scriptName(), callbackID));
 		}
 
 		Py_DECREF(pyargs);
@@ -1008,8 +1008,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("%1%::onCellWriteToDBCompleted(%2%): not found dbmgr!\n") % 
-			this->scriptName() % this->id());
+		ERROR_MSG(fmt::format("{}::onCellWriteToDBCompleted({}): not found dbmgr!\n", 
+			this->scriptName(), this->id()));
 		return;
 	}
 
@@ -1165,8 +1165,8 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 {
 	if(pChannel->proxyID() != this->id())
 	{
-		WARNING_MSG(boost::format("%3%::forwardEntityMessageToCellappFromClient: not srcEntity(%1%/%2%).\n") %
-			pChannel->proxyID() % this->id() % this->scriptName());
+		WARNING_MSG(fmt::format("{2}::forwardEntityMessageToCellappFromClient: not srcEntity({0}/{1}).\n",
+			pChannel->proxyID(), this->id(), this->scriptName()));
 
 		return;
 	}
@@ -1312,14 +1312,14 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
 {
-	DEBUG_MSG(boost::format("%3%::reqTeleportOther: reqTeleportEntityID=%1%, reqTeleportEntityCellAppID=%2%.\n") %
-		reqTeleportEntityID % reqTeleportEntityCellAppID % this->scriptName());
+	DEBUG_MSG(fmt::format("{2}::reqTeleportOther: reqTeleportEntityID={0}, reqTeleportEntityCellAppID={1}.\n",
+		reqTeleportEntityID, reqTeleportEntityCellAppID, this->scriptName()));
 
 	if(this->cellMailbox() == NULL || this->cellMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, cellMailbox is NULL, "
-			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
-			this->scriptName() % this->id() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, cellMailbox is NULL, "
+			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
+			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
 		return;
 	}
@@ -1327,18 +1327,18 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, not found cellapp, "
-			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
-			this->scriptName() % this->id() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, not found cellapp, "
+			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
+			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
 		return;
 	}
 
 	if(pBufferedSendToCellappMessages_)
 	{
-		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, is transfer, "
-			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
-			this->scriptName() % this->id() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, is transfer, "
+			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
+			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
 		return;
 	}
@@ -1356,8 +1356,8 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(boost::format("%1%::onTeleportCellappStart: %2%, targetCellappID=%3%\n") %											
-		scriptName() % id() % cellappID);
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",											
+		scriptName(), id(), cellappID));
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
 	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
@@ -1371,8 +1371,8 @@ void Base::onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cell
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(boost::format("%1%::onTeleportCellappEnd: %2%, targetCellappID=%3%\n") %											
-		scriptName() % id() % cellappID);
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",											
+		scriptName(), id(), cellappID));
 
 	// 改变cell的指向到新的cellapp
 	this->cellMailbox()->componentID(cellappID);

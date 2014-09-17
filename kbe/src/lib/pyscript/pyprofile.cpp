@@ -67,7 +67,7 @@ bool PyProfile::start(std::string profile)
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
 	if(iter != profiles_.end())
 	{
-		ERROR_MSG(boost::format("PyProfile::start: profile(%1%) already exists!\n") % profile);
+		ERROR_MSG(fmt::format("PyProfile::start: profile({}) already exists!\n", profile));
 		return false;
 	}
 
@@ -106,7 +106,7 @@ bool PyProfile::stop(std::string profile)
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
 	if(iter == profiles_.end())
 	{
-		ERROR_MSG(boost::format("PyProfile::stop: profile(%1%) is not exists!\n") % profile);
+		ERROR_MSG(fmt::format("PyProfile::stop: profile({}) is not exists!\n", profile));
 		return false;
 	}
 
@@ -133,7 +133,7 @@ bool PyProfile::remove(std::string profile)
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
 	if(iter == profiles_.end())
 	{
-		ERROR_MSG(boost::format("PyProfile::remove: profile(%1%) is not exists!\n") % profile);
+		ERROR_MSG(fmt::format("PyProfile::remove: profile({}) is not exists!\n", profile));
 		return false;
 	}
 
@@ -167,7 +167,7 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
 	if(iter == profiles_.end())
 	{
-		ERROR_MSG(boost::format("PyProfile::getstats: profile(%1%) is not exists!\n") % profile);
+		ERROR_MSG(fmt::format("PyProfile::getstats: profile({}) is not exists!\n", profile));
 		return;
 	}
 
@@ -195,7 +195,7 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 	
 	(*s) << retBufferPtr;
 
-	// DEBUG_MSG(boost::format("PyProfile::addToStream:%1%") % retBufferPtr);
+	// DEBUG_MSG(fmt::format("PyProfile::addToStream:{}", retBufferPtr));
 
 	Py_DECREF(pyRet);
 }
@@ -212,14 +212,14 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
 	if(iter == profiles_.end())
 	{
-		ERROR_MSG(boost::format("PyProfile::dump: profile(%1%) is not exists!\n") % profile);
+		ERROR_MSG(fmt::format("PyProfile::dump: profile({}) is not exists!\n", profile));
 		return false;
 	}
 
 	FILE* f = fopen(fileName.c_str(), "wb");
 	if(f == NULL)
 	{
-		ERROR_MSG(boost::format("PyProfile::dump: profile(%1%) can't open fileName=%2%!\n") % profile % fileName);
+		ERROR_MSG(fmt::format("PyProfile::dump: profile({}) can't open fileName={}!\n", profile, fileName));
 		return false;
 	}
 
@@ -230,12 +230,12 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 
 	if(!pyRet)
 	{
-		ERROR_MSG(boost::format("PyProfile::dump: save to %1% is error!\n") % fileName);
+		ERROR_MSG(fmt::format("PyProfile::dump: save to {} is error!\n", fileName));
 		return false;
 	}
 	else
 	{
-		DEBUG_MSG(boost::format("PyProfile::dump: save to %1%.\n") % fileName);
+		DEBUG_MSG(fmt::format("PyProfile::dump: save to {}.\n", fileName));
 	}
 
 	Py_DECREF(pyRet);

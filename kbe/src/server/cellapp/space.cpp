@@ -146,14 +146,14 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
 {
-	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%, shouldLoadOnServer=%3%!\n") %
-		id() % respath % shouldLoadOnServer);
+	INFO_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={}, shouldLoadOnServer={}!\n",
+		id(), respath, shouldLoadOnServer));
 
 	hasGeometry_ = true;
 	if(getGeometryPath() == respath)
 	{
-		WARNING_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2% is exist!\n") %
-			id() % respath);
+		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} is exist!\n",
+			id(), respath));
 
 		return true;
 	}
@@ -182,8 +182,8 @@ void Space::unLoadSpaceGeometry()
 void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 {
 	pNavHandle_ = pNavHandle;
-	INFO_MSG(boost::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
-			id() % getGeometryPath());
+	INFO_MSG(fmt::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID={}, respath={}!\n",
+			id(), getGeometryPath()));
 
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
@@ -256,7 +256,7 @@ void Space::removeEntity(Entity* pEntity)
 
 	if(pEntity->id() == this->creatorID())
 	{
-		DEBUG_MSG(boost::format("Space::removeEntity: lose creator(%1%).\n") % this->creatorID());
+		DEBUG_MSG(fmt::format("Space::removeEntity: lose creator({}).\n", this->creatorID()));
 	}
 
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
@@ -493,8 +493,8 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 
 	if(!pEntity->hasWitness())
 	{
-		WARNING_MSG(boost::format("Space::_addSpaceDatasToEntityClient: entity %1% no client!\n") % 
-			pEntity->id());
+		WARNING_MSG(fmt::format("Space::_addSpaceDatasToEntityClient: entity {} no client!\n", 
+			pEntity->id()));
 
 		return;
 	}

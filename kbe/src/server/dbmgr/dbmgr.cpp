@@ -89,8 +89,8 @@ bool Dbmgr::canShutdown()
 	
 	if(ret)
 	{
-		WARNING_MSG(boost::format("Dbmgr::canShutdown(): tasks=%1%, threads=%2%, threadpoolDestroyed=%3%!\n") % 
-			bufferedDBTasks_.size() % DBUtil::pThreadPool()->currentThreadCount() % DBUtil::pThreadPool()->isDestroyed());
+		WARNING_MSG(fmt::format("Dbmgr::canShutdown(): tasks={}, threads={}, threadpoolDestroyed={}!\n", 
+			bufferedDBTasks_.size(), DBUtil::pThreadPool()->currentThreadCount(), DBUtil::pThreadPool()->isDestroyed()));
 	}
 
 	return ret;
@@ -192,8 +192,8 @@ bool Dbmgr::initializeEnd()
 	pBaseAppData_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
 
-	INFO_MSG(boost::format("Dbmgr::initializeEnd: digest(%1%)\n") % 
-		EntityDef::md5().getDigestStr());
+	INFO_MSG(fmt::format("Dbmgr::initializeEnd: digest({})\n", 
+		EntityDef::md5().getDigestStr()));
 	
 	return initBillingHandler() && initDB();
 }
@@ -204,23 +204,23 @@ bool Dbmgr::initBillingHandler()
 	pBillingAccountHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 	pBillingChargeHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 
-	INFO_MSG(boost::format("Dbmgr::initBillingHandler: billing addr(%1%), accountType:(%2%), chargeType:(%3%).\n") % 
-		g_kbeSrvConfig.billingSystemAddr().c_str() %
-		g_kbeSrvConfig.billingSystemAccountType() %
-		g_kbeSrvConfig.billingSystemChargeType());
+	INFO_MSG(fmt::format("Dbmgr::initBillingHandler: billing addr({}), accountType:({}), chargeType:({}).\n", 
+		g_kbeSrvConfig.billingSystemAddr().c_str(),
+		g_kbeSrvConfig.billingSystemAccountType(),
+		g_kbeSrvConfig.billingSystemChargeType()));
 
 	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) > 0)
 	{
-		INFO_MSG(boost::format("Dbmgr::initBillingHandler: thirdpartyAccountService_addr(%1%:%2%).\n") % 
-			g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr() %
-			g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort());
+		INFO_MSG(fmt::format("Dbmgr::initBillingHandler: thirdpartyAccountService_addr({}:{}).\n", 
+			g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(),
+			g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort()));
 	}
 
 	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr()) > 0)
 	{
-		INFO_MSG(boost::format("Dbmgr::initBillingHandler: thirdpartyChargeService_addr(%1%:%2%).\n") % 
-			g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr() %
-			g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort());
+		INFO_MSG(fmt::format("Dbmgr::initBillingHandler: thirdpartyChargeService_addr({}:{}).\n", 
+			g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr(),
+			g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort()));
 	}
 
 	return pBillingAccountHandler_->initialize() && pBillingChargeHandler_->initialize();
@@ -400,8 +400,8 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Dbmgr::onGlobalDataClientLogon: nonsupport %1%!\n") %
-			COMPONENT_NAME_EX(componentType));
+		ERROR_MSG(fmt::format("Dbmgr::onGlobalDataClientLogon: nonsupport {}!\n",
+			COMPONENT_NAME_EX(componentType)));
 	}
 }
 
@@ -645,21 +645,21 @@ void Dbmgr::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountActivate(Mercury::Channel* pChannel, std::string& scode)
 {
-	INFO_MSG(boost::format("Dbmgr::accountActivate: code=%1%.\n") % scode);
+	INFO_MSG(fmt::format("Dbmgr::accountActivate: code={}.\n", scode));
 	pBillingAccountHandler_->accountActivate(pChannel, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
-	INFO_MSG(boost::format("Dbmgr::accountReqResetPassword: accountName=%1%.\n") % accountName);
+	INFO_MSG(fmt::format("Dbmgr::accountReqResetPassword: accountName={}.\n", accountName));
 	pBillingAccountHandler_->accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code)
 {
-	INFO_MSG(boost::format("Dbmgr::accountResetPassword: accountName=%1%.\n") % accountName);
+	INFO_MSG(fmt::format("Dbmgr::accountResetPassword: accountName={}.\n", accountName));
 	pBillingAccountHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
 }
 
@@ -667,14 +667,14 @@ void Dbmgr::accountResetPassword(Mercury::Channel* pChannel, std::string& accoun
 void Dbmgr::accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 							   std::string& password, std::string& email)
 {
-	INFO_MSG(boost::format("Dbmgr::accountReqBindMail: accountName=%1%, email=%2%.\n") % accountName % email);
+	INFO_MSG(fmt::format("Dbmgr::accountReqBindMail: accountName={}, email={}.\n", accountName, email));
 	pBillingAccountHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
 {
-	INFO_MSG(boost::format("Dbmgr::accountBindMail: username=%1%, scode=%2%.\n") % username % scode);
+	INFO_MSG(fmt::format("Dbmgr::accountBindMail: username={}, scode={}.\n", username, scode));
 	pBillingAccountHandler_->accountBindMail(pChannel, username, scode);
 }
 
@@ -682,7 +682,7 @@ void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& username, s
 void Dbmgr::accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 							   std::string& password, std::string& newpassword)
 {
-	INFO_MSG(boost::format("Dbmgr::accountNewPassword: accountName=%1%.\n") % accountName);
+	INFO_MSG(fmt::format("Dbmgr::accountNewPassword: accountName={}.\n", accountName));
 	pBillingAccountHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 

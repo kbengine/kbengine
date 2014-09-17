@@ -136,28 +136,28 @@ TelnetHandler::~TelnetHandler(void)
 //-------------------------------------------------------------------------------------
 std::string TelnetHandler::getInputStartString()
 {
-	return(boost::format("[%1%@%2% ~]%3% ") % COMPONENT_NAME_EX(g_componentType) % 
-		_g_state_str[(int)state_] % (state_ == TELNET_STATE_PYTHON ? " >>>" : "#")).str();
+	return fmt::format("[{}@{} ~]{} ", COMPONENT_NAME_EX(g_componentType), 
+		_g_state_str[(int)state_], (state_ == TELNET_STATE_PYTHON ? " >>>" : "#"));
 }
 
 //-------------------------------------------------------------------------------------
 std::string TelnetHandler::getWelcome()
 {
-	return (boost::format("\033[1;32mwelcome to %1% \r\n"
-			"Version: %2%. "
-			"ScriptVersion: %3%. "
-			"Config: %4%. "
-			"Built: %5% %6%. "
-			"AppID: %7%. "
-			"UID: %8%. "
-			"PID: %9%"
+	return fmt::format("\033[1;32mwelcome to {} \r\n"
+			"Version: {}. "
+			"ScriptVersion: {}. "
+			"Config: {}. "
+			"Built: {} {}. "
+			"AppID: {}. "
+			"UID: {}. "
+			"PID: {}"
 			"\r\n---------------------------------------------"
-			"%10%"
+			"{}"
 			"\r\n---------------------------------------------"
-			" \033[0m\r\n%11%") %
-		COMPONENT_NAME_EX(g_componentType) % KBEVersion::versionString() % KBEVersion::scriptVersionString() %
-		KBE_CONFIG % __TIME__ % __DATE__ %
-		g_componentID % getUserUID() % getProcessPID() % help() % getInputStartString()).str();
+			" \033[0m\r\n{}",
+		COMPONENT_NAME_EX(g_componentType), KBEVersion::versionString(), KBEVersion::scriptVersionString(),
+		KBE_CONFIG, __TIME__, __DATE__,
+		g_componentID, getUserUID(), getProcessPID(), help(), getInputStartString());
 }
 
 //-------------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ void TelnetHandler::checkAfterStr()
 	{
 		std::string s = "";
 		s = command_.substr(currPos_, command_.size() - currPos_);
-		s += (boost::format("\33[%1%D") % s.size()).str();
+		s += fmt::format("\33[{}D", s.size());
 		pEndPoint_->send(s.c_str(), s.size());
 	}
 }
@@ -473,7 +473,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 		
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -505,7 +505,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -537,7 +537,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -569,7 +569,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -605,8 +605,8 @@ void TelnetHandler::processPythonCommand(std::string command)
 		return;
 	}
 
-	DEBUG_MSG(boost::format("TelnetHandler::processPythonCommand: size(%1%), command=%2%.\n") % 
-		command.size() % command);
+	DEBUG_MSG(fmt::format("TelnetHandler::processPythonCommand: size({}), command={}.\n", 
+		command.size(), command));
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
@@ -664,7 +664,7 @@ void TelnetHandler::resetStartPosition()
 {
 	pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 	std::string startstr = getInputStartString();
-	std::string backcmd = (boost::format("\33[%1%C") % startstr.size()).str();
+	std::string backcmd = fmt::format("\33[{}C", startstr.size());
 	pEndPoint_->send(backcmd.c_str(), backcmd.size());
 }
 
@@ -773,7 +773,7 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 		std::string type_name;
 		(*s) >> type_name;
 		
-		datas += (boost::format("Event Type:%1%\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n") % type_name).str();
+		datas += fmt::format("Event Type:{}\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n", type_name);
 
 		KBEngine::ArraySize size1;
 		(*s) >> size1;
@@ -789,7 +789,7 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 			if(count == 0)
 				continue;
 
-			datas += (boost::format("%1%\t\t\t\t\t%2%\t%3%\r\n") % name % count % eventSize).str();
+			datas += fmt::format("{}\t\t\t\t\t{}\t{}\r\n", name, count, eventSize);
 		}
 
 		datas += "\r\n\r\n";

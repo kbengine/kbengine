@@ -373,14 +373,14 @@ void ServerApp::reqKillServer(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s >> componentID >> componentType >> username >> uid >> reason;
 
-	INFO_MSG(boost::format("ServerApp::reqKillServer: requester(uid:%1%, username:%2%, componentType:%3%, "
-				"componentID:%4%, reason:%5%, from %6%)\n") %
-				uid % 
-				username % 
-				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
-				componentID %
-				reason %
-				pChannel->c_str());
+	INFO_MSG(fmt::format("ServerApp::reqKillServer: requester(uid:{}, username:{}, componentType:{}, "
+				"componentID:{}, reason:{}, from {})\n",
+				uid, 
+				username, 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+				componentID,
+				reason,
+				pChannel->c_str()));
 
 	CRITICAL_MSG("The application was killed!\n");
 }
@@ -400,8 +400,8 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG(boost::format("ServerApp::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
-				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
+			ERROR_MSG(fmt::format("ServerApp::onAppActiveTick[{:p}]: {}:{} not found.\n", 
+				(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID));
 
 			return;
 		}
@@ -422,7 +422,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 //-------------------------------------------------------------------------------------
 void ServerApp::reqClose(Mercury::Channel* pChannel)
 {
-	DEBUG_MSG(boost::format("ServerApp::reqClose: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("ServerApp::reqClose: {}\n", pChannel->c_str()));
 	// this->networkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
 }
@@ -433,7 +433,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(boost::format("ServerApp::lookApp: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -452,7 +452,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	DEBUG_MSG(boost::format("ServerApp::reqCloseServer: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("ServerApp::reqCloseServer: {}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -498,8 +498,8 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 		buf[4] = '\0';
 	}
 
-	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, scriptVerInfo=%2%, encryptedKey=%3%, addr:%4%\n") % 
-		verInfo % scriptVerInfo % buf % pChannel->c_str());
+	INFO_MSG(fmt::format("ServerApp::onHello: verInfo={}, scriptVerInfo={}, encryptedKey={}, addr:{}\n", 
+		verInfo, scriptVerInfo, buf, pChannel->c_str()));
 
 	if(verInfo != KBEVersion::versionString())
 		onVersionNotMatch(pChannel);
@@ -554,8 +554,8 @@ void ServerApp::startProfile_(Mercury::Channel* pChannel, std::string profileNam
 		new MercuryProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	default:
-		ERROR_MSG(boost::format("ServerApp::startProfile_: type(%1%:%2%) not support!\n") % 
-			profileType % profileName);
+		ERROR_MSG(fmt::format("ServerApp::startProfile_: type({}:{}) not support!\n", 
+			profileType, profileName));
 
 		break;
 	};

@@ -60,9 +60,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type()const	\
@@ -123,9 +123,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler0::type()const		\
@@ -188,9 +188,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler1::type()const		\
@@ -255,9 +255,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler2::type()const		\
@@ -331,9 +331,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler3::type()const		\
@@ -412,9 +412,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:%1%.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler4::type()const		\
