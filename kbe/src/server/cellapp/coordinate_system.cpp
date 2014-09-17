@@ -424,7 +424,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 {
 	AUTO_SCOPED_PROFILE("coordinateSystemUpdates");
 
-	// DEBUG_MSG(fmt::format("CoordinateSystem::update:[{}]:  ({}  {}  {})\n") % pNode % pNode->xx(), pNode->yy(), pNode->zz()));
+	// DEBUG_MSG(fmt::format("CoordinateSystem::update:[{}]:  ({}  {}  {})\n", pNode, pNode->xx(), pNode->yy(), pNode->zz()));
 	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
 	++updating_;
 
@@ -444,7 +444,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				{
 					/*
 					DEBUG_MSG(fmt::format("CoordinateSystem::update: [Z] node_{9}({0}, {1}, {2})->({3}, {4}, {5}), passNode_{10}({6}, {7}, {8})\n",
-						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz % pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
+						pNode->old_x(), pNode->old_y(), pNode->old_z(), pNode->x(), pNode->y(), pz, pCurrNode->x(), pCurrNode->y(), pCurrNode->z(),
 						pNode, pCurrNode));
 					*/
 
