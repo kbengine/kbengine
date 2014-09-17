@@ -71,11 +71,11 @@ INLINE bool ProfileVal::stop(const char * filename, int lineNum, uint32 qty)
 
 	if (tooLong)
 	{
-		WARNING_MSG(boost::format("%s:%d: Profile %s took %.2f seconds\n") %
-			filename %
-			lineNum %
-			name_.c_str() %
-			(lastTime_  / stampsPerSecondD()));
+		WARNING_MSG(fmt::format("{}:{}: Profile {} took {:.2f} seconds\n",
+			filename,
+			lineNum,
+			name_.c_str(),
+			(lastTime_  / stampsPerSecondD())));
 	}
 
 	return true;
