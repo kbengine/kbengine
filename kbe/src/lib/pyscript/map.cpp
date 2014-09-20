@@ -117,10 +117,12 @@ PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 	{
 		if(pyObj != Py_None)
 		{
+			Py_DECREF(pyObj);
 			Py_RETURN_TRUE; 
 		}
 	}
 
+	Py_DECREF(pyObj);
 	Py_RETURN_FALSE;
 }
 
