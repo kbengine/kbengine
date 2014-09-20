@@ -37,6 +37,7 @@ SCRIPT_METHOD_DECLARE("keys",				keys,				METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("values",				values,				METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("items",				items,				METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("update",				update,				METH_VARARGS,		0)	
+SCRIPT_METHOD_DECLARE("get",				get,				METH_VARARGS,		0)	
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Map)
@@ -124,6 +125,13 @@ PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 
 	Py_DECREF(pyObj);
 	Py_RETURN_FALSE;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Map::__py_get(PyObject* self, PyObject* args)
+{
+	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
+		const_cast<char*>("get"), const_cast<char*>("O"), args);
 }
 
 //-------------------------------------------------------------------------------------
