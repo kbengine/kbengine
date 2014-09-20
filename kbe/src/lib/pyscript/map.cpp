@@ -105,8 +105,23 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 {
-	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
-		const_cast<char*>("has_key"), const_cast<char*>("O"), args);
+	PyObject* pyObj = PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
+		const_cast<char*>("get"), const_cast<char*>("O"), args);
+
+	if (!pyObj)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		Py_RETURN_FALSE;
+	}
+	else
+	{
+		if(pyObj != Py_None)
+		{
+			Py_RETURN_TRUE; 
+		}
+	}
+
+	Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------
