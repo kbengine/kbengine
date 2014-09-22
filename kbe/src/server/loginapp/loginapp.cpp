@@ -970,6 +970,8 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 	pBundle->newMessage(ClientInterface::onHelloCB);
 	(*pBundle) << KBEVersion::versionString();
 	(*pBundle) << KBEVersion::scriptVersionString();
+	(*pBundle) << Mercury::MessageHandlers::getDigestStr();
+	(*pBundle) << digest_;
 	(*pBundle) << g_componentType;
 	(*pBundle).send(networkInterface(), pChannel);
 

@@ -505,7 +505,8 @@ void ClientObjectBase::fireEvent(const EventData* pEventData)
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
+		COMPONENT_TYPE componentType)
 {
 }
 
@@ -518,13 +519,19 @@ void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
 	std::string scriptVerInfo; 
 	s >> scriptVerInfo;
 
+	std::string protocolMD5;
+	s >> protocolMD5;
+
+	std::string entityDefMD5;
+	s >> entityDefMD5;
+
 	COMPONENT_TYPE ctype;
 	s >> ctype;
 
-	INFO_MSG(fmt::format("ClientObjectBase::onHelloCB: verInfo={}, scriptVerInfo={}, addr:{}\n",
-		verInfo, scriptVerInfo, pChannel->c_str()));
+	INFO_MSG(fmt::format("ClientObjectBase::onHelloCB: verInfo={}, scriptVerInfo={}, protocolMD5={}, entityDefMD5={}, addr:{}\n",
+		verInfo, scriptVerInfo, protocolMD5, entityDefMD5, pChannel->c_str()));
 
-	onHelloCB_(pChannel, verInfo, scriptVerInfo, ctype);
+	onHelloCB_(pChannel, verInfo, scriptVerInfo, protocolMD5, entityDefMD5, ctype);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -668,13 +675,29 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 
 	EventData_LoginGatewayFailed eventdata;
 	eventdata.failedcode = failedcode;
+	eventdata.relogin = false;
 	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+void ClientObjectBase::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewaySuccessfully! name={}.\n", name_));
+	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
+
+	// 能走到这里来一定是连接了网关
+	connectedGateway_ = true;
+
+	EventData_LoginGatewayFailed eventdata;
+	eventdata.failedcode = failedcode;
+	eventdata.relogin = true;
+	eventHandler_.fire(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	s >> rndUUID_;
+	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewaySuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
 }
 
 //-------------------------------------------------------------------------------------	

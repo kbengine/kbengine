@@ -267,7 +267,8 @@ public:
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode);
+	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, 
+		SERVER_ERROR_CODE failedcode, bool relogin = false);
 
 	/** 网络接口
 		从dbmgr获取到账号Entity信息

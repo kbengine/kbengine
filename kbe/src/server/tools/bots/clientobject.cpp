@@ -334,7 +334,8 @@ void ClientObject::gameTick()
 
 //-------------------------------------------------------------------------------------	
 void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
+		COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{

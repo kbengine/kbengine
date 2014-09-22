@@ -609,7 +609,8 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 //-------------------------------------------------------------------------------------	
 void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
+		COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -663,9 +664,16 @@ void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_C
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+void ClientApp::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel);
+	ClientObjectBase::onReLoginGatewayFailed(pChannel, failedcode);
+	canReset_ = true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	

@@ -52,6 +52,8 @@ public:
 	bool operator<( const KBE_MD5 & other ) const;
 
 	static std::string getDigest(const void * data, int numBytes);
+
+	bool isFinal()const{ return isFinal_; }
 private:
 	MD5_CTX state_;
 	unsigned char bytes_[16];

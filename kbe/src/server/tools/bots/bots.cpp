@@ -494,12 +494,13 @@ void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 
 //-------------------------------------------------------------------------------------
 void Bots::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType)
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
+		COMPONENT_TYPE componentType)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onHelloCB_(pChannel, verInfo, scriptVerInfo, componentType);
+		pClient->onHelloCB_(pChannel, verInfo, scriptVerInfo, protocolMD5, entityDefMD5, componentType);
 	}
 }
 
@@ -564,12 +565,12 @@ void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel)
+void Bots::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onReLoginGatewaySuccessfully(pChannel);
+		pClient->onReLoginGatewaySuccessfully(pChannel, s);
 	}
 }
 

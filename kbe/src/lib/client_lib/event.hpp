@@ -125,11 +125,13 @@ struct EventData_LoginGatewayFailed : public EventData
 {
 	EventData_LoginGatewayFailed():
 	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS),
-	failedcode(0)
+	failedcode(0),
+	relogin(false)
 	{
 	}
 
 	int failedcode;
+	bool relogin;
 };
 
 struct EventData_CreatedEntity : public EventData

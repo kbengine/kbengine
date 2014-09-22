@@ -142,7 +142,8 @@ public:
 		客户端与服务端第一次建立交互, 服务端返回
 	*/
 	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType);
+		const std::string& scriptVerInfo, const std::string& protocolMD5, 
+		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
 
@@ -189,11 +190,12 @@ public:
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel);
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity

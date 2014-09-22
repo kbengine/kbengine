@@ -147,8 +147,9 @@ public:
 	*/
 	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		const std::string& scriptVerInfo, COMPONENT_TYPE componentType);
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+		const std::string& scriptVerInfo, const std::string& protocolMD5, 
+		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		和服务端的版本不匹配
@@ -199,7 +200,7 @@ public:
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel);
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity

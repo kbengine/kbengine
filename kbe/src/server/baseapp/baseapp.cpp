@@ -2244,7 +2244,7 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 
 //-------------------------------------------------------------------------------------
 void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, 
-								 SERVER_ERROR_CODE failedcode)
+								 SERVER_ERROR_CODE failedcode, bool relogin)
 {
 	if(failedcode == SERVER_ERR_NAME)
 	{
@@ -2265,7 +2265,12 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 		return;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
+
+	if(relogin)
+		(*pBundle).newMessage(ClientInterface::onReLoginGatewayFailed);
+	else
+		(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
+
 	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle((*pBundle), failedcode);
 	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -2439,7 +2444,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	Base* base = findEntity(entityID);
 	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()) || base->isDestroyed())
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
 		return;
 	}
 	
@@ -2447,7 +2452,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	
 	if(key == 0 || proxy->rndUUID() != key)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
 		return;
 	}
 
@@ -2462,7 +2467,10 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 			(pMBChannel ? pMBChannel->c_str() : "unknown")));
 		
 		if(pMBChannel)
+		{
+			pMBChannel->proxyID(0);
 			pMBChannel->condemn();
+		}
 
 		entityClientMailbox->addr(pChannel->addr());
 	}
@@ -2478,12 +2486,14 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 	proxy->addr(pChannel->addr());
 	pChannel->proxyID(proxy->id());
+	proxy->rndUUID(KBEngine::genUUID64());
 
 	//createClientProxies(proxy, true);
 	proxy->onEntitiesEnabled();
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
+	(*pBundle) << proxy->rndUUID();
 	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -3068,6 +3078,8 @@ void Baseapp::onHello(Mercury::Channel* pChannel,
 	pBundle->newMessage(ClientInterface::onHelloCB);
 	(*pBundle) << KBEVersion::versionString();
 	(*pBundle) << KBEVersion::scriptVersionString();
+	(*pBundle) << Mercury::MessageHandlers::getDigestStr();
+	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
 	(*pBundle).send(networkInterface(), pChannel);
 

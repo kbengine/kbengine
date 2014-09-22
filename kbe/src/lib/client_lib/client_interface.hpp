@@ -77,6 +77,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,						MERCURY_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
+	// 登录网关失败。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginGatewayFailed,					MERCURY_FIXED_MESSAGE,
+									SERVER_ERROR_CODE,						failedcode)
+
 	// 服务器上的entity已经进入游戏世界了。
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterWorld,						MERCURY_VARIABLE_MESSAGE)
 
@@ -194,7 +198,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 重登陆网关成功 
-	CLIENT_MESSAGE_DECLARE_ARGS0(onReLoginGatewaySuccessfully,				MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginGatewaySuccessfully,				MERCURY_VARIABLE_MESSAGE)
 									
 NETWORK_INTERFACE_DECLARE_END()
 
