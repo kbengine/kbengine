@@ -25,7 +25,7 @@ class Avatar(KBEngine.Proxy,
 			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
 			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
 			self.cellData["position"] = avatar_inittab["spawnPos"]
-
+		
 		self.accountEntity = None
 		self.cellData["dbid"] = self.databaseID
 		self.nameB = self.cellData["name"]
@@ -40,6 +40,25 @@ class Avatar(KBEngine.Proxy,
 		cell部分。
 		"""
 		INFO_MSG("Avatar[%i-%s] entities enable. spaceUTypeB=%s, mailbox:%s" % (self.id, self.nameB, self.spaceUTypeB, self.client))
+		
+		# 防止使用统一个号登陆不同的demo造成无法找到匹配的地图从而无法加载资源导致无法进入游戏
+		# 这里检查一下， 发现不对则强制同步到匹配的地图
+		if self.accountEntity.getClientType() == 2:
+			self.cellData["spaceUType"] = 2
+			spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+			self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+		elif self.accountEntity.getClientType() == 5:
+			if self.cellData["spaceUType"] == 1 or self.cellData["spaceUType"] == 2:
+				self.cellData["spaceUType"] = 3
+				spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+				self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+		else:
+			self.cellData["spaceUType"] = 1
+			spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+			self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+		
+		self.spaceUTypeB = self.cellData["spaceUType"]
+		
 		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB, {})
 		
 	def onGetCell(self):
