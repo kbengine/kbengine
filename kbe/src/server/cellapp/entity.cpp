@@ -1356,6 +1356,18 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 {
 	KBE_ASSERT(this->baseMailbox() != NULL);
 
+	// proxy的giveClientTo功能， 如果一个entity已经创建了cell， 并将控制权绑定
+	// 到该entity时是一定没有clientMailbox的。
+	if(clientMailbox() == NULL)
+	{
+		PyObject* clientMB = PyObject_GetAttrString(baseMailbox(), "client");
+		KBE_ASSERT(clientMB != Py_None);
+
+		EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
+		// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+		clientMailbox(client);
+	}
+
 	if(pWitness_ == NULL)
 	{
 		pWitness_ = Witness::ObjPool().createObject();

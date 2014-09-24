@@ -369,8 +369,8 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);
 
-	/*
-	如果有cell则已经绑定了witness， 在此我们不需要再次绑定。
+	// 如果有cell, 需要通知其获得witness， 因为这个客户端刚刚绑定到这个proxy
+	// 此时这个entity即使有cell正常情况必须是没有witness的。
 	if(cellMailbox())
 	{
 		// 通知cell获得客户端
@@ -379,7 +379,6 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 		(*pBundle) << this->id();
 		sendToCellapp(pBundle);
 	}
-	*/
 }
 
 //-------------------------------------------------------------------------------------
