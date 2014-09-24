@@ -168,22 +168,26 @@ void Witness::detach(Entity* pEntity)
 	DEBUG_MSG(fmt::format("Witness::detach: {}({}).\n", 
 		pEntity->scriptName(), pEntity->id()));
 
-	Mercury::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
-	if(pChannel)
+	EntityMailbox* pClientMB = pEntity_->clientMailbox();
+	if(pClientMB)
 	{
-		pChannel->send();
+		Mercury::Channel* pChannel = pClientMB->getChannel();
+		if(pChannel)
+		{
+			pChannel->send();
 
-		// 通知客户端leaveworld
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+			// 通知客户端leaveworld
+			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-		(*pForwardBundle) << pEntity->id();
+			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+			(*pForwardBundle) << pEntity->id();
 
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-		pEntity_->clientMailbox()->postMail(*pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+			pClientMB->postMail(*pSendBundle);
+			Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		}
 	}
 
 	clear(pEntity);
