@@ -330,9 +330,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 		if(cellMailbox())
 		{
-			// 通知cell丢失客户端
+			// 当前这个entity如果有cell，说明已经绑定了witness， 那么既然我们将控制权
+			// 交换给了另一个entity， 这个entity需要解绑定witness。
+			// 通知cell丢失witness
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-			(*pBundle).newMessage(CellappInterface::onResetWitness);
+			(*pBundle).newMessage(CellappInterface::onLoseWitness);
 			(*pBundle) << this->id();
 			sendToCellapp(pBundle);
 		}
@@ -346,9 +348,9 @@ void Proxy::giveClientTo(Proxy* proxy)
 		clientMailbox(NULL);
 		addr(Mercury::Address::NONE);
 		
+		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
 		if(proxy->clientMailbox() != NULL)
 		{
-			// 通知client销毁当前entity
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 			(*pBundle) << this->id();

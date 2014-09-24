@@ -1376,6 +1376,9 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Entity::onLoseWitness(Mercury::Channel* pChannel)
 {
+	//INFO_MSG(fmt::format("{}::onLoseWitness: {}.\n", 
+	//	this->scriptName(), this->id()));
+
 	KBE_ASSERT(this->clientMailbox() != NULL && this->hasWitness());
 
 	clientMailbox()->addr(Mercury::Address::NONE);
