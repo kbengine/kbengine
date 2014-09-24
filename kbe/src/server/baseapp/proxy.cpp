@@ -341,6 +341,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		clientMailbox()->addr(Mercury::Address::NONE);
 		Py_DECREF(clientMailbox());
 		proxy->setClientType(this->getClientType());
+		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
 		proxy->onGiveClientTo(lpChannel);
 		clientMailbox(NULL);
 		addr(Mercury::Address::NONE);
