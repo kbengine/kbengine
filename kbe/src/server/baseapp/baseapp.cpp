@@ -3738,6 +3738,8 @@ void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID en
 //-------------------------------------------------------------------------------------
 void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
 {
+	INFO_MSG(fmt::format("Baseapp::onVersionNotMatch: {}.\n", pChannel->c_str()));
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
@@ -3750,6 +3752,8 @@ void Baseapp::onVersionNotMatch(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::onScriptVersionNotMatch(Mercury::Channel* pChannel)
 {
+	INFO_MSG(fmt::format("Baseapp::onScriptVersionNotMatch: {}.\n", pChannel->c_str()));
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
