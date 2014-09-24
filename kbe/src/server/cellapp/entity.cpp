@@ -1407,13 +1407,6 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onResetWitness(Mercury::Channel* pChannel)
-{
-	INFO_MSG(fmt::format("{}::onResetWitness: {}.\n", 
-		this->scriptName(), this->id()));
-}
-
-//-------------------------------------------------------------------------------------
 int Entity::pySetLayer(PyObject *value)
 {
 	if(isDestroyed())	
