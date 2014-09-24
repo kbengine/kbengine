@@ -371,6 +371,12 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 
 	// 如果有cell, 需要通知其获得witness， 因为这个客户端刚刚绑定到这个proxy
 	// 此时这个entity即使有cell正常情况必须是没有witness的。
+	onGetWitness();
+}
+
+//-------------------------------------------------------------------------------------
+void Proxy::onGetWitness()
+{
 	if(cellMailbox())
 	{
 		// 通知cell获得客户端

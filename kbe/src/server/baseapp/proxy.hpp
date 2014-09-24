@@ -168,6 +168,11 @@ public:
 	int16 streamStringToClient(PyObjectPtr objptr, 
 		const std::string& descr = "", int16 id = -1);
 
+	/**
+		∞Û∂®¡Àwitness
+	*/
+	void onGetWitness();
+
 protected:
 	uint64 rndUUID_;
 	Mercury::Address addr_;

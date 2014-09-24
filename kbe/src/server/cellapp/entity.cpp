@@ -1356,7 +1356,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 {
 	KBE_ASSERT(this->baseMailbox() != NULL);
 
-	// proxy的giveClientTo功能， 如果一个entity已经创建了cell， 并将控制权绑定
+	// proxy的giveClientTo功能或者reloginGateway， 如果一个entity已经创建了cell， 并将控制权绑定
 	// 到该entity时是一定没有clientMailbox的。
 	if(clientMailbox() == NULL)
 	{
@@ -1368,7 +1368,9 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		clientMailbox(client);
 	}
 
-	if(pWitness_ == NULL)
+	bool hasWitness = pWitness_ != NULL;
+
+	if(!hasWitness)
 	{
 		pWitness_ = Witness::ObjPool().createObject();
 		pWitness_->attach(this);
@@ -1382,7 +1384,10 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	if(hasWitness)
+	{
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	}
 }
 
 //-------------------------------------------------------------------------------------

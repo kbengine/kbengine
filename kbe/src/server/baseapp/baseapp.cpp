@@ -2488,14 +2488,20 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	pChannel->proxyID(proxy->id());
 	proxy->rndUUID(KBEngine::genUUID64());
 
-	//createClientProxies(proxy, true);
-	proxy->onEntitiesEnabled();
+	// 客户端重连也需要将完整的数据重发给客户端， 相当于登录之后获得的数据。
+	// 因为断线期间不能确保包括场景等数据已发生变化
+	// 客户端需要重建所有数据
+	createClientProxies(proxy, true);
+	proxy->onGetWitness();
+	// proxy->onEntitiesEnabled();
 
+	/*
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
 	(*pBundle) << proxy->rndUUID();
 	(*pBundle).send(this->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	*/
 }
 
 //-------------------------------------------------------------------------------------
