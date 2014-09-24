@@ -807,6 +807,14 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
 		entity->cellMailbox(mailbox);
+
+		// 安全起见， 这里清空一下
+		// 如果服务端上使用giveClientTo切换控制权
+		// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
+		pEntityIDAliasIDList_.clear();
+		std::vector<ENTITY_ID> excludes;
+		excludes.push_back(entityID_);
+		pEntities_->clear(true, excludes);
 	}
 
 	EventData_EnterWorld eventdata;
