@@ -146,7 +146,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if(totalSentBytes_ == totalBytes_)
 	{
-		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({:.2f}%).\n",
+		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({4:.2f}%).\n",
 			entityID(), id(), totalSentBytes_, this->totalBytes(), 100.0f, datasize, type()));
 
 		pDataDownloads_->onDownloadCompleted(this);
@@ -161,7 +161,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	
-	DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({:.2f}%).\n",
+	DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({4:.2f}%).\n",
 		entityID(), id(), totalSentBytes_, this->totalBytes(), 
 		(((float)totalSentBytes_ / (float)this->totalBytes()) * 100.0f), datasize, type()));
 
