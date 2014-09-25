@@ -139,9 +139,10 @@ class Account(KBEngine.Proxy):
 		exposed.
 		客户端请求删除一个角色
 		"""
+		DEBUG_MSG("Account[%i].reqRemoveAvatar: %s" % (self.id, name))
 		found = 0
 		for key, info in self.characters.items():
-			if info[0] == name:
+			if info[1] == name:
 				del self.characters[key]
 				found = key
 				break
