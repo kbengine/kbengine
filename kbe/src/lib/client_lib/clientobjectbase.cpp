@@ -383,10 +383,23 @@ ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 	{
 		uint8 aliasID = 0;
 		s >> aliasID;
+
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
+		if(pEntityIDAliasIDList_.size() == 0)
+			return 0;
+
 		id = pEntityIDAliasIDList_[aliasID];
 	}
 	else
 	{
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
+		if(pEntityIDAliasIDList_.size() == 0)
+			return 0;
+
 		s >> id;
 	}
 
@@ -1627,6 +1640,9 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
 	{
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
 		ERROR_MSG(fmt::format("ClientObjectBase::onUpdateData_xz_yp: not found entity({}).\n", entityID));
 		return;
 	}
