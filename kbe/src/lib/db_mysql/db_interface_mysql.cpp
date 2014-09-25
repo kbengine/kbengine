@@ -597,7 +597,7 @@ bool DBInterfaceMysql::processException(std::exception & e)
 		while (!this->reattach())
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::processException: "
-							"Thread {:p} reconnect({}) attempt %d failed({}).\n",
+							"Thread {:p} reconnect({}) attempt {} failed({}).\n",
 						(void*)this,
 						db_name_,
 						attempts,
