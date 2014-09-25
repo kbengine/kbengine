@@ -1375,6 +1375,20 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		pWitness_ = Witness::ObjPool().createObject();
 		pWitness_->attach(this);
 	}
+	else
+	{
+		/*
+			重新绑定，通常是客户端重登陆或者重连或者一个账号挤掉
+			另一个客户端登陆的客户端, 而Entity还在内存中并且已经
+			绑定了witness(这种情况也可能是服务端还未侦查到客户端断线)
+
+			这种情况我们仍然需要做一些事情保证客户端的正确性， 例如发送enterworld
+		*/
+		pWitness_->onAttach(this);
+
+		// AOI中的实体也需要重置，重新同步给客户端
+		pWitness_->resetAOIEntities();
+	}
 
 	Space* space = Spaces::findSpace(this->spaceID());
 	if(space)

@@ -134,6 +134,14 @@ void Witness::attach(Entity* pEntity)
 
 	Cellapp::getSingleton().addUpdatable(this);
 
+	onAttach(pEntity);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::onAttach(Entity* pEntity)
+{
+	lastBasePos.z = -FLT_MAX;
+
 	// 通知客户端enterworld
 	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
@@ -332,6 +340,24 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 		pEntityRef->pEntity()->delWitnessed(pEntity_);
 
 	pEntityRef->pEntity(NULL);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::resetAOIEntities()
+{
+	clientAOISize_ = 0;
+	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); iter++)
+	{
+		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+		{
+			delete (*iter);
+			iter = aoiEntities_.erase(iter);
+			continue;
+		}
+
+		(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -108,6 +108,7 @@ public:
 	void attach(Entity* pEntity);
 	void detach(Entity* pEntity);
 	void clear(Entity* pEntity);
+	void onAttach(Entity* pEntity);
 
 	void setAoiRadius(float radius, float hyst = 5.0f);
 	
@@ -166,6 +167,11 @@ public:
 	INLINE bool entityInAOI(ENTITY_ID entityID);
 
 	INLINE AOITrigger* pAOITrigger();
+
+	/**
+		重置AOI范围内的entities， 使其同步状态恢复到最初未同步的状态
+	*/
+	void resetAOIEntities();
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置
