@@ -1351,6 +1351,18 @@ bool DBTaskAccountLogin::db_thread_process()
 		return false;
 	}
 
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account script[{}], login[{}] failed!\n", 
+			dbcfg.dbAccountEntityScriptType, accountName_));
+
+		success_ = false;
+		return false;
+	}
+
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
@@ -1417,9 +1429,6 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	success_ = false;
 	KBEEntityLogTable::EntityLog entitylog;
-
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
 	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
 
 	// 如果有在线纪录
