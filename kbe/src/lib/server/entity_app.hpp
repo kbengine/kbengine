@@ -332,6 +332,16 @@ bool EntityApp<E>::installEntityDef()
 		return false;
 	}
 
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine_defs.xml->dbmgr->account_system->accountEntityScriptType)!\n", 
+			dbcfg.dbAccountEntityScriptType));
+
+		return false;
+	}
+
 	return true;
 }
 

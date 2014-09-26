@@ -229,16 +229,26 @@ bool Dbmgr::initBillingHandler()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initDB()
 {
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::initDB(): not found account script[{}]!\n", 
+			dbcfg.dbAccountEntityScriptType));
+
+		return false;
+	}
+
 	if(!DBUtil::initialize())
 	{
-		ERROR_MSG("Dbmgr::initDB: can't initialize dbinterface!\n");
+		ERROR_MSG("Dbmgr::initDB(): can't initialize dbinterface!\n");
 		return false;
 	}
 
 	DBInterface* pDBInterface = DBUtil::createInterface();
 	if(pDBInterface == NULL)
 	{
-		ERROR_MSG("Dbmgr::initDB: can't create dbinterface!\n");
+		ERROR_MSG("Dbmgr::initDB(): can't create dbinterface!\n");
 		return false;
 	}
 

@@ -533,6 +533,13 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	KBE_ASSERT(pTable);
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): not found account script[{}], create[{}] error!\n", 
+			DBUtil::accountScriptName(), accountName));
+
+		return false;
+	}
 
 	if(pTable->queryAccount(pdbi, accountName, info) && (info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
