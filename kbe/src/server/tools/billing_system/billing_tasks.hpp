@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
+#include "server/server_errors.hpp"
 
 namespace KBEngine{ 
 
@@ -59,7 +60,7 @@ public:
 	std::string getDatas;			// 返回给客户端的附带数据
 	COMPONENT_ID baseappID;
 	COMPONENT_ID dbmgrID;
-	bool success;
+	SERVER_ERROR_CODE retcode;
 
 	Mercury::Address address;
 
@@ -114,7 +115,7 @@ public:
 
 	OrdersCharge* pOrders;
 	OrdersCharge orders;
-	bool success;
+	SERVER_ERROR_CODE retcode;
 };
 
 

@@ -236,7 +236,7 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 	pinfo->getDatas = "";
 	pinfo->password = password;
 	pinfo->postDatas = datas;
-	pinfo->success = false;
+	pinfo->retcode = SERVER_ERR_OP_FAILED;
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
@@ -272,7 +272,7 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	pinfo->getDatas = "";
 	pinfo->password = password;
 	pinfo->postDatas = datas;
-	pinfo->success = false;
+	pinfo->retcode = SERVER_ERR_OP_FAILED;
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();

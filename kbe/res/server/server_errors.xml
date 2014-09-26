@@ -110,4 +110,19 @@
 		<id>21</id>
 		<descr>	未开放账号注册功能。</descr>
 	</SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE>
+	
+	<SERVER_ERR_CANNOT_USE_MAIL>
+		<id>22</id>
+		<descr>	不能使用email地址。</descr>
+	</SERVER_ERR_CANNOT_USE_MAIL>
+	
+	<SERVER_ERR_NOT_FOUND_ACCOUNT>
+		<id>23</id>
+		<descr>	找不到此账号。</descr>
+	</SERVER_ERR_NOT_FOUND_ACCOUNT>
+	
+	<SERVER_ERR_DB>
+		<id>24</id>
+		<descr>	数据库错误(请检查dbmgr日志和DB)。</descr>
+	</SERVER_ERR_DB>
 </root>

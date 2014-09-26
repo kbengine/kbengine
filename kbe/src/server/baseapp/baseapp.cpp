@@ -2040,13 +2040,13 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	CALLBACK_ID callbackID;
 	std::string datas;
 	DBID dbid;
-	bool success;
+	SERVER_ERROR_CODE retcode;
 
 	s >> chargeID;
 	s >> dbid;
 	s.readBlob(datas);
 	s >> callbackID;
-	s >> success;
+	s >> retcode;
 
 	INFO_MSG(fmt::format("Baseapp::onChargeCB: chargeID={0}, dbid={3}, datas={1}, pycallback={2}.\n", 
 		chargeID,
@@ -2056,7 +2056,7 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
 	PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
-	PyObject* pySuccess = PyBool_FromLong(success);
+	PyObject* pySuccess = PyBool_FromLong((retcode == SERVER_SUCCESS));
 	Blob* pBlob = new Blob(datas);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);

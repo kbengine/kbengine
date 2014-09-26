@@ -808,14 +808,14 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 		return;
 
 	std::string loginName, accountName, password, datas;
-	bool success = true;
+	SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
 	COMPONENT_ID componentID;
 	ENTITY_ID entityID;
 	DBID dbid;
 	uint32 flags;
 	uint64 deadline;
 
-	s >> success;
+	s >> retcode;
 
 	// 登录名既登录时客户端输入的名称， 账号名则是dbmgr查询得到的名称
 	// 这个机制用于一个账号多名称系统或者多个第三方账号系统登入服务器
@@ -868,9 +868,9 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	if(pClientChannel)
 		pClientChannel->extra("");
 
-	if(!success && entityID == 0 && componentID == 0)
+	if(retcode != SERVER_SUCCESS && entityID == 0 && componentID == 0)
 	{
-		_loginFailed(NULL, loginName, SERVER_ERR_NAME_PASSWORD, datas);
+		_loginFailed(NULL, loginName, retcode, datas);
 		return;
 	}
 

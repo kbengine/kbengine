@@ -48,7 +48,7 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_ACCOUNT_CREATE_FAILED			7			// 创建账号失败（已经存在一个相同的账号）。
 #define SERVER_ERR_BUSY								8			// 操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。
 #define SERVER_ERR_ACCOUNT_LOGIN_ANOTHER			9			// 当前账号在另一处登录了。
-#define SERVER_ERR_ACCOUNT_IS_ONLINE				10			// 你已经登录了， 服务器拒绝再次登录。
+#define SERVER_ERR_ACCOUNT_IS_ONLINE				10			// 你已经登录了，服务器拒绝再次登录。
 #define SERVER_ERR_PROXY_DESTROYED					11			// 与客户端关联的proxy在服务器上已经销毁。
 #define SERVER_ERR_ENTITYDEFS_NOT_MATCH				12			// entityDefs不匹配。
 #define SERVER_ERR_IN_SHUTTINGDOWN					13			// 服务器正在关闭中
@@ -60,6 +60,9 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_OP_FAILED						19			// 操作失败。
 #define SERVER_ERR_SRV_STARTING						20			// 服务器正在启动中。
 #define SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE	21			// 未开放账号注册功能。
+#define SERVER_ERR_CANNOT_USE_MAIL					22			// 不能使用email地址。
+#define SERVER_ERR_NOT_FOUND_ACCOUNT				23			// 找不到此账号。
+#define SERVER_ERR_DB								24			// 数据库错误(请检查dbmgr日志和DB)。
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -83,7 +86,10 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_VERSION_NOT_MATCH",
 	"SERVER_ERR_OP_FAILED",
 	"SERVER_ERR_SRV_STARTING",
-	"SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE"
+	"SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE",
+	"SERVER_ERR_CANNOT_USE_MAIL",
+	"SERVER_ERR_NOT_FOUND_ACCOUNT"，
+	"SERVER_ERR_DB"
 };
 
 }

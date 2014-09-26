@@ -102,7 +102,7 @@ bool BillingHandler_Normal::loginAccount(Mercury::Channel* pChannel, std::string
 										 std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		loginName, loginName, password, true, datas, datas));
+		loginName, loginName, password, SERVER_SUCCESS, datas, datas));
 
 	return true;
 }
@@ -263,7 +263,7 @@ void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 {
 	std::string loginName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
-	bool success = false;
+	SERVER_ERROR_CODE success = SERVER_ERR_OP_FAILED;
 
 	s >> cid >> loginName >> accountName >> password >> success;
 	s.readBlob(postdatas);
@@ -407,14 +407,14 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	CALLBACK_ID cbid;
 	COMPONENT_ID cid;
 	DBID dbid;
-	bool success;
+	SERVER_ERROR_CODE retcode;
 
 	s >> cid;
 	s >> chargeID;
 	s >> dbid;
 	s.readBlob(datas);
 	s >> cbid;
-	s >> success;
+	s >> retcode;
 
 	INFO_MSG(fmt::format("BillingHandler_ThirdParty::onChargeCB: chargeID={0}, dbid={3}, cbid={1}, cid={4}, datas={2}!\n",
 		chargeID, cbid, datas, dbid, cid));
@@ -435,7 +435,7 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	(*(*bundle)) << dbid;
 	(*(*bundle)).appendBlob(datas);
 	(*(*bundle)) << cbid;
-	(*(*bundle)) << success;
+	(*(*bundle)) << retcode;
 
 	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 }
