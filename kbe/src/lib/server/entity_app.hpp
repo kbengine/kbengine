@@ -336,7 +336,7 @@ bool EntityApp<E>::installEntityDef()
 	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
 	if(pModule == NULL)
 	{
-		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine_defs.xml->dbmgr->account_system->accountEntityScriptType)!\n", 
+		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine_defs.xml->dbmgr->account_system->accountEntityScriptType and entities.xml)!\n", 
 			dbcfg.dbAccountEntityScriptType));
 
 		return false;
