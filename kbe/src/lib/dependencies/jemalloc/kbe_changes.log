@@ -1,0 +1,20 @@
+Makefile.in:
+1:
+	LIB =	jemalloc
+
+	LIBDIR := $(KBE_ROOT)/kbe/src/libs
+	ifndef KBE_ROOT
+	export KBE_ROOT := $(subst /kbe/src/lib/dependencies/$(LIB),,$(CURDIR))
+	endif
+
+	srcroot := 
+	objroot := 
+	abs_srcroot := $(KBE_ROOT)
+	abs_objroot := $(KBE_ROOT)
+
+2:
+	$(objroot)lib => $(LIBDIR)
+
+3: 
+	all: build_lib => all:: build_lib
+	build_lib: build_lib_shared build_lib_static => build_lib: build_lib_static
