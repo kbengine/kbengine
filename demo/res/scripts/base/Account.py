@@ -155,6 +155,13 @@ class Account(KBEngine.Proxy):
 		"""
 		INFO_MSG('Account::_onCharacterSaved:(%i) create avatar state: %i, %s, %i' % (self.id, success, avatar.cellData["name"], avatar.databaseID))
 		
+		# 如果此时账号已经销毁， 角色已经无法被记录则我们清除这个角色
+		if self.isDestroyed:
+			if avatar:
+				avatar.destroy(True)
+				
+			return
+			
 		avatarinfo = TAvatarInfos()
 		avatarinfo.extend([0, "", 0, 0, TAvatarData().createFromDict({"param1" : 0, "param2" :b''})])
 
@@ -170,7 +177,7 @@ class Account(KBEngine.Proxy):
 
 			avatar.destroy()
 		
-		if not self.isDestroyed and self.client:
+		if self.client:
 			self.client.onCreateAvatarResult(0, avatarinfo)
 			
 	def selectAvatarGame(self, dbid):
