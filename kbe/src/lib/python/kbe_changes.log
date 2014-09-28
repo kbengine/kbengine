@@ -7,7 +7,9 @@ Include/Python.h
 	#undef _XOPEN_SOURCE
 	#endif
 	
+	#ifndef NDEBUG
 	#define NDEBUG
+	#endif
 
 pyconfig.h
 	#ifndef _POSIX_C_SOURCE
