@@ -313,8 +313,6 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
 		accountName, bestBaseappID_));
-
-	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
@@ -339,8 +337,6 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 		sendAllocatedBaseappAddr(pChannel, loginName, accountName, 0, 0);
 		return;
 	}
-
-	sendAllocatedBaseappAddr(pChannel, loginName, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
@@ -353,7 +349,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
 							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
 {
-	//sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
 }
 
 //-------------------------------------------------------------------------------------
