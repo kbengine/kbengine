@@ -1169,7 +1169,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		}
 	}
 
-	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, pModule);
 
 	if(!success_ && pdbi_->getlasterror() > 0)
@@ -1361,13 +1361,12 @@ bool DBTaskAccountLogin::db_thread_process()
 		return false;
 	}
 
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 
 	if(pModule == NULL)
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account script[{}], login[{}] failed!\n", 
-			dbcfg.dbAccountEntityScriptType, accountName_));
+			DBUtil::accountScriptName(), accountName_));
 
 		retcode_ = SERVER_ERR_SRV_NO_READY;
 		return false;

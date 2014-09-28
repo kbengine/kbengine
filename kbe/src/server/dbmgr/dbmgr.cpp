@@ -229,12 +229,11 @@ bool Dbmgr::initBillingHandler()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initDB()
 {
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 	if(pModule == NULL)
 	{
 		ERROR_MSG(fmt::format("Dbmgr::initDB(): not found account script[{}]!\n", 
-			dbcfg.dbAccountEntityScriptType));
+			DBUtil::accountScriptName()));
 
 		return false;
 	}
@@ -253,12 +252,6 @@ bool Dbmgr::initDB()
 	}
 
 	bool ret = DBUtil::initInterface(pDBInterface);
-	
-	if(ret)
-	{
-		ret = pDBInterface->checkEnvironment();
-	}
-	
 	pDBInterface->detach();
 	SAFE_RELEASE(pDBInterface);
 
