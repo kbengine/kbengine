@@ -19,6 +19,7 @@ DATADIR := $(DESTDIR)/usr/local/share
 MANDIR := $(DESTDIR)/usr/local/share/man
 
 LIB =	jemalloc
+CONFIG_ARGS =
 
 LIBDIR := $(KBE_ROOT)/kbe/src/libs
 ifndef KBE_ROOT
@@ -27,8 +28,8 @@ endif
 
 srcroot := 
 objroot := 
-abs_srcroot := $(KBE_ROOT)
-abs_objroot := $(KBE_ROOT)
+abs_srcroot := $(KBE_ROOT)/kbe/src/lib/dependencies/$(LIB)
+abs_objroot := $(KBE_ROOT)/kbe/src/lib/dependencies/$(LIB)
 
 # Build parameters.
 CPPFLAGS :=  -D_GNU_SOURCE -D_REENTRANT -I$(srcroot)include -I$(objroot)include
@@ -178,9 +179,13 @@ TESTS_OBJS := $(TESTS_UNIT_OBJS) $(TESTS_UNIT_AUX_OBJS) $(TESTS_INTEGRATION_OBJS
 .SECONDARY : $(TESTS_OBJS)
 
 # Default target.
-all:: build_lib
+all:: build_lib config.status
 
 dist: build_doc
+
+# Run the configure script.
+config.status:	$(abs_srcroot)/configure
+	$(SHELL) $(abs_srcroot)/configure $(CONFIG_ARGS)
 
 $(srcroot)doc/%.html : $(objroot)doc/%.xml $(srcroot)doc/stylesheet.xsl $(objroot)doc/html.xsl
 	$(XSLTPROC) -o $@ $(objroot)doc/html.xsl $<

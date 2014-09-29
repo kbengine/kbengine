@@ -1,6 +1,7 @@
 Makefile.in:
 1:
 	LIB =	jemalloc
+	CONFIG_ARGS =
 
 	LIBDIR := $(KBE_ROOT)/kbe/src/libs
 	ifndef KBE_ROOT
@@ -16,5 +17,11 @@ Makefile.in:
 	$(objroot)lib => $(LIBDIR)
 
 3: 
-	all: build_lib => all:: build_lib
+	all: build_lib => all:: build_lib config.status
 	build_lib: build_lib_shared build_lib_static => build_lib: build_lib_static
+	clean: => clean::
+
+4: 
+	# Run the configure script.
+	config.status:	$(srcdir)/configure
+		$(SHELL) $(srcdir)/configure $(CONFIG_ARGS)
