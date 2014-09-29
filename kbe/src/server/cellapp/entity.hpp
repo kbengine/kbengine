@@ -395,7 +395,8 @@ public:
 
 	*/
 	void setWitness(Witness* pWitness);
-	void onGetWitness(Mercury::Channel* pChannel);
+	void onGetWitnessFromBase(Mercury::Channel* pChannel);
+	void onGetWitness(bool fromBase = false);
 
 	/** 网络接口
 		entity丢失了一个观察者(客户端)
