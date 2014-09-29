@@ -19,8 +19,13 @@ Makefile.in:
 3: 
 	all: build_lib => all:: config.status build_lib
 	build_lib: build_lib_shared build_lib_static => build_lib: build_lib_static
-	clean: => clean::
 
+	clean: => clean::
+			...
+			...
+		        rm -f $(abs_srcroot)/config.status
+		        rm -f $(abs_srcroot)/config.stamp
+		        rm -f $(abs_srcroot)/config.log
 4: 
 	# Run the configure script.
 	config.status:	$(srcdir)/configure

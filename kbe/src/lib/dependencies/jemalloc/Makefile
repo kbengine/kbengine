@@ -411,6 +411,9 @@ clean::
 	rm -f $(TESTS_OBJS:%.$(O)=%.out)
 	rm -f $(DSOS) $(STATIC_LIBS)
 	rm -f $(objroot)*.gcov.*
+        rm -f $(abs_srcroot)/config.status
+        rm -f $(abs_srcroot)/config.stamp
+        rm -f $(abs_srcroot)/config.log
 
 distclean: clean
 	rm -rf $(objroot)autom4te.cache
