@@ -17,7 +17,7 @@ Makefile.in:
 	$(objroot)lib => $(LIBDIR)
 
 3: 
-	all: build_lib => all:: build_lib config.status
+	all: build_lib => all:: config.status build_lib
 	build_lib: build_lib_shared build_lib_static => build_lib: build_lib_static
 	clean: => clean::
 
