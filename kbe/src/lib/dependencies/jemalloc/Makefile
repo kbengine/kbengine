@@ -179,7 +179,7 @@ TESTS_OBJS := $(TESTS_UNIT_OBJS) $(TESTS_UNIT_AUX_OBJS) $(TESTS_INTEGRATION_OBJS
 .SECONDARY : $(TESTS_OBJS)
 
 # Default target.
-all:: build_lib config.status
+all:: config.status build_lib
 
 dist: build_doc
 
