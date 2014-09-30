@@ -297,10 +297,13 @@ bool DBInterfaceMysql::checkErrors()
 	if(!foundAccountTable)
 	{
 		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
-		if(!query(querycmd.c_str(), querycmd.size(), true))
+
+		try
 		{
-			ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
-			return false;
+			query(querycmd.c_str(), querycmd.size(), false);
+		}
+		catch (std::exception& e)
+		{
 		}
 	}
 
