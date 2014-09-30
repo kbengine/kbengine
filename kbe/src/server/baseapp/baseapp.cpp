@@ -2218,12 +2218,11 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 	
 	if(strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
 	{
-		uint32 exip = inet_addr(g_kbeSrvConfig.getBaseApp().externalAddress);
-		(*pBundle) << exip;
+		(*pBundle) << g_kbeSrvConfig.getBaseApp().externalAddress;
 	}
 	else
 	{
-		(*pBundle) << this->networkInterface().extaddr().ip;
+		(*pBundle) << inet_ntoa((struct in_addr&)networkInterface().extaddr().ip);
 	}
 
 	(*pBundle) << this->networkInterface().extaddr().port;

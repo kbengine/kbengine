@@ -108,7 +108,7 @@ public:
 	*/
 	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  uint32 addr, uint16 port);
+								  std::string& addr, uint16 port);
 
 	/** 网络接口
 		更新baseapp情况。
@@ -128,7 +128,7 @@ public:
 	*/
 	void sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  uint32 addr, uint16 port);
+								  const std::string& addr, uint16 port);
 protected:
 	TimerHandle													gameTimer_;
 

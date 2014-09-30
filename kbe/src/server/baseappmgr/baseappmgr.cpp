@@ -333,8 +333,8 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseappmgr::onPendingAccountGetBaseappAddr: not found baseapp({}).\n", componentID));
-		sendAllocatedBaseappAddr(pChannel, loginName, accountName, 0, 0);
+		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr: not found baseapp({}).\n", componentID));
+		sendAllocatedBaseappAddr(pChannel, loginName, accountName, "", 0);
 		return;
 	}
 	
@@ -347,14 +347,14 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
-							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
+							  std::string& loginName, std::string& accountName, std::string& addr, uint16 port)
 {
 	sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
-							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
+							  std::string& loginName, std::string& accountName, const std::string& addr, uint16 port)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 	size_t componentSize = components.size();

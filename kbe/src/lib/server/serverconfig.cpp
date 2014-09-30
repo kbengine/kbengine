@@ -1245,8 +1245,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 {
 	std::string infostr = "";
 
-	updateExternalAddress(getBaseApp().externalAddress);
-	updateExternalAddress(getLoginApp().externalAddress);
+	//updateExternalAddress(getBaseApp().externalAddress);
+	//updateExternalAddress(getLoginApp().externalAddress);
 
 	if(componentType == CELLAPP_TYPE)
 	{

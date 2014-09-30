@@ -914,12 +914,12 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& loginName, 
-															std::string& accountName, uint32 addr, uint16 port)
+															std::string& accountName, std::string& addr, uint16 port)
 {
 	if(pChannel->isExternal())
 		return;
 	
-	if(addr == 0)
+	if(addr.size() == 0)
 	{
 		ERROR_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={}, not found baseapp.\n", 
 			loginName));
@@ -951,7 +951,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle.newMessage(ClientInterface::onLoginSuccessfully);
 	uint16 fport = ntohs(port);
 	bundle << accountName;
-	bundle << inet_ntoa((struct in_addr&)addr);
+	bundle << addr;
 	bundle << fport;
 	bundle.appendBlob(infos->datas);
 	bundle.send(this->networkInterface(), pClientChannel);

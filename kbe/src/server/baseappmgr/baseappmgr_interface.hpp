@@ -94,7 +94,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_ARGS4(onPendingAccountGetBaseappAddr,		MERCURY_VARIABLE_MESSAGE,
 									std::string,							loginName, 
 									std::string,							accountName,
-									uint32,									addr,
+									std::string,							addr,
 									uint16,									port)
 									
 	// 一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp

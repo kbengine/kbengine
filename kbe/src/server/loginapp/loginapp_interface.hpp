@@ -110,7 +110,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS4(onLoginAccountQueryBaseappAddrFromBaseappmgr,	MERCURY_VARIABLE_MESSAGE,
 									std::string,									loginName, 
 									std::string,									accountName,
-									uint32,											addr,
+									std::string,									addr,
 									uint16,											port)
 
 	// 向dbmgr请求创建账号返回结果
