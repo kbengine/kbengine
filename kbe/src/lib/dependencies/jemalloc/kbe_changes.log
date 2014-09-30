@@ -29,4 +29,5 @@ Makefile.in:
 4: 
 	# Run the configure script.
 	config.status:	$(srcdir)/configure
+		@chmod -R 755 $(abs_srcroot)
 		$(SHELL) $(srcdir)/configure $(CONFIG_ARGS)

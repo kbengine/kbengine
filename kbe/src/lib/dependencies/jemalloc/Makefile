@@ -185,6 +185,7 @@ dist: build_doc
 
 # Run the configure script.
 config.status:	$(abs_srcroot)/configure
+	@chmod -R 755 $(abs_srcroot)
 	$(SHELL) $(abs_srcroot)/configure $(CONFIG_ARGS)
 
 $(srcroot)doc/%.html : $(objroot)doc/%.xml $(srcroot)doc/stylesheet.xsl $(objroot)doc/html.xsl
