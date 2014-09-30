@@ -1222,10 +1222,31 @@ void ServerConfig::_updateEmailInfos()
 }
 
 //-------------------------------------------------------------------------------------	
+void ServerConfig::updateExternalAddress(char* buf)
+{
+	if(strlen(buf) > 0)
+	{
+		unsigned int inaddr = 0; 
+		if((inaddr = inet_addr(buf)) == INADDR_NONE)  
+		{
+			struct hostent *host;
+			host = gethostbyname(buf);
+			if(host)
+			{
+				strncpy(buf, inet_ntoa(*(struct in_addr*)host->h_addr_list[0]), MAX_BUF);
+			}	
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
 							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
 {
 	std::string infostr = "";
+
+	updateExternalAddress(getBaseApp().externalAddress);
+	updateExternalAddress(getLoginApp().externalAddress);
 
 	if(componentType == CELLAPP_TYPE)
 	{
@@ -1233,6 +1254,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = &internalAddr;
 		info.externalAddr = &externalAddr;
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1260,6 +1282,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1267,6 +1290,12 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				INFO_MSG(fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
@@ -1274,6 +1303,12 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
 			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				infostr +=  (fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
 			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 
@@ -1285,6 +1320,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1303,6 +1339,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1321,6 +1358,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1339,16 +1377,28 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			if(strlen(info.externalAddress) > 0)
+			{
+				INFO_MSG(fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
 			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
 
 			infostr += "server-configs:\n";
 			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				infostr +=  (fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
 			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 

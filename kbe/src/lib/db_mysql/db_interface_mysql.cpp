@@ -302,7 +302,7 @@ bool DBInterfaceMysql::checkErrors()
 		{
 			query(querycmd.c_str(), querycmd.size(), false);
 		}
-		catch (std::exception& e)
+		catch (...)
 		{
 		}
 	}
