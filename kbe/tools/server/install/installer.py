@@ -303,6 +303,9 @@ def _checkKBEEnvironment(is_get_error):
 		"scripts/entities.xml",
 	]
 	
+	KBE_RES_PATH = KBE_RES_PATH.replace("%KBE_ROOT%", KBE_ROOT)
+	KBE_RES_PATH = KBE_RES_PATH.replace("$KBE_ROOT", KBE_ROOT)
+	
 	if ";" in KBE_RES_PATH:
 		paths = KBE_RES_PATH.split(";")
 	else:
@@ -370,7 +373,10 @@ def echoSystemEnvironment():
 	
 def echoKBEVersion():
 	INFO_MSG("version=0.0.1")
-
+	
+	if getInput("View the latest version of GitHub? [yes|no]") != "yes":
+		return
+		
 	OUT_MSG("")
 	INFO_MSG("Check out the latest version...")
 	urls = get_sources_infos()
@@ -790,6 +796,7 @@ def checkMysql():
 	syscommand('net start mysql', False)
 	found = findMysqlService()
 
+	INFO_MSG("MySQL is installed on the local.")
 	INFO_MSG("- check mysql service...")
 	restartMsql()
 
@@ -974,11 +981,13 @@ def sourceinstall(islocal):
 		
 	checkDeps()
 	modifyKBEConfig()
-
+	INFO_MSG("KBEngine has been successfully installed.")
+	
 def binaryinstall():
 	download_binary()
 	checkDeps()
 	modifyKBEConfig()
+	INFO_MSG("KBEngine has been successfully installed.")
 	
 def uninstall():
 	pass
