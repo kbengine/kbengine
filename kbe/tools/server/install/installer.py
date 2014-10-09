@@ -824,7 +824,7 @@ def checkMysql():
 			ret = getInput("-  Allow automatic installation of MySQL? [yes/no]")
 			if ret != 'yes':
 				if not manual_installation:
-					if input("The MySQL service installation is complete? [yes|no]") != "no"
+					if input("The MySQL service installation is complete? [yes|no]") != "no":
 						manual_installation = True
 						continue
 						
