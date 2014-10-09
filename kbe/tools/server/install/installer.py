@@ -193,12 +193,15 @@ def resetKBEEnvironment():
 			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res;$KBE_ROOT/demo/;$KBE_ROOT/demo/res"
 			
 	if platform.architecture()[0] == '32bit':
-		x_KBE_HYBRID_PATH = x_KBE_ROOT + "kbe/bin/Hybrid"
+		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid"
 	else:
-		x_KBE_HYBRID_PATH = x_KBE_ROOT + "kbe/bin/Hybrid64"
+		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid64"
 		if not os.path.isdir(x_KBE_HYBRID_PATH):
-			x_KBE_HYBRID_PATH = x_KBE_ROOT + "kbe/bin/Hybrid"
-			
+			x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid"
+	
+	if platform.system() != 'Windows':
+		x_KBE_HYBRID_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
+		
 	if len(KBE_UID) == 0:
 		x_KBE_UID = str(random.randint(1, 65535))
 
