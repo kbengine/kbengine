@@ -111,10 +111,10 @@ def INFO_MSG(msg):
 	print(msg)
 
 def ERROR_MSG(msg):
-	print('[ERROR] ' + msg)
+	print('ERROR: ' + msg)
 
 def WARING_MSG(msg):
-	print('[WARING] ' + msg)
+	print('WARING: ' + msg)
 
 def getInput(s):
 	if sys.hexversion >= 0x03000000:
@@ -182,10 +182,15 @@ def resetKBEEnvironment():
 			if x_KBE_ROOT[-1] != "/":
 				x_KBE_ROOT += "/"
 		else:
-			x_KBE_ROOT = findKBEngine(os.getcwd())
+			ret = findKBEngine(os.getcwd())
+			if len(ret) > 0:
+				x_KBE_ROOT = ret[0]
 			x_KBE_ROOT.replace("\\", "/").replace("//", "/")
-			
-		x_KBE_RES_PATH = x_KBE_ROOT + "kbe/res;" + x_KBE_ROOT + "demo/;" + x_KBE_ROOT + "demo/res"
+		
+		if platform.system() == 'Windows':
+			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res;%KBE_ROOT%/demo/;%KBE_ROOT%/demo/res"
+		else:
+			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res;$KBE_ROOT/demo/;$KBE_ROOT/demo/res"
 			
 	if platform.architecture()[0] == '32bit':
 		x_KBE_HYBRID_PATH = x_KBE_ROOT + "kbe/bin/Hybrid"
@@ -469,28 +474,32 @@ def getMysqlConfig():
 	return config, cnf
 
 def installMysql():    
-    file = 'mysql-win32.msi'
-    
-    try:
-        os.remove(file)
-    except:
-        pass
-    
-    file = download(bin_mysql_url, file)[0]
-    INFO_MSG("wait for install:" + file)
-    syscommand(file, False)
-    os.remove(file)
+	file = 'mysql-win32.msi'
 
+	try:
+		os.remove(file)
+	except:
+		pass
+    
+	file = download(bin_mysql_url, file)[0]
+	INFO_MSG("wait for install:" + file)
+	syscommand(file, False)
+	os.remove(file)
+	return not input("The MySQL service installation is complete? [yes|no]") == "no"
+	
 def restartMsql():
 	global mysql_sercive_name
 	INFO_MSG('Try to stop %s...' % mysql_sercive_name)
 	syscommand('net stop ' + mysql_sercive_name, False)
-	assert (not findMysqlService()) and 'Unable to stop the MySQL, You need administrator privileges.'
+	if findMysqlService():
+		WARING_MSG('Unable to stop the MySQL, You need administrator privileges.')
 	
 	INFO_MSG('Try to start %s...' % mysql_sercive_name)
 	ret, cret = syscommand('net start ' + mysql_sercive_name, False)
-	assert findMysqlService() and 'Unable to start the MySQL, You need administrator privileges.'
-	INFO_MSG('MySQL is ok')
+	if not findMysqlService():
+		WARING_MSG('Unable to start the MySQL, You need administrator privileges.')
+	else:
+		INFO_MSG('MySQL is ok')
 
 def findMysqlService():
 	global mysql_sercive_name
@@ -799,22 +808,30 @@ def checkMysql():
 	INFO_MSG("MySQL is installed on the local.")
 	INFO_MSG("- check mysql service...")
 	restartMsql()
-
+	
+	manual_installation = False
+	
 	while True:
 		if not found:
 			found = findMysqlService()
         
 		if not found:
 			INFO_MSG("")
-			ERROR_MSG("-  not found MySQL")
+			ERROR_MSG("-  not found MySQL service.")
 			if itry == 1:
 				return False
 
 			ret = getInput("-  Allow automatic installation of MySQL? [yes/no]")
 			if ret != 'yes':
+				if not manual_installation:
+					if input("The MySQL service installation is complete? [yes|no]") != "no"
+						manual_installation = True
+						continue
+						
 				return False
 			else:
 				if not installMysql():
+					ERROR_MSG("install mysql is failed!")
 					return False
 				else:
 					itry += 1
