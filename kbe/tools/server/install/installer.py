@@ -3,7 +3,7 @@
 
 import urllib, socket
 import tarfile, zipfile
-import os, sys, re, platform, getopt, random, time, subprocess, shutil, string
+import os, sys, re, platform, getopt, getpass, random, time, subprocess, shutil, string
 from xml.etree import ElementTree as ET
 from subprocess import check_call
 
@@ -11,13 +11,17 @@ if sys.hexversion >= 0x03000000:
 	import urllib.request
 	import http.client
 	import configparser
-	import winreg
 	from urllib.parse import urlparse
+	
+	if platform.system() == 'Windows':
+		import winreg
 else:
 	import ConfigParser
 	import urlparse
 	import httplib
-	import _winreg as winreg
+	
+	if platform.system() == 'Windows':
+		import _winreg as winreg
             
 # 源码及二进制发布网址
 source_url = "https://github.com/kbengine/kbengine/releases/latest"
@@ -268,11 +272,16 @@ def resetKBEEnvironment():
 				KBE_HYBRID_PATH = x_KBE_HYBRID_PATH
 
 		INFO_MSG("\nKBE_UID current: %s" % (x_KBE_UID))
+		username = ""
+		
 		if platform.system() == 'Windows':
 			KBE_UID = getInput('reset KBE_UID(No input is [%s]):' % (x_KBE_UID)).strip()
 		else:
 			# Linux需要修改系统用户ID
-			username = getInput('os system-username(kbe):').strip()
+			username = getInput('os system-username(%s):' % getpass.getuser()).strip()
+			if len(username) == 0:
+				username = getpass.getuser()
+
 			KBE_UID = getInput('usermod -u [curruid=%s] %s, Enter new uid:' % (KBE_UID, username)).strip()
 			
 		if len(KBE_UID) == 0:
@@ -291,7 +300,10 @@ def resetKBEEnvironment():
 			setEnvironment('user', 'KBE_HYBRID_PATH', KBE_HYBRID_PATH)
 
 		if len(KBE_UID) > 0:
-			setEnvironment('user', 'UID', KBE_UID)
+			if platform.system() == 'Windows':
+				setEnvironment('user', 'UID', KBE_UID)
+			else:
+				setEnvironment('user', 'UID', (KBE_UID, username))
 		
 		if _checkKBEEnvironment(True):
 			break
@@ -358,13 +370,18 @@ def _checkKBEEnvironment(is_get_error):
 	else:
 		paths = KBE_RES_PATH.split(":")
 	
+	paths1 = list(paths)
+	paths = []
+	for p in paths1:
+		paths.append(os.path.expanduser(p))
+		
 	for path in paths:
 		if not os.path.isdir(path):
 			if is_get_error:
 				ERROR_MSG("KBE_RES_PATH: is error! The directory or file not found:\n%s" % (path)) 
 			return False
 	
-	KBE_HYBRID_PATH = KBE_HYBRID_PATH.replace("%KBE_ROOT%", KBE_ROOT).replace("$KBE_ROOT", KBE_ROOT)
+	KBE_HYBRID_PATH = os.path.expanduser(KBE_HYBRID_PATH.replace("%KBE_ROOT%", KBE_ROOT).replace("$KBE_ROOT", KBE_ROOT))
 	if not os.path.isdir(KBE_HYBRID_PATH):
 		if is_get_error:
 			WARING_MSG("KBE_HYBRID_PATH: is error! The directory or file not found:\n%s" % (KBE_HYBRID_PATH)) 
@@ -436,7 +453,22 @@ def echoKBEVersion():
 	INFO_MSG("-------------------------")
 	INFO_MSG(release_title)
 	INFO_MSG(descrs)
-    
+
+def removeLinuxEnvironment(scope, name):
+	assert scope in ('user', 'system')
+	bodys = []
+	f = open(os.path.expanduser("~/.bashrc"))
+	for x in f.readlines():
+		if name in x:
+			continue
+		body.append(x)
+		
+	f = open(os.path.expanduser("~/.bashrc"), "w")
+	f.writelines(body)
+	f.close()
+	
+	syscommand('bash -c \'source \~/.bashrc\'', False)
+	
 def setEnvironment(scope, name, value):
 	assert scope in ('user', 'system')
 	#INFO_MSG('set environment: name=%s, value=%s' % (name, value))
@@ -449,7 +481,15 @@ def setEnvironment(scope, name, value):
 		winreg.CloseKey(key)
 	else:
 		if name.lower() == 'uid':
+			uid, username = value
+			if uid != str(os.geteuid()):
+				ret, cret = syscommand('bash -c \'usermod -d /home/%s/ -u %s %s\'' % (username, uid, username), True)
+				INFO_MSG(ret)
+				INFO_MSG(cret)
 			return
+		
+		ret, cret = syscommand('bash -c \'echo "export %s=%s" >> ~/.bashrc\'' % (name, value), True)
+		syscommand('bash -c \'source \~/.bashrc\'', False)
 
 def getWindowsEnvironmentKey(scope):
 	assert scope in ('user', 'system')
@@ -497,7 +537,9 @@ def removeKBEEnvironment():
 	
 def getEnvironment(scope, name):
 	assert scope in ('user', 'system')
-
+	
+	value = ''
+	
 	if platform.system() == 'Windows':
 		root, subkey = getWindowsEnvironmentKey(scope)
 		key = winreg.OpenKey(root, subkey, 0, winreg.KEY_READ)
@@ -506,7 +548,10 @@ def getEnvironment(scope, name):
 			value, _ = winreg.QueryValueEx(key, name)
 		except WindowsError:
 			value = ''
-
+	else:
+		if name.lower() == 'uid':
+			return str(os.geteuid())
+			
 	return value
 
 def getMysqlConfig():
