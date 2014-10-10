@@ -282,7 +282,7 @@ def resetKBEEnvironment():
 			if len(username) == 0:
 				username = getpass.getuser()
 
-			KBE_UID = getInput('usermod -u [curruid=%s] %s, Enter new uid:' % (KBE_UID, username)).strip()
+			KBE_UID = getInput('usermod -u [No input is %s] %s, Enter new uid:' % (KBE_UID, username)).strip()
 			
 		if len(KBE_UID) == 0:
 			if len(x_KBE_UID) == 0:
@@ -601,12 +601,22 @@ def installMysql():
 def restartMsql():
 	global mysql_sercive_name
 	INFO_MSG('Try to stop %s...' % mysql_sercive_name)
-	syscommand('net stop ' + mysql_sercive_name, False)
+	
+	if platform.system() == 'Windows':
+		syscommand('net stop ' + mysql_sercive_name, False)
+	else:
+		syscommand('bash -c \'/etc/init.d/%s stop\'' % mysql_sercive_name, False)
+		
 	if findMysqlService():
 		WARING_MSG('Unable to stop the MySQL, You need administrator privileges.')
 	
 	INFO_MSG('Try to start %s...' % mysql_sercive_name)
-	ret, cret = syscommand('net start ' + mysql_sercive_name, False)
+	
+	if platform.system() == 'Windows':
+		syscommand('net start ' + mysql_sercive_name, False)
+	else:
+		syscommand('bash -c \'/etc/init.d/%s start\'' % mysql_sercive_name, False)
+		
 	if not findMysqlService():
 		WARING_MSG('Unable to start the MySQL, You need administrator privileges.')
 	else:
@@ -614,13 +624,25 @@ def restartMsql():
 
 def findMysqlService():
 	global mysql_sercive_name
-	ret, cret = syscommand('net start', True)
 	
+	ret = []
+	cret = []
+	
+	if platform.system() == 'Windows':
+		ret, cret = syscommand('net start', True)
+	else:
+		ret, cret = syscommand('bash -c \'service --status-all\'', True)
+		
 	for s in ret:
 		if "mysql" in s.strip().lower():
+			if platform.system() != 'Windows':
+				if "run" not in s.strip().lower():
+					continue
+					
 			if len(mysql_sercive_name) == 0:
 				mysql_sercive_name = s.strip()
 				INFO_MSG("found mysql service[%s]" % mysql_sercive_name)
+				
 			return True
 
 	return False
@@ -679,7 +701,12 @@ def modifyKBEConfig():
 	global kbe_res_path
 	
 	kbengine_defs = kbe_res_path + "server/kbengine_defs.xml"
-
+	
+	if not os.path.isfile(kbengine_defs):
+		ERROR_MSG("not found [%s], KBEngine is not installed?" % kbengine_defs)
+		ERROR_MSG("Please use the \'python installer.py --install=remotesrc\' or \'python installer.py --install=bin\'")
+		return False
+		
 	if len(mysql_ip) == 0:
 		mysql_ip = "localhost"
 	
@@ -783,7 +810,7 @@ def createDatabase():
             
 		if len(mysql_root_password) == 0:
 			if len(mysql_root_password) == 0:
-				mysql_root_password = getInput("- Enter mysql-root password:")
+				mysql_root_password = getInput("- Enter mysql-root password(Don't enter without password):")
 				
 			sql = "\"select VERSION();show variables like \'port\';show variables like \'lower_case_table_names\';select @@basedir as basePath from dual\""
 			cmd = "\"" + mysql_home + ("mysql\" %s%s -hlocalhost -e" % (getRootOpt(mysql_root_password), rootusePortArgs)) + sql
@@ -916,7 +943,12 @@ def checkMysql():
 				
 	itry = 0
 	
-	syscommand('net start mysql', False)
+	if platform.system() == 'Windows':
+		syscommand('net start mysql', False)
+	else:
+		syscommand('bash -c \'/etc/init.d/mysql start\'', False)
+		syscommand('bash -c \'/etc/init.d/mysqld start\'', False)
+		
 	found = findMysqlService()
 
 	INFO_MSG("MySQL is installed on the local.")
@@ -1178,17 +1210,29 @@ def extract_file(src_file, extractPath = "./"):
 
 def normalinstall():
 	checkDeps()
-	modifyKBEConfig()
-	INFO_MSG("KBEngine has been successfully installed.")
-	
+	if modifyKBEConfig():
+		INFO_MSG("KBEngine has been successfully installed.")
+	else:
+		ERROR_MSG("KBEngine installation failed!")
+		
 def sourceinstall():
 	download_sources()
 	copy_new_to_kbengine_dir(True)
+	
+	if platform.system() != 'Windows':
+		global KBE_ROOT
+		syscommand('bash -c \'chmod -R 755 %s\'' % (KBE_ROOT), True)
+	
 	normalinstall()
 	
 def binaryinstall():
 	download_binary()
 	copy_new_to_kbengine_dir(False)
+	
+	if platform.system() != 'Windows':
+		global KBE_ROOT
+		syscommand('bash -c \'chmod -R 755 %s\'' % (KBE_ROOT), True)
+		
 	normalinstall()
 	
 def uninstall():
