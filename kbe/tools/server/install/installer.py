@@ -1060,11 +1060,15 @@ def get_sources_infos():
 	return (src_master_zip_url, src_zip_url, src_tgz_url, release_title, descrs)
     
 def download_hookreport(count, block_size, total_size):
+	s = ""
 	if total_size <= 0:
-		INFO_MSG('%dMB' % (count * block_size / 1024 / 1024))
+		s = '\rdownloading : %dMB' % (count * block_size / 1024 / 1024)
 	else:
-		INFO_MSG('%d/%d (%02d%%)' % (count * block_size, total_size, 100.0 * count * block_size / total_size))
+		s = '\rdownloading : %d/%d (%02d%%)' % (count * block_size, total_size, 100.0 * count * block_size / total_size)
 
+	sys.stdout.write(s)
+	sys.stdout.flush()
+	
 def download(currurl, fname = None):
 	OUT_MSG("")
 	INFO_MSG("Downloading from " + currurl)
@@ -1202,8 +1206,10 @@ def extract_file(src_file, extractPath = "./"):
 	for file in f.namelist():
 		f.extract(file, extractPath)
 		count += 1
-		INFO_MSG("extract: %s %d/%d(%d%%)" % (file, count, total_count, (count / total_count) * 100))
-
+		s = "\rextract: %s %d/%d(%d%%)" % (file, count, total_count, (count / total_count) * 100)
+		sys.stdout.write(s)
+		sys.stdout.flush()
+	
 	OUT_MSG("")
 	INFO_MSG("unzip(%s) is completed(%d)!\n\n" % (src_file, len(namelist)))
 	return namelist
