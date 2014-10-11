@@ -149,7 +149,7 @@ def echoKBEEnvironment():
 	OUT_MSG("KBE_ROOT=" + KBE_ROOT)
 	OUT_MSG("KBE_RES_PATH=" + KBE_RES_PATH)
 	OUT_MSG("KBE_HYBRID_PATH=" + KBE_HYBRID_PATH)
-	OUT_MSG("kbe_core_res_path = %s" % kbe_res_path)
+	OUT_MSG("kbe_core_res_path=%s" % kbe_res_path)
 
 def findKBEngine(dir):
 	if len(_zip_kbengine_dirname) > 0:
@@ -524,17 +524,17 @@ def remmoveEnvironment(scope, name):
 def removeKBEEnvironment():
 	INFO_MSG("Remove the KBEngine-environment variables.")
 	
-	remmoveEnvironment("user", "KBE_ROOT")
-	remmoveEnvironment("user", "KBE_RES_PATH")
-	remmoveEnvironment("user", "KBE_HYBRID_PATH")
-	remmoveEnvironment("user", "KBE_UID")
-	remmoveEnvironment("user", INSTALLER_EVN_NAME)
-
 	global KBE_ROOT
 	global KBE_RES_PATH
 	global KBE_HYBRID_PATH
 	global KBE_UID
 	global INSTALLER_EVN_NAME
+	
+	remmoveEnvironment("user", "KBE_ROOT")
+	remmoveEnvironment("user", "KBE_RES_PATH")
+	remmoveEnvironment("user", "KBE_HYBRID_PATH")
+	remmoveEnvironment("user", "KBE_UID")
+	remmoveEnvironment("user", INSTALLER_EVN_NAME)
 	
 	KBE_ROOT = ""
 	KBE_RES_PATH = ""
@@ -602,8 +602,17 @@ def installMysql():
 	file = download(bin_mysql_url, file)[0]
 	INFO_MSG("wait for install:" + file)
 	syscommand(file, False)
+
+	
+	while True:
+		getInput("The MySQL service installation is complete? [yes|no]")
+		
+		if not findMysqlService():
+			ERROR_MSG("-  not found MySQL service.")
+			syscommand(file, False)
+
 	os.remove(file)
-	return not input("The MySQL service installation is complete? [yes|no]") == "no"
+	return True
 	
 def restartMsql():
 	global mysql_sercive_name
@@ -977,7 +986,7 @@ def checkMysql():
 			ret = getInput("-  Allow automatic installation of MySQL? [yes/no]")
 			if ret != 'yes':
 				if not manual_installation:
-					if input("The MySQL service installation is complete? [yes|no]") != "no":
+					if getInput("The MySQL service installation is complete? [yes|no]") != "no":
 						manual_installation = True
 						continue
 						
@@ -1021,7 +1030,7 @@ def checkDeps():
 			INFO_MSG("- %s: yes" % dep)
 		else:
 			ERROR_MSG("- %s: no" % dep)
-			assert False
+			return False
 	
 	return True
 	
@@ -1119,8 +1128,13 @@ def getInstallPath():
 		break
 	
 	if not os.path.isdir(_install_path):
-		os.mkdir(_install_path)
-
+		try:
+			os.mkdir(_install_path)
+		except:
+			ERROR_MSG("path[%s] is error!" % _install_path)
+			_install_path = ""
+			getInstallPath()
+			
 def copyFilesTo(root_src_dir, root_dst_dir):
 	for src_dir, dirs, files in os.walk(root_src_dir):
 	    dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
@@ -1170,7 +1184,7 @@ def copy_new_to_kbengine_dir(checksources = True):
 		INFO_MSG("KBE_RES_PATH = %s" % KBE_RES_PATH)
 		INFO_MSG("KBE_HYBRID_PATH = %s" % KBE_HYBRID_PATH)
 		
-		INFO_MSG("\n\nInstall KBEngine...")
+		INFO_MSG("\n\nInstalling KBEngine...")
 		INFO_MSG("copy %s to %s..." % (currkbedir, _install_path))
 		copyFilesTo(currkbedir, _install_path)
 		return
@@ -1186,7 +1200,7 @@ def copy_new_to_kbengine_dir(checksources = True):
 		WARNING_MSG("currkbedir[%s] == KBE_ROOT[%s]" % (currkbedir, KBE_ROOT))
 		return
 		
-	INFO_MSG("\n\nInstall KBEngine[%s]..." % KBE_ROOT)
+	INFO_MSG("\n\nInstalling KBEngine[%s]..." % KBE_ROOT)
 	kbe_res_path1 = kbe_res_path.replace("%KBE_ROOT%", KBE_ROOT).replace("$KBE_ROOT", KBE_ROOT)
 	if len(kbe_res_path1) == 0:
 		kbe_res_path1 = KBE_ROOT + "/kbe/res"
@@ -1312,8 +1326,7 @@ def normalinstall():
 		INFO_MSG("Clean up temporary files...")
 		shutil.rmtree(_zip_kbengine_path)
 	
-	checkDeps()
-	if modifyKBEConfig():
+	if checkDeps() and modifyKBEConfig():
 		INFO_MSG("KBEngine has been successfully installed.")
 	else:
 		ERROR_MSG("KBEngine installation failed!")
