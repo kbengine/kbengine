@@ -1136,17 +1136,31 @@ def getInstallPath():
 			getInstallPath()
 			
 def copyFilesTo(root_src_dir, root_dst_dir):
+	count = 0
+	
+	total_count = sum([len(files) for root, dirs, files in os.walk(root_src_dir)])
+	
 	for src_dir, dirs, files in os.walk(root_src_dir):
-	    dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
-	    if not os.path.exists(dst_dir):
-	        os.mkdir(dst_dir)
-	    for file_ in files:
-	        src_file = os.path.join(src_dir, file_)
-	        dst_file = os.path.join(dst_dir, file_)
-	        if os.path.exists(dst_file):
-	            os.remove(dst_file)
-	        shutil.move(src_file, dst_dir)
-	        	
+		dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
+		if not os.path.exists(dst_dir):
+			os.mkdir(dst_dir)
+	        
+		for file_ in files:
+			src_file = os.path.join(src_dir, file_)
+			dst_file = os.path.join(dst_dir, file_)
+
+			if os.path.exists(dst_file):
+				os.remove(dst_file)
+			    
+			shutil.move(src_file, dst_dir)
+			count += 1
+	        
+			s = "\rmoved: %d/%d (%d%%)" % (count, total_count, (count / total_count) * 100)
+			sys.stdout.write(s)
+			sys.stdout.flush()
+	
+	INFO_MSG("")
+
 def copy_new_to_kbengine_dir(checksources = True):
 	global _install_path
 	global KBE_ROOT
@@ -1185,7 +1199,7 @@ def copy_new_to_kbengine_dir(checksources = True):
 		INFO_MSG("KBE_HYBRID_PATH = %s" % KBE_HYBRID_PATH)
 		
 		INFO_MSG("\n\nInstalling KBEngine...")
-		INFO_MSG("copy %s to %s..." % (currkbedir, _install_path))
+		INFO_MSG("moving %s to %s..." % (currkbedir, _install_path))
 		copyFilesTo(currkbedir, _install_path)
 		return
 	
