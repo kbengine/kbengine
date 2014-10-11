@@ -533,6 +533,13 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	KBE_ASSERT(pTable);
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): not found account script[{}], create[{}] error!\n", 
+			DBUtil::accountScriptName(), accountName));
+
+		return false;
+	}
 
 	if(pTable->queryAccount(pdbi, accountName, info) && (info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
@@ -1162,7 +1169,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		}
 	}
 
-	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, pModule);
 
 	if(!success_ && pdbi_->getlasterror() > 0)
@@ -1312,7 +1319,7 @@ DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr,
 									   std::string& loginName, 
 									   std::string& accountName, 
 									   std::string& password, 
-									   bool success,
+									   SERVER_ERROR_CODE retcode,
 									   std::string& postdatas, 
 									   std::string& getdatas):
 DBTask(addr),
@@ -1321,7 +1328,7 @@ accountName_(accountName),
 password_(password),
 postdatas_(postdatas),
 getdatas_(getdatas),
-success_(success),
+retcode_(retcode),
 componentID_(0),
 entityID_(0),
 dbid_(0),
@@ -1339,15 +1346,29 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 bool DBTaskAccountLogin::db_thread_process()
 {
 	// 如果billing已经判断不成功就没必要继续下去
-	if(!success_)
+	if(retcode_ != SERVER_SUCCESS)
 	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): billing is failed!\n"));
 		return false;
 	}
 
-	success_ = false;
+	retcode_ = SERVER_ERR_OP_FAILED;
 
 	if(accountName_.size() == 0)
 	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): accountName is NULL!\n"));
+		retcode_ = SERVER_ERR_NAME;
+		return false;
+	}
+
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account script[{}], login[{}] failed!\n", 
+			DBUtil::accountScriptName(), accountName_));
+
+		retcode_ = SERVER_ERR_SRV_NO_READY;
 		return false;
 	}
 
@@ -1372,6 +1393,8 @@ bool DBTaskAccountLogin::db_thread_process()
 			{
 				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): account[{}] is email, autocreate failed!\n", 
 					accountName_));
+
+				retcode_ = SERVER_ERR_CANNOT_USE_MAIL;
 				return false;
 			}
 		}
@@ -1380,8 +1403,10 @@ bool DBTaskAccountLogin::db_thread_process()
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
-				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate failed!\n",
+				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): writeAccount[{}] is error!\n",
 					accountName_));
+
+				retcode_ = SERVER_ERR_DB;
 				return false;
 			}
 
@@ -1397,6 +1422,8 @@ bool DBTaskAccountLogin::db_thread_process()
 		{
 			ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], login failed!\n", 
 				accountName_));
+
+			retcode_ = SERVER_ERR_NOT_FOUND_ACCOUNT;
 			return false;
 		}
 	}
@@ -1408,25 +1435,26 @@ bool DBTaskAccountLogin::db_thread_process()
 	{
 		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
 		{
-			success_ = false;
+			retcode_ = SERVER_ERR_PASSWORD;
 			return false;
 		}
 	}
-	
+
 	pTable->updateCount(pdbi_, info.dbid);
 
-	success_ = false;
+	retcode_ = SERVER_ERR_ACCOUNT_IS_ONLINE;
 	KBEEntityLogTable::EntityLog entitylog;
-
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
-	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
+	bool success = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
 
 	// 如果有在线纪录
-	if(!success_)
+	if(!success)
 	{
 		componentID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
+	}
+	else
+	{
+		retcode_ = SERVER_SUCCESS;
 	}
 
 	dbid_ = info.dbid;
@@ -1441,7 +1469,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName{0}, accountName={1}, success={2}, componentID={3}, dbid={4}, flags={5}, deadline={6}.\n", 
 		loginName_,
 		accountName_,
-		success_,
+		retcode_,
 		componentID_,
 		dbid_,
 		flags_,
@@ -1452,7 +1480,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
-	(*pBundle) << success_;
+	(*pBundle) << retcode_;
 	(*pBundle) << loginName_;
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;

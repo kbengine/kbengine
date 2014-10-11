@@ -181,7 +181,6 @@ bool DBUtil::initInterface(DBInterface* dbi)
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		EntityTables::getSingleton().addKBETable(new KBEEntityTypeMysql());
 		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
@@ -194,7 +193,19 @@ bool DBUtil::initInterface(DBInterface* dbi)
 			return false;
 	}
 
-	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);
+	bool ret = EntityTables::getSingleton().load(dbi);
+
+	if(ret)
+	{
+		ret = dbi->checkEnvironment();
+	}
+	
+	if(ret)
+	{
+		ret = dbi->checkErrors();
+	}
+
+	return ret && EntityTables::getSingleton().syncToDB(dbi);
 }
 
 //-------------------------------------------------------------------------------------

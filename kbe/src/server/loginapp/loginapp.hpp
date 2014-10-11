@@ -144,7 +144,7 @@ public:
 		baseappmgr返回的登录网关地址
 	*/
 	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& loginName, 
-		std::string& accountName, uint32 addr, uint16 port);
+		std::string& accountName, std::string& addr, uint16 port);
 
 
 	/** 网络接口

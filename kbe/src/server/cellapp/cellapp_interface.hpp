@@ -196,7 +196,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									float,									z)
 
 	//entity绑定了一个观察者(客户端)
-	ENTITY_MESSAGE_DECLARE_ARGS0(onGetWitness,								MERCURY_FIXED_MESSAGE)
+	ENTITY_MESSAGE_DECLARE_ARGS0(onGetWitnessFromBase,						MERCURY_FIXED_MESSAGE)
 
 	//entity丢失了一个观察者(客户端)
 	ENTITY_MESSAGE_DECLARE_ARGS0(onLoseWitness,								MERCURY_FIXED_MESSAGE)

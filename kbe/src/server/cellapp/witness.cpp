@@ -435,10 +435,11 @@ Witness::Bundles* Witness::pBundles()
 	if(pEntity_ == NULL)
 		return NULL;
 
-	if(!pEntity_->clientMailbox())
+	EntityMailbox* clientMB = pEntity_->clientMailbox();
+	if(!clientMB)
 		return NULL;
 
-	Mercury::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
+	Mercury::Channel* pChannel = clientMB->getChannel();
 	if(!pChannel)
 		return NULL;
 

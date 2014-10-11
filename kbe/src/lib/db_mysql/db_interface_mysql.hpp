@@ -86,6 +86,12 @@ public:
 	*/
 	virtual bool checkEnvironment();
 	
+	/**
+		检查错误， 对错误的内容进行纠正
+		如果纠正不成功返回失败
+	*/
+	virtual bool checkErrors();
+
 	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
 
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);

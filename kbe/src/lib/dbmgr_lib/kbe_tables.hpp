@@ -126,23 +126,6 @@ protected:
 	MemoryStream accountDefMemoryStream_;
 };
 
-class KBEEntityType : public KBETable
-{
-public:
-	KBEEntityType():
-	KBETable()
-	{
-		tableName("kbe_entitytypes");
-	}
-	
-	virtual ~KBEEntityType()
-	{
-	}
-
-
-protected:
-};
-
 class KBEEmailVerificationTable : public KBETable
 {
 public:

@@ -122,7 +122,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "select entityID,ip,port,componentID from kbe_entitylog where entityDBID=";
+	std::string sqlstr = "select entityID, ip, port, componentID from kbe_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
@@ -423,38 +423,6 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	}
 
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-KBEEntityTypeMysql::KBEEntityTypeMysql():
-	KBEEntityType()
-{
-}
-
-//-------------------------------------------------------------------------------------
-bool KBEEntityTypeMysql::syncToDB(DBInterface* dbi)
-{
-	std::string sqlstr = "DROP TABLE kbe_entitytypes;";
-
-	try
-	{
-		dbi->query(sqlstr.c_str(), sqlstr.size(), false);
-	}
-	catch(...)
-	{
-	}
-
-	bool ret = false;
-
-	sqlstr = "CREATE TABLE IF NOT EXISTS kbe_entitytypes "
-			"(entityType int unsigned not null DEFAULT 0,"
-			"typeid int unsigned not null DEFAULT 0,"
-			"PRIMARY KEY (entityType))"
-		"ENGINE="MYSQL_ENGINE_TYPE;
-
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
-	KBE_ASSERT(ret);
-	return ret;
 }
 
 //-------------------------------------------------------------------------------------

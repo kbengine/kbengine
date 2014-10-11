@@ -262,6 +262,12 @@ LDLIBS += -lzip
 CPPFLAGS += -DUSE_ZIP
 endif
 
+JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc
+KBE_INCLUDES += -I$(JEMALLOC)/include
+#ifeq ($(USE_JEMALLOC),1)
+LDLIBS += -ljemalloc
+CPPFLAGS += -DUSE_JEMALLOC
+#endif
 
 LDLIBS += -ltinyxml
 LDLIBS += -ljsoncpp

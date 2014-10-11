@@ -381,7 +381,7 @@ void Proxy::onGetWitness()
 	{
 		// 通知cell获得客户端
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::onGetWitness);
+		(*pBundle).newMessage(CellappInterface::onGetWitnessFromBase);
 		(*pBundle) << this->id();
 		sendToCellapp(pBundle);
 	}

@@ -9,10 +9,10 @@ http://www.kbengine.org
 	binarys		: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources
-	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo
-	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring
-	ogre		: https://github.com/kbengine/kbengine_ogre_demo
-	html5		: https://github.com/kbengine/kbengine_html5_demo
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases
+	ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases
+	html5		: https://github.com/kbengine/kbengine_html5_demo/releases
 
 
 ##Docs

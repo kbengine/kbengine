@@ -277,6 +277,40 @@ bool DBInterfaceMysql::checkEnvironment()
 }
 
 //-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::checkErrors()
+{
+	std::string querycmd = fmt::format("SHOW TABLES LIKE \"tbl_{}\"", DBUtil::accountScriptName());
+	if(!query(querycmd.c_str(), querycmd.size(), true))
+	{
+		ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
+		return false;
+	}
+
+	bool foundAccountTable = false;
+	MYSQL_RES * pResult = mysql_store_result(mysql());
+	if(pResult)
+	{
+		foundAccountTable = mysql_num_rows(pResult) > 0;
+		mysql_free_result(pResult);
+	}
+
+	if(!foundAccountTable)
+	{
+		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
+
+		try
+		{
+			query(querycmd.c_str(), querycmd.size(), false);
+		}
+		catch (...)
+		{
+		}
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::reattach()
 {
 	detach();

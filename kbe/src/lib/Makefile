@@ -41,6 +41,7 @@ all install clean full:
 	cd dependencies/jsoncpp/src/lib_json && $(MAKE) $@
 	cd dependencies/tmxparser && $(MAKE) $@
 	cd dependencies/jwsmtp/jwsmtp/jwsmtp && $(MAKE) $@
+	cd dependencies/jemalloc && $(MAKE) $@
 
 version kbeversion kbe_version:
 	@$(MAKE) -s -C server $@

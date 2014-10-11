@@ -7,6 +7,8 @@
 	
 	<!-- defined => kbe/res/server/kbengine_defs.xml -->
 	<dbmgr>
+		<!-- <host> localhost </host> -->
+		<!-- <databaseName> kbe </databaseName> -->
 		<databaseName> kbe </databaseName>
 		<!-- Êý¾Ý¿âµØÖ· £¨Database address) -->
 		<host> 192.168.1.4 </host>										<!-- Type: String -->

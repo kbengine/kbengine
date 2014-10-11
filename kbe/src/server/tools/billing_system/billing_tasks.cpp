@@ -87,6 +87,8 @@ void CreateAccountTask::removeLog()
 //-------------------------------------------------------------------------------------
 bool CreateAccountTask::process()
 {
+	retcode = SERVER_ERR_OP_FAILED;
+
 	if(!enable)
 	{
 		return false;
@@ -95,7 +97,7 @@ bool CreateAccountTask::process()
 	// 如果没有设置第三方服务地址则我们默认为成功
 	if(strlen(serviceAddr()) == 0)
 	{
-		success = true;
+		retcode = SERVER_SUCCESS;
 		getDatas = postDatas;
 		return false;
 	}
@@ -190,7 +192,7 @@ bool CreateAccountTask::process()
 
 					if(error != 0)
 					{
-						success = false;
+						retcode = SERVER_ERR_OP_FAILED;
 						endpoint.close();
 						
 						std::string err;
@@ -216,7 +218,7 @@ bool CreateAccountTask::process()
 					}
 					else
 					{
-						success = true;
+						retcode = SERVER_SUCCESS;
 					}
 
 					break;
@@ -244,7 +246,7 @@ bool CreateAccountTask::process()
 	}
 	catch(...)
 	{
-		success = false;
+		retcode = SERVER_ERR_OP_FAILED;
 		ERROR_MSG(fmt::format("BillingTask::process: {} recv is error.\n===>postdatas={}\n===>recv={}\n", 
 			commitName, postDatas, getDatas));
 	}
@@ -267,7 +269,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
-	(*(*bundle)) << baseappID << commitName << accountName << password << success;
+	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
@@ -318,14 +320,14 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	
-	if(success)
+	if(retcode == SERVER_ERR_OP_FAILED)
 	{
 		if(accountName.size() == 0)
 			accountName = commitName;
 	}
 
 	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
-	(*(*bundle)) << baseappID << commitName << accountName << password << success;
+	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
@@ -349,7 +351,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 ChargeTask::ChargeTask():
 BillingTask(),
 pOrders(NULL),
-success(false)
+retcode(SERVER_ERR_OP_FAILED)
 {
 }
 
@@ -377,7 +379,7 @@ bool ChargeTask::process()
 	// 如果是不需要请求的直接返回成功
 	if(pOrders->postDatas.size() == 0)
 	{
-		success = true;
+		retcode = SERVER_SUCCESS;
 		return false;
 	}
 
@@ -388,7 +390,7 @@ bool ChargeTask::process()
 		pOrders->getDatas = pOrders->postDatas;
 		orders.state = pOrders->state;
 		orders.getDatas = pOrders->getDatas;
-		success = true;
+		retcode = SERVER_SUCCESS;
 		return false;
 	}
 
@@ -464,11 +466,14 @@ bool ChargeTask::process()
 	orders.getDatas = pOrders->getDatas;
 
 	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
-	success = fi != std::string::npos;
+
+	if(fi != std::string::npos)
+		retcode = SERVER_SUCCESS;
+
 	endpoint.close();
 
 	INFO_MSG(fmt::format("ChargeTask::process: orders={}, commit={}\n==>postdatas={}\n", 
-		pOrders->ordersID, success, pOrders->getDatas));
+		pOrders->ordersID, retcode, pOrders->getDatas));
 
 	return false;
 }
@@ -477,7 +482,7 @@ bool ChargeTask::process()
 thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 {
 	// 如果成功使用异步接收处理
-	if(!success)
+	if(retcode != SERVER_SUCCESS)
 	{
 		if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
 		{
@@ -493,7 +498,7 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
 		(*(*bundle)).appendBlob(orders.getDatas);
 		(*(*bundle)) << orders.cbid;
-		(*(*bundle)) << success;
+		(*(*bundle)) << retcode;
 
 		Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
 

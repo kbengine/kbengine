@@ -74,20 +74,6 @@ public:
 protected:
 };
 
-class KBEEntityTypeMysql : public KBEEntityType
-{
-public:
-	KBEEntityTypeMysql();
-	virtual ~KBEEntityTypeMysql(){}
-	
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB(DBInterface* dbi);
-protected:
-};
-
-
 class KBEEmailVerificationTableMysql : public KBEEmailVerificationTable
 {
 public:

@@ -66,6 +66,12 @@ public:
 	virtual bool checkEnvironment() = 0;
 	
 	/**
+		检查错误， 对错误的内容进行纠正
+		如果纠正不成功返回失败
+	*/
+	virtual bool checkErrors() = 0;
+
+	/**
 		与某个数据库关联
 	*/
 	virtual bool attach(const char* databaseName) = 0;

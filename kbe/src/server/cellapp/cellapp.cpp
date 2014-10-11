@@ -999,7 +999,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
-			e->onGetWitness(cinfos->pChannel);
+			e->onGetWitness();
 		}
 		else
 		{

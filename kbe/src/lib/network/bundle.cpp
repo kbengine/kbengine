@@ -263,8 +263,11 @@ void Bundle::finish(bool issend)
 		currMsgLength_ -= MERCURY_MESSAGE_ID_SIZE;
 		currMsgLength_ -= MERCURY_MESSAGE_LENGTH_SIZE;
 
+		MessageLength msgLen = currMsgLength_;
+		KBEngine::EndianConvert(msgLen);
+
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
-			(uint8*)&currMsgLength_, MERCURY_MESSAGE_LENGTH_SIZE);
+			(uint8*)&msgLen, MERCURY_MESSAGE_LENGTH_SIZE);
 	}
 
 	if(issend)

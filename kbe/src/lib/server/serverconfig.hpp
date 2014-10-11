@@ -236,6 +236,8 @@ public:
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	
+	void updateExternalAddress(char* buf);
+
 	INLINE int16 gameUpdateHertz(void)const;
 	INLINE Mercury::Address billingSystemAddr(void)const;
 	

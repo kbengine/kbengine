@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
 #include "dbmgr_lib/db_tasks.hpp"
+#include "server/server_errors.hpp"
 
 namespace KBEngine{ 
 
@@ -419,7 +420,7 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, bool success, std::string& postdatas, std::string& getdatas);
+		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
@@ -429,11 +430,10 @@ protected:
 	std::string accountName_;
 	std::string password_;
 	std::string postdatas_, getdatas_;
-	bool success_;
+	SERVER_ERROR_CODE retcode_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
 	DBID dbid_;
-
 	uint32 flags_;
 	uint64 deadline_;
 };

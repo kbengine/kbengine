@@ -1352,42 +1352,48 @@ void Entity::setWitness(Witness* pWitness)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onGetWitness(Mercury::Channel* pChannel)
+void Entity::onGetWitnessFromBase(Mercury::Channel* pChannel)
+{
+	onGetWitness(true);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onGetWitness(bool fromBase)
 {
 	KBE_ASSERT(this->baseMailbox() != NULL);
 
-	// proxy的giveClientTo功能或者reloginGateway， 如果一个entity已经创建了cell， 并将控制权绑定
-	// 到该entity时是一定没有clientMailbox的。
-	if(clientMailbox() == NULL)
+	if(fromBase)
 	{
-		PyObject* clientMB = PyObject_GetAttrString(baseMailbox(), "client");
-		KBE_ASSERT(clientMB != Py_None);
+		// proxy的giveClientTo功能或者reloginGateway， 如果一个entity已经创建了cell， 并将控制权绑定
+		// 到该entity时是一定没有clientMailbox的。
+		if(clientMailbox() == NULL)
+		{
+			PyObject* clientMB = PyObject_GetAttrString(baseMailbox(), "client");
+			KBE_ASSERT(clientMB != Py_None);
 
-		EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
-		// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
-		clientMailbox(client);
-	}
+			EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
+			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+			clientMailbox(client);
+		}
 
-	bool hasWitness = pWitness_ != NULL;
+		if(pWitness_ == NULL)
+		{
+			setWitness(Witness::ObjPool().createObject());
+		}
+		else
+		{
+			/*
+				重新绑定，通常是客户端重登陆或者重连或者一个账号挤掉
+				另一个客户端登陆的客户端, 而Entity还在内存中并且已经
+				绑定了witness(这种情况也可能是服务端还未侦查到客户端断线)
 
-	if(!hasWitness)
-	{
-		pWitness_ = Witness::ObjPool().createObject();
-		pWitness_->attach(this);
-	}
-	else
-	{
-		/*
-			重新绑定，通常是客户端重登陆或者重连或者一个账号挤掉
-			另一个客户端登陆的客户端, 而Entity还在内存中并且已经
-			绑定了witness(这种情况也可能是服务端还未侦查到客户端断线)
+				这种情况我们仍然需要做一些事情保证客户端的正确性， 例如发送enterworld
+			*/
+			pWitness_->onAttach(this);
 
-			这种情况我们仍然需要做一些事情保证客户端的正确性， 例如发送enterworld
-		*/
-		pWitness_->onAttach(this);
-
-		// AOI中的实体也需要重置，重新同步给客户端
-		pWitness_->resetAOIEntities();
+			// AOI中的实体也需要重置，重新同步给客户端
+			pWitness_->resetAOIEntities();
+		}
 	}
 
 	Space* space = Spaces::findSpace(this->spaceID());
@@ -1397,11 +1403,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	if(hasWitness)
-	{
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
-	}
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
 }
 
 //-------------------------------------------------------------------------------------

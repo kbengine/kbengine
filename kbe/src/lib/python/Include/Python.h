@@ -53,7 +53,9 @@
  * compiler command line when building Python in release mode; else
  * assert() calls won't be removed.
  */
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include <assert.h>
 
 #include "pyport.h"
