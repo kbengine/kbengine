@@ -22,8 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		ServerConfig::getSingleton().loadConfig("../../res/server/KBEngine.xml");
 		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();													
 */
-#ifndef __SERVER_CONFIG_H__
-#define __SERVER_CONFIG_H__
+#ifndef KBE_SERVER_CONFIG_HPP
+#define KBE_SERVER_CONFIG_HPP
+
 #define __LIB_DLLAPI__	
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -108,8 +109,12 @@ typedef struct EngineComponentInfo
 	{
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
+		account_registration_enable = false;
 		use_coordinate_system = true;
 		account_type = 3;
+		debugDBMgr = false;
+
+		externalAddress[0] = '\0';
 	}
 
 	~EngineComponentInfo()
@@ -133,13 +138,15 @@ typedef struct EngineComponentInfo
 	uint16 ghostUpdateHertz;								// ghost更新hz
 	
 	bool use_coordinate_system;								// 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护
-	bool coordinateSystem_hasY;									// 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 但y轴的管理会带来一定的消耗
+	bool coordinateSystem_hasY;								// 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 但y轴的管理会带来一定的消耗
+	uint16 entity_posdir_additional_updates;				// 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。
 
 	bool aliasEntityID;										// 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	bool entitydefAliasID;									// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
 
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
+	char externalAddress[MAX_NAME];							// 外部IP地址
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
 	int32 externalPorts_max;
 
@@ -154,7 +161,8 @@ typedef struct EngineComponentInfo
 	std::string db_unicodeString_collation;
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
 	bool db_passwordEncrypt;								// db密码是否是加密的
-	bool allowEmptyDigest;
+	bool allowEmptyDigest;									// 是否检查defs-MD5
+	bool account_registration_enable;						// 是否开放注册
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期
@@ -176,6 +184,9 @@ typedef struct EngineComponentInfo
 	float defaultAddBots_tickTime;							// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
 	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
 
+	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
+	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增
+
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
 	int8 encrypt_login;										// 加密登录信息
@@ -195,6 +206,8 @@ typedef struct EngineComponentInfo
 	
 	std::string http_cbhost;
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
+
+	bool debugDBMgr;										// debug模式下可输出读写操作信息
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -212,17 +225,19 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getCellAppMgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getKBMachine(void);
-	INLINE ENGINE_COMPONENT_INFO& getKBCenter(void);
 	INLINE ENGINE_COMPONENT_INFO& getBots(void);
-	INLINE ENGINE_COMPONENT_INFO& getResourcemgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getMessagelog(void);
 	INLINE ENGINE_COMPONENT_INFO& getBilling(void);
 
 	INLINE ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
  	
+	INLINE ENGINE_COMPONENT_INFO& getConfig();
+
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	
+	void updateExternalAddress(char* buf);
+
 	INLINE int16 gameUpdateHertz(void)const;
 	INLINE Mercury::Address billingSystemAddr(void)const;
 	
@@ -244,6 +259,11 @@ public:
 	float shutdowntime(){ return shutdown_time_; }
 	float shutdownWaitTickTime(){ return shutdown_waitTickTime_; }
 
+	uint32 tickMaxBufferedLogs()const { return tick_max_buffered_logs_; }
+	uint32 tickMaxSyncLogs()const { return tick_max_sync_logs_; }
+private:
+	void _updateEmailInfos();
+
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -252,13 +272,13 @@ private:
 	ENGINE_COMPONENT_INFO _cellAppMgrInfo;
 	ENGINE_COMPONENT_INFO _baseAppMgrInfo;
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
-	ENGINE_COMPONENT_INFO _kbCenterInfo;
 	ENGINE_COMPONENT_INFO _botsInfo;
-	ENGINE_COMPONENT_INFO _resourcemgrInfo;
 	ENGINE_COMPONENT_INFO _messagelogInfo;
 	ENGINE_COMPONENT_INFO _billingInfo;
 public:
 	int16 gameUpdateHertz_;
+	uint32 tick_max_buffered_logs_;
+	uint32 tick_max_sync_logs_;
 
 	ChannelCommon channelCommon_;
 
@@ -297,4 +317,4 @@ public:
 #ifdef CODE_INLINE
 #include "serverconfig.ipp"
 #endif
-#endif
+#endif // KBE_SERVER_CONFIG_HPP

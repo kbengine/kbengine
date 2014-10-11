@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_KEY__
-#define __KBENGINE_KEY__
+#ifndef KBENGINE_KEY_HPP
+#define KBENGINE_KEY_HPP
 
 #include "rsa.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -46,4 +46,4 @@ public:
 
 }
 
-#endif // __KBENGINE_KEY__
+#endif // KBENGINE_KEY_HPP

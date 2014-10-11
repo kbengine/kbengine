@@ -5,24 +5,26 @@ executing have not been removed.
 
 """
 import unittest
-from test.support import run_unittest, TESTFN, EnvironmentVarGuard
-from test.support import captured_stderr
+import test.support
+from test.support import captured_stderr, TESTFN, EnvironmentVarGuard
 import builtins
 import os
 import sys
 import re
 import encodings
+import urllib.request
+import urllib.error
 import subprocess
 import sysconfig
 from copy import copy
 
-# Need to make sure to not import 'site' if someone specified ``-S`` at the
-# command-line.  Detect this by just making sure 'site' has not been imported
-# already.
-if "site" in sys.modules:
-    import site
-else:
-    raise unittest.SkipTest("importation of site.py suppressed")
+# These tests are not particularly useful if Python was invoked with -S.
+# If you add tests that are useful under -S, this skip should be moved
+# to the class level.
+if sys.flags.no_site:
+    raise unittest.SkipTest("Python was invoked with -S")
+
+import site
 
 if site.ENABLE_USER_SITE and not os.path.isdir(site.USER_SITE):
     # need to add user site directory for tests
@@ -39,6 +41,7 @@ class HelperFunctionsTests(unittest.TestCase):
         self.old_base = site.USER_BASE
         self.old_site = site.USER_SITE
         self.old_prefixes = site.PREFIXES
+        self.original_vars = sysconfig._CONFIG_VARS
         self.old_vars = copy(sysconfig._CONFIG_VARS)
 
     def tearDown(self):
@@ -47,7 +50,9 @@ class HelperFunctionsTests(unittest.TestCase):
         site.USER_BASE = self.old_base
         site.USER_SITE = self.old_site
         site.PREFIXES = self.old_prefixes
-        sysconfig._CONFIG_VARS = self.old_vars
+        sysconfig._CONFIG_VARS = self.original_vars
+        sysconfig._CONFIG_VARS.clear()
+        sysconfig._CONFIG_VARS.update(self.old_vars)
 
     def test_makepath(self):
         # Test makepath() have an absolute path for its first return value
@@ -173,14 +178,20 @@ class HelperFunctionsTests(unittest.TestCase):
         rc = subprocess.call([sys.executable, '-s', '-c',
             'import sys; sys.exit(%r in sys.path)' % usersite],
             env=env)
-        self.assertEqual(rc, 0)
+        if usersite == site.getsitepackages()[0]:
+            self.assertEqual(rc, 1)
+        else:
+            self.assertEqual(rc, 0)
 
         env = os.environ.copy()
         env["PYTHONNOUSERSITE"] = "1"
         rc = subprocess.call([sys.executable, '-c',
             'import sys; sys.exit(%r in sys.path)' % usersite],
             env=env)
-        self.assertEqual(rc, 0)
+        if usersite == site.getsitepackages()[0]:
+            self.assertEqual(rc, 1)
+        else:
+            self.assertEqual(rc, 0)
 
         env = os.environ.copy()
         env["PYTHONUSERBASE"] = "/tmp"
@@ -219,11 +230,7 @@ class HelperFunctionsTests(unittest.TestCase):
         site.PREFIXES = ['xoxo']
         dirs = site.getsitepackages()
 
-        if sys.platform in ('os2emx', 'riscos'):
-            self.assertEqual(len(dirs), 1)
-            wanted = os.path.join('xoxo', 'Lib', 'site-packages')
-            self.assertEqual(dirs[0], wanted)
-        elif (sys.platform == "darwin" and
+        if (sys.platform == "darwin" and
             sysconfig.get_config_var("PYTHONFRAMEWORK")):
             # OS X framework builds
             site.PREFIXES = ['Python.framework']
@@ -362,6 +369,7 @@ class ImportSideEffectTests(unittest.TestCase):
             self.assertNotIn(path, seen_paths)
             seen_paths.add(path)
 
+    @unittest.skip('test not implemented')
     def test_add_build_dir(self):
         # Test that the build directory's Modules directory is used when it
         # should be.
@@ -374,9 +382,10 @@ class ImportSideEffectTests(unittest.TestCase):
         self.assertTrue(hasattr(builtins, "exit"))
 
     def test_setting_copyright(self):
-        # 'copyright' and 'credits' should be in builtins
+        # 'copyright', 'credits', and 'license' should be in builtins
         self.assertTrue(hasattr(builtins, "copyright"))
         self.assertTrue(hasattr(builtins, "credits"))
+        self.assertTrue(hasattr(builtins, "license"))
 
     def test_setting_help(self):
         # 'help' should be set in builtins
@@ -402,8 +411,58 @@ class ImportSideEffectTests(unittest.TestCase):
             else:
                 self.fail("sitecustomize not imported automatically")
 
-def test_main():
-    run_unittest(HelperFunctionsTests, ImportSideEffectTests)
+    @test.support.requires_resource('network')
+    @unittest.skipUnless(sys.version_info[3] == 'final',
+                         'only for released versions')
+    @unittest.skipUnless(hasattr(urllib.request, "HTTPSHandler"),
+                         'need SSL support to download license')
+    def test_license_exists_at_url(self):
+        # This test is a bit fragile since it depends on the format of the
+        # string displayed by license in the absence of a LICENSE file.
+        url = license._Printer__data.split()[1]
+        req = urllib.request.Request(url, method='HEAD')
+        try:
+            with test.support.transient_internet(url):
+                with urllib.request.urlopen(req) as data:
+                    code = data.getcode()
+        except urllib.error.HTTPError as e:
+            code = e.code
+        self.assertEqual(code, 200, msg="Can't find " + url)
+
+
+class StartupImportTests(unittest.TestCase):
+
+    def test_startup_imports(self):
+        # This tests checks which modules are loaded by Python when it
+        # initially starts upon startup.
+        popen = subprocess.Popen([sys.executable, '-I', '-v', '-c',
+                                  'import sys; print(set(sys.modules))'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+        stdout, stderr = popen.communicate()
+        stdout = stdout.decode('utf-8')
+        stderr = stderr.decode('utf-8')
+        modules = eval(stdout)
+
+        self.assertIn('site', modules)
+
+        # http://bugs.python.org/issue19205
+        re_mods = {'re', '_sre', 'sre_compile', 'sre_constants', 'sre_parse'}
+        # _osx_support uses the re module in many placs
+        if sys.platform != 'darwin':
+            self.assertFalse(modules.intersection(re_mods), stderr)
+        # http://bugs.python.org/issue9548
+        self.assertNotIn('locale', modules, stderr)
+        if sys.platform != 'darwin':
+            # http://bugs.python.org/issue19209
+            self.assertNotIn('copyreg', modules, stderr)
+        # http://bugs.python.org/issue19218>
+        collection_mods = {'_collections', 'collections', 'functools',
+                           'heapq', 'itertools', 'keyword', 'operator',
+                           'reprlib', 'types', 'weakref'
+                          }.difference(sys.builtin_module_names)
+        self.assertFalse(modules.intersection(collection_mods), stderr)
+
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

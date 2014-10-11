@@ -239,9 +239,6 @@ void SelectPoller::handleInputNotifications(int &countReady,
 	fd_set &readFDs, fd_set &writeFDs)
 {
 #ifdef _WIN32
-	// X360 fd_sets don't look like POSIX ones, we know exactly what they are
-	// and can just iterate over the provided FD arrays
-
 	for (unsigned i=0; i < readFDs.fd_count; i++)
 	{
 		int fd = readFDs.fd_array[ i ];
@@ -257,9 +254,6 @@ void SelectPoller::handleInputNotifications(int &countReady,
 	}
 
 #else
-	// POSIX fd_sets are more opaque and we just have to count up blindly until
-	// we hit valid FD's with FD_ISSET
-
 	for (int fd = 0; fd <= fdLargest_ && countReady > 0; ++fd)
 	{
 		if (FD_ISSET(fd, &readFDs))
@@ -336,8 +330,8 @@ int SelectPoller::processPendingEvents(double maxWait)
 		// TODO: Clean this up on shutdown
 		// if (!breakProcessing_)
 		{
-			WARNING_MSG(boost::format("EventDispatcher::processContinuously: "
-				"error in select(): %1%\n") % kbe_strerror());
+			WARNING_MSG(fmt::format("EventDispatcher::processContinuously: "
+				"error in select(): {}\n", kbe_strerror()));
 		}
 	}
 
@@ -350,9 +344,18 @@ bool SelectPoller::doRegisterForRead(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG(boost::format("EventDispatcher::registerFileDescriptor: "
-			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
-			fd % FD_SETSIZE);
+		ERROR_MSG(fmt::format("EventDispatcher::registerFileDescriptor: "
+			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
+			fd, FD_SETSIZE));
+
+		return false;
+	}
+#else
+	if (fdReadSet_.fd_count >= FD_SETSIZE)
+	{
+		ERROR_MSG(fmt::format("EventDispatcher::registerFileDescriptor: "
+			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
+			fd, FD_SETSIZE));
 
 		return false;
 	}
@@ -378,9 +381,18 @@ bool SelectPoller::doRegisterForWrite(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG(boost::format("EventDispatcher::registerWriteFileDescriptor: "
-			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
-			fd % FD_SETSIZE);
+		ERROR_MSG(fmt::format("EventDispatcher::registerWriteFileDescriptor: "
+			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
+			fd, FD_SETSIZE));
+
+		return false;
+	}
+#else
+	if (fdWriteSet_.fd_count >= FD_SETSIZE)
+	{
+		ERROR_MSG(fmt::format("EventDispatcher::registerWriteFileDescriptor: "
+			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
+			fd, FD_SETSIZE));
 
 		return false;
 	}
@@ -498,8 +510,8 @@ EPoller::EPoller(int expectedSize) :
 {
 	if (epfd_ == -1)
 	{
-		ERROR_MSG(boost::format("EPoller::EPoller: epoll_create failed: %1%\n") %
-				kbe_strerror());
+		ERROR_MSG(fmt::format("EPoller::EPoller: epoll_create failed: {}\n",
+				kbe_strerror()));
 	}
 };
 
@@ -539,23 +551,23 @@ bool EPoller::doRegister(int fd, bool isRead, bool isRegister)
 
 	if (epoll_ctl(epfd_, op, fd, &ev) < 0)
 	{
-		const char* MESSAGE = "EPoller::doRegister: Failed to %s %s file "
-				"descriptor %d (%s)\n";
+		const char* MESSAGE = "EPoller::doRegister: Failed to {} {} file "
+				"descriptor {} ({})\n";
 		if (errno == EBADF)
 		{
-			WARNING_MSG(boost::format(MESSAGE) %
-					(isRegister ? "add" : "remove") %
-					(isRead ? "read" : "write") %
-					fd %
-					kbe_strerror());
+			WARNING_MSG(fmt::format(MESSAGE,
+					(isRegister ? "add" : "remove"),
+					(isRead ? "read" : "write"),
+					fd,
+					kbe_strerror()));
 		}
 		else
 		{
-			ERROR_MSG(boost::format(MESSAGE) %
-					(isRegister ? "add" : "remove") %
-					(isRead ? "read" : "write") %
-					fd %
-					kbe_strerror());
+			ERROR_MSG(fmt::format(MESSAGE,
+					(isRegister ? "add" : "remove"),
+					(isRead ? "read" : "write"),
+					fd,
+					kbe_strerror()));
 		}
 
 		return false;

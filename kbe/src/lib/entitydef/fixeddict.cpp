@@ -56,8 +56,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strDictInitData);
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(1): %1%---%2%\n") % this %
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(1): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
@@ -68,20 +68,20 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(pyDictInitData);
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(2): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData):
+FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(streamInitData);
+	initialize(streamInitData, isPersistentsStream);
 	
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(3): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(3): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,8 +92,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
-//	DEBUG_MSG(boost::format("FixedDict::FixedDict(4): %1%---%2%\n") % this % 
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(4): {:p}---{}\n", (void*)this,
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
 
@@ -102,7 +102,7 @@ FixedDict::~FixedDict()
 {
 	_dataType->decRef();
 
-//	DEBUG_MSG(boost::format("FixedDict::~FixedDict(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedDict::~FixedDict(): {:p}\n", (void*)this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,8 +119,8 @@ void FixedDict::initialize(std::string strDictInitData)
 		}
 		else
 		{
-			ERROR_MSG(boost::format("FixedDict::initialize: is error! strDictInitData=%1%.\n") %
-				strDictInitData.c_str());
+			ERROR_MSG(fmt::format("FixedDict::initialize: is error! strDictInitData={}.\n",
+				strDictInitData.c_str()));
 		}
 	}
 }
@@ -135,16 +135,32 @@ void FixedDict::initialize(PyObject* pyDictInitData)
 }
 
 //-------------------------------------------------------------------------------------
-void FixedDict::initialize(MemoryStream* streamInitData)
+void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStream)
 {
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
 
 	for(; iter != keyTypes.end(); iter++)
 	{
-		PyObject* val1 = iter->second->dataType->createFromStream(streamInitData);
-		PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-		Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		if(isPersistentsStream && !iter->second->persistent)
+		{
+			PyObject* val1 = iter->second->dataType->parseDefaultStr("");
+			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		}
+		else
+		{
+			PyObject* val1 = NULL;
+			if(iter->second->dataType->type() == DATA_TYPE_FIXEDDICT)
+				val1 = ((FixedDictType*)iter->second->dataType)->createFromStreamEx(streamInitData, isPersistentsStream);
+			else if(iter->second->dataType->type() == DATA_TYPE_FIXEDARRAY)
+				val1 = ((FixedArrayType*)iter->second->dataType)->createFromStreamEx(streamInitData, isPersistentsStream);
+			else
+				val1 = iter->second->dataType->createFromStream(streamInitData);
+
+			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		}
 	}
 }
 
@@ -316,6 +332,18 @@ PyObject* FixedDict::update(PyObject* args)
 
 	S_Return; 
 }
-	
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDict::tp_str()
+{
+	return tp_repr();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDict::tp_repr()
+{
+	return PyObject_Repr(pyDict_);
+}
+
 //-------------------------------------------------------------------------------------
 }

@@ -33,8 +33,8 @@ pBFKey_(0)
 {
 	if (initKey())
 	{
-		//DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
-		//	this->readableKey());
+		//DEBUG_MSG(fmt::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: {}\n", 
+		//	this->readableKey()));
 	}
 }
 
@@ -50,8 +50,8 @@ KBEBlowfish::KBEBlowfish(int keySize):
 
 	if (this->initKey())
 	{
-		DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
-			this->readableKey());
+		DEBUG_MSG(fmt::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: {}\n", 
+			this->readableKey()));
 	}
 }
 
@@ -74,9 +74,9 @@ bool KBEBlowfish::initKey()
 	}
 	else
 	{
-		ERROR_MSG(boost::format("KBEBlowfish::initKey: "
-			"invalid length %1%\n") %
-			keySize_ );
+		ERROR_MSG(fmt::format("KBEBlowfish::initKey: "
+			"invalid length {}\n",
+			keySize_));
 
 		isGood_ = false;
 	}
@@ -106,9 +106,9 @@ int KBEBlowfish::encrypt( const unsigned char * src, unsigned char * dest,
 	// BLOCK_SIZEµÄÕûÊý±¶
 	if(length % BLOCK_SIZE != 0)
 	{
-		CRITICAL_MSG(boost::format("Blowfish::encrypt: "
-			"Input length (%1%) is not a multiple of block size (%2%)\n") %
-			length % (int)(BLOCK_SIZE));
+		CRITICAL_MSG(fmt::format("Blowfish::encrypt: "
+			"Input length ({}) is not a multiple of block size ({})\n",
+			length, (int)(BLOCK_SIZE)));
 	}
 
 	uint64 * pPrevBlock = NULL;
@@ -136,9 +136,9 @@ int KBEBlowfish::decrypt( const unsigned char * src, unsigned char * dest,
 {
 	if (length % BLOCK_SIZE != 0)
 	{
-		WARNING_MSG(boost::format("Blowfish::decrypt:"
-			"Input stream size (%1%) is not a multiple of the block size (%2%)\n") %
-			length % (int)(BLOCK_SIZE));
+		WARNING_MSG(fmt::format("Blowfish::decrypt:"
+			"Input stream size ({}) is not a multiple of the block size ({})\n",
+			length, (int)(BLOCK_SIZE)));
 
 		return -1;
 	}

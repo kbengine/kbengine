@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_DEF_PROPERTY_H__
-#define __KBENGINE_DEF_PROPERTY_H__
+#ifndef KBENGINE_DEF_PROPERTY_HPP
+#define KBENGINE_DEF_PROPERTY_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -76,7 +77,7 @@ public:
 	/** 
 		获取属性的标志 cell_public等 
 	*/
-	INLINE const uint32& getFlags(void)const;
+	INLINE uint32 getFlags(void)const;
 	
 	/** 
 		获取属性名称 
@@ -148,9 +149,11 @@ public:
 
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
-	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 
-	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+
+	static uint32	propertyDescriptionCount_;									// 所有的属性描述的数量	
 
 	INLINE bool hasCell(void)const;
 	INLINE bool hasBase(void)const;
@@ -191,6 +194,7 @@ public:
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
 	typedef std::vector<std::pair<std::string, KBEShared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
 protected:
@@ -217,6 +221,9 @@ public:
 		脚本请求设置这个属性的值 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 protected:	
 };
 
@@ -250,5 +257,5 @@ protected:
 #ifdef CODE_INLINE
 #include "property.ipp"
 #endif
-#endif
+#endif // KBENGINE_DEF_PROPERTY_HPP
 

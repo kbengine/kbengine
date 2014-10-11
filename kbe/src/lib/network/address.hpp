@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_ADDRESS__
-#define __KBE_ADDRESS__
+#ifndef KBE_ADDRESS_HPP
+#define KBE_ADDRESS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -38,6 +38,14 @@ public:
 	static ObjectPool<Address>& ObjPool();
 	static void destroyObjPool();
 	void onReclaimObject();
+
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(ip)
+		 + sizeof(port);
+
+		return bytes;
+	}
 
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
@@ -73,23 +81,17 @@ inline Address::Address(uint32 ipArg, uint16 portArg) :
 {
 } 
 
+// 比较操作符重载
 inline bool operator==(const Address & a, const Address & b)
 {
 	return (a.ip == b.ip) && (a.port == b.port);
 }
-
 
 inline bool operator!=(const Address & a, const Address & b)
 {
 	return (a.ip != b.ip) || (a.port != b.port);
 }
 
-/**
- * 	This operator compares two addresses. It is needed
- * 	for using an address as a key in an STL map.
- *
- * 	@return true if a is less than b, false otherwise.
- */
 inline bool operator<(const Address & a, const Address & b)
 {
 	return (a.ip < b.ip) || (a.ip == b.ip && (a.port < b.port));
@@ -98,4 +100,4 @@ inline bool operator<(const Address & a, const Address & b)
 
 }
 }
-#endif // __EVENT_POLLER__
+#endif // KBE_ADDRESS_HPP

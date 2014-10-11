@@ -65,27 +65,33 @@ INLINE bool EntityMailboxAbstract::isBaseViaCell()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_ID EntityMailboxAbstract::getID()const{ 
+INLINE ENTITY_ID EntityMailboxAbstract::id()const{ 
 	return id_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void EntityMailboxAbstract::setID(int id){ 
-	id_ = id; 
+INLINE void EntityMailboxAbstract::id(int v){ 
+	id_ = v; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE COMPONENT_ID EntityMailboxAbstract::getComponentID(void)const{ 
+INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void)const{ 
 	return componentID_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::getUType(void)const{ 
+void EntityMailboxAbstract::componentID(COMPONENT_ID cid)
+{
+	componentID_ = cid;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::utype(void)const{ 
 	return utype_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::getType(void)const{
+INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::type(void)const{
 	return type_; 
 }
 	

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PY_BLOB_H__
-#define __PY_BLOB_H__
+#ifndef KBE_PY_BLOB_HPP
+#define KBE_PY_BLOB_HPP
 
 #include "datatype.hpp"
 #include "pyscript/py_memorystream.hpp"
@@ -67,4 +67,5 @@ protected:
 } ;
 
 }
-#endif
+#endif // KBE_PY_BLOB_HPP
+

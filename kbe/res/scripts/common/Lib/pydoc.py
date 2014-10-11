@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Generate Python documentation in HTML or text for interactive use.
 
-In the Python interpreter, do "from pydoc import help" to provide online
-help.  Calling help(thing) on a Python object documents the object.
+At the Python interactive prompt, calling help(thing) on a Python object
+documents the object, and calling help() starts up an interactive
+help session.
 
 Or, at the shell command line outside of Python:
 
@@ -22,11 +23,6 @@ Run "pydoc -b" to start an HTTP server on an arbitrary unused port and
 open a Web browser to interactively browse documentation.  The -p option
 can be used with the -b option to explicitly specify the server port.
 
-For platforms without a command line, "pydoc -g" starts the HTTP server
-and also pops up a little window for controlling it.  This option is
-deprecated, since the server can now be controlled directly from HTTP
-clients.
-
 Run "pydoc -w <name>" to write out the HTML documentation for a module
 to a file named "<name>.html".
 
@@ -42,7 +38,6 @@ __all__ = ['help']
 __author__ = "Ka-Ping Yee <ping@lfw.org>"
 __date__ = "26 February 2001"
 
-__version__ = "$Revision$"
 __credits__ = """Guido van Rossum, for an excellent programming language.
 Tommy Burnette, the original creator of manpy.
 Paul Prescod, for all his work on onlinehelp.
@@ -50,15 +45,16 @@ Richard Chamberlain, for the first implementation of textdoc.
 """
 
 # Known bugs that can't be fixed here:
-#   - imp.load_module() cannot be prevented from clobbering existing
-#     loaded modules, so calling synopsis() on a binary module file
-#     changes the contents of any existing module with the same name.
+#   - synopsis() cannot be prevented from clobbering existing
+#     loaded modules.
 #   - If the __file__ attribute on a module is a relative path and
 #     the current directory is changed with os.chdir(), an incorrect
 #     path will be displayed.
 
 import builtins
-import imp
+import importlib._bootstrap
+import importlib.machinery
+import importlib.util
 import inspect
 import io
 import os
@@ -71,7 +67,7 @@ import tokenize
 import warnings
 from collections import deque
 from reprlib import Repr
-from traceback import extract_tb, format_exception_only
+from traceback import format_exception_only
 
 
 # --------------------------------------------------------- common routines
@@ -142,6 +138,19 @@ def _is_some_method(obj):
             inspect.isbuiltin(obj) or
             inspect.ismethoddescriptor(obj))
 
+def _is_bound_method(fn):
+    """
+    Returns True if fn is a bound method, regardless of whether
+    fn was implemented in Python or in C.
+    """
+    if inspect.ismethod(fn):
+        return True
+    if inspect.isbuiltin(fn):
+        self = getattr(fn, '__self__', None)
+        return not (inspect.ismodule(self) or (self is None))
+    return False
+
+
 def allmethods(cl):
     methods = {}
     for key, value in inspect.getmembers(cl, _is_some_method):
@@ -171,12 +180,13 @@ def _split_list(s, predicate):
 
 def visiblename(name, all=None, obj=None):
     """Decide whether to show documentation on a variable."""
-    # Certain special names are redundant.
-    _hidden_names = ('__builtins__', '__doc__', '__file__', '__path__',
-                     '__module__', '__name__', '__slots__', '__package__',
-                     '__cached__', '__author__', '__credits__', '__date__',
-                     '__version__')
-    if name in _hidden_names: return 0
+    # Certain special names are redundant or internal.
+    # XXX Remove __initializing__?
+    if name in {'__author__', '__builtins__', '__cached__', '__credits__',
+                '__date__', '__doc__', '__file__', '__spec__',
+                '__loader__', '__module__', '__name__', '__package__',
+                '__path__', '__qualname__', '__slots__', '__version__'}:
+        return 0
     # Private names are hidden, but special names are displayed.
     if name.startswith('__') and name.endswith('__'): return 1
     # Namedtuples have public fields and methods with a single leading underscore
@@ -229,20 +239,38 @@ def synopsis(filename, cache={}):
     mtime = os.stat(filename).st_mtime
     lastupdate, result = cache.get(filename, (None, None))
     if lastupdate is None or lastupdate < mtime:
-        info = inspect.getmoduleinfo(filename)
-        try:
-            file = tokenize.open(filename)
-        except IOError:
-            # module can't be opened, so skip it
-            return None
-        if info and 'b' in info[2]: # binary modules have to be imported
-            try: module = imp.load_module('__temp__', file, filename, info[1:])
-            except: return None
-            result = (module.__doc__ or '').splitlines()[0]
+        # Look for binary suffixes first, falling back to source.
+        if filename.endswith(tuple(importlib.machinery.BYTECODE_SUFFIXES)):
+            loader_cls = importlib.machinery.SourcelessFileLoader
+        elif filename.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
+            loader_cls = importlib.machinery.ExtensionFileLoader
+        else:
+            loader_cls = None
+        # Now handle the choice.
+        if loader_cls is None:
+            # Must be a source file.
+            try:
+                file = tokenize.open(filename)
+            except OSError:
+                # module can't be opened, so skip it
+                return None
+            # text modules can be directly examined
+            with file:
+                result = source_synopsis(file)
+        else:
+            # Must be a binary module, which has to be imported.
+            loader = loader_cls('__temp__', filename)
+            # XXX We probably don't need to pass in the loader here.
+            spec = importlib.util.spec_from_file_location('__temp__', filename,
+                                                          loader=loader)
+            _spec = importlib._bootstrap._SpecMethods(spec)
+            try:
+                module = _spec.load()
+            except:
+                return None
             del sys.modules['__temp__']
-        else: # text modules can be directly examined
-            result = source_synopsis(file)
-            file.close()
+            result = (module.__doc__ or '').splitlines()[0]
+        # Cache the result.
         cache[filename] = (mtime, result)
     return result
 
@@ -258,20 +286,22 @@ class ErrorDuringImport(Exception):
 
 def importfile(path):
     """Import a Python source file or compiled file given its path."""
-    magic = imp.get_magic()
+    magic = importlib.util.MAGIC_NUMBER
     with open(path, 'rb') as file:
-        if file.read(len(magic)) == magic:
-            kind = imp.PY_COMPILED
-        else:
-            kind = imp.PY_SOURCE
-        file.seek(0)
-        filename = os.path.basename(path)
-        name, ext = os.path.splitext(filename)
-        try:
-            module = imp.load_module(name, file, path, (ext, 'r', kind))
-        except:
-            raise ErrorDuringImport(path, sys.exc_info())
-    return module
+        is_bytecode = magic == file.read(len(magic))
+    filename = os.path.basename(path)
+    name, ext = os.path.splitext(filename)
+    if is_bytecode:
+        loader = importlib._bootstrap.SourcelessFileLoader(name, path)
+    else:
+        loader = importlib._bootstrap.SourceFileLoader(name, path)
+    # XXX We probably don't need to pass in the loader here.
+    spec = importlib.util.spec_from_file_location(name, path, loader=loader)
+    _spec = importlib._bootstrap._SpecMethods(spec)
+    try:
+        return _spec.load()
+    except:
+        raise ErrorDuringImport(path, sys.exc_info())
 
 def safeimport(path, forceload=0, cache={}):
     """Import a module; handle errors; return None if the module isn't found.
@@ -308,9 +338,8 @@ def safeimport(path, forceload=0, cache={}):
         elif exc is SyntaxError:
             # A SyntaxError occurred before we could execute the module.
             raise ErrorDuringImport(value.filename, info)
-        elif exc is ImportError and extract_tb(tb)[-1][2]=='safeimport':
-            # The import error occurred directly in this function,
-            # which means there is no such module in the path.
+        elif exc is ImportError and value.name == path:
+            # No such module in the path.
             return None
         else:
             # Some other error occurred during the importing process.
@@ -364,7 +393,7 @@ class Doc:
 
         docloc = os.environ.get("PYTHONDOCS", self.PYTHONDOCS)
 
-        basedir = os.path.join(sys.exec_prefix, "lib",
+        basedir = os.path.join(sys.base_exec_prefix, "lib",
                                "python%d.%d" %  sys.version_info[:2])
         if (isinstance(object, type(os)) and
             (object.__name__ in ('errno', 'exceptions', 'gc', 'imp',
@@ -883,7 +912,7 @@ class HTMLDoc(Doc):
         anchor = (cl and cl.__name__ or '') + '-' + name
         note = ''
         skipdocs = 0
-        if inspect.ismethod(object):
+        if _is_bound_method(object):
             imclass = object.__self__.__class__
             if cl:
                 if imclass is not cl:
@@ -894,7 +923,6 @@ class HTMLDoc(Doc):
                         object.__self__.__class__, mod)
                 else:
                     note = ' unbound %s method' % self.classlink(imclass,mod)
-            object = object.__func__
 
         if name == realname:
             title = '<a name="%s"><strong>%s</strong></a>' % (anchor, realname)
@@ -908,20 +936,21 @@ class HTMLDoc(Doc):
                 reallink = realname
             title = '<a name="%s"><strong>%s</strong></a> = %s' % (
                 anchor, name, reallink)
-        if inspect.isfunction(object):
-            args, varargs, kwonlyargs, kwdefaults, varkw, defaults, ann = \
-                inspect.getfullargspec(object)
-            argspec = inspect.formatargspec(
-                args, varargs, kwonlyargs, kwdefaults, varkw, defaults, ann,
-                formatvalue=self.formatvalue,
-                formatannotation=inspect.formatannotationrelativeto(object))
-            if realname == '<lambda>':
-                title = '<strong>%s</strong> <em>lambda</em> ' % name
-                # XXX lambda's won't usually have func_annotations['return']
-                # since the syntax doesn't support but it is possible.
-                # So removing parentheses isn't truly safe.
-                argspec = argspec[1:-1] # remove parentheses
-        else:
+        argspec = None
+        if inspect.isroutine(object):
+            try:
+                signature = inspect.signature(object)
+            except (ValueError, TypeError):
+                signature = None
+            if signature:
+                argspec = str(signature)
+                if realname == '<lambda>':
+                    title = '<strong>%s</strong> <em>lambda</em> ' % name
+                    # XXX lambda's won't usually have func_annotations['return']
+                    # since the syntax doesn't support but it is possible.
+                    # So removing parentheses isn't truly safe.
+                    argspec = argspec[1:-1] # remove parentheses
+        if not argspec:
             argspec = '(...)'
 
         decl = title + argspec + (note and self.grey(
@@ -966,6 +995,9 @@ class HTMLDoc(Doc):
         modpkgs = []
         if shadowed is None: shadowed = {}
         for importer, name, ispkg in pkgutil.iter_modules([dir]):
+            if any((0xD800 <= ord(ch) <= 0xDFFF) for ch in name):
+                # ignore a module if its name contains a surrogate character
+                continue
             modpkgs.append((name, '', ispkg, name in shadowed))
             shadowed[name] = 1
 
@@ -1225,8 +1257,12 @@ location listed above.
                         doc = getdoc(value)
                     else:
                         doc = None
-                    push(self.docother(getattr(object, name),
-                                       name, mod, maxlen=70, doc=doc) + '\n')
+                    try:
+                        obj = getattr(object, name)
+                    except AttributeError:
+                        obj = homecls.__dict__[name]
+                    push(self.docother(obj, name, mod, maxlen=70, doc=doc) +
+                         '\n')
             return attrs
 
         attrs = [(name, kind, cls, value)
@@ -1248,7 +1284,6 @@ location listed above.
             else:
                 tag = "inherited from %s" % classname(thisclass,
                                                       object.__module__)
-
             # Sort attrs by name.
             attrs.sort()
 
@@ -1263,6 +1298,7 @@ location listed above.
                                      lambda t: t[1] == 'data descriptor')
             attrs = spilldata("Data and other attributes %s:\n" % tag, attrs,
                               lambda t: t[1] == 'data')
+
             assert attrs == []
             attrs = inherited
 
@@ -1281,7 +1317,7 @@ location listed above.
         name = name or realname
         note = ''
         skipdocs = 0
-        if inspect.ismethod(object):
+        if _is_bound_method(object):
             imclass = object.__self__.__class__
             if cl:
                 if imclass is not cl:
@@ -1292,7 +1328,6 @@ location listed above.
                         object.__self__.__class__, mod)
                 else:
                     note = ' unbound %s method' % classname(imclass,mod)
-            object = object.__func__
 
         if name == realname:
             title = self.bold(realname)
@@ -1301,20 +1336,22 @@ location listed above.
                 cl.__dict__[realname] is object):
                 skipdocs = 1
             title = self.bold(name) + ' = ' + realname
-        if inspect.isfunction(object):
-            args, varargs, varkw, defaults, kwonlyargs, kwdefaults, ann = \
-              inspect.getfullargspec(object)
-            argspec = inspect.formatargspec(
-                args, varargs, varkw, defaults, kwonlyargs, kwdefaults, ann,
-                formatvalue=self.formatvalue,
-                formatannotation=inspect.formatannotationrelativeto(object))
-            if realname == '<lambda>':
-                title = self.bold(name) + ' lambda '
-                # XXX lambda's won't usually have func_annotations['return']
-                # since the syntax doesn't support but it is possible.
-                # So removing parentheses isn't truly safe.
-                argspec = argspec[1:-1] # remove parentheses
-        else:
+        argspec = None
+
+        if inspect.isroutine(object):
+            try:
+                signature = inspect.signature(object)
+            except (ValueError, TypeError):
+                signature = None
+            if signature:
+                argspec = str(signature)
+                if realname == '<lambda>':
+                    title = self.bold(name) + ' lambda '
+                    # XXX lambda's won't usually have func_annotations['return']
+                    # since the syntax doesn't support but it is possible.
+                    # So removing parentheses isn't truly safe.
+                    argspec = argspec[1:-1] # remove parentheses
+        if not argspec:
             argspec = '(...)'
         decl = title + argspec + note
 
@@ -1367,6 +1404,9 @@ class _PlainTextDoc(TextDoc):
 def pager(text):
     """The first time this is called, determine what kind of pager to use."""
     global pager
+    # Escape non-encodable characters to avoid encoding errors later
+    encoding = sys.getfilesystemencoding()
+    text = text.encode(encoding, 'backslashreplace').decode(encoding)
     pager = getpager()
     pager(text)
 
@@ -1385,7 +1425,7 @@ def getpager():
             return lambda text: pipepager(text, os.environ['PAGER'])
     if os.environ.get('TERM') in ('dumb', 'emacs'):
         return plainpager
-    if sys.platform == 'win32' or sys.platform.startswith('os2'):
+    if sys.platform == 'win32':
         return lambda text: tempfilepager(plain(text), 'more <')
     if hasattr(os, 'system') and os.system('(less) 2>/dev/null') == 0:
         return lambda text: pipepager(text, 'less')
@@ -1411,16 +1451,15 @@ def pipepager(text, cmd):
     try:
         pipe.write(text)
         pipe.close()
-    except IOError:
+    except OSError:
         pass # Ignore broken pipes caused by quitting the pager program.
 
 def tempfilepager(text, cmd):
     """Page through text by invoking a program on a temporary file."""
     import tempfile
     filename = tempfile.mktemp()
-    file = open(filename, 'w')
-    file.write(text)
-    file.close()
+    with open(filename, 'w') as file:
+        file.write(text)
     try:
         os.system(cmd + ' "' + filename + '"')
     finally:
@@ -1830,7 +1869,7 @@ has the same effect as typing a particular string at the help> prompt.
 
     def intro(self):
         self.output.write('''
-Welcome to Python %s!  This is the online help utility.
+Welcome to Python %s's help utility!
 
 If this is your first time using Python, you should definitely check out
 the tutorial on the Internet at http://docs.python.org/%s/tutorial/.
@@ -1839,10 +1878,10 @@ Enter the name of any module, keyword, or topic to get help on writing
 Python programs and using Python modules.  To quit this help utility and
 return to the interpreter, just type "quit".
 
-To get a list of available modules, keywords, or topics, type "modules",
-"keywords", or "topics".  Each module also comes with a one-line summary
-of what it does; to list the modules whose summaries contain a given word
-such as "spam", type "modules spam".
+To get a list of available modules, keywords, symbols, or topics, type
+"modules", "keywords", "symbols", or "topics".  Each module also comes
+with a one-line summary of what it does; to list the modules whose name
+or summary contain a given string such as "spam", type "modules spam".
 ''' % tuple([sys.version[:3]]*2))
 
     def list(self, items, columns=4, width=80):
@@ -1906,11 +1945,10 @@ module "pydoc_data.topics" could not be found.
         if more_xrefs:
             xrefs = (xrefs or '') + ' ' + more_xrefs
         if xrefs:
-            import formatter
-            buffer = io.StringIO()
-            formatter.DumbWriter(buffer).send_flowing_data(
-                'Related help topics: ' + ', '.join(xrefs.split()) + '\n')
-            self.output.write('\n%s\n' % buffer.getvalue())
+            import textwrap
+            text = 'Related help topics: ' + ', '.join(xrefs.split()) + '\n'
+            wrapped_text = textwrap.wrap(text, 72)
+            self.output.write('\n%s\n' % ''.join(wrapped_text))
 
     def _gettopic(self, topic, more_xrefs=''):
         """Return unbuffered tuple of (topic, xrefs).
@@ -1947,9 +1985,10 @@ module "pydoc_data.topics" could not be found.
     def listmodules(self, key=''):
         if key:
             self.output.write('''
-Here is a list of matching modules.  Enter any module name to get more help.
+Here is a list of modules whose name or summary contains '{}'.
+If there are any, enter a module name to get more help.
 
-''')
+'''.format(key))
             apropos(key)
         else:
             self.output.write('''
@@ -1968,34 +2007,10 @@ Please wait a moment while I gather a list of all available modules...
             self.list(modules.keys())
             self.output.write('''
 Enter any module name to get more help.  Or, type "modules spam" to search
-for modules whose descriptions contain the word "spam".
+for modules whose name or summary contain the string "spam".
 ''')
 
 help = Helper()
-
-class Scanner:
-    """A generic tree iterator."""
-    def __init__(self, roots, children, descendp):
-        self.roots = roots[:]
-        self.state = []
-        self.children = children
-        self.descendp = descendp
-
-    def next(self):
-        if not self.state:
-            if not self.roots:
-                return None
-            root = self.roots.pop(0)
-            self.state = [(root, self.children(root))]
-        node, children = self.state[-1]
-        if not children:
-            self.state.pop()
-            return self.next()
-        child = children.pop(0)
-        if self.descendp(child):
-            self.state.append((child, self.children(child)))
-        return child
-
 
 class ModuleScanner:
     """An interruptible scanner that searches module synopses."""
@@ -2021,26 +2036,19 @@ class ModuleScanner:
             if self.quit:
                 break
 
-            # XXX Skipping this file is a workaround for a bug
-            # that causes python to crash with a segfault.
-            # http://bugs.python.org/issue9319
-            #
-            # TODO Remove this once the bug is fixed.
-            if modname in {'test.badsyntax_pep3120', 'badsyntax_pep3120'}:
-                continue
-
             if key is None:
                 callback(None, modname, '')
             else:
                 try:
-                    loader = importer.find_module(modname)
+                    spec = pkgutil._get_spec(importer, modname)
                 except SyntaxError:
                     # raised by tests for bad coding cookies or BOM
                     continue
+                loader = spec.loader
                 if hasattr(loader, 'get_source'):
                     try:
                         source = loader.get_source(modname)
-                    except UnicodeDecodeError:
+                    except Exception:
                         if onerror:
                             onerror(modname)
                         continue
@@ -2050,8 +2058,9 @@ class ModuleScanner:
                     else:
                         path = None
                 else:
+                    _spec = importlib._bootstrap._SpecMethods(spec)
                     try:
-                        module = loader.load_module(modname)
+                        module = _spec.load()
                     except ImportError:
                         if onerror:
                             onerror(modname)
@@ -2076,272 +2085,6 @@ def apropos(key):
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore') # ignore problems during import
         ModuleScanner().run(callback, key, onerror=onerror)
-
-# --------------------------------------------------- Web browser interface
-
-def serve(port, callback=None, completer=None):
-    import http.server, email.message, select
-
-    msg = 'the pydoc.serve() function is deprecated'
-    warnings.warn(msg, DeprecationWarning, stacklevel=2)
-
-    class DocHandler(http.server.BaseHTTPRequestHandler):
-        def send_document(self, title, contents):
-            try:
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/html; charset=UTF-8')
-                self.end_headers()
-                self.wfile.write(html.page(title, contents).encode('utf-8'))
-            except IOError: pass
-
-        def do_GET(self):
-            path = self.path
-            if path[-5:] == '.html': path = path[:-5]
-            if path[:1] == '/': path = path[1:]
-            if path and path != '.':
-                try:
-                    obj = locate(path, forceload=1)
-                except ErrorDuringImport as value:
-                    self.send_document(path, html.escape(str(value)))
-                    return
-                if obj:
-                    self.send_document(describe(obj), html.document(obj, path))
-                else:
-                    self.send_document(path,
-'no Python documentation found for %s' % repr(path))
-            else:
-                heading = html.heading(
-'<big><big><strong>Python: Index of Modules</strong></big></big>',
-'#ffffff', '#7799ee')
-                def bltinlink(name):
-                    return '<a href="%s.html">%s</a>' % (name, name)
-                names = [x for x in sys.builtin_module_names if x != '__main__']
-                contents = html.multicolumn(names, bltinlink)
-                indices = ['<p>' + html.bigsection(
-                    'Built-in Modules', '#ffffff', '#ee77aa', contents)]
-
-                seen = {}
-                for dir in sys.path:
-                    indices.append(html.index(dir, seen))
-                contents = heading + ' '.join(indices) + '''<p align=right>
-<font color="#909090" face="helvetica, arial"><strong>
-pydoc</strong> by Ka-Ping Yee &lt;ping@lfw.org&gt;</font>'''
-                self.send_document('Index of Modules', contents)
-
-        def log_message(self, *args): pass
-
-    class DocServer(http.server.HTTPServer):
-        def __init__(self, port, callback):
-            host = 'localhost'
-            self.address = (host, port)
-            self.url = 'http://%s:%d/' % (host, port)
-            self.callback = callback
-            self.base.__init__(self, self.address, self.handler)
-
-        def serve_until_quit(self):
-            import select
-            self.quit = False
-            while not self.quit:
-                rd, wr, ex = select.select([self.socket.fileno()], [], [], 1)
-                if rd: self.handle_request()
-            self.server_close()
-
-        def server_activate(self):
-            self.base.server_activate(self)
-            if self.callback: self.callback(self)
-
-    DocServer.base = http.server.HTTPServer
-    DocServer.handler = DocHandler
-    DocHandler.MessageClass = email.message.Message
-    try:
-        try:
-            DocServer(port, callback).serve_until_quit()
-        except (KeyboardInterrupt, select.error):
-            pass
-    finally:
-        if completer: completer()
-
-# ----------------------------------------------------- graphical interface
-
-def gui():
-    """Graphical interface (starts Web server and pops up a control window)."""
-
-    msg = ('the pydoc.gui() function and "pydoc -g" option are deprecated\n',
-           'use "pydoc.browse() function and "pydoc -b" option instead.')
-    warnings.warn(msg, DeprecationWarning, stacklevel=2)
-
-    class GUI:
-        def __init__(self, window, port=7464):
-            self.window = window
-            self.server = None
-            self.scanner = None
-
-            import tkinter
-            self.server_frm = tkinter.Frame(window)
-            self.title_lbl = tkinter.Label(self.server_frm,
-                text='Starting server...\n ')
-            self.open_btn = tkinter.Button(self.server_frm,
-                text='open browser', command=self.open, state='disabled')
-            self.quit_btn = tkinter.Button(self.server_frm,
-                text='quit serving', command=self.quit, state='disabled')
-
-            self.search_frm = tkinter.Frame(window)
-            self.search_lbl = tkinter.Label(self.search_frm, text='Search for')
-            self.search_ent = tkinter.Entry(self.search_frm)
-            self.search_ent.bind('<Return>', self.search)
-            self.stop_btn = tkinter.Button(self.search_frm,
-                text='stop', pady=0, command=self.stop, state='disabled')
-            if sys.platform == 'win32':
-                # Trying to hide and show this button crashes under Windows.
-                self.stop_btn.pack(side='right')
-
-            self.window.title('pydoc')
-            self.window.protocol('WM_DELETE_WINDOW', self.quit)
-            self.title_lbl.pack(side='top', fill='x')
-            self.open_btn.pack(side='left', fill='x', expand=1)
-            self.quit_btn.pack(side='right', fill='x', expand=1)
-            self.server_frm.pack(side='top', fill='x')
-
-            self.search_lbl.pack(side='left')
-            self.search_ent.pack(side='right', fill='x', expand=1)
-            self.search_frm.pack(side='top', fill='x')
-            self.search_ent.focus_set()
-
-            font = ('helvetica', sys.platform == 'win32' and 8 or 10)
-            self.result_lst = tkinter.Listbox(window, font=font, height=6)
-            self.result_lst.bind('<Button-1>', self.select)
-            self.result_lst.bind('<Double-Button-1>', self.goto)
-            self.result_scr = tkinter.Scrollbar(window,
-                orient='vertical', command=self.result_lst.yview)
-            self.result_lst.config(yscrollcommand=self.result_scr.set)
-
-            self.result_frm = tkinter.Frame(window)
-            self.goto_btn = tkinter.Button(self.result_frm,
-                text='go to selected', command=self.goto)
-            self.hide_btn = tkinter.Button(self.result_frm,
-                text='hide results', command=self.hide)
-            self.goto_btn.pack(side='left', fill='x', expand=1)
-            self.hide_btn.pack(side='right', fill='x', expand=1)
-
-            self.window.update()
-            self.minwidth = self.window.winfo_width()
-            self.minheight = self.window.winfo_height()
-            self.bigminheight = (self.server_frm.winfo_reqheight() +
-                                 self.search_frm.winfo_reqheight() +
-                                 self.result_lst.winfo_reqheight() +
-                                 self.result_frm.winfo_reqheight())
-            self.bigwidth, self.bigheight = self.minwidth, self.bigminheight
-            self.expanded = 0
-            self.window.wm_geometry('%dx%d' % (self.minwidth, self.minheight))
-            self.window.wm_minsize(self.minwidth, self.minheight)
-            self.window.tk.willdispatch()
-
-            import threading
-            threading.Thread(
-                target=serve, args=(port, self.ready, self.quit)).start()
-
-        def ready(self, server):
-            self.server = server
-            self.title_lbl.config(
-                text='Python documentation server at\n' + server.url)
-            self.open_btn.config(state='normal')
-            self.quit_btn.config(state='normal')
-
-        def open(self, event=None, url=None):
-            url = url or self.server.url
-            import webbrowser
-            webbrowser.open(url)
-
-        def quit(self, event=None):
-            if self.server:
-                self.server.quit = 1
-            self.window.quit()
-
-        def search(self, event=None):
-            key = self.search_ent.get()
-            self.stop_btn.pack(side='right')
-            self.stop_btn.config(state='normal')
-            self.search_lbl.config(text='Searching for "%s"...' % key)
-            self.search_ent.forget()
-            self.search_lbl.pack(side='left')
-            self.result_lst.delete(0, 'end')
-            self.goto_btn.config(state='disabled')
-            self.expand()
-
-            import threading
-            if self.scanner:
-                self.scanner.quit = 1
-            self.scanner = ModuleScanner()
-            threading.Thread(target=self.scanner.run,
-                             args=(self.update, key, self.done)).start()
-
-        def update(self, path, modname, desc):
-            if modname[-9:] == '.__init__':
-                modname = modname[:-9] + ' (package)'
-            self.result_lst.insert('end',
-                modname + ' - ' + (desc or '(no description)'))
-
-        def stop(self, event=None):
-            if self.scanner:
-                self.scanner.quit = 1
-                self.scanner = None
-
-        def done(self):
-            self.scanner = None
-            self.search_lbl.config(text='Search for')
-            self.search_lbl.pack(side='left')
-            self.search_ent.pack(side='right', fill='x', expand=1)
-            if sys.platform != 'win32': self.stop_btn.forget()
-            self.stop_btn.config(state='disabled')
-
-        def select(self, event=None):
-            self.goto_btn.config(state='normal')
-
-        def goto(self, event=None):
-            selection = self.result_lst.curselection()
-            if selection:
-                modname = self.result_lst.get(selection[0]).split()[0]
-                self.open(url=self.server.url + modname + '.html')
-
-        def collapse(self):
-            if not self.expanded: return
-            self.result_frm.forget()
-            self.result_scr.forget()
-            self.result_lst.forget()
-            self.bigwidth = self.window.winfo_width()
-            self.bigheight = self.window.winfo_height()
-            self.window.wm_geometry('%dx%d' % (self.minwidth, self.minheight))
-            self.window.wm_minsize(self.minwidth, self.minheight)
-            self.expanded = 0
-
-        def expand(self):
-            if self.expanded: return
-            self.result_frm.pack(side='bottom', fill='x')
-            self.result_scr.pack(side='right', fill='y')
-            self.result_lst.pack(side='top', fill='both', expand=1)
-            self.window.wm_geometry('%dx%d' % (self.bigwidth, self.bigheight))
-            self.window.wm_minsize(self.minwidth, self.bigminheight)
-            self.expanded = 1
-
-        def hide(self, event=None):
-            self.stop()
-            self.collapse()
-
-    import tkinter
-    try:
-        root = tkinter.Tk()
-        # Tk will crash if pythonw.exe has an XP .manifest
-        # file and the root has is not destroyed explicitly.
-        # If the problem is ever fixed in Tk, the explicit
-        # destroy can go.
-        try:
-            gui = GUI(root)
-            root.mainloop()
-        finally:
-            root.destroy()
-    except KeyboardInterrupt:
-        pass
-
 
 # --------------------------------------- enhanced Web browser interface
 
@@ -2799,15 +2542,12 @@ def cli():
         sys.path.insert(0, '.')
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'bgk:p:w')
+        opts, args = getopt.getopt(sys.argv[1:], 'bk:p:w')
         writing = False
         start_server = False
         open_browser = False
         port = None
         for opt, val in opts:
-            if opt == '-g':
-                gui()
-                return
             if opt == '-b':
                 start_server = True
                 open_browser = True
@@ -2820,8 +2560,8 @@ def cli():
             if opt == '-w':
                 writing = True
 
-        if start_server == True:
-            if port == None:
+        if start_server:
+            if port is None:
                 port = 0
             browse(port, open_browser=open_browser)
             return
@@ -2867,9 +2607,6 @@ def cli():
     Start an HTTP server on an arbitrary unused port and open a Web browser
     to interactively browse documentation.  The -p option can be used with
     the -b option to explicitly specify the server port.
-
-{cmd} -g
-    Deprecated.
 
 {cmd} -w <name> ...
     Write out the HTML documentation for a module to a file in the current

@@ -28,7 +28,20 @@
 	
 	<ENTITYID_LIST> ARRAY <of> ENTITY_ID </of>	</ENTITYID_LIST>
 	
+	<AVATAR_DATA>	FIXED_DICT
+		<implementedBy>AVATAR_DATA.inst</implementedBy>
+		<Properties>
+			<param1>
+				<Type>	INT8	</Type>
+			</param1>
+			<param2>
+				<Type>	BLOB	</Type>
+			</param2>
+		</Properties>
+	</AVATAR_DATA>	
+	
 	<AVATAR_INFOS>	FIXED_DICT
+		<implementedBy>AVATAR_INFOS.avatar_info_inst</implementedBy>
 		<Properties>
 			<dbid>
 				<Type>	DBID	</Type>
@@ -42,11 +55,14 @@
 			<level>
 				<Type>	UINT16	</Type>
 			</level>
+			<data>
+				<Type>	AVATAR_DATA	</Type>
+			</data>
 		</Properties>
 	</AVATAR_INFOS>	
 	
 	<AVATAR_INFOS_LIST>	FIXED_DICT
-		<implementedBy>AVATAR_INFOS.inst</implementedBy>
+		<implementedBy>AVATAR_INFOS.avatar_info_list_inst</implementedBy>
 		<Properties>
 			<values>
 				<Type>	ARRAY <of> AVATAR_INFOS </of>	</Type>
@@ -61,4 +77,18 @@
 			</values22>
 		</Properties>
 	</BAG>	
+	
+	<EXAMPLES>	FIXED_DICT
+		<Properties>
+			<k1>
+				<Persistent>	false	</Persistent>
+				<Type>	INT64	</Type>
+			</k1>
+			
+			<k2>
+				<Type>	INT64	</Type>
+			</k2>
+		</Properties>
+	</EXAMPLES>	
+	
 </root>

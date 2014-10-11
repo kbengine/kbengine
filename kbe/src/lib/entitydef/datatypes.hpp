@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __DATA_TYPES_H__
-#define __DATA_TYPES_H__
+#ifndef KBE_DATA_TYPES_HPP
+#define KBE_DATA_TYPES_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -64,6 +65,7 @@ public:
 	static bool loadAlias(std::string& file);
 
 	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
+	static const UID_DATATYPE_MAP& uid_dataTypes(){ return uid_dataTypes_; }
 protected:
 	static DATATYPE_MAP dataTypes_;
 	static DATATYPE_MAP dataTypesLowerName_;
@@ -71,4 +73,4 @@ protected:
 };
 
 }
-#endif
+#endif // KBE_DATA_TYPES_HPP

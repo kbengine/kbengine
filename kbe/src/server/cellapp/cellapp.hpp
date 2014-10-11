@@ -18,24 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CELLAPP_H__
-#define __CELLAPP_H__
+#ifndef KBE_CELLAPP_HPP
+#define KBE_CELLAPP_HPP
 	
 // common include	
 #include "entity.hpp"
 #include "spaces.hpp"
 #include "cells.hpp"
 #include "updatables.hpp"
+#include "ghost_manager.hpp"
 #include "witnessed_timeout_handler.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 
@@ -89,7 +83,7 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 	/**  
 		创建一个entity 
@@ -156,6 +150,21 @@ public:
 	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostPropertys(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
+	/** 网络接口
+		ghost请求调用def方法real
+	*/
+	void onRemoteRealMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostVolatileData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		base请求获取celldata
 	*/
 	void reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -219,9 +228,14 @@ public:
 		网络接口
 		另一个cellapp的entity要teleport到本cellapp上的space中
 	*/
-	void reqTeleportOtherValidation(Mercury::Channel* pChannel, MemoryStream& s);
-	void reqTeleportOtherAck(Mercury::Channel* pChannel, MemoryStream& s);
-	void reqTeleportOther(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/**
+		获取和设置ghost管理器
+	*/
+	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
+	GhostManager* pGhostManager()const{ return pGhostManager_; }
 
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
@@ -235,7 +249,10 @@ protected:
 	TelnetServer*						pTelnetServer_;
 
 	WitnessedTimeoutHandler	*			pWitnessedTimeoutHandler_;
+
+	GhostManager*						pGhostManager_;
 };
 
 }
-#endif
+
+#endif // KBE_CELLAPP_HPP

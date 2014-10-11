@@ -14,13 +14,15 @@ resources utilized by a program.
 Symbolic constants are used to specify particular system resources and to
 request usage information about either the current process or its children.
 
-A single exception is defined for errors:
+An :exc:`OSError` is raised on syscall failure.
 
 
 .. exception:: error
 
-   The functions described below may raise this error if the underlying system call
-   failures unexpectedly.
+   A deprecated alias of :exc:`OSError`.
+
+   .. versionchanged:: 3.3
+      Following :pep:`3151`, this class was made an alias of :exc:`OSError`.
 
 
 Resource Limits
@@ -41,6 +43,11 @@ which cannot be checked or controlled by the operating system are not defined in
 this module for those platforms.
 
 
+.. data:: RLIM_INFINITY
+
+   Constant used to represent the the limit for an unlimited resource.
+
+
 .. function:: getrlimit(resource)
 
    Returns a tuple ``(soft, hard)`` with the current soft and hard limits of
@@ -52,12 +59,41 @@ this module for those platforms.
 
    Sets new limits of consumption of *resource*. The *limits* argument must be a
    tuple ``(soft, hard)`` of two integers describing the new limits. A value of
-   ``-1`` can be used to specify the maximum possible upper limit.
+   :data:`~resource.RLIM_INFINITY` can be used to request a limit that is
+   unlimited.
 
    Raises :exc:`ValueError` if an invalid resource is specified, if the new soft
-   limit exceeds the hard limit, or if a process tries to raise its hard limit
-   (unless the process has an effective UID of super-user).  Can also raise
-   :exc:`error` if the underlying system call fails.
+   limit exceeds the hard limit, or if a process tries to raise its hard limit.
+   Specifying a limit of :data:`~resource.RLIM_INFINITY` when the hard or
+   system limit for that resource is not unlimited will result in a
+   :exc:`ValueError`.  A process with the effective UID of super-user can
+   request any valid limit value, including unlimited, but :exc:`ValueError`
+   will still be raised if the requested limit exceeds the system imposed
+   limit.
+
+   ``setrlimit`` may also raise :exc:`error` if the underlying system call
+   fails.
+
+.. function:: prlimit(pid, resource[, limits])
+
+   Combines :func:`setrlimit` and :func:`getrlimit` in one function and
+   supports to get and set the resources limits of an arbitrary process. If
+   *pid* is 0, then the call applies to the current process. *resource* and
+   *limits* have the same meaning as in :func:`setrlimit`, except that
+   *limits* is optional.
+
+   When *limits* is not given the function returns the *resource* limit of the
+   process *pid*. When *limits* is given the *resource* limit of the process is
+   set and the former resource limit is returned.
+
+   Raises :exc:`ProcessLookupError` when *pid* can't be found and
+   :exc:`PermissionError` when the user doesn't have ``CAP_SYS_RESOURCE`` for
+   the process.
+
+   Availability: Linux 2.6.36 or later with glibc 2.13 or later
+
+   .. versionadded:: 3.4
+
 
 These symbols define resources whose consumption can be controlled using the
 :func:`setrlimit` and :func:`getrlimit` functions described below. The values of
@@ -135,6 +171,80 @@ platform.
 
    The maximum area (in bytes) of address space which may be taken by the process.
 
+
+.. data:: RLIMIT_MSGQUEUE
+
+   The number of bytes that can be allocated for POSIX message queues.
+
+   Availability: Linux 2.6.8 or later.
+
+   .. versionadded:: 3.4
+
+
+.. data:: RLIMIT_NICE
+
+   The ceiling for the process's nice level (calculated as 20 - rlim_cur).
+
+   Availability: Linux 2.6.12 or later.
+
+   .. versionadded:: 3.4
+
+
+.. data:: RLIMIT_RTPRIO
+
+   The ceiling of the real-time priority.
+
+   Availability: Linux 2.6.12 or later.
+
+   .. versionadded:: 3.4
+
+
+.. data:: RLIMIT_RTTIME
+
+   The time limit (in microseconds) on CPU time that a process can spend
+   under real-time scheduling without making a blocking syscall.
+
+   Availability: Linux 2.6.25 or later.
+
+   .. versionadded:: 3.4
+
+
+.. data:: RLIMIT_SIGPENDING
+
+   The number of signals which the process may queue.
+
+   Availability: Linux 2.6.8 or later.
+
+   .. versionadded:: 3.4
+
+.. data:: RLIMIT_SBSIZE
+
+   The maximum size (in bytes) of socket buffer usage for this user.
+   This limits the amount of network memory, and hence the amount of mbufs,
+   that this user may hold at any time.
+
+   Availability: FreeBSD 9 or later.
+
+   .. versionadded:: 3.4
+
+.. data:: RLIMIT_SWAP
+
+   The maximum size (in bytes) of the swap space that may be reserved or
+   used by all of this user id's processes.
+   This limit is enforced only if bit 1 of the vm.overcommit sysctl is set.
+   Please see :manpage:`tuning(7)` for a complete description of this sysctl.
+
+   Availability: FreeBSD 9 or later.
+
+   .. versionadded:: 3.4
+
+.. data:: RLIMIT_NPTS
+
+   The maximum number of pseudo-terminals created by this user id.
+
+   Availability: FreeBSD 9 or later.
+
+   .. versionadded:: 3.4
 
 Resource Usage
 --------------

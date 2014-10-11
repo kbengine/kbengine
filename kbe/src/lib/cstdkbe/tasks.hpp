@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TASKS__
-#define __TASKS__
+#ifndef KBE_TASKS_HPP
+#define KBE_TASKS_HPP
+
 #include "cstdkbe/task.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 
@@ -46,4 +47,4 @@ private:
 
 }
 
-#endif // __TASKS__
+#endif // KBE_TASKS_HPP

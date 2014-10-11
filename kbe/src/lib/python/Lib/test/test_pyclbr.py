@@ -142,7 +142,7 @@ class PyclbrTest(TestCase):
         self.checkModule('pyclbr')
         self.checkModule('ast')
         self.checkModule('doctest', ignore=("TestResults", "_SpoofOut",
-                                            "DocTestCase"))
+                                            "DocTestCase", '_DocTestSuite'))
         self.checkModule('difflib', ignore=("Match",))
 
     def test_decorators(self):
@@ -158,7 +158,7 @@ class PyclbrTest(TestCase):
         cm('random', ignore=('Random',))  # from _random import Random as CoreGenerator
         cm('cgi', ignore=('log',))      # set with = in module
         cm('pickle')
-        cm('aifc', ignore=('openfp',))  # set with = in module
+        cm('aifc', ignore=('openfp', '_aifc_params'))  # set with = in module
         cm('sre_parse', ignore=('dump',)) # from sre_constants import *
         cm('pdb')
         cm('pydoc')

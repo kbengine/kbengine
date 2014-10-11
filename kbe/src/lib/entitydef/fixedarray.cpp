@@ -51,7 +51,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strInitData);
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize(pyInitData);
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
-//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ FixedArray::~FixedArray()
 {
 	_dataType->decRef();
 
-//	DEBUG_MSG(boost::format("FixedArray::~FixedArray(): %1%\n") % this);
+//	DEBUG_MSG(fmt::format("FixedArray::~FixedArray(): {:p}\n", this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -297,6 +297,30 @@ PyObject* FixedArray::__py_remove(PyObject* self, PyObject* args, PyObject* kwar
 
 	PyObject* pyTuple = PyTuple_New(0);
 	return PyBool_FromLong(seq_ass_slice(self, index, index + 1, &*pyTuple) == 0);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArray::tp_str()
+{
+	return tp_repr();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArray::tp_repr()
+{
+	std::vector<PyObject*>& values = getValues();
+	PyObject* pyList = PyList_New(values.size());
+	
+	for(size_t i=0; i<values.size(); i++)
+	{
+		Py_INCREF(values[i]);
+		PyList_SET_ITEM(pyList, i, values[i]);
+	}
+
+	PyObject* pyStr = PyObject_Repr(pyList);
+	Py_DECREF(pyList);
+
+	return pyStr;
 }
 
 //-------------------------------------------------------------------------------------

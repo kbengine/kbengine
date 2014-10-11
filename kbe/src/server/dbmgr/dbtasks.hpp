@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DBTASKS_H__
-#define __DBTASKS_H__
+#ifndef KBE_DBTASKS_HPP
+#define KBE_DBTASKS_HPP
 
 // common include	
 // #define NDEBUG
@@ -30,6 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
+#include "dbmgr_lib/db_tasks.hpp"
+#include "server/server_errors.hpp"
 
 namespace KBEngine{ 
 
@@ -41,29 +43,24 @@ struct ACCOUNT_INFOS;
 	数据库线程任务基础类
 */
 
-class DBTask : public thread::TPTask
+class DBTask : public DBTaskBase
 {
 public:
 	DBTask(const Mercury::Address& addr, MemoryStream& datas);
 
 	DBTask(const Mercury::Address& addr):
+	DBTaskBase(),
 	pDatas_(0),
 	addr_(addr)
 	{
 	}
 
 	virtual ~DBTask();
-	virtual bool process();
-	virtual bool db_thread_process() = 0;
-	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	bool send(Mercury::Bundle& bundle);
-
-	void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
-	DBInterface* pdbi_;
 };
 
 /*
@@ -95,6 +92,8 @@ public:
 	
 	void pBuffered_DBTasks(Buffered_DBTasks* v){ _pBuffered_DBTasks = v; }
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	DBTask* tryGetNextTask();
 private:
 	ENTITY_ID _entityID;
 	DBID _entityDBID;
@@ -385,7 +384,7 @@ protected:
 /**
 	账号上线
 */
-class DBTaskAccountOnline : public DBTask
+class DBTaskAccountOnline : public EntityDBTask
 {
 public:
 	DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
@@ -396,22 +395,21 @@ public:
 protected:
 	std::string accountName_;
 	COMPONENT_ID componentID_;
-	ENTITY_ID entityID_;
 };
 
 
 /**
 	entity下线
 */
-class DBTaskEntityOffline : public DBTask
+class DBTaskEntityOffline : public EntityDBTask
 {
 public:
-	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid);
+	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
-	DBID dbid_;
+	ENTITY_SCRIPT_UID sid_;
 };
 
 
@@ -422,7 +420,7 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, bool success, std::string& postdatas, std::string& getdatas);
+		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
@@ -432,11 +430,10 @@ protected:
 	std::string accountName_;
 	std::string password_;
 	std::string postdatas_, getdatas_;
-	bool success_;
+	SERVER_ERROR_CODE retcode_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
 	DBID dbid_;
-
 	uint32 flags_;
 	uint64 deadline_;
 };
@@ -447,13 +444,14 @@ protected:
 class DBTaskQueryEntity : public EntityDBTask
 {
 public:
-	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+	DBTaskQueryEntity(const Mercury::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	virtual ~DBTaskQueryEntity();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
+	int8 queryMode_;
 	std::string entityType_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;
@@ -465,4 +463,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_DBTASKS_HPP

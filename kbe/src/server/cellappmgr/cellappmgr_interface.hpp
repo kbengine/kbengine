@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __CELLAPPMGR_INTERFACE_H__
+	#undef KBE_CELLAPPMGR_INTERFACE_HPP
 #endif
 
 
-#ifndef __CELLAPPMGR_INTERFACE_H__
-#define __CELLAPPMGR_INTERFACE_H__
+#ifndef KBE_CELLAPPMGR_INTERFACE_HPP
+#define KBE_CELLAPPMGR_INTERFACE_HPP
 
 // common include	
 #if defined(CELLAPPMGR)
@@ -46,7 +46,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
 									int32,						uid, 
 									std::string,				username,
 									int8,						componentType, 
@@ -56,7 +56,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 									uint32,						intaddr, 
 									uint16,						intport,
 									uint32,						extaddr, 
-									uint16,						extport)
+									uint16,						extport,
+									std::string,				extaddrEx)
 
 	// 某app主动请求look。
 	CELLAPPMGR_MESSAGE_DECLARE_ARGS0(lookApp,					MERCURY_FIXED_MESSAGE)
@@ -88,6 +89,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(updateCellapp,				MERCURY_FIXED_MESSAGE,
 									COMPONENT_ID,				componentID,
 									float,						load)
+
+	// 开始profile
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(startProfile,				MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqKillServer,			MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

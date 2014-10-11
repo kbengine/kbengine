@@ -86,10 +86,16 @@ def _repr(self):
 #   Id: errors.py 509 2006-04-20 00:58:24Z gward
 
 try:
-    from gettext import gettext
+    from gettext import gettext, ngettext
 except ImportError:
     def gettext(message):
         return message
+
+    def ngettext(singular, plural, n):
+        if n == 1:
+            return singular
+        return plural
+
 _ = gettext
 
 
@@ -203,7 +209,6 @@ class HelpFormatter:
                  short_first):
         self.parser = None
         self.indent_increment = indent_increment
-        self.help_position = self.max_help_position = max_help_position
         if width is None:
             try:
                 width = int(os.environ['COLUMNS'])
@@ -211,6 +216,8 @@ class HelpFormatter:
                 width = 80
             width -= 2
         self.width = width
+        self.help_position = self.max_help_position = \
+                min(max_help_position, max(width - 20, indent_increment * 2))
         self.current_indent = 0
         self.level = 0
         self.help_width = None          # computed later
@@ -255,7 +262,7 @@ class HelpFormatter:
         Format a paragraph of free-form text for inclusion in the
         help output at the current indentation level.
         """
-        text_width = self.width - self.current_indent
+        text_width = max(self.width - self.current_indent, 11)
         indent = " "*self.current_indent
         return textwrap.fill(text,
                              text_width,
@@ -336,7 +343,7 @@ class HelpFormatter:
         self.dedent()
         self.dedent()
         self.help_position = min(max_len + 2, self.max_help_position)
-        self.help_width = self.width - self.help_position
+        self.help_width = max(self.width - self.help_position, 11)
 
     def format_option_strings(self, option):
         """Return a comma-separated list of option strings & metavariables."""
@@ -411,11 +418,8 @@ def _parse_num(val, type):
 def _parse_int(val):
     return _parse_num(val, int)
 
-def _parse_long(val):
-    return _parse_num(val, int)
-
 _builtin_cvt = { "int" : (_parse_int, _("integer")),
-                 "long" : (_parse_long, _("long integer")),
+                 "long" : (_parse_int, _("integer")),
                  "float" : (float, _("floating-point")),
                  "complex" : (complex, _("complex")) }
 
@@ -641,14 +645,8 @@ class Option:
                     self.type = "string"
         else:
             # Allow type objects or builtin type conversion functions
-            # (int, str, etc.) as an alternative to their names.  (The
-            # complicated check of builtins is only necessary for
-            # Python 2.1 and earlier, and is short-circuited by the
-            # first check on modern Pythons.)
-            import builtins
-            if ( isinstance(self.type, type) or
-                 (hasattr(self.type, "__name__") and
-                  getattr(builtins, self.type.__name__, None) is self.type) ):
+            # (int, str, etc.) as an alternative to their names.
+            if isinstance(self.type, type):
                 self.type = self.type.__name__
 
             if self.type == "str":
@@ -1460,7 +1458,7 @@ class OptionParser (OptionContainer):
         """_match_long_opt(opt : string) -> string
 
         Determine which long option string 'opt' matches, ie. which one
-        it is an unambiguous abbrevation for.  Raises BadOptionError if
+        it is an unambiguous abbreviation for.  Raises BadOptionError if
         'opt' doesn't unambiguously match any long option string.
         """
         return _match_abbrev(opt, self._long_opt)
@@ -1483,11 +1481,10 @@ class OptionParser (OptionContainer):
         if option.takes_value():
             nargs = option.nargs
             if len(rargs) < nargs:
-                if nargs == 1:
-                    self.error(_("%s option requires an argument") % opt)
-                else:
-                    self.error(_("%s option requires %d arguments")
-                               % (opt, nargs))
+                self.error(ngettext(
+                    "%(option)s option requires %(number)d argument",
+                    "%(option)s option requires %(number)d arguments",
+                    nargs) % {"option": opt, "number": nargs})
             elif nargs == 1:
                 value = rargs.pop(0)
             else:
@@ -1522,11 +1519,10 @@ class OptionParser (OptionContainer):
 
                 nargs = option.nargs
                 if len(rargs) < nargs:
-                    if nargs == 1:
-                        self.error(_("%s option requires an argument") % opt)
-                    else:
-                        self.error(_("%s option requires %d arguments")
-                                   % (opt, nargs))
+                    self.error(ngettext(
+                        "%(option)s option requires %(number)d argument",
+                        "%(option)s option requires %(number)d arguments",
+                        nargs) % {"option": opt, "number": nargs})
                 elif nargs == 1:
                     value = rargs.pop(0)
                 else:

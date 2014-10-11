@@ -31,7 +31,7 @@ NavigateHandler::NavigateHandler(Controller* pController, const Position3D& dest
 											 float velocity, float range, bool faceMovement, 
 											 float maxMoveDistance, float maxDistance, float girth,
 											PyObject* userarg):
-MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->getPosition(), velocity, range, faceMovement, true, userarg),
+MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
 pNavHandle_(NULL),
@@ -41,11 +41,11 @@ maxDistance_(maxDistance)
 	Entity* pEntity = pController->pEntity();
 	if(pNavHandle_ == NULL)
 	{
-		Space* pSpace = Spaces::findSpace(pEntity->getSpaceID());
+		Space* pSpace = Spaces::findSpace(pEntity->spaceID());
 		if(pSpace == NULL)
 		{
-			ERROR_MSG(boost::format("NavigateHandler::NavigateHandler(): not found space(%1%), entityID(%2%)!\n") % 
-				pEntity->getSpaceID() % pEntity->getID());
+			ERROR_MSG(fmt::format("NavigateHandler::NavigateHandler(): not found space({}), entityID({})!\n",
+				pEntity->spaceID(), pEntity->id()));
 
 			pController_ = NULL;
 		}
@@ -55,7 +55,7 @@ maxDistance_(maxDistance)
 
 			if(pNavHandle_)
 			{
-				Position3D currpos = pEntity->getPosition();
+				Position3D currpos = pEntity->position();
 				pNavHandle_->findStraightPath(pController->pEntity()->layer(), currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
@@ -67,16 +67,41 @@ maxDistance_(maxDistance)
 			{
 				pController_ = NULL;
 
-				WARNING_MSG(boost::format("NavigateHandler::NavigateHandler(): space(%1%), entityID(%2%), not found navhandle!\n") % 
-					pEntity->getSpaceID() % pEntity->getID());
+				WARNING_MSG(fmt::format("NavigateHandler::NavigateHandler(): space({}), entityID({}), not found navhandle!\n",
+					pEntity->spaceID(), pEntity->id()));
 			}
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
+NavigateHandler::NavigateHandler():
+MoveToPointHandler(),
+destPosIdx_(0),
+paths_(),
+pNavHandle_(NULL),
+maxMoveDistance_(0.f),
+maxDistance_(0.f)
+{
+}
+
+//-------------------------------------------------------------------------------------
 NavigateHandler::~NavigateHandler()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void NavigateHandler::addToStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::addToStream(s);
+	s << maxMoveDistance_ << maxDistance_;
+}
+
+//-------------------------------------------------------------------------------------
+void NavigateHandler::createFromStream(KBEngine::MemoryStream& s)
+{
+	MoveToPointHandler::createFromStream(s);
+	s >> maxMoveDistance_ >> maxDistance_;
 }
 
 //-------------------------------------------------------------------------------------

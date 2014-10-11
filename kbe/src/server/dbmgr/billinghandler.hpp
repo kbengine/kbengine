@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BILLING_HANDLER_H__
-#define __BILLING_HANDLER_H__
+#ifndef KBE_BILLING_HANDLER_HPP
+#define KBE_BILLING_HANDLER_HPP
 
 // common include	
 // #define NDEBUG
@@ -155,4 +155,5 @@ public:
 };
 
 }
-#endif
+
+#endif // KBE_BILLING_HANDLER_HPP

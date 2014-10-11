@@ -1,12 +1,13 @@
-:mod:`stat` --- Interpreting :func:`stat` results
-=================================================
+:mod:`stat` --- Interpreting :func:`~os.stat` results
+=====================================================
 
 .. module:: stat
    :synopsis: Utilities for interpreting the results of os.stat(),
               os.lstat() and os.fstat().
 .. sectionauthor:: Skip Montanaro <skip@automatrix.com>
 
-**Source code:** :source:`Lib/stat.py`
+**Source code:** :source:`Modules/_stat.c`
+                 :source:`Lib/stat.py`
 
 --------------
 
@@ -14,6 +15,9 @@ The :mod:`stat` module defines constants and functions for interpreting the
 results of :func:`os.stat`, :func:`os.fstat` and :func:`os.lstat` (if they
 exist).  For complete details about the :c:func:`stat`, :c:func:`fstat` and
 :c:func:`lstat` calls, consult the documentation for your system.
+
+.. versionchanged:: 3.4
+   The stat module is backed by a C implementation.
 
 The :mod:`stat` module defines the following functions to test for specific file
 types:
@@ -52,6 +56,24 @@ types:
 .. function:: S_ISSOCK(mode)
 
    Return non-zero if the mode is from a socket.
+
+.. function:: S_ISDOOR(mode)
+
+   Return non-zero if the mode is from a door.
+
+   .. versionadded:: 3.4
+
+.. function:: S_ISPORT(mode)
+
+   Return non-zero if the mode is from an event port.
+
+   .. versionadded:: 3.4
+
+.. function:: S_ISWHT(mode)
+
+   Return non-zero if the mode is from a whiteout.
+
+   .. versionadded:: 3.4
 
 Two additional functions are defined for more general manipulation of the file's
 mode:
@@ -103,6 +125,20 @@ Example::
 
    if __name__ == '__main__':
        walktree(sys.argv[1], visitfile)
+
+An additional utility function is provided to covert a file's mode in a human
+readable string:
+
+.. function:: filemode(mode)
+
+   Convert a file's mode to a string of the form '-rwxrwxrwx'.
+
+   .. versionadded:: 3.3
+
+   .. versionchanged:: 3.4
+      The function supports :data:`S_IFDOOR`, :data:`S_IFPORT` and
+      :data:`S_IFWHT`.
+
 
 All the variables below are simply symbolic indexes into the 10-tuple returned
 by :func:`os.stat`, :func:`os.fstat` or :func:`os.lstat`.
@@ -172,10 +208,6 @@ The variables below define the flags used in the :data:`ST_MODE` field.
 
 Use of the functions above is more portable than use of the first set of flags:
 
-.. data:: S_IFMT
-
-   Bit mask for the file type bit fields.
-
 .. data:: S_IFSOCK
 
    Socket.
@@ -203,6 +235,29 @@ Use of the functions above is more portable than use of the first set of flags:
 .. data:: S_IFIFO
 
    FIFO.
+
+.. data:: S_IFDOOR
+
+   Door.
+
+   .. versionadded:: 3.4
+
+.. data:: S_IFPORT
+
+   Event port.
+
+   .. versionadded:: 3.4
+
+.. data:: S_IFWHT
+
+   Whiteout.
+
+   .. versionadded:: 3.4
+
+.. note::
+
+   :data:`S_IFDOOR`, :data:`S_IFPORT` or :data:`S_IFWHT` are defined as
+   0 when the platform does not have support for the file types.
 
 The following flags can also be used in the *mode* argument of :func:`os.chmod`:
 
@@ -344,4 +399,3 @@ The following flags can be used in the *flags* argument of :func:`os.chflags`:
    The file is a snapshot file.
 
 See the \*BSD or Mac OS systems man page :manpage:`chflags(2)` for more information.
-

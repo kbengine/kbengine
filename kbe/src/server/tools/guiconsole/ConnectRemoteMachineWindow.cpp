@@ -128,7 +128,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	}
 
 	endpoint->setnonblocking(false);
-	int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+	int8 findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 	int ifind = 0;
 
 	while(true)
@@ -158,7 +158,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		while(packet.opsize() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs21 args;
+			MachineInterface::onBroadcastInterfaceArgs22 args;
 			
 			try
 			{
@@ -168,12 +168,12 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 				goto END;
 			}
 
-			INFO_MSG(boost::format("CConnectRemoteMachineWindow::OnBnClickedOk: found %1%, addr:%2%:%3%\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intport));
+			INFO_MSG(fmt::format("CConnectRemoteMachineWindow::OnBnClickedOk: found {}, addr:{}:{}\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-				args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, args.usedmem, 
+				args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 				args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
 		}

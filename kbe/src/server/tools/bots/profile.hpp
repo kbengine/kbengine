@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __APP_PROFILE_HPP__
-#define __APP_PROFILE_HPP__
+#ifndef KBE_APP_PROFILE_HPP
+#define KBE_APP_PROFILE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 extern ProfileVal SCRIPTCALL_PROFILE;
-extern ProfileVal ONTIMER_PROFILE;
 
 }
 #endif

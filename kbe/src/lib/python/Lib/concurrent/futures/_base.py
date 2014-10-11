@@ -4,7 +4,6 @@
 __author__ = 'Brian Quinlan (brian@sweetapp.com)'
 
 import collections
-import functools
 import logging
 import threading
 import time
@@ -182,7 +181,8 @@ def as_completed(fs, timeout=None):
 
     Returns:
         An iterator that yields the given Futures as they complete (finished or
-        cancelled).
+        cancelled). If any given Futures are duplicated, they will be returned
+        once.
 
     Raises:
         TimeoutError: If the entire result iterator could not be generated
@@ -191,16 +191,16 @@ def as_completed(fs, timeout=None):
     if timeout is not None:
         end_time = timeout + time.time()
 
+    fs = set(fs)
     with _AcquireFutures(fs):
         finished = set(
                 f for f in fs
                 if f._state in [CANCELLED_AND_NOTIFIED, FINISHED])
-        pending = set(fs) - finished
+        pending = fs - finished
         waiter = _create_and_install_waiters(fs, _AS_COMPLETED)
 
     try:
-        for future in finished:
-            yield future
+        yield from finished
 
         while pending:
             if timeout is None:
@@ -225,7 +225,8 @@ def as_completed(fs, timeout=None):
 
     finally:
         for f in fs:
-            f._waiters.remove(waiter)
+            with f._condition:
+                f._waiters.remove(waiter)
 
 DoneAndNotDoneFutures = collections.namedtuple(
         'DoneAndNotDoneFutures', 'done not_done')
@@ -272,7 +273,8 @@ def wait(fs, timeout=None, return_when=ALL_COMPLETED):
 
     waiter.event.wait(timeout)
     for f in fs:
-        f._waiters.remove(waiter)
+        with f._condition:
+            f._waiters.remove(waiter)
 
     done.update(waiter.finished_futures)
     return DoneAndNotDoneFutures(done, set(fs) - done)
@@ -333,7 +335,7 @@ class Future(object):
         return True
 
     def cancelled(self):
-        """Return True if the future has cancelled."""
+        """Return True if the future was cancelled."""
         with self._condition:
             return self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]
 
@@ -471,8 +473,8 @@ class Future(object):
                 return True
             else:
                 LOGGER.critical('Future %s in unexpected state: %s',
-                                id(self.future),
-                                self.future._state)
+                                id(self),
+                                self._state)
                 raise RuntimeError('Future in unexpected state')
 
     def set_result(self, result):
@@ -538,15 +540,19 @@ class Executor(object):
 
         fs = [self.submit(fn, *args) for args in zip(*iterables)]
 
-        try:
-            for future in fs:
-                if timeout is None:
-                    yield future.result()
-                else:
-                    yield future.result(end_time - time.time())
-        finally:
-            for future in fs:
-                future.cancel()
+        # Yield must be hidden in closure so that the futures are submitted
+        # before the first iterator value is required.
+        def result_iterator():
+            try:
+                for future in fs:
+                    if timeout is None:
+                        yield future.result()
+                    else:
+                        yield future.result(end_time - time.time())
+            finally:
+                for future in fs:
+                    future.cancel()
+        return result_iterator()
 
     def shutdown(self, wait=True):
         """Clean-up the resources associated with the Executor.

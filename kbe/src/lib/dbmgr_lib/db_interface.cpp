@@ -20,16 +20,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface.hpp"
+#include "db_threadpool.hpp"
 #include "entity_table.hpp"
 #include "cstdkbe/kbekey.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "server/serverconfig.hpp"
+#include "thread/threadpool.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);
 
 DBUtil g_DBUtil;
+
+thread::ThreadPool* DBUtil::pThreadPool_ = new DBThreadPool();
 
 //-------------------------------------------------------------------------------------
 DBUtil::DBUtil()
@@ -56,7 +60,7 @@ bool DBUtil::initThread()
 			mysql_thread_init();
 		}
 	}
-
+	
 	return true;
 }
 
@@ -79,39 +83,31 @@ bool DBUtil::initialize()
 
 	if(dbcfg.db_passwordEncrypt)
 	{
-#ifdef USE_OPENSSL
 		// 如果小于64则表示目前还是明文密码
 		if(strlen(dbcfg.db_password) < 64)
 		{
-			std::string encrypted;
-			KBEKey::getSingleton().encrypt(dbcfg.db_password, encrypted);
-			
-			char* strencrypted = new char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
-			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n%1%\n") 
-				% strencrypted);
-			delete[] strencrypted;
+			WARNING_MSG(fmt::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n{}\n",
+				KBEKey::getSingleton().encrypt(dbcfg.db_password)));
 		}
 		else
 		{
-			unsigned char* strencrypted = new unsigned char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::string2bytes((unsigned char *)dbcfg.db_password, strencrypted, 1024);
-			std::string encrypted;
-			encrypted.assign((char*)strencrypted, 1024);
-			delete[] strencrypted;
-			std::string out;
+			std::string out = KBEKey::getSingleton().decrypt(dbcfg.db_password);
 
-			if(KBEKey::getSingleton().decrypt(encrypted, out) < 0)
+			if(out.size() == 0)
 				return false;
 
 			kbe_snprintf(dbcfg.db_password, MAX_BUF, "%s", out.c_str());
 		}
-#endif
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBUtil::finalise()
+{
+	pThreadPool()->finalise();
+	SAFE_RELEASE(pThreadPool_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,8 +136,8 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
-		ERROR_MSG(boost::format("DBUtil::createInterface: can't attach to database!\n\tdbinterface=%1%\n\targs=%2%") %
-			&dbinterface % dbinterface->c_str());
+		ERROR_MSG(fmt::format("DBUtil::createInterface: can't attach to database!\n\tdbinterface={0:p}\n\targs={1}",
+			(void*)&dbinterface, dbinterface->c_str()));
 
 		delete dbinterface;
 		return NULL;
@@ -150,7 +146,8 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG(boost::format("DBUtil::createInterface[%1%]: %2%\n") % &dbinterface % dbinterface->c_str());
+			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}", (void*)&dbinterface, 
+				dbinterface->c_str()));
 		}
 	}
 
@@ -184,13 +181,31 @@ bool DBUtil::initInterface(DBInterface* dbi)
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		EntityTables::getSingleton().addKBETable(new KBEEntityTypeMysql());
 		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
 	}
+	
+	if(!pThreadPool_->isInitialize())
+	{
+		if(!pThreadPool_->createThreadPool(dbcfg.db_numConnections, 
+			dbcfg.db_numConnections, dbcfg.db_numConnections))
+			return false;
+	}
 
-	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);
+	bool ret = EntityTables::getSingleton().load(dbi);
+
+	if(ret)
+	{
+		ret = dbi->checkEnvironment();
+	}
+	
+	if(ret)
+	{
+		ret = dbi->checkErrors();
+	}
+
+	return ret && EntityTables::getSingleton().syncToDB(dbi);
 }
 
 //-------------------------------------------------------------------------------------

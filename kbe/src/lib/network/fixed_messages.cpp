@@ -58,12 +58,12 @@ bool FixedMessages::loadConfig(std::string fileName)
 	if(!xml->isGood())
 	{
 #if KBE_PLATFORM == PLATFORM_WIN32
-		printf("%s", (boost::format("[ERROR]: FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str()).str().c_str());
+		printf("%s", (fmt::format("[ERROR]: FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str())).c_str());
 #endif
 
 		if(DebugHelper::isInit())
 		{
-			ERROR_MSG(boost::format("FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str());
+			ERROR_MSG(fmt::format("FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str()));
 		}
 
 		SAFE_RELEASE(xml);

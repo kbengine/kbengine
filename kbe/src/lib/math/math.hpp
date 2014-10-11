@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBE_MATH__
-#define __KBE_MATH__
+#ifndef KBE_MATH_HPP
+#define KBE_MATH_HPP
 
 // common include	
 //#define NDEBUG
@@ -244,4 +244,4 @@ inline bool almostEqual(const T& c1, const T& c2, const float epsilon = 0.0004f)
 	return true;
 }
 
-#endif
+#endif // KBE_MATH_HPP

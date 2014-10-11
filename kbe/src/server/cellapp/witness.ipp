@@ -66,6 +66,12 @@ INLINE bool Witness::entityInAOI(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE AOITrigger* Witness::pAOITrigger()
+{
+	return pAOITrigger_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityRef::AOI_ENTITIES& Witness::aoiEntities()
 { 
 	return aoiEntities_; 

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKERROR_REPORTER__
-#define __NETWORKERROR_REPORTER__
+#ifndef KBE_NETWORKERROR_REPORTER_HPP
+#define KBE_NETWORKERROR_REPORTER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -90,4 +90,4 @@ private:
 #ifdef CODE_INLINE
 #include "error_reporter.ipp"
 #endif
-#endif // __NETWORKERROR_REPORTER__
+#endif // KBE_NETWORKERROR_REPORTER_HPP

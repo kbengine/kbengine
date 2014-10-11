@@ -18,11 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENTITY_APP_H__
-#define __ENTITY_APP_H__
+#ifndef KBE_ENTITY_APP_HPP
+#define KBE_ENTITY_APP_HPP
+
 // common include
 #include "pyscript/script.hpp"
 #include "pyscript/pyprofile.hpp"
+#include "pyscript/pyprofile_handler.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -36,7 +38,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/globaldata_client.hpp"
 #include "server/globaldata_server.hpp"
-#include "server/profile_handler.hpp"
 #include "server/callbackmgr.hpp"	
 #include "entitydef/entitydef.hpp"
 #include "entitydef/entities.hpp"
@@ -164,10 +165,10 @@ public:
 	*/
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
-	/** 网络接口
+	/** 
 		console请求开始profile
 	*/
-	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
 	/**
 		获取apps发布状态, 可在脚本中获取该值
@@ -178,6 +179,12 @@ public:
 		设置脚本输出类型前缀
 	*/
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
+
+	/**
+		获取watcher值
+	*/
+	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
+	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
 
 	/**
 		重新导入所有的脚本
@@ -279,7 +286,7 @@ bool EntityApp<E>::initialize()
 	bool ret = ServerApp::initialize();
 	if(ret)
 	{
-		gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 								reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	}
 	return ret;
@@ -322,6 +329,16 @@ bool EntityApp<E>::installEntityDef()
 	// 初始化所有扩展模块
 	// demo/res/scripts/
 	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
+		return false;
+	}
+
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine_defs.xml->dbmgr->account_system->accountEntityScriptType and entities.xml)!\n", 
+			dbcfg.dbAccountEntityScriptType));
+
 		return false;
 	}
 
@@ -460,6 +477,12 @@ bool EntityApp<E>::installPyModules()
 	// 匹配相对路径获得全路径
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,			METH_VARARGS,	0);
 
+	// 获取watcher值
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,		METH_VARARGS,	0);
+
+	// 获取watcher目录
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,		METH_VARARGS,	0);
+
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
@@ -571,11 +594,11 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % id % obj->ob_refcnt);
+		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
 	}
 	else
 	{
-		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%)\n") % entityType % id);
+		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {0} {1}\n", entityType, id));
 	}
 
 	return entity;
@@ -596,12 +619,12 @@ void EntityApp<E>::onSignalled(int sigNum)
 	switch (sigNum)
 	{
 	case SIGQUIT:
-		CRITICAL_MSG(boost::format("Received QUIT signal. This is likely caused by the "
-					"%1%Mgr killing this %2% because it has been "
+		CRITICAL_MSG(fmt::format("Received QUIT signal. This is likely caused by the "
+				"{}Mgr killing this {} because it has been "
 					"unresponsive for too long. Look at the callstack from "
-					"the core dump to find the likely cause.\n") %
-				COMPONENT_NAME_EX(componentType_) % 
-				COMPONENT_NAME_EX(componentType_) );
+					"the core dump to find the likely cause.\n",
+				COMPONENT_NAME_EX(componentType_), 
+				COMPONENT_NAME_EX(componentType_)));
 		
 		break;
 	default: 
@@ -617,7 +640,7 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 	
 	E* entity = pEntities_->find(eid);
 	if(entity == NULL){
-		ERROR_MSG(boost::format("EntityApp::tryGetEntityByMailbox: can't found entity:%1%.\n") % eid);
+		ERROR_MSG(fmt::format("EntityApp::tryGetEntityByMailbox: can't found entity:{}.\n", eid));
 		return NULL;
 	}
 
@@ -628,10 +651,10 @@ template<class E>
 Mercury::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	// 如果组件ID大于0则查找组件
-	if(mailbox.getComponentID() > 0)
+	if(mailbox.componentID() > 0)
 	{
 		Components::ComponentInfos* cinfos = 
-			Components::getSingleton().findComponent(mailbox.getComponentID());
+			Components::getSingleton().findComponent(mailbox.componentID());
 
 		if(cinfos != NULL && cinfos->pChannel != NULL)
 			return cinfos->pChannel; 
@@ -668,7 +691,7 @@ void EntityApp<E>::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }
 
 template<class E>
@@ -681,7 +704,7 @@ bool EntityApp<E>::destroyEntity(ENTITY_ID entityID, bool callScript)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
+	ERROR_MSG(fmt::format("EntityApp::destroyEntity: not found {}!\n", entityID));
 	return false;
 }
 
@@ -706,6 +729,179 @@ PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 }
 
 template<class E>
+PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	//DebugHelper::getSingleton().setScriptMsgType(type);
+
+	KBEShared_ptr< WatcherObject > pWobj = WatcherPaths::root().getWatcher(path);
+	if(pWobj.get() == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	WATCHER_VALUE_TYPE wtype = pWobj->getType();
+	PyObject* pyval = NULL;
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	pWobj->addToStream(stream);
+	WATCHER_ID id;
+	(*stream) >> id;
+
+	switch(wtype)
+	{
+	case WATCHER_VALUE_TYPE_UINT8:
+		{
+			uint8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT16:
+		{
+			uint16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT32:
+		{
+			uint32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT64:
+		{
+			uint64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT8:
+		{
+			int8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT16:
+		{
+			int16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT32:
+		{
+			int32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT64:
+		{
+			int64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_FLOAT:
+		{
+			float v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_DOUBLE:
+		{
+			double v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_CHAR:
+	case WATCHER_VALUE_TYPE_STRING:
+		{
+			std::string v;
+			(*stream) >> v;
+			pyval = PyUnicode_FromString(v.c_str());
+		}
+		break;
+	case WATCHER_VALUE_TYPE_BOOL:
+		{
+			bool v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_COMPONENT_TYPE:
+		{
+			COMPONENT_TYPE v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	MemoryStream::ObjPool().reclaimObject(stream);
+	return pyval;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::vector<std::string> vec;
+	WatcherPaths::root().dirPath(path, vec);
+
+	PyObject* pyTuple = PyTuple_New(vec.size());
+	std::vector<std::string>::iterator iter = vec.begin();
+	int i = 0;
+	for(; iter != vec.end(); iter++)
+	{
+		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
+	}
+
+	return pyTuple;
+}
+
+template<class E>
 PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -722,6 +918,7 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
 		PyErr_PrintEx(0);
+		return 0;
 	}
 
 	DebugHelper::getSingleton().setScriptMsgType(type);
@@ -957,41 +1154,26 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 }
 
 template<class E>
-void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
-	std::string profileName;
-	int8 profileType;
-	uint32 timelen;
-
-	s >> profileName >> profileType >> timelen;
-
 	switch(profileType)
 	{
 	case 0:	// pyprofile
-		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 1:	// cprofile
-		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 2:	// eventprofile
-		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
-	case 3:	// mercuryprofile
-		new MercuryProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
-		break;
+		new PyProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
+		return;
 	default:
-		ERROR_MSG(boost::format("EntityApp::startProfile: type(%1%:%2%) not support!\n") % 
-			profileType % profileName);
 		break;
 	};
+
+	ServerApp::startProfile_(pChannel, profileName, profileType, timelen);
 }
 
 template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
-	INFO_MSG(boost::format("EntityApp::onDbmgrInitCompleted: entityID alloc(%1%-%2%), startGlobalOrder=%3%, startGroupOrder=%4%, digest=%5%.\n") %
-		startID % endID % startGlobalOrder % startGroupOrder % digest);
+	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
+		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -1003,8 +1185,8 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	if(digest != EntityDef::md5().getDigestStr())
 	{
-		ERROR_MSG(boost::format("EntityApp::onDbmgrInitCompleted: digest not match. curr(%1%) != dbmgr(%2%)\n") %
-			EntityDef::md5().getDigestStr() % digest);
+		ERROR_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: digest not match. curr({}) != dbmgr({})\n",
+			EntityDef::md5().getDigestStr(), digest));
 
 		this->shutDown();
 	}
@@ -1080,8 +1262,8 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 		return;
 	}
 
-	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: size(%1%), command=%2%.\n") % 
-		cmd.size() % cmd);
+	DEBUG_MSG(fmt::format("EntityApp::onExecScriptCommand: size({}), command={}.\n", 
+		cmd.size(), cmd));
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
@@ -1097,7 +1279,7 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->networkInterface(), pChannel);
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);
@@ -1132,4 +1314,5 @@ void EntityApp<E>::reloadScript(bool fullReload)
 }
 
 }
-#endif
+
+#endif // KBE_ENTITY_APP_HPP

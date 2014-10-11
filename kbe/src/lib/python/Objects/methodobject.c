@@ -13,6 +13,15 @@ static int numfree = 0;
 #define PyCFunction_MAXFREELIST 256
 #endif
 
+/* undefine macro trampoline to PyCFunction_NewEx */
+#undef PyCFunction_New
+
+PyObject *
+PyCFunction_New(PyMethodDef *ml, PyObject *self)
+{
+    return PyCFunction_NewEx(ml, self, NULL);
+}
+
 PyObject *
 PyCFunction_NewEx(PyMethodDef *ml, PyObject *self, PyObject *module)
 {
@@ -20,7 +29,7 @@ PyCFunction_NewEx(PyMethodDef *ml, PyObject *self, PyObject *module)
     op = free_list;
     if (op != NULL) {
         free_list = (PyCFunctionObject *)(op->m_self);
-        PyObject_INIT(op, &PyCFunction_Type);
+        (void)PyObject_INIT(op, &PyCFunction_Type);
         numfree--;
     }
     else {
@@ -44,7 +53,7 @@ PyCFunction_GetFunction(PyObject *op)
         PyErr_BadInternalCall();
         return NULL;
     }
-    return ((PyCFunctionObject *)op) -> m_ml -> ml_meth;
+    return PyCFunction_GET_FUNCTION(op);
 }
 
 PyObject *
@@ -54,7 +63,7 @@ PyCFunction_GetSelf(PyObject *op)
         PyErr_BadInternalCall();
         return NULL;
     }
-    return ((PyCFunctionObject *)op) -> m_self;
+    return PyCFunction_GET_SELF(op);
 }
 
 int
@@ -64,29 +73,40 @@ PyCFunction_GetFlags(PyObject *op)
         PyErr_BadInternalCall();
         return -1;
     }
-    return ((PyCFunctionObject *)op) -> m_ml -> ml_flags;
+    return PyCFunction_GET_FLAGS(op);
 }
 
 PyObject *
 PyCFunction_Call(PyObject *func, PyObject *arg, PyObject *kw)
 {
+#define CHECK_RESULT(res) assert(res != NULL || PyErr_Occurred())
+
     PyCFunctionObject* f = (PyCFunctionObject*)func;
     PyCFunction meth = PyCFunction_GET_FUNCTION(func);
     PyObject *self = PyCFunction_GET_SELF(func);
+    PyObject *res;
     Py_ssize_t size;
 
     switch (PyCFunction_GET_FLAGS(func) & ~(METH_CLASS | METH_STATIC | METH_COEXIST)) {
     case METH_VARARGS:
-        if (kw == NULL || PyDict_Size(kw) == 0)
-            return (*meth)(self, arg);
+        if (kw == NULL || PyDict_Size(kw) == 0) {
+            res = (*meth)(self, arg);
+            CHECK_RESULT(res);
+            return res;
+        }
         break;
     case METH_VARARGS | METH_KEYWORDS:
-        return (*(PyCFunctionWithKeywords)meth)(self, arg, kw);
+        res = (*(PyCFunctionWithKeywords)meth)(self, arg, kw);
+        CHECK_RESULT(res);
+        return res;
     case METH_NOARGS:
         if (kw == NULL || PyDict_Size(kw) == 0) {
             size = PyTuple_GET_SIZE(arg);
-            if (size == 0)
-                return (*meth)(self, NULL);
+            if (size == 0) {
+                res = (*meth)(self, NULL);
+                CHECK_RESULT(res);
+                return res;
+            }
             PyErr_Format(PyExc_TypeError,
                 "%.200s() takes no arguments (%zd given)",
                 f->m_ml->ml_name, size);
@@ -96,8 +116,11 @@ PyCFunction_Call(PyObject *func, PyObject *arg, PyObject *kw)
     case METH_O:
         if (kw == NULL || PyDict_Size(kw) == 0) {
             size = PyTuple_GET_SIZE(arg);
-            if (size == 1)
-                return (*meth)(self, PyTuple_GET_ITEM(arg, 0));
+            if (size == 1) {
+                res = (*meth)(self, PyTuple_GET_ITEM(arg, 0));
+                CHECK_RESULT(res);
+                return res;
+            }
             PyErr_Format(PyExc_TypeError,
                 "%.200s() takes exactly one argument (%zd given)",
                 f->m_ml->ml_name, size);
@@ -114,6 +137,8 @@ PyCFunction_Call(PyObject *func, PyObject *arg, PyObject *kw)
     PyErr_Format(PyExc_TypeError, "%.200s() takes no keyword arguments",
                  f->m_ml->ml_name);
     return NULL;
+
+#undef CHECK_RESULT
 }
 
 /* Methods (the standard built-in methods, that is) */
@@ -135,20 +160,76 @@ meth_dealloc(PyCFunctionObject *m)
 }
 
 static PyObject *
+meth_reduce(PyCFunctionObject *m)
+{
+    PyObject *builtins;
+    PyObject *getattr;
+    _Py_IDENTIFIER(getattr);
+
+    if (m->m_self == NULL || PyModule_Check(m->m_self))
+        return PyUnicode_FromString(m->m_ml->ml_name);
+
+    builtins = PyEval_GetBuiltins();
+    getattr = _PyDict_GetItemId(builtins, &PyId_getattr);
+    return Py_BuildValue("O(Os)", getattr, m->m_self, m->m_ml->ml_name);
+}
+
+static PyMethodDef meth_methods[] = {
+    {"__reduce__", (PyCFunction)meth_reduce, METH_NOARGS, NULL},
+    {NULL, NULL}
+};
+
+static PyObject *
+meth_get__text_signature__(PyCFunctionObject *m, void *closure)
+{
+    return _PyType_GetTextSignatureFromInternalDoc(m->m_ml->ml_name, m->m_ml->ml_doc);
+}
+
+static PyObject *
 meth_get__doc__(PyCFunctionObject *m, void *closure)
 {
-    const char *doc = m->m_ml->ml_doc;
-
-    if (doc != NULL)
-        return PyUnicode_FromString(doc);
-    Py_INCREF(Py_None);
-    return Py_None;
+    return _PyType_GetDocFromInternalDoc(m->m_ml->ml_name, m->m_ml->ml_doc);
 }
 
 static PyObject *
 meth_get__name__(PyCFunctionObject *m, void *closure)
 {
     return PyUnicode_FromString(m->m_ml->ml_name);
+}
+
+static PyObject *
+meth_get__qualname__(PyCFunctionObject *m, void *closure)
+{
+    /* If __self__ is a module or NULL, return m.__name__
+       (e.g. len.__qualname__ == 'len')
+
+       If __self__ is a type, return m.__self__.__qualname__ + '.' + m.__name__
+       (e.g. dict.fromkeys.__qualname__ == 'dict.fromkeys')
+
+       Otherwise return type(m.__self__).__qualname__ + '.' + m.__name__
+       (e.g. [].append.__qualname__ == 'list.append') */
+    PyObject *type, *type_qualname, *res;
+    _Py_IDENTIFIER(__qualname__);
+
+    if (m->m_self == NULL || PyModule_Check(m->m_self))
+        return PyUnicode_FromString(m->m_ml->ml_name);
+
+    type = PyType_Check(m->m_self) ? m->m_self : (PyObject*)Py_TYPE(m->m_self);
+
+    type_qualname = _PyObject_GetAttrId(type, &PyId___qualname__);
+    if (type_qualname == NULL)
+        return NULL;
+
+    if (!PyUnicode_Check(type_qualname)) {
+        PyErr_SetString(PyExc_TypeError, "<method>.__class__."
+                        "__qualname__ is not a unicode object");
+        Py_XDECREF(type_qualname);
+        return NULL;
+    }
+
+    res = PyUnicode_FromFormat("%S.%s", type_qualname, m->m_ml->ml_name);
+    Py_DECREF(type_qualname);
+    return res;
 }
 
 static int
@@ -164,7 +245,7 @@ meth_get__self__(PyCFunctionObject *m, void *closure)
 {
     PyObject *self;
 
-    self = m->m_self;
+    self = PyCFunction_GET_SELF(m);
     if (self == NULL)
         self = Py_None;
     Py_INCREF(self);
@@ -174,7 +255,9 @@ meth_get__self__(PyCFunctionObject *m, void *closure)
 static PyGetSetDef meth_getsets [] = {
     {"__doc__",  (getter)meth_get__doc__,  NULL, NULL},
     {"__name__", (getter)meth_get__name__, NULL, NULL},
+    {"__qualname__", (getter)meth_get__qualname__, NULL, NULL},
     {"__self__", (getter)meth_get__self__, NULL, NULL},
+    {"__text_signature__", (getter)meth_get__text_signature__, NULL, NULL},
     {0}
 };
 
@@ -208,8 +291,7 @@ meth_richcompare(PyObject *self, PyObject *other, int op)
         !PyCFunction_Check(self) ||
         !PyCFunction_Check(other))
     {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
+        Py_RETURN_NOTIMPLEMENTED;
     }
     a = (PyCFunctionObject *)self;
     b = (PyCFunctionObject *)other;
@@ -273,7 +355,7 @@ PyTypeObject PyCFunction_Type = {
     0,                                          /* tp_weaklistoffset */
     0,                                          /* tp_iter */
     0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
+    meth_methods,                               /* tp_methods */
     meth_members,                               /* tp_members */
     meth_getsets,                               /* tp_getset */
     0,                                          /* tp_base */
@@ -303,16 +385,11 @@ PyCFunction_Fini(void)
     (void)PyCFunction_ClearFreeList();
 }
 
-/* PyCFunction_New() is now just a macro that calls PyCFunction_NewEx(),
-   but it's part of the API so we need to keep a function around that
-   existing C extensions can call.
-*/
-
-#undef PyCFunction_New
-PyAPI_FUNC(PyObject *) PyCFunction_New(PyMethodDef *, PyObject *);
-
-PyObject *
-PyCFunction_New(PyMethodDef *ml, PyObject *self)
+/* Print summary info about the state of the optimized allocator */
+void
+_PyCFunction_DebugMallocStats(FILE *out)
 {
-    return PyCFunction_NewEx(ml, self, NULL);
+    _PyDebugAllocatorStats(out,
+                           "free PyCFunctionObject",
+                           numfree, sizeof(PyCFunctionObject));
 }

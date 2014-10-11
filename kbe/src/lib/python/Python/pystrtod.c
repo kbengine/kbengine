@@ -22,6 +22,43 @@ case_insensitive_match(const char *s, const char *t)
    the successfully parsed portion of the string.  On failure, return -1.0 and
    set *endptr to point to the start of the string. */
 
+#ifndef PY_NO_SHORT_FLOAT_REPR
+
+double
+_Py_parse_inf_or_nan(const char *p, char **endptr)
+{
+    double retval;
+    const char *s;
+    int negate = 0;
+
+    s = p;
+    if (*s == '-') {
+        negate = 1;
+        s++;
+    }
+    else if (*s == '+') {
+        s++;
+    }
+    if (case_insensitive_match(s, "inf")) {
+        s += 3;
+        if (case_insensitive_match(s, "inity"))
+            s += 5;
+        retval = _Py_dg_infinity(negate);
+    }
+    else if (case_insensitive_match(s, "nan")) {
+        s += 3;
+        retval = _Py_dg_stdnan(negate);
+    }
+    else {
+        s = p;
+        retval = -1.0;
+    }
+    *endptr = (char *)s;
+    return retval;
+}
+
+#else
+
 double
 _Py_parse_inf_or_nan(const char *p, char **endptr)
 {
@@ -56,6 +93,8 @@ _Py_parse_inf_or_nan(const char *p, char **endptr)
     *endptr = (char *)s;
     return retval;
 }
+
+#endif
 
 /**
  * _PyOS_ascii_strtod:
@@ -125,7 +164,7 @@ static double
 _PyOS_ascii_strtod(const char *nptr, char **endptr)
 {
     char *fail_pos;
-    double val = -1.0;
+    double val;
     struct lconv *locale_data;
     const char *decimal_point;
     size_t decimal_point_len;
@@ -884,7 +923,7 @@ static char *uc_float_strings[] = {
 
 static char *
 format_float_short(double d, char format_code,
-                   int mode, Py_ssize_t precision,
+                   int mode, int precision,
                    int always_add_sign, int add_dot_0_if_integer,
                    int use_alt_formatting, char **float_strings, int *type)
 {
@@ -954,7 +993,7 @@ format_float_short(double d, char format_code,
             /* shouldn't get here: Gay's code should always return
                something starting with a digit, an 'I',  or 'N' */
             strncpy(p, "ERR", 3);
-            p += 3;
+            /* p += 3; */
             assert(0);
         }
         goto exit;
@@ -1020,7 +1059,7 @@ format_float_short(double d, char format_code,
     /* if using an exponent, reset decimal point position to 1 and adjust
        exponent accordingly.*/
     if (use_exp) {
-        exp = decpt - 1;
+        exp = (int)decpt - 1;
         decpt = 1;
     }
     /* ensure vdigits_start < decpt <= vdigits_end, or vdigits_start <

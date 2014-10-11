@@ -39,20 +39,20 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
-ENTITY_METHOD_DECLARE_END()
+CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
+CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
-ENTITY_GETSET_DECLARE_BEGIN(Entity)
+CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
 SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
-ENTITY_GETSET_DECLARE_END()
+CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ Entity::~Entity()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()
 { 
-	EntityMailbox* mailbox = getBaseMailbox();
+	EntityMailbox* mailbox = baseMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -94,7 +94,7 @@ PyObject* Entity::pyGetBaseMailbox()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetCellMailbox()
 { 
-	EntityMailbox* mailbox = getCellMailbox();
+	EntityMailbox* mailbox = cellMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -112,6 +112,13 @@ PyObject* Entity::pyGetClientApp()
 	Py_INCREF(app);
 	return app; 
 }
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
 
 //-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
@@ -140,14 +147,17 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_);
+		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
+			utype, id_));
 
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: entityID {}, methodType {}.\n", 
+				id_, utype));
+	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName()));
@@ -238,7 +248,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 #else
 			s >> size >> pos.x >> pos.y >> pos.z;
 #endif
-			setPosition(pos);
+			position(pos);
 			continue;
 		}
 		else if(uid == diruid)
@@ -261,27 +271,27 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			dir.roll(roll);
 #endif
 
-			setDirection(dir);
+			direction(dir);
 			continue;
 		}
 		else if(uid == spaceuid)
 		{
-			SPACE_ID spaceID;
-			s >> spaceID;
-			setSpaceID(spaceID);
+			SPACE_ID ispaceID;
+			s >> ispaceID;
+			spaceID(ispaceID);
 			continue;
 		}
 
 		PropertyDescription* pPropertyDescription = NULL;
 		
 		if(scriptModule_->usePropertyDescrAlias())
-			pPropertyDescription = getScriptModule()->findAliasPropertyDescription(aliasID);
+			pPropertyDescription = scriptModule()->findAliasPropertyDescription(aliasID);
 		else
-			pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+			pPropertyDescription = scriptModule()->findClientPropertyDescription(uid);
 
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
 			return;
 		}
 
@@ -313,7 +323,7 @@ int Entity::pySetPosition(PyObject *value)
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
-	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
+	script::ScriptVector3::convertPyObjectToVector3(position(), value);
 	onPositionChanged();
 	return 0;
 }
@@ -321,13 +331,13 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition(), NULL);
+	return new script::ScriptVector3(&position(), NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_PositionChanged eventdata;
@@ -336,7 +346,7 @@ void Entity::onPositionChanged()
 	eventdata.z = position_.z;
 	eventdata.speed = velocity_;
 	
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -359,7 +369,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	Direction3D& dir = getDirection();
+	Direction3D& dir = direction();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
 	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
@@ -377,20 +387,20 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(&getDirection().dir, NULL);
+	return new script::ScriptVector3(&direction().dir, NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_DirectionChanged eventdata;
 	eventdata.yaw = direction_.yaw();
 	eventdata.pitch = direction_.pitch();
 	eventdata.roll = direction_.roll();
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -398,7 +408,7 @@ void Entity::onDirectionChanged()
 //-------------------------------------------------------------------------------------
 int Entity::pySetMoveSpeed(PyObject *value)
 {
-	setMoveSpeed((float)PyFloat_AsDouble(value));
+	moveSpeed((float)PyFloat_AsDouble(value));
 	return 0;
 }
 
@@ -413,7 +423,7 @@ void Entity::onMoveSpeedChanged()
 {
 	EventData_MoveSpeedChanged eventdata;
 	eventdata.speed = velocity_;
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -423,7 +433,7 @@ void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -431,7 +441,23 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterword_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
+	spaceID(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	spaceID(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -466,6 +492,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->scriptModule_->getName(), moduleName));
 		}
 		else
 		{

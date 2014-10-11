@@ -21,13 +21,14 @@ class Spaces(KBEngine.Base, GameObject):
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
 			spaceData = d_spaces.datas.get(utype)
-			if spaceData["entityType"] == "SpaceCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
-			elif spaceData["entityType"] == "SpaceFightCopy":
-				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
+			if spaceData["entityType"] == "SpaceDuplicate":
+				self._spaceAllocs[utype] = SpaceAllocDuplicate(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
-				
+	
+	def getSpaceAllocs(self):
+		return self._spaceAllocs
+		
 	def createSpaceOnTimer(self, tid, tno):
 		"""
 		创建space

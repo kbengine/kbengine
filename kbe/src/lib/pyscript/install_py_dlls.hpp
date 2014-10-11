@@ -18,13 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __INSTALL_PY_DLLS_H__
-#define __INSTALL_PY_DLLS_H__
+#ifndef KBE_INSTALL_PY_DLLS_HPP
+#define KBE_INSTALL_PY_DLLS_HPP
 
 namespace KBEngine{ namespace script{
 
 bool install_py_dlls(void);
+bool uninstall_py_dlls(void);
 
 }
 }
-#endif
+
+#endif // KBE_INSTALL_PY_DLLS_HPP

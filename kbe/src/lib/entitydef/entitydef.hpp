@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ENTITYDEF_H__
-#define __ENTITYDEF_H__
+#ifndef KBE_ENTITYDEF_HPP
+#define KBE_ENTITYDEF_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/md5.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -208,4 +209,5 @@ private:
 #ifdef CODE_INLINE
 #include "entitydef.ipp"
 #endif
-#endif
+#endif // KBE_ENTITYDEF_HPP
+

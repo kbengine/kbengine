@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPACE_HPP__
-#define __SPACE_HPP__
+#ifndef KBE_SPACE_HPP
+#define KBE_SPACE_HPP
 
 #include "coordinate_system.hpp"
 #include "cell.hpp"
@@ -67,7 +67,7 @@ public:
 
 	void onEntityAttachWitness(Entity* pEntity);
 
-	SPACE_ID getID()const{ return id_; }
+	SPACE_ID id()const{ return id_; }
 
 	const SPACE_ENTITIES& entities()const{ return entities_; }
 

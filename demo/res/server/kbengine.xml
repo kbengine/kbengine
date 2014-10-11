@@ -7,8 +7,8 @@
 	
 	<!-- defined => kbe/res/server/kbengine_defs.xml -->
 	<dbmgr>
-		<host> localhost </host>
-		<databaseName> kbe </databaseName>
+		<!-- <host> localhost </host> -->
+		<!-- <databaseName> kbe </databaseName> -->
 	</dbmgr>
 	
 	<cellapp>

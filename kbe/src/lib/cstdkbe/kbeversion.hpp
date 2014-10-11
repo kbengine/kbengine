@@ -18,19 +18,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef KBEVERSION_HPP
+#define KBEVERSION_HPP
+
 #include "cstdkbe/platform.hpp"
-#ifndef __KBEVERSION_HPP__
-#define __KBEVERSION_HPP__
+
 namespace KBEngine{
 	
 #define KBE_VERSION_MAJOR 0
 #define KBE_VERSION_MINOR 1
-#define KBE_VERSION_PATCH 6
+#define KBE_VERSION_PATCH 13
+
 
 namespace KBEVersion
 {
 	const std::string & versionString();
+	void setScriptVersion(const std::string& ver);
+	const std::string & scriptVersionString();
 }
 
 }
-#endif // __KBEVERSION_HPP__
+#endif // KBEVERSION_HPP

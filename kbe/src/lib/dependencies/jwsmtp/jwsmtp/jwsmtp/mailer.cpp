@@ -32,6 +32,7 @@
 #include <sstream>   // ostrstream
 #include <ctime>     // for localtime
 #include <cassert>
+#include <cstring>
 #include "mailer.h"
 #include "base64.h"
 
@@ -730,7 +731,7 @@ std::vector<char> mailer::makesmtpmessage() const {
    time_t t;
    time(&t);
    char timestring[128] = "";
-   char * timeformat = "Date: %d %b %y %H:%M:%S %Z";
+   const char * timeformat = "Date: %d %b %y %H:%M:%S %Z";
    if(strftime(timestring, 127, timeformat, localtime(&t))) { // got the date
       headerline = timestring;
       headerline += "\r\n";

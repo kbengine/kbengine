@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_PY_WATCHER_H__
-#define __KBENGINE_PY_WATCHER_H__
+#ifndef KBENGINE_PY_WATCHER_HPP
+#define KBENGINE_PY_WATCHER_HPP
+
 #include "scriptobject.hpp"
 #include "helper/watcher.hpp"
 
@@ -47,14 +48,15 @@ public:
 	}
 
 	void addToInitStream(MemoryStream* s){
-		(*s) << path() << name() << id_ << type<T>() << getVal();
+		(*s) << path() << name() << id_ << type<T>() << getValue();
 	};
 
 	void addToStream(MemoryStream* s){
-		(*s) << id_ << getVal();
+		(*s) << id_ << getValue();
 	};
 
-	INLINE T getVal();
+	INLINE T getValue();
+	WATCHER_VALUE_TYPE getType(){ return type<T>(); }
 
 	void readVal(PyObject* pyVal, T& v)
 	{
@@ -148,4 +150,4 @@ bool initializePyWatcher(Script* pScript);
 #include "pywatcher.ipp"
 #endif
 
-#endif
+#endif // KBENGINE_PY_WATCHER_HPP

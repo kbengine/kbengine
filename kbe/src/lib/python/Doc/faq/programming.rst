@@ -4,7 +4,9 @@
 Programming FAQ
 ===============
 
-.. contents::
+.. only:: html
+
+   .. contents::
 
 General Questions
 =================
@@ -212,9 +214,9 @@ Why do lambdas defined in a loop with different values all return the same resul
 Assume you use a for loop to define a few different lambdas (or even plain
 functions), e.g.::
 
-   squares = []
-   for x in range(5):
-      squares.append(lambda: x**2)
+   >>> squares = []
+   >>> for x in range(5):
+   ...    squares.append(lambda: x**2)
 
 This gives you a list that contains 5 lambdas that calculate ``x**2``.  You
 might expect that, when called, they would return, respectively, ``0``, ``1``,
@@ -239,9 +241,9 @@ changing the value of ``x`` and see how the results of the lambdas change::
 In order to avoid this, you need to save the values in variables local to the
 lambdas, so that they don't rely on the value of the global ``x``::
 
-   squares = []
-   for x in range(5):
-      squares.append(lambda n=x: n**2)
+   >>> squares = []
+   >>> for x in range(5):
+   ...    squares.append(lambda n=x: n**2)
 
 Here, ``n=x`` creates a new variable ``n`` local to the lambda and computed
 when the lambda is defined so that it has the same value that ``x`` had at
@@ -590,11 +592,11 @@ Comma is not an operator in Python.  Consider this session::
 Since the comma is not an operator, but a separator between expressions the
 above is evaluated as if you had entered::
 
-    >>> ("a" in "b"), "a"
+    ("a" in "b"), "a"
 
 not::
 
-    >>> "a" in ("b", "a")
+    "a" in ("b", "a")
 
 The same is true of the various assignment operators (``=``, ``+=`` etc).  They
 are not truly operators but syntactic delimiters in assignment statements.
@@ -709,7 +711,7 @@ By default, these interpret the number as decimal, so that ``int('0144') ==
 144`` and ``int('0x144')`` raises :exc:`ValueError`. ``int(string, base)`` takes
 the base to convert from as a second optional argument, so ``int('0x144', 16) ==
 324``.  If the base is specified as 0, the number is interpreted using Python's
-rules: a leading '0' indicates octal, and '0x' indicates a hex number.
+rules: a leading '0o' indicates octal, and '0x' indicates a hex number.
 
 Do not use the built-in function :func:`eval` if all you need is to convert
 strings to numbers.  :func:`eval` will be significantly slower and it presents a
@@ -730,7 +732,7 @@ To convert, e.g., the number 144 to the string '144', use the built-in type
 constructor :func:`str`.  If you want a hexadecimal or octal representation, use
 the built-in functions :func:`hex` or :func:`oct`.  For fancy formatting, see
 the :ref:`string-formatting` section, e.g. ``"{:04d}".format(144)`` yields
-``'0144'`` and ``"{:.3f}".format(1/3)`` yields ``'0.333'``.
+``'0144'`` and ``"{:.3f}".format(1.0/3.0)`` yields ``'0.333'``.
 
 
 How do I modify a string in place?
@@ -742,6 +744,7 @@ it from.  However, if you need an object with the ability to modify in-place
 unicode data, try using a :class:`io.StringIO` object or the :mod:`array`
 module::
 
+   >>> import io
    >>> s = "Hello, world"
    >>> sio = io.StringIO(s)
    >>> sio.getvalue()
@@ -759,7 +762,7 @@ module::
    array('u', 'Hello, world')
    >>> a[0] = 'y'
    >>> print(a)
-   array('u', 'yello world')
+   array('u', 'yello, world')
    >>> a.tounicode()
    'yello, world'
 
@@ -1058,7 +1061,7 @@ How do I create a multidimensional list?
 
 You probably tried to make a multidimensional array like this::
 
-   A = [[None] * 2] * 3
+   >>> A = [[None] * 2] * 3
 
 This looks correct if you print it::
 
@@ -1090,7 +1093,7 @@ use a list comprehension::
    A = [[None] * w for i in range(h)]
 
 Or, you can use an extension that provides a matrix datatype; `Numeric Python
-<http://numpy.scipy.org/>`_ is the best known.
+<http://www.numpy.org/>`_ is the best known.
 
 
 How do I apply a method to a sequence of objects?
@@ -1100,38 +1103,101 @@ Use a list comprehension::
 
    result = [obj.method() for obj in mylist]
 
+.. _faq-augmented-assignment-tuple-error:
+
+Why does a_tuple[i] += ['item'] raise an exception when the addition works?
+---------------------------------------------------------------------------
+
+This is because of a combination of the fact that augmented assignment
+operators are *assignment* operators, and the difference between mutable and
+immutable objects in Python.
+
+This discussion applies in general when augmented assignment operators are
+applied to elements of a tuple that point to mutable objects, but we'll use
+a ``list`` and ``+=`` as our exemplar.
+
+If you wrote::
+
+   >>> a_tuple = (1, 2)
+   >>> a_tuple[0] += 1
+   Traceback (most recent call last):
+      ...
+   TypeError: 'tuple' object does not support item assignment
+
+The reason for the exception should be immediately clear: ``1`` is added to the
+object ``a_tuple[0]`` points to (``1``), producing the result object, ``2``,
+but when we attempt to assign the result of the computation, ``2``, to element
+``0`` of the tuple, we get an error because we can't change what an element of
+a tuple points to.
+
+Under the covers, what this augmented assignment statement is doing is
+approximately this::
+
+   >>> result = a_tuple[0] + 1
+   >>> a_tuple[0] = result
+   Traceback (most recent call last):
+     ...
+   TypeError: 'tuple' object does not support item assignment
+
+It is the assignment part of the operation that produces the error, since a
+tuple is immutable.
+
+When you write something like::
+
+   >>> a_tuple = (['foo'], 'bar')
+   >>> a_tuple[0] += ['item']
+   Traceback (most recent call last):
+     ...
+   TypeError: 'tuple' object does not support item assignment
+
+The exception is a bit more surprising, and even more surprising is the fact
+that even though there was an error, the append worked::
+
+    >>> a_tuple[0]
+    ['foo', 'item']
+
+To see why this happens, you need to know that (a) if an object implements an
+``__iadd__`` magic method, it gets called when the ``+=`` augmented assignment
+is executed, and its return value is what gets used in the assignment statement;
+and (b) for lists, ``__iadd__`` is equivalent to calling ``extend`` on the list
+and returning the list.  That's why we say that for lists, ``+=`` is a
+"shorthand" for ``list.extend``::
+
+    >>> a_list = []
+    >>> a_list += [1]
+    >>> a_list
+    [1]
+
+This is equivalent to::
+
+    >>> result = a_list.__iadd__([1])
+    >>> a_list = result
+
+The object pointed to by a_list has been mutated, and the pointer to the
+mutated object is assigned back to ``a_list``.  The end result of the
+assignment is a no-op, since it is a pointer to the same object that ``a_list``
+was previously pointing to, but the assignment still happens.
+
+Thus, in our tuple example what is happening is equivalent to::
+
+   >>> result = a_tuple[0].__iadd__(['item'])
+   >>> a_tuple[0] = result
+   Traceback (most recent call last):
+     ...
+   TypeError: 'tuple' object does not support item assignment
+
+The ``__iadd__`` succeeds, and thus the list is extended, but even though
+``result`` points to the same object that ``a_tuple[0]`` already points to,
+that final assignment still results in an error, because tuples are immutable.
+
 
 Dictionaries
 ============
 
-How can I get a dictionary to display its keys in a consistent order?
----------------------------------------------------------------------
+How can I get a dictionary to store and display its keys in a consistent order?
+-------------------------------------------------------------------------------
 
-You can't.  Dictionaries store their keys in an unpredictable order, so the
-display order of a dictionary's elements will be similarly unpredictable.
-
-This can be frustrating if you want to save a printable version to a file, make
-some changes and then compare it with some other printed dictionary.  In this
-case, use the ``pprint`` module to pretty-print the dictionary; the items will
-be presented in order sorted by the key.
-
-A more complicated solution is to subclass ``dict`` to create a
-``SortedDict`` class that prints itself in a predictable order.  Here's one
-simpleminded implementation of such a class::
-
-   class SortedDict(dict):
-       def __repr__(self):
-           keys = sorted(self.keys())
-           result = ("{!r}: {!r}".format(k, self[k]) for k in keys)
-           return "{{{}}}".format(", ".join(result))
-
-       __str__ = __repr__
-
-This will work for many common situations you might encounter, though it's far
-from a perfect solution. The largest flaw is that if some values in the
-dictionary are also dictionaries, their values won't be presented in any
-particular order.
-
+Use :class:`collections.OrderedDict`.
 
 I want to do a complicated sort: can you do a Schwartzian Transform in Python?
 ------------------------------------------------------------------------------
@@ -1510,41 +1576,76 @@ You can program the class's constructor to keep track of all instances by
 keeping a list of weak references to each instance.
 
 
+Why does the result of ``id()`` appear to be not unique?
+--------------------------------------------------------
+
+The :func:`id` builtin returns an integer that is guaranteed to be unique during
+the lifetime of the object.  Since in CPython, this is the object's memory
+address, it happens frequently that after an object is deleted from memory, the
+next freshly created object is allocated at the same position in memory.  This
+is illustrated by this example:
+
+>>> id(1000)
+13901272
+>>> id(2000)
+13901272
+
+The two ids belong to different integer objects that are created before, and
+deleted immediately after execution of the ``id()`` call.  To be sure that
+objects whose id you want to examine are still alive, create another reference
+to the object:
+
+>>> a = 1000; b = 2000
+>>> id(a)
+13901272
+>>> id(b)
+13891296
+
+
 Modules
 =======
 
 How do I create a .pyc file?
 ----------------------------
 
-When a module is imported for the first time (or when the source is more recent
-than the current compiled file) a ``.pyc`` file containing the compiled code
-should be created in the same directory as the ``.py`` file.
+When a module is imported for the first time (or when the source file has
+changed since the current compiled file was created) a ``.pyc`` file containing
+the compiled code should be created in a ``__pycache__`` subdirectory of the
+directory containing the ``.py`` file.  The ``.pyc`` file will have a
+filename that starts with the same name as the ``.py`` file, and ends with
+``.pyc``, with a middle component that depends on the particular ``python``
+binary that created it.  (See :pep:`3147` for details.)
 
-One reason that a ``.pyc`` file may not be created is permissions problems with
-the directory. This can happen, for example, if you develop as one user but run
-as another, such as if you are testing with a web server.  Creation of a .pyc
-file is automatic if you're importing a module and Python has the ability
-(permissions, free space, etc...) to write the compiled module back to the
-directory.
+One reason that a ``.pyc`` file may not be created is a permissions problem
+with the directory containing the source file, meaning that the ``__pycache__``
+subdirectory cannot be created. This can happen, for example, if you develop as
+one user but run as another, such as if you are testing with a web server.
 
-Running Python on a top level script is not considered an import and no ``.pyc``
-will be created.  For example, if you have a top-level module ``abc.py`` that
-imports another module ``xyz.py``, when you run abc, ``xyz.pyc`` will be created
-since xyz is imported, but no ``abc.pyc`` file will be created since ``abc.py``
-isn't being imported.
+Unless the :envvar:`PYTHONDONTWRITEBYTECODE` environment variable is set,
+creation of a .pyc file is automatic if you're importing a module and Python
+has the ability (permissions, free space, etc...) to create a ``__pycache__``
+subdirectory and write the compiled module to that subdirectory.
 
-If you need to create abc.pyc -- that is, to create a .pyc file for a module
-that is not imported -- you can, using the :mod:`py_compile` and
-:mod:`compileall` modules.
+Running Python on a top level script is not considered an import and no
+``.pyc`` will be created.  For example, if you have a top-level module
+``foo.py`` that imports another module ``xyz.py``, when you run ``foo`` (by
+typing ``python foo.py`` as a shell command), a ``.pyc`` will be created for
+``xyz`` because ``xyz`` is imported, but no ``.pyc`` file will be created for
+``foo`` since ``foo.py`` isn't being imported.
+
+If you need to create a ``.pyc`` file for ``foo`` -- that is, to create a
+``.pyc`` file for a module that is not imported -- you can, using the
+:mod:`py_compile` and :mod:`compileall` modules.
 
 The :mod:`py_compile` module can manually compile any module.  One way is to use
 the ``compile()`` function in that module interactively::
 
    >>> import py_compile
-   >>> py_compile.compile('abc.py')
+   >>> py_compile.compile('foo.py')                 # doctest: +SKIP
 
-This will write the ``.pyc`` to the same location as ``abc.py`` (or you can
-override that with the optional parameter ``cfile``).
+This will write the ``.pyc`` to a ``__pycache__`` subdirectory in the same
+location as ``foo.py`` (or you can override that with the optional parameter
+``cfile``).
 
 You can also automatically compile all files in a directory or directories using
 the :mod:`compileall` module.  You can do it from the shell prompt by running
@@ -1650,12 +1751,12 @@ When I edit an imported module and reimport it, the changes don't show up.  Why 
 For reasons of efficiency as well as consistency, Python only reads the module
 file on the first time a module is imported.  If it didn't, in a program
 consisting of many modules where each one imports the same basic module, the
-basic module would be parsed and re-parsed many times.  To force rereading of a
+basic module would be parsed and re-parsed many times.  To force re-reading of a
 changed module, do this::
 
-   import imp
+   import importlib
    import modname
-   imp.reload(modname)
+   importlib.reload(modname)
 
 Warning: this technique is not 100% fool-proof.  In particular, modules
 containing statements like ::
@@ -1667,10 +1768,10 @@ module contains class definitions, existing class instances will *not* be
 updated to use the new class definition.  This can result in the following
 paradoxical behaviour:
 
-   >>> import imp
+   >>> import importlib
    >>> import cls
    >>> c = cls.C()                # Create an instance of C
-   >>> imp.reload(cls)
+   >>> importlib.reload(cls)
    <module 'cls' from 'cls.py'>
    >>> isinstance(c, cls.C)       # isinstance is false?!?
    False

@@ -18,25 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __APP_PROFILE_HPP__
-#define __APP_PROFILE_HPP__
+#ifndef KBE_APP_PROFILE_HPP
+#define KBE_APP_PROFILE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/profile.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 
 namespace KBEngine{
 
 extern ProfileVal SCRIPTCALL_PROFILE;
 extern ProfileVal ONMOVE_PROFILE;
-extern ProfileVal ONTIMER_PROFILE;
 extern ProfileVal ONNAVIGATE_PROFILE;
 extern ProfileVal CLIENT_UPDATE_PROFILE;
 
 
 extern EventHistoryStats g_privateClientEventHistoryStats;
 extern EventHistoryStats g_publicClientEventHistoryStats;
+extern EventHistoryStats g_publicCellEventHistoryStats;
 
 }
 #endif

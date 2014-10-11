@@ -32,9 +32,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
-#ifdef USE_OPENSSL
 #include "cstdkbe/blowfish.hpp"
-#endif
+
 
 #define BUNDLE_SEND_OP(op)																					\
 	finish();																								\
@@ -68,9 +67,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 				if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
 																					&& retries <= 60)		\
 				{																							\
-					WARNING_MSG(boost::format("%1%: "														\
-						"Transmit queue full, waiting for space... (%2%)\n") %								\
-						__FUNCTION__ % retries );															\
+					WARNING_MSG(fmt::format("{}: "															\
+						"Transmit queue full, waiting for space... ({})\n",									\
+						__FUNCTION__, retries));															\
 																											\
 					ep.waitSend();																			\
 					continue;																				\
@@ -78,8 +77,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 																											\
 				if(retries > 60 && reason != REASON_SUCCESS)												\
 				{																							\
-					ERROR_MSG(boost::format("Bundle::basicSendWithRetries: packet discarded(reason=%1%).\n")\
-															% (reasonToString(reason)));					\
+					ERROR_MSG(fmt::format("Bundle::basicSendWithRetries: packet discarded(reason={}).\n",	\
+															(reasonToString(reason))));						\
 					break;																					\
 				}																							\
 			}																								\
@@ -100,7 +99,7 @@ namespace Mercury
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Bundle> _g_objPool;
+static ObjectPool<Bundle> _g_objPool("Bundle");
 ObjectPool<Bundle>& Bundle::ObjPool()
 {
 	return _g_objPool;
@@ -109,10 +108,21 @@ ObjectPool<Bundle>& Bundle::ObjPool()
 //-------------------------------------------------------------------------------------
 void Bundle::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("Bundle::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("Bundle::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+size_t Bundle::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(reuse_) + sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
+		sizeof(currMsgLengthPos_) + sizeof(currMsgHandlerLength_) + sizeof(currMsgLength_) + 
+		sizeof(currMsgPacketCount_) + sizeof(currMsgID_) + sizeof(numMessages_) + sizeof(pChannel_)
+		+ (packets_.size() * sizeof(Packet*));
+
+	return bytes;
 }
 
 //-------------------------------------------------------------------------------------
@@ -178,12 +188,10 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 
 	int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 
-#ifdef USE_OPENSSL
 	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
 	// 这样我们在加密一个满载包时不需要额外填充字节
 	if(g_channelExternalEncryptType == 1)
 		packetmaxsize -=  packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
-#endif
 
 	int32 totalsize = (int32)pCurrPacket_->totalSize();
 	int32 fwpos = (int32)pCurrPacket_->wpos();
@@ -255,8 +263,11 @@ void Bundle::finish(bool issend)
 		currMsgLength_ -= MERCURY_MESSAGE_ID_SIZE;
 		currMsgLength_ -= MERCURY_MESSAGE_LENGTH_SIZE;
 
+		MessageLength msgLen = currMsgLength_;
+		KBEngine::EndianConvert(msgLen);
+
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
-			(uint8*)&currMsgLength_, MERCURY_MESSAGE_LENGTH_SIZE);
+			(uint8*)&msgLen, MERCURY_MESSAGE_LENGTH_SIZE);
 	}
 
 	if(issend)
@@ -278,6 +289,12 @@ void Bundle::finish(bool issend)
 //-------------------------------------------------------------------------------------
 void Bundle::clear(bool isRecl)
 {
+	if(pCurrPacket_ != NULL)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
 	{
@@ -295,23 +312,6 @@ void Bundle::clear(bool isRecl)
 	}
 	
 	packets_.clear();
-
-	if(pCurrPacket_)
-	{
-		if(!isRecl)
-		{
-			delete pCurrPacket_;
-		}
-		else
-		{
-			if(isTCPPacket_)
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
-			else
-				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
-		}
-
-		pCurrPacket_ = NULL;
-	}
 
 	reuse_ = false;
 	pChannel_ = NULL;

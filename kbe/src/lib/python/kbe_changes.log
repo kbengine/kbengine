@@ -1,32 +1,74 @@
-* kbe\src\lib\python\PC\dl_nt.c 注释掉dllmain
-* 注释掉 pyconfig -> //#define _POSIX_C_SOURCE 200112L
-* 注释掉 pyconfig -> //#define _XOPEN_SOURCE 600
+Include/Python.h
+	#ifdef _POSIX_C_SOURCE
+	#undef _POSIX_C_SOURCE
+	#endif
 
-* kbe\src\lib\python\Include
-pyconfig:
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200112L
-#endif
+	#ifdef _XOPEN_SOURCE
+	#undef _XOPEN_SOURCE
+	#endif
+	
+	#ifndef NDEBUG
+	#define NDEBUG
+	#endif
 
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 600
-#endif
+pyconfig.h
+	#ifndef _POSIX_C_SOURCE
+	#define _POSIX_C_SOURCE 200809L
+	#endif
+
+	#ifndef _XOPEN_SOURCE
+	#define _XOPEN_SOURCE 700
+	#endif
+
+pgupdate.props:
+   <Import Project="$(SolutionDir)\lib\python\PCbuild\pginstrument.props" />
+
+script.hpp   
+	#define SCRIPT_BIN_TAG "cpython-34"
+	#define SCRIPT_BIN_CACHEDIR "__pycache__"
+
+Makefile.pre.in
+	1: all: -> all::
+	2: install: -> install::
+	3: clean: -> clean::
+	4: # Build static library
+		$(KBE_PYTHONLIB): $(LIBRARY_OBJS)
+			-rm -f $@
+			$(AR) $(ARFLAGS) $@ Modules/getbuildinfo.o
+			$(AR) $(ARFLAGS) $@ $(PARSER_OBJS)
+			$(AR) $(ARFLAGS) $@ $(OBJECT_OBJS)
+			$(AR) $(ARFLAGS) $@ $(PYTHON_OBJS) Python/frozen.o         // !!!!!!!!!!added (Python/frozen.o)
+			$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
+			$(AR) $(ARFLAGS) $@ $(MODOBJS)
+			$(RANLIB) $@
+
+	5: 
+	ifndef KBE_ROOT
+	export KBE_ROOT := $(subst /kbe/src/lib/python,,$(CURDIR))
+	endif
+
+	include $(KBE_ROOT)/kbe/src/build/common.mak
+
+	KBELIBDIR = $(KBE_ROOT)/kbe/src/libs
+	KBE_PYTHONLIB = $(KBELIBDIR)/lib$(PYTHONLIB).a
 
 
-* 使用自带openssl
-$ sudo vi Modules/Setup.dist
-# Socket module helper for SSL support; you must comment out the other
-# socket line above, and possibly edit the SSL variable:
-SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
-_ssl _ssl.c \
-        -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-        -L$(SSL)/lib -lssl -lcrypto
+setup.py
+        search_for_ssl_incs_in = [
+                              os.getenv("KBE_ROOT") + '/kbe/src/lib/dependencies/openssl/include/',
+                              os.getenv("KBE_ROOT") + 'kbe/src/lib/dependencies/openssl/include/',
+                              os.getcwd()[0 : os.getcwd().find("kbe/src/lib") + len("kbe/src/lib")] + "/dependencies/openssl/include/',
+                             ]
 
-还有其他等功能
-cp Modules/Setup.dist to Modules/Setup
+        ssl_incs = find_file('openssl/ssl.h', [],
+                             search_for_ssl_incs_in
+                             )
 
-* 改变了Makefile.pre.in， 使其能够和kbengine兼容编译
+        ssl_libs = find_library_file(self.compiler, 'ssl',[],
+                                     [os.getenv("KBE_ROOT") + '/kbe/src/libs/',
+                                     os.getenv("KBE_ROOT") + 'kbe/src/libs/',
+                                     os.getcwd()[0 : os.getcwd().find("kbe/src/") + len("kbe/src/")] + "libs/,
+                                     ] )
 
-* 将pythoncore， _socket, _ssl, select等windows项目改变为静态库
-
-* 修改pgupdate.vsprops使其能够被kbengine项目加载python工程
+        opensslv_h = find_file('openssl/opensslv.h', [],
+                search_for_ssl_incs_in)

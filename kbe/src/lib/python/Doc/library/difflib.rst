@@ -143,8 +143,8 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
    By default, the diff control lines (those with ``***`` or ``---``) are created
    with a trailing newline.  This is helpful so that inputs created from
-   :func:`file.readlines` result in diffs that are suitable for use with
-   :func:`file.writelines` since both the inputs and outputs have trailing
+   :func:`io.IOBase.readlines` result in diffs that are suitable for use with
+   :func:`io.IOBase.writelines` since both the inputs and outputs have trailing
    newlines.
 
    For inputs that do not have trailing newlines, set the *lineterm* argument to
@@ -226,8 +226,8 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
    :file:`Tools/scripts/ndiff.py` is a command-line front-end to this function.
 
-      >>> diff = ndiff('one\ntwo\nthree\n'.splitlines(1),
-      ...              'ore\ntree\nemu\n'.splitlines(1))
+      >>> diff = ndiff('one\ntwo\nthree\n'.splitlines(keepends=True),
+      ...              'ore\ntree\nemu\n'.splitlines(keepends=True))
       >>> print(''.join(diff), end="")
       - one
       ?  ^
@@ -250,8 +250,8 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
    Example:
 
-      >>> diff = ndiff('one\ntwo\nthree\n'.splitlines(1),
-      ...              'ore\ntree\nemu\n'.splitlines(1))
+      >>> diff = ndiff('one\ntwo\nthree\n'.splitlines(keepends=True),
+      ...              'ore\ntree\nemu\n'.splitlines(keepends=True))
       >>> diff = list(diff) # materialize the generated delta into a list
       >>> print(''.join(restore(diff, 1)), end="")
       one
@@ -275,8 +275,8 @@ diffs. For comparing directories and files, see also, the :mod:`filecmp` module.
 
    By default, the diff control lines (those with ``---``, ``+++``, or ``@@``) are
    created with a trailing newline.  This is helpful so that inputs created from
-   :func:`file.readlines` result in diffs that are suitable for use with
-   :func:`file.writelines` since both the inputs and outputs have trailing
+   :func:`io.IOBase.readlines` result in diffs that are suitable for use with
+   :func:`io.IOBase.writelines` since both the inputs and outputs have trailing
    newlines.
 
    For inputs that do not have trailing newlines, set the *lineterm* argument to
@@ -359,7 +359,7 @@ The :class:`SequenceMatcher` class has this constructor:
       The *autojunk* parameter.
 
    SequenceMatcher objects get three data attributes: *bjunk* is the
-   set of elements of *b* for which *isjunk* is True; *bpopular* is the set of
+   set of elements of *b* for which *isjunk* is ``True``; *bpopular* is the set of
    non-junk elements considered popular by the heuristic (if it is not
    disabled); *b2j* is a dict mapping the remaining elements of *b* to a list
    of positions where they occur. All three are reset whenever *b* is reset
@@ -629,10 +629,12 @@ The :class:`Differ` class has this constructor:
 
       Compare two sequences of lines, and generate the delta (a sequence of lines).
 
-      Each sequence must contain individual single-line strings ending with newlines.
-      Such sequences can be obtained from the :meth:`readlines` method of file-like
-      objects.  The delta generated also consists of newline-terminated strings, ready
-      to be printed as-is via the :meth:`writelines` method of a file-like object.
+      Each sequence must contain individual single-line strings ending with
+      newlines.  Such sequences can be obtained from the
+      :meth:`~io.IOBase.readlines` method of file-like objects.  The delta
+      generated also consists of newline-terminated strings, ready to be
+      printed as-is via the :meth:`~io.IOBase.writelines` method of a
+      file-like object.
 
 
 .. _differ-examples:
@@ -642,13 +644,13 @@ Differ Example
 
 This example compares two texts. First we set up the texts, sequences of
 individual single-line strings ending with newlines (such sequences can also be
-obtained from the :meth:`readlines` method of file-like objects):
+obtained from the :meth:`~io.BaseIO.readlines` method of file-like objects):
 
    >>> text1 = '''  1. Beautiful is better than ugly.
    ...   2. Explicit is better than implicit.
    ...   3. Simple is better than complex.
    ...   4. Complex is better than complicated.
-   ... '''.splitlines(1)
+   ... '''.splitlines(keepends=True)
    >>> len(text1)
    4
    >>> text1[0][-1]
@@ -657,7 +659,7 @@ obtained from the :meth:`readlines` method of file-like objects):
    ...   3.   Simple is better than complex.
    ...   4. Complicated is better than complex.
    ...   5. Flat is better than nested.
-   ... '''.splitlines(1)
+   ... '''.splitlines(keepends=True)
 
 Next we instantiate a Differ object:
 
@@ -752,8 +754,8 @@ It is also contained in the Python source distribution, as
        # we're passing these as arguments to the diff function
        fromdate = time.ctime(os.stat(fromfile).st_mtime)
        todate = time.ctime(os.stat(tofile).st_mtime)
-       fromlines = open(fromfile, 'U').readlines()
-       tolines = open(tofile, 'U').readlines()
+       with open(fromfile) as fromf, open(tofile) as tof:
+           fromlines, tolines = list(fromf), list(tof)
 
        if options.u:
            diff = difflib.unified_diff(fromlines, tolines, fromfile, tofile,

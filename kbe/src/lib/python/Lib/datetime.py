@@ -1,19 +1,7 @@
-"""Concrete date/time and related types -- prototype implemented in Python.
+"""Concrete date/time and related types.
 
-See http://www.zope.org/Members/fdrake/DateTimeWiki/FrontPage
-
-See also http://dir.yahoo.com/Reference/calendars/
-
-For a primer on DST, including many current DST rules, see
-http://webexhibits.org/daylightsaving/
-
-For more about DST than you ever wanted to know, see
-ftp://elsie.nci.nih.gov/pub/
-
-Sources for time zone and DST data: http://www.twinsun.com/tz/tz-link.htm
-
-This was originally copied from the sandbox of the CPython CVS repository.
-Thanks to Tim Peters for suggesting using it.
+See http://www.iana.org/time-zones/repository/tz-link.html for
+time zone and DST data sources.
 """
 
 import time as _time
@@ -35,9 +23,10 @@ _MAXORDINAL = 3652059 # date.max.toordinal()
 # for all computations.  See the book for algorithms for converting between
 # proleptic Gregorian ordinals and many other calendar systems.
 
-_DAYS_IN_MONTH = [None, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+# -1 is a placeholder for indexing purposes.
+_DAYS_IN_MONTH = [-1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-_DAYS_BEFORE_MONTH = [None]
+_DAYS_BEFORE_MONTH = [-1] # -1 is a placeholder for indexing purposes.
 dbm = 0
 for dim in _DAYS_IN_MONTH[1:]:
     _DAYS_BEFORE_MONTH.append(dbm)
@@ -61,7 +50,7 @@ def _days_in_month(year, month):
     return _DAYS_IN_MONTH[month]
 
 def _days_before_month(year, month):
-    "year, month -> number of days in year preceeding first day of month."
+    "year, month -> number of days in year preceding first day of month."
     assert 1 <= month <= 12, 'month must be in 1..12'
     return _DAYS_BEFORE_MONTH[month] + (month > 2 and _is_leap(year))
 
@@ -172,10 +161,6 @@ def _format_time(hh, mm, ss, us):
 
 # Correctly substitute for %z and %Z escapes in strftime formats.
 def _wrap_strftime(object, format, timetuple):
-    year = timetuple[0]
-    if year < 1000:
-        raise ValueError("year=%d is before 1000; the datetime strftime() "
-                         "methods require year >= 1000" % year)
     # Don't call utcoffset() or tzname() unless actually needed.
     freplace = None # the string to use for %f
     zreplace = None # the string to use for %z
@@ -303,7 +288,7 @@ class timedelta:
     - add, subtract timedelta
     - unary plus, minus, abs
     - compare to timedelta
-    - multiply, divide by int/long
+    - multiply, divide by int
 
     In addition, datetime supports subtraction of two datetime objects
     returning a timedelta, and addition or subtraction of a datetime
@@ -1069,13 +1054,13 @@ class time:
 
     def __eq__(self, other):
         if isinstance(other, time):
-            return self._cmp(other) == 0
+            return self._cmp(other, allow_mixed=True) == 0
         else:
             return False
 
     def __ne__(self, other):
         if isinstance(other, time):
-            return self._cmp(other) != 0
+            return self._cmp(other, allow_mixed=True) != 0
         else:
             return True
 
@@ -1103,7 +1088,7 @@ class time:
         else:
             _cmperror(self, other)
 
-    def _cmp(self, other):
+    def _cmp(self, other, allow_mixed=False):
         assert isinstance(other, time)
         mytz = self._tzinfo
         ottz = other._tzinfo
@@ -1122,7 +1107,10 @@ class time:
                        (other._hour, other._minute, other._second,
                         other._microsecond))
         if myoff is None or otoff is None:
-            raise TypeError("cannot compare naive and aware times")
+            if allow_mixed:
+                return 2 # arbitrary non-zero value
+            else:
+                raise TypeError("cannot compare naive and aware times")
         myhhmm = self._hour * 60 + self._minute - myoff//timedelta(minutes=1)
         othhmm = other._hour * 60 + other._minute - otoff//timedelta(minutes=1)
         return _cmp((myhhmm, self._second, self._microsecond),
@@ -1303,7 +1291,7 @@ class datetime(date):
     """datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
 
     The year, month and day arguments are required. tzinfo may be None, or an
-    instance of a tzinfo subclass. The remaining arguments may be ints or longs.
+    instance of a tzinfo subclass. The remaining arguments may be ints.
     """
 
     __slots__ = date.__slots__ + (
@@ -1364,7 +1352,7 @@ class datetime(date):
         converter = _time.localtime if tz is None else _time.gmtime
 
         t, frac = divmod(t, 1.0)
-        us = round(frac * 1e6)
+        us = int(frac * 1e6)
 
         # If timestamp is less than one microsecond smaller than a
         # full second, us can be rounded up to 1000000.  In this case,
@@ -1384,7 +1372,7 @@ class datetime(date):
     def utcfromtimestamp(cls, t):
         "Construct a UTC datetime from a POSIX timestamp (like time.time())."
         t, frac = divmod(t, 1.0)
-        us = round(frac * 1e6)
+        us = int(frac * 1e6)
 
         # If timestamp is less than one microsecond smaller than a
         # full second, us can be rounded up to 1000000.  In this case,
@@ -1438,6 +1426,15 @@ class datetime(date):
                                   self.hour, self.minute, self.second,
                                   dst)
 
+    def timestamp(self):
+        "Return POSIX timestamp as float"
+        if self._tzinfo is None:
+            return _time.mktime((self.year, self.month, self.day,
+                                 self.hour, self.minute, self.second,
+                                 -1, -1, -1)) + self.microsecond / 1e6
+        else:
+            return (self - _EPOCH).total_seconds()
+
     def utctimetuple(self):
         "Return UTC time tuple compatible with time.gmtime()."
         offset = self.utcoffset()
@@ -1485,8 +1482,32 @@ class datetime(date):
         return datetime(year, month, day, hour, minute, second,
                           microsecond, tzinfo)
 
-    def astimezone(self, tz):
-        if not isinstance(tz, tzinfo):
+    def astimezone(self, tz=None):
+        if tz is None:
+            if self.tzinfo is None:
+                raise ValueError("astimezone() requires an aware datetime")
+            ts = (self - _EPOCH) // timedelta(seconds=1)
+            localtm = _time.localtime(ts)
+            local = datetime(*localtm[:6])
+            try:
+                # Extract TZ data if available
+                gmtoff = localtm.tm_gmtoff
+                zone = localtm.tm_zone
+            except AttributeError:
+                # Compute UTC offset and compare with the value implied
+                # by tm_isdst.  If the values match, use the zone name
+                # implied by tm_isdst.
+                delta = local - datetime(*_time.gmtime(ts)[:6])
+                dst = _time.daylight and localtm.tm_isdst > 0
+                gmtoff = -(_time.altzone if dst else _time.timezone)
+                if delta == timedelta(seconds=gmtoff):
+                    tz = timezone(delta, _time.tzname[dst])
+                else:
+                    tz = timezone(delta)
+            else:
+                tz = timezone(timedelta(seconds=gmtoff), zone)
+
+        elif not isinstance(tz, tzinfo):
             raise TypeError("tz argument must be an instance of tzinfo")
 
         mytz = self.tzinfo
@@ -1610,7 +1631,7 @@ class datetime(date):
 
     def __eq__(self, other):
         if isinstance(other, datetime):
-            return self._cmp(other) == 0
+            return self._cmp(other, allow_mixed=True) == 0
         elif not isinstance(other, date):
             return NotImplemented
         else:
@@ -1618,7 +1639,7 @@ class datetime(date):
 
     def __ne__(self, other):
         if isinstance(other, datetime):
-            return self._cmp(other) != 0
+            return self._cmp(other, allow_mixed=True) != 0
         elif not isinstance(other, date):
             return NotImplemented
         else:
@@ -1656,7 +1677,7 @@ class datetime(date):
         else:
             _cmperror(self, other)
 
-    def _cmp(self, other):
+    def _cmp(self, other, allow_mixed=False):
         assert isinstance(other, datetime)
         mytz = self._tzinfo
         ottz = other._tzinfo
@@ -1665,10 +1686,8 @@ class datetime(date):
         if mytz is ottz:
             base_compare = True
         else:
-            if mytz is not None:
-                myoff = self.utcoffset()
-            if ottz is not None:
-                otoff = other.utcoffset()
+            myoff = self.utcoffset()
+            otoff = other.utcoffset()
             base_compare = myoff == otoff
 
         if base_compare:
@@ -1679,7 +1698,10 @@ class datetime(date):
                         other._hour, other._minute, other._second,
                         other._microsecond))
         if myoff is None or otoff is None:
-            raise TypeError("cannot compare naive and aware datetimes")
+            if allow_mixed:
+                return 2 # arbitrary non-zero value
+            else:
+                raise TypeError("cannot compare naive and aware datetimes")
         # XXX What follows could be done more efficiently...
         diff = self - other     # this will take offsets into account
         if diff.days < 0:
@@ -1895,204 +1917,204 @@ class timezone(tzinfo):
 timezone.utc = timezone._create(timedelta(0))
 timezone.min = timezone._create(timezone._minoffset)
 timezone.max = timezone._create(timezone._maxoffset)
+_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-"""
-Some time zone algebra.  For a datetime x, let
-    x.n = x stripped of its timezone -- its naive time.
-    x.o = x.utcoffset(), and assuming that doesn't raise an exception or
-          return None
-    x.d = x.dst(), and assuming that doesn't raise an exception or
-          return None
-    x.s = x's standard offset, x.o - x.d
+# Some time zone algebra.  For a datetime x, let
+#     x.n = x stripped of its timezone -- its naive time.
+#     x.o = x.utcoffset(), and assuming that doesn't raise an exception or
+#           return None
+#     x.d = x.dst(), and assuming that doesn't raise an exception or
+#           return None
+#     x.s = x's standard offset, x.o - x.d
+#
+# Now some derived rules, where k is a duration (timedelta).
+#
+# 1. x.o = x.s + x.d
+#    This follows from the definition of x.s.
+#
+# 2. If x and y have the same tzinfo member, x.s = y.s.
+#    This is actually a requirement, an assumption we need to make about
+#    sane tzinfo classes.
+#
+# 3. The naive UTC time corresponding to x is x.n - x.o.
+#    This is again a requirement for a sane tzinfo class.
+#
+# 4. (x+k).s = x.s
+#    This follows from #2, and that datimetimetz+timedelta preserves tzinfo.
+#
+# 5. (x+k).n = x.n + k
+#    Again follows from how arithmetic is defined.
+#
+# Now we can explain tz.fromutc(x).  Let's assume it's an interesting case
+# (meaning that the various tzinfo methods exist, and don't blow up or return
+# None when called).
+#
+# The function wants to return a datetime y with timezone tz, equivalent to x.
+# x is already in UTC.
+#
+# By #3, we want
+#
+#     y.n - y.o = x.n                             [1]
+#
+# The algorithm starts by attaching tz to x.n, and calling that y.  So
+# x.n = y.n at the start.  Then it wants to add a duration k to y, so that [1]
+# becomes true; in effect, we want to solve [2] for k:
+#
+#    (y+k).n - (y+k).o = x.n                      [2]
+#
+# By #1, this is the same as
+#
+#    (y+k).n - ((y+k).s + (y+k).d) = x.n          [3]
+#
+# By #5, (y+k).n = y.n + k, which equals x.n + k because x.n=y.n at the start.
+# Substituting that into [3],
+#
+#    x.n + k - (y+k).s - (y+k).d = x.n; the x.n terms cancel, leaving
+#    k - (y+k).s - (y+k).d = 0; rearranging,
+#    k = (y+k).s - (y+k).d; by #4, (y+k).s == y.s, so
+#    k = y.s - (y+k).d
+#
+# On the RHS, (y+k).d can't be computed directly, but y.s can be, and we
+# approximate k by ignoring the (y+k).d term at first.  Note that k can't be
+# very large, since all offset-returning methods return a duration of magnitude
+# less than 24 hours.  For that reason, if y is firmly in std time, (y+k).d must
+# be 0, so ignoring it has no consequence then.
+#
+# In any case, the new value is
+#
+#     z = y + y.s                                 [4]
+#
+# It's helpful to step back at look at [4] from a higher level:  it's simply
+# mapping from UTC to tz's standard time.
+#
+# At this point, if
+#
+#     z.n - z.o = x.n                             [5]
+#
+# we have an equivalent time, and are almost done.  The insecurity here is
+# at the start of daylight time.  Picture US Eastern for concreteness.  The wall
+# time jumps from 1:59 to 3:00, and wall hours of the form 2:MM don't make good
+# sense then.  The docs ask that an Eastern tzinfo class consider such a time to
+# be EDT (because it's "after 2"), which is a redundant spelling of 1:MM EST
+# on the day DST starts.  We want to return the 1:MM EST spelling because that's
+# the only spelling that makes sense on the local wall clock.
+#
+# In fact, if [5] holds at this point, we do have the standard-time spelling,
+# but that takes a bit of proof.  We first prove a stronger result.  What's the
+# difference between the LHS and RHS of [5]?  Let
+#
+#     diff = x.n - (z.n - z.o)                    [6]
+#
+# Now
+#     z.n =                       by [4]
+#     (y + y.s).n =               by #5
+#     y.n + y.s =                 since y.n = x.n
+#     x.n + y.s =                 since z and y are have the same tzinfo member,
+#                                     y.s = z.s by #2
+#     x.n + z.s
+#
+# Plugging that back into [6] gives
+#
+#     diff =
+#     x.n - ((x.n + z.s) - z.o) =     expanding
+#     x.n - x.n - z.s + z.o =         cancelling
+#     - z.s + z.o =                   by #2
+#     z.d
+#
+# So diff = z.d.
+#
+# If [5] is true now, diff = 0, so z.d = 0 too, and we have the standard-time
+# spelling we wanted in the endcase described above.  We're done.  Contrarily,
+# if z.d = 0, then we have a UTC equivalent, and are also done.
+#
+# If [5] is not true now, diff = z.d != 0, and z.d is the offset we need to
+# add to z (in effect, z is in tz's standard time, and we need to shift the
+# local clock into tz's daylight time).
+#
+# Let
+#
+#     z' = z + z.d = z + diff                     [7]
+#
+# and we can again ask whether
+#
+#     z'.n - z'.o = x.n                           [8]
+#
+# If so, we're done.  If not, the tzinfo class is insane, according to the
+# assumptions we've made.  This also requires a bit of proof.  As before, let's
+# compute the difference between the LHS and RHS of [8] (and skipping some of
+# the justifications for the kinds of substitutions we've done several times
+# already):
+#
+#     diff' = x.n - (z'.n - z'.o) =           replacing z'.n via [7]
+#             x.n  - (z.n + diff - z'.o) =    replacing diff via [6]
+#             x.n - (z.n + x.n - (z.n - z.o) - z'.o) =
+#             x.n - z.n - x.n + z.n - z.o + z'.o =    cancel x.n
+#             - z.n + z.n - z.o + z'.o =              cancel z.n
+#             - z.o + z'.o =                      #1 twice
+#             -z.s - z.d + z'.s + z'.d =          z and z' have same tzinfo
+#             z'.d - z.d
+#
+# So z' is UTC-equivalent to x iff z'.d = z.d at this point.  If they are equal,
+# we've found the UTC-equivalent so are done.  In fact, we stop with [7] and
+# return z', not bothering to compute z'.d.
+#
+# How could z.d and z'd differ?  z' = z + z.d [7], so merely moving z' by
+# a dst() offset, and starting *from* a time already in DST (we know z.d != 0),
+# would have to change the result dst() returns:  we start in DST, and moving
+# a little further into it takes us out of DST.
+#
+# There isn't a sane case where this can happen.  The closest it gets is at
+# the end of DST, where there's an hour in UTC with no spelling in a hybrid
+# tzinfo class.  In US Eastern, that's 5:MM UTC = 0:MM EST = 1:MM EDT.  During
+# that hour, on an Eastern clock 1:MM is taken as being in standard time (6:MM
+# UTC) because the docs insist on that, but 0:MM is taken as being in daylight
+# time (4:MM UTC).  There is no local time mapping to 5:MM UTC.  The local
+# clock jumps from 1:59 back to 1:00 again, and repeats the 1:MM hour in
+# standard time.  Since that's what the local clock *does*, we want to map both
+# UTC hours 5:MM and 6:MM to 1:MM Eastern.  The result is ambiguous
+# in local time, but so it goes -- it's the way the local clock works.
+#
+# When x = 5:MM UTC is the input to this algorithm, x.o=0, y.o=-5 and y.d=0,
+# so z=0:MM.  z.d=60 (minutes) then, so [5] doesn't hold and we keep going.
+# z' = z + z.d = 1:MM then, and z'.d=0, and z'.d - z.d = -60 != 0 so [8]
+# (correctly) concludes that z' is not UTC-equivalent to x.
+#
+# Because we know z.d said z was in daylight time (else [5] would have held and
+# we would have stopped then), and we know z.d != z'.d (else [8] would have held
+# and we have stopped then), and there are only 2 possible values dst() can
+# return in Eastern, it follows that z'.d must be 0 (which it is in the example,
+# but the reasoning doesn't depend on the example -- it depends on there being
+# two possible dst() outcomes, one zero and the other non-zero).  Therefore
+# z' must be in standard time, and is the spelling we want in this case.
+#
+# Note again that z' is not UTC-equivalent as far as the hybrid tzinfo class is
+# concerned (because it takes z' as being in standard time rather than the
+# daylight time we intend here), but returning it gives the real-life "local
+# clock repeats an hour" behavior when mapping the "unspellable" UTC hour into
+# tz.
+#
+# When the input is 6:MM, z=1:MM and z.d=0, and we stop at once, again with
+# the 1:MM standard time spelling we want.
+#
+# So how can this break?  One of the assumptions must be violated.  Two
+# possibilities:
+#
+# 1) [2] effectively says that y.s is invariant across all y belong to a given
+#    time zone.  This isn't true if, for political reasons or continental drift,
+#    a region decides to change its base offset from UTC.
+#
+# 2) There may be versions of "double daylight" time where the tail end of
+#    the analysis gives up a step too early.  I haven't thought about that
+#    enough to say.
+#
+# In any case, it's clear that the default fromutc() is strong enough to handle
+# "almost all" time zones:  so long as the standard offset is invariant, it
+# doesn't matter if daylight time transition points change from year to year, or
+# if daylight time is skipped in some years; it doesn't matter how large or
+# small dst() may get within its bounds; and it doesn't even matter if some
+# perverse time zone returns a negative dst()).  So a breaking case must be
+# pretty bizarre, and a tzinfo subclass can override fromutc() if it is.
 
-Now some derived rules, where k is a duration (timedelta).
-
-1. x.o = x.s + x.d
-   This follows from the definition of x.s.
-
-2. If x and y have the same tzinfo member, x.s = y.s.
-   This is actually a requirement, an assumption we need to make about
-   sane tzinfo classes.
-
-3. The naive UTC time corresponding to x is x.n - x.o.
-   This is again a requirement for a sane tzinfo class.
-
-4. (x+k).s = x.s
-   This follows from #2, and that datimetimetz+timedelta preserves tzinfo.
-
-5. (x+k).n = x.n + k
-   Again follows from how arithmetic is defined.
-
-Now we can explain tz.fromutc(x).  Let's assume it's an interesting case
-(meaning that the various tzinfo methods exist, and don't blow up or return
-None when called).
-
-The function wants to return a datetime y with timezone tz, equivalent to x.
-x is already in UTC.
-
-By #3, we want
-
-    y.n - y.o = x.n                             [1]
-
-The algorithm starts by attaching tz to x.n, and calling that y.  So
-x.n = y.n at the start.  Then it wants to add a duration k to y, so that [1]
-becomes true; in effect, we want to solve [2] for k:
-
-   (y+k).n - (y+k).o = x.n                      [2]
-
-By #1, this is the same as
-
-   (y+k).n - ((y+k).s + (y+k).d) = x.n          [3]
-
-By #5, (y+k).n = y.n + k, which equals x.n + k because x.n=y.n at the start.
-Substituting that into [3],
-
-   x.n + k - (y+k).s - (y+k).d = x.n; the x.n terms cancel, leaving
-   k - (y+k).s - (y+k).d = 0; rearranging,
-   k = (y+k).s - (y+k).d; by #4, (y+k).s == y.s, so
-   k = y.s - (y+k).d
-
-On the RHS, (y+k).d can't be computed directly, but y.s can be, and we
-approximate k by ignoring the (y+k).d term at first.  Note that k can't be
-very large, since all offset-returning methods return a duration of magnitude
-less than 24 hours.  For that reason, if y is firmly in std time, (y+k).d must
-be 0, so ignoring it has no consequence then.
-
-In any case, the new value is
-
-    z = y + y.s                                 [4]
-
-It's helpful to step back at look at [4] from a higher level:  it's simply
-mapping from UTC to tz's standard time.
-
-At this point, if
-
-    z.n - z.o = x.n                             [5]
-
-we have an equivalent time, and are almost done.  The insecurity here is
-at the start of daylight time.  Picture US Eastern for concreteness.  The wall
-time jumps from 1:59 to 3:00, and wall hours of the form 2:MM don't make good
-sense then.  The docs ask that an Eastern tzinfo class consider such a time to
-be EDT (because it's "after 2"), which is a redundant spelling of 1:MM EST
-on the day DST starts.  We want to return the 1:MM EST spelling because that's
-the only spelling that makes sense on the local wall clock.
-
-In fact, if [5] holds at this point, we do have the standard-time spelling,
-but that takes a bit of proof.  We first prove a stronger result.  What's the
-difference between the LHS and RHS of [5]?  Let
-
-    diff = x.n - (z.n - z.o)                    [6]
-
-Now
-    z.n =                       by [4]
-    (y + y.s).n =               by #5
-    y.n + y.s =                 since y.n = x.n
-    x.n + y.s =                 since z and y are have the same tzinfo member,
-                                    y.s = z.s by #2
-    x.n + z.s
-
-Plugging that back into [6] gives
-
-    diff =
-    x.n - ((x.n + z.s) - z.o) =     expanding
-    x.n - x.n - z.s + z.o =         cancelling
-    - z.s + z.o =                   by #2
-    z.d
-
-So diff = z.d.
-
-If [5] is true now, diff = 0, so z.d = 0 too, and we have the standard-time
-spelling we wanted in the endcase described above.  We're done.  Contrarily,
-if z.d = 0, then we have a UTC equivalent, and are also done.
-
-If [5] is not true now, diff = z.d != 0, and z.d is the offset we need to
-add to z (in effect, z is in tz's standard time, and we need to shift the
-local clock into tz's daylight time).
-
-Let
-
-    z' = z + z.d = z + diff                     [7]
-
-and we can again ask whether
-
-    z'.n - z'.o = x.n                           [8]
-
-If so, we're done.  If not, the tzinfo class is insane, according to the
-assumptions we've made.  This also requires a bit of proof.  As before, let's
-compute the difference between the LHS and RHS of [8] (and skipping some of
-the justifications for the kinds of substitutions we've done several times
-already):
-
-    diff' = x.n - (z'.n - z'.o) =           replacing z'.n via [7]
-            x.n  - (z.n + diff - z'.o) =    replacing diff via [6]
-            x.n - (z.n + x.n - (z.n - z.o) - z'.o) =
-            x.n - z.n - x.n + z.n - z.o + z'.o =    cancel x.n
-            - z.n + z.n - z.o + z'.o =              cancel z.n
-            - z.o + z'.o =                      #1 twice
-            -z.s - z.d + z'.s + z'.d =          z and z' have same tzinfo
-            z'.d - z.d
-
-So z' is UTC-equivalent to x iff z'.d = z.d at this point.  If they are equal,
-we've found the UTC-equivalent so are done.  In fact, we stop with [7] and
-return z', not bothering to compute z'.d.
-
-How could z.d and z'd differ?  z' = z + z.d [7], so merely moving z' by
-a dst() offset, and starting *from* a time already in DST (we know z.d != 0),
-would have to change the result dst() returns:  we start in DST, and moving
-a little further into it takes us out of DST.
-
-There isn't a sane case where this can happen.  The closest it gets is at
-the end of DST, where there's an hour in UTC with no spelling in a hybrid
-tzinfo class.  In US Eastern, that's 5:MM UTC = 0:MM EST = 1:MM EDT.  During
-that hour, on an Eastern clock 1:MM is taken as being in standard time (6:MM
-UTC) because the docs insist on that, but 0:MM is taken as being in daylight
-time (4:MM UTC).  There is no local time mapping to 5:MM UTC.  The local
-clock jumps from 1:59 back to 1:00 again, and repeats the 1:MM hour in
-standard time.  Since that's what the local clock *does*, we want to map both
-UTC hours 5:MM and 6:MM to 1:MM Eastern.  The result is ambiguous
-in local time, but so it goes -- it's the way the local clock works.
-
-When x = 5:MM UTC is the input to this algorithm, x.o=0, y.o=-5 and y.d=0,
-so z=0:MM.  z.d=60 (minutes) then, so [5] doesn't hold and we keep going.
-z' = z + z.d = 1:MM then, and z'.d=0, and z'.d - z.d = -60 != 0 so [8]
-(correctly) concludes that z' is not UTC-equivalent to x.
-
-Because we know z.d said z was in daylight time (else [5] would have held and
-we would have stopped then), and we know z.d != z'.d (else [8] would have held
-and we have stopped then), and there are only 2 possible values dst() can
-return in Eastern, it follows that z'.d must be 0 (which it is in the example,
-but the reasoning doesn't depend on the example -- it depends on there being
-two possible dst() outcomes, one zero and the other non-zero).  Therefore
-z' must be in standard time, and is the spelling we want in this case.
-
-Note again that z' is not UTC-equivalent as far as the hybrid tzinfo class is
-concerned (because it takes z' as being in standard time rather than the
-daylight time we intend here), but returning it gives the real-life "local
-clock repeats an hour" behavior when mapping the "unspellable" UTC hour into
-tz.
-
-When the input is 6:MM, z=1:MM and z.d=0, and we stop at once, again with
-the 1:MM standard time spelling we want.
-
-So how can this break?  One of the assumptions must be violated.  Two
-possibilities:
-
-1) [2] effectively says that y.s is invariant across all y belong to a given
-   time zone.  This isn't true if, for political reasons or continental drift,
-   a region decides to change its base offset from UTC.
-
-2) There may be versions of "double daylight" time where the tail end of
-   the analysis gives up a step too early.  I haven't thought about that
-   enough to say.
-
-In any case, it's clear that the default fromutc() is strong enough to handle
-"almost all" time zones:  so long as the standard offset is invariant, it
-doesn't matter if daylight time transition points change from year to year, or
-if daylight time is skipped in some years; it doesn't matter how large or
-small dst() may get within its bounds; and it doesn't even matter if some
-perverse time zone returns a negative dst()).  So a breaking case must be
-pretty bizarre, and a tzinfo subclass can override fromutc() if it is.
-"""
 try:
     from _datetime import *
 except ImportError:

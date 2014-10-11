@@ -50,12 +50,12 @@ extern PyObject *_PyIncrementalNewlineDecoder_decode(
    `*consumed`.
    If not found, returns -1 and sets `*consumed` to the number of characters
    which can be safely put aside until another search.
-   
-   NOTE: for performance reasons, `end` must point to a NUL character ('\0'). 
+
+   NOTE: for performance reasons, `end` must point to a NUL character ('\0').
    Otherwise, the function will scan further and return garbage. */
 extern Py_ssize_t _PyIO_find_line_ending(
     int translated, int universal, PyObject *readnl,
-    Py_UNICODE *start, Py_UNICODE *end, Py_ssize_t *consumed);
+    int kind, char *start, char *end, Py_ssize_t *consumed);
 
 /* Return 1 if an EnvironmentError with errno == EINTR is set (and then
    clears the error indicator), 0 otherwise.
@@ -64,15 +64,6 @@ extern Py_ssize_t _PyIO_find_line_ending(
 extern int _PyIO_trap_eintr(void);
 
 #define DEFAULT_BUFFER_SIZE (8 * 1024)  /* bytes */
-
-typedef struct {
-    PyException_HEAD
-    PyObject *myerrno;
-    PyObject *strerror;
-    PyObject *filename; /* Not used, but part of the IOError object */
-    Py_ssize_t written;
-} PyBlockingIOErrorObject;
-extern PyObject *PyExc_BlockingIOError;
 
 /*
  * Offset type for positioning.
@@ -86,7 +77,7 @@ extern PyObject *PyExc_BlockingIOError;
    long with "%lld" even when both long and long long have the same
    precision. */
 
-#if defined(MS_WIN64) || defined(MS_WINDOWS)
+#ifdef MS_WINDOWS
 
 /* Windows uses long long for offsets */
 typedef PY_LONG_LONG Py_off_t;
@@ -138,14 +129,16 @@ extern PyModuleDef _PyIO_Module;
 
 typedef struct {
     int initialized;
-    PyObject *os_module;
     PyObject *locale_module;
 
     PyObject *unsupported_operation;
 } _PyIO_State;
 
 #define IO_MOD_STATE(mod) ((_PyIO_State *)PyModule_GetState(mod))
-#define IO_STATE IO_MOD_STATE(PyState_FindModule(&_PyIO_Module))
+#define IO_STATE() _PyIO_get_module_state()
+
+extern _PyIO_State *_PyIO_get_module_state(void);
+extern PyObject *_PyIO_get_locale_module(_PyIO_State *);
 
 extern PyObject *_PyIO_str_close;
 extern PyObject *_PyIO_str_closed;
@@ -160,6 +153,7 @@ extern PyObject *_PyIO_str_nl;
 extern PyObject *_PyIO_str_read;
 extern PyObject *_PyIO_str_read1;
 extern PyObject *_PyIO_str_readable;
+extern PyObject *_PyIO_str_readall;
 extern PyObject *_PyIO_str_readinto;
 extern PyObject *_PyIO_str_readline;
 extern PyObject *_PyIO_str_reset;

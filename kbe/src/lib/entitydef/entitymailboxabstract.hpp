@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ENTITY_MAILBOX_BASE_H__
-#define __ENTITY_MAILBOX_BASE_H__
+#ifndef KBE_ENTITY_MAILBOX_BASE_HPP
+#define KBE_ENTITY_MAILBOX_BASE_HPP
 	
 // common include	
 #include "cstdkbe/cstdkbe.hpp"
@@ -69,26 +69,31 @@ public:
 	/** 
 		获取entityID 
 	*/
-	INLINE ENTITY_ID getID()const;
+	INLINE ENTITY_ID id()const;
 
-	INLINE void setID(int id);
+	INLINE void id(int v);
 
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
 	/** 
 		获得组件ID 
 	*/
-	INLINE COMPONENT_ID getComponentID(void)const;
+	INLINE COMPONENT_ID componentID(void)const;
+
+	/** 
+		设置组件的ID 
+	*/
+	INLINE void componentID(COMPONENT_ID cid);
 
 	/** 
 		获得utype 
 	*/
-	INLINE ENTITY_SCRIPT_UID getUType(void)const;
+	INLINE ENTITY_SCRIPT_UID utype(void)const;
 
 	/** 
 		获得type 
 	*/
-	INLINE ENTITY_MAILBOX_TYPE getType(void)const;
+	INLINE ENTITY_MAILBOX_TYPE type(void)const;
 
 	/** 
 		支持pickler 方法 
@@ -124,4 +129,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entitymailboxabstract.ipp"
 #endif
-#endif
+#endif // KBE_ENTITY_MAILBOX_BASE_HPP

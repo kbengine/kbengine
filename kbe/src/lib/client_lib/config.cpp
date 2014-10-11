@@ -24,9 +24,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
 #include "entitydef/entitydef.hpp"
+#include "server/serverconfig.hpp"
+#include "cstdkbe/kbeversion.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
+
+ServerConfig g_ServerConfig;
 
 //-------------------------------------------------------------------------------------
 Config::Config():
@@ -58,8 +62,8 @@ bool Config::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::loadConfig: load %1% is failed!\n") %
-			fileName.c_str());
+		ERROR_MSG(fmt::format("Config::loadConfig: load {} is failed!\n",
+			fileName.c_str()));
 
 		SAFE_RELEASE(xml);
 		return false;
@@ -107,13 +111,23 @@ bool Config::loadConfig(std::string fileName)
 	{
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
-
-	rootNode = xml->getRootNode("app_publish");
+	
+	rootNode = xml->getRootNode("publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode);
+		TiXmlNode* childnode = xml->enterNode(rootNode, "state");
+		if(childnode)
+		{
+			g_appPublish = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "script_version");
+		if(childnode)
+		{
+			KBEVersion::setScriptVersion(xml->getValStr(childnode));
+		}
 	}
-	
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
@@ -300,8 +314,8 @@ void Config::writeAccountName(const char* name)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::writeAccountName: load %1% is failed!\n") %
-			fileName_.c_str());
+		ERROR_MSG(fmt::format("Config::writeAccountName: load {} is failed!\n",
+			fileName_.c_str()));
 
 		SAFE_RELEASE(xml);
 		return;

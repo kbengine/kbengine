@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __CLIENT_APP_H__
-#define __CLIENT_APP_H__
+#ifndef KBE_CLIENT_APP_HPP
+#define KBE_CLIENT_APP_HPP
 
 #include "clientobjectbase.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -109,13 +109,11 @@ public:
 	bool login(std::string accountName, std::string passwd, 
 		std::string ip, KBEngine::uint32 port);
 
-	GAME_TIME time() const { return time_; }
-	Timers & timers() { return timers_; }
+	GAME_TIME time() const { return g_kbetime; }
 	double gameTimeInSeconds() const;
-	void handleTimers();
 
-	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
+	Mercury::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Mercury::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
@@ -127,6 +125,8 @@ public:
 	static PyObject* __py_getPlayer(PyObject* self, PyObject* args);
 	static PyObject* __py_fireEvent(PyObject* self, PyObject* args);
 
+	virtual void onServerClosed();
+
 	/**
 		设置脚本输出类型前缀
 	*/
@@ -135,13 +135,19 @@ public:
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+		const std::string& scriptVerInfo, const std::string& protocolMD5, 
+		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		和服务端的版本不匹配
 	*/
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		和服务端的脚本层版本不匹配
+	*/
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录成功
@@ -150,6 +156,28 @@ public:
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
+
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
+	/** 网络接口
+	   重登陆baseapp成功
+	*/
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+
 	virtual void onTargetChanged();
 
 	/** 
@@ -157,9 +185,34 @@ public:
 	*/
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
 
-	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args){
-		
+	static PyObject* __py_GetSpaceData(PyObject *self, PyObject* args)
+	{
 		return ClientObjectBase::__py_GetSpaceData(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_callback(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_callback(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_cancelCallback(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_cancelCallback(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_getWatcher(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_getWatcher(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_getWatcherDir(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_getWatcherDir(&ClientApp::getSingleton(), args);	
+	}
+
+	static PyObject* __py_disconnect(PyObject *self, PyObject* args)
+	{
+		return ClientObjectBase::__py_disconnect(&ClientApp::getSingleton(), args);	
 	}
 protected:
 	KBEngine::script::Script*								pScript_;
@@ -177,9 +230,6 @@ protected:
 	
 	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
 	Mercury::BlowfishFilter*								pBlowfishFilter_;
-
-	GAME_TIME												time_;
-	Timers													timers_;
 
 	// 线程池
 	thread::ThreadPool										threadPool_;

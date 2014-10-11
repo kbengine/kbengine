@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #else
 #include <tchar.h>
+#include <direct.h>
 #endif
 
 namespace KBEngine{
@@ -64,28 +65,31 @@ bool Resmgr::initializeWatcher()
 }
 
 //-------------------------------------------------------------------------------------
-bool Resmgr::initialize()
+void Resmgr::autoSetPaths()
 {
-	//if(isInit())
-	//	return true;
-
-	// 获取引擎环境配置
-	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
-	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
-	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
-
-	//kb_env_.root				= "/home/kbe/kbengine/";
-	//kb_env_.res_path			= "/home/kbe/kbengine/kbe/res/;/home/kbe/kbengine/demo/;/home/kbe/kbengine/demo/res/"; 
-	//kb_env_.hybrid_path		= "/home/kbe/kbengine/kbe/bin/Hybrid/"; 
+	char path[MAX_BUF];
+	char* ret = getcwd(path, MAX_BUF);
+	if(ret == NULL)
+		return;
 	
-	if(kb_env_.res_path.size() == 0 || kb_env_.root.size() == 0)
-	{
-		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
-#if KBE_PLATFORM == PLATFORM_WIN32
-		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
-#endif
-	}
+	std::string s = path;
+	size_t pos1;
 
+	pos1 = s.find("\\kbe\\bin\\");
+	if(pos1 == std::string::npos)
+		pos1 = s.find("/kbe/bin/");
+
+	if(pos1 == std::string::npos)
+		return;
+
+	s = s.substr(0, pos1 + 1);
+	kb_env_.root = s;
+	kb_env_.res_path = kb_env_.root + "kbe/res/;" + kb_env_.root + "/demo/;" + kb_env_.root + "/demo/res/";
+}
+
+//-------------------------------------------------------------------------------------
+void Resmgr::updatePaths()
+{
 	char ch;
 	
 	if(kb_env_.root.size() > 0)
@@ -142,6 +146,35 @@ bool Resmgr::initialize()
 
 	if(kb_env_.res_path.size() > 0)
 		kb_env_.res_path.erase(kb_env_.res_path.size() - 1);
+}
+
+//-------------------------------------------------------------------------------------
+bool Resmgr::initialize()
+{
+	//if(isInit())
+	//	return true;
+
+	// 获取引擎环境配置
+	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
+	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
+	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
+
+	//kb_env_.root				= "/home/kbengine/";
+	//kb_env_.res_path			= "/home/kbengine/kbe/res/;/home/kbengine/demo/;/home/kbengine/demo/res/"; 
+	//kb_env_.hybrid_path		= "/home/kbengine/kbe/bin/Hybrid/"; 
+	updatePaths();
+
+	if(kb_env_.root == "" || kb_env_.res_path == "")
+		autoSetPaths();
+
+	updatePaths();
+	if(getPySysResPath() == "" || getPyUserResPath() == "")
+	{
+		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
+#if KBE_PLATFORM == PLATFORM_WIN32
+		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+#endif
+	}
 
 	isInit_ = true;
 
@@ -150,11 +183,11 @@ bool Resmgr::initialize()
 }
 
 //-------------------------------------------------------------------------------------
-void Resmgr::pirnt(void)
+void Resmgr::print(void)
 {
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_ROOT=%1%\n") % kb_env_.root.c_str());
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_RES_PATH=%1%\n") % kb_env_.res_path.c_str());
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_HYBRID_PATH=%1%\n") % kb_env_.hybrid_path.c_str());
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_ROOT={0}\n", kb_env_.root));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_RES_PATH={0}\n", kb_env_.res_path));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_HYBRID_PATH={0}\n", kb_env_.hybrid_path));
 }
 
 //-------------------------------------------------------------------------------------
@@ -258,7 +291,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 	dir = opendir(pathstr);
 	if(dir == NULL)
 	{
-		ERROR_MSG(boost::format("Resmgr::listPathRes: open dir [%1%] error!\n") % pathstr);
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", pathstr));
 		return false;
 	}
 
@@ -323,7 +356,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 	if(INVALID_HANDLE_VALUE == hFind)
 	{
 		char* cstr = strutil::wchar2char(path.c_str());
-		ERROR_MSG(boost::format("Resmgr::listPathRes: open dir [%1%] error!\n") % cstr);
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", cstr));
 		free(cstr);
 		return false;
 	}

@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_MOVETOPOINTCONTROLLER_HPP__
-#define __KBE_MOVETOPOINTCONTROLLER_HPP__
+#ifndef KBE_MOVETOPOINTCONTROLLERBASE_HPP
+#define KBE_MOVETOPOINTCONTROLLERBASE_HPP
 
 #include "controller.hpp"
 #include "updatable.hpp"
-#include "movetopoint_handler.hpp"
+#include "moveto_point_handler.hpp"
 #include "pyscript/scriptobject.hpp"	
 
 namespace KBEngine{
@@ -31,15 +31,19 @@ namespace KBEngine{
 class MoveController : public Controller
 {
 public:
-	MoveController(Controller::ControllerType type, Entity* pEntity, MoveToPointHandler* pMoveToPointHandler = NULL, uint32 id = 0);
+	MoveController(Entity* pEntity, MoveToPointHandler* pMoveToPointHandler = NULL, uint32 id = 0);
 	virtual ~MoveController();
 	
 	void pMoveToPointHandler(MoveToPointHandler* pMoveToPointHandler)
 		{ pMoveToPointHandler_ = pMoveToPointHandler; }
+
+
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	MoveToPointHandler* pMoveToPointHandler_;
 };
  
 }
-#endif // __KBE_MOVETOPOINTCONTROLLER_HPP__
+#endif // KBE_MOVETOPOINTCONTROLLERBASE_HPP
 

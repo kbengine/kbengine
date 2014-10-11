@@ -54,7 +54,9 @@ direction8_(navTileHandle.direction8_)
 //-------------------------------------------------------------------------------------
 NavTileHandle::~NavTileHandle()
 {
-	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(%2%, pTilemap=%3%): (%1%) is destroyed!\n") % name % this % pTilemap);
+	DEBUG_MSG(fmt::format("NavTileHandle::~NavTileHandle({1:p}, pTilemap={2:p}): ({0}) is destroyed!\n", 
+		name, (void*)this, (void*)pTilemap));
+	
 	SAFE_RELEASE(pTilemap);
 }
 
@@ -66,7 +68,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
 	{
-		ERROR_MSG(boost::format("NavTileHandle::findStraightPath: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavTileHandle::findStraightPath: not found layer({})\n", layer));
 		return NAV_ERROR;
 	}
 
@@ -78,8 +80,8 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	nodeGoal.x = int(end.x / pTilemap->GetTileWidth());				
 	nodeGoal.y = int(end.z / pTilemap->GetTileHeight()); 
 
-	//DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: start(%1%, %2%), end(%3%, %4%)\n") % 
-	//	nodeStart.x % nodeStart.y % nodeGoal.x % nodeGoal.y);
+	//DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: start({}, {}), end({}, {})\n", 
+	//	nodeStart.x, nodeStart.y, nodeGoal.x, nodeGoal.y));
 
 	// Set Start and goal states
 	astarsearch.SetStartAndGoalStates(nodeStart, nodeGoal);
@@ -95,7 +97,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 #if DEBUG_LISTS
 
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Steps: %1%\n") % SearchSteps);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Steps: {}\n", SearchSteps));
 
 		int len = 0;
 
@@ -111,7 +113,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			
 		}
 		
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Open list has %1% nodes\n") % len);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Open list has {} nodes\n", len));
 
 		len = 0;
 
@@ -126,7 +128,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			p = astarsearch.GetClosedListNext();
 		}
 
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Closed list has %1% nodes\n") % len);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Closed list has {} nodes\n", len));
 #endif
 
 	}
@@ -154,7 +156,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
 
-		// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Solution steps %1%\n") % steps);
+		// DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Solution steps {}\n", steps));
 		// Once you're done with the solution you can free the nodes up
 		astarsearch.FreeSolutionNodes();
 	}
@@ -164,113 +166,10 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	}
 
 	// Display the number of loops the search went through
-	// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: SearchSteps: %1%\n") % SearchSteps);
+	// DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: SearchSteps: {}\n", SearchSteps));
 	astarsearch.EnsureMemoryFreed();
 
 	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-void NavTileHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state)
-{
-	setMapLayer(layer);
-	pCurrNavTileHandle = this;
-
-	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
-	{
-		ERROR_MSG(boost::format("NavTileHandle::onPassedNode: not found layer(%1%)\n") %  layer);
-		return;
-	}
-
-	MapSearchNode nodeOld;
-	nodeOld.x = int(oldPos.x / pTilemap->GetTileWidth());
-	nodeOld.y = int(oldPos.z / pTilemap->GetTileHeight()); 
-
-	MapSearchNode nodeNew;
-	nodeNew.x = int(newPos.x / pTilemap->GetTileWidth());				
-	nodeNew.y = int(newPos.z / pTilemap->GetTileHeight()); 
-
-	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
-
-	
-	if(nodeOld.x != nodeNew.x || nodeOld.y != nodeNew.y)
-	{
-		if(pCurrNavTileHandle->validTile(nodeOld.x, nodeOld.y))
-		{
-			Tmx::MapTile& oldMapTile = pLayer->GetTile(nodeOld.x, nodeOld.y);
-			oldMapTile.delObj(entityID);
-
-			//DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: leave[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
-			//	entityID % nodeOld.x % nodeOld.y % layer % oldMapTile.objs.size());
-		}
-	}
-
-	if(pCurrNavTileHandle->validTile(nodeNew.x, nodeNew.y))
-	{
-		Tmx::MapTile& newMapTile = pLayer->GetTile(nodeNew.x, nodeNew.y);
-		newMapTile.addObj(entityID, g_kbetime);
-
-		//DEBUG_MSG(boost::format("NavTileHandle::onPassedNode: enter[entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%].\n") % 
-		//	entityID % nodeNew.x % nodeNew.y % layer % newMapTile.objs.size());
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void NavTileHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-	setMapLayer(layer);
-	pCurrNavTileHandle = this;
-
-	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
-
-	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
-	{
-		ERROR_MSG(boost::format("NavTileHandle::onEnterObject: not found layer(%1%)\n") %  layer);
-		return;
-	}
-
-	MapSearchNode node;
-	node.x = int(currPos.x / pTilemap->GetTileWidth());
-	node.y = int(currPos.z / pTilemap->GetTileHeight()); 
-
-	if(pCurrNavTileHandle->validTile(node.x, node.y))
-	{
-		Tmx::MapTile& mapTile = pLayer->GetTile(node.x, node.y);
-
-		mapTile.addObj(entityID, g_kbetime);
-
-		//DEBUG_MSG(boost::format("NavTileHandle::onEnterObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
-		//	entityID % node.x % node.y % layer % mapTile.objs.size());
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void NavTileHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-	setMapLayer(layer);
-	pCurrNavTileHandle = this;
-
-	Tmx::Layer * pLayer = pCurrNavTileHandle->pTilemap->GetLayer(layer);
-
-	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
-	{
-		ERROR_MSG(boost::format("NavTileHandle::onLeaveObject: not found layer(%1%)\n") %  layer);
-		return;
-	}
-
-	MapSearchNode node;
-	node.x = int(currPos.x / pTilemap->GetTileWidth());
-	node.y = int(currPos.z / pTilemap->GetTileHeight()); 
-
-	if(pCurrNavTileHandle->validTile(node.x, node.y))
-	{
-		Tmx::MapTile& mapTile = pLayer->GetTile(node.x, node.y);
-
-		//DEBUG_MSG(boost::format("NavTileHandle::onLeaveObject: entity(%1%), x=%2%, y=%3%, layer=%4%, objs=%5%.\n") % 
-		//	entityID % node.x % node.y % layer % mapTile.objs.size());
-
-		mapTile.delObj(entityID);
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -336,7 +235,7 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 
 	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
 	{
-		ERROR_MSG(boost::format("NavTileHandle::raycast: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavTileHandle::raycast: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
@@ -383,37 +282,37 @@ NavigationHandle* NavTileHandle::create(std::string name)
 
 	if (map->HasError()) 
 	{
-		ERROR_MSG(boost::format("NavTileHandle::create: open(%1%) is error!\n") % path);
+		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) is error!\n", path));
 		delete map;
 		return NULL;
 	}
 	
 	bool mapdir = map->GetProperties().HasProperty("direction8");
 
-	DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
-	DEBUG_MSG(boost::format("\t==> map Width : %1%\n") % map->GetWidth());
-	DEBUG_MSG(boost::format("\t==> map Height : %1%\n") % map->GetHeight());
-	DEBUG_MSG(boost::format("\t==> tile Width : %1% px\n") % map->GetTileWidth());
-	DEBUG_MSG(boost::format("\t==> tile Height : %1% px\n") % map->GetTileHeight());
-	DEBUG_MSG(boost::format("\t==> findpath direction : %1%\n") % (mapdir ? 8 : 4));
+	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", name));
+	DEBUG_MSG(fmt::format("\t==> map Width : {}\n", map->GetWidth()));
+	DEBUG_MSG(fmt::format("\t==> map Height : {}\n", map->GetHeight()));
+	DEBUG_MSG(fmt::format("\t==> tile Width : {} px\n", map->GetTileWidth()));
+	DEBUG_MSG(fmt::format("\t==> tile Height : {} px\n", map->GetTileHeight()));
+	DEBUG_MSG(fmt::format("\t==> findpath direction : {}\n", (mapdir ? 8 : 4)));
 
 	// Iterate through the tilesets.
 	for (int i = 0; i < map->GetNumTilesets(); ++i) {
 
-		DEBUG_MSG(boost::format("\t==> tileset %02d\n") % i);
+		DEBUG_MSG(fmt::format("\t==> tileset {:02d}\n", i));
 
 		// Get a tileset.
 		const Tmx::Tileset *tileset = map->GetTileset(i);
 
 		// Print tileset information.
-		DEBUG_MSG(boost::format("\t==> name : %1%\n") % tileset->GetName());
-		DEBUG_MSG(boost::format("\t==> margin : %1%\n") % tileset->GetMargin());
-		DEBUG_MSG(boost::format("\t==> spacing : %1%\n") % tileset->GetSpacing());
-		DEBUG_MSG(boost::format("\t==> image Width : %1%\n") % tileset->GetImage()->GetWidth());
-		DEBUG_MSG(boost::format("\t==> image Height : %1%\n") % tileset->GetImage()->GetHeight());
-		DEBUG_MSG(boost::format("\t==> image Source : %1%\n") % tileset->GetImage()->GetSource().c_str());
-		DEBUG_MSG(boost::format("\t==> transparent Color (hex) : %1%\n") % tileset->GetImage()->GetTransparentColor());
-		DEBUG_MSG(boost::format("\t==> tiles Size : %1%\n") % tileset->GetTiles().size());
+		DEBUG_MSG(fmt::format("\t==> name : {}\n", tileset->GetName()));
+		DEBUG_MSG(fmt::format("\t==> margin : {}\n", tileset->GetMargin()));
+		DEBUG_MSG(fmt::format("\t==> spacing : {}\n", tileset->GetSpacing()));
+		DEBUG_MSG(fmt::format("\t==> image Width : {}\n", tileset->GetImage()->GetWidth()));
+		DEBUG_MSG(fmt::format("\t==> image Height : {}\n", tileset->GetImage()->GetHeight()));
+		DEBUG_MSG(fmt::format("\t==> image Source : {}\n", tileset->GetImage()->GetSource().c_str()));
+		DEBUG_MSG(fmt::format("\t==> transparent Color (hex) : {}\n", tileset->GetImage()->GetTransparentColor()));
+		DEBUG_MSG(fmt::format("\t==> tiles Size : {}\n", tileset->GetTiles().size()));
 		if (tileset->GetTiles().size() > 0) 
 		{
 			// Get a tile from the tileset.
@@ -423,7 +322,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 			std::map< std::string, std::string > list = tile->GetProperties().GetList();
 			std::map< std::string, std::string >::iterator iter;
 			for (iter = list.begin(); iter != list.end(); ++iter) {
-				DEBUG_MSG(boost::format("\t==> property: %1% : %2%\n") % iter->first.c_str() % iter->second.c_str());
+				DEBUG_MSG(fmt::format("\t==> property: {} : {}\n", iter->first.c_str(), iter->second.c_str()));
 			}
 		}
 	}
@@ -456,26 +355,7 @@ int NavTileHandle::getMap(int x, int y)
 
 	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
 	
-	// 如果是起始点或者是目的地上已经有对象占有了， 我们仍然让astar能够起作用
-	// 至于是否能够移动可以交给其他层进行判定， 如在移动途中前方tile被占是否要重新寻路还是采用另一种算法绕开
-	// 还是停止
-	if((x != nodeStart.x || nodeStart.y != y) && (x != nodeGoal.x || nodeGoal.y != y))
-	{
-		if(mapTile.minTime > 3)
-			return TILE_STATE_CLOSED;	
-	}
-
 	return (int)mapTile.id;
-}
-
-//-------------------------------------------------------------------------------------
-bool NavTileHandle::hasMapObj(int x, int y)
-{
-	if(!validTile(x, y))
-		return false;	 
-
-	Tmx::MapTile& mapTile = pTilemap->GetLayer(currentLayer)->GetTile(x, y);
-	return mapTile.minTime > 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -498,8 +378,9 @@ bool NavTileHandle::MapSearchNode::IsSameState(MapSearchNode &rhs)
 void NavTileHandle::MapSearchNode::PrintNodeInfo()
 {
 	char str[100];
-	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", x,y );
-
+	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", 
+		x, y);
+	
 	DEBUG_MSG(str);
 }
 

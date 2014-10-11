@@ -4,6 +4,7 @@
 
 import test.support, unittest
 import os
+import shutil
 import sys
 import subprocess
 import tempfile
@@ -32,12 +33,6 @@ class CmdLineTest(unittest.TestCase):
         self.verify_valid_flag('-O')
         self.verify_valid_flag('-OO')
 
-    def test_q(self):
-        self.verify_valid_flag('-Qold')
-        self.verify_valid_flag('-Qnew')
-        self.verify_valid_flag('-Qwarn')
-        self.verify_valid_flag('-Qwarnall')
-
     def test_site_flag(self):
         self.verify_valid_flag('-S')
 
@@ -47,8 +42,10 @@ class CmdLineTest(unittest.TestCase):
 
     def test_version(self):
         version = ('Python %d.%d' % sys.version_info[:2]).encode("ascii")
-        rc, out, err = assert_python_ok('-V')
-        self.assertTrue(err.startswith(version))
+        for switch in '-V', '--version':
+            rc, out, err = assert_python_ok(switch)
+            self.assertFalse(err.startswith(version))
+            self.assertTrue(out.startswith(version))
 
     def test_verbose(self):
         # -v causes imports to write to stderr.  If the write to
@@ -60,13 +57,48 @@ class CmdLineTest(unittest.TestCase):
         self.assertNotIn(b'stack overflow', err)
 
     def test_xoptions(self):
-        rc, out, err = assert_python_ok('-c', 'import sys; print(sys._xoptions)')
-        opts = eval(out.splitlines()[0])
+        def get_xoptions(*args):
+            # use subprocess module directly because test.script_helper adds
+            # "-X faulthandler" to the command line
+            args = (sys.executable, '-E') + args
+            args += ('-c', 'import sys; print(sys._xoptions)')
+            out = subprocess.check_output(args)
+            opts = eval(out.splitlines()[0])
+            return opts
+
+        opts = get_xoptions()
         self.assertEqual(opts, {})
-        rc, out, err = assert_python_ok(
-            '-Xa', '-Xb=c,d=e', '-c', 'import sys; print(sys._xoptions)')
-        opts = eval(out.splitlines()[0])
+
+        opts = get_xoptions('-Xa', '-Xb=c,d=e')
         self.assertEqual(opts, {'a': True, 'b': 'c,d=e'})
+
+    def test_showrefcount(self):
+        def run_python(*args):
+            # this is similar to assert_python_ok but doesn't strip
+            # the refcount from stderr.  It can be replaced once
+            # assert_python_ok stops doing that.
+            cmd = [sys.executable]
+            cmd.extend(args)
+            PIPE = subprocess.PIPE
+            p = subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE)
+            out, err = p.communicate()
+            p.stdout.close()
+            p.stderr.close()
+            rc = p.returncode
+            self.assertEqual(rc, 0)
+            return rc, out, err
+        code = 'import sys; print(sys._xoptions)'
+        # normally the refcount is hidden
+        rc, out, err = run_python('-c', code)
+        self.assertEqual(out.rstrip(), b'{}')
+        self.assertEqual(err, b'')
+        # "-X showrefcount" shows the refcount, but only in debug builds
+        rc, out, err = run_python('-X', 'showrefcount', '-c', code)
+        self.assertEqual(out.rstrip(), b"{'showrefcount': True}")
+        if hasattr(sys, 'gettotalrefcount'):  # debug build
+            self.assertRegex(err, br'^\[\d+ refs, \d+ blocks\]')
+        else:
+            self.assertEqual(err, b'')
 
     def test_run_module(self):
         # Test expected operation of the '-m' switch
@@ -76,9 +108,9 @@ class CmdLineTest(unittest.TestCase):
         assert_python_failure('-m', 'fnord43520xyz')
         # Check the runpy module also gives an error for
         # a nonexistent module
-        assert_python_failure('-m', 'runpy', 'fnord43520xyz'),
+        assert_python_failure('-m', 'runpy', 'fnord43520xyz')
         # All good if module is located and run successfully
-        assert_python_ok('-m', 'timeit', '-n', '1'),
+        assert_python_ok('-m', 'timeit', '-n', '1')
 
     def test_run_module_bug1764407(self):
         # -m and -i need to play well together
@@ -148,7 +180,7 @@ class CmdLineTest(unittest.TestCase):
     @unittest.skipUnless(sys.platform == 'darwin', 'test specific to Mac OS X')
     def test_osx_utf8(self):
         def check_output(text):
-            decoded = text.decode('utf8', 'surrogateescape')
+            decoded = text.decode('utf-8', 'surrogateescape')
             expected = ascii(decoded).encode('ascii') + b'\n'
 
             env = os.environ.copy()
@@ -219,8 +251,25 @@ class CmdLineTest(unittest.TestCase):
         self.assertIn(path1.encode('ascii'), out)
         self.assertIn(path2.encode('ascii'), out)
 
+    def test_empty_PYTHONPATH_issue16309(self):
+        # On Posix, it is documented that setting PATH to the
+        # empty string is equivalent to not setting PATH at all,
+        # which is an exception to the rule that in a string like
+        # "/bin::/usr/bin" the empty string in the middle gets
+        # interpreted as '.'
+        code = """if 1:
+            import sys
+            path = ":".join(sys.path)
+            path = path.encode("ascii", "backslashreplace")
+            sys.stdout.buffer.write(path)"""
+        rc1, out1, err1 = assert_python_ok('-c', code, PYTHONPATH="")
+        rc2, out2, err2 = assert_python_ok('-c', code, __isolated=False)
+        # regarding to Posix specification, outputs should be equal
+        # for empty and unset PYTHONPATH
+        self.assertEqual(out1, out2)
+
     def test_displayhook_unencodable(self):
-        for encoding in ('ascii', 'latin1', 'utf8'):
+        for encoding in ('ascii', 'latin-1', 'utf-8'):
             env = os.environ.copy()
             env['PYTHONIOENCODING'] = encoding
             p = subprocess.Popen(
@@ -296,7 +345,7 @@ class CmdLineTest(unittest.TestCase):
         rc, out, err = assert_python_ok('-c', code)
         self.assertEqual(b'', out)
         self.assertRegex(err.decode('ascii', 'ignore'),
-                         'Exception IOError: .* ignored')
+                         'Exception ignored in.*\nOSError: .*')
 
     def test_closed_stdout(self):
         # Issue #13444: if stdout has been explicitly closed, we should
@@ -350,14 +399,14 @@ class CmdLineTest(unittest.TestCase):
         hashes = []
         for i in range(2):
             code = 'print(hash("spam"))'
-            rc, out, err = assert_python_ok('-R', '-c', code)
+            rc, out, err = assert_python_ok('-c', code)
             self.assertEqual(rc, 0)
             hashes.append(out)
         self.assertNotEqual(hashes[0], hashes[1])
 
         # Verify that sys.flags contains hash_randomization
         code = 'import sys; print("random is", sys.flags.hash_randomization)'
-        rc, out, err = assert_python_ok('-R', '-c', code)
+        rc, out, err = assert_python_ok('-c', code)
         self.assertEqual(rc, 0)
         self.assertIn(b'random is 1', out)
 
@@ -390,6 +439,31 @@ class CmdLineTest(unittest.TestCase):
         self.assertEqual(err.splitlines().count(b'Unknown option: -a'), 1)
         self.assertEqual(b'', out)
 
+
+    def test_isolatedmode(self):
+        self.verify_valid_flag('-I')
+        self.verify_valid_flag('-IEs')
+        rc, out, err = assert_python_ok('-I', '-c',
+            'from sys import flags as f; '
+            'print(f.no_user_site, f.ignore_environment, f.isolated)',
+            # dummyvar to prevent extranous -E
+            dummyvar="")
+        self.assertEqual(out.strip(), b'1 1 1')
+        with test.support.temp_cwd() as tmpdir:
+            fake = os.path.join(tmpdir, "uuid.py")
+            main = os.path.join(tmpdir, "main.py")
+            with open(fake, "w") as f:
+                f.write("raise RuntimeError('isolated mode test')\n")
+            with open(main, "w") as f:
+                f.write("import uuid\n")
+                f.write("print('ok')\n")
+            self.assertRaises(subprocess.CalledProcessError,
+                              subprocess.check_output,
+                              [sys.executable, main], cwd=tmpdir,
+                              stderr=subprocess.DEVNULL)
+            out = subprocess.check_output([sys.executable, "-I", main],
+                                          cwd=tmpdir)
+            self.assertEqual(out.strip(), b"ok")
 
 def test_main():
     test.support.run_unittest(CmdLineTest)

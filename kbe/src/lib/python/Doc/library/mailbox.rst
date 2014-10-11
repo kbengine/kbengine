@@ -674,8 +674,8 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
 
       In Babyl mailboxes, the headers of a message are not stored contiguously
       with the body of the message. To generate a file-like representation, the
-      headers and body are copied together into a :class:`StringIO` instance
-      (from the :mod:`StringIO` module), which has an API identical to that of a
+      headers and body are copied together into a :class:`io.BytesIO` instance,
+      which has an API identical to that of a
       file. As a result, the file-like object is truly independent of the
       underlying mailbox but does not save memory compared to a string
       representation.
@@ -1009,7 +1009,7 @@ When a :class:`MaildirMessage` instance is created based upon a
       Set the "From " line to *from_*, which should be specified without a
       leading "From " or trailing newline. For convenience, *time_* may be
       specified and will be formatted appropriately and appended to *from_*. If
-      *time_* is specified, it should be a :class:`struct_time` instance, a
+      *time_* is specified, it should be a :class:`time.struct_time` instance, a
       tuple suitable for passing to :meth:`time.strftime`, or ``True`` (to use
       :meth:`time.gmtime`).
 
@@ -1380,7 +1380,7 @@ When a :class:`BabylMessage` instance is created based upon an
       Set the "From " line to *from_*, which should be specified without a
       leading "From " or trailing newline. For convenience, *time_* may be
       specified and will be formatted appropriately and appended to *from_*. If
-      *time_* is specified, it should be a :class:`struct_time` instance, a
+      *time_* is specified, it should be a :class:`time.struct_time` instance, a
       tuple suitable for passing to :meth:`time.strftime`, or ``True`` (to use
       :meth:`time.gmtime`).
 
@@ -1550,7 +1550,7 @@ programs, mail loss due to interruption of the program, or premature termination
 due to malformed messages in the mailbox::
 
    import mailbox
-   import email.Errors
+   import email.errors
 
    list_names = ('python-list', 'python-dev', 'python-bugs')
 
@@ -1560,7 +1560,7 @@ due to malformed messages in the mailbox::
    for key in inbox.iterkeys():
        try:
            message = inbox[key]
-       except email.Errors.MessageParseError:
+       except email.errors.MessageParseError:
            continue                # The message is malformed. Just leave it.
 
        for name in list_names:

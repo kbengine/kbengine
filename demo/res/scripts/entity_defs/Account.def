@@ -13,22 +13,6 @@
 			<Default>		0				</Default>
 			<Persistent>		true				</Persistent>
 		</lastSelCharacter>
-
-		<accountName>
-			<Type>			UNICODE				</Type>
-			<Flags>			BASE				</Flags>
-			<Persistent>		true				</Persistent>
-			<DatabaseLength> 	100				</DatabaseLength>
-			<Default>		kbengine			</Default>
-			<Identifier>		true				</Identifier>
-		</accountName>
-		
-		<password>
-			<Type>			STRING				</Type>
-			<Flags>			BASE				</Flags>
-			<Default>						</Default>
-			<Persistent>		true				</Persistent>
-		</password>
 		
 		<activeCharacter>
 			<Type>			MAILBOX				</Type>

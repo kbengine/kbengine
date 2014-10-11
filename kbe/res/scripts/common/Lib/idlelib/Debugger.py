@@ -254,8 +254,7 @@ class Debugger:
             self.sync_source_line()
 
     def show_frame(self, stackitem):
-        frame, lineno = stackitem
-        self.frame = frame
+        self.frame = stackitem[0]  # lineno is stackitem[1]
         self.show_variables()
 
     localsviewer = None
@@ -323,7 +322,7 @@ class Debugger:
 class StackViewer(ScrolledList):
 
     def __init__(self, master, flist, gui):
-        if macosxSupport.runningAsOSXApp():
+        if macosxSupport.isAquaTk():
             # At least on with the stock AquaTk version on OSX 10.4 you'll
             # get an shaking GUI that eventually kills IDLE if the width
             # argument is specified.

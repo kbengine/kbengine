@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "memorystream.hpp"
 namespace KBEngine
 {
-static ObjectPool<MemoryStream> _g_objPool;
+static ObjectPool<MemoryStream> _g_objPool("MemoryStream");
 //-------------------------------------------------------------------------------------
 ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 {
@@ -31,8 +31,8 @@ ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 //-------------------------------------------------------------------------------------
 void MemoryStream::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("MemoryStream::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("MemoryStream::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -41,6 +41,13 @@ void MemoryStream::destroyObjPool()
 MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<MemoryStream>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
+size_t MemoryStream::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(rpos_) + sizeof(wpos_) + data_.size();
+	return bytes;
 }
 
 //-------------------------------------------------------------------------------------

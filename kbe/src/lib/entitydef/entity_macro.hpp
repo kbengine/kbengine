@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ENTITY_MACRO_H__
-#define __ENTITY_MACRO_H__
+#ifndef KBE_ENTITY_MACRO_HPP
+#define KBE_ENTITY_MACRO_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "server/callbackmgr.hpp"		
 
@@ -42,11 +43,30 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
-	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 
 
 #define ENTITY_GETSET_DECLARE_END()																			\
+	SCRIPT_GETSET_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+
+	
+#define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
+	SCRIPT_METHOD_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_BEGIN(CLASS)															\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+
+
+#define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
@@ -186,12 +206,12 @@ namespace KBEngine{
 			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
 			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
 			Py_DECREF(pytsval);																				\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_createNamespace:add %4%(%5%).\n") %		\
-												getScriptName() %											\
-												static_cast<PyObject*>(this)->ob_refcnt %					\
-												this->getID() %												\
-																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE %		\
-																cccpytsval);								\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt,					\
+												this->id(),													\
+																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
+																cccpytsval));								\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
 			free(cccpytsval);																				\
@@ -204,10 +224,10 @@ namespace KBEngine{
 		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_attr:op=%4%, %5%.\n") %				\
-												getScriptName() %											\
-												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
-															op % ccattr_DEBUG_OP_ATTRIBUTE);				\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",							\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
+															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
@@ -217,10 +237,10 @@ namespace KBEngine{
 	{																										\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_Persistent:op=%4%, %5%.\n") %			\
-												getScriptName() %											\
-												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
-															op % ccattr);									\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_Persistent:op={}, {}.\n",					\
+												scriptName(),												\
+												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
+															op, ccattr));									\
 		}																									\
 	}																										\
 
@@ -228,11 +248,11 @@ namespace KBEngine{
 #define DEBUG_REDUCE_EX(tentity)																			\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_reduct_ex: utype=%4%.\n") %				\
-												tentity->getScriptName() %									\
-												static_cast<PyObject*>(tentity)->ob_refcnt %				\
-												tentity->getID() %											\
-												tentity->getScriptModule()->getUType());					\
+			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_reduct_ex: utype={}.\n",						\
+												tentity->scriptName(),										\
+												static_cast<PyObject*>(tentity)->ob_refcnt,					\
+												tentity->id(),												\
+												tentity->scriptModule()->getUType()));						\
 		}																									\
 
 
@@ -249,7 +269,7 @@ namespace KBEngine{
 	if(ENTITY->isDestroyed())																				\
 	{																										\
 		PyErr_Format(PyExc_Exception, "%s::%s: %d is destroyed!\n",											\
-			OPNAME, ENTITY->getScriptName(), ENTITY->getID());												\
+			OPNAME, ENTITY->scriptName(), ENTITY->id());													\
 		PyErr_PrintEx(0);																					\
 		RETURN;																								\
 	}																										\
@@ -265,7 +285,6 @@ protected:																									\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
 	bool isDestroyed_;																						\
-	Mercury::Bundle* pBundle_;																				\
 	bool initing_;																							\
 public:																										\
 	bool initing()const{ return initing_; }																	\
@@ -296,16 +315,16 @@ public:																										\
 	{																										\
 		if(fullReload)																						\
 		{																									\
-			scriptModule_ = EntityDef::findScriptModule(getScriptName());									\
+			scriptModule_ = EntityDef::findScriptModule(scriptName());										\
 			KBE_ASSERT(scriptModule_);																		\
 			lpPropertyDescrs_ = &scriptModule_->getPropertyDescrs();										\
 		}																									\
 																											\
 		if(PyObject_SetAttrString(this, "__class__", (PyObject*)scriptModule_->getScriptType()) == -1)		\
 		{																									\
-			WARNING_MSG(boost::format("Base::reload: "														\
-				"%s %1% could not change __class__ to new class!\n") %										\
-				scriptModule_->getName() % id_);															\
+			WARNING_MSG(fmt::format("Base::reload: "														\
+				"{} {} could not change __class__ to new class!\n",											\
+				scriptModule_->getName(), id_));															\
 			PyErr_Print();																					\
 			return false;																					\
 		}																									\
@@ -320,9 +339,9 @@ public:																										\
 			return;																							\
 																											\
 		if(!PyDict_Check(dictData)){																		\
-			ERROR_MSG(boost::format(#CLASS"::createNamespace: create"#CLASS"[%1%:%2%] "						\
-				"args is not a dict.\n") %																	\
-				getScriptName() % id_);																		\
+			ERROR_MSG(fmt::format(#CLASS"::createNamespace: create"#CLASS"[{}:{}] "							\
+				"args is not a dict.\n",																	\
+				scriptName(), id_));																		\
 			return;																							\
 		}																									\
 																											\
@@ -364,19 +383,22 @@ public:																										\
 		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
 								scriptModule_->getCellPropertyDescriptions_uidmap();						\
 																											\
-		while(mstream->opsize() > 0)																		\
+		size_t count = 0;																					\
+																											\
+		while(mstream->opsize() > 0 && count < propertyDescrs.size())										\
 		{																									\
 			(*mstream) >> uid;																				\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
 			if(iter == propertyDescrs.end())																\
 			{																								\
-				ERROR_MSG(boost::format(#CLASS"::createCellDataFromStream: not found uid(%1%)\n") % uid);	\
+				ERROR_MSG(fmt::format(#CLASS"::createCellDataFromStream: not found uid({})\n", uid));		\
 				break;																						\
 			}																								\
 																											\
 			PyObject* pyobj = iter->second->createFromStream(mstream);										\
 			PyDict_SetItemString(cellData, iter->second->getName(), pyobj);									\
 			Py_DECREF(pyobj);																				\
+			++count;																						\
 		}																									\
 																											\
 		return cellData;																					\
@@ -415,7 +437,7 @@ public:																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				getScriptModule()->getClientPropertyDescriptions();											\
+				scriptModule()->getClientPropertyDescriptions();											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
@@ -430,7 +452,7 @@ public:																										\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-				if(getScriptModule()->usePropertyDescrAlias())												\
+				if(scriptModule()->usePropertyDescrAlias())													\
 				{																							\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
@@ -458,9 +480,9 @@ public:																										\
 		PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");								\
 		PyTuple_SET_ITEM(args, 0, unpickleMethod);															\
 		PyObject* args1 = PyTuple_New(4);																	\
-		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));								\
+		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->id()));									\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
-		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));			\
+		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->scriptModule()->getUType()));			\
 		if(g_componentType == BASEAPP_TYPE)																	\
 			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));							\
 		else																								\
@@ -478,7 +500,6 @@ public:																										\
 	inline ScriptTimers& scriptTimers(){ return scriptTimers_; }											\
 	void onTimer(ScriptID timerID, int useraAgs)															\
 	{																										\
-		SCOPED_PROFILE(ONTIMER_PROFILE);																	\
 		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),						\
 			const_cast<char*>("Ii"), timerID, useraAgs);													\
 																											\
@@ -492,38 +513,36 @@ public:																										\
 																											\
 	static PyObject* __pyget_pyGetID(CLASS *self, void *closure)											\
 	{																										\
-		return PyLong_FromLong(self->getID());																\
+		return PyLong_FromLong(self->id());																	\
 	}																										\
 																											\
-	INLINE ENTITY_ID getID()const																			\
+	INLINE ENTITY_ID id()const																				\
 	{																										\
 		return id_;																							\
 	}																										\
 																											\
-	INLINE void setID(int id)																				\
+	INLINE void id(int v)																					\
 	{																										\
-		id_ = id; 																							\
+		id_ = v; 																							\
 	}																										\
 																											\
-	INLINE SPACE_ID getSpaceID()const																		\
+	INLINE SPACE_ID spaceID()const																			\
 	{																										\
 		return spaceID_;																					\
 	}																										\
-	INLINE void setSpaceID(SPACE_ID id)																		\
+	INLINE void spaceID(SPACE_ID id)																		\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
 	static PyObject* __pyget_pyGetSpaceID(CLASS *self, void *closure)										\
 	{																										\
-		return PyLong_FromLong(self->getSpaceID());															\
+		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* getScriptModule(void)const														\
+	INLINE ScriptDefModule* scriptModule(void)const															\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
-																											\
-	INLINE Mercury::Bundle* pBundle()const{ return pBundle_; }												\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
@@ -539,7 +558,7 @@ public:																										\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				char err[255];																				\
-				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());\
+				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, scriptName());	\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
 				free(ccattr);																				\
@@ -550,7 +569,7 @@ public:																										\
 		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
-			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());		\
+			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, scriptName());			\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
 			free(ccattr);																					\
@@ -579,7 +598,7 @@ public:																										\
 				if(isDestroyed_)																			\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
-													getScriptName(), ccattr, value->ob_type->tp_name);		\
+													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
 					free(ccattr);																			\
 					return 0;																				\
@@ -588,7 +607,7 @@ public:																										\
 				if(!dataType->isSameType(value))															\
 				{																							\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
-													getScriptName(), ccattr, value->ob_type->tp_name);		\
+													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
 					free(ccattr);																			\
 					return 0;																				\
@@ -616,11 +635,7 @@ public:																										\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
-	PyObject * onScriptGetAttribute(PyObject* attr)															\
-	{																										\
-		DEBUG_OP_ATTRIBUTE("get", attr)																		\
-		return ScriptObject::onScriptGetAttribute(attr);													\
-	}																										\
+	PyObject * onScriptGetAttribute(PyObject* attr);														\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
@@ -635,7 +650,7 @@ public:																										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
 							"%s: args max require %d args, gived %d! is script[%s].\n",						\
-				__FUNCTION__, 1, currargsSize, pobj->getScriptName());										\
+				__FUNCTION__, 1, currargsSize, pobj->scriptName());											\
 			PyErr_PrintEx(0);																				\
 		}																									\
 																											\
@@ -822,7 +837,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		if(getScriptModule()->usePropertyDescrAlias() && useAliasID)										\
+		if(scriptModule()->usePropertyDescrAlias() && useAliasID)											\
 		{																									\
 			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		}																									\
@@ -848,8 +863,8 @@ public:																										\
 										EntityDef::findOldScriptModule(scriptModule_->getName());			\
 			if(!pOldScriptDefModule)																		\
 			{																								\
-				ERROR_MSG(boost::format("%1%::initProperty: not found oldmodule!\n") %						\
-					scriptModule_->getName());																\
+				ERROR_MSG(fmt::format("{}::initProperty: not found oldmodule!\n",							\
+					scriptModule_->getName()));																\
 				KBE_ASSERT(false && "Entity::initProperty: not found oldmodule");							\
 			}																								\
 																											\
@@ -883,13 +898,13 @@ public:																										\
 							propertyDescription->getName(), defObj);										\
 				Py_DECREF(defObj);																			\
 																											\
-				/* DEBUG_MSG(boost::format(#CLASS"::"#CLASS": added [%1%] property ref=%2%.\n") %
-								propertyDescription->getName() % defObj->ob_refcnt);*/						\
+				/* DEBUG_MSG(fmt::format(#CLASS"::"#CLASS": added [{}] property ref={}.\n",
+								propertyDescription->getName(), defObj->ob_refcnt));*/						\
 			}																								\
 			else																							\
 			{																								\
-				ERROR_MSG(boost::format(#CLASS"::initProperty: %1% dataType is NULL.\n") %					\
-					propertyDescription->getName());														\
+				ERROR_MSG(fmt::format(#CLASS"::initProperty: {} dataType is NULL.\n",						\
+					propertyDescription->getName()));														\
 			}																								\
 		}																									\
 																											\
@@ -904,16 +919,14 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	pBundle_(new Mercury::Bundle()),																		\
 	initing_(true)																							\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(boost::format("%1%::~%2%(): %3%\n") % getScriptName() % getScriptName() % id_);				\
+	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\
-	SAFE_RELEASE(pBundle_);																					\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\
@@ -921,4 +934,4 @@ public:																										\
 
 
 }
-#endif
+#endif // KBE_ENTITY_MACRO_HPP

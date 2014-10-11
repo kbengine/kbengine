@@ -211,13 +211,13 @@ complex_subtype_from_c_complex(PyTypeObject *type, Py_complex cval)
 PyObject *
 PyComplex_FromCComplex(Py_complex cval)
 {
-    register PyComplexObject *op;
+    PyComplexObject *op;
 
     /* Inline PyObject_New */
     op = (PyComplexObject *) PyObject_MALLOC(sizeof(PyComplexObject));
     if (op == NULL)
         return PyErr_NoMemory();
-    PyObject_INIT(op, &PyComplex_Type);
+    (void)PyObject_INIT(op, &PyComplex_Type);
     op->cval = cval;
     return (PyObject *) op;
 }
@@ -265,12 +265,18 @@ PyComplex_ImagAsDouble(PyObject *op)
 static PyObject *
 try_complex_special_method(PyObject *op) {
     PyObject *f;
-    static PyObject *complexstr;
+    _Py_IDENTIFIER(__complex__);
 
-    f = _PyObject_LookupSpecial(op, "__complex__", &complexstr);
+    f = _PyObject_LookupSpecial(op, &PyId___complex__);
     if (f) {
         PyObject *res = PyObject_CallFunctionObjArgs(f, NULL);
         Py_DECREF(f);
+        if (res != NULL && !PyComplex_Check(res)) {
+            PyErr_SetString(PyExc_TypeError,
+                "__complex__ should return a complex object");
+            Py_DECREF(res);
+            return NULL;
+        }
         return res;
     }
     return NULL;
@@ -296,12 +302,6 @@ PyComplex_AsCComplex(PyObject *op)
     newop = try_complex_special_method(op);
 
     if (newop) {
-        if (!PyComplex_Check(newop)) {
-            PyErr_SetString(PyExc_TypeError,
-                "__complex__ should return a complex object");
-            Py_DECREF(newop);
-            return cv;
-        }
         cv = ((PyComplexObject *)newop)->cval;
         Py_DECREF(newop);
         return cv;
@@ -330,12 +330,10 @@ complex_repr(PyComplexObject *v)
     int precision = 0;
     char format_code = 'r';
     PyObject *result = NULL;
-    Py_ssize_t len;
 
     /* If these are non-NULL, they'll need to be freed. */
     char *pre = NULL;
     char *im = NULL;
-    char *buf = NULL;
 
     /* These do not need to be freed. re is either an alias
        for pre or a pointer to a constant.  lead and tail
@@ -374,20 +372,10 @@ complex_repr(PyComplexObject *v)
         lead = "(";
         tail = ")";
     }
-    /* Alloc the final buffer. Add one for the "j" in the format string,
-       and one for the trailing zero byte. */
-    len = strlen(lead) + strlen(re) + strlen(im) + strlen(tail) + 2;
-    buf = PyMem_Malloc(len);
-    if (!buf) {
-        PyErr_NoMemory();
-        goto done;
-    }
-    PyOS_snprintf(buf, len, "%s%s%sj%s", lead, re, im, tail);
-    result = PyUnicode_FromString(buf);
+    result = PyUnicode_FromFormat("%s%s%sj%s", lead, re, im, tail);
   done:
     PyMem_Free(im);
     PyMem_Free(pre);
-    PyMem_Free(buf);
 
     return result;
 }
@@ -662,8 +650,7 @@ complex_richcompare(PyObject *v, PyObject *w, int op)
     return res;
 
 Unimplemented:
-    Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
+    Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject *
@@ -694,7 +681,7 @@ complex_conjugate(PyObject *self)
 PyDoc_STRVAR(complex_conjugate_doc,
 "complex.conjugate() -> complex\n"
 "\n"
-"Returns the complex conjugate of its argument. (3-4j).conjugate() == 3+4j.");
+"Return the complex conjugate of its argument. (3-4j).conjugate() == 3+4j.");
 
 static PyObject *
 complex_getnewargs(PyComplexObject *v)
@@ -706,18 +693,28 @@ complex_getnewargs(PyComplexObject *v)
 PyDoc_STRVAR(complex__format__doc,
 "complex.__format__() -> str\n"
 "\n"
-"Converts to a string according to format_spec.");
+"Convert to a string according to format_spec.");
 
 static PyObject *
 complex__format__(PyObject* self, PyObject* args)
 {
     PyObject *format_spec;
+    _PyUnicodeWriter writer;
+    int ret;
 
     if (!PyArg_ParseTuple(args, "U:__format__", &format_spec))
-    return NULL;
-    return _PyComplex_FormatAdvanced(self,
-                                     PyUnicode_AS_UNICODE(format_spec),
-                                     PyUnicode_GET_SIZE(format_spec));
+        return NULL;
+
+    _PyUnicodeWriter_Init(&writer);
+    ret = _PyComplex_FormatAdvancedWriter(
+        &writer,
+        self,
+        format_spec, 0, PyUnicode_GET_LENGTH(format_spec));
+    if (ret == -1) {
+        _PyUnicodeWriter_Dealloc(&writer);
+        return NULL;
+    }
+    return _PyUnicodeWriter_Finish(&writer);
 }
 
 #if 0
@@ -768,26 +765,17 @@ complex_subtype_from_string(PyTypeObject *type, PyObject *v)
     Py_ssize_t len;
 
     if (PyUnicode_Check(v)) {
-        Py_ssize_t i, buflen = PyUnicode_GET_SIZE(v);
-        Py_UNICODE *bufptr;
-        s_buffer = PyUnicode_TransformDecimalToASCII(
-            PyUnicode_AS_UNICODE(v), buflen);
+        s_buffer = _PyUnicode_TransformDecimalAndSpaceToASCII(v);
         if (s_buffer == NULL)
             return NULL;
-        /* Replace non-ASCII whitespace with ' ' */
-        bufptr = PyUnicode_AS_UNICODE(s_buffer);
-        for (i = 0; i < buflen; i++) {
-            Py_UNICODE ch = bufptr[i];
-            if (ch > 127 && Py_UNICODE_ISSPACE(ch))
-                bufptr[i] = ' ';
-        }
-        s = _PyUnicode_AsStringAndSize(s_buffer, &len);
+        s = PyUnicode_AsUTF8AndSize(s_buffer, &len);
         if (s == NULL)
             goto error;
     }
     else if (PyObject_AsCharBuffer(v, &s, &len)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "complex() argument must be a string or a number");
+        PyErr_Format(PyExc_TypeError,
+            "complex() argument must be a string or a number, not '%.200s'",
+            Py_TYPE(v)->tp_name);
         return NULL;
     }
 
@@ -966,8 +954,9 @@ complex_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         nbi = i->ob_type->tp_as_number;
     if (nbr == NULL || nbr->nb_float == NULL ||
         ((i != NULL) && (nbi == NULL || nbi->nb_float == NULL))) {
-        PyErr_SetString(PyExc_TypeError,
-                   "complex() argument must be a string or a number");
+        PyErr_Format(PyExc_TypeError,
+            "complex() argument must be a string or a number, not '%.200s'",
+            Py_TYPE(r)->tp_name);
         if (own_r) {
             Py_DECREF(r);
         }

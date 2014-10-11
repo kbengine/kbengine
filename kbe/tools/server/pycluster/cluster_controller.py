@@ -137,9 +137,13 @@ class ClusterControllerHandler:
 		self.writePacket("H", MachineInterface_onQueryAllInterfaceInfos)
 		self.writePacket("H", 6 + len(getpass.getuser().encode()) + 1)
 		self.writePacket("i", self.uid)
+
 		for x in getpass.getuser().encode():
-			self.writePacket("B", x)
-			
+			if type(x) == str:
+				self.writePacket("B", ord(x))
+			else:
+				self.writePacket("B", x)
+                           
 		self.writePacket("B", 0)
 		self.sendto()
 		
@@ -148,21 +152,28 @@ class ClusterControllerHandler:
 			return
 		
 		count = 0
-		
+
 		while(count < len(self.recvDatas)):
 			i = 4
 			uid = struct.unpack("i", self.recvDatas[count][0:i])[0]
 			
 			ii = i
 			for x in self.recvDatas[count][i:]:
-				if x == 0:
-					break
-					
+				if type(x) == str:
+					if ord(x) == 0:
+						break
+				else:
+					if x == 0:
+						break
+
 				ii += 1
-			
-			username = self.recvDatas[count][i: ii].decode()
+
+			username = self.recvDatas[count][i: ii];
+			if type(username) == 'bytes':
+				username = username.decode()
+                                
 			ii += 1
-			
+
 			componentType = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
 			ii += 1
 			
@@ -187,6 +198,24 @@ class ClusterControllerHandler:
 			extport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
 			ii += 2
 			
+			# get extaddrEx
+			i1 = ii
+			for x in self.recvDatas[count][ii:]:
+				if type(x) == str:
+					if ord(x) == 0:
+						break
+				else:
+					if x == 0:
+						break
+
+				ii += 1
+
+			extaddrEx = self.recvDatas[count][i1: ii];
+			if type(extaddrEx) == 'bytes':
+				extaddrEx = extaddrEx.decode()
+                                
+			ii += 1
+
 			pid = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
 			ii += 4
 			
@@ -225,9 +254,16 @@ class ClusterControllerHandler:
 				componentInfos = []
 				self._interfaces[componentType] = componentInfos
 			
-			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
-								intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3))
+			found = False
+			for info in componentInfos:
+				if info[1] == componentID and info[13] == pid:
+					found = True
+					break
 			
+			if not found:
+				componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
+									intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3, extaddrEx))
+				
 			count += 1
 		
 		self._interfaces_groups = {}
@@ -436,7 +472,13 @@ class ClusterStopHandler(ClusterControllerHandler):
 				continue
 			
 			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
-			interfacesCount[ctype] = len(infos)
+			
+			clist = []
+			for info in infos: 
+				if info[0] == self.uid:
+					clist.append(info[1])
+						
+			interfacesCount[ctype] = len(clist)
 
 			if ctype in interfacesCount1:
 				interfacesCount1[ctype] += 1
@@ -448,7 +490,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			if ctype not in printed:
 				printed.append(ctype)
-				print("\t\t%s : %i" % (ctype, len(infos)))
+				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				
 			self.writePacket("H", MachineInterface_stopserver)
 			self.writePacket("H", 10)
@@ -472,8 +514,14 @@ class ClusterStopHandler(ClusterControllerHandler):
 					continue
 			
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
-				print("\t\t%s : %i" % (ctype, len(infos)))
-				waitcount += len(infos)
+				
+				clist = []
+				for info in infos: 
+					if info[0] == self.uid:
+						clist.append(info[1])
+						
+				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
+				waitcount += len(clist)
 
 			if waitcount > 0:
 				time.sleep(3)
@@ -483,7 +531,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 		print("[other-online-components:]")
 		for ctype in self._interfaces:
 			infos = self._interfaces.get(ctype, [])
-			print("\t\t%s : %i" % (COMPONENT_NAME[ctype], len(infos)))
+			clist = []
+			for info in infos: 
+				if info[0] == self.uid:
+					clist.append(info[1])
+			print("\t\t%s : %i\t%s" % (COMPONENT_NAME[ctype], len(clist), clist))
 			
 		print("ClusterStopHandler::do: completed!")
 
@@ -511,6 +563,7 @@ def getDefaultUID():
 	return uid
 	
 if __name__ == "__main__":
+
 	clusterHandler = None
 
 	if len(sys.argv)  >= 2:

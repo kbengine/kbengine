@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MEMORYSTREAM_H__
-#define __MEMORYSTREAM_H__
+#ifndef KBE_MEMORYSTREAM_HPP
+#define KBE_MEMORYSTREAM_HPP
 // common include	
 #include <iostream>
 #include <vector>
@@ -51,8 +51,8 @@ class MemoryStreamException
 
         void PrintPosError() const
         {
-			ERROR_MSG(boost::format("Attempted to %1% in MemoryStream (pos:%2%  size: %3%).\n") % 
-				(_m_add ? "put" : "get") % _m_pos % _m_size);
+			ERROR_MSG(fmt::format("Attempted to {} in MemoryStream (pos:{}  size: {}).\n", 
+				(_m_add ? "put" : "get"), _m_pos, _m_size));
         }
     private:
         bool 		_m_add;
@@ -99,6 +99,7 @@ public:
 
 	typedef KBEShared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
+	virtual size_t getPoolObjectBytes();
 
     const static size_t DEFAULT_SIZE = 0x1000;
     MemoryStream(): rpos_(0), wpos_(0)

@@ -38,7 +38,7 @@ namespace Mercury
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<TCPPacketReceiver> _g_objPool;
+static ObjectPool<TCPPacketReceiver> _g_objPool("TCPPacketReceiver");
 ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 {
 	return _g_objPool;
@@ -47,8 +47,8 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 //-------------------------------------------------------------------------------------
 void TCPPacketReceiver::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("TCPPacketReceiver::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("TCPPacketReceiver::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -71,7 +71,6 @@ TCPPacketReceiver::~TCPPacketReceiver()
 {
 	//DEBUG_MSG("TCPPacketReceiver::~TCPPacketReceiver()\n");
 }
-
 
 //-------------------------------------------------------------------------------------
 bool TCPPacketReceiver::processSocket(bool expectingPacket)
@@ -186,13 +185,13 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-				wsaErr);
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+				wsaErr));
 #else
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-			kbe_strerror());
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

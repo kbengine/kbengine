@@ -84,7 +84,7 @@ void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONE
 		return;
 
 
-	Mercury::Channel* pChannel = Messagelog::getSingleton().getNetworkInterface().findChannel(addr_);
+	Mercury::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pChannel == NULL)
 		return;
@@ -93,7 +93,7 @@ void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONE
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	bundle << sstr.str().c_str();
-	bundle.send(Messagelog::getSingleton().getNetworkInterface(), pChannel);
+	bundle.send(Messagelog::getSingleton().networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

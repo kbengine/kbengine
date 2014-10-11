@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
 #include "helper/sys_info.hpp"
+#include "helper/watch_pools.hpp"
 #include "resmgr/resmgr.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
@@ -38,7 +39,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
-#include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
 #include "../../server/tools/billing_system/billingsystem_interface.hpp"
 
@@ -158,7 +158,7 @@ bool ServerApp::initialize()
 	// 广播自己的地址给网上上的所有kbemachine
 	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
 	Componentbridge::getSingleton().getComponents().pHandler(this);
-	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
 	bool ret = initializeEnd();
 
@@ -182,7 +182,7 @@ bool ServerApp::initializeWatcher()
 	WATCH_OBJECT("gametime", this, &ServerApp::time);
 
 	return Mercury::initializeWatcher() && Resmgr::getSingleton().initializeWatcher() &&
-		threadPool_.initializeWatcher();
+		threadPool_.initializeWatcher() && WatchPool::initWatchPools();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -206,7 +206,7 @@ void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	uint8 type = 0;
 	bundle << type;
 	bundle.append(readStreamPtr.get()->get());
-	bundle.send(getNetworkInterface(), pChannel);
+	bundle.send(networkInterface(), pChannel);
 
 	Mercury::Bundle bundle1;
 	bundle1.newMessage(msgHandler);
@@ -214,7 +214,7 @@ void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	type = 1;
 	bundle1 << type;
 	bundle1.append(readStreamPtr1.get()->get());
-	bundle1.send(getNetworkInterface(), pChannel);
+	bundle1.send(networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -290,8 +290,8 @@ void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG(boost::format("ServerApp::onChannelTimeOut: "
-		"Channel %1% timed out.\n") % pChannel->c_str());
+	INFO_MSG(fmt::format("ServerApp::onChannelTimeOut: "
+		"Channel {0} timed out.\n", pChannel->c_str()));
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
@@ -313,29 +313,33 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 	{
 		DebugHelper::getSingleton().unregisterMessagelog(MessagelogInterface::writeLog.msgID, pInfos->pIntAddr.get());
 	}
+	else if(pInfos->componentType == DBMGR_TYPE)
+	{
+		this->shutDown(0.f);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG(boost::format("ServerApp::onRegisterNewApp: uid:%1%, username:%2%, componentType:%3%, "
-			"componentID:%4%, globalorderID=%10%, grouporderID=%11%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%.\n") %
-			uid % 
-			username.c_str() % 
-			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
-			componentID %
-			inet_ntoa((struct in_addr&)intaddr) %
-			ntohs(intport) %
-			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-			ntohs(extport) %
-			pChannel->c_str() %
-			((int32)globalorderID) % 
-			((int32)grouporderID));
+	INFO_MSG(fmt::format("ServerApp::onRegisterNewApp: uid:{0}, username:{1}, componentType:{2}, "
+			"componentID:{3}, globalorderID={9}, grouporderID={10}, intaddr:{4}, intport:{5}, extaddr:{6}, extport:{7},  from {8}.\n",
+			uid,
+			username.c_str(),
+			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
+			componentID,
+			inet_ntoa((struct in_addr&)intaddr),
+			ntohs(intport),
+			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+			ntohs(extport),
+			pChannel->c_str(),
+			((int32)globalorderID),
+			((int32)grouporderID)));
 
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
@@ -345,7 +349,7 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else
@@ -353,6 +357,32 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
 		cinfos->pChannel = pChannel;
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::reqKillServer(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+
+	COMPONENT_ID componentID;
+	COMPONENT_TYPE componentType;
+	std::string username;
+	int32 uid;
+	std::string reason;
+
+	s >> componentID >> componentType >> username >> uid >> reason;
+
+	INFO_MSG(fmt::format("ServerApp::reqKillServer: requester(uid:{}, username:{}, componentType:{}, "
+				"componentID:{}, reason:{}, from {})\n",
+				uid, 
+				username, 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+				componentID,
+				reason,
+				pChannel->c_str()));
+
+	CRITICAL_MSG("The application was killed!\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -370,8 +400,8 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG(boost::format("ServerApp::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
-				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
+			ERROR_MSG(fmt::format("ServerApp::onAppActiveTick[{:p}]: {}:{} not found.\n", 
+				(void*)pChannel, COMPONENT_NAME_EX(componentType), componentID));
 
 			return;
 		}
@@ -392,8 +422,8 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 //-------------------------------------------------------------------------------------
 void ServerApp::reqClose(Mercury::Channel* pChannel)
 {
-	DEBUG_MSG(boost::format("ServerApp::reqClose: %1%\n") % pChannel->c_str());
-	// this->getNetworkInterface().deregisterChannel(pChannel);
+	DEBUG_MSG(fmt::format("ServerApp::reqClose: {}\n", pChannel->c_str()));
+	// this->networkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
 }
 
@@ -403,7 +433,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(boost::format("ServerApp::lookApp: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -414,7 +444,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	int8 istate = int8(state);
 	(*pBundle) << istate;
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -422,13 +452,13 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	DEBUG_MSG(boost::format("ServerApp::reqCloseServer: %1%\n") % pChannel->c_str());
+	DEBUG_MSG(fmt::format("ServerApp::reqCloseServer: {}\n", pChannel->c_str()));
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
 	bool success = true;
 	(*pBundle) << success;
-	(*pBundle).send(getNetworkInterface(), pChannel);
+	(*pBundle).send(networkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
@@ -443,9 +473,9 @@ void ServerApp::queryLoad(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	std::string verInfo, encryptedKey;
+	std::string verInfo, scriptVerInfo, encryptedKey;
 
-	s >> verInfo;
+	s >> verInfo >> scriptVerInfo;
 	s.readBlob(encryptedKey);
 
 	char buf[1024];
@@ -468,18 +498,21 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 		buf[4] = '\0';
 	}
 
-	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%\n") % 
-		verInfo % buf % pChannel->c_str());
+	INFO_MSG(fmt::format("ServerApp::onHello: verInfo={}, scriptVerInfo={}, encryptedKey={}, addr:{}\n", 
+		verInfo, scriptVerInfo, buf, pChannel->c_str()));
 
 	if(verInfo != KBEVersion::versionString())
 		onVersionNotMatch(pChannel);
+	else if(scriptVerInfo != KBEVersion::scriptVersionString())
+		onScriptVersionNotMatch(pChannel);
 	else
-		onHello(pChannel, verInfo, encryptedKey);
+		onHello(pChannel, verInfo, scriptVerInfo, encryptedKey);
 }
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onHello(Mercury::Channel* pChannel, 
 						const std::string& verInfo, 
+						const std::string& scriptVerInfo, 
 						const std::string& encryptedKey)
 {
 }
@@ -487,6 +520,45 @@ void ServerApp::onHello(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void ServerApp::onVersionNotMatch(Mercury::Channel* pChannel)
 {
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onScriptVersionNotMatch(Mercury::Channel* pChannel)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string profileName;
+	int8 profileType;
+	uint32 timelen;
+
+	s >> profileName >> profileType >> timelen;
+
+	startProfile_(pChannel, profileName, profileType, timelen);
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+{
+	switch(profileType)
+	{
+	case 1:	// cprofile
+		new CProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 2:	// eventprofile
+		new EventProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	case 3:	// mercuryprofile
+		new MercuryProfileHandler(this->networkInterface(), timelen, profileName, pChannel->addr());
+		break;
+	default:
+		ERROR_MSG(fmt::format("ServerApp::startProfile_: type({}:{}) not support!\n", 
+			profileType, profileName));
+
+		break;
+	};
 }
 
 //-------------------------------------------------------------------------------------		

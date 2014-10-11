@@ -11,7 +11,7 @@ The return tuple contains the following items, in this order:
 - number of bits/sample, or 'U' for U-LAW, or 'A' for A-LAW
 
 If the file doesn't have a recognizable type, it returns None.
-If the file can't be opened, IOError is raised.
+If the file can't be opened, OSError is raised.
 
 To compute the total time, divide the number of frames by the
 sampling rate (a frame contains a sample for each channel).
@@ -137,14 +137,17 @@ tests.append(test_voc)
 
 
 def test_wav(h, f):
+    import wave
     # 'RIFF' <len> 'WAVE' 'fmt ' <len>
     if not h.startswith(b'RIFF') or h[8:12] != b'WAVE' or h[12:16] != b'fmt ':
         return None
-    style = get_short_le(h[20:22])
-    nchannels = get_short_le(h[22:24])
-    rate = get_long_le(h[24:28])
-    sample_bits = get_short_le(h[34:36])
-    return 'wav', rate, nchannels, -1, sample_bits
+    f.seek(0)
+    try:
+        w = wave.openfp(f, 'r')
+    except (EOFError, wave.Error):
+        return None
+    return ('wav', w.getframerate(), w.getnchannels(),
+                   w.getnframes(), 8*w.getsampwidth())
 
 tests.append(test_wav)
 
@@ -230,7 +233,7 @@ def testall(list, recursive, toplevel):
             sys.stdout.flush()
             try:
                 print(what(filename))
-            except IOError:
+            except OSError:
                 print('*** not found ***')
 
 if __name__ == '__main__':

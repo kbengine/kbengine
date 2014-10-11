@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_DEF_COMMON_H__
-#define __KBENGINE_DEF_COMMON_H__
+#ifndef KBENGINE_DEF_COMMON_HPP
+#define KBENGINE_DEF_COMMON_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -134,4 +135,5 @@ enum ENTITY_BASE_PROPERTY_ALIASID
 };
 
 }
-#endif
+#endif // KBENGINE_DEF_COMMON_HPP
+

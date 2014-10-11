@@ -13,13 +13,13 @@
 --------------
 
 The :mod:`tarfile` module makes it possible to read and write tar
-archives, including those using gzip or bz2 compression.
+archives, including those using gzip, bz2 and lzma compression.
 Use the :mod:`zipfile` module to read or write :file:`.zip` files, or the
 higher-level functions in :ref:`shutil <archiving-operations>`.
 
 Some facts and figures:
 
-* reads and writes :mod:`gzip` and :mod:`bz2` compressed archives.
+* reads and writes :mod:`gzip`, :mod:`bz2` and :mod:`lzma` compressed archives.
 
 * read/write support for the POSIX.1-1988 (ustar) format.
 
@@ -32,6 +32,9 @@ Some facts and figures:
 * handles directories, regular files, hardlinks, symbolic links, fifos,
   character devices and block devices and is able to acquire and restore file
   information like timestamp, access permissions and owner.
+
+.. versionchanged:: 3.3
+   Added support for :mod:`lzma` compression.
 
 
 .. function:: open(name=None, mode='r', fileobj=None, bufsize=10240, \*\*kwargs)
@@ -56,6 +59,8 @@ Some facts and figures:
    +------------------+---------------------------------------------+
    | ``'r:bz2'``      | Open for reading with bzip2 compression.    |
    +------------------+---------------------------------------------+
+   | ``'r:xz'``       | Open for reading with lzma compression.     |
+   +------------------+---------------------------------------------+
    | ``'a' or 'a:'``  | Open for appending with no compression. The |
    |                  | file is created if it does not exist.       |
    +------------------+---------------------------------------------+
@@ -65,11 +70,13 @@ Some facts and figures:
    +------------------+---------------------------------------------+
    | ``'w:bz2'``      | Open for bzip2 compressed writing.          |
    +------------------+---------------------------------------------+
+   | ``'w:xz'``       | Open for lzma compressed writing.           |
+   +------------------+---------------------------------------------+
 
-   Note that ``'a:gz'`` or ``'a:bz2'`` is not possible. If *mode* is not suitable
-   to open a certain (compressed) file for reading, :exc:`ReadError` is raised. Use
-   *mode* ``'r'`` to avoid this.  If a compression method is not supported,
-   :exc:`CompressionError` is raised.
+   Note that ``'a:gz'``, ``'a:bz2'`` or ``'a:xz'`` is not possible. If *mode*
+   is not suitable to open a certain (compressed) file for reading,
+   :exc:`ReadError` is raised. Use *mode* ``'r'`` to avoid this.  If a
+   compression method is not supported, :exc:`CompressionError` is raised.
 
    If *fileobj* is specified, it is used as an alternative to a :term:`file object`
    opened in binary mode for *name*. It is supposed to be at position 0.
@@ -100,12 +107,18 @@ Some facts and figures:
    | ``'r|bz2'`` | Open a bzip2 compressed *stream* for       |
    |             | reading.                                   |
    +-------------+--------------------------------------------+
+   | ``'r|xz'``  | Open a lzma compressed *stream* for        |
+   |             | reading.                                   |
+   +-------------+--------------------------------------------+
    | ``'w|'``    | Open an uncompressed *stream* for writing. |
    +-------------+--------------------------------------------+
    | ``'w|gz'``  | Open a gzip compressed *stream* for        |
    |             | writing.                                   |
    +-------------+--------------------------------------------+
    | ``'w|bz2'`` | Open a bzip2 compressed *stream* for       |
+   |             | writing.                                   |
+   +-------------+--------------------------------------------+
+   | ``'w|xz'``  | Open an lzma compressed *stream* for       |
    |             | writing.                                   |
    +-------------+--------------------------------------------+
 
@@ -263,9 +276,9 @@ be finalized; only the internally used file object will be closed. See the
 
    If *errorlevel* is ``0``, all errors are ignored when using :meth:`TarFile.extract`.
    Nevertheless, they appear as error messages in the debug output, when debugging
-   is enabled.  If ``1``, all *fatal* errors are raised as :exc:`OSError` or
-   :exc:`IOError` exceptions. If ``2``, all *non-fatal* errors are raised as
-   :exc:`TarError` exceptions as well.
+   is enabled.  If ``1``, all *fatal* errors are raised as :exc:`OSError`
+   exceptions. If ``2``, all *non-fatal* errors are raised as :exc:`TarError`
+   exceptions as well.
 
    The *encoding* and *errors* arguments define the character encoding to be
    used for reading or writing the archive and how conversion errors are going
@@ -346,7 +359,7 @@ be finalized; only the internally used file object will be closed. See the
    full name. Its file information is extracted as accurately as possible. *member*
    may be a filename or a :class:`TarInfo` object. You can specify a different
    directory using *path*. File attributes (owner, mtime, mode) are set unless
-   *set_attrs* is False.
+   *set_attrs* is false.
 
    .. note::
 
@@ -363,15 +376,12 @@ be finalized; only the internally used file object will be closed. See the
 .. method:: TarFile.extractfile(member)
 
    Extract a member from the archive as a file object. *member* may be a filename
-   or a :class:`TarInfo` object. If *member* is a regular file, a :term:`file-like
-   object` is returned. If *member* is a link, a file-like object is constructed from
-   the link's target. If *member* is none of the above, :const:`None` is returned.
+   or a :class:`TarInfo` object. If *member* is a regular file or a link, an
+   :class:`io.BufferedReader` object is returned. Otherwise, :const:`None` is
+   returned.
 
-   .. note::
-
-      The file-like object is read-only.  It provides the methods
-      :meth:`read`, :meth:`readline`, :meth:`readlines`, :meth:`seek`, :meth:`tell`,
-      and :meth:`close`, and also supports iteration over its lines.
+   .. versionchanged:: 3.3
+      Return an :class:`io.BufferedReader` object.
 
 
 .. method:: TarFile.add(name, arcname=None, recursive=True, exclude=None, *, filter=None)
@@ -581,6 +591,67 @@ A :class:`TarInfo` object also provides some convenient query methods:
    Return :const:`True` if it is one of character device, block device or FIFO.
 
 
+.. _tarfile-commandline:
+
+Command Line Interface
+----------------------
+
+.. versionadded:: 3.4
+
+The :mod:`tarfile` module provides a simple command line interface to interact
+with tar archives.
+
+If you want to create a new tar archive, specify its name after the :option:`-c`
+option and then list the filename(s) that should be included::
+
+    $ python -m tarfile -c monty.tar  spam.txt eggs.txt
+
+Passing a directory is also acceptable::
+
+    $ python -m tarfile -c monty.tar life-of-brian_1979/
+
+If you want to extract a tar archive into the current directory, use
+the :option:`-e` option::
+
+    $ python -m tarfile -e monty.tar
+
+You can also extract a tar archive into a different directory by passing the
+directory's name::
+
+    $ python -m tarfile -e monty.tar  other-dir/
+
+For a list of the files in a tar archive, use the :option:`-l` option::
+
+    $ python -m tarfile -l monty.tar
+
+
+Command line options
+~~~~~~~~~~~~~~~~~~~~
+
+.. cmdoption:: -l <tarfile>
+               --list <tarfile>
+
+   List files in a tarfile.
+
+.. cmdoption:: -c <tarfile> <source1> <sourceN>
+               --create <tarfile> <source1> <sourceN>
+
+   Create tarfile from source files.
+
+.. cmdoption:: -e <tarfile> [<output_dir>]
+               --extract <tarfile> [<output_dir>]
+
+   Extract tarfile into the current directory if *output_dir* is not specified.
+
+.. cmdoption:: -t <tarfile>
+               --test <tarfile>
+
+   Test whether the tarfile is valid or not.
+
+.. cmdoption:: -v, --verbose
+
+   Verbose output
+
 .. _tar-examples:
 
 Examples
@@ -659,11 +730,11 @@ There are three tar formats that can be created with the :mod:`tarfile` module:
 
 * The POSIX.1-1988 ustar format (:const:`USTAR_FORMAT`). It supports filenames
   up to a length of at best 256 characters and linknames up to 100 characters. The
-  maximum file size is 8 gigabytes. This is an old and limited but widely
+  maximum file size is 8 GiB. This is an old and limited but widely
   supported format.
 
 * The GNU tar format (:const:`GNU_FORMAT`). It supports long filenames and
-  linknames, files bigger than 8 gigabytes and sparse files. It is the de facto
+  linknames, files bigger than 8 GiB and sparse files. It is the de facto
   standard on GNU/Linux systems. :mod:`tarfile` fully supports the GNU tar
   extensions for long names, sparse file support is read-only.
 

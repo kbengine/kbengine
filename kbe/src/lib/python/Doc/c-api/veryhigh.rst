@@ -95,12 +95,6 @@ the same library that the Python runtime is using.
    leaving *closeit* set to ``0`` and *flags* set to *NULL*.
 
 
-.. c:function:: int PyRun_SimpleFileFlags(FILE *fp, const char *filename, PyCompilerFlags *flags)
-
-   This is a simplified interface to :c:func:`PyRun_SimpleFileExFlags` below,
-   leaving *closeit* set to ``0``.
-
-
 .. c:function:: int PyRun_SimpleFileEx(FILE *fp, const char *filename, int closeit)
 
    This is a simplified interface to :c:func:`PyRun_SimpleFileExFlags` below,
@@ -148,6 +142,37 @@ the same library that the Python runtime is using.
    until EOF is reached.  The user will be prompted using ``sys.ps1`` and
    ``sys.ps2``.  *filename* is decoded from the filesystem encoding
    (:func:`sys.getfilesystemencoding`).  Returns ``0`` at EOF.
+
+
+.. c:var:: int (*PyOS_InputHook)(void)
+
+   Can be set to point to a function with the prototype
+   ``int func(void)``.  The function will be called when Python's
+   interpreter prompt is about to become idle and wait for user input
+   from the terminal.  The return value is ignored.  Overriding this
+   hook can be used to integrate the interpreter's prompt with other
+   event loops, as done in the :file:`Modules/_tkinter.c` in the
+   Python source code.
+
+
+.. c:var:: char* (*PyOS_ReadlineFunctionPointer)(FILE *, FILE *, const char *)
+
+   Can be set to point to a function with the prototype
+   ``char *func(FILE *stdin, FILE *stdout, char *prompt)``,
+   overriding the default function used to read a single line of input
+   at the interpreter's prompt.  The function is expected to output
+   the string *prompt* if it's not *NULL*, and then read a line of
+   input from the provided standard input file, returning the
+   resulting string.  For example, The :mod:`readline` module sets
+   this hook to provide line-editing and tab-completion features.
+
+   The result must be a string allocated by :c:func:`PyMem_RawMalloc` or
+   :c:func:`PyMem_RawRealloc`, or *NULL* if an error occurred.
+
+   .. versionchanged:: 3.4
+      The result must be allocated by :c:func:`PyMem_RawMalloc` or
+      :c:func:`PyMem_RawRealloc`, instead of being allocated by
+      :c:func:`PyMem_Malloc` or :c:func:`PyMem_Realloc`.
 
 
 .. c:function:: struct _node* PyParser_SimpleParseString(const char *str, int start)
@@ -241,16 +266,15 @@ the same library that the Python runtime is using.
    *optimize* set to ``-1``.
 
 
-.. c:function:: PyObject* Py_CompileStringExFlags(const char *str, const char *filename, int start, PyCompilerFlags *flags, int optimize)
+.. c:function:: PyObject* Py_CompileStringObject(const char *str, PyObject *filename, int start, PyCompilerFlags *flags, int optimize)
 
    Parse and compile the Python source code in *str*, returning the resulting code
    object.  The start token is given by *start*; this can be used to constrain the
    code which can be compiled and should be :const:`Py_eval_input`,
    :const:`Py_file_input`, or :const:`Py_single_input`.  The filename specified by
    *filename* is used to construct the code object and may appear in tracebacks or
-   :exc:`SyntaxError` exception messages, it is decoded from the filesystem
-   encoding (:func:`sys.getfilesystemencoding`).  This returns *NULL* if the
-   code cannot be parsed or compiled.
+   :exc:`SyntaxError` exception messages.  This returns *NULL* if the code
+   cannot be parsed or compiled.
 
    The integer *optimize* specifies the optimization level of the compiler; a
    value of ``-1`` selects the optimization level of the interpreter as given by
@@ -258,8 +282,15 @@ the same library that the Python runtime is using.
    ``__debug__`` is true), ``1`` (asserts are removed, ``__debug__`` is false)
    or ``2`` (docstrings are removed too).
 
-   .. versionadded:: 3.2
+   .. versionadded:: 3.4
 
+
+.. c:function:: PyObject* Py_CompileStringExFlags(const char *str, const char *filename, int start, PyCompilerFlags *flags, int optimize)
+
+   Like :c:func:`Py_CompileStringExFlags`, but *filename* is a byte string
+   decoded from the filesystem encoding (:func:`os.fsdecode`).
+
+   .. versionadded:: 3.2
 
 .. c:function:: PyObject* PyEval_EvalCode(PyObject *co, PyObject *globals, PyObject *locals)
 
@@ -289,7 +320,11 @@ the same library that the Python runtime is using.
    frame *f* is executed, interpreting bytecode and executing calls as needed.
    The additional *throwflag* parameter can mostly be ignored - if true, then
    it causes an exception to immediately be thrown; this is used for the
-   :meth:`throw` methods of generator objects.
+   :meth:`~generator.throw` methods of generator objects.
+
+   .. versionchanged:: 3.4
+      This function now includes a debug assertion to help ensure that it
+      does not silently discard an active exception.
 
 
 .. c:function:: int PyEval_MergeCompilerFlags(PyCompilerFlags *cf)
@@ -344,4 +379,3 @@ the same library that the Python runtime is using.
 
    This bit can be set in *flags* to cause division operator ``/`` to be
    interpreted as "true division" according to :pep:`238`.
-

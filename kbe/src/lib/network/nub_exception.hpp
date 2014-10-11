@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKNUB_EXCEPTION__
-#define __NETWORKNUB_EXCEPTION__
+#ifndef KBE_NETWORKNUB_EXCEPTION_HPP
+#define KBE_NETWORKNUB_EXCEPTION_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -64,4 +64,4 @@ inline bool NubException::getAddress(Address & addr) const
 }
 }
 
-#endif // __NETWORKNUB_EXCEPTION__
+#endif // KBE_NETWORKNUB_EXCEPTION_HPP

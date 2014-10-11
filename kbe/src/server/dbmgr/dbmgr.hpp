@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DBMGR_H__
-#define __DBMGR_H__
+#ifndef KBE_DBMGR_HPP
+#define KBE_DBMGR_HPP
 	
 // common include	
-#include "db_threadpool.hpp"
+#include "dbmgr_lib/db_threadpool.hpp"
 #include "buffered_dbtasks.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"
@@ -49,6 +49,7 @@ namespace KBEngine{
 
 class DBInterface;
 class BillingHandler;
+class SyncAppDatasHandler;
 
 class Dbmgr :	public ServerApp, 
 				public Singleton<Dbmgr>
@@ -101,7 +102,7 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 
 	/** 网络接口
@@ -142,7 +143,7 @@ public:
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid);
+	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
 
 	/** 网络接口
 		执行数据库查询
@@ -167,18 +168,13 @@ public:
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
 		同步entity流模板
 	*/
 	void syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	
-	/**
-		获取db线程池
-	*/
-	INLINE DBThreadPool& dbThreadPool(){ return dbThreadPool_; }
 
 	virtual bool initializeWatcher();
 
@@ -218,6 +214,8 @@ public:
 	void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& newpassword);
 	
+	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }
+	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -236,9 +234,6 @@ protected:
 
 	Buffered_DBTasks									bufferedDBTasks_;
 
-	// 线程池
-	DBThreadPool										dbThreadPool_;	
-
 	// Statistics
 	uint32												numWrittenEntity_;
 	uint32												numRemovedEntity_;
@@ -248,7 +243,10 @@ protected:
 
 	BillingHandler*										pBillingAccountHandler_;
 	BillingHandler*										pBillingChargeHandler_;
+
+	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 };
 
 }
-#endif
+
+#endif // KBE_DBMGR_HPP

@@ -42,6 +42,7 @@
 #define DEFINE_IN_INTERFACE
 #include "dbmgr/dbmgr_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
@@ -50,11 +51,6 @@
 #include "cellappmgr/cellappmgr_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "cellappmgr/cellappmgr_interface.hpp"
-
-#undef DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "tools/message_log/messagelog_interface.hpp"
@@ -143,7 +139,7 @@ public:
 
 	virtual bool process()
 	{
-		int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+		int8 findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
 		if(g_isDestroyed)
@@ -164,7 +160,7 @@ public:
 			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
 			uint16 nport = KBE_PORT_START + (rand() % 1000);
-			Mercury::BundleBroadcast bhandler(dlg->getNetworkInterface(), nport);
+			Mercury::BundleBroadcast bhandler(dlg->networkInterface(), nport);
 
 			if(!bhandler.good())
 			{
@@ -180,7 +176,7 @@ public:
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				dlg->componentType(), dlg->componentID(), findComponentType, dlg->getNetworkInterface().intaddr().ip, 
+				dlg->componentType(), dlg->componentID(), findComponentType, dlg->networkInterface().intaddr().ip, 
 				bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())
@@ -190,7 +186,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs21 args;
+			MachineInterface::onBroadcastInterfaceArgs22 args;
 			int32 timeout = 100000;
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))
@@ -222,12 +218,12 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(boost::format("CguiconsoleDlg::OnTimer: found %1%, addr:%2%:%3%\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intport));
+					INFO_MSG(fmt::format("CguiconsoleDlg::OnTimer: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-						args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, args.usedmem, 
+						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 						args.extradata, args.extradata1, args.extradata2, args.extradata3);
 					
 					isContinue = true;
@@ -243,8 +239,8 @@ RESTART_RECV:
 				}
 				else
 				{
-					ERROR_MSG(boost::format("CguiconsoleDlg::OnTimer: %1% not found. receive data is error!\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+					ERROR_MSG(fmt::format("CguiconsoleDlg::OnTimer: {} not found. receive data is error!\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				}
 
 				//timeout = 10000;
@@ -585,7 +581,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		ArraySize size = outcmd.size();
 		bundle << size;
 		bundle.append(outcmd.data(), size);
-		bundle.send(this->getNetworkInterface(), pChannel);
+		bundle.send(this->networkInterface(), pChannel);
 
 		CString str1, str2;
 		m_debugWnd.displaybufferWnd()->GetWindowText(str2);
@@ -834,7 +830,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 				bundle << _componentType;
 				bundle << _componentID;
-				bundle.send(getNetworkInterface(), pChannel);
+				bundle.send(networkInterface(), pChannel);
 
 				pChannel->updateLastReceivedTime();
 			}
@@ -847,7 +843,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CguiconsoleDlg::onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command)
 {
-	DEBUG_MSG(boost::format("CguiconsoleDlg::onExecScriptCommandCB: %1%\n") % command.c_str());
+	DEBUG_MSG(fmt::format("CguiconsoleDlg::onExecScriptCommandCB: {}\n", command.c_str()));
 
 	std::wstring wcmd;
 	strutil::utf82wchar(command, wcmd);
@@ -957,8 +953,7 @@ void CguiconsoleDlg::updateTree()
 	Components::COMPONENTS& cts4 = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::COMPONENTS& cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 	Components::COMPONENTS& cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
-	Components::COMPONENTS& cts7 = Components::getSingleton().getComponents(RESOURCEMGR_TYPE);
-	Components::COMPONENTS& cts8 = Components::getSingleton().getComponents(BOTS_TYPE);
+	Components::COMPONENTS& cts7 = Components::getSingleton().getComponents(BOTS_TYPE);
 	Components::COMPONENTS cts;
 	
 	if(cts0.size() > 0)
@@ -977,8 +972,6 @@ void CguiconsoleDlg::updateTree()
 		cts.insert(cts.begin(), cts6.begin(), cts6.end());
 	if(cts7.size() > 0)
 		cts.insert(cts.begin(), cts7.begin(), cts7.end());
-	if(cts8.size() > 0)
-		cts.insert(cts.begin(), cts8.begin(), cts8.end());
 
 	HTREEITEM hItemRoot;
 	TV_INSERTSTRUCT tcitem;
@@ -1142,7 +1135,16 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 	if(pChannel)
 	{
 		Mercury::Bundle bundle;
-		COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+
+		if(debugComponentType == BOTS_TYPE)
+		{
+			bundle.newMessage(BotsInterface::queryWatcher);
+		}
+		else
+		{
+			COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+		}
+
 		bundle << paths;
 		bundle.send(_networkInterface, pChannel);
 	}
@@ -1165,7 +1167,6 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
 	int fi_messagelog = s.Find(L"messagelog", 0);
-	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
 	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
@@ -1174,7 +1175,6 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
 		fi_messagelog < 0 &&
-		fi_resourcemgr < 0 &&
 		fi_dbmgr < 0 &&
 		fi_bots < 0)
 	{
@@ -1209,10 +1209,6 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	{
 		return MESSAGELOG_TYPE;
 	}
-	else if(fi_resourcemgr >= 0)
-	{
-		return RESOURCEMGR_TYPE;
-	}
 	else if(fi_bots >= 0)
 	{
 		return BOTS_TYPE;
@@ -1238,7 +1234,6 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
 	int fi_messagelog = s.Find(L"messagelog", 0);
-	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
 	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
@@ -1247,7 +1242,6 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
 		fi_messagelog < 0 &&
-		fi_resourcemgr < 0 &&
 		fi_dbmgr < 0 &&
 		fi_bots < 0)
 	{
@@ -1345,7 +1339,6 @@ void CguiconsoleDlg::OnMenu_Update()
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
 	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
-	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 }
@@ -1570,7 +1563,6 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
 	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
-	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 1000, NULL);
 	*/
@@ -1649,19 +1641,46 @@ void CguiconsoleDlg::onReceiveWatcherData(MemoryStream& s)
 
 bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 {
+	if(type == 0)
+	{
+		if(getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE && getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE
+			&& getTreeItemComponent(m_tree.GetSelectedItem()) != BOTS_TYPE)
+		{
+			::AfxMessageBox(L"not support!");
+			return false;
+		}
+	}
+
 	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
 		Mercury::Bundle bundle;
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::startProfile);
-		else
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)
+			bundle.newMessage(BaseappmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
 			bundle.newMessage(CellappInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPPMGR_TYPE)
+			bundle.newMessage(CellappmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == DBMGR_TYPE)
+			bundle.newMessage(DbmgrInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGINAPP_TYPE)
+			bundle.newMessage(LoginappInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == MESSAGELOG_TYPE)
+			bundle.newMessage(MessagelogInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BOTS_TYPE)
+			bundle.newMessage(BotsInterface::startProfile);
+		else
+		{
+			::AfxMessageBox(L"not support!");
+			return false;
+		}
 
 		bundle << name;
 		bundle << type;
 		bundle << timinglen;
-		bundle.send(getNetworkInterface(), pChannel);
+		bundle.send(networkInterface(), pChannel);
 		return true;
 	}
 

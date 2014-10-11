@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __PROXY_H__
-#define __PROXY_H__
+#ifndef KBE_PROXY_HPP
+#define KBE_PROXY_HPP
 	
 // common include
 #include "base.hpp"
@@ -64,6 +64,12 @@ public:
 
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles* pBundles();
+
+	/** 
+		定义属性数据被改变了 
+	*/
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
+			PyObject* pyData);
 
 	/**
 		向witness客户端推送一条消息
@@ -125,7 +131,7 @@ public:
 	/** 网络接口
 		当客户端所关联的这个entity的cell被创建时，被调用 
 	*/
-	void onClientGetCell(Mercury::Channel* pChannel);
+	void onClientGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
 
 	/**
 		获取前端类别
@@ -162,6 +168,11 @@ public:
 	int16 streamStringToClient(PyObjectPtr objptr, 
 		const std::string& descr = "", int16 id = -1);
 
+	/**
+		绑定了witness
+	*/
+	void onGetWitness();
+
 protected:
 	uint64 rndUUID_;
 	Mercury::Address addr_;
@@ -187,4 +198,4 @@ protected:
 #include "proxy.ipp"
 #endif
 
-#endif
+#endif // KBE_PROXY_HPP

@@ -128,10 +128,12 @@ Exported functions:
 """
 
 import base64
+import sys
 import time
+from datetime import datetime
 import http.client
+import urllib.parse
 from xml.parsers import expat
-import socket
 import errno
 from io import BytesIO
 try:
@@ -142,17 +144,13 @@ except ImportError:
 # --------------------------------------------------------------------
 # Internal stuff
 
-try:
-    import datetime
-except ImportError:
-    datetime = None
-
 def escape(s):
     s = s.replace("&", "&amp;")
     s = s.replace("<", "&lt;")
     return s.replace(">", "&gt;",)
 
-__version__ = "1.0.1"
+# used in User-Agent header sent
+__version__ = sys.version[:3]
 
 # xmlrpc integer limits
 MAXINT =  2**31-1
@@ -252,21 +250,33 @@ boolean = Boolean = bool
 # Wrapper for XML-RPC DateTime values.  This converts a time value to
 # the format used by XML-RPC.
 # <p>
-# The value can be given as a string in the format
-# "yyyymmddThh:mm:ss", as a 9-item time tuple (as returned by
+# The value can be given as a datetime object, as a string in the
+# format "yyyymmddThh:mm:ss", as a 9-item time tuple (as returned by
 # time.localtime()), or an integer value (as returned by time.time()).
 # The wrapper uses time.localtime() to convert an integer to a time
 # tuple.
 #
-# @param value The time, given as an ISO 8601 string, a time
-#              tuple, or a integer time value.
+# @param value The time, given as a datetime object, an ISO 8601 string,
+#              a time tuple, or an integer time value.
+
+
+# Issue #13305: different format codes across platforms
+_day0 = datetime(1, 1, 1)
+if _day0.strftime('%Y') == '0001':      # Mac OS X
+    def _iso8601_format(value):
+        return value.strftime("%Y%m%dT%H:%M:%S")
+elif _day0.strftime('%4Y') == '0001':   # Linux
+    def _iso8601_format(value):
+        return value.strftime("%4Y%m%dT%H:%M:%S")
+else:
+    def _iso8601_format(value):
+        return value.strftime("%Y%m%dT%H:%M:%S").zfill(17)
+del _day0
+
 
 def _strftime(value):
-    if datetime:
-        if isinstance(value, datetime.datetime):
-            return "%04d%02d%02dT%02d:%02d:%02d" % (
-                value.year, value.month, value.day,
-                value.hour, value.minute, value.second)
+    if isinstance(value, datetime):
+        return _iso8601_format(value)
 
     if not isinstance(value, (tuple, time.struct_time)):
         if value == 0:
@@ -291,9 +301,9 @@ class DateTime:
         if isinstance(other, DateTime):
             s = self.value
             o = other.value
-        elif datetime and isinstance(other, datetime.datetime):
+        elif isinstance(other, datetime):
             s = self.value
-            o = other.strftime("%Y%m%dT%H:%M:%S")
+            o = _iso8601_format(other)
         elif isinstance(other, str):
             s = self.value
             o = other
@@ -361,8 +371,7 @@ def _datetime(data):
     return value
 
 def _datetime_type(data):
-    t = time.strptime(data, "%Y%m%dT%H:%M:%S")
-    return datetime.datetime(*tuple(t)[:6])
+    return datetime.strptime(data, "%Y%m%dT%H:%M:%S")
 
 ##
 # Wrapper for binary data.  This can be used to transport any kind
@@ -377,8 +386,8 @@ class Binary:
         if data is None:
             data = b""
         else:
-            if not isinstance(data, bytes):
-                raise TypeError("expected bytes, not %s" %
+            if not isinstance(data, (bytes, bytearray)):
+                raise TypeError("expected bytes or bytearray, not %s" %
                                 data.__class__.__name__)
             data = bytes(data)  # Make a copy of the bytes!
         self.data = data
@@ -408,7 +417,6 @@ class Binary:
         out.write("<value><base64>\n")
         encoded = base64.encodebytes(self.data)
         out.write(encoded.decode('ascii'))
-        out.write('\n')
         out.write("</base64></value>\n")
 
 def _binary(data):
@@ -522,15 +530,6 @@ class Marshaller:
         write("<value><nil/></value>")
     dispatch[type(None)] = dump_nil
 
-    def dump_int(self, value, write):
-        # in case ints are > 32 bits
-        if value > MAXINT or value < MININT:
-            raise OverflowError("int exceeds XML-RPC limits")
-        write("<value><int>")
-        write(str(value))
-        write("</int></value>\n")
-    #dispatch[int] = dump_int
-
     def dump_bool(self, value, write):
         write("<value><boolean>")
         write(value and "1" or "0")
@@ -539,11 +538,14 @@ class Marshaller:
 
     def dump_long(self, value, write):
         if value > MAXINT or value < MININT:
-            raise OverflowError("long int exceeds XML-RPC limits")
+            raise OverflowError("int exceeds XML-RPC limits")
         write("<value><int>")
         write(str(int(value)))
         write("</int></value>\n")
     dispatch[int] = dump_long
+
+    # backward compatible
+    dump_int = dump_long
 
     def dump_double(self, value, write):
         write("<value><double>")
@@ -556,6 +558,14 @@ class Marshaller:
         write(escape(value))
         write("</string></value>\n")
     dispatch[str] = dump_unicode
+
+    def dump_bytes(self, value, write):
+        write("<value><base64>\n")
+        encoded = base64.encodebytes(value)
+        write(encoded.decode('ascii'))
+        write("</base64></value>\n")
+    dispatch[bytes] = dump_bytes
+    dispatch[bytearray] = dump_bytes
 
     def dump_array(self, value, write):
         i = id(value)
@@ -589,12 +599,11 @@ class Marshaller:
         del self.memo[i]
     dispatch[dict] = dump_struct
 
-    if datetime:
-        def dump_datetime(self, value, write):
-            write("<value><dateTime.iso8601>")
-            write(_strftime(value))
-            write("</dateTime.iso8601></value>\n")
-        dispatch[datetime.datetime] = dump_datetime
+    def dump_datetime(self, value, write):
+        write("<value><dateTime.iso8601>")
+        write(_strftime(value))
+        write("</dateTime.iso8601></value>\n")
+    dispatch[datetime] = dump_datetime
 
     def dump_instance(self, value, write):
         # check for special wrappers
@@ -628,7 +637,7 @@ class Unmarshaller:
     # and again, if you don't understand what's going on in here,
     # that's perfectly ok.
 
-    def __init__(self, use_datetime=False):
+    def __init__(self, use_datetime=False, use_builtin_types=False):
         self._type = None
         self._stack = []
         self._marks = []
@@ -636,9 +645,8 @@ class Unmarshaller:
         self._methodname = None
         self._encoding = "utf-8"
         self.append = self._stack.append
-        self._use_datetime = use_datetime
-        if use_datetime and not datetime:
-            raise ValueError("the datetime module is not available")
+        self._use_datetime = use_builtin_types or use_datetime
+        self._use_bytes = use_builtin_types
 
     def close(self):
         # return response tuple and target method
@@ -750,6 +758,8 @@ class Unmarshaller:
     def end_base64(self, data):
         value = Binary()
         value.decode(data.encode("ascii"))
+        if self._use_bytes:
+            value = value.data
         self.append(value)
         self._value = 0
     dispatch["base64"] = end_base64
@@ -861,23 +871,26 @@ FastMarshaller = FastParser = FastUnmarshaller = None
 #
 # return A (parser, unmarshaller) tuple.
 
-def getparser(use_datetime=False):
+def getparser(use_datetime=False, use_builtin_types=False):
     """getparser() -> parser, unmarshaller
 
     Create an instance of the fastest available parser, and attach it
     to an unmarshalling object.  Return both objects.
     """
-    if use_datetime and not datetime:
-        raise ValueError("the datetime module is not available")
     if FastParser and FastUnmarshaller:
-        if use_datetime:
+        if use_builtin_types:
             mkdatetime = _datetime_type
+            mkbytes = base64.decodebytes
+        elif use_datetime:
+            mkdatetime = _datetime_type
+            mkbytes = _binary
         else:
             mkdatetime = _datetime
-        target = FastUnmarshaller(True, False, _binary, mkdatetime, Fault)
+            mkbytes = _binary
+        target = FastUnmarshaller(True, False, mkbytes, mkdatetime, Fault)
         parser = FastParser(target)
     else:
-        target = Unmarshaller(use_datetime=use_datetime)
+        target = Unmarshaller(use_datetime=use_datetime, use_builtin_types=use_builtin_types)
         if FastParser:
             parser = FastParser(target)
         else:
@@ -915,7 +928,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None,
 
         encoding: the packet encoding (default is UTF-8)
 
-    All 8-bit strings in the data structure are assumed to use the
+    All byte strings in the data structure are assumed to use the
     packet encoding.  Unicode strings are automatically converted,
     where necessary.
     """
@@ -974,7 +987,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None,
 #     (None if not present).
 # @see Fault
 
-def loads(data, use_datetime=False):
+def loads(data, use_datetime=False, use_builtin_types=False):
     """data -> unmarshalled data, method name
 
     Convert an XML-RPC packet to unmarshalled data plus a method
@@ -983,7 +996,7 @@ def loads(data, use_datetime=False):
     If the XML-RPC packet represents a fault condition, this function
     raises a Fault exception.
     """
-    p, u = getparser(use_datetime=use_datetime)
+    p, u = getparser(use_datetime=use_datetime, use_builtin_types=use_builtin_types)
     p.feed(data)
     p.close()
     return u.close(), u.getmethodname()
@@ -1031,7 +1044,7 @@ def gzip_decode(data):
     gzf = gzip.GzipFile(mode="rb", fileobj=f)
     try:
         decoded = gzf.read()
-    except IOError:
+    except OSError:
         raise ValueError("invalid data")
     f.close()
     gzf.close()
@@ -1085,7 +1098,7 @@ class Transport:
     """Handles an HTTP transaction to an XML-RPC server."""
 
     # client identifier (may be overridden)
-    user_agent = "xmlrpclib.py/%s (by www.pythonware.com)" % __version__
+    user_agent = "Python-xmlrpc/%s" % __version__
 
     #if true, we'll request gzip encoding
     accept_gzip_encoding = True
@@ -1095,8 +1108,9 @@ class Transport:
     # that they can decode such a request
     encode_threshold = None #None = don't encode
 
-    def __init__(self, use_datetime=False):
+    def __init__(self, use_datetime=False, use_builtin_types=False):
         self._use_datetime = use_datetime
+        self._use_builtin_types = use_builtin_types
         self._connection = (None, None)
         self._extra_headers = []
 
@@ -1115,8 +1129,9 @@ class Transport:
         for i in (0, 1):
             try:
                 return self.single_request(host, handler, request_body, verbose)
-            except socket.error as e:
-                if i or e.errno not in (errno.ECONNRESET, errno.ECONNABORTED, errno.EPIPE):
+            except OSError as e:
+                if i or e.errno not in (errno.ECONNRESET, errno.ECONNABORTED,
+                                        errno.EPIPE):
                     raise
             except http.client.BadStatusLine: #close after we sent request
                 if i:
@@ -1157,7 +1172,8 @@ class Transport:
 
     def getparser(self):
         # get parser and unmarshaller
-        return getparser(use_datetime=self._use_datetime)
+        return getparser(use_datetime=self._use_datetime,
+                         use_builtin_types=self._use_builtin_types)
 
     ##
     # Get authorization info from host parameter
@@ -1175,7 +1191,6 @@ class Transport:
         if isinstance(host, tuple):
             host, x509 = host
 
-        import urllib.parse
         auth, host = urllib.parse.splituser(host)
 
         if auth:
@@ -1364,23 +1379,24 @@ class ServerProxy:
     """
 
     def __init__(self, uri, transport=None, encoding=None, verbose=False,
-                 allow_none=False, use_datetime=False):
+                 allow_none=False, use_datetime=False, use_builtin_types=False):
         # establish a "logical" server connection
 
         # get the url
-        import urllib.parse
         type, uri = urllib.parse.splittype(uri)
         if type not in ("http", "https"):
-            raise IOError("unsupported XML-RPC protocol")
+            raise OSError("unsupported XML-RPC protocol")
         self.__host, self.__handler = urllib.parse.splithost(uri)
         if not self.__handler:
             self.__handler = "/RPC2"
 
         if transport is None:
             if type == "https":
-                transport = SafeTransport(use_datetime=use_datetime)
+                handler = SafeTransport
             else:
-                transport = Transport(use_datetime=use_datetime)
+                handler = Transport
+            transport = handler(use_datetime=use_datetime,
+                                use_builtin_types=use_builtin_types)
         self.__transport = transport
 
         self.__encoding = encoding or 'utf-8'
@@ -1444,18 +1460,18 @@ if __name__ == "__main__":
 
     # simple test program (from the XML-RPC specification)
 
-    # server = ServerProxy("http://localhost:8000") # local server
-    server = ServerProxy("http://time.xmlrpc.com/RPC2")
+    # local server, available from Lib/xmlrpc/server.py
+    server = ServerProxy("http://localhost:8000")
 
     try:
         print(server.currentTime.getCurrentTime())
     except Error as v:
         print("ERROR", v)
 
-    # The server at xmlrpc.com doesn't seem to support multicall anymore.
     multi = MultiCall(server)
-    multi.currentTime.getCurrentTime()
-    multi.currentTime.getCurrentTime()
+    multi.getData()
+    multi.pow(2,9)
+    multi.add(1,2)
     try:
         for response in multi():
             print(response)

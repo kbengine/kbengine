@@ -8,6 +8,7 @@ SRCS =				\
 	pickler			\
 	pystruct		\
 	pyprofile		\
+	pyprofile_handler	\
 	py_memorystream		\
 	pywatcher		\
 	script			\

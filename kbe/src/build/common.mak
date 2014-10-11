@@ -52,9 +52,9 @@ endif
 # this even when not explicitly requiring Python. This assists in setting up
 # the target for libpython<version>.a when common.mak is re-included.
 ifeq ($(KBE_CONFIG), Hybrid64)
-PYTHONLIB = python64_3.2
+PYTHONLIB = python64_34
 else
-PYTHONLIB = python32_3.2
+PYTHONLIB = python32_34
 endif
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable
@@ -138,9 +138,8 @@ endif
 
 # Include and lib paths
 LDFLAGS += -L$(LIBDIR)
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
@@ -181,6 +180,7 @@ ifdef USE_PYTHON
 
  # This is the version of python kbengine is redistributing
  KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
+ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python
  LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
 
 
@@ -188,9 +188,9 @@ endif # USE_PYTHON
 
 ifdef USE_MYSQL
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
-	MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 else
-	MYSQL_CONFIG_PATH=/usr/lib/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 endif
 
 LDLIBS += `$(MYSQL_CONFIG_PATH) --libs_r`
@@ -262,6 +262,12 @@ LDLIBS += -lzip
 CPPFLAGS += -DUSE_ZIP
 endif
 
+JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc
+KBE_INCLUDES += -I$(JEMALLOC)/include
+#ifeq ($(USE_JEMALLOC),1)
+LDLIBS += -ljemalloc
+CPPFLAGS += -DUSE_JEMALLOC
+#endif
 
 LDLIBS += -ltinyxml
 LDLIBS += -ljsoncpp
@@ -277,11 +283,6 @@ else
 	ARCHFLAGS=-m32
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/CppUnitLite2/src/
-KBE_INCLUDES += -I$(CPPUNITLITE2_DIR)
-LDLIBS += -lCppUnitLite2
-endif
 
 # Use backwards compatible hash table style. This is because Fedora Core 6
 # defaults to using "gnu" style hash tables which produces incompatible
@@ -458,27 +459,6 @@ else
 install::
 endif
 
-ifneq ($(wildcard unit_test), )	# only if it has some cpps/c or object files!
-HAS_UNIT_TEST=1
-endif
-
-unit_tests:: unit_tests_build unit_tests_run
-
-unit_tests_build::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test
-endif
-
-unit_tests_run::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test run
-endif
-
-unit_tests_clean::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test clean
-endif
-
 #----------------------------------------------------------------------------
 # Library dependencies
 #----------------------------------------------------------------------------
@@ -505,7 +485,7 @@ $(KBE_PYTHONLIB): always
 	
 	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python
 	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
-	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.2" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
+	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.4" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 endif
 
 ifeq ($(USE_OPENSSL),1)
@@ -516,10 +496,6 @@ $(LIBDIR)/libssl.a: always
 	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_ssl
 endif
 
-ifdef USE_CPPUNITLITE2
-$(LIBDIR)/libCppUnitLite2.a: always
-	@$(MAKE) -C $(CPPUNITLITE2_DIR)
-endif
 
 # Strip the prefixed "lib" string. Be careful not to strip any _lib
 $(MY_LIBNAMES): always
@@ -643,14 +619,8 @@ else
 PYTHON_DEP =
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DEP = $(LIBDIR)/libCppUnitLite2.a
-else
-CPPUNITLITE2_DEP =
-endif
 
-
-$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP) $(CPPUNITLITE2_DEP)
+$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP)
 
 ifdef QUIET_BUILD
 	test -e $(MSG_FILE) && cat $(MSG_FILE); rm -f $(MSG_FILE)

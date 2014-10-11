@@ -23,7 +23,6 @@
 
 #include "row.h"
 #include "cursor.h"
-#include "sqlitecompat.h"
 
 void pysqlite_row_dealloc(pysqlite_Row* self)
 {
@@ -68,7 +67,7 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
 {
     long _idx;
     char* key;
-    int nitems, i;
+    Py_ssize_t nitems, i;
     char* compare_key;
 
     char* p1;
@@ -89,7 +88,10 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
         nitems = PyTuple_Size(self->description);
 
         for (i = 0; i < nitems; i++) {
-            compare_key = _PyUnicode_AsString(PyTuple_GET_ITEM(PyTuple_GET_ITEM(self->description, i), 0));
+            PyObject *obj;
+            obj = PyTuple_GET_ITEM(self->description, i);
+            obj = PyTuple_GET_ITEM(obj, 0);
+            compare_key = _PyUnicode_AsString(obj);
             if (!compare_key) {
                 return NULL;
             }
@@ -121,10 +123,12 @@ PyObject* pysqlite_row_subscript(pysqlite_Row* self, PyObject* idx)
 
         PyErr_SetString(PyExc_IndexError, "No item with that key");
         return NULL;
-    } else if (PySlice_Check(idx)) {
+    }
+    else if (PySlice_Check(idx)) {
         PyErr_SetString(PyExc_ValueError, "slices not implemented, yet");
         return NULL;
-    } else {
+    }
+    else {
         PyErr_SetString(PyExc_IndexError, "Index must be int or string");
         return NULL;
     }
@@ -173,10 +177,9 @@ static Py_hash_t pysqlite_row_hash(pysqlite_Row *self)
 
 static PyObject* pysqlite_row_richcompare(pysqlite_Row *self, PyObject *_other, int opid)
 {
-    if (opid != Py_EQ && opid != Py_NE) {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
-    }
+    if (opid != Py_EQ && opid != Py_NE)
+        Py_RETURN_NOTIMPLEMENTED;
+
     if (PyType_IsSubtype(Py_TYPE(_other), &pysqlite_RowType)) {
         pysqlite_Row *other = (pysqlite_Row *)_other;
         PyObject *res = PyObject_RichCompare(self->description, other->description, opid);
@@ -186,8 +189,7 @@ static PyObject* pysqlite_row_richcompare(pysqlite_Row *self, PyObject *_other, 
             return PyObject_RichCompare(self->data, other->data, opid);
         }
     }
-    Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
+    Py_RETURN_NOTIMPLEMENTED;
 }
 
 PyMappingMethods pysqlite_row_as_mapping = {

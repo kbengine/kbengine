@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __VOLATILEINFO_H__
-#define __VOLATILEINFO_H__
+#ifndef KBE_VOLATILEINFO_HPP
+#define KBE_VOLATILEINFO_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "pyscript/scriptobject.hpp"	
@@ -76,4 +77,4 @@ protected:
 }
 
 
-#endif
+#endif // KBE_VOLATILEINFO_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_RANGE_TRIGGER_NODE_HPP__
-#define __KBE_RANGE_TRIGGER_NODE_HPP__
+#ifndef KBE_RANGE_TRIGGER_NODE_HPP
+#define KBE_RANGE_TRIGGER_NODE_HPP
 
 #include "coordinate_node.hpp"
 #include "math/math.hpp"

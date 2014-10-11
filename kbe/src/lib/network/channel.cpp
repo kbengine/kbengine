@@ -146,7 +146,7 @@ Channel::Channel():
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
-	DEBUG_MSG(boost::format("Channel::~Channel(): %1%\n") % this->c_str());
+	//DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
 	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL && !isDestroyed_)
 	{
 		pNetworkInterface_->onChannelGone(this);
@@ -264,9 +264,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 			if (hasDiscard > 0 && warnOnDiscard)
 			{
-				WARNING_MSG(boost::format("Channel::clearState( %1% ): "
-					"Discarding %2% buffered packet(s)\n") %
-					this->c_str() % hasDiscard );
+				WARNING_MSG(fmt::format("Channel::clearState( {} ): "
+					"Discarding {} buffered packet(s)\n",
+					this->c_str(), hasDiscard));
 			}
 
 			bufferedReceives_[i].clear();
@@ -331,17 +331,18 @@ void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.\n") % 
-			this->c_str());
+		ERROR_MSG(fmt::format("Channel::send({}): Channel is destroyed.\n", 
+			this->c_str()));
 		
 		this->clearBundle();
 		return;
 	}
 	
 	if(pBundle)
-	{
 		bundles_.push_back(pBundle);
-	}
+
+	if(bundles_.size() == 0)
+		return;
 
 	Bundles::iterator iter = bundles_.begin();
 	for(; iter != bundles_.end(); iter++)
@@ -441,8 +442,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: external channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_ % g_extReceiveWindowBytesOverflow);
+			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
+				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
 			this->condemn();
 		}
@@ -452,8 +453,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_intReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_intReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: internal channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_ % g_intReceiveWindowBytesOverflow);
+			WARNING_MSG(fmt::format("Channel::onPacketReceived[{:p}]: internal channel({}), bufferedBytes is overflow({} > {}).\n", 
+				(void*)this, this->c_str(), lastTickBytesReceived_, g_intReceiveWindowBytesOverflow));
 		}
 	}
 }
@@ -467,14 +468,14 @@ void Channel::addReceiveWindow(Packet* pPacket)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_receiveWindowMessagesOverflowCritical);
+			WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}).\n", 
+				(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Mercury::g_receiveWindowMessagesOverflowCritical));
 
 			if(Mercury::g_extReceiveWindowMessagesOverflow > 0 && 
 				bufferedReceives_[bufferedReceivesIdx_].size() >  Mercury::g_extReceiveWindowMessagesOverflow)
 			{
-				ERROR_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_extReceiveWindowMessagesOverflow);
+				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
+					(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Mercury::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
 			}
@@ -484,8 +485,8 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Mercury::g_intReceiveWindowMessagesOverflow > 0 && 
 				bufferedReceives_[bufferedReceivesIdx_].size() > Mercury::g_intReceiveWindowMessagesOverflow)
 			{
-				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_intReceiveWindowMessagesOverflow);
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: internal channel({}), bufferedMessages is overflow({} > {}).\n", 
+					(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Mercury::g_intReceiveWindowMessagesOverflow));
 			}
 		}
 	}
@@ -495,7 +496,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 void Channel::condemn()
 { 
 	isCondemn_ = true; 
-	ERROR_MSG(boost::format("Channel::condemn[%1%]: channel(%2%).\n") % this % this->c_str()); 
+	ERROR_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -519,12 +520,12 @@ void Channel::handshake()
 
 				pPacketReader_ = new HTML5PacketReader(this);
 				pFilter_ = new HTML5PacketFilter(this);
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) successfully!\n") % this->c_str());
+				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) successfully!\n", this->c_str()));
 				return;
 			}
 			else
 			{
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) error!\n") % this->c_str());
+				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) error!\n", this->c_str()));
 			}
 		}
 
@@ -544,16 +545,16 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is destroyed.\n") % 
-			this->c_str() % this);
+		ERROR_MSG(fmt::format("Channel::processPackets({}): channel[{:p}] is destroyed.\n", 
+			this->c_str(), (void*)this));
 
 		return;
 	}
 
 	if(this->isCondemn())
 	{
-		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is condemn.\n") % 
-			this->c_str() % this);
+		ERROR_MSG(fmt::format("Channel::processPackets({}): channel[{:p}] is condemn.\n", 
+			this->c_str(), (void*)this));
 
 		//this->destroy();
 		return;
@@ -585,12 +586,12 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	}catch(MemoryStreamException &)
 	{
 		Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
-		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsg=(name=%2%, id=%3%, len=%4%), currMsgLen=%5%\n") %
-			this->c_str() 
-			% (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
-			% pPacketReader_->currMsgID() 
-			% (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
-			% pPacketReader_->currMsgLen());
+		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=(name={}, id={}, len={}), currMsgLen={}\n",
+			this->c_str()
+			, (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
+			, pPacketReader_->currMsgID() 
+			, (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
+			, pPacketReader_->currMsgLen()));
 
 		pPacketReader_->currMsgID(0);
 		pPacketReader_->currMsgLen(0);

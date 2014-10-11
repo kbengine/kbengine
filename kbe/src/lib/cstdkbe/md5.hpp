@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_MD5__
-#define __KBENGINE_MD5__
+#ifndef KBENGINE_MD5_HPP
+#define KBENGINE_MD5_HPP
 
 #include "openssl/md5.h"
 #include <string>
@@ -34,6 +34,7 @@ class KBE_MD5
 {
 public:
 	KBE_MD5();
+	KBE_MD5(const void * data, int numBytes);
 	~KBE_MD5();
 
 	void append(const void * data, int numBytes);
@@ -49,6 +50,10 @@ public:
 		{ return !(*this == other); }
 
 	bool operator<( const KBE_MD5 & other ) const;
+
+	static std::string getDigest(const void * data, int numBytes);
+
+	bool isFinal()const{ return isFinal_; }
 private:
 	MD5_CTX state_;
 	unsigned char bytes_[16];
@@ -58,4 +63,4 @@ private:
 
 }
 
-#endif // __KBENGINE_MD5__
+#endif // KBENGINE_MD5_HPP

@@ -417,6 +417,8 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
            that). Use 'B' for bytes. */
         stgdict->format = _ctypes_alloc_format_string(NULL, "B");
     }
+    if (stgdict->format == NULL)
+        return -1;
 
 #define realdict ((PyObject *)&stgdict->dict)
     for (i = 0; i < len; ++i) {
@@ -426,9 +428,9 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
         StgDictObject *dict;
         int bitsize = 0;
 
-        if (!pair || !PyArg_ParseTuple(pair, "OO|i", &name, &desc, &bitsize)) {
-            PyErr_SetString(PyExc_AttributeError,
-                            "'_fields_' must be a sequence of pairs");
+        if (!pair || !PyArg_ParseTuple(pair, "UO|i", &name, &desc, &bitsize)) {
+            PyErr_SetString(PyExc_TypeError,
+                            "'_fields_' must be a sequence of (name, C type) pairs");
             Py_XDECREF(pair);
             return -1;
         }
@@ -478,19 +480,16 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             }
         } else
             bitsize = 0;
+
         if (isStruct && !isPacked) {
             char *fieldfmt = dict->format ? dict->format : "B";
             char *fieldname = _PyUnicode_AsString(name);
             char *ptr;
-            Py_ssize_t len; 
+            Py_ssize_t len;
             char *buf;
 
             if (fieldname == NULL)
             {
-                PyErr_Format(PyExc_TypeError,
-                             "structure field name must be string not %s",
-                             name->ob_type->tp_name);
-                                
                 Py_DECREF(pair);
                 return -1;
             }
@@ -506,7 +505,12 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             sprintf(buf, "%s:%s:", fieldfmt, fieldname);
 
             ptr = stgdict->format;
-            stgdict->format = _ctypes_alloc_format_string(stgdict->format, buf);
+            if (dict->shape != NULL) {
+                stgdict->format = _ctypes_alloc_format_string_with_shape(
+                    dict->ndim, dict->shape, stgdict->format, buf);
+            } else {
+                stgdict->format = _ctypes_alloc_format_string(stgdict->format, buf);
+            }
             PyMem_Free(ptr);
             PyMem_Free(buf);
 
@@ -515,6 +519,7 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
                 return -1;
             }
         }
+
         if (isStruct) {
             prop = PyCField_FromDesc(desc, i,
                                    &field_size, bitsize, &bitofs,

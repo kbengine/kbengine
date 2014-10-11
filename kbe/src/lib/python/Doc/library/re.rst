@@ -242,21 +242,32 @@ The special characters are:
 
 ``(?P<name>...)``
    Similar to regular parentheses, but the substring matched by the group is
-   accessible within the rest of the regular expression via the symbolic group
-   name *name*.  Group names must be valid Python identifiers, and each group
-   name must be defined only once within a regular expression.  A symbolic group
-   is also a numbered group, just as if the group were not named.  So the group
-   named ``id`` in the example below can also be referenced as the numbered group
-   ``1``.
+   accessible via the symbolic group name *name*.  Group names must be valid
+   Python identifiers, and each group name must be defined only once within a
+   regular expression.  A symbolic group is also a numbered group, just as if
+   the group were not named.
 
-   For example, if the pattern is ``(?P<id>[a-zA-Z_]\w*)``, the group can be
-   referenced by its name in arguments to methods of match objects, such as
-   ``m.group('id')`` or ``m.end('id')``, and also by name in the regular
-   expression itself (using ``(?P=id)``) and replacement text given to
-   ``.sub()`` (using ``\g<id>``).
+   Named groups can be referenced in three contexts.  If the pattern is
+   ``(?P<quote>['"]).*?(?P=quote)`` (i.e. matching a string quoted with either
+   single or double quotes):
+
+   +---------------------------------------+----------------------------------+
+   | Context of reference to group "quote" | Ways to reference it             |
+   +=======================================+==================================+
+   | in the same pattern itself            | * ``(?P=quote)`` (as shown)      |
+   |                                       | * ``\1``                         |
+   +---------------------------------------+----------------------------------+
+   | when processing match object ``m``    | * ``m.group('quote')``           |
+   |                                       | * ``m.end('quote')`` (etc.)      |
+   +---------------------------------------+----------------------------------+
+   | in a string passed to the ``repl``    | * ``\g<quote>``                  |
+   | argument of ``re.sub()``              | * ``\g<1>``                      |
+   |                                       | * ``\1``                         |
+   +---------------------------------------+----------------------------------+
 
 ``(?P=name)``
-   Matches whatever text was matched by the earlier group named *name*.
+   A backreference to a named group; it matches whatever text was matched by the
+   earlier group named *name*.
 
 ``(?#...)``
    A comment; the contents of the parentheses are simply ignored.
@@ -306,7 +317,7 @@ The special characters are:
    optional and can be omitted. For example,
    ``(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)`` is a poor email matching pattern, which
    will match with ``'<user@host.com>'`` as well as ``'user@host.com'``, but
-   not with ``'<user@host.com'`` nor ``'user@host.com>'`` .
+   not with ``'<user@host.com'`` nor ``'user@host.com>'``.
 
 
 The special sequences consist of ``'\'`` and a character from the list below.
@@ -316,7 +327,7 @@ the second character.  For example, ``\$`` matches the character ``'$'``.
 ``\number``
    Matches the contents of the group of the same number.  Groups are numbered
    starting from 1.  For example, ``(.+) \1`` matches ``'the the'`` or ``'55 55'``,
-   but not ``'the end'`` (note the space after the group).  This special sequence
+   but not ``'thethe'`` (note the space after the group).  This special sequence
    can only be used to match one of the first 99 groups.  If the first digit of
    *number* is 0, or *number* is 3 octal digits long, it will not be interpreted as
    a group match, but as the character with octal value *number*. Inside the
@@ -414,16 +425,23 @@ Most of the standard escapes supported by Python string literals are also
 accepted by the regular expression parser::
 
    \a      \b      \f      \n
-   \r      \t      \v      \x
-   \\
+   \r      \t      \u      \U
+   \v      \x      \\
 
 (Note that ``\b`` is used to represent word boundaries, and means "backspace"
 only inside character classes.)
+
+``'\u'`` and ``'\U'`` escape sequences are only recognized in Unicode
+patterns.  In bytes patterns they are not treated specially.
 
 Octal escapes are included in a limited form.  If the first digit is a 0, or if
 there are three octal digits, it is considered an octal escape. Otherwise, it is
 a group reference.  As for string literals, octal escapes are always at most
 three digits in length.
+
+.. versionchanged:: 3.3
+   The ``'\u'`` and ``'\U'`` escape sequences have been added.
+
 
 
 .. _contents-of-module-re:
@@ -463,7 +481,7 @@ form.
    .. note::
 
       The compiled versions of the most recent patterns passed to
-      :func:`re.match`, :func:`re.search` or :func:`re.compile` are cached, so
+      :func:`re.compile` and the module-level matching functions are cached, so
       programs that use only a few regular expressions at a time needn't worry
       about compiling regular expressions.
 
@@ -566,6 +584,16 @@ form.
    instead (see also :ref:`search-vs-match`).
 
 
+.. function:: fullmatch(pattern, string, flags=0)
+
+   If the whole *string* matches the regular expression *pattern*, return a
+   corresponding :ref:`match object <match-objects>`.  Return ``None`` if the
+   string does not match the pattern; note that this is different from a
+   zero-length match.
+
+   .. versionadded:: 3.4
+
+
 .. function:: split(pattern, string, maxsplit=0, flags=0)
 
    Split *string* by the occurrences of *pattern*.  If capturing parentheses are
@@ -660,7 +688,8 @@ form.
    when not adjacent to a previous match, so ``sub('x*', '-', 'abc')`` returns
    ``'-a-b-c-'``.
 
-   In addition to character escapes and backreferences as described above,
+   In string-type *repl* arguments, in addition to the character escapes and
+   backreferences described above,
    ``\g<name>`` will use the substring matched by the group named ``name``, as
    defined by the ``(?P<name>...)`` syntax. ``\g<number>`` uses the corresponding
    group number; ``\g<2>`` is therefore equivalent to ``\2``, but isn't ambiguous
@@ -684,9 +713,12 @@ form.
 
 .. function:: escape(string)
 
-   Return *string* with all non-alphanumerics backslashed; this is useful if you
-   want to match an arbitrary literal string that may have regular expression
-   metacharacters in it.
+   Escape all the characters in pattern except ASCII letters, numbers and ``'_'``.
+   This is useful if you want to match an arbitrary literal string that may
+   have regular expression metacharacters in it.
+
+   .. versionchanged:: 3.3
+      The ``'_'`` character is no longer escaped.
 
 
 .. function:: purge()
@@ -733,7 +765,7 @@ attributes:
 
    >>> pattern = re.compile("d")
    >>> pattern.search("dog")     # Match at index 0
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 1), match='d'>
    >>> pattern.search("dog", 1)  # No match; search doesn't include the "d"
 
 
@@ -750,10 +782,28 @@ attributes:
    >>> pattern = re.compile("o")
    >>> pattern.match("dog")      # No match as "o" is not at the start of "dog".
    >>> pattern.match("dog", 1)   # Match as "o" is the 2nd character of "dog".
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(1, 2), match='o'>
 
    If you want to locate a match anywhere in *string*, use
    :meth:`~regex.search` instead (see also :ref:`search-vs-match`).
+
+
+.. method:: regex.fullmatch(string[, pos[, endpos]])
+
+   If the whole *string* matches this regular expression, return a corresponding
+   :ref:`match object <match-objects>`.  Return ``None`` if the string does not
+   match the pattern; note that this is different from a zero-length match.
+
+   The optional *pos* and *endpos* parameters have the same meaning as for the
+   :meth:`~regex.search` method.
+
+   >>> pattern = re.compile("o[gh]")
+   >>> pattern.fullmatch("dog")      # No match as "o" is not at the start of "dog".
+   >>> pattern.fullmatch("ogre")     # No match as not the full string matches.
+   >>> pattern.fullmatch("doggie", 1, 3)   # Matches within given limits.
+   <_sre.SRE_Match object; span=(1, 3), match='og'>
+
+   .. versionadded:: 3.4
 
 
 .. method:: regex.split(string, maxsplit=0)
@@ -1117,7 +1167,7 @@ For example::
 
    >>> re.match("c", "abcdef")  # No match
    >>> re.search("c", "abcdef") # Match
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(2, 3), match='c'>
 
 Regular expressions beginning with ``'^'`` can be used with :func:`search` to
 restrict the match at the beginning of the string::
@@ -1125,7 +1175,7 @@ restrict the match at the beginning of the string::
    >>> re.match("c", "abcdef")  # No match
    >>> re.search("^c", "abcdef") # No match
    >>> re.search("^a", "abcdef")  # Match
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 1), match='a'>
 
 Note however that in :const:`MULTILINE` mode :func:`match` only matches at the
 beginning of the string, whereas using :func:`search` with a regular expression
@@ -1133,7 +1183,7 @@ beginning with ``'^'`` will match at the beginning of each line.
 
    >>> re.match('X', 'A\nB\nX', re.MULTILINE)  # No match
    >>> re.search('^X', 'A\nB\nX', re.MULTILINE)  # Match
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(4, 5), match='X'>
 
 
 Making a Phonebook
@@ -1252,9 +1302,9 @@ another one to escape it.  For example, the two following lines of code are
 functionally identical:
 
    >>> re.match(r"\W(.)\1\W", " ff ")
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 4), match=' ff '>
    >>> re.match("\\W(.)\\1\\W", " ff ")
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 4), match=' ff '>
 
 When one wants to match a literal backslash, it must be escaped in the regular
 expression.  With raw string notation, this means ``r"\\"``.  Without raw string
@@ -1262,9 +1312,9 @@ notation, one must use ``"\\\\"``, making the following lines of code
 functionally identical:
 
    >>> re.match(r"\\", r"\\")
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 1), match='\\'>
    >>> re.match("\\\\", r"\\")
-   <_sre.SRE_Match object at ...>
+   <_sre.SRE_Match object; span=(0, 1), match='\\'>
 
 
 Writing a Tokenizer

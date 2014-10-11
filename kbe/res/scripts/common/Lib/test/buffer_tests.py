@@ -160,14 +160,20 @@ class MixinBytesBufferCommonTests(object):
                          self.marshal(b'abc\rab\tdef\ng\thi').expandtabs(8))
         self.assertEqual(b'abc\rab  def\ng   hi',
                          self.marshal(b'abc\rab\tdef\ng\thi').expandtabs(4))
+        self.assertEqual(b'abc\r\nab      def\ng       hi',
+                         self.marshal(b'abc\r\nab\tdef\ng\thi').expandtabs())
+        self.assertEqual(b'abc\r\nab      def\ng       hi',
+                         self.marshal(b'abc\r\nab\tdef\ng\thi').expandtabs(8))
         self.assertEqual(b'abc\r\nab  def\ng   hi',
                          self.marshal(b'abc\r\nab\tdef\ng\thi').expandtabs(4))
-        self.assertEqual(b'abc\rab      def\ng       hi',
-                         self.marshal(b'abc\rab\tdef\ng\thi').expandtabs())
-        self.assertEqual(b'abc\rab      def\ng       hi',
-                         self.marshal(b'abc\rab\tdef\ng\thi').expandtabs(8))
         self.assertEqual(b'abc\r\nab\r\ndef\ng\r\nhi',
-            self.marshal(b'abc\r\nab\r\ndef\ng\r\nhi').expandtabs(4))
+                         self.marshal(b'abc\r\nab\r\ndef\ng\r\nhi').expandtabs(4))
+        # check keyword args
+        self.assertEqual(b'abc\rab      def\ng       hi',
+                         self.marshal(b'abc\rab\tdef\ng\thi').expandtabs(tabsize=8))
+        self.assertEqual(b'abc\rab  def\ng   hi',
+                         self.marshal(b'abc\rab\tdef\ng\thi').expandtabs(tabsize=4))
+
         self.assertEqual(b'  a\n b', self.marshal(b' \ta\n\tb').expandtabs(1))
 
         self.assertRaises(TypeError, self.marshal(b'hello').expandtabs, 42, 42)
@@ -200,7 +206,13 @@ class MixinBytesBufferCommonTests(object):
                          self.marshal(b'abc\ndef\r\nghi\n\r').splitlines())
         self.assertEqual([b'', b'abc', b'def', b'ghi', b''],
                          self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines())
+        self.assertEqual([b'', b'abc', b'def', b'ghi', b''],
+                         self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines(False))
         self.assertEqual([b'\n', b'abc\n', b'def\r\n', b'ghi\n', b'\r'],
-                         self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines(1))
+                         self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines(True))
+        self.assertEqual([b'', b'abc', b'def', b'ghi', b''],
+                         self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines(keepends=False))
+        self.assertEqual([b'\n', b'abc\n', b'def\r\n', b'ghi\n', b'\r'],
+                         self.marshal(b'\nabc\ndef\r\nghi\n\r').splitlines(keepends=True))
 
         self.assertRaises(TypeError, self.marshal(b'abc').splitlines, 42, 42)

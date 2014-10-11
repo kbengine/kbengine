@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __NETWORKTCPPACKET_RECEIVER__
-#define __NETWORKTCPPACKET_RECEIVER__
+#ifndef KBE_NETWORKTCPPACKET_RECEIVER_HPP
+#define KBE_NETWORKTCPPACKET_RECEIVER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -65,4 +65,4 @@ protected:
 #ifdef CODE_INLINE
 #include "tcp_packet_receiver.ipp"
 #endif
-#endif // __NETWORKTCPPACKET_RECEIVER__
+#endif // KBE_NETWORKTCPPACKET_RECEIVER_HPP

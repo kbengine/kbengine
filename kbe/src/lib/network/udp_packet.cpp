@@ -32,7 +32,7 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-static ObjectPool<UDPPacket> _g_objPool;
+static ObjectPool<UDPPacket> _g_objPool("UDPPacket");
 ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 {
 	return _g_objPool;
@@ -41,8 +41,8 @@ ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 //-------------------------------------------------------------------------------------
 void UDPPacket::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("UDPPacket::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("UDPPacket::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

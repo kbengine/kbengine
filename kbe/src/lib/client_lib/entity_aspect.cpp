@@ -24,11 +24,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
+EntityAspect::EntityAspect(const EntityAspect& entityAspect)
+{
+	aspectID_ = entityAspect.aspectID_;
+	modelScale_ = entityAspect.modelScale_;
+	modelres_ = entityAspect.modelres_;
+}
+
+//-------------------------------------------------------------------------------------
 EntityAspect::EntityAspect(ENTITY_ID aspectID):
 aspectID_(aspectID),
+modelres_(),
 modelScale_(1.0f)
 {
 }
+
+//-------------------------------------------------------------------------------------
+EntityAspect::EntityAspect():
+aspectID_(0),
+modelres_(),
+modelScale_(1.0f)
+{
+}
+
 
 //-------------------------------------------------------------------------------------
 EntityAspect::~EntityAspect()

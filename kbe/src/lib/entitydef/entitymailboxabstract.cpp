@@ -96,8 +96,8 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 			}
 			else
 			{
-				ERROR_MSG(boost::format("EntityMailboxAbstract::newMail: not found component(%1%)!\n") 
-					% componentID_);
+				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({})!\n",
+					componentID_));
 			}
 		}
 
@@ -140,8 +140,8 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EntityMailboxAbstract::postMail: invalid channel(%1%)!\n") %
-			addr_.c_str());
+		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({})!\n",
+			addr_.c_str()));
 	}
 
 	return false;
@@ -157,11 +157,11 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
 	
 	PyObject* args1 = PyTuple_New(4);
-	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->getID()));
-	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->getComponentID()));
-	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->getUType()));
+	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->id()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->componentID()));
+	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->utype()));
 
-	int16 mbType = static_cast<int16>(emailbox->getType());
+	int16 mbType = static_cast<int16>(emailbox->type());
 	
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromLong(mbType));
 	PyTuple_SET_ITEM(args, 1, args1);
@@ -176,7 +176,7 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 //-------------------------------------------------------------------------------------
 PyObject* EntityMailboxAbstract::pyGetID()
 { 
-	return PyLong_FromLong(getID()); 
+	return PyLong_FromLong(id()); 
 }
 
 //-------------------------------------------------------------------------------------

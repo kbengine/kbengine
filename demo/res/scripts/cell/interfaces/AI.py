@@ -51,7 +51,7 @@ class AI:
 		删除领地
 		"""
 		if self.territoryControllerID > 0:
-			self.cancel(self.territoryControllerID)
+			self.cancelController(self.territoryControllerID)
 			self.territoryControllerID = 0
 			INFO_MSG("%s::delTerritory: %i" % (self.getScriptName(), self.id))
 			
@@ -159,6 +159,7 @@ class AI:
 			attackMaxDist = 20.0
 			
 		entity = KBEngine.entities.get(self.targetID)
+
 		if entity.position.distTo(self.position) > attackMaxDist:
 			runSpeed = self.getDatas()["runSpeed"]
 			if runSpeed != self.moveSpeed:

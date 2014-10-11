@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_NAVIGATETILEHANDLE_HPP__
-#define __KBE_NAVIGATETILEHANDLE_HPP__
+#ifndef KBE_NAVIGATETILEHANDLE_HPP
+#define KBE_NAVIGATETILEHANDLE_HPP
 
 #include "navigation/navigation_handle.hpp"
 
@@ -85,15 +85,9 @@ public:
 	static NavigationHandle* create(std::string name);
 	
 	int getMap(int x, int y);
-	bool hasMapObj(int x, int y);
 
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
-
-	void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state);
-
-	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
-	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos);
 
 	bool direction8()const{ return direction8_; }
 	
@@ -104,5 +98,5 @@ public:
 };
 
 }
-#endif // __KBE_NAVIGATETILEHANDLE_HPP__
+#endif // KBE_NAVIGATETILEHANDLE_HPP
 

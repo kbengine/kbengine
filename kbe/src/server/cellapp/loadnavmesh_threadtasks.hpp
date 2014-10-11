@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LOADNAVMESH_THREADTASKS_H__
-#define __LOADNAVMESH_THREADTASKS_H__
+#ifndef KBE_LOADNAVMESH_THREADTASKS_HPP
+#define KBE_LOADNAVMESH_THREADTASKS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "thread/threadtask.hpp"
@@ -46,4 +46,5 @@ protected:
 
 
 }
-#endif
+
+#endif // KBE_LOADNAVMESH_THREADTASKS_HPP

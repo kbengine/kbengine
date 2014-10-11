@@ -22,15 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setClientMailbox(EntityMailbox* mailbox)
-{
-	clientMailbox_ = mailbox; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE bool Entity::isWitnessed(void)const
 { 
-	return witnesses_.size() > 0; 
+	return witnesses_count_ > 0; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -39,31 +33,38 @@ INLINE bool Entity::hasWitness(void)const
 	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
 }
 
+//-------------------------------------------------------------------------------------
 INLINE const std::list<ENTITY_ID>&	Entity::witnesses()
 {
 	return witnesses_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setTopSpeedY(float speed)
+INLINE size_t Entity::witnessesSize()const
+{
+	return witnesses_count_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::topSpeedY(float speed)
 { 
 	topSpeedY_ = speed; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Entity::getTopSpeedY()const
+INLINE float Entity::topSpeedY()const
 { 
 	return topSpeedY_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setTopSpeed(float speed)
+INLINE void Entity::topSpeed(float speed)
 { 
 	topSpeed_ = speed; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setPosition(const Position3D& pos)
+INLINE void Entity::position(const Position3D& pos)
 { 
 	Vector3 movement = pos - position_;
 
@@ -75,7 +76,7 @@ INLINE void Entity::setPosition(const Position3D& pos)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setDirection(const Direction3D& dir)
+INLINE void Entity::direction(const Direction3D& dir)
 {
 	if(almostEqual(direction_.yaw(), dir.yaw()) && almostEqual(direction_.roll(), dir.roll()) && almostEqual(direction_.pitch(), dir.pitch()))
 		return;
@@ -85,55 +86,61 @@ INLINE void Entity::setDirection(const Direction3D& dir)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Direction3D& Entity::getDirection()
+INLINE Direction3D& Entity::direction()
 { 
 	return direction_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Position3D& Entity::getPosition()
+INLINE Position3D& Entity::position()
 {
 	return position_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::getBaseMailbox()const
+INLINE EntityMailbox* Entity::baseMailbox()const
 { 
 	return baseMailbox_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setBaseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
 { 
 	baseMailbox_ = mailbox; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::getClientMailbox()const
+INLINE void Entity::clientMailbox(EntityMailbox* mailbox)
+{
+	clientMailbox_ = mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE EntityMailbox* Entity::clientMailbox()const
 { 
 	return clientMailbox_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AllClients* Entity::getAllClients()const
+INLINE AllClients* Entity::allClients()const
 { 
 	return allClients_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AllClients* Entity::getOtherClients()const
+INLINE AllClients* Entity::otherClients()const
 { 
 	return otherClients_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setAllClients(AllClients* clients)
+INLINE void Entity::allClients(AllClients* clients)
 {
 	allClients_ = clients;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setOtherClients(AllClients* clients)
+INLINE void Entity::otherClients(AllClients* clients)
 {
 	otherClients_ = clients;
 }
@@ -141,7 +148,37 @@ INLINE void Entity::setOtherClients(AllClients* clients)
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isReal(void)const
 { 
-	return isReal_; 
+	return realCell_ == 0; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::hasGhost(void)const
+{ 
+	return ghostCell_ > 0; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::realCell(void)const
+{ 
+	return realCell_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE COMPONENT_ID Entity::ghostCell(void)const
+{ 
+	return ghostCell_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::realCell(COMPONENT_ID cellID)
+{ 
+	realCell_ = cellID; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::ghostCell(COMPONENT_ID cellID)
+{ 
+	ghostCell_ = cellID; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -172,6 +209,12 @@ INLINE void Entity::pWitness(Witness* w)
 INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
 {
 	return pEntityCoordinateNode_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::pEntityCoordinateNode(EntityCoordinateNode* pNode)
+{
+	pEntityCoordinateNode_ = pNode;
 }
 
 //-------------------------------------------------------------------------------------

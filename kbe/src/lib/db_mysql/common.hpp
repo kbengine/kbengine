@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DB_SQL_COMMON_H__
-#define __DB_SQL_COMMON_H__
+#ifndef KBE_DB_SQL_COMMON_HPP
+#define KBE_DB_SQL_COMMON_HPP
 
 // common include	
 // #define NDEBUG
@@ -71,4 +71,4 @@ struct DB_OP_TABLE_ITEM_DATA_BOX
 };
 
 }
-#endif
+#endif // KBE_DB_SQL_COMMON_HPP

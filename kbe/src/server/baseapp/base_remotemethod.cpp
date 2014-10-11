@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.hpp"
 #include "helper/profile.hpp"	
 #include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "helper/eventhistory_stats.hpp"
 
 #include "client_lib/client_interface.hpp"
 
@@ -64,11 +64,11 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Base* pEntity = Baseapp::getSingleton().findEntity(mailbox->getID());
+	Base* pEntity = Baseapp::getSingleton().findEntity(mailbox->id());
 	if(pEntity == NULL)
 	{
-		//WARNING_MSG(boost::format("BaseRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->getID());
+		//WARNING_MSG(fmt::format("BaseRemoteMethod::callClientMethod: not found entity({}).\n",
+		//	mailbox->id()));
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
@@ -86,7 +86,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 			(*pBundle).append(mstream->data(), mstream->wpos());
 
 		// 记录这个事件产生的数据量大小
-		g_privateClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
+		g_privateClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
 			methodDescription->getName(), 
 			pBundle->currMsgLength(), 
 			"::");

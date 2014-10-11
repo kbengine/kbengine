@@ -313,14 +313,14 @@ exception, the saved exception is set as the context of the new exception.
 If the :keyword:`finally` clause executes a :keyword:`return` or :keyword:`break`
 statement, the saved exception is discarded::
 
-    def f():
-        try:
-            1/0
-        finally:
-            return 42
-
-    >>> f()
-    42
+   >>> def f():
+   ...     try:
+   ...         1/0
+   ...     finally:
+   ...         return 42
+   ...
+   >>> f()
+   42
 
 The exception information is not available to the program during execution of
 the :keyword:`finally` clause.
@@ -337,6 +337,20 @@ statement, the :keyword:`finally` clause is also executed 'on the way out.' A
 reason is a problem with the current implementation --- this restriction may be
 lifted in the future).
 
+The return value of a function is determined by the last :keyword:`return`
+statement executed.  Since the :keyword:`finally` clause always executes, a
+:keyword:`return` statement executed in the :keyword:`finally` clause will
+always be the last one executed::
+
+   >>> def foo():
+   ...     try:
+   ...         return 'try'
+   ...     finally:
+   ...         return 'finally'
+   ...
+   >>> foo()
+   'finally'
+
 Additional information on exceptions can be found in section :ref:`exceptions`,
 and information on using the :keyword:`raise` statement to generate exceptions
 may be found in section :ref:`raise`.
@@ -348,7 +362,9 @@ may be found in section :ref:`raise`.
 The :keyword:`with` statement
 =============================
 
-.. index:: statement: with
+.. index::
+    statement: with
+    single: as; with statement
 
 The :keyword:`with` statement is used to wrap the execution of a block with
 methods defined by a context manager (see section :ref:`context-managers`).
@@ -493,14 +509,15 @@ case the parameter's default value is substituted.  If a parameter has a default
 value, all following parameters up until the "``*``" must also have a default
 value --- this is a syntactic restriction that is not expressed by the grammar.
 
-**Default parameter values are evaluated when the function definition is
-executed.** This means that the expression is evaluated once, when the function
-is defined, and that the same "pre-computed" value is used for each call.  This
-is especially important to understand when a default parameter is a mutable
-object, such as a list or a dictionary: if the function modifies the object
-(e.g. by appending an item to a list), the default value is in effect modified.
-This is generally not what was intended.  A way around this is to use ``None``
-as the default, and explicitly test for it in the body of the function, e.g.::
+**Default parameter values are evaluated from left to right when the function
+definition is executed.** This means that the expression is evaluated once, when
+the function is defined, and that the same "pre-computed" value is used for each
+call.  This is especially important to understand when a default parameter is a
+mutable object, such as a list or a dictionary: if the function modifies the
+object (e.g. by appending an item to a list), the default value is in effect
+modified.  This is generally not what was intended.  A way around this is to use
+``None`` as the default, and explicitly test for it in the body of the function,
+e.g.::
 
    def whats_on_the_telly(penguin=None):
        if penguin is None:
@@ -535,17 +552,17 @@ function.  The annotation values are available as values of a dictionary keyed
 by the parameters' names in the :attr:`__annotations__` attribute of the
 function object.
 
-.. index:: pair: lambda; form
+.. index:: pair: lambda; expression
 
 It is also possible to create anonymous functions (functions not bound to a
-name), for immediate use in expressions.  This uses lambda forms, described in
-section :ref:`lambda`.  Note that the lambda form is merely a shorthand for a
+name), for immediate use in expressions.  This uses lambda expressions, described in
+section :ref:`lambda`.  Note that the lambda expression is merely a shorthand for a
 simplified function definition; a function defined in a ":keyword:`def`"
 statement can be passed around or assigned to another name just like a function
-defined by a lambda form.  The ":keyword:`def`" form is actually more powerful
+defined by a lambda expression.  The ":keyword:`def`" form is actually more powerful
 since it allows the execution of multiple statements and annotations.
 
-**Programmer's note:** Functions are first-class objects.  A "``def``" form
+**Programmer's note:** Functions are first-class objects.  A "``def``" statement
 executed inside a function definition defines a local function that can be
 returned or passed around.  Free variables used in the nested function can
 access the local variables of the function containing the def.  See section

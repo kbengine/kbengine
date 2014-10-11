@@ -17,12 +17,12 @@ INLINE bool ThreadPool::isThreadCountMax(void)const
 	return currentThreadCount_ >= maxThreadCount_;	
 }
 
-INLINE uint32 ThreadPool::getCurrentThreadCount(void)const
+INLINE uint32 ThreadPool::currentThreadCount(void)const
 { 
 	return currentThreadCount_; 
 }
 
-INLINE uint32 ThreadPool::getCurrentFreeThreadCount(void)const
+INLINE uint32 ThreadPool::currentFreeThreadCount(void)const
 { 
 	return currentFreeThreadCount_; 
 }
@@ -59,30 +59,30 @@ INLINE void ThreadPool::unlockBufferedTaskList()
 	
 INLINE uint32 ThreadPool::finiTaskSize()const
 {
-	return finiTaskList_.size();
+	return finiTaskList_count_;
 }
 
-INLINE THREAD_ID TPThread::getID(void)const
+INLINE THREAD_ID TPThread::id(void)const
 {
 	return tidp_;
 }
 
-INLINE void TPThread::setID(THREAD_ID tidp)
+INLINE void TPThread::id(THREAD_ID tidp)
 {
 	tidp_ = tidp;
 }
 
-INLINE TPTask* TPThread::getTask(void)const
+INLINE TPTask* TPThread::task(void)const
 {
 	return currTask_;
 }
 
-INLINE void TPThread::setTask(TPTask* tpt)
+INLINE void TPThread::task(TPTask* tpt)
 {
 	currTask_ = tpt;
 }
 
-INLINE int TPThread::getState(void)const
+INLINE int TPThread::state(void)const
 {
 	return state_;
 }

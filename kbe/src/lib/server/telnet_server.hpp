@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TELNET_SERVER_H__
-#define __TELNET_SERVER_H__
+#ifndef KBE_TELNET_SERVER_HPP
+#define KBE_TELNET_SERVER_HPP
 	
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -85,4 +85,4 @@ private:
 #ifdef CODE_INLINE
 #include "telnet_server.ipp"
 #endif
-#endif
+#endif // KBE_TELNET_SERVER_HPP

@@ -66,12 +66,12 @@ void EntityIDClient::onAlloc(void)
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
-	(*pBundle).send(pApp_->getNetworkInterface(), pChannel);
+	(*pBundle).send(pApp_->networkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	setReqServerAllocFlag(true);
 
-	WARNING_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % id_enough_limit);
+	WARNING_MSG(fmt::format("EntityIDClient::onAlloc: not enough({}) entityIDs!\n", id_enough_limit));
 }
 
 //-------------------------------------------------------------------------------------

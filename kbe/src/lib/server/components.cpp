@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"	
 #include "network/network_interface.hpp"
 #include "client_lib/client_interface.hpp"
+#include "server/serverconfig.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -35,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
-#include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
 #include "../../server/tools/bots/bots_interface.hpp"
 #include "../../server/tools/billing_system/billingsystem_interface.hpp"
@@ -57,7 +57,6 @@ _cellappmgrs(),
 _baseappmgrs(),
 _machines(),
 _messagelogs(),
-_resourcemgrs(),
 _billings(),
 _bots(),
 _consoles(),
@@ -92,8 +91,8 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			//ERROR_MSG(boost::format("Components::checkComponents: uid:%1%, componentType=%2%, componentID:%3% exist.\n") %
-			//	uid % COMPONENT_NAME_EX(ct) % componentID);
+			//ERROR_MSG(fmt::format("Components::checkComponents: uid:{}, componentType={}, componentID:{} exist.\n",
+			//	uid, COMPONENT_NAME_EX(ct), componentID));
 
 			// KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
@@ -107,7 +106,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 			uint32 intaddr, uint16 intport, 
-			uint32 extaddr, uint16 extport, uint32 pid,
+			uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
 			Mercury::Channel* pChannel)
 {
@@ -119,9 +118,9 @@ void Components::addComponent(int32 uid, const char* username,
 	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
 	if(cinfos != NULL)
 	{
-		WARNING_MSG(boost::format("Components::addComponent[%1%]: uid:%2%, username:%3%, "
-			"componentType:%4%, componentID:%5% is exist!\n") %
-			COMPONENT_NAME_EX(componentType) % uid % username % (int32)componentType % componentID);
+		WARNING_MSG(fmt::format("Components::addComponent[{}]: uid:{}, username:{}, "
+			"componentType:{}, componentID:{} is exist!\n",
+			COMPONENT_NAME_EX(componentType), uid, username, (int32)componentType, componentID));
 		return;
 	}
 	
@@ -129,6 +128,10 @@ void Components::addComponent(int32 uid, const char* username,
 
 	componentInfos.pIntAddr.reset(new Mercury::Address(intaddr, intport));
 	componentInfos.pExtAddr.reset(new Mercury::Address(extaddr, extport));
+
+	if(extaddrEx.size() > 0)
+		strncpy(componentInfos.externalAddressEx, extaddrEx.c_str(), MAX_NAME);
+	
 	componentInfos.uid = uid;
 	componentInfos.cid = componentID;
 	componentInfos.pChannel = pChannel;
@@ -183,14 +186,14 @@ void Components::addComponent(int32 uid, const char* username,
 	else
 		*cinfos = componentInfos;
 
-	INFO_MSG(boost::format("Components::addComponent[%1%], uid=%2%, "
-		"componentID=%3%, globalorderid=%4%, grouporderid=%5%, totalcount=%6%\n") %
-			COMPONENT_NAME_EX(componentType) % 
-			uid %
-			componentID % 
-			((int32)componentInfos.globalOrderid) %
-			((int32)componentInfos.groupOrderid) %
-			components.size());
+	INFO_MSG(fmt::format("Components::addComponent[{}], uid={}, "
+		"componentID={}, globalorderid={}, grouporderid={}, totalcount={}\n",
+			COMPONENT_NAME_EX(componentType), 
+			uid,
+			componentID, 
+			((int32)componentInfos.globalOrderid),
+			((int32)componentInfos.groupOrderid),
+			components.size()));
 
 	if(_pHandler)
 		_pHandler->onAddComponent(&componentInfos);
@@ -206,19 +209,19 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 	{
 		if((uid < 0 || (*iter).uid == uid) && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
-			INFO_MSG(boost::format("Components::delComponent[%1%] componentID=%2%, component:totalcount=%3%.\n") % 
-				COMPONENT_NAME_EX(componentType) % componentID % components.size());
+			INFO_MSG(fmt::format("Components::delComponent[{}] componentID={}, component:totalcount={}.\n", 
+				COMPONENT_NAME_EX(componentType), componentID, components.size()));
 
 			ComponentInfos* componentInfos = &(*iter);
 
 			//SAFE_RELEASE((*iter).pIntAddr);
 			//SAFE_RELEASE((*iter).pExtAddr);
 			//(*iter).pChannel->decRef();
-			iter = components.erase(iter);
 
 			if(_pHandler)
 				_pHandler->onRemoveComponent(componentInfos);
 
+			iter = components.erase(iter);
 			if(!ignoreComponentID)
 				return;
 		}
@@ -228,8 +231,8 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 
 	if(shouldShowLog)
 	{
-		ERROR_MSG(boost::format("Components::delComponent::not found [%1%] component:totalcount:%2%\n") % 
-			COMPONENT_NAME_EX(componentType) % components.size());
+		ERROR_MSG(fmt::format("Components::delComponent::not found [{}] component:totalcount:{}\n", 
+			COMPONENT_NAME_EX(componentType), components.size()));
 	}
 }
 
@@ -251,13 +254,19 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				WARNING_MSG(boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
-					COMPONENT_NAME_EX(componentType) % (*iter).cid);
+				ERROR_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}.\n",
+					COMPONENT_NAME_EX(componentType), (*iter).cid));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-				printf("[WARNING]: %s.\n", (boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
-					COMPONENT_NAME_EX(componentType) % (*iter).cid).str().c_str());
+				printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentFromChannel: {} : {}.\n",
+					COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
 #endif
+
+				ComponentInfos* componentInfos = &(*iter);
+
+				if(_pHandler)
+					_pHandler->onRemoveComponent(componentInfos);
+
 				iter = components.erase(iter);
 				return;
 			}
@@ -293,8 +302,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
-			ERROR_MSG(boost::format("Components::connectComponent: registerChannel(%1%) is failed!\n") %
-				pComponentInfos->pChannel->c_str());
+			ERROR_MSG(fmt::format("Components::connectComponent: registerChannel({}) is failed!\n",
+				pComponentInfos->pChannel->c_str()));
 
 			pComponentInfos->pChannel->destroy();
 			pComponentInfos->pChannel = NULL;
@@ -307,71 +316,61 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
 				
-				BaseappmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				BaseappmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else if(componentType == CELLAPPMGR_TYPE)
 			{
 				(*pBundle).newMessage(CellappmgrInterface::onRegisterNewApp);
 				
-				CellappmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				CellappmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else if(componentType == CELLAPP_TYPE)
 			{
 				(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 				
-				CellappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 						_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
 				(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 				
-				BaseappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else if(componentType == DBMGR_TYPE)
 			{
 				(*pBundle).newMessage(DbmgrInterface::onRegisterNewApp);
 				
-				DbmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				DbmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else if(componentType == MESSAGELOG_TYPE)
 			{
 				(*pBundle).newMessage(MessagelogInterface::onRegisterNewApp);
 				
-				MessagelogInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				MessagelogInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
-			}
-			else if(componentType == RESOURCEMGR_TYPE)
-			{
-				(*pBundle).newMessage(ResourcemgrInterface::onRegisterNewApp);
-				
-				ResourcemgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					g_componentGlobalOrder, g_componentGroupOrder,
-					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
 			else
 			{
@@ -384,8 +383,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Components::connectComponent: connect(%1%) is failed! %2%.\n") %
-			pComponentInfos->pIntAddr->c_str() % kbe_strerror());
+		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
+			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
 
 		return -1;
 	}
@@ -403,7 +402,6 @@ void Components::clear(int32 uid, bool shouldShowLog)
 	delComponent(uid, BASEAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, LOGINAPP_TYPE, uid, true, shouldShowLog);
 	//delComponent(uid, MESSAGELOG_TYPE, uid, true, shouldShowLog);
-	//delComponent(uid, RESOURCEMGR_TYPE, uid, true, shouldShowLog);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -426,9 +424,7 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 	case MACHINE_TYPE:
 		return _machines;
 	case MESSAGELOG_TYPE:
-		return _messagelogs;		
-	case RESOURCEMGR_TYPE:
-		return _resourcemgrs;	
+		return _messagelogs;			
 	case BILLING_TYPE:
 		return _billings;	
 	case BOTS_TYPE:
@@ -531,7 +527,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(info->pid);
 		if(sysinfos.error)
 		{
-			WARNING_MSG(boost::format("Components::checkComponentUsable: not found pid(%1%)\n") % info->pid);
+			WARNING_MSG(fmt::format("Components::checkComponentUsable: not found pid({})\n", info->pid));
 			//return false;
 		}
 		else
@@ -575,7 +571,8 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 				break;
 			}
 
-			ERROR_MSG(boost::format("Components::checkComponentUsable: couldn't connect to:%1%\n") % info->pIntAddr->c_str());
+			ERROR_MSG(fmt::format("Components::checkComponentUsable: couldn't connect to:{}\n", 
+				info->pIntAddr->c_str()));
 			return false;
 		}
 	}
@@ -640,8 +637,8 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		
 		if(recvsize != len)
 		{
-			ERROR_MSG(boost::format("Components::checkComponentUsable: packet invalid(recvsize(%1%) != ctype_cid_len(%2%).\n") 
-				% len % recvsize);
+			ERROR_MSG(fmt::format("Components::checkComponentUsable: packet invalid(recvsize({}) != ctype_cid_len({}).\n" 
+				, len, recvsize));
 			
 			if(len == 0)
 				return false;
@@ -663,8 +660,8 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
-			ERROR_MSG(boost::format("Components::checkComponentUsable: invalid component(ctype=%1%, cid=%2%).\n") %
-				ctype % cid);
+			ERROR_MSG(fmt::format("Components::checkComponentUsable: invalid component(ctype={}, cid={}).\n",
+				ctype, cid));
 
 			return false;
 		}
@@ -713,12 +710,6 @@ Components::ComponentInfos* Components::getDbmgr()
 }
 
 //-------------------------------------------------------------------------------------		
-Components::ComponentInfos* Components::getResourcemgr()
-{
-	return findComponent(RESOURCEMGR_TYPE, getUserUID(), 0);
-}
-
-//-------------------------------------------------------------------------------------		
 Components::ComponentInfos* Components::getMessagelog()
 {
 	return findComponent(MESSAGELOG_TYPE, getUserUID(), 0);
@@ -754,16 +745,6 @@ Mercury::Channel* Components::getCellappmgrChannel()
 Mercury::Channel* Components::getDbmgrChannel()
 {
 	Components::ComponentInfos* cinfo = getDbmgr();
-	if(cinfo == NULL)
-		 return NULL;
-
-	return cinfo->pChannel;
-}
-
-//-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getResourcemgrChannel()
-{
-	Components::ComponentInfos* cinfo = getResourcemgr();
 	if(cinfo == NULL)
 		 return NULL;
 

@@ -38,7 +38,8 @@ pRangeTrigger_(pRangeTrigger)
 	flags(COORDINATE_NODE_FLAG_HIDE);
 
 #ifdef _DEBUG
-	descr((boost::format("RangeTriggerNode(origin=%1%->%2%)") % pRangeTrigger_->origin() % pRangeTrigger_->origin()->descr()).str());
+	descr((fmt::format("RangeTriggerNode(origin={:p}->{})", 
+		(void*)pRangeTrigger_->origin(), pRangeTrigger_->origin()->descr())));
 #endif
 
 	static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->addWatcherNode(this);

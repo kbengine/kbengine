@@ -6,17 +6,15 @@ SRCS =				\
 	components		\
 	component_active_report_handler \
 	entity_app		\
-	eventhistory_stats	\
 	forward_messagebuffer	\
 	globaldata_client	\
 	globaldata_server	\
 	idallocate		\
 	pendingLoginmgr		\
-	profile_handler		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\
-	serverinfos		\
+	machine_infos		\
 	sendmail_threadtasks	\
 	shutdowner		\
 	signal_handler		\

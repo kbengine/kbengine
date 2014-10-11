@@ -14,6 +14,7 @@ def suite():
             __import__(modname)
             module = sys.modules[modname]
             suite.addTest(loader.loadTestsFromModule(module))
+    suite.addTest(loader.loadTestsFromName('unittest.test.testmock'))
     return suite
 
 

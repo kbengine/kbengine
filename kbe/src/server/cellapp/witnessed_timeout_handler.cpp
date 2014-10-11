@@ -93,15 +93,15 @@ void WitnessedTimeoutHandler::addWitnessed(Entity* pEntity)
 		return;
 	}
 
-	if(witnessedEntityIDs_.find(pEntity->getID()) != witnessedEntityIDs_.end())
-		witnessedEntityIDs_[pEntity->getID()] = witness_timeout_dec;
+	if(witnessedEntityIDs_.find(pEntity->id()) != witnessedEntityIDs_.end())
+		witnessedEntityIDs_[pEntity->id()] = witness_timeout_dec;
 	else
-		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->getID(), witness_timeout_dec));
+		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->id(), witness_timeout_dec));
 	
 	if(pTimerHandle_ == NULL)
 	{
 		pTimerHandle_ = new TimerHandle();
-		(*pTimerHandle_) = Cellapp::getSingleton().getMainDispatcher().addTimer(TICKSECS * 1000000, this,
+		(*pTimerHandle_) = Cellapp::getSingleton().mainDispatcher().addTimer(TICKSECS * 1000000, this,
 								NULL);
 	}
 }
@@ -112,7 +112,7 @@ void WitnessedTimeoutHandler::delWitnessed(Entity* pEntity)
 	if(witnessedEntityIDs_.size() == 0)
 		return;
 
-	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.find(pEntity->getID());
+	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.find(pEntity->id());
 
 	if(iter != witnessedEntityIDs_.end())
 	{

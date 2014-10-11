@@ -1,11 +1,11 @@
-import unittest
-from test import support, test_genericpath
-
 import itertools
-import posixpath
 import os
+import posixpath
 import sys
+import unittest
+import warnings
 from posixpath import realpath, abspath, dirname, basename
+from test import support, test_genericpath
 
 try:
     import posix
@@ -186,66 +186,11 @@ class PosixPathTest(unittest.TestCase):
             if not f.close():
                 f.close()
 
-    @staticmethod
-    def _create_file(filename):
-        with open(filename, 'wb') as f:
-            f.write(b'foo')
-
-    def test_samefile(self):
-        test_fn = support.TESTFN + "1"
-        self._create_file(test_fn)
-        self.assertTrue(posixpath.samefile(test_fn, test_fn))
-        self.assertRaises(TypeError, posixpath.samefile)
-
-    @unittest.skipIf(
-        sys.platform.startswith('win'),
-        "posixpath.samefile does not work on links in Windows")
-    @unittest.skipUnless(hasattr(os, "symlink"),
-                         "Missing symlink implementation")
-    def test_samefile_on_links(self):
-        test_fn1 = support.TESTFN + "1"
-        test_fn2 = support.TESTFN + "2"
-        self._create_file(test_fn1)
-
-        os.symlink(test_fn1, test_fn2)
-        self.assertTrue(posixpath.samefile(test_fn1, test_fn2))
-        os.remove(test_fn2)
-
-        self._create_file(test_fn2)
-        self.assertFalse(posixpath.samefile(test_fn1, test_fn2))
-
-
-    def test_samestat(self):
-        test_fn = support.TESTFN + "1"
-        self._create_file(test_fn)
-        test_fns = [test_fn]*2
-        stats = map(os.stat, test_fns)
-        self.assertTrue(posixpath.samestat(*stats))
-
-    @unittest.skipIf(
-        sys.platform.startswith('win'),
-        "posixpath.samestat does not work on links in Windows")
-    @unittest.skipUnless(hasattr(os, "symlink"),
-                         "Missing symlink implementation")
-    def test_samestat_on_links(self):
-        test_fn1 = support.TESTFN + "1"
-        test_fn2 = support.TESTFN + "2"
-        self._create_file(test_fn1)
-        test_fns = (test_fn1, test_fn2)
-        os.symlink(*test_fns)
-        stats = map(os.stat, test_fns)
-        self.assertTrue(posixpath.samestat(*stats))
-        os.remove(test_fn2)
-
-        self._create_file(test_fn2)
-        stats = map(os.stat, test_fns)
-        self.assertFalse(posixpath.samestat(*stats))
-
-        self.assertRaises(TypeError, posixpath.samestat)
-
     def test_ismount(self):
         self.assertIs(posixpath.ismount("/"), True)
-        self.assertIs(posixpath.ismount(b"/"), True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            self.assertIs(posixpath.ismount(b"/"), True)
 
     def test_ismount_non_existent(self):
         # Non-existent mountpoint.
@@ -316,7 +261,8 @@ class PosixPathTest(unittest.TestCase):
                 # expanduser should fall back to using the password database
                 del env['HOME']
                 home = pwd.getpwuid(os.getuid()).pw_dir
-                self.assertEqual(posixpath.expanduser("~"), home)
+                # $HOME can end with a trailing /, so strip it (see #17809)
+                self.assertEqual(posixpath.expanduser("~"), home.rstrip("/"))
 
     def test_normpath(self):
         self.assertEqual(posixpath.normpath(""), ".")
@@ -592,20 +538,11 @@ class PosixPathTest(unittest.TestCase):
         finally:
             os.getcwdb = real_getcwdb
 
-    def test_sameopenfile(self):
-        fname = support.TESTFN + "1"
-        with open(fname, "wb") as a, open(fname, "wb") as b:
-            self.assertTrue(posixpath.sameopenfile(a.fileno(), b.fileno()))
 
-
-class PosixCommonTest(test_genericpath.CommonTest):
+class PosixCommonTest(test_genericpath.CommonTest, unittest.TestCase):
     pathmodule = posixpath
     attributes = ['relpath', 'samefile', 'sameopenfile', 'samestat']
 
 
-def test_main():
-    support.run_unittest(PosixPathTest, PosixCommonTest)
-
-
 if __name__=="__main__":
-    test_main()
+    unittest.main()

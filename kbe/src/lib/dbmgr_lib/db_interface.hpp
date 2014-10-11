@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_DB_INTERFACE__
-#define __KBE_DB_INTERFACE__
+#ifndef KBE_DB_INTERFACE_HPP
+#define KBE_DB_INTERFACE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -27,6 +27,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_lib/entity_table.hpp"
 
 namespace KBEngine { 
+
+namespace thread
+{
+class ThreadPool;
+}
 
 class DBUtil;
 
@@ -43,14 +48,29 @@ public:
 	};
 
 	friend class DBUtil;
-	DBInterface(){};
-	virtual ~DBInterface(){};
+
+	DBInterface():
+	db_port_(3306),
+	db_numConnections_(1),
+	lastquery_()
+	{
+	};
+
+	virtual ~DBInterface()
+	{
+	};
 
 	/**
 		检查环境
 	*/
 	virtual bool checkEnvironment() = 0;
 	
+	/**
+		检查错误， 对错误的内容进行纠正
+		如果纠正不成功返回失败
+	*/
+	virtual bool checkErrors() = 0;
+
 	/**
 		与某个数据库关联
 	*/
@@ -116,6 +136,11 @@ public:
 		处理异常
 	*/
 	virtual bool processException(std::exception & e) = 0;
+
+	/**
+		获取最后一次查询的sql语句
+	*/
+	virtual const std::string& lastquery()const{ return lastquery_; }
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口
@@ -124,6 +149,7 @@ protected:
 	char db_password_[MAX_BUF];								// 数据库的密码
 	char db_name_[MAX_BUF];									// 数据库名
 	uint16 db_numConnections_;								// 数据库最大连接
+	std::string lastquery_;									// 最后一次查询描述
 };
 
 /*
@@ -136,6 +162,7 @@ public:
 	~DBUtil();
 	
 	static bool initialize();
+	static void finalise();
 
 	static bool initThread();
 	static bool finiThread();
@@ -145,10 +172,12 @@ public:
 	static const char* dbtype();
 	static const char* accountScriptName();
 	static bool initInterface(DBInterface* dbi);
-private:
 
+	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
+private:
+	static thread::ThreadPool* pThreadPool_;
 };
 
 }
 
-#endif // __KBE_DB_INTERFACE__
+#endif // KBE_DB_INTERFACE_HPP

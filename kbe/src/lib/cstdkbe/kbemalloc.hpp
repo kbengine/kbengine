@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 */
-#ifndef __KBE_MEMORY_MALLOC_H__
-#define __KBE_MEMORY_MALLOC_H__
+#ifndef KBE_MEMORY_MALLOC_HPP
+#define KBE_MEMORY_MALLOC_HPP
 
 
 //#define USE_KBE_MALLOC				

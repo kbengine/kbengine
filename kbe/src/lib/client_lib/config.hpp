@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __CLIENT_CONFIG_H__
-#define __CLIENT_CONFIG_H__
+#ifndef KBE_CLIENT_CONFIG_HPP
+#define KBE_CLIENT_CONFIG_HPP
 // common include
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32

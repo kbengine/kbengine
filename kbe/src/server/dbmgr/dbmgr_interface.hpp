@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __DBMGR_INTERFACE_H__
+	#undef KBE_DBMGR_INTERFACE_HPP
 #endif
 
 
-#ifndef __DBMGR_INTERFACE_H__
-#define __DBMGR_INTERFACE_H__
+#ifndef KBE_DBMGR_INTERFACE_HPP
+#define KBE_DBMGR_INTERFACE_HPP
 
 // common include	
 #if defined(DBMGR)
@@ -51,7 +51,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 某app注册自己的接口地址到本app
-	DBMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -61,7 +61,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									uint32,							intaddr, 
 									uint16,							intport,
 									uint32,							extaddr, 
-									uint16,							extport)
+									uint16,							extport,
+									std::string,					extaddrEx)
 
 	// 某app主动请求look。
 	DBMGR_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
@@ -107,8 +108,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									ENTITY_ID,						entityID)
 		
 	// baseapp上entity下线。
-	DBMGR_MESSAGE_DECLARE_ARGS1(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
-									DBID,							dbid)
+	DBMGR_MESSAGE_DECLARE_ARGS2(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
+									DBID,							dbid,
+									uint16,							sid)
 
 	// 请求擦除客户端请求任务。
 	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,
@@ -130,8 +132,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS5(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
+	DBMGR_MESSAGE_DECLARE_ARGS6(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
 									COMPONENT_ID,					componentID,
+									int8,							queryMode,
 									DBID,							dbid, 
 									std::string,					entityType,
 									CALLBACK_ID,					callbackID,
@@ -181,6 +184,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					accountName,
 									std::string,					password,
 									std::string,					newpassword)
+
+	// 开始profile
+	DBMGR_MESSAGE_DECLARE_STREAM(startProfile,						MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	DBMGR_MESSAGE_DECLARE_STREAM(reqKillServer,						MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

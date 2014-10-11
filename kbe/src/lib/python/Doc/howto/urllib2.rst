@@ -56,6 +56,13 @@ The simplest way to use urllib.request is as follows::
     response = urllib.request.urlopen('http://python.org/')
     html = response.read()
 
+If you wish to retrieve a resource via URL and store it in a temporary location,
+you can do so via the :func:`~urllib.request.urlretrieve` function::
+
+    import urllib.request
+    local_filename, headers = urllib.request.urlretrieve('http://python.org/')
+    html = open(local_filename)
+
 Many uses of urllib will be that simple (note that instead of an 'http:' URL we
 could have used an URL starting with 'ftp:', 'file:', etc.).  However, it's the
 purpose of this tutorial to explain the more complicated cases, concentrating on
@@ -153,7 +160,7 @@ We'll discuss here one particular HTTP header, to illustrate how to add headers
 to your HTTP request.
 
 Some websites [#]_ dislike being browsed by programs, or send different versions
-to different browsers [#]_ . By default urllib identifies itself as
+to different browsers [#]_. By default urllib identifies itself as
 ``Python-urllib/x.y`` (where ``x`` and ``y`` are the major and minor version
 numbers of the Python release,
 e.g. ``Python-urllib/2.5``), which may confuse the site, or just plain
@@ -447,7 +454,7 @@ Authentication Tutorial
 
 When authentication is required, the server sends a header (as well as the 401
 error code) requesting authentication.  This specifies the authentication scheme
-and a 'realm'. The header looks like : ``WWW-Authenticate: SCHEME
+and a 'realm'. The header looks like: ``WWW-Authenticate: SCHEME
 realm="REALM"``.
 
 e.g. ::
@@ -497,9 +504,10 @@ than the URL you pass to .add_password() will also match. ::
 
     In the above example we only supplied our ``HTTPBasicAuthHandler`` to
     ``build_opener``. By default openers have the handlers for normal situations
-    -- ``ProxyHandler``, ``UnknownHandler``, ``HTTPHandler``,
+    -- ``ProxyHandler`` (if a proxy setting such as an :envvar:`http_proxy`
+    environment variable is set), ``UnknownHandler``, ``HTTPHandler``,
     ``HTTPDefaultErrorHandler``, ``HTTPRedirectHandler``, ``FTPHandler``,
-    ``FileHandler``, ``HTTPErrorProcessor``.
+    ``FileHandler``, ``DataHandler``, ``HTTPErrorProcessor``.
 
 ``top_level_url`` is in fact *either* a full URL (including the 'http:' scheme
 component and the hostname and optionally the port number)
@@ -514,10 +522,11 @@ Proxies
 =======
 
 **urllib** will auto-detect your proxy settings and use those. This is through
-the ``ProxyHandler`` which is part of the normal handler chain. Normally that's
-a good thing, but there are occasions when it may not be helpful [#]_. One way
-to do this is to setup our own ``ProxyHandler``, with no proxies defined. This
-is done using similar steps to setting up a `Basic Authentication`_ handler : ::
+the ``ProxyHandler``, which is part of the normal handler chain when a proxy
+setting is detected.  Normally that's a good thing, but there are occasions
+when it may not be helpful [#]_. One way to do this is to setup our own
+``ProxyHandler``, with no proxies defined. This is done using similar steps to
+setting up a `Basic Authentication`_ handler: ::
 
     >>> proxy_support = urllib.request.ProxyHandler({})
     >>> opener = urllib.request.build_opener(proxy_support)

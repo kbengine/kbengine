@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_ENTITY_REF_HPP__
-#define __KBE_ENTITY_REF_HPP__
+#ifndef KBE_ENTITY_REF_HPP
+#define KBE_ENTITY_REF_HPP
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"	
@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Entity;
+class MemoryStream;
 
 #define ENTITYREF_FLAG_UNKONWN							0x00000000
 #define ENTITYREF_FLAG_ENTER_CLIENT_PENDING				0x00000001	// 进入客户端中标志
@@ -39,6 +40,8 @@ public:
 	typedef std::vector<EntityRef*> AOI_ENTITIES;
 
 	EntityRef(Entity* pEntity);
+	EntityRef();
+
 	~EntityRef();
 	
 	void flags(uint32 v){ flags_ = v; }
@@ -49,6 +52,9 @@ public:
 	void pEntity(Entity* e);
 
 	ENTITY_ID id()const{ return id_; }
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 private:
 	ENTITY_ID id_;
 	Entity* pEntity_;

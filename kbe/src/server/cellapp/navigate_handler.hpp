@@ -18,10 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_NAVIGATEHANDLER_HPP__
-#define __KBE_NAVIGATEHANDLER_HPP__
+#ifndef KBE_NAVIGATEHANDLER_HPP
+#define KBE_NAVIGATEHANDLER_HPP
 
 #include "move_controller.hpp"	
+#include "math/math.hpp"
+#include "navigation/navigation_handle.hpp"
 
 namespace KBEngine{
 
@@ -31,11 +33,18 @@ public:
 	NavigateHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
 		float maxMoveDistance, float maxDistance, float girth,
 		PyObject* userarg);
+
+	NavigateHandler();
 	virtual ~NavigateHandler();
 	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 	virtual bool requestMoveOver(const Position3D& oldPos);
 
 	virtual bool isOnGround(){ return true; }
+
+	virtual MoveType type()const{ return MOVE_TYPE_NAV; }
 protected:
 	int destPosIdx_;
 	std::vector<Position3D> paths_;
@@ -46,5 +55,5 @@ protected:
 };
  
 }
-#endif // __KBE_NAVIGATEHANDLER_HPP__
+#endif // KBE_NAVIGATEHANDLER_HPP
 

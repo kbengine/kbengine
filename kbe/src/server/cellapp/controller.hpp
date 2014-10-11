@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_CONTROLLER_HPP__
-#define __KBE_CONTROLLER_HPP__
+#ifndef KBE_CONTROLLER_HPP
+#define KBE_CONTROLLER_HPP
 
 // common include
 #include "helper/debug_helper.hpp"
@@ -30,6 +30,7 @@ namespace KBEngine{
 
 class Entity;
 class Controllers;
+class MemoryStream;
 
 /*
 	控制器， 管理trap、Vision等。
@@ -45,6 +46,7 @@ public:
 	};
 
 	Controller(Controller::ControllerType type, Entity* pEntity, int32 userarg, uint32 id = 0);
+	Controller(Entity* pEntity);
 	virtual ~Controller();
 	
 	uint32 id(){ return id_; }
@@ -59,6 +61,10 @@ public:
 	virtual void destroy();
 
 	Controller::ControllerType type(){ return type_; }
+	void type(Controller::ControllerType t){ type_ = t; }
+
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	uint32 id_;
 	Entity* pEntity_;
@@ -72,4 +78,4 @@ protected:
 };
 
 }
-#endif // __KBE_CONTROLLER_HPP__
+#endif // KBE_CONTROLLER_HPP

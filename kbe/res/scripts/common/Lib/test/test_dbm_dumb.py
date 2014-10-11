@@ -1,13 +1,14 @@
-#! /usr/bin/env python3
 """Test script for the dumbdbm module
    Original by Roger E. Masse
 """
 
 import io
+import operator
 import os
 import unittest
 import dbm.dumb as dumbdbm
 from test import support
+from functools import partial
 
 _fname = support.TESTFN
 
@@ -29,9 +30,6 @@ class DumbDBMTestCase(unittest.TestCase):
              '\u00fc'.encode('utf-8') : b'!',
              }
 
-    def __init__(self, *args):
-        unittest.TestCase.__init__(self, *args)
-
     def test_dumbdbm_creation(self):
         f = dumbdbm.open(_fname, 'c')
         self.assertEqual(list(f.keys()), [])
@@ -40,11 +38,9 @@ class DumbDBMTestCase(unittest.TestCase):
         self.read_helper(f)
         f.close()
 
+    @unittest.skipUnless(hasattr(os, 'umask'), 'test needs os.umask()')
+    @unittest.skipUnless(hasattr(os, 'chmod'), 'test needs os.chmod()')
     def test_dumbdbm_creation_mode(self):
-        # On platforms without chmod, don't do anything.
-        if not (hasattr(os, 'chmod') and hasattr(os, 'umask')):
-            return
-
         try:
             old_umask = os.umask(0o002)
             f = dumbdbm.open(_fname, 'c', 0o637)
@@ -189,17 +185,44 @@ class DumbDBMTestCase(unittest.TestCase):
             self.assertEqual(expected, got)
             f.close()
 
+    def test_context_manager(self):
+        with dumbdbm.open(_fname, 'c') as db:
+            db["dumbdbm context manager"] = "context manager"
+
+        with dumbdbm.open(_fname, 'r') as db:
+            self.assertEqual(list(db.keys()), [b"dumbdbm context manager"])
+
+        with self.assertRaises(dumbdbm.error):
+            db.keys()
+
+    def test_check_closed(self):
+        f = dumbdbm.open(_fname, 'c')
+        f.close()
+
+        for meth in (partial(operator.delitem, f),
+                     partial(operator.setitem, f, 'b'),
+                     partial(operator.getitem, f),
+                     partial(operator.contains, f)):
+            with self.assertRaises(dumbdbm.error) as cm:
+                meth('test')
+            self.assertEqual(str(cm.exception),
+                             "DBM object has already been closed")
+
+        for meth in (operator.methodcaller('keys'),
+                     operator.methodcaller('iterkeys'),
+                     operator.methodcaller('items'),
+                     len):
+            with self.assertRaises(dumbdbm.error) as cm:
+                meth(f)
+            self.assertEqual(str(cm.exception),
+                             "DBM object has already been closed")
+
     def tearDown(self):
         _delete_files()
 
     def setUp(self):
         _delete_files()
 
-def test_main():
-    try:
-        support.run_unittest(DumbDBMTestCase)
-    finally:
-        _delete_files()
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

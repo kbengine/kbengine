@@ -13,18 +13,18 @@ def get_error_location(msg):
 class FutureTest(unittest.TestCase):
 
     def test_future1(self):
-        support.unload('test_future1')
-        from test import test_future1
-        self.assertEqual(test_future1.result, 6)
+        with support.CleanImport('future_test1'):
+            from test import future_test1
+            self.assertEqual(future_test1.result, 6)
 
     def test_future2(self):
-        support.unload('test_future2')
-        from test import test_future2
-        self.assertEqual(test_future2.result, 6)
+        with support.CleanImport('future_test2'):
+            from test import future_test2
+            self.assertEqual(future_test2.result, 6)
 
     def test_future3(self):
-        support.unload('test_future3')
-        from test import test_future3
+        with support.CleanImport('test_future3'):
+            from test import test_future3
 
     def test_badfuture3(self):
         try:
@@ -82,6 +82,14 @@ class FutureTest(unittest.TestCase):
         else:
             self.fail("expected exception didn't occur")
 
+    def test_badfuture10(self):
+        try:
+            from test import badsyntax_future10
+        except SyntaxError as msg:
+            self.assertEqual(get_error_location(msg), ("badsyntax_future10", '3'))
+        else:
+            self.fail("expected exception didn't occur")
+
     def test_parserhack(self):
         # test that the parser.c::future_hack function works as expected
         # Note: although this test must pass, it's not testing the original
@@ -103,8 +111,8 @@ class FutureTest(unittest.TestCase):
             self.fail("syntax error didn't occur")
 
     def test_multiple_features(self):
-        support.unload("test.test_future5")
-        from test import test_future5
+        with support.CleanImport("test.test_future5"):
+            from test import test_future5
 
     def test_unicode_literals_exec(self):
         scope = {}
@@ -112,8 +120,6 @@ class FutureTest(unittest.TestCase):
         self.assertIsInstance(scope["x"], str)
 
 
-def test_main():
-    support.run_unittest(FutureTest)
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

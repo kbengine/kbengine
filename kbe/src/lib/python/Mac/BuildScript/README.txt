@@ -8,11 +8,95 @@ $DESTROOT, massages that installation to remove .pyc files and such, creates
 an Installer package from the installation plus other files in ``resources`` 
 and ``scripts`` and placed that on a ``.dmg`` disk image.
 
-For Python 2.7.x and 3.2.x, PSF practice is to build two installer variants
+For Python 3.4.0, PSF practice is to build two installer variants
 for each release.
 
 1.  32-bit-only, i386 and PPC universal, capable on running on all machines
-    supported by Mac OS X 10.3.9 through (at least) 10.8::
+    supported by Mac OS X 10.5 through (at least) 10.9::
+
+        /path/to/bootstrap/python2.7 build-installer.py \
+            --sdk-path=/Developer/SDKs/MacOSX10.5.sdk \
+            --universal-archs=32-bit \
+            --dep-target=10.5
+
+    - builds the following third-party libraries
+
+        * NCurses 5.9 (http://bugs.python.org/issue15037)
+        * SQLite 3.8.3.1
+        * XZ 5.0.5
+
+    - uses system-supplied versions of third-party libraries
+
+        * readline module links with Apple BSD editline (libedit)
+
+    - requires ActiveState ``Tcl/Tk 8.4`` (currently 8.4.20) to be installed for building
+
+    - recommended build environment:
+
+        * Mac OS X 10.5.8 Intel or PPC
+        * Xcode 3.1.4
+        * ``MacOSX10.5`` SDK
+        * ``MACOSX_DEPLOYMENT_TARGET=10.5``
+        * Apple ``gcc-4.2``
+        * bootstrap non-framework Python 2.7 for documentation build with
+          Sphinx (as of 3.4.1)
+
+    - alternate build environments:
+
+        * Mac OS X 10.6.8 with Xcode 3.2.6
+            - need to change ``/System/Library/Frameworks/{Tcl,Tk}.framework/Version/Current`` to ``8.4``
+        * Note Xcode 4.* does not support building for PPC so cannot be used for this build
+
+2.  64-bit / 32-bit, x86_64 and i386 universal, for OS X 10.6 (and later)::
+
+        /path/to/bootstrap/python2.7 build-installer.py \
+            --sdk-path=/Developer/SDKs/MacOSX10.6.sdk \
+            --universal-archs=intel \
+            --dep-target=10.6
+
+    - builds the following third-party libraries
+
+        * NCurses 5.9 (http://bugs.python.org/issue15037)
+        * SQLite 3.8.3.1
+        * XZ 5.0.5
+
+    - uses system-supplied versions of third-party libraries
+
+        * readline module links with Apple BSD editline (libedit)
+
+    - requires ActiveState Tcl/Tk 8.5.15.1 (or later) to be installed for building
+
+    - recommended build environment:
+
+        * Mac OS X 10.6.8 (or later)
+        * Xcode 3.2.6
+        * ``MacOSX10.6`` SDK
+        * ``MACOSX_DEPLOYMENT_TARGET=10.6``
+        * Apple ``gcc-4.2``
+        * bootstrap non-framework Python 2.7 for documentation build with
+          Sphinx (as of 3.4.1)
+
+    - alternate build environments:
+
+        * none.  Xcode 4.x currently supplies two C compilers.
+          ``llvm-gcc-4.2.1`` has been found to miscompile Python 3.3.x and
+          produce a non-functional Python executable.  As it appears to be
+          considered a migration aid by Apple and is not likely to be fixed,
+          its use should be avoided.  The other compiler, ``clang``, has been
+          undergoing rapid development.  While it appears to have become
+          production-ready in the most recent Xcode 5 releases, the versions
+          available on the deprecated Xcode 4.x for 10.6 were early releases
+          and did not receive the level of exposure in production environments
+          that the Xcode 3 gcc-4.2 compiler has had.
+
+
+*   For Python 2.7.x and 3.2.x, the 32-bit-only installer was configured to
+    support Mac OS X 10.3.9 through (at least) 10.6.  Because it is
+    believed that there are few systems still running OS X 10.3 or 10.4
+    and because it has become increasingly difficult to test and
+    support the differences in these earlier systems, as of Python 3.3.0 the PSF
+    32-bit installer no longer supports them.  For reference in building such
+    an installer yourself, the details are::
 
         /usr/bin/python build-installer.py \
             --sdk-path=/Developer/SDKs/MacOSX10.4u.sdk \
@@ -24,16 +108,17 @@ for each release.
         * Bzip2
         * NCurses
         * GNU Readline (GPL)
-        * SQLite 3.7.13
+        * SQLite 3
+        * XZ
         * Zlib 1.2.3
         * Oracle Sleepycat DB 4.8 (Python 2.x only)
 
-    - requires ActiveState ``Tcl/Tk 8.4`` (currently 8.4.19) to be installed for building
+    - requires ActiveState ``Tcl/Tk 8.4`` (currently 8.4.20) to be installed for building
 
     - recommended build environment:
         
         * Mac OS X 10.5.8 PPC or Intel
-        * Xcode 3.1.4
+        * Xcode 3.1.4 (or later)
         * ``MacOSX10.4u`` SDK (later SDKs do not support PPC G3 processors)
         * ``MACOSX_DEPLOYMENT_TARGET=10.3``
         * Apple ``gcc-4.0``
@@ -43,48 +128,7 @@ for each release.
 
         * Mac OS X 10.6.8 with Xcode 3.2.6
             - need to change ``/System/Library/Frameworks/{Tcl,Tk}.framework/Version/Current`` to ``8.4``
-        * Note Xcode 4.* does not support building for PPC so cannot be used for this build
 
-
-2.  64-bit / 32-bit, x86_64 and i386 universal, for OS X 10.6 (and later)::
-
-        /usr/bin/python build-installer.py \
-            --sdk-path=/Developer/SDKs/MacOSX10.6.sdk \
-            --universal-archs=intel \
-            --dep-target=10.6
-
-    - builds the following third-party libraries
-
-        * NCurses 5.9 (http://bugs.python.org/issue15037)
-        * SQLite 3.7.13
-
-    - uses system-supplied versions of third-party libraries
-
-        * readline module links with Apple BSD editline (libedit)
-
-    - requires ActiveState Tcl/Tk 8.5.9 (or later) to be installed for building
-
-    - recommended build environment:
-
-        * Mac OS X 10.6.8 (or later)
-        * Xcode 3.2.6
-        * ``MacOSX10.6`` SDK
-        * ``MACOSX_DEPLOYMENT_TARGET=10.6``
-        * Apple ``gcc-4.2``
-        * system Python 2.6 for documentation build with Sphinx
-
-    - alternate build environments:
-
-        * none.  Xcode 4.x currently supplies two C compilers.
-          ``llvm-gcc-4.2.1`` has been found to miscompile Python 3.3.x and
-          produce a non-functional Python executable.  As it appears to be
-          considered a migration aid by Apple and is not likely to be fixed,
-          its use should be avoided.  The other compiler, ``clang``, has been
-          undergoing rapid development.  While it appears to have become
-          production-ready in the most recent Xcode 4 releases (Xcode 4.5.x
-          as of this writing), there are still some open issues when
-          building Python and there has not yet been the level of exposure in
-          production environments that the Xcode 3 gcc-4.2 compiler has had.
 
 
 General Prerequisites
@@ -95,7 +139,13 @@ General Prerequisites
   interfere with the build.
 
 * The documentation for the release is built using Sphinx
-  because it is included in the installer.
+  because it is included in the installer.  For 2.7.x and 3.x.x up to and
+  including 3.4.0, the ``Doc/Makefile`` uses ``svn`` to download repos of
+  ``Sphinx`` and its dependencies.  Beginning with 3.4.1, the ``Doc/Makefile``
+  assumes there is an externally-provided ``sphinx-build`` and requires at
+  least Python 2.6 to run.  Because of this, it is no longer possible to
+  build a 3.4.1 or later installer on OS X 10.5 using the Apple-supplied
+  Python 2.5.
 
 * It is safest to start each variant build with an empty source directory
   populated with a fresh copy of the untarred source.
@@ -153,8 +203,8 @@ Ideally, the resulting binaries should be installed and the test suite run
 on all supported OS X releases and architectures.  As a practical matter,
 that is generally not possible.  At a minimum, variant 1 should be run on
 a PPC G4 system with OS X 10.5 and at least one Intel system running OS X
-10.8, 10.7, 10.6, or 10.5.  Variant 2 should be run on 10.8, 10.7, and 10.6
-systems in both 32-bit and 64-bit modes.::
+10.9, 10.8, 10.7, 10.6, or 10.5.  Variant 2 should be run on 10.9, 10.8,
+10.7, and 10.6 systems in both 32-bit and 64-bit modes.::
 
     /usr/local/bin/pythonn.n -m test -w -u all,-largefile
     /usr/local/bin/pythonn.n-32 -m test -w -u all
@@ -165,7 +215,7 @@ to be generated at several points during a test run.  These are normal
 during testing and can be ignored.
 
 It is also recommend to launch IDLE and verify that it is at least
-functional.  Double-click on the IDLE app icon in ``/Applications/Pythonn.n``.
+functional.  Double-click on the IDLE app icon in ``/Applications/Python n.n``.
 It should also be tested from the command line::
 
     /usr/local/bin/idlen.n

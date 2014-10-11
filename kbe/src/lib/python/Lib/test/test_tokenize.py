@@ -2,7 +2,7 @@ doctests = """
 Tests for the tokenize module.
 
 The tests can be really simple. Given a small fragment of source
-code, print out a table with tokens. The ENDMARK is omitted for
+code, print out a table with tokens. The ENDMARKER is omitted for
 brevity.
 
     >>> dump_tokens("1 + 1")
@@ -289,6 +289,64 @@ String literals
     OP         '+'           (1, 29) (1, 30)
     STRING     'R"ABC"'      (1, 31) (1, 37)
 
+    >>> dump_tokens("u'abc' + U'abc'")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     "u'abc'"      (1, 0) (1, 6)
+    OP         '+'           (1, 7) (1, 8)
+    STRING     "U'abc'"      (1, 9) (1, 15)
+    >>> dump_tokens('u"abc" + U"abc"')
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     'u"abc"'      (1, 0) (1, 6)
+    OP         '+'           (1, 7) (1, 8)
+    STRING     'U"abc"'      (1, 9) (1, 15)
+
+    >>> dump_tokens("b'abc' + B'abc'")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     "b'abc'"      (1, 0) (1, 6)
+    OP         '+'           (1, 7) (1, 8)
+    STRING     "B'abc'"      (1, 9) (1, 15)
+    >>> dump_tokens('b"abc" + B"abc"')
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     'b"abc"'      (1, 0) (1, 6)
+    OP         '+'           (1, 7) (1, 8)
+    STRING     'B"abc"'      (1, 9) (1, 15)
+    >>> dump_tokens("br'abc' + bR'abc' + Br'abc' + BR'abc'")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     "br'abc'"     (1, 0) (1, 7)
+    OP         '+'           (1, 8) (1, 9)
+    STRING     "bR'abc'"     (1, 10) (1, 17)
+    OP         '+'           (1, 18) (1, 19)
+    STRING     "Br'abc'"     (1, 20) (1, 27)
+    OP         '+'           (1, 28) (1, 29)
+    STRING     "BR'abc'"     (1, 30) (1, 37)
+    >>> dump_tokens('br"abc" + bR"abc" + Br"abc" + BR"abc"')
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     'br"abc"'     (1, 0) (1, 7)
+    OP         '+'           (1, 8) (1, 9)
+    STRING     'bR"abc"'     (1, 10) (1, 17)
+    OP         '+'           (1, 18) (1, 19)
+    STRING     'Br"abc"'     (1, 20) (1, 27)
+    OP         '+'           (1, 28) (1, 29)
+    STRING     'BR"abc"'     (1, 30) (1, 37)
+    >>> dump_tokens("rb'abc' + rB'abc' + Rb'abc' + RB'abc'")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     "rb'abc'"     (1, 0) (1, 7)
+    OP         '+'           (1, 8) (1, 9)
+    STRING     "rB'abc'"     (1, 10) (1, 17)
+    OP         '+'           (1, 18) (1, 19)
+    STRING     "Rb'abc'"     (1, 20) (1, 27)
+    OP         '+'           (1, 28) (1, 29)
+    STRING     "RB'abc'"     (1, 30) (1, 37)
+    >>> dump_tokens('rb"abc" + rB"abc" + Rb"abc" + RB"abc"')
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    STRING     'rb"abc"'     (1, 0) (1, 7)
+    OP         '+'           (1, 8) (1, 9)
+    STRING     'rB"abc"'     (1, 10) (1, 17)
+    OP         '+'           (1, 18) (1, 19)
+    STRING     'Rb"abc"'     (1, 20) (1, 27)
+    OP         '+'           (1, 28) (1, 29)
+    STRING     'RB"abc"'     (1, 30) (1, 37)
+
 Operators
 
     >>> dump_tokens("def d22(a, b, c=2, d=2, *k): pass")
@@ -520,9 +578,15 @@ pass the '-ucpu' option to process the full directory.
     >>> tempdir = os.path.dirname(f) or os.curdir
     >>> testfiles = glob.glob(os.path.join(tempdir, "test*.py"))
 
-tokenize is broken on test_pep3131.py because regular expressions are broken on
-the obscure unicode identifiers in it. *sigh*
+Tokenize is broken on test_pep3131.py because regular expressions are
+broken on the obscure unicode identifiers in it. *sigh*
+With roundtrip extended to test the 5-tuple mode of  untokenize,
+7 more testfiles fail.  Remove them also until the failure is diagnosed.
+
     >>> testfiles.remove(os.path.join(tempdir, "test_pep3131.py"))
+    >>> for f in ('buffer', 'builtin', 'fileio', 'inspect', 'os', 'platform', 'sys'):
+    ...     testfiles.remove(os.path.join(tempdir, "test_%s.py") % f)
+    ...
     >>> if not support.is_resource_enabled("cpu"):
     ...     testfiles = random.sample(testfiles, 10)
     ...
@@ -552,11 +616,6 @@ Evil tabs
     DEDENT     ''            (4, 0) (4, 0)
     DEDENT     ''            (4, 0) (4, 0)
 
-Pathological whitespace (http://bugs.python.org/issue16152)
-    >>> dump_tokens("@          ")
-    ENCODING   'utf-8'       (0, 0) (0, 0)
-    OP         '@'           (1, 0) (1, 1)
-
 Non-ascii identifiers
 
     >>> dump_tokens("Örter = 'places'\\ngrün = 'green'")
@@ -568,15 +627,28 @@ Non-ascii identifiers
     NAME       'grün'        (2, 0) (2, 4)
     OP         '='           (2, 5) (2, 6)
     STRING     "'green'"     (2, 7) (2, 14)
+
+Legacy unicode literals:
+
+    >>> dump_tokens("Örter = u'places'\\ngrün = U'green'")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    NAME       'Örter'       (1, 0) (1, 5)
+    OP         '='           (1, 6) (1, 7)
+    STRING     "u'places'"   (1, 8) (1, 17)
+    NEWLINE    '\\n'          (1, 17) (1, 18)
+    NAME       'grün'        (2, 0) (2, 4)
+    OP         '='           (2, 5) (2, 6)
+    STRING     "U'green'"    (2, 7) (2, 15)
 """
 
 from test import support
 from tokenize import (tokenize, _tokenize, untokenize, NUMBER, NAME, OP,
-                     STRING, ENDMARKER, tok_name, detect_encoding,
-                     open as tokenize_open)
+                     STRING, ENDMARKER, ENCODING, tok_name, detect_encoding,
+                     open as tokenize_open, Untokenizer)
 from io import BytesIO
 from unittest import TestCase
 import os, sys, glob
+import token
 
 def dump_tokens(s):
     """Print out the tokens in s in a table format.
@@ -593,21 +665,39 @@ def dump_tokens(s):
 def roundtrip(f):
     """
     Test roundtrip for `untokenize`. `f` is an open file or a string.
-    The source code in f is tokenized, converted back to source code via
-    tokenize.untokenize(), and tokenized again from the latter. The test
-    fails if the second tokenization doesn't match the first.
+    The source code in f is tokenized to both 5- and 2-tuples.
+    Both sequences are converted back to source code via
+    tokenize.untokenize(), and the latter tokenized again to 2-tuples.
+    The test fails if the 3 pair tokenizations do not match.
+
+    When untokenize bugs are fixed, untokenize with 5-tuples should
+    reproduce code that does not contain a backslash continuation
+    following spaces.  A proper test should test this.
+
+    This function would be more useful for correcting bugs if it reported
+    the first point of failure, like assertEqual, rather than just
+    returning False -- or if it were only used in unittests and not
+    doctest and actually used assertEqual.
     """
+    # Get source code and original tokenizations
     if isinstance(f, str):
-        f = BytesIO(f.encode('utf-8'))
-    try:
-        token_list = list(tokenize(f.readline))
-    finally:
+        code = f.encode('utf-8')
+    else:
+        code = f.read()
         f.close()
-    tokens1 = [tok[:2] for tok in token_list]
-    new_bytes = untokenize(tokens1)
-    readline = (line for line in new_bytes.splitlines(1)).__next__
-    tokens2 = [tok[:2] for tok in tokenize(readline)]
-    return tokens1 == tokens2
+    readline = iter(code.splitlines(keepends=True)).__next__
+    tokens5 = list(tokenize(readline))
+    tokens2 = [tok[:2] for tok in tokens5]
+    # Reproduce tokens2 from pairs
+    bytes_from2 = untokenize(tokens2)
+    readline2 = iter(bytes_from2.splitlines(keepends=True)).__next__
+    tokens2_from2 = [tok[:2] for tok in tokenize(readline2)]
+    # Reproduce tokens2 from 5-tuples
+    bytes_from5 = untokenize(tokens5)
+    readline5 = iter(bytes_from5.splitlines(keepends=True)).__next__
+    tokens2_from5 = [tok[:2] for tok in tokenize(readline5)]
+    # Compare 3 versions
+    return tokens2 == tokens2_from2 == tokens2_from5
 
 # This is an example from the docs, set up as a doctest.
 def decistmt(s):
@@ -819,6 +909,39 @@ class TestDetectEncoding(TestCase):
         readline = self.get_readline(lines)
         self.assertRaises(SyntaxError, detect_encoding, readline)
 
+    def test_cookie_second_line_noncommented_first_line(self):
+        lines = (
+            b"print('\xc2\xa3')\n",
+            b'# vim: set fileencoding=iso8859-15 :\n',
+            b"print('\xe2\x82\xac')\n"
+        )
+        encoding, consumed_lines = detect_encoding(self.get_readline(lines))
+        self.assertEqual(encoding, 'utf-8')
+        expected = [b"print('\xc2\xa3')\n"]
+        self.assertEqual(consumed_lines, expected)
+
+    def test_cookie_second_line_commented_first_line(self):
+        lines = (
+            b"#print('\xc2\xa3')\n",
+            b'# vim: set fileencoding=iso8859-15 :\n',
+            b"print('\xe2\x82\xac')\n"
+        )
+        encoding, consumed_lines = detect_encoding(self.get_readline(lines))
+        self.assertEqual(encoding, 'iso8859-15')
+        expected = [b"#print('\xc2\xa3')\n", b'# vim: set fileencoding=iso8859-15 :\n']
+        self.assertEqual(consumed_lines, expected)
+
+    def test_cookie_second_line_empty_first_line(self):
+        lines = (
+            b'\n',
+            b'# vim: set fileencoding=iso8859-15 :\n',
+            b"print('\xe2\x82\xac')\n"
+        )
+        encoding, consumed_lines = detect_encoding(self.get_readline(lines))
+        self.assertEqual(encoding, 'iso8859-15')
+        expected = [b'\n', b'# vim: set fileencoding=iso8859-15 :\n']
+        self.assertEqual(consumed_lines, expected)
+
     def test_latin1_normalization(self):
         # See get_normal_name() in tokenizer.c.
         encodings = ("latin-1", "iso-8859-1", "iso-latin-1", "latin-1-unix",
@@ -880,6 +1003,13 @@ class TestDetectEncoding(TestCase):
         readline = self.get_readline((b'# coding: bad\n',))
         self.assertRaises(SyntaxError, detect_encoding, readline)
 
+    def test_false_encoding(self):
+        # Issue 18873: "Encoding" detected in non-comment lines
+        readline = self.get_readline((b'print("#coding=fake")',))
+        encoding, consumed_lines = detect_encoding(readline)
+        self.assertEqual(encoding, 'utf-8')
+        self.assertEqual(consumed_lines, [b'print("#coding=fake")'])
+
     def test_open(self):
         filename = support.TESTFN + '.py'
         self.addCleanup(support.unlink, filename)
@@ -899,6 +1029,35 @@ class TestDetectEncoding(TestCase):
         with tokenize_open(filename) as fp:
             self.assertEqual(fp.encoding, 'utf-8-sig')
             self.assertEqual(fp.mode, 'r')
+
+    def test_filename_in_exception(self):
+        # When possible, include the file name in the exception.
+        path = 'some_file_path'
+        lines = (
+            b'print("\xdf")', # Latin-1: LATIN SMALL LETTER SHARP S
+            )
+        class Bunk:
+            def __init__(self, lines, path):
+                self.name = path
+                self._lines = lines
+                self._index = 0
+
+            def readline(self):
+                if self._index == len(lines):
+                    raise StopIteration
+                line = lines[self._index]
+                self._index += 1
+                return line
+
+        with self.assertRaises(SyntaxError):
+            ins = Bunk(lines, path)
+            # Make sure lacking a name isn't an issue.
+            del ins.name
+            detect_encoding(ins.readline)
+        with self.assertRaisesRegex(SyntaxError, '.*{}'.format(path)):
+            ins = Bunk(lines, path)
+            detect_encoding(ins.readline)
+
 
 class TestTokenize(TestCase):
 
@@ -941,6 +1100,123 @@ class TestTokenize(TestCase):
 
         self.assertTrue(encoding_used, encoding)
 
+    def assertExactTypeEqual(self, opstr, *optypes):
+        tokens = list(tokenize(BytesIO(opstr.encode('utf-8')).readline))
+        num_optypes = len(optypes)
+        self.assertEqual(len(tokens), 2 + num_optypes)
+        self.assertEqual(token.tok_name[tokens[0].exact_type],
+                         token.tok_name[ENCODING])
+        for i in range(num_optypes):
+            self.assertEqual(token.tok_name[tokens[i + 1].exact_type],
+                             token.tok_name[optypes[i]])
+        self.assertEqual(token.tok_name[tokens[1 + num_optypes].exact_type],
+                         token.tok_name[token.ENDMARKER])
+
+    def test_exact_type(self):
+        self.assertExactTypeEqual('()', token.LPAR, token.RPAR)
+        self.assertExactTypeEqual('[]', token.LSQB, token.RSQB)
+        self.assertExactTypeEqual(':', token.COLON)
+        self.assertExactTypeEqual(',', token.COMMA)
+        self.assertExactTypeEqual(';', token.SEMI)
+        self.assertExactTypeEqual('+', token.PLUS)
+        self.assertExactTypeEqual('-', token.MINUS)
+        self.assertExactTypeEqual('*', token.STAR)
+        self.assertExactTypeEqual('/', token.SLASH)
+        self.assertExactTypeEqual('|', token.VBAR)
+        self.assertExactTypeEqual('&', token.AMPER)
+        self.assertExactTypeEqual('<', token.LESS)
+        self.assertExactTypeEqual('>', token.GREATER)
+        self.assertExactTypeEqual('=', token.EQUAL)
+        self.assertExactTypeEqual('.', token.DOT)
+        self.assertExactTypeEqual('%', token.PERCENT)
+        self.assertExactTypeEqual('{}', token.LBRACE, token.RBRACE)
+        self.assertExactTypeEqual('==', token.EQEQUAL)
+        self.assertExactTypeEqual('!=', token.NOTEQUAL)
+        self.assertExactTypeEqual('<=', token.LESSEQUAL)
+        self.assertExactTypeEqual('>=', token.GREATEREQUAL)
+        self.assertExactTypeEqual('~', token.TILDE)
+        self.assertExactTypeEqual('^', token.CIRCUMFLEX)
+        self.assertExactTypeEqual('<<', token.LEFTSHIFT)
+        self.assertExactTypeEqual('>>', token.RIGHTSHIFT)
+        self.assertExactTypeEqual('**', token.DOUBLESTAR)
+        self.assertExactTypeEqual('+=', token.PLUSEQUAL)
+        self.assertExactTypeEqual('-=', token.MINEQUAL)
+        self.assertExactTypeEqual('*=', token.STAREQUAL)
+        self.assertExactTypeEqual('/=', token.SLASHEQUAL)
+        self.assertExactTypeEqual('%=', token.PERCENTEQUAL)
+        self.assertExactTypeEqual('&=', token.AMPEREQUAL)
+        self.assertExactTypeEqual('|=', token.VBAREQUAL)
+        self.assertExactTypeEqual('^=', token.CIRCUMFLEXEQUAL)
+        self.assertExactTypeEqual('^=', token.CIRCUMFLEXEQUAL)
+        self.assertExactTypeEqual('<<=', token.LEFTSHIFTEQUAL)
+        self.assertExactTypeEqual('>>=', token.RIGHTSHIFTEQUAL)
+        self.assertExactTypeEqual('**=', token.DOUBLESTAREQUAL)
+        self.assertExactTypeEqual('//', token.DOUBLESLASH)
+        self.assertExactTypeEqual('//=', token.DOUBLESLASHEQUAL)
+        self.assertExactTypeEqual('@', token.AT)
+
+        self.assertExactTypeEqual('a**2+b**2==c**2',
+                                  NAME, token.DOUBLESTAR, NUMBER,
+                                  token.PLUS,
+                                  NAME, token.DOUBLESTAR, NUMBER,
+                                  token.EQEQUAL,
+                                  NAME, token.DOUBLESTAR, NUMBER)
+        self.assertExactTypeEqual('{1, 2, 3}',
+                                  token.LBRACE,
+                                  token.NUMBER, token.COMMA,
+                                  token.NUMBER, token.COMMA,
+                                  token.NUMBER,
+                                  token.RBRACE)
+        self.assertExactTypeEqual('^(x & 0x1)',
+                                  token.CIRCUMFLEX,
+                                  token.LPAR,
+                                  token.NAME, token.AMPER, token.NUMBER,
+                                  token.RPAR)
+
+    def test_pathological_trailing_whitespace(self):
+        # See http://bugs.python.org/issue16152
+        self.assertExactTypeEqual('@          ', token.AT)
+
+class UntokenizeTest(TestCase):
+
+    def test_bad_input_order(self):
+        # raise if previous row
+        u = Untokenizer()
+        u.prev_row = 2
+        u.prev_col = 2
+        with self.assertRaises(ValueError) as cm:
+            u.add_whitespace((1,3))
+        self.assertEqual(cm.exception.args[0],
+                'start (1,3) precedes previous end (2,2)')
+        # raise if previous column in row
+        self.assertRaises(ValueError, u.add_whitespace, (2,1))
+
+    def test_backslash_continuation(self):
+        # The problem is that <whitespace>\<newline> leaves no token
+        u = Untokenizer()
+        u.prev_row = 1
+        u.prev_col =  1
+        u.tokens = []
+        u.add_whitespace((2, 0))
+        self.assertEqual(u.tokens, ['\\\n'])
+        u.prev_row = 2
+        u.add_whitespace((4, 4))
+        self.assertEqual(u.tokens, ['\\\n', '\\\n\\\n', '    '])
+        self.assertTrue(roundtrip('a\n  b\n    c\n  \\\n  c\n'))
+
+    def test_iter_compat(self):
+        u = Untokenizer()
+        token = (NAME, 'Hello')
+        tokens = [(ENCODING, 'utf-8'), token]
+        u.compat(token, iter([]))
+        self.assertEqual(u.tokens, ["Hello "])
+        u = Untokenizer()
+        self.assertEqual(u.untokenize(iter([token])), 'Hello ')
+        u = Untokenizer()
+        self.assertEqual(u.untokenize(iter(tokens)), 'Hello ')
+        self.assertEqual(u.encoding, 'utf-8')
+        self.assertEqual(untokenize(iter(tokens)), b'Hello ')
+
 
 __test__ = {"doctests" : doctests, 'decistmt': decistmt}
 
@@ -951,6 +1227,7 @@ def test_main():
     support.run_unittest(Test_Tokenize)
     support.run_unittest(TestDetectEncoding)
     support.run_unittest(TestTokenize)
+    support.run_unittest(UntokenizeTest)
 
 if __name__ == "__main__":
     test_main()

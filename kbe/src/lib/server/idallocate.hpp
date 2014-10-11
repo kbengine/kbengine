@@ -55,8 +55,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		// 分配一个id 
 		m_idClient->alloc()
 */
-#ifndef __IDAllocate_H__
-#define __IDAllocate_H__
+#ifndef KBE_IDALLOCATE_HPP
+#define KBE_IDALLOCATE_HPP
 
 // common include	
 #include "helper/debug_helper.hpp"
@@ -110,6 +110,9 @@ public:
 	virtual void reclaim(T id)
 	{
 	}
+
+	T lastID()const{ return lastID_; }
+	void lastID(T v){ lastID_ = v; }
 protected:
 	T lastID_;													// 最后一次申请到的ID
 };
@@ -180,7 +183,9 @@ public:
 	*/
 	std::pair< T, T > allocRange(void)
 	{
-		INFO_MSG(boost::format("IDServer::allocRange: %1%-%2%.\n") % lastIDRange_begin_ % (lastIDRange_begin_ + rangeStep_));
+		INFO_MSG(fmt::format("IDServer::allocRange: {}-{}.\n", 
+			lastIDRange_begin_, (lastIDRange_begin_ + rangeStep_)));
+		
 		std::pair< T, T > p = std::make_pair(lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
 		lastIDRange_begin_ += rangeStep_;
 		return p;
@@ -244,7 +249,7 @@ public:
 	*/
 	void onAddRange(T idBegin, T idEnd)
 	{
-		INFO_MSG(boost::format("IDClient::onAddRange: number of ids increased from %1% to %2%.\n") % idBegin % idEnd);
+		INFO_MSG(fmt::format("IDClient::onAddRange: number of ids increased from {} to {}.\n", idBegin, idEnd));
 		if(getSize() <= 0)
 		{
 			lastIDRange_begin_ = idBegin;
@@ -322,4 +327,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_IDALLOCATE_HPP

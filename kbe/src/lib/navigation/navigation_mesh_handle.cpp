@@ -44,7 +44,7 @@ NavMeshHandle::~NavMeshHandle()
 	for(; iter1 != navmeshQuery_layers.end(); iter1++)
 		dtFreeNavMeshQuery((*iter1));
 	
-	DEBUG_MSG(boost::format("NavMeshHandle::~NavMeshHandle(): (%1%) is destroyed!\n") % name);
+	DEBUG_MSG(fmt::format("NavMeshHandle::~NavMeshHandle(): ({}) is destroyed!\n", name));
 }
 
 //-------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 {
 	if(layer >= (int)navmeshQuery_layers.size())
 	{
-		ERROR_MSG(boost::format("NavMeshHandle::findStraightPath: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
@@ -84,7 +84,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 	if (!startRef || !endRef)
 	{
-		ERROR_MSG(boost::format("NavMeshHandle::findStraightPath(%3%): Could not find any nearby poly's (%1%, %2%)\n") % startRef % endRef % name);
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath({2}): Could not find any nearby poly's ({0}, {1})\n", startRef, endRef, name));
 		return NAV_ERROR_NEARESTPOLY;
 	}
 
@@ -117,7 +117,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 			paths.push_back(currpos);
 			pos++; 
 			
-			//DEBUG_MSG(boost::format("NavMeshHandle::findStraightPath: %1%->%2%, %3%, %4%\n") % pos % currpos.x % currpos.y % currpos.z);
+			//DEBUG_MSG(fmt::format("NavMeshHandle::findStraightPath: {}->{}, {}, {}\n", pos, currpos.x, currpos.y, currpos.z));
 		}
 	}
 
@@ -125,26 +125,11 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 }
 
 //-------------------------------------------------------------------------------------
-void NavMeshHandle::onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void NavMeshHandle::onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void NavMeshHandle::onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos)
-{
-}
-
-//-------------------------------------------------------------------------------------
 int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	if(layer >= (int)navmeshQuery_layers.size())
 	{
-		ERROR_MSG(boost::format("NavMeshHandle::findStraightPath: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
@@ -229,8 +214,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 	if(results.size() == 0)
 	{
-		ERROR_MSG(boost::format("NavMeshHandle::create: path(%1%) not found navmesh.!\n") % 
-			Resmgr::getSingleton().matchRes(path));
+		ERROR_MSG(fmt::format("NavMeshHandle::create: path({}) not found navmesh.!\n", 
+			Resmgr::getSingleton().matchRes(path)));
 
 		return NULL;
 	}
@@ -247,13 +232,14 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 		FILE* fp = fopen(path.c_str(), "rb");
 		if (!fp)
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%) is error!\n") % 
-				Resmgr::getSingleton().matchRes(path));
+			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
+				Resmgr::getSingleton().matchRes(path)));
 
 			break;
 		}
 		
-		DEBUG_MSG(boost::format("NavMeshHandle::create: (%1%), layer=%2%\n") % name % (pNavMeshHandle->navmeshQuery_layers.size()));
+		DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
+			name, (pNavMeshHandle->navmeshQuery_layers.size())));
 
 		bool safeStorage = true;
 		int pos = 0;
@@ -266,8 +252,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 		uint8* data = new uint8[flen];
 		if(data == NULL)
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), memory(size=%2%) error!\n") % 
-				Resmgr::getSingleton().matchRes(path) % flen);
+			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), memory(size={}) error!\n", 
+				Resmgr::getSingleton().matchRes(path), flen));
 
 			fclose(fp);
 			SAFE_RELEASE_ARRAY(data);
@@ -277,8 +263,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 		size_t readsize = fread(data, 1, flen, fp);
 		if(readsize != flen)
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), read(size=%2% != %3%) error!\n") % 
-				Resmgr::getSingleton().matchRes(path) % readsize % flen);
+			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), read(size={} != {}) error!\n", 
+				Resmgr::getSingleton().matchRes(path), readsize, flen));
 
 			fclose(fp);
 			SAFE_RELEASE_ARRAY(data);
@@ -287,8 +273,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 		if (readsize < sizeof(NavMeshSetHeader))
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: open(%1%), NavMeshSetHeader is error!\n") % 
-				Resmgr::getSingleton().matchRes(path));
+			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), NavMeshSetHeader is error!\n", 
+				Resmgr::getSingleton().matchRes(path)));
 
 			fclose(fp);
 			SAFE_RELEASE_ARRAY(data);
@@ -302,8 +288,8 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 		if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: navmesh version(%1%) is not match(%2%)!\n") % 
-				header.version % ((int)NavMeshHandle::RCN_NAVMESH_VERSION));
+			ERROR_MSG(fmt::format("NavMeshHandle::create: navmesh version({}) is not match({})!\n", 
+				header.version, ((int)NavMeshHandle::RCN_NAVMESH_VERSION)));
 
 			fclose(fp);
 			SAFE_RELEASE_ARRAY(data);
@@ -322,7 +308,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 		dtStatus status = mesh->init(&header.params);
 		if (dtStatusFailed(status))
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create: mesh init is error(%1%)!\n") % status);
+			ERROR_MSG(fmt::format("NavMeshHandle::create: mesh init is error({})!\n", status));
 			fclose(fp);
 			SAFE_RELEASE_ARRAY(data);
 			break;
@@ -374,7 +360,7 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 
 		if (!success)
 		{
-			ERROR_MSG(boost::format("NavMeshHandle::create:  error(%1%)!\n") % status);
+			ERROR_MSG(fmt::format("NavMeshHandle::create:  error({})!\n", status));
 			dtFreeNavMesh(mesh);
 			break;
 		}
@@ -408,14 +394,14 @@ NavigationHandle* NavMeshHandle::create(std::string name)
 			triVertCount += tile->header->detailVertCount;
 			dataSize += tile->dataSize;
 
-			// DEBUG_MSG(boost::format("NavMeshHandle::create: verts(%1%, %2%, %3%)\n") % tile->verts[0] % tile->verts[1] % tile->verts[2]);
+			// DEBUG_MSG(fmt::format("NavMeshHandle::create: verts({}, {}, {})\n", tile->verts[0], tile->verts[1], tile->verts[2]));
 		}
 
-		DEBUG_MSG(boost::format("\t==> tiles loaded: %1%\n") % tileCount);
-		DEBUG_MSG(boost::format("\t==> BVTree nodes: %1%\n") % nodeCount);
-		DEBUG_MSG(boost::format("\t==> %1% polygons (%2% vertices)\n") % polyCount % vertCount);
-		DEBUG_MSG(boost::format("\t==> %1% triangles (%2% vertices)\n") % triCount % triVertCount);
-		DEBUG_MSG(boost::format("\t==> %.2f MB of data (not including pointers)\n") % (((float)dataSize / sizeof(unsigned char)) / 1048576));
+		DEBUG_MSG(fmt::format("\t==> tiles loaded: {}\n", tileCount));
+		DEBUG_MSG(fmt::format("\t==> BVTree nodes: {}\n", nodeCount));
+		DEBUG_MSG(fmt::format("\t==> {} polygons ({} vertices)\n", polyCount, vertCount));
+		DEBUG_MSG(fmt::format("\t==> {} triangles ({} vertices)\n", triCount, triVertCount));
+		DEBUG_MSG(fmt::format("\t==> {:.2f} MB of data (not including pointers)\n", (((float)dataSize / sizeof(unsigned char)) / 1048576)));
 	}
 
 	return pNavMeshHandle;

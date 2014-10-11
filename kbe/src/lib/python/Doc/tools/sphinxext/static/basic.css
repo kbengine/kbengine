@@ -38,6 +38,8 @@ div.related li.right {
 /* -- sidebar --------------------------------------------------------------- */
 
 div.sphinxsidebarwrapper {
+    position: relative;
+    top: 0;
     padding: 10px 5px 0 10px;
     word-wrap: break-word;
 }
@@ -334,10 +336,14 @@ dl.glossary dt {
     font-style: italic;
 }
 
-p.deprecated, p.deprecated-removed {
+.deprecated, .deprecated-removed {
     background-color: #ffe4e4;
     border: 1px solid #f66;
-    padding: 7px
+    padding: 7px;
+}
+
+div.deprecated p, div.deprecated-removed p {
+    margin-bottom: 0;
 }
 
 .system-message {

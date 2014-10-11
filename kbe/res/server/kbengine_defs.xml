@@ -1,5 +1,5 @@
 <root>
-	<!-- 进程处理频率 
+	<!-- 游戏逻辑处理频率 
 		(Update frequency process)
 	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
@@ -77,17 +77,21 @@
 	-->
 	<debugEntity>0</debugEntity>
 
-	<!-- apps发布状态, 可在脚本中获取该值
-		(apps released state, This value can be obtained in the script)
-		Type: Integer8
-		0 : debug
-		1 : release
-		其他自定义(Other custom)
-	-->
-	<app_publish>0</app_publish>
-	
-	<cellapps> 1 </cellapps>
-	<baseapps> 1 </baseapps>
+	<publish>
+		<!-- 发布状态, 可在脚本中获取该值。 KBEngine.publish()
+			(apps released state, This value can be obtained in the script. KBEngine.publish())
+			Type: Integer8
+			0 : debug
+			1 : release
+			其他自定义(Other custom)
+		-->
+		<state>0</state>
+
+		<!-- 脚本层发布的版本号
+			(Script layer released version number)
+		 -->
+		<script_version> 0.1.0 </script_version>
+	</publish>
 	
 	<channelCommon> 
 		<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
@@ -129,13 +133,13 @@
 		-->
 		<receiveWindowOverflow>
 			<messages>
-				<critical>	32			</critical>
+				<critical>	24			</critical>
 				<internal>	65535		</internal>
-				<external>	256			</external>
+				<external>	32			</external>
 			</messages>
 			<bytes>
 				<internal>	0			</internal>
-				<external>	65535		</external>
+				<external>	2048		</external>
 			</bytes>
 		</receiveWindowOverflow>
 		
@@ -153,7 +157,7 @@
 	<!-- 关服倒计时(秒) 
 		(Countdown to shutdown the server(seconds))
 	-->
-	<shutdown_time> 60.0 </shutdown_time>
+	<shutdown_time> 10.0 </shutdown_time>
 	
 	<!-- 关闭服务器的时候， 如果有未完成的任务， 服务器需要等待任务结束。
 		每Tick（秒）检查一次
@@ -235,13 +239,13 @@
 	</billingSystem>
 	
 	<dbmgr>
-		<!-- 账号Entity的名称
-		    (Name of AccountEntity)
+		<!-- debug模式下可输出读写操作信息
+		    (Debug mode can output the read and write informations)
 		 -->
-		<dbAccountEntityScriptType>	Account	</dbAccountEntityScriptType>
+		<debug> false </debug>
 		
-		<!-- 不检查defs-MD5
-			(Do not check defs-MD5) 
+		<!-- 是否检查defs-MD5
+			(Check whether the defs-MD5) 
 		-->
 		<allowEmptyDigest> false </allowEmptyDigest>					<!-- Type: Boolean -->
 		
@@ -249,19 +253,6 @@
 			（Name of the interface(NIC)） 
 		-->
 		<internalInterface>  </internalInterface>
-		
-		<!-- 新账号默认标记(可组合，填写时按十进制格式) 
-			(Default flags a new account, Can be combined, Fill in decimal format when)
-			常规标记(normal flag)	= 0x00000000
-			锁定标记(lock flag)	= 0x000000001
-			未激活标记(normal flag)	= 0x000000002
-		-->
-		<accountDefaultFlags> 0 </accountDefaultFlags>					<!-- Type: Integer -->
-		
-		<!-- 新账号默认过期时间(秒, 引擎会加上当前时间) 
-			(New account default expiration time (seconds, the engine will add the current time))
-		-->
-		<accountDefaultDeadline> 0 </accountDefaultDeadline>			<!-- Type: Integer -->
 		
 		<!-- 数据库类型 
 			（Database type)
@@ -305,10 +296,43 @@
 			<collation> utf8_bin </collation> 							<!-- Type: String -->
 		</unicodeString>
 		
-		<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 
-			(When logged in, the game database can not find the game account is automatically created)
+		<!-- 账号系统
+			(Account system)
 		-->
-		<notFoundAccountAutoCreate> true </notFoundAccountAutoCreate>
+		<account_system> 
+			<!-- 账号Entity的名称
+			    (Name of AccountEntity)
+			 -->
+			<accountEntityScriptType>	Account	</accountEntityScriptType>
+			
+			<!-- 新账号默认标记(可组合，填写时按十进制格式) 
+				(Default flags a new account, Can be combined, Fill in decimal format when)
+				常规标记(normal flag)	= 0x00000000
+				锁定标记(lock flag)	= 0x000000001
+				未激活标记(normal flag)	= 0x000000002
+			-->
+			<accountDefaultFlags> 0 </accountDefaultFlags>							<!-- Type: Integer -->
+			
+			<!-- 新账号默认过期时间(秒, 引擎会加上当前时间) 
+				(New account default expiration time (seconds, the engine will add the current time))
+			-->
+			<accountDefaultDeadline> 0 </accountDefaultDeadline>						<!-- Type: Integer -->
+
+			<!-- 账号注册相关
+				(Account registration)
+			-->
+			<account_registration> 
+				<!-- 是否开放注册 
+					(Whether open registration)
+				-->
+				<enable>	true	</enable>
+				
+				<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 
+					(When logged in, the game database can not find the game account is automatically created)
+				-->
+				<loginAutoCreate> true </loginAutoCreate>
+			</account_registration>
+		</account_system>
 	</dbmgr>
 	
 	<cellapp>
@@ -365,7 +389,11 @@
 		
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
-		<ghostUpdateHertz> 50 </ghostUpdateHertz> <!-- Type: Integer -->
+		
+		<!-- ghost更新频率 
+			(Update frequency process)
+		-->
+		<ghostUpdateHertz> 30 </ghostUpdateHertz>		<!-- Type: Integer -->
 		
 		<!-- 是否使用坐标系统, 如果设置为false， 那么AOI、Trap、 Move等功能将不可用 
 			(Whether the use of coordinate-system, if is false, 
@@ -381,8 +409,15 @@
 				the management of the y-axis will produce some consumption
 				-->
 			<rangemgr_y> false </rangemgr_y>
+			
+			<!-- 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。 
+				(After stopping to change the position/direction, 
+				the engine continued to update client information(position/direction) ticks
+				If 0, then always update)
+			-->
+			<entity_posdir_additional_updates> 5 </entity_posdir_additional_updates>
 		</coordinate_system>
-		
+
 		<!-- Telnet服务, 如果端口被占用则向后尝试50001.. 
 			(Telnet service, if the port is occupied backwards to try 50001)
 		-->
@@ -432,7 +467,16 @@
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
-
+		
+		<!-- 外部IP地址或者域名，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
+			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
+			地址。
+			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
+			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
+			For example: account activation email address given callback.)
+		-->
+		<externalAddress>  </externalAddress>							<!-- Type: String -->
+		
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the client port range） 
 		-->
@@ -560,6 +604,15 @@
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
+		<!-- 外部IP地址或者域名，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
+			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
+			地址。
+			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
+			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
+			For example: account activation email address given callback.)
+		-->
+		<externalAddress>  </externalAddress>							<!-- Type: String -->
+		
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the client port range） 
 		-->
@@ -625,8 +678,35 @@
 		<defaultAddBots> 
 			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
-			<tickcount> 2  </tickcount>									<!-- Type: Integer -->
-		</defaultAddBots>							
+			<tickcount> 5  </tickcount>									<!-- Type: Integer -->
+		</defaultAddBots>
+		
+		<!-- 机器人账号相关 
+			(about bots-accounts)
+		-->
+		<account_infos>
+			<!-- 机器人账号名称的前缀 
+				(The account name prefix)
+			-->
+			<account_name_prefix>		bot_	</account_name_prefix>
+			
+			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增 
+				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
+			-->
+			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
+		</account_infos>
+		
+		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 
+			(Telnet service, if the port is occupied backwards to try 51001)
+		-->
+		<telnet_service>
+			<port> 51000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
+			<default_layer> python </default_layer>
+		</telnet_service>
 	</bots>
 	
 	<messagelog>
@@ -634,6 +714,16 @@
 			（Name of the interface(NIC)） 
 		-->
 		<internalInterface>  </internalInterface>
+		
+		<!-- 单个app(baseapp, cellapp, 等等..)进程上, 一个tick最多缓存的log数量
+			（The number of single-process(baseapp, cellapp, etc..), The number of log a tick buffer.） 
+		-->
+		<tick_max_buffered_logs> 65535 </tick_max_buffered_logs>
+
+		<!-- 单个app(baseapp, cellapp, 等等..)进程上, 一个tick同步给messagelog的log数量
+			（The number of single-process(baseapp, cellapp, etc..), A tick synchronization to the number of messagelog） 
+		-->
+		<tick_sync_logs> 32 </tick_sync_logs>
 	</messagelog>
 	
 	<resourcemgr>

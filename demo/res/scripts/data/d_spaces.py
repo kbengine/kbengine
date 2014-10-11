@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-datas={1: {'entityType': 'Space', 'entities': (10001001, 10002001, 10003001), 'type': 1, 'name': '新手村', 'resPath': 'xinshoucun', 'id': 1}, 2: {'entityType': 'Space', 'entities': (20001001, 20002001, 20003001), 'type': 1, 'name': 'OgreDemo', 'resPath': '', 'id': 2}, 3: {'entityType': 'Space', 'entities': (), 'type': 1, 'name': '微端demo', 'resPath': '', 'id': 3}}
+datas={1: {'resPath': 'xinshoucun', 'type': 1, 'entityType': 'Space', 'name': '新手村', 'spawnPos': (771.5861, 211.0021, 776.5501), 'id': 1}, 2: {'resPath': 'ogredemo', 'type': 1, 'entityType': 'Space', 'name': 'ogredemo', 'spawnPos': (-97.9299, 0.0, -158.922), 'id': 2}, 3: {'resPath': 'minidemo', 'type': 1, 'entityType': 'Space', 'name': 'minidemo', 'spawnPos': (-97.9299, 1.5, -158.922), 'id': 3}, 4: {'resPath': 'teleportspace', 'type': 1, 'entityType': 'Space', 'name': 'teleportspace', 'spawnPos': (0.0, 1.5, 0.0), 'id': 4}, 5: {'resPath': 'duplicate', 'type': 2, 'entityType': 'SpaceDuplicate', 'name': 'Duplicate(副本)', 'spawnPos': (0.0, 0.0, 0.0), 'id': 5}}
 
 allDatas = {
 	'场景表':datas,

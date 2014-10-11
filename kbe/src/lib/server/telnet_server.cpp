@@ -86,8 +86,8 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 	{
 		if (listener_.bind(htons(0), ip) == -1)
 		{
-			ERROR_MSG(boost::format("TelnetServer::start:: bind port(%1%) is failed! ip=%2%\n") % 
-				0 % ip);
+			ERROR_MSG(fmt::format("TelnetServer::start:: bind port({}) is failed! ip={}\n", 
+				0, ip));
 
 			return false;
 		}
@@ -95,29 +95,29 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 
 	if(listener_.listen(1) == -1)
 	{
-		ERROR_MSG(boost::format("TelnetServer::start:: listen is failed! addr=%1%\n") % 
-			listener_.c_str());
+		ERROR_MSG(fmt::format("TelnetServer::start:: listen is failed! addr={}\n", 
+			listener_.c_str()));
 
 		return false;
 	}
 
 	if(!pDispatcher_->registerFileDescriptor(listener_, this))
 	{
-		ERROR_MSG(boost::format("TelnetServer::start:: registerFileDescriptor is failed! addr=%1%\n") % 
-			listener_.c_str());
+		ERROR_MSG(fmt::format("TelnetServer::start:: registerFileDescriptor is failed! addr={}\n", 
+			listener_.c_str()));
 
 		return false;
 	}
 
-	INFO_MSG(boost::format("TelnetServer server is running on port %1%\n") % port);
+	INFO_MSG(fmt::format("TelnetServer server is running on port {}\n", port));
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void TelnetServer::onTelnetHandlerClosed(int fd, TelnetHandler* pTelnetHandler)
 {
-	INFO_MSG(boost::format("TelnetServer::onTelnetHandlerClosed: del handler(%1%)!\n") %
-		pTelnetHandler->pEndPoint()->c_str());
+	INFO_MSG(fmt::format("TelnetServer::onTelnetHandlerClosed: del handler({})!\n",
+		pTelnetHandler->pEndPoint()->c_str()));
 
 	KBE_ASSERT(fd == (*pTelnetHandler->pEndPoint()));
 	pDispatcher_->deregisterFileDescriptor(fd);
@@ -139,7 +139,7 @@ void TelnetServer::closeHandler(int fd, TelnetHandler* pTelnetHandler)
 	TelnetHandlers::iterator iter = handlers_.find(fd);
 	if(iter == handlers_.end() || iter->second.get() != pTelnetHandler)
 	{
-		ERROR_MSG(boost::format("TelnetServer::closeHandler: not found fd(%1%)!\n") % fd);
+		ERROR_MSG(fmt::format("TelnetServer::closeHandler: not found fd({})!\n", fd));
 		return;
 	}
 
@@ -169,8 +169,8 @@ int	TelnetServer::handleInputNotification(int fd)
 
 			if(tickcount == 1)
 			{
-				WARNING_MSG(boost::format("TelnetServer::handleInputNotification: accept endpoint(%1%) %2%!\n") %
-					 fd % kbe_strerror());
+				WARNING_MSG(fmt::format("TelnetServer::handleInputNotification: accept endpoint({}) {}!\n",
+					 fd, kbe_strerror()));
 			}
 
 			break;
@@ -182,15 +182,15 @@ int	TelnetServer::handleInputNotification(int fd)
 
 			if(!pDispatcher_->registerFileDescriptor((*pNewEndPoint), pTelnetHandler))
 			{
-				ERROR_MSG(boost::format("TelnetServer::start:: registerFileDescriptor(pTelnetHandler) is failed! addr=%1%\n") % 
-					pNewEndPoint->c_str());
+				ERROR_MSG(fmt::format("TelnetServer::start:: registerFileDescriptor(pTelnetHandler) is failed! addr={}\n", 
+					pNewEndPoint->c_str()));
 				
 				delete pTelnetHandler;
 				continue;
 			}
 
-			INFO_MSG(boost::format("TelnetServer::handleInputNotification: new handler(%1%)!\n") %
-				pNewEndPoint->c_str());
+			INFO_MSG(fmt::format("TelnetServer::handleInputNotification: new handler({})!\n",
+				pNewEndPoint->c_str()));
 
 			handlers_[(*pNewEndPoint)].reset(pTelnetHandler);
 

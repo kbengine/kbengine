@@ -150,8 +150,9 @@ AU_read objects, as returned by :func:`.open` above, have the following methods:
 
 .. method:: AU_read.getparams()
 
-   Returns a tuple ``(nchannels, sampwidth, framerate, nframes, comptype,
-   compname)``, equivalent to output of the :meth:`get\*` methods.
+   Returns a :func:`~collections.namedtuple` ``(nchannels, sampwidth,
+   framerate, nframes, comptype, compname)``, equivalent to output of the
+   :meth:`get\*` methods.
 
 
 .. method:: AU_read.readframes(n)
@@ -211,6 +212,9 @@ AU_write objects, as returned by :func:`.open` above, have the following methods
 
    Set the sample width (in bytes.)
 
+   .. versionchanged:: 3.4
+      Added support for 24-bit samples.
+
 
 .. method:: AU_write.setframerate(n)
 
@@ -246,10 +250,16 @@ AU_write objects, as returned by :func:`.open` above, have the following methods
 
    Write audio frames, without correcting *nframes*.
 
+   .. versionchanged:: 3.4
+      Any :term:`bytes-like object` is now accepted.
+
 
 .. method:: AU_write.writeframes(data)
 
    Write audio frames and make sure *nframes* is correct.
+
+   .. versionchanged:: 3.4
+      Any :term:`bytes-like object` is now accepted.
 
 
 .. method:: AU_write.close()

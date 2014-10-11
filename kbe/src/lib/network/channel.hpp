@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKCHANCEL__
-#define __NETWORKCHANCEL__
+#ifndef KBE_NETWORKCHANCEL_HPP
+#define KBE_NETWORKCHANCEL_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -36,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/interfaces.hpp"
 #include "network/packet_filter.hpp"
-#include "network/circular_buffer.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -256,4 +255,4 @@ typedef SmartPointer<Channel> ChannelPtr;
 #ifdef CODE_INLINE
 #include "channel.ipp"
 #endif
-#endif // __NETWORKINTERFACE__
+#endif // KBE_NETWORKCHANCEL_HPP

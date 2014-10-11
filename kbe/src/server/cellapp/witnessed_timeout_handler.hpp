@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_WITNESSED_TIMEOUT_HANDLER__
-#define __KBE_WITNESSED_TIMEOUT_HANDLER__
+#ifndef KBE_WITNESSED_TIMEOUT_HANDLER_HPP
+#define KBE_WITNESSED_TIMEOUT_HANDLER_HPP
 
 // common include
 #include "helper/debug_helper.hpp"
@@ -55,4 +55,5 @@ private:
 
 
 }
-#endif
+
+#endif // KBE_WITNESSED_TIMEOUT_HANDLER_HPP

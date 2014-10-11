@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBENGINE_REMOTE_ENTITY_METHOD_H__
-#define __KBENGINE_REMOTE_ENTITY_METHOD_H__
+#ifndef KBENGINE_REMOTE_ENTITY_METHOD_HPP
+#define KBENGINE_REMOTE_ENTITY_METHOD_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -67,4 +68,5 @@ protected:
 	EntityMailboxAbstract*	pMailbox_;							// 这个方法所属的mailbox
 };
 }
-#endif
+
+#endif // KBENGINE_REMOTE_ENTITY_METHOD_HPP

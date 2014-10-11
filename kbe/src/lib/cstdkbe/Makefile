@@ -3,6 +3,7 @@ LIB =	cstdkbe
 SRCS =				\
 	blowfish		\
 	cstdkbe			\
+	format			\
 	tasks			\
 	timer			\
 	timestamp		\

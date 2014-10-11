@@ -20,7 +20,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "debug_helper.hpp"
+#include "profile.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/timer.hpp"
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"
@@ -28,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "network/tcp_packet.hpp"
+#include "server/serverconfig.hpp"
 
 #ifdef unix
 #include <unistd.h>
@@ -47,17 +50,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment( lib, "odbc32.lib" )
-#ifdef _DEBUG
-#pragma comment (lib, "apr-1_d.lib")
-#pragma comment (lib, "aprutil-1_d.lib")
-#pragma comment (lib, "log4cxx_d.lib")
-#pragma comment (lib, "expat_d.lib")
-#else
-#pragma comment (lib, "apr-1.lib")
-#pragma comment (lib, "aprutil-1.lib")
-#pragma comment (lib, "log4cxx.lib")
-#pragma comment (lib, "expat.lib")
-#endif
 #endif
 #endif
 
@@ -68,7 +60,7 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
-
+ProfileVal g_syncLogProfile("syncLog");
 
 #ifndef NO_USE_LOG4CXX
 log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
@@ -82,8 +74,9 @@ bool g_shouldWriteToSyslog = false;
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
-	boost::format s = (boost::format("assertion failed: %1%, file %2%, line %3%, at: %4%\n") % exp % file % line % func);
-	printf("%s", (std::string("[ASSERT]: ") + s.str()).c_str());
+	DebugHelper::getSingleton().backtrace_msg();
+	std::string s = (fmt::format("assertion failed: {}, file {}, line {}, at: {}\n", exp, file, line, func));
+	printf("%s", (std::string("[ASSERT]: ") + s).c_str());
 	dbghelper.print_msg(s);
     abort();
 }
@@ -105,6 +98,65 @@ void vutf8printf(FILE *out, const char *str, va_list* ap)
 }
 
 //-------------------------------------------------------------------------------------
+class DebugHelperSyncHandler  : public TimerHandler
+{
+public:
+	DebugHelperSyncHandler():
+	pActiveTimerHandle_(NULL)
+	{
+	}
+
+	virtual ~DebugHelperSyncHandler()
+	{
+		// cancel();
+	}
+
+	enum TimeOutType
+	{
+		TIMEOUT_ACTIVE_TICK,
+		TIMEOUT_MAX
+	};
+
+	virtual void handleTimeout(TimerHandle handle, void * arg)
+	{
+		g_syncLogProfile.start();
+		DebugHelper::getSingleton().sync();
+		g_syncLogProfile.stop();
+	}
+
+	//-------------------------------------------------------------------------------------
+	void cancel()
+	{
+		if(pActiveTimerHandle_ == NULL)
+			return;
+
+		pActiveTimerHandle_->cancel();
+		delete pActiveTimerHandle_;
+		pActiveTimerHandle_ = NULL;
+	}
+
+	//-------------------------------------------------------------------------------------
+	void startActiveTick()
+	{
+		if(pActiveTimerHandle_ == NULL)
+		{
+			if(DebugHelper::getSingleton().pDispatcher())
+			{
+				pActiveTimerHandle_ = new TimerHandle();
+				(*pActiveTimerHandle_) = DebugHelper::getSingleton().pDispatcher()->addTimer(1000000 / 10,
+												this, (void *)TIMEOUT_ACTIVE_TICK);
+
+			}
+		}
+	}
+
+private:
+	TimerHandle* pActiveTimerHandle_;
+};
+
+DebugHelperSyncHandler* g_pDebugHelperSyncHandler = NULL;
+
+//-------------------------------------------------------------------------------------
 DebugHelper::DebugHelper():
 _logfile(NULL),
 _currFile(),
@@ -113,17 +165,22 @@ _currLine(0),
 messagelogAddr_(),
 logMutex(),
 bufferedLogPackets_(),
-syncStarting_(false),
+hasBufferedLogPackets_(0),
 pNetworkInterface_(NULL),
 pDispatcher_(NULL),
-scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
+scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
+noSyncLog_(false),
+canLogFile_(true)
 {
+	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
 
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
-	clearBufferedLog();
+	clearBufferedLog(true);
+
+	// SAFE_RELEASE(g_pDebugHelperSyncHandler);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -193,104 +250,100 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::clearBufferedLog()
+void DebugHelper::clearBufferedLog(bool destroy)
 {
-	std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-	for(; iter != bufferedLogPackets_.end(); iter++)
+	int8 v = Mercury::g_trace_packet;
+	Mercury::g_trace_packet = 0;
+
+	if(destroy)
 	{
-		delete (*iter);
+		while(!bufferedLogPackets_.empty())
+		{
+			Mercury::Bundle* pBundle = bufferedLogPackets_.front();
+			bufferedLogPackets_.pop();
+			delete pBundle;
+		}
+	}
+	else
+	{
+		Mercury::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
 	}
 
-	bufferedLogPackets_.clear();
+	Mercury::g_trace_packet = v;
+
+	hasBufferedLogPackets_ = 0;
+	noSyncLog_ = true;
+
+	if(!destroy)
+		g_pDebugHelperSyncHandler->cancel();
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::sync()
 {
-	if(bufferedLogPackets_.size() == 0)
-		return;
+	lockthread();
 
-	if(messagelogAddr_.isNone())
+	if(hasBufferedLogPackets_ == 0)
 	{
-		if(bufferedLogPackets_.size() > 4096)
+		unlockthread();
+		return;
+	}
+
+	if(Mercury::Address::NONE == messagelogAddr_)
+	{
+		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
-			ERROR_MSG(boost::format("DebugHelper::sync: can't found messagelog. packet size=%1%.\n") %
-				bufferedLogPackets_.size());
 			clearBufferedLog();
 		}
+		
+		canLogFile_ = true;
+		unlockthread();
+		return;
+	}
+	
+	Mercury::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
+	if(pMessagelogChannel == NULL)
+	{
+		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+		{
+			clearBufferedLog();
+		}
+		
+		canLogFile_ = true;
+		unlockthread();
 		return;
 	}
 
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
 
-	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
-	if(pChannel == NULL)
+	uint32 i = 0;
+	size_t totalLen = 0;
+
+	while(!bufferedLogPackets_.empty())
 	{
-		if(bufferedLogPackets_.size() > 4096)
-		{
-			messagelogAddr_.ip = 0;
-			messagelogAddr_.port = 0;
+		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
+			break;
+		
+		Mercury::Bundle* pBundle = bufferedLogPackets_.front();
+		bufferedLogPackets_.pop();
 
-			WARNING_MSG(boost::format("DebugHelper::sync: is no use the messagelog, packet size=%1%.\n") % 
-				bufferedLogPackets_.size());
-
-			clearBufferedLog();
-		}
-
-		Mercury::g_trace_packet = v;
-		return;
-	}
-
-	if(bufferedLogPackets_.size() > 0)
-	{
-		if(bufferedLogPackets_.size() > 32)
-		{
-			WARNING_MSG(boost::format("DebugHelper::sync: packet size=%1%.\n") % 
-				bufferedLogPackets_.size());
-		}
-
-		int i = 0;
-
-		size_t totalLen = 0;
-
-		std::list< Mercury::Bundle* >::iterator iter = bufferedLogPackets_.begin();
-		for(; iter != bufferedLogPackets_.end();)
-		{
-			if(i++ >= 32 || totalLen > (PACKET_MAX_SIZE_TCP * 10))
-				break;
-			
-			totalLen += (*iter)->currMsgLength();
-			pChannel->send((*iter));
-			
-			bufferedLogPackets_.erase(iter++); 
-		}
+		totalLen += pBundle->currMsgLength();
+		pMessagelogChannel->send(pBundle);
+		
+		--hasBufferedLogPackets_;
 	}
 
 	Mercury::g_trace_packet = v;
-}
-
-//-------------------------------------------------------------------------------------
-bool DebugHelper::process()
-{
-	if(bufferedLogPackets_.size() == 0 || pNetworkInterface_ == NULL)
-	{
-		syncStarting_ = false;
-		return false;
-	}
-
-	sync();
-	return true;
+	canLogFile_ = false;
+	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::pDispatcher(Mercury:: EventDispatcher* dispatcher)
 { 
 	pDispatcher_ = dispatcher; 
-	if(syncStarting_)
-	{
-		pDispatcher_->addFrequentTask(this);
-	}
+	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -328,12 +381,30 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	}
 #endif
 
+	if(length <= 0 || noSyncLog_)
+		return;
+
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
 		return;
 
-	if(length <= 0)
+
+
+	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+	{
+		int8 v = Mercury::g_trace_packet;
+		Mercury::g_trace_packet = 0;
+
+#ifdef NO_USE_LOG4CXX
+#else
+		LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
+#endif
+
+		Mercury::g_trace_packet = v;
+
+		clearBufferedLog();
 		return;
+	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
@@ -351,15 +422,11 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << g_kbetime;
 	(*pBundle) << str;
 	
-	bufferedLogPackets_.push_back(pBundle);
+	++hasBufferedLogPackets_;
+	bufferedLogPackets_.push(pBundle);
 
 	Mercury::g_trace_packet = v;
-	if(!syncStarting_)
-	{
-		if(pDispatcher_)
-			pDispatcher_->addFrequentTask(this);
-		syncStarting_ = true;
-	}
+	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -371,37 +438,25 @@ void DebugHelper::registerMessagelog(Mercury::MessageID msgID, Mercury::Address*
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	messagelogAddr_.ip = 0;
-	messagelogAddr_.port = 0;
+	messagelogAddr_ = Mercury::Address::NONE;
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::print_msg(boost::format& fmt)
-{
-	print_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::print_msg(std::string s)
+void DebugHelper::print_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_INFO(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_INFO(g_logger, s);
 #endif
 
 	onMessage(KBELOG_PRINT, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::error_msg(boost::format& fmt)
-{
-	error_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::error_msg(std::string s)
+void DebugHelper::error_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
@@ -418,38 +473,42 @@ void DebugHelper::error_msg(std::string s)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::info_msg(boost::format& fmt)
-{
-	info_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::info_msg(std::string s)
+void DebugHelper::info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_INFO(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_INFO(g_logger, s);
 #endif
 
 	onMessage(KBELOG_INFO, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(boost::format& fmt)
-{
-	script_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(std::string s)
+void DebugHelper::script_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	if(s[0] == 'T' && s[10] == '(' && s[32] == ')')
+	{
+		if(s.substr(0, 33) == "Traceback (most recent call last)")
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+	}
+	else if(s[0] == 'T' && s[9] == ':' && s.substr(0, 10) == "TypeError:")
+	{
+		setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+	}
+	else if(s[0] == 'A' && s[14] == ':' && s.substr(0, 15) == "AssertionError:")
+	{
+		setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+	}
+
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
+	if(canLogFile_)
+		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
 	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
@@ -467,51 +526,35 @@ void DebugHelper::setScriptMsgType(int msgtype)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::debug_msg(boost::format& fmt)
-{
-	debug_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::debug_msg(std::string s)
+void DebugHelper::debug_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_DEBUG(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_DEBUG(g_logger, s);
 #endif
 
 	onMessage(KBELOG_DEBUG, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::warning_msg(boost::format& fmt)
-{
-	warning_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::warning_msg(std::string s)
+void DebugHelper::warning_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_WARN(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_WARN(g_logger, s);
 #endif
 
 	onMessage(KBELOG_WARNING, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::critical_msg(boost::format& fmt)
-{
-	critical_msg(boost::str(fmt));
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::critical_msg(std::string s)
+void DebugHelper::critical_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
@@ -521,6 +564,10 @@ void DebugHelper::critical_msg(std::string s)
 #ifdef NO_USE_LOG4CXX
 #else
 	LOG4CXX_FATAL(g_logger, buf);
+#endif
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[FATAL]: %s", s.c_str());
 #endif
 
 	onMessage(KBELOG_CRITICAL, buf, strlen(buf));
@@ -576,9 +623,9 @@ void DebugHelper::backtrace_msg()
 			}
 		}
 
-		std::string ss = (boost::format("Stack: #%1% %2%\n") % 
-			i %
-			((gotFunctionName) ? functionName.c_str() : traceString.c_str())).str();
+		std::string ss = fmt::format("Stack: #{} {}\n", 
+			i,
+			((gotFunctionName) ? functionName.c_str() : traceString.c_str()));
 
 #ifdef NO_USE_LOG4CXX
 #else

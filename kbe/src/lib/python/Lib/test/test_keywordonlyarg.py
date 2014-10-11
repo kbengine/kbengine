@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """Unit tests for the keyword only argument specified in PEP 3102."""
 
 __author__ = "Jiwon Seo"
@@ -78,7 +76,7 @@ class KeywordOnlyArgTestCase(unittest.TestCase):
             pass
         with self.assertRaises(TypeError) as exc:
             f(1, 2, 3)
-        expected = "f() takes at most 2 positional arguments (3 given)"
+        expected = "f() takes from 1 to 2 positional arguments but 3 were given"
         self.assertEqual(str(exc.exception), expected)
 
     def testSyntaxErrorForFunctionCall(self):
@@ -175,6 +173,18 @@ class KeywordOnlyArgTestCase(unittest.TestCase):
             def f(self, *, __a=42):
                 return __a
         self.assertEqual(X().f(), 42)
+
+    def test_default_evaluation_order(self):
+        # See issue 16967
+        a = 42
+        with self.assertRaises(NameError) as err:
+            def f(v=a, x=b, *, y=c, z=d):
+                pass
+        self.assertEqual(str(err.exception), "name 'b' is not defined")
+        with self.assertRaises(NameError) as err:
+            f = lambda v=a, x=b, *, y=c, z=d: None
+        self.assertEqual(str(err.exception), "name 'b' is not defined")
+
 
 def test_main():
     run_unittest(KeywordOnlyArgTestCase)

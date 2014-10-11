@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __COMPONENT_ACTIVE_REPORT_HANDLER__
-#define __COMPONENT_ACTIVE_REPORT_HANDLER__
+#ifndef KBE_COMPONENT_ACTIVE_REPORT_HANDLER_HPP
+#define KBE_COMPONENT_ACTIVE_REPORT_HANDLER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/tasks.hpp"
@@ -55,4 +55,4 @@ protected:
 
 }
 
-#endif
+#endif // KBE_COMPONENT_ACTIVE_REPORT_HANDLER_HPP

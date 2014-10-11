@@ -72,7 +72,7 @@ The module defines the following functions:
    Return a list of up to *limit* "pre-processed" stack trace entries extracted
    from the traceback object *traceback*.  It is useful for alternate formatting of
    stack traces.  If *limit* is omitted or ``None``, all entries are extracted.  A
-   "pre-processed" stack trace entry is a quadruple (*filename*, *line number*,
+   "pre-processed" stack trace entry is a 4-tuple (*filename*, *line number*,
    *function name*, *text*) representing the information that is usually printed
    for a stack trace.  The *text* is a string with leading and trailing whitespace
    stripped; if the source is not available it is ``None``.
@@ -129,6 +129,13 @@ The module defines the following functions:
 
    A shorthand for ``format_list(extract_stack(f, limit))``.
 
+.. function:: clear_frames(tb)
+
+   Clears the local variables of all the stack frames in a traceback *tb*
+   by calling the :meth:`clear` method of each frame object.
+
+   .. versionadded:: 3.4
+
 
 .. _traceback-example:
 
@@ -146,7 +153,7 @@ module. ::
        source = input(">>> ")
        try:
            exec(source, envdir)
-       except:
+       except Exception:
            print("Exception in user code:")
            print("-"*60)
            traceback.print_exc(file=sys.stdout)

@@ -29,7 +29,7 @@ namespace KBEngine{
 ProxyForwarder::ProxyForwarder(Proxy * pProxy) : 
 pProxy_(pProxy)
 {
-	timerHandle_ = Baseapp::getSingleton().getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	timerHandle_ = Baseapp::getSingleton().mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							NULL);
 }
 

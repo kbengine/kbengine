@@ -69,8 +69,8 @@ BillingSystem::~BillingSystem()
 		REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.begin();
 		for(; iter != reqCreateAccount_requests_.end(); iter++)
 		{
-			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqCreateAccount[%3%] tasks.\n") % 
-				++i % reqCreateAccount_requests_.size() % iter->second);
+			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqCreateAccount[{2:p}] tasks.\n", 
+				++i, reqCreateAccount_requests_.size(), (void*)iter->second));
 		}
 	}
 
@@ -80,8 +80,8 @@ BillingSystem::~BillingSystem()
 		REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.begin();
 		for(; iter != reqAccountLogin_requests_.end(); iter++)
 		{
-			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqAccountLogin[%3%] tasks.\n") % 
-				++i % reqAccountLogin_requests_.size() % iter->second);
+			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqAccountLogin[{2:p}] tasks.\n", 
+				++i, reqAccountLogin_requests_.size(), (void*)iter->second));
 		}
 	}
 
@@ -114,7 +114,7 @@ void BillingSystem::eraseOrders_s(std::string ordersid)
 	ORDERS::iterator iter = orders_.find(ordersid);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::eraseOrders_s: chargeID=%1% not found!\n") % ordersid);
+		ERROR_MSG(fmt::format("BillingSystem::eraseOrders_s: chargeID={} not found!\n", ordersid));
 	}
 
 	orders_.erase(iter);
@@ -163,7 +163,7 @@ void BillingSystem::handleMainTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	getNetworkInterface().processAllChannelPackets(&BillingSystemInterface::messageHandlers);
+	networkInterface().processAllChannelPackets(&BillingSystemInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -177,14 +177,14 @@ bool BillingSystem::inInitialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
 	Componentbridge::getSingleton().getComponents().pHandler(this);
-	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool BillingSystem::initializeEnd()
 {
-	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	mainProcessTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	// 不做频道超时检查
@@ -236,7 +236,7 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 	pinfo->getDatas = "";
 	pinfo->password = password;
 	pinfo->postDatas = datas;
-	pinfo->success = false;
+	pinfo->retcode = SERVER_ERR_OP_FAILED;
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
@@ -272,7 +272,7 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	pinfo->getDatas = "";
 	pinfo->password = password;
 	pinfo->postDatas = datas;
-	pinfo->success = false;
+	pinfo->retcode = SERVER_ERR_OP_FAILED;
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
@@ -300,15 +300,15 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	s.readBlob(pOrdersCharge->postDatas);
 	s >> pOrdersCharge->cbid;
 
-	INFO_MSG(boost::format("BillingSystem::charge: componentID=%5%, chargeID=%1%, dbid=%2%, cbid=%3%, datas=%4%!\n") %
-		pOrdersCharge->ordersID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
+	INFO_MSG(fmt::format("BillingSystem::charge: componentID={4}, chargeID={0}, dbid={1}, cbid={2}, datas={3}!\n",
+		pOrdersCharge->ordersID, pOrdersCharge->dbid, pOrdersCharge->cbid, pOrdersCharge->postDatas, pOrdersCharge->baseappID));
 
 	lockthread();
 
 	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->ordersID);
+		ERROR_MSG(fmt::format("BillingSystem::charge: chargeID={} is exist!\n", pOrdersCharge->ordersID));
 		delete pOrdersCharge;
 		unlockthread();
 		return;
@@ -332,14 +332,14 @@ void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logk
 	if(citer != reqCreateAccount_requests_.end())
 	{
 		citer->second->enable = false;
-		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey=%1% set disabled!\n") % logkey);
+		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey={} set disabled!\n", logkey));
 	}
 
 	REQLOGIN_MAP::iterator liter = reqAccountLogin_requests_.find(logkey);
 	if(liter != reqAccountLogin_requests_.end())
 	{
 		liter->second->enable = false;
-		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey=%1% set disabled!\n") % logkey);
+		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
 	}
 
 	unlockthread();

@@ -9,8 +9,8 @@ from test.support import run_unittest
 def suite():
     tests = unittest.TestSuite()
     loader = unittest.TestLoader()
-    for m in (test_fixers, test_pytree,test_util, test_refactor,
-              test_parser, test_main_):
+    for m in (test_fixers, test_pytree, test_util, test_refactor, test_parser,
+              test_main_):
         tests.addTests(loader.loadTestsFromModule(m))
     return tests
 

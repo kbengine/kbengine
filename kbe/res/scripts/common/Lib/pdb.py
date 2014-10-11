@@ -73,6 +73,7 @@ import cmd
 import bdb
 import dis
 import code
+import glob
 import pprint
 import signal
 import inspect
@@ -91,21 +92,14 @@ def find_function(funcname, filename):
     cre = re.compile(r'def\s+%s\s*[(]' % re.escape(funcname))
     try:
         fp = open(filename)
-    except IOError:
+    except OSError:
         return None
     # consumer of this info expects the first line to be 1
-    lineno = 1
-    answer = None
-    while True:
-        line = fp.readline()
-        if line == '':
-            break
-        if cre.match(line):
-            answer = funcname, filename, lineno
-            break
-        lineno += 1
-    fp.close()
-    return answer
+    with fp:
+        for lineno, line in enumerate(fp, start=1):
+            if cre.match(line):
+                return funcname, filename, lineno
+    return None
 
 def getsourcelines(obj):
     lines, lineno = inspect.findsource(obj)
@@ -155,6 +149,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         # Try to load readline if it exists
         try:
             import readline
+            # remove some common file name delimiters
+            readline.set_completer_delims(' \t\n`@#$%^&*()=+[{]}\\|;:\'",<>?')
         except ImportError:
             pass
         self.allow_kbdint = False
@@ -167,12 +163,12 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             try:
                 with open(os.path.join(envHome, ".pdbrc")) as rcFile:
                     self.rcLines.extend(rcFile)
-            except IOError:
+            except OSError:
                 pass
         try:
             with open(".pdbrc") as rcFile:
                 self.rcLines.extend(rcFile)
-        except IOError:
+        except OSError:
             pass
 
         self.commands = {} # associates a command list to breakpoint numbers
@@ -301,8 +297,16 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             return
         exc_type, exc_value, exc_traceback = exc_info
         frame.f_locals['__exception__'] = exc_type, exc_value
-        self.message(traceback.format_exception_only(exc_type,
-                                                     exc_value)[-1].strip())
+
+        # An 'Internal StopIteration' exception is an exception debug event
+        # issued by the interpreter when handling a subgenerator run with
+        # 'yield from' or a generator controled by a for loop. No exception has
+        # actually occured in this case. The debugger uses this debug event to
+        # stop when the debuggee is returning from such generators.
+        prefix = 'Internal ' if (not exc_traceback
+                                    and exc_type is StopIteration) else ''
+        self.message('%s%s' % (prefix,
+            traceback.format_exception_only(exc_type, exc_value)[-1].strip()))
         self.interaction(frame, exc_traceback)
 
     # General interaction function
@@ -445,6 +449,61 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def error(self, msg):
         print('***', msg, file=self.stdout)
 
+    # Generic completion functions.  Individual complete_foo methods can be
+    # assigned below to one of these functions.
+
+    def _complete_location(self, text, line, begidx, endidx):
+        # Complete a file/module/function location for break/tbreak/clear.
+        if line.strip().endswith((':', ',')):
+            # Here comes a line number or a condition which we can't complete.
+            return []
+        # First, try to find matching functions (i.e. expressions).
+        try:
+            ret = self._complete_expression(text, line, begidx, endidx)
+        except Exception:
+            ret = []
+        # Then, try to complete file names as well.
+        globs = glob.glob(text + '*')
+        for fn in globs:
+            if os.path.isdir(fn):
+                ret.append(fn + '/')
+            elif os.path.isfile(fn) and fn.lower().endswith(('.py', '.pyw')):
+                ret.append(fn + ':')
+        return ret
+
+    def _complete_bpnumber(self, text, line, begidx, endidx):
+        # Complete a breakpoint number.  (This would be more helpful if we could
+        # display additional info along with the completions, such as file/line
+        # of the breakpoint.)
+        return [str(i) for i, bp in enumerate(bdb.Breakpoint.bpbynumber)
+                if bp is not None and str(i).startswith(text)]
+
+    def _complete_expression(self, text, line, begidx, endidx):
+        # Complete an arbitrary expression.
+        if not self.curframe:
+            return []
+        # Collect globals and locals.  It is usually not really sensible to also
+        # complete builtins, and they clutter the namespace quite heavily, so we
+        # leave them out.
+        ns = self.curframe.f_globals.copy()
+        ns.update(self.curframe_locals)
+        if '.' in text:
+            # Walk an attribute chain up to the last part, similar to what
+            # rlcompleter does.  This will bail if any of the parts are not
+            # simple attribute access, which is what we want.
+            dotted = text.split('.')
+            try:
+                obj = ns[dotted[0]]
+                for part in dotted[1:-1]:
+                    obj = getattr(obj, part)
+            except (KeyError, AttributeError):
+                return []
+            prefix = '.'.join(dotted[:-1]) + '.'
+            return [prefix + n for n in dir(obj) if n.startswith(dotted[-1])]
+        else:
+            # Complete a simple name.
+            return [n for n in ns.keys() if n.startswith(text)]
+
     # Command definitions, called by cmdloop()
     # The argument is the remaining string on the command line
     # Return true to exit from the command loop
@@ -525,6 +584,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         finally:
             self.commands_defining = False
             self.prompt = prompt_back
+
+    complete_commands = _complete_bpnumber
 
     def do_break(self, arg, temporary = 0):
         """b(reak) [ ([filename:]lineno | function) [, condition] ]
@@ -628,12 +689,17 @@ class Pdb(bdb.Bdb, cmd.Cmd):
 
     do_b = do_break
 
+    complete_break = _complete_location
+    complete_b = _complete_location
+
     def do_tbreak(self, arg):
         """tbreak [ ([filename:]lineno | function) [, condition] ]
         Same arguments as break, but sets a temporary breakpoint: it
         is automatically deleted when first hit.
         """
         self.do_break(arg, 1)
+
+    complete_tbreak = _complete_location
 
     def lineinfo(self, identifier):
         failed = (None, None, None)
@@ -704,6 +770,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 bp.enable()
                 self.message('Enabled %s' % bp)
 
+    complete_enable = _complete_bpnumber
+
     def do_disable(self, arg):
         """disable bpnumber [bpnumber ...]
         Disables the breakpoints given as a space separated list of
@@ -722,6 +790,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 bp.disable()
                 self.message('Disabled %s' % bp)
 
+    complete_disable = _complete_bpnumber
+
     def do_condition(self, arg):
         """condition bpnumber [condition]
         Set a new condition for the breakpoint, an expression which
@@ -736,6 +806,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             cond = None
         try:
             bp = self.get_bpbynumber(args[0].strip())
+        except IndexError:
+            self.error('Breakpoint number expected')
         except ValueError as err:
             self.error(err)
         else:
@@ -744,6 +816,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 self.message('Breakpoint %d is now unconditional.' % bp.number)
             else:
                 self.message('New condition set for breakpoint %d.' % bp.number)
+
+    complete_condition = _complete_bpnumber
 
     def do_ignore(self, arg):
         """ignore bpnumber [count]
@@ -761,6 +835,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             count = 0
         try:
             bp = self.get_bpbynumber(args[0].strip())
+        except IndexError:
+            self.error('Breakpoint number expected')
         except ValueError as err:
             self.error(err)
         else:
@@ -775,6 +851,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             else:
                 self.message('Will stop next time breakpoint %d is reached.'
                              % bp.number)
+
+    complete_ignore = _complete_bpnumber
 
     def do_clear(self, arg):
         """cl(ear) filename:lineno\ncl(ear) [bpnumber [bpnumber...]]
@@ -823,6 +901,9 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 self.clear_bpbynumber(i)
                 self.message('Deleted %s' % bp)
     do_cl = do_clear # 'c' is already an abbreviation for 'continue'
+
+    complete_clear = _complete_location
+    complete_cl = _complete_location
 
     def do_where(self, arg):
         """w(here)
@@ -928,7 +1009,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def do_run(self, arg):
         """run [args...]
         Restart the debugged python program. If a string is supplied
-        it is splitted with "shlex", and the result is used as the new
+        it is split with "shlex", and the result is used as the new
         sys.argv.  History, breakpoints, actions and debugger options
         are preserved.  "restart" is an alias for "run".
         """
@@ -1014,6 +1095,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         sys.settrace(self.trace_dispatch)
         self.lastcmd = p.lastcmd
 
+    complete_debug = _complete_expression
+
     def do_quit(self, arg):
         """q(uit)\nexit
         Quit from the debugger. The program being executed is aborted.
@@ -1081,15 +1164,13 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             return _rstr('** raised %s **' % err)
 
     def do_p(self, arg):
-        """p(rint) expression
+        """p expression
         Print the value of the expression.
         """
         try:
             self.message(repr(self._getval(arg)))
         except:
             pass
-    # make "print" an alias of "p" since print isn't a Python statement anymore
-    do_print = do_p
 
     def do_pp(self, arg):
         """pp expression
@@ -1099,6 +1180,10 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self.message(pprint.pformat(self._getval(arg)))
         except:
             pass
+
+    complete_print = _complete_expression
+    complete_p = _complete_expression
+    complete_pp = _complete_expression
 
     def do_list(self, arg):
         """l(ist) [first [,last] | .]
@@ -1159,7 +1244,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         breaklist = self.get_file_breaks(filename)
         try:
             lines, lineno = getsourcelines(self.curframe)
-        except IOError as err:
+        except OSError as err:
             self.error(err)
             return
         self._print_lines(lines, lineno, breaklist, self.curframe)
@@ -1175,10 +1260,12 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             return
         try:
             lines, lineno = getsourcelines(obj)
-        except (IOError, TypeError) as err:
+        except (OSError, TypeError) as err:
             self.error(err)
             return
         self._print_lines(lines, lineno)
+
+    complete_source = _complete_expression
 
     def _print_lines(self, lines, start, breaks=(), frame=None):
         """Print a range of lines."""
@@ -1234,6 +1321,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         # None of the above...
         self.message(type(value))
 
+    complete_whatis = _complete_expression
+
     def do_display(self, arg):
         """display [expression]
 
@@ -1251,6 +1340,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self.displaying.setdefault(self.curframe, {})[arg] = val
             self.message('display %s: %r' % (arg, val))
 
+    complete_display = _complete_expression
+
     def do_undisplay(self, arg):
         """undisplay [expression]
 
@@ -1266,10 +1357,14 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         else:
             self.displaying.pop(self.curframe, None)
 
+    def complete_undisplay(self, text, line, begidx, endidx):
+        return [e for e in self.displaying.get(self.curframe, {})
+                if e.startswith(text)]
+
     def do_interact(self, arg):
         """interact
 
-        Start an interative interpreter whose global namespace
+        Start an interactive interpreter whose global namespace
         contains all the (global and local) names found in the current scope.
         """
         ns = self.curframe.f_globals.copy()
@@ -1296,7 +1391,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         placed in the .pdbrc file):
 
         # Print instance variables (usage "pi classInst")
-        alias pi for k in %1.__dict__.keys(): print "%1.",k,"=",%1.__dict__[k]
+        alias pi for k in %1.__dict__.keys(): print("%1.",k,"=",%1.__dict__[k])
         # Print instance variables in self
         alias ps pi self
         """
@@ -1319,6 +1414,9 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         if len(args) == 0: return
         if args[0] in self.aliases:
             del self.aliases[args[0]]
+
+    def complete_unalias(self, text, line, begidx, endidx):
+        return [a for a in self.aliases if a.startswith(text)]
 
     # List of all the commands making the program resume execution.
     commands_resuming = ['do_continue', 'do_step', 'do_next', 'do_return',
@@ -1451,7 +1549,7 @@ if __doc__ is not None:
         'help', 'where', 'down', 'up', 'break', 'tbreak', 'clear', 'disable',
         'enable', 'ignore', 'condition', 'commands', 'step', 'next', 'until',
         'jump', 'return', 'retval', 'run', 'continue', 'list', 'longlist',
-        'args', 'print', 'pp', 'whatis', 'source', 'display', 'undisplay',
+        'args', 'p', 'pp', 'whatis', 'source', 'display', 'undisplay',
         'interact', 'alias', 'unalias', 'debug', 'quit',
     ]
 

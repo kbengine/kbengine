@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __STRING_CONV_HPP__
-#define __STRING_CONV_HPP__
+#ifndef KBE_STRING_CONV_HPP
+#define KBE_STRING_CONV_HPP
 #include "cstdkbe/platform.hpp"
 
 namespace KBEngine{
@@ -146,6 +146,6 @@ inline void str2value(uint64& value, const char * pstr)
 }
 }
 
-#endif // __STRING_CONV_HPP__
+#endif // KBE_STRING_CONV_HPP
 
 

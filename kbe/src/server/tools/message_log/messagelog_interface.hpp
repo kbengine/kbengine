@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __MESSAGELOG_INTERFACE_H__
+	#undef KBE_MESSAGELOG_INTERFACE_HPP
 #endif
 
 
-#ifndef __MESSAGELOG_INTERFACE_H__
-#define __MESSAGELOG_INTERFACE_H__
+#ifndef KBE_MESSAGELOG_INTERFACE_HPP
+#define KBE_MESSAGELOG_INTERFACE_HPP
 
 // common include	
 #if defined(MESSAGELOG)
@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 	// 某app注册自己的接口地址到本app
-	MESSAGELOG_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	MESSAGELOG_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -57,7 +57,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extAddrEx)
 
 	// 某app主动请求look。
 	MESSAGELOG_MESSAGE_DECLARE_ARGS0(lookApp,								MERCURY_FIXED_MESSAGE)
@@ -81,6 +82,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 
 	// 请求查询watcher数据
 	MESSAGELOG_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
+
+	// 开始profile
+	MESSAGELOG_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	MESSAGELOG_MESSAGE_DECLARE_STREAM(reqKillServer,						MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

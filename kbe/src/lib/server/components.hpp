@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENGINE_COMPONENT_MGR_H__
-#define __ENGINE_COMPONENT_MGR_H__
+#ifndef KBE_ENGINE_COMPONENT_MGR_HPP
+#define KBE_ENGINE_COMPONENT_MGR_HPP
 	
 // common include
 //#define NDEBUG
@@ -70,9 +70,13 @@ public:
 			usedmem = 0;
 			extradata = extradata1 = extradata2 = 0;
 			pid = 0;
+			externalAddressEx[0] = '\0';
+			logTime = timestamp();
 		}
 
-		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
+		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr;	// 内部和外部地址
+		char externalAddressEx[MAX_NAME + 1];					// 强制暴露给外部的公网地址, 详见配置中的externalAddressEx
+
 		int32 uid;
 		COMPONENT_ID cid;
 		COMPONENT_ORDER groupOrderid, globalOrderid;
@@ -86,6 +90,7 @@ public:
 		uint32 usedmem;
 		uint64 extradata, extradata1, extradata2, extradata3;
 		uint32 pid;
+		uint64 logTime;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
@@ -116,7 +121,7 @@ public:
 	void addComponent(int32 uid, const char* username, 
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 		uint32 intaddr, uint16 intport, 
-		uint32 extaddr, uint16 extport, uint32 pid,
+		uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 		float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
 		Mercury::Channel* pChannel = NULL);
 
@@ -158,14 +163,12 @@ public:
 	Components::ComponentInfos* getBaseappmgr();
 	Components::ComponentInfos* getCellappmgr();
 	Components::ComponentInfos* getDbmgr();
-	Components::ComponentInfos* getResourcemgr();
 	Components::ComponentInfos* getMessagelog();
 	Components::ComponentInfos* getBillings();
 
 	Mercury::Channel* getBaseappmgrChannel();
 	Mercury::Channel* getCellappmgrChannel();
 	Mercury::Channel* getDbmgrChannel();
-	Mercury::Channel* getResourcemgrChannel();
 	Mercury::Channel* getMessagelogChannel();
 
 private:
@@ -177,7 +180,6 @@ private:
 	COMPONENTS								_baseappmgrs;
 	COMPONENTS								_machines;
 	COMPONENTS								_messagelogs;
-	COMPONENTS								_resourcemgrs;
 	COMPONENTS								_billings;
 	COMPONENTS								_bots;
 	COMPONENTS								_consoles;
@@ -195,4 +197,5 @@ private:
 };
 
 }
-#endif
+
+#endif // KBE_ENGINE_COMPONENT_MGR_HPP

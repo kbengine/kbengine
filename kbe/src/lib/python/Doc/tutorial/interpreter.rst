@@ -10,13 +10,13 @@ Using the Python Interpreter
 Invoking the Interpreter
 ========================
 
-The Python interpreter is usually installed as :file:`/usr/local/bin/python3.2`
+The Python interpreter is usually installed as :file:`/usr/local/bin/python3.4`
 on those machines where it is available; putting :file:`/usr/local/bin` in your
 Unix shell's search path makes it possible to start it by typing the command:
 
 .. code-block:: text
 
-   python3.2
+   python3.4
 
 to the shell. [#]_ Since the choice of the directory where the interpreter lives
 is an installation option, other places are possible; check with your local
@@ -24,26 +24,25 @@ Python guru or system administrator.  (E.g., :file:`/usr/local/python` is a
 popular alternative location.)
 
 On Windows machines, the Python installation is usually placed in
-:file:`C:\\Python32`, though you can change this when you're running the
+:file:`C:\\Python34`, though you can change this when you're running the
 installer.  To add this directory to your path,  you can type the following
 command into the command prompt in a DOS box::
 
-   set path=%path%;C:\python32
+   set path=%path%;C:\python34
 
 Typing an end-of-file character (:kbd:`Control-D` on Unix, :kbd:`Control-Z` on
 Windows) at the primary prompt causes the interpreter to exit with a zero exit
 status.  If that doesn't work, you can exit the interpreter by typing the
 following command: ``quit()``.
 
-The interpreter's line-editing features usually aren't very sophisticated.  On
-Unix, whoever installed the interpreter may have enabled support for the GNU
-readline library, which adds more elaborate interactive editing and history
-features. Perhaps the quickest check to see whether command line editing is
-supported is typing Control-P to the first Python prompt you get.  If it beeps,
-you have command line editing; see Appendix :ref:`tut-interacting` for an
-introduction to the keys.  If nothing appears to happen, or if ``^P`` is echoed,
-command line editing isn't available; you'll only be able to use backspace to
-remove characters from the current line.
+The interpreter's line-editing features include interactive editing, history
+substitution and code completion on systems that support readline.  Perhaps the
+quickest check to see whether command line editing is supported is typing
+Control-P to the first Python prompt you get.  If it beeps, you have command
+line editing; see Appendix :ref:`tut-interacting` for an introduction to the
+keys.  If nothing appears to happen, or if ``^P`` is echoed, command line
+editing isn't available; you'll only be able to use backspace to remove
+characters from the current line.
 
 The interpreter operates somewhat like the Unix shell: when called with standard
 input connected to a tty device, it reads and executes commands interactively;
@@ -95,9 +94,9 @@ with the *secondary prompt*, by default three dots (``...``). The interpreter
 prints a welcome message stating its version number and a copyright notice
 before printing the first prompt::
 
-   $ python3.2
-   Python 3.2.3 (default, May  3 2012, 15:54:42)
-   [GCC 4.6.3] on linux2
+   $ python3.4
+   Python 3.4 (default, Mar 16 2014, 09:25:04)
+   [GCC 4.8.2] on linux
    Type "help", "copyright", "credits" or "license" for more information.
    >>>
 
@@ -106,7 +105,7 @@ before printing the first prompt::
 Continuation lines are needed when entering a multi-line construct. As an
 example, take a look at this :keyword:`if` statement::
 
-   >>> the_world_is_flat = 1
+   >>> the_world_is_flat = True
    >>> if the_world_is_flat:
    ...     print("Be careful not to fall off!")
    ...
@@ -149,7 +148,7 @@ Executable Python Scripts
 On BSD'ish Unix systems, Python scripts can be made directly executable, like
 shell scripts, by putting the line ::
 
-   #! /usr/bin/env python3.2
+   #! /usr/bin/env python3.4
 
 (assuming that the interpreter is on the user's :envvar:`PATH`) at the beginning
 of the script and giving the file an executable mode.  The ``#!`` must be the

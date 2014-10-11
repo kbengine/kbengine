@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 /*
 	资源管理器。
 */
-#ifndef __RESMGR_H__
-#define __RESMGR_H__
+#ifndef KBE_RESMGR_HPP
+#define KBE_RESMGR_HPP
 
 #include "resourceobject.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -59,6 +59,9 @@ public:
 	
 	bool initialize();
 
+	void autoSetPaths();
+	void updatePaths();
+
 	const Resmgr::KBEEnv& getEnv() { return kb_env_; }
 
 	/*
@@ -86,7 +89,7 @@ public:
 		return respaths_; 
 	}
 
-	void pirnt(void);
+	void print(void);
 
 	bool isInit(){ 
 		return isInit_; 
@@ -115,4 +118,5 @@ private:
 };
 
 }
-#endif
+
+#endif // KBE_RESMGR_HPP

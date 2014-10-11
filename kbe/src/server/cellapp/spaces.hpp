@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPACEMANAGER_HPP__
-#define __SPACEMANAGER_HPP__
+#ifndef KBE_SPACEMANAGER_HPP
+#define KBE_SPACEMANAGER_HPP
 
 // common include
 #include "helper/debug_helper.hpp"

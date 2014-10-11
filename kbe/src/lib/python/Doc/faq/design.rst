@@ -347,20 +347,20 @@ Answer 2: Fortunately, there is `Stackless Python <http://www.stackless.com>`_,
 which has a completely redesigned interpreter loop that avoids the C stack.
 
 
-Why can't lambda forms contain statements?
-------------------------------------------
+Why can't lambda expressions contain statements?
+------------------------------------------------
 
-Python lambda forms cannot contain statements because Python's syntactic
+Python lambda expressions cannot contain statements because Python's syntactic
 framework can't handle statements nested inside expressions.  However, in
 Python, this is not a serious problem.  Unlike lambda forms in other languages,
 where they add functionality, Python lambdas are only a shorthand notation if
 you're too lazy to define a function.
 
 Functions are already first class objects in Python, and can be declared in a
-local scope.  Therefore the only advantage of using a lambda form instead of a
+local scope.  Therefore the only advantage of using a lambda instead of a
 locally-defined function is that you don't need to invent a name for the
 function -- but that's just a local variable to which the function object (which
-is exactly the same type of object that a lambda form yields) is assigned!
+is exactly the same type of object that a lambda expression yields) is assigned!
 
 
 Can Python be compiled to machine code, C or some other language?
@@ -512,14 +512,16 @@ far) under most circumstances, and the implementation is simpler.
 
 Dictionaries work by computing a hash code for each key stored in the dictionary
 using the :func:`hash` built-in function.  The hash code varies widely depending
-on the key; for example, "Python" hashes to -539294296 while "python", a string
-that differs by a single bit, hashes to 1142331976.  The hash code is then used
-to calculate a location in an internal array where the value will be stored.
-Assuming that you're storing keys that all have different hash values, this
-means that dictionaries take constant time -- O(1), in computer science notation
--- to retrieve a key.  It also means that no sorted order of the keys is
-maintained, and traversing the array as the ``.keys()`` and ``.items()`` do will
-output the dictionary's content in some arbitrary jumbled order.
+on the key and a per-process seed; for example, "Python" could hash to
+-539294296 while "python", a string that differs by a single bit, could hash
+to 1142331976.  The hash code is then used to calculate a location in an
+internal array where the value will be stored.  Assuming that you're storing
+keys that all have different hash values, this means that dictionaries take
+constant time -- O(1), in computer science notation -- to retrieve a key.  It
+also means that no sorted order of the keys is maintained, and traversing the
+array as the ``.keys()`` and ``.items()`` do will output the dictionary's
+content in some arbitrary jumbled order that can change with every invocation of
+a program.
 
 
 Why must dictionary keys be immutable?
@@ -631,8 +633,9 @@ construction of large programs.
 Python 2.6 adds an :mod:`abc` module that lets you define Abstract Base Classes
 (ABCs).  You can then use :func:`isinstance` and :func:`issubclass` to check
 whether an instance or a class implements a particular ABC.  The
-:mod:`collections` module defines a set of useful ABCs such as
-:class:`Iterable`, :class:`Container`, and :class:`MutableMapping`.
+:mod:`collections.abc` module defines a set of useful ABCs such as
+:class:`~collections.abc.Iterable`, :class:`~collections.abc.Container`, and
+:class:`~collections.abc.MutableMapping`.
 
 For Python, many of the advantages of interface specifications can be obtained
 by an appropriate test discipline for components.  There is also a tool,
@@ -860,8 +863,8 @@ There are several reasons to allow this.
 
 When you have a literal value for a list, tuple, or dictionary spread across
 multiple lines, it's easier to add more elements because you don't have to
-remember to add a comma to the previous line.  The lines can also be sorted in
-your editor without creating a syntax error.
+remember to add a comma to the previous line.  The lines can also be reordered
+without creating a syntax error.
 
 Accidentally omitting the comma can lead to errors that are hard to diagnose.
 For example::

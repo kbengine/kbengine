@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DELAYED_CHANNELS_HPP__
-#define __DELAYED_CHANNELS_HPP__
+#ifndef DELAYED_CHANNELS_HPP
+#define DELAYED_CHANNELS_HPP
 
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -54,4 +54,4 @@ private:
 
 }
 }
-#endif // __DELAYED_CHANNELS_HPP__
+#endif // DELAYED_CHANNELS_HPP

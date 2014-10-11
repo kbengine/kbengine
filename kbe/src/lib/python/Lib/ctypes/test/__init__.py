@@ -37,7 +37,7 @@ def requires(resource, msg=None):
 
 def find_package_modules(package, mask):
     import fnmatch
-    if (hasattr(package, "__loader__") and
+    if (package.__loader__ is not None and
             hasattr(package.__loader__, '_files')):
         path = package.__name__.replace(".", os.path.sep)
         mask = os.path.join(path, mask)
@@ -62,7 +62,7 @@ def get_tests(package, mask, verbosity, exclude=()):
             continue
         try:
             mod = __import__(modname, globals(), locals(), ['*'])
-        except ResourceDenied as detail:
+        except (ResourceDenied, unittest.SkipTest) as detail:
             skipped.append(modname)
             if verbosity > 1:
                 print("Skipped %s: %s" % (modname, detail), file=sys.stderr)

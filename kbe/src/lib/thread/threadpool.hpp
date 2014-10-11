@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __THREADPOOL_H__
-#define __THREADPOOL_H__
+#ifndef KBE_THREADPOOL_HPP
+#define KBE_THREADPOOL_HPP
 
 // common include	
 // #define NDEBUG
@@ -97,7 +97,7 @@ public:
 		deleteCond();
 		deleteMutex();
 
-		DEBUG_MSG(boost::format("TPThread::~TPThread(): %1%\n") % this);
+		DEBUG_MSG(fmt::format("TPThread::~TPThread(): {}\n", (void*)this));
 	}
 	
 	virtual void onStart(){}
@@ -107,9 +107,9 @@ public:
 	virtual void processTask(TPTask* pTask){ pTask->process(); }
 	virtual void onProcessTaskEnd(TPTask* pTask){}
 
-	INLINE THREAD_ID getID(void)const;
+	INLINE THREAD_ID id(void)const;
 	
-	INLINE void setID(THREAD_ID tidp);
+	INLINE void id(THREAD_ID tidp);
 	
 	/**
 		创建一个线程， 并将自己与该线程绑定
@@ -148,8 +148,6 @@ public:
 
 	virtual TPTask* tryGetTask(void);
 	
-	void deleteFiniTask(TPTask* tpTask);
-	
 	/**
 		发送条件信号
 	*/
@@ -168,19 +166,19 @@ public:
 	/**
 		获取本线程要处理的任务
 	*/
-	INLINE TPTask* getTask(void)const;
+	INLINE TPTask* task(void)const;
 
 	/**
 		设置本线程要处理的任务
 	*/
-	INLINE void setTask(TPTask* tpt);
+	INLINE void task(TPTask* tpt);
 
-	INLINE int getState(void)const;
+	INLINE int state(void)const;
 	
 	/**
 		本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务
 	*/
-	void onTaskComplete(void);
+	void onTaskCompleted(void);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	static unsigned __stdcall threadFunc(void *arg);
@@ -192,14 +190,35 @@ public:
 		设置本线程要处理的任务
 	*/
 	INLINE ThreadPool* threadPool();
+
+	/**
+		输出线程工作状态
+		主要提供给watcher使用
+	*/
+	virtual std::string printWorkState()
+	{
+		char buf[128];
+		lock();
+		sprintf(buf, "%p,%u", currTask_, done_tasks_);
+		unlock();
+		return buf;
+	}
+
+	/**
+		线程启动一次在未改变到闲置状态下连续执行的任务计数
+	*/
+	void reset_done_tasks(){ done_tasks_ = 0; }
+	void inc_done_tasks(){ ++done_tasks_; }
+
 protected:
 	THREAD_SINGNAL cond_;			// 线程信号量
 	THREAD_MUTEX mutex_;			// 线程互诉体
-	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出， 小于0为永久线程 秒单位
+	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出, 小于0为永久线程(秒单位)
 	TPTask * currTask_;				// 该线程的当前执行的任务
 	THREAD_ID tidp_;				// 本线程的ID
 	ThreadPool* threadPool_;		// 线程池指针
-	THREAD_STATE state_;			// 线程状态 -1还未启动, 0睡眠， 1繁忙中
+	THREAD_STATE state_;			// 线程状态: -1还未启动, 0睡眠, 1繁忙中
+	uint32 done_tasks_;				// 线程启动一次在未改变到闲置状态下连续执行的任务计数
 };
 
 
@@ -217,14 +236,19 @@ public:
 	bool hasThread(TPThread* pTPThread);
 
 	/**
+		获取当前线程池所有线程状态(提供给watch用)
+	*/
+	std::string printThreadWorks();
+
+	/**
 		获取当前线程总数
 	*/	
-	INLINE uint32 getCurrentThreadCount(void)const;
+	INLINE uint32 currentThreadCount(void)const;
 	
 	/**
 		获取当前空闲线程总数
 	*/		
-	INLINE uint32 getCurrentFreeThreadCount(void)const;
+	INLINE uint32 currentFreeThreadCount(void)const;
 	
 	/**
 		创建线程池
@@ -288,6 +312,8 @@ public:
 		获得已经完成的任务数量
 	*/
 	INLINE uint32 finiTaskSize()const;
+
+	virtual std::string name()const{ return "ThreadPool"; }
 public:
 	static int timeout;
 
@@ -332,7 +358,8 @@ protected:
 	
 	std::queue<TPTask*> bufferedTaskList_;							// 系统处于繁忙时还未处理的任务列表
 	std::list<TPTask*> finiTaskList_;								// 已经完成的任务列表
-	
+	size_t finiTaskList_count_;
+
 	THREAD_MUTEX bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
 	THREAD_MUTEX threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁
 	THREAD_MUTEX finiTaskList_mutex_;								// 处理finiTaskList互斥锁
@@ -340,7 +367,7 @@ protected:
 	std::list<TPThread*> busyThreadList_;							// 繁忙的线程列表
 	std::list<TPThread*> freeThreadList_;							// 闲置的线程列表
 	std::list<TPThread*> allThreadList_;							// 所有的线程列表
-	
+
 	uint32 maxThreadCount_;											// 最大线程总数
 	uint32 extraNewAddThreadCount_;									// 如果normalThreadCount_不足够使用则会新创建这么多线程
 	uint32 currentThreadCount_;										// 当前线程数
@@ -359,4 +386,4 @@ protected:
 #ifdef CODE_INLINE
 #include "threadpool.ipp"
 #endif
-#endif
+#endif // KBE_THREADPOOL_HPP

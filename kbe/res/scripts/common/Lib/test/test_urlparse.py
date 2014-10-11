@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from test import support
 import unittest
 import urllib.parse
@@ -396,6 +394,16 @@ class UrlParseTestCase(unittest.TestCase):
             ('http://[::12.34.56.78]/foo/', '::12.34.56.78', None),
             ('http://[::ffff:12.34.56.78]/foo/',
              '::ffff:12.34.56.78', None),
+            ('http://Test.python.org:/foo/', 'test.python.org', None),
+            ('http://12.34.56.78:/foo/', '12.34.56.78', None),
+            ('http://[::1]:/foo/', '::1', None),
+            ('http://[dead:beef::1]:/foo/', 'dead:beef::1', None),
+            ('http://[dead:beef::]:/foo/', 'dead:beef::', None),
+            ('http://[dead:beef:cafe:5417:affe:8FA3:deaf:feed]:/foo/',
+             'dead:beef:cafe:5417:affe:8fa3:deaf:feed', None),
+            ('http://[::12.34.56.78]:/foo/', '::12.34.56.78', None),
+            ('http://[::ffff:12.34.56.78]:/foo/',
+             '::ffff:12.34.56.78', None),
             ]
         def _encode(t):
             return t[0].encode('ascii'), t[1].encode('ascii'), t[2]
@@ -741,17 +749,25 @@ class UrlParseTestCase(unittest.TestCase):
                                                           errors="ignore")
         self.assertEqual(result, [('key', '\u0141-')])
 
+    def test_splitport(self):
+        splitport = urllib.parse.splitport
+        self.assertEqual(splitport('parrot:88'), ('parrot', '88'))
+        self.assertEqual(splitport('parrot'), ('parrot', None))
+        self.assertEqual(splitport('parrot:'), ('parrot', None))
+        self.assertEqual(splitport('127.0.0.1'), ('127.0.0.1', None))
+        self.assertEqual(splitport('parrot:cheese'), ('parrot:cheese', None))
+
     def test_splitnport(self):
-        # Normal cases are exercised by other tests; ensure that we also
-        # catch cases with no port specified. (testcase ensuring coverage)
-        result = urllib.parse.splitnport('parrot:88')
-        self.assertEqual(result, ('parrot', 88))
-        result = urllib.parse.splitnport('parrot')
-        self.assertEqual(result, ('parrot', -1))
-        result = urllib.parse.splitnport('parrot', 55)
-        self.assertEqual(result, ('parrot', 55))
-        result = urllib.parse.splitnport('parrot:')
-        self.assertEqual(result, ('parrot', None))
+        splitnport = urllib.parse.splitnport
+        self.assertEqual(splitnport('parrot:88'), ('parrot', 88))
+        self.assertEqual(splitnport('parrot'), ('parrot', -1))
+        self.assertEqual(splitnport('parrot', 55), ('parrot', 55))
+        self.assertEqual(splitnport('parrot:'), ('parrot', -1))
+        self.assertEqual(splitnport('parrot:', 55), ('parrot', 55))
+        self.assertEqual(splitnport('127.0.0.1'), ('127.0.0.1', -1))
+        self.assertEqual(splitnport('127.0.0.1', 55), ('127.0.0.1', 55))
+        self.assertEqual(splitnport('parrot:cheese'), ('parrot', None))
+        self.assertEqual(splitnport('parrot:cheese', 55), ('parrot', None))
 
     def test_splitquery(self):
         # Normal cases are exercised by other tests; ensure that we also
@@ -846,6 +862,14 @@ class UrlParseTestCase(unittest.TestCase):
         self.assertEqual(p1.scheme, 'tel')
         self.assertEqual(p1.path, '863-1234')
         self.assertEqual(p1.params, 'phone-context=+1-914-555')
+
+    def test_unwrap(self):
+        url = urllib.parse.unwrap('<URL:type://host/path>')
+        self.assertEqual(url, 'type://host/path')
+
+    def test_Quoter_repr(self):
+        quoter = urllib.parse.Quoter(urllib.parse._ALWAYS_SAFE)
+        self.assertIn('Quoter', repr(quoter))
 
 
 def test_main():

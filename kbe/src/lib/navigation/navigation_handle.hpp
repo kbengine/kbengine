@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_NAVIGATEHANDLE_HPP__
-#define __KBE_NAVIGATEHANDLE_HPP__
+#ifndef KBE_NAVIGATEHANDLE_HPP
+#define KBE_NAVIGATEHANDLE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -60,10 +60,6 @@ public:
 
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
-	virtual void onPassedNode(int layer, ENTITY_ID entityID, const Position3D& oldPos, const Position3D& newPos, NavigationHandle::NAV_OBJECT_STATE state) = 0;
-
-	virtual void onEnterObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
-	virtual void onLeaveObject(int layer, ENTITY_ID entityID, const Position3D& currPos) = 0;
 
 	std::string name;
 };
@@ -71,5 +67,5 @@ public:
 typedef SmartPointer<NavigationHandle> NavigationHandlePtr;
 
 }
-#endif // __KBE_NAVIGATEHANDLE_HPP__
+#endif // KBE_NAVIGATEHANDLE_HPP
 

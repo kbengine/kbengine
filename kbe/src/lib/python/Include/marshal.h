@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define Py_MARSHAL_VERSION 2
+#define Py_MARSHAL_VERSION 4
 
 PyAPI_FUNC(void) PyMarshal_WriteLongToFile(long, FILE *, int);
 PyAPI_FUNC(void) PyMarshal_WriteObjectToFile(PyObject *, FILE *, int);
@@ -19,7 +19,8 @@ PyAPI_FUNC(int) PyMarshal_ReadShortFromFile(FILE *);
 PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromFile(FILE *);
 PyAPI_FUNC(PyObject *) PyMarshal_ReadLastObjectFromFile(FILE *);
 #endif
-PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromString(char *, Py_ssize_t);
+PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromString(const char *,
+                                                      Py_ssize_t);
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,14 @@
 #include "Python.h"
 #include <structmember.h>
 
+#ifdef HAVE_SYS_DEVPOLL_H
+#include <sys/resource.h>
+#include <sys/devpoll.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 #ifdef __APPLE__
     /* Perform runtime testing for a broken poll on OSX to make it easier
      * to use the same binary on multiple releases of the OS.
@@ -39,22 +47,12 @@ extern void bzero(void *, int);
 #include <sys/types.h>
 #endif
 
-#if defined(PYOS_OS2) && !defined(PYCC_GCC)
-#include <sys/time.h>
-#include <utils.h>
-#endif
-
 #ifdef MS_WINDOWS
 #  define WIN32_LEAN_AND_MEAN
 #  include <winsock.h>
 #else
 #  define SOCKET int
-#  if defined(__VMS)
-#    include <socket.h>
-#  endif
 #endif
-
-static PyObject *SelectError;
 
 /* list of Python objects and their file descriptor */
 typedef struct {
@@ -68,8 +66,7 @@ reap_obj(pylist fd2obj[FD_SETSIZE + 1])
 {
     int i;
     for (i = 0; i < FD_SETSIZE + 1 && fd2obj[i].sentinel >= 0; i++) {
-        Py_XDECREF(fd2obj[i].obj);
-        fd2obj[i].obj = NULL;
+        Py_CLEAR(fd2obj[i].obj);
     }
     fd2obj[0].sentinel = -1;
 }
@@ -198,9 +195,7 @@ select_select(PyObject *self, PyObject *args)
     PyObject *ret = NULL;
     PyObject *tout = Py_None;
     fd_set ifdset, ofdset, efdset;
-    double timeout;
     struct timeval tv, *tvp;
-    long seconds;
     int imax, omax, emax, max;
     int n;
 
@@ -217,18 +212,36 @@ select_select(PyObject *self, PyObject *args)
         return NULL;
     }
     else {
-        timeout = PyFloat_AsDouble(tout);
-        if (timeout == -1 && PyErr_Occurred())
+        /* On OpenBSD 5.4, timeval.tv_sec is a long.
+         * Example: long is 64-bit, whereas time_t is 32-bit. */
+        time_t sec;
+        /* On OS X 64-bit, timeval.tv_usec is an int (and thus still 4
+           bytes as required), but no longer defined by a long. */
+        long usec;
+        if (_PyTime_ObjectToTimeval(tout, &sec, &usec,
+                                    _PyTime_ROUND_UP) == -1)
             return NULL;
-        if (timeout > (double)LONG_MAX) {
+#ifdef MS_WINDOWS
+        /* On Windows, timeval.tv_sec is a long (32 bit),
+         * whereas time_t can be 64-bit. */
+        assert(sizeof(tv.tv_sec) == sizeof(long));
+#if SIZEOF_TIME_T > SIZEOF_LONG
+        if (sec > LONG_MAX) {
             PyErr_SetString(PyExc_OverflowError,
-                            "timeout period too long");
+                            "timeout is too large");
             return NULL;
         }
-        seconds = (long)timeout;
-        timeout = timeout - (double)seconds;
-        tv.tv_sec = seconds;
-        tv.tv_usec = (long)(timeout * 1E6);
+#endif
+        tv.tv_sec = (long)sec;
+#else
+        assert(sizeof(tv.tv_sec) >= sizeof(sec));
+        tv.tv_sec = sec;
+#endif
+        tv.tv_usec = usec;
+        if (tv.tv_sec < 0) {
+            PyErr_SetString(PyExc_ValueError, "timeout must be non-negative");
+            return NULL;
+        }
         tvp = &tv;
     }
 
@@ -267,11 +280,11 @@ select_select(PyObject *self, PyObject *args)
 
 #ifdef MS_WINDOWS
     if (n == SOCKET_ERROR) {
-        PyErr_SetExcFromWindowsErr(SelectError, WSAGetLastError());
+        PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
     }
 #else
     if (n < 0) {
-        PyErr_SetFromErrno(SelectError);
+        PyErr_SetFromErrno(PyExc_OSError);
     }
 #endif
     else {
@@ -287,9 +300,9 @@ select_select(PyObject *self, PyObject *args)
         else
             ret = PyTuple_Pack(3, ifdlist, ofdlist, efdlist);
 
-        Py_DECREF(ifdlist);
-        Py_DECREF(ofdlist);
-        Py_DECREF(efdlist);
+        Py_XDECREF(ifdlist);
+        Py_XDECREF(ofdlist);
+        Py_XDECREF(efdlist);
     }
 
   finally:
@@ -315,6 +328,7 @@ typedef struct {
     int ufd_uptodate;
     int ufd_len;
     struct pollfd *ufds;
+    int poll_running;
 } pollObject;
 
 static PyTypeObject poll_Type;
@@ -343,11 +357,29 @@ update_ufd_array(pollObject *self)
         assert(i < self->ufd_len);
         /* Never overflow */
         self->ufds[i].fd = (int)PyLong_AsLong(key);
-        self->ufds[i].events = (short)PyLong_AsLong(value);
+        self->ufds[i].events = (short)(unsigned short)PyLong_AsLong(value);
         i++;
     }
     assert(i == self->ufd_len);
     self->ufd_uptodate = 1;
+    return 1;
+}
+
+static int
+ushort_converter(PyObject *obj, void *ptr)
+{
+    unsigned long uval;
+
+    uval = PyLong_AsUnsignedLong(obj);
+    if (uval == (unsigned long)-1 && PyErr_Occurred())
+        return 0;
+    if (uval > USHRT_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "Python int too large for C unsigned short");
+        return 0;
+    }
+
+    *(unsigned short *)ptr = Py_SAFE_DOWNCAST(uval, unsigned long, unsigned short);
     return 1;
 }
 
@@ -363,12 +395,11 @@ poll_register(pollObject *self, PyObject *args)
 {
     PyObject *o, *key, *value;
     int fd;
-    short events = POLLIN | POLLPRI | POLLOUT;
+    unsigned short events = POLLIN | POLLPRI | POLLOUT;
     int err;
 
-    if (!PyArg_ParseTuple(args, "O|h:register", &o, &events)) {
+    if (!PyArg_ParseTuple(args, "O|O&:register", &o, ushort_converter, &events))
         return NULL;
-    }
 
     fd = PyObject_AsFileDescriptor(o);
     if (fd == -1) return NULL;
@@ -406,12 +437,12 @@ static PyObject *
 poll_modify(pollObject *self, PyObject *args)
 {
     PyObject *o, *key, *value;
-    int fd, events;
+    int fd;
+    unsigned short events;
     int err;
 
-    if (!PyArg_ParseTuple(args, "Oi:modify", &o, &events)) {
+    if (!PyArg_ParseTuple(args, "OO&:modify", &o, ushort_converter, &events))
         return NULL;
-    }
 
     fd = PyObject_AsFileDescriptor(o);
     if (fd == -1) return NULL;
@@ -422,7 +453,7 @@ poll_modify(pollObject *self, PyObject *args)
         return NULL;
     if (PyDict_GetItem(self->dict, key) == NULL) {
         errno = ENOENT;
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         Py_DECREF(key);
         return NULL;
     }
@@ -511,18 +542,29 @@ poll_poll(pollObject *self, PyObject *args)
             return NULL;
     }
 
+    /* Avoid concurrent poll() invocation, issue 8865 */
+    if (self->poll_running) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "concurrent poll() invocation");
+        return NULL;
+    }
+
     /* Ensure the ufd array is up to date */
     if (!self->ufd_uptodate)
         if (update_ufd_array(self) == 0)
             return NULL;
+
+    self->poll_running = 1;
 
     /* call poll() */
     Py_BEGIN_ALLOW_THREADS
     poll_result = poll(self->ufds, self->ufd_len, timeout);
     Py_END_ALLOW_THREADS
 
+    self->poll_running = 0;
+
     if (poll_result < 0) {
-        PyErr_SetFromErrno(SelectError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
 
@@ -597,6 +639,7 @@ newPollObject(void)
        array pointed to by ufds matches the contents of the dictionary. */
     self->ufd_uptodate = 0;
     self->ufds = NULL;
+    self->poll_running = 0;
     self->dict = PyDict_New();
     if (self->dict == NULL) {
         Py_DECREF(self);
@@ -648,6 +691,417 @@ static PyTypeObject poll_Type = {
     poll_methods,               /*tp_methods*/
 };
 
+#ifdef HAVE_SYS_DEVPOLL_H
+typedef struct {
+    PyObject_HEAD
+    int fd_devpoll;
+    int max_n_fds;
+    int n_fds;
+    struct pollfd *fds;
+} devpollObject;
+
+static PyTypeObject devpoll_Type;
+
+static PyObject *
+devpoll_err_closed(void)
+{
+    PyErr_SetString(PyExc_ValueError, "I/O operation on closed devpoll object");
+    return NULL;
+}
+
+static int devpoll_flush(devpollObject *self)
+{
+    int size, n;
+
+    if (!self->n_fds) return 0;
+
+    size = sizeof(struct pollfd)*self->n_fds;
+    self->n_fds = 0;
+
+    Py_BEGIN_ALLOW_THREADS
+    n = write(self->fd_devpoll, self->fds, size);
+    Py_END_ALLOW_THREADS
+
+    if (n == -1 ) {
+        PyErr_SetFromErrno(PyExc_IOError);
+        return -1;
+    }
+    if (n < size) {
+        /*
+        ** Data writed to /dev/poll is a binary data structure. It is not
+        ** clear what to do if a partial write occurred. For now, raise
+        ** an exception and see if we actually found this problem in
+        ** the wild.
+        ** See http://bugs.python.org/issue6397.
+        */
+        PyErr_Format(PyExc_IOError, "failed to write all pollfds. "
+                "Please, report at http://bugs.python.org/. "
+                "Data to report: Size tried: %d, actual size written: %d.",
+                size, n);
+        return -1;
+    }
+    return 0;
+}
+
+static PyObject *
+internal_devpoll_register(devpollObject *self, PyObject *args, int remove)
+{
+    PyObject *o;
+    int fd;
+    unsigned short events = POLLIN | POLLPRI | POLLOUT;
+
+    if (self->fd_devpoll < 0)
+        return devpoll_err_closed();
+
+    if (!PyArg_ParseTuple(args, "O|O&:register", &o, ushort_converter, &events))
+        return NULL;
+
+    fd = PyObject_AsFileDescriptor(o);
+    if (fd == -1) return NULL;
+
+    if (remove) {
+        self->fds[self->n_fds].fd = fd;
+        self->fds[self->n_fds].events = POLLREMOVE;
+
+        if (++self->n_fds == self->max_n_fds) {
+            if (devpoll_flush(self))
+                return NULL;
+        }
+    }
+
+    self->fds[self->n_fds].fd = fd;
+    self->fds[self->n_fds].events = (signed short)events;
+
+    if (++self->n_fds == self->max_n_fds) {
+        if (devpoll_flush(self))
+            return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(devpoll_register_doc,
+"register(fd [, eventmask] ) -> None\n\n\
+Register a file descriptor with the polling object.\n\
+fd -- either an integer, or an object with a fileno() method returning an\n\
+      int.\n\
+events -- an optional bitmask describing the type of events to check for");
+
+static PyObject *
+devpoll_register(devpollObject *self, PyObject *args)
+{
+    return internal_devpoll_register(self, args, 0);
+}
+
+PyDoc_STRVAR(devpoll_modify_doc,
+"modify(fd[, eventmask]) -> None\n\n\
+Modify a possible already registered file descriptor.\n\
+fd -- either an integer, or an object with a fileno() method returning an\n\
+      int.\n\
+events -- an optional bitmask describing the type of events to check for");
+
+static PyObject *
+devpoll_modify(devpollObject *self, PyObject *args)
+{
+    return internal_devpoll_register(self, args, 1);
+}
+
+
+PyDoc_STRVAR(devpoll_unregister_doc,
+"unregister(fd) -> None\n\n\
+Remove a file descriptor being tracked by the polling object.");
+
+static PyObject *
+devpoll_unregister(devpollObject *self, PyObject *o)
+{
+    int fd;
+
+    if (self->fd_devpoll < 0)
+        return devpoll_err_closed();
+
+    fd = PyObject_AsFileDescriptor( o );
+    if (fd == -1)
+        return NULL;
+
+    self->fds[self->n_fds].fd = fd;
+    self->fds[self->n_fds].events = POLLREMOVE;
+
+    if (++self->n_fds == self->max_n_fds) {
+        if (devpoll_flush(self))
+            return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(devpoll_poll_doc,
+"poll( [timeout] ) -> list of (fd, event) 2-tuples\n\n\
+Polls the set of registered file descriptors, returning a list containing \n\
+any descriptors that have events or errors to report.");
+
+static PyObject *
+devpoll_poll(devpollObject *self, PyObject *args)
+{
+    struct dvpoll dvp;
+    PyObject *result_list = NULL, *tout = NULL;
+    int poll_result, i;
+    long timeout;
+    PyObject *value, *num1, *num2;
+
+    if (self->fd_devpoll < 0)
+        return devpoll_err_closed();
+
+    if (!PyArg_UnpackTuple(args, "poll", 0, 1, &tout)) {
+        return NULL;
+    }
+
+    /* Check values for timeout */
+    if (tout == NULL || tout == Py_None)
+        timeout = -1;
+    else if (!PyNumber_Check(tout)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "timeout must be an integer or None");
+        return NULL;
+    }
+    else {
+        tout = PyNumber_Long(tout);
+        if (!tout)
+            return NULL;
+        timeout = PyLong_AsLong(tout);
+        Py_DECREF(tout);
+        if (timeout == -1 && PyErr_Occurred())
+            return NULL;
+    }
+
+    if ((timeout < -1) || (timeout > INT_MAX)) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "timeout is out of range");
+        return NULL;
+    }
+
+    if (devpoll_flush(self))
+        return NULL;
+
+    dvp.dp_fds = self->fds;
+    dvp.dp_nfds = self->max_n_fds;
+    dvp.dp_timeout = timeout;
+
+    /* call devpoll() */
+    Py_BEGIN_ALLOW_THREADS
+    poll_result = ioctl(self->fd_devpoll, DP_POLL, &dvp);
+    Py_END_ALLOW_THREADS
+
+    if (poll_result < 0) {
+        PyErr_SetFromErrno(PyExc_IOError);
+        return NULL;
+    }
+
+    /* build the result list */
+
+    result_list = PyList_New(poll_result);
+    if (!result_list)
+        return NULL;
+    else {
+        for (i = 0; i < poll_result; i++) {
+            num1 = PyLong_FromLong(self->fds[i].fd);
+            num2 = PyLong_FromLong(self->fds[i].revents);
+            if ((num1 == NULL) || (num2 == NULL)) {
+                Py_XDECREF(num1);
+                Py_XDECREF(num2);
+                goto error;
+            }
+            value = PyTuple_Pack(2, num1, num2);
+            Py_DECREF(num1);
+            Py_DECREF(num2);
+            if (value == NULL)
+                goto error;
+            if ((PyList_SetItem(result_list, i, value)) == -1) {
+                Py_DECREF(value);
+                goto error;
+            }
+        }
+    }
+
+    return result_list;
+
+  error:
+    Py_DECREF(result_list);
+    return NULL;
+}
+
+static int
+devpoll_internal_close(devpollObject *self)
+{
+    int save_errno = 0;
+    if (self->fd_devpoll >= 0) {
+        int fd = self->fd_devpoll;
+        self->fd_devpoll = -1;
+        Py_BEGIN_ALLOW_THREADS
+        if (close(fd) < 0)
+            save_errno = errno;
+        Py_END_ALLOW_THREADS
+    }
+    return save_errno;
+}
+
+static PyObject*
+devpoll_close(devpollObject *self)
+{
+    errno = devpoll_internal_close(self);
+    if (errno < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(devpoll_close_doc,
+"close() -> None\n\
+\n\
+Close the devpoll file descriptor. Further operations on the devpoll\n\
+object will raise an exception.");
+
+static PyObject*
+devpoll_get_closed(devpollObject *self)
+{
+    if (self->fd_devpoll < 0)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject*
+devpoll_fileno(devpollObject *self)
+{
+    if (self->fd_devpoll < 0)
+        return devpoll_err_closed();
+    return PyLong_FromLong(self->fd_devpoll);
+}
+
+PyDoc_STRVAR(devpoll_fileno_doc,
+"fileno() -> int\n\
+\n\
+Return the file descriptor.");
+
+static PyMethodDef devpoll_methods[] = {
+    {"register",        (PyCFunction)devpoll_register,
+     METH_VARARGS,  devpoll_register_doc},
+    {"modify",          (PyCFunction)devpoll_modify,
+     METH_VARARGS,  devpoll_modify_doc},
+    {"unregister",      (PyCFunction)devpoll_unregister,
+     METH_O,        devpoll_unregister_doc},
+    {"poll",            (PyCFunction)devpoll_poll,
+     METH_VARARGS,  devpoll_poll_doc},
+    {"close",           (PyCFunction)devpoll_close,    METH_NOARGS,
+     devpoll_close_doc},
+    {"fileno",          (PyCFunction)devpoll_fileno,    METH_NOARGS,
+     devpoll_fileno_doc},
+    {NULL,              NULL}           /* sentinel */
+};
+
+static PyGetSetDef devpoll_getsetlist[] = {
+    {"closed", (getter)devpoll_get_closed, NULL,
+     "True if the devpoll object is closed"},
+    {0},
+};
+
+static devpollObject *
+newDevPollObject(void)
+{
+    devpollObject *self;
+    int fd_devpoll, limit_result;
+    struct pollfd *fds;
+    struct rlimit limit;
+
+    Py_BEGIN_ALLOW_THREADS
+    /*
+    ** If we try to process more that getrlimit()
+    ** fds, the kernel will give an error, so
+    ** we set the limit here. It is a dynamic
+    ** value, because we can change rlimit() anytime.
+    */
+    limit_result = getrlimit(RLIMIT_NOFILE, &limit);
+    if (limit_result != -1)
+        fd_devpoll = _Py_open("/dev/poll", O_RDWR);
+    Py_END_ALLOW_THREADS
+
+    if (limit_result == -1) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return NULL;
+    }
+    if (fd_devpoll == -1) {
+        PyErr_SetFromErrnoWithFilename(PyExc_IOError, "/dev/poll");
+        return NULL;
+    }
+
+    fds = PyMem_NEW(struct pollfd, limit.rlim_cur);
+    if (fds == NULL) {
+        close(fd_devpoll);
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    self = PyObject_New(devpollObject, &devpoll_Type);
+    if (self == NULL) {
+        close(fd_devpoll);
+        PyMem_DEL(fds);
+        return NULL;
+    }
+    self->fd_devpoll = fd_devpoll;
+    self->max_n_fds = limit.rlim_cur;
+    self->n_fds = 0;
+    self->fds = fds;
+
+    return self;
+}
+
+static void
+devpoll_dealloc(devpollObject *self)
+{
+    (void)devpoll_internal_close(self);
+    PyMem_DEL(self->fds);
+    PyObject_Del(self);
+}
+
+static PyTypeObject devpoll_Type = {
+    /* The ob_type field must be initialized in the module init function
+     * to be portable to Windows without using C++. */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "select.devpoll",           /*tp_name*/
+    sizeof(devpollObject),      /*tp_basicsize*/
+    0,                          /*tp_itemsize*/
+    /* methods */
+    (destructor)devpoll_dealloc, /*tp_dealloc*/
+    0,                          /*tp_print*/
+    0,                          /*tp_getattr*/
+    0,                          /*tp_setattr*/
+    0,                          /*tp_reserved*/
+    0,                          /*tp_repr*/
+    0,                          /*tp_as_number*/
+    0,                          /*tp_as_sequence*/
+    0,                          /*tp_as_mapping*/
+    0,                          /*tp_hash*/
+    0,                          /*tp_call*/
+    0,                          /*tp_str*/
+    0,                          /*tp_getattro*/
+    0,                          /*tp_setattro*/
+    0,                          /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,         /*tp_flags*/
+    0,                          /*tp_doc*/
+    0,                          /*tp_traverse*/
+    0,                          /*tp_clear*/
+    0,                          /*tp_richcompare*/
+    0,                          /*tp_weaklistoffset*/
+    0,                          /*tp_iter*/
+    0,                          /*tp_iternext*/
+    devpoll_methods,            /*tp_methods*/
+    0,                          /* tp_members */
+    devpoll_getsetlist,         /* tp_getset */
+};
+#endif  /* HAVE_SYS_DEVPOLL_H */
+
+
+
 PyDoc_STRVAR(poll_doc,
 "Returns a polling object, which supports registering and\n\
 unregistering file descriptors, and then polling them for I/O events.");
@@ -657,6 +1111,19 @@ select_poll(PyObject *self, PyObject *unused)
 {
     return (PyObject *)newPollObject();
 }
+
+#ifdef HAVE_SYS_DEVPOLL_H
+PyDoc_STRVAR(devpoll_doc,
+"Returns a polling object, which supports registering and\n\
+unregistering file descriptors, and then polling them for I/O events.");
+
+static PyObject *
+select_devpoll(PyObject *self, PyObject *unused)
+{
+    return (PyObject *)newDevPollObject();
+}
+#endif
+
 
 #ifdef __APPLE__
 /*
@@ -713,7 +1180,7 @@ static PyTypeObject pyEpoll_Type;
 static PyObject *
 pyepoll_err_closed(void)
 {
-    PyErr_SetString(PyExc_ValueError, "I/O operation on closed epoll fd");
+    PyErr_SetString(PyExc_ValueError, "I/O operation on closed epoll object");
     return NULL;
 }
 
@@ -733,19 +1200,9 @@ pyepoll_internal_close(pyEpoll_Object *self)
 }
 
 static PyObject *
-newPyEpoll_Object(PyTypeObject *type, int sizehint, SOCKET fd)
+newPyEpoll_Object(PyTypeObject *type, int sizehint, int flags, SOCKET fd)
 {
     pyEpoll_Object *self;
-
-    if (sizehint == -1) {
-        sizehint = FD_SETSIZE-1;
-    }
-    else if (sizehint < 1) {
-        PyErr_Format(PyExc_ValueError,
-                     "sizehint must be greater zero, got %d",
-                     sizehint);
-        return NULL;
-    }
 
     assert(type != NULL && type->tp_alloc != NULL);
     self = (pyEpoll_Object *) type->tp_alloc(type, 0);
@@ -754,6 +1211,12 @@ newPyEpoll_Object(PyTypeObject *type, int sizehint, SOCKET fd)
 
     if (fd == -1) {
         Py_BEGIN_ALLOW_THREADS
+#ifdef HAVE_EPOLL_CREATE1
+        flags |= EPOLL_CLOEXEC;
+        if (flags)
+            self->epfd = epoll_create1(flags);
+        else
+#endif
         self->epfd = epoll_create(sizehint);
         Py_END_ALLOW_THREADS
     }
@@ -762,9 +1225,17 @@ newPyEpoll_Object(PyTypeObject *type, int sizehint, SOCKET fd)
     }
     if (self->epfd < 0) {
         Py_DECREF(self);
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
+
+#ifndef HAVE_EPOLL_CREATE1
+    if (fd == -1 && _Py_set_inheritable(self->epfd, 0, NULL) < 0) {
+        Py_DECREF(self);
+        return NULL;
+    }
+#endif
+
     return (PyObject *)self;
 }
 
@@ -772,14 +1243,18 @@ newPyEpoll_Object(PyTypeObject *type, int sizehint, SOCKET fd)
 static PyObject *
 pyepoll_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    int sizehint = -1;
-    static char *kwlist[] = {"sizehint", NULL};
+    int flags = 0, sizehint = FD_SETSIZE - 1;
+    static char *kwlist[] = {"sizehint", "flags", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i:epoll", kwlist,
-                                     &sizehint))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii:epoll", kwlist,
+                                     &sizehint, &flags))
         return NULL;
+    if (sizehint < 0) {
+        PyErr_SetString(PyExc_ValueError, "negative sizehint");
+        return NULL;
+    }
 
-    return newPyEpoll_Object(type, sizehint, -1);
+    return newPyEpoll_Object(type, sizehint, flags, -1);
 }
 
 
@@ -795,7 +1270,7 @@ pyepoll_close(pyEpoll_Object *self)
 {
     errno = pyepoll_internal_close(self);
     if (errno < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
     Py_RETURN_NONE;
@@ -837,7 +1312,7 @@ pyepoll_fromfd(PyObject *cls, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:fromfd", &fd))
         return NULL;
 
-    return newPyEpoll_Object((PyTypeObject*)cls, -1, fd);
+    return newPyEpoll_Object((PyTypeObject*)cls, FD_SETSIZE - 1, 0, fd);
 }
 
 PyDoc_STRVAR(pyepoll_fromfd_doc,
@@ -860,16 +1335,16 @@ pyepoll_internal_ctl(int epfd, int op, PyObject *pfd, unsigned int events)
         return NULL;
     }
 
-    switch(op) {
-        case EPOLL_CTL_ADD:
-        case EPOLL_CTL_MOD:
+    switch (op) {
+    case EPOLL_CTL_ADD:
+    case EPOLL_CTL_MOD:
         ev.events = events;
         ev.data.fd = fd;
         Py_BEGIN_ALLOW_THREADS
         result = epoll_ctl(epfd, op, fd, &ev);
         Py_END_ALLOW_THREADS
         break;
-        case EPOLL_CTL_DEL:
+    case EPOLL_CTL_DEL:
         /* In kernel versions before 2.6.9, the EPOLL_CTL_DEL
          * operation required a non-NULL pointer in event, even
          * though this argument is ignored. */
@@ -882,13 +1357,13 @@ pyepoll_internal_ctl(int epfd, int op, PyObject *pfd, unsigned int events)
         }
         Py_END_ALLOW_THREADS
         break;
-        default:
+    default:
         result = -1;
         errno = EINVAL;
     }
 
     if (result < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
     Py_RETURN_NONE;
@@ -912,7 +1387,7 @@ pyepoll_register(pyEpoll_Object *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(pyepoll_register_doc,
 "register(fd[, eventmask]) -> None\n\
 \n\
-Registers a new fd or raises an IOError if the fd is already registered.\n\
+Registers a new fd or raises an OSError if the fd is already registered.\n\
 fd is the target file descriptor of the operation.\n\
 events is a bit set composed of the various EPOLL constants; the default\n\
 is EPOLL_IN | EPOLL_OUT | EPOLL_PRI.\n\
@@ -987,7 +1462,9 @@ pyepoll_poll(pyEpoll_Object *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     else {
-        timeout = (int)(dtimeout * 1000.0);
+        /* epoll_wait() has a resolution of 1 millisecond, round away from zero
+           to wait *at least* dtimeout seconds. */
+        timeout = (int)ceil(dtimeout * 1000.0);
     }
 
     if (maxevents == -1) {
@@ -1002,7 +1479,6 @@ pyepoll_poll(pyEpoll_Object *self, PyObject *args, PyObject *kwds)
 
     evs = PyMem_New(struct epoll_event, maxevents);
     if (evs == NULL) {
-        Py_DECREF(self);
         PyErr_NoMemory();
         return NULL;
     }
@@ -1011,7 +1487,7 @@ pyepoll_poll(pyEpoll_Object *self, PyObject *args, PyObject *kwds)
     nfds = epoll_wait(self->epfd, evs, maxevents, timeout);
     Py_END_ALLOW_THREADS
     if (nfds < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         goto error;
     }
 
@@ -1041,6 +1517,24 @@ Wait for events on the epoll file descriptor for a maximum time of timeout\n\
 in seconds (as float). -1 makes poll wait indefinitely.\n\
 Up to maxevents are returned to the caller.");
 
+static PyObject *
+pyepoll_enter(pyEpoll_Object *self, PyObject *args)
+{
+    if (self->epfd < 0)
+        return pyepoll_err_closed();
+
+    Py_INCREF(self);
+    return (PyObject *)self;
+}
+
+static PyObject *
+pyepoll_exit(PyObject *self, PyObject *args)
+{
+    _Py_IDENTIFIER(close);
+
+    return _PyObject_CallMethodId(self, &PyId_close, NULL);
+}
+
 static PyMethodDef pyepoll_methods[] = {
     {"fromfd",          (PyCFunction)pyepoll_fromfd,
      METH_VARARGS | METH_CLASS, pyepoll_fromfd_doc},
@@ -1056,6 +1550,10 @@ static PyMethodDef pyepoll_methods[] = {
      METH_VARARGS | METH_KEYWORDS,      pyepoll_unregister_doc},
     {"poll",            (PyCFunction)pyepoll_poll,
      METH_VARARGS | METH_KEYWORDS,      pyepoll_poll_doc},
+    {"__enter__",           (PyCFunction)pyepoll_enter,     METH_NOARGS,
+     NULL},
+    {"__exit__",           (PyCFunction)pyepoll_exit,     METH_VARARGS,
+     NULL},
     {NULL,      NULL},
 };
 
@@ -1066,7 +1564,7 @@ static PyGetSetDef pyepoll_getsetlist[] = {
 };
 
 PyDoc_STRVAR(pyepoll_doc,
-"select.epoll([sizehint=-1])\n\
+"select.epoll(sizehint=-1, flags=0)\n\
 \n\
 Returns an epolling object\n\
 \n\
@@ -1209,6 +1707,23 @@ static PyTypeObject kqueue_queue_Type;
 #   error uintptr_t does not match int, long, or long long!
 #endif
 
+/*
+ * kevent is not standard and its members vary across BSDs.
+ */
+#if !defined(__OpenBSD__)
+#   define IDENT_TYPE  T_UINTPTRT
+#   define IDENT_CAST  Py_intptr_t
+#   define DATA_TYPE   T_INTPTRT
+#   define DATA_FMT_UNIT INTPTRT_FMT_UNIT
+#   define IDENT_AsType PyLong_AsUintptr_t
+#else
+#   define IDENT_TYPE  T_UINT
+#   define IDENT_CAST  int
+#   define DATA_TYPE   T_INT
+#   define DATA_FMT_UNIT "i"
+#   define IDENT_AsType PyLong_AsUnsignedLong
+#endif
+
 /* Unfortunately, we can't store python objects in udata, because
  * kevents in the kernel can be removed without warning, which would
  * forever lose the refcount on the object stored with it.
@@ -1216,11 +1731,11 @@ static PyTypeObject kqueue_queue_Type;
 
 #define KQ_OFF(x) offsetof(kqueue_event_Object, x)
 static struct PyMemberDef kqueue_event_members[] = {
-    {"ident",           T_UINTPTRT,     KQ_OFF(e.ident)},
+    {"ident",           IDENT_TYPE,     KQ_OFF(e.ident)},
     {"filter",          T_SHORT,        KQ_OFF(e.filter)},
     {"flags",           T_USHORT,       KQ_OFF(e.flags)},
     {"fflags",          T_UINT,         KQ_OFF(e.fflags)},
-    {"data",            T_INTPTRT,      KQ_OFF(e.data)},
+    {"data",            DATA_TYPE,      KQ_OFF(e.data)},
     {"udata",           T_UINTPTRT,     KQ_OFF(e.udata)},
     {NULL} /* Sentinel */
 };
@@ -1246,7 +1761,7 @@ kqueue_event_init(kqueue_event_Object *self, PyObject *args, PyObject *kwds)
     PyObject *pfd;
     static char *kwlist[] = {"ident", "filter", "flags", "fflags",
                              "data", "udata", NULL};
-    static char *fmt = "O|hhi" INTPTRT_FMT_UNIT UINTPTRT_FMT_UNIT ":kevent";
+    static char *fmt = "O|hHI" DATA_FMT_UNIT UINTPTRT_FMT_UNIT ":kevent";
 
     EV_SET(&(self->e), 0, EVFILT_READ, EV_ADD, 0, 0, 0); /* defaults */
 
@@ -1256,8 +1771,12 @@ kqueue_event_init(kqueue_event_Object *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (PyLong_Check(pfd)) {
-        self->e.ident = PyLong_AsUintptr_t(pfd);
+    if (PyLong_Check(pfd)
+#if IDENT_TYPE == T_UINT
+        && PyLong_AsUnsignedLong(pfd) <= UINT_MAX
+#endif
+    ) {
+        self->e.ident = IDENT_AsType(pfd);
     }
     else {
         self->e.ident = PyObject_AsFileDescriptor(pfd);
@@ -1285,10 +1804,10 @@ kqueue_event_richcompare(kqueue_event_Object *s, kqueue_event_Object *o,
             Py_TYPE(s)->tp_name, Py_TYPE(o)->tp_name);
         return NULL;
     }
-    if (((result = s->e.ident - o->e.ident) == 0) &&
+    if (((result = (IDENT_CAST)(s->e.ident - o->e.ident)) == 0) &&
         ((result = s->e.filter - o->e.filter) == 0) &&
         ((result = s->e.flags - o->e.flags) == 0) &&
-        ((result = s->e.fflags - o->e.fflags) == 0) &&
+        ((result = (int)(s->e.fflags - o->e.fflags)) == 0) &&
         ((result = s->e.data - o->e.data) == 0) &&
         ((result = s->e.udata - o->e.udata) == 0)
        ) {
@@ -1296,22 +1815,22 @@ kqueue_event_richcompare(kqueue_event_Object *s, kqueue_event_Object *o,
     }
 
     switch (op) {
-        case Py_EQ:
+    case Py_EQ:
         result = (result == 0);
         break;
-        case Py_NE:
+    case Py_NE:
         result = (result != 0);
         break;
-        case Py_LE:
+    case Py_LE:
         result = (result <= 0);
         break;
-        case Py_GE:
+    case Py_GE:
         result = (result >= 0);
         break;
-        case Py_LT:
+    case Py_LT:
         result = (result < 0);
         break;
-        case Py_GT:
+    case Py_GT:
         result = (result > 0);
         break;
     }
@@ -1363,7 +1882,7 @@ static PyTypeObject kqueue_event_Type = {
 static PyObject *
 kqueue_queue_err_closed(void)
 {
-    PyErr_SetString(PyExc_ValueError, "I/O operation on closed kqueue fd");
+    PyErr_SetString(PyExc_ValueError, "I/O operation on closed kqueue object");
     return NULL;
 }
 
@@ -1402,8 +1921,15 @@ newKqueue_Object(PyTypeObject *type, SOCKET fd)
     }
     if (self->kqfd < 0) {
         Py_DECREF(self);
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
+    }
+
+    if (fd == -1) {
+        if (_Py_set_inheritable(self->kqfd, 0, NULL) < 0) {
+            Py_DECREF(self);
+            return NULL;
+        }
     }
     return (PyObject *)self;
 }
@@ -1411,7 +1937,6 @@ newKqueue_Object(PyTypeObject *type, SOCKET fd)
 static PyObject *
 kqueue_queue_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-
     if ((args != NULL && PyObject_Size(args)) ||
                     (kwds != NULL && PyObject_Size(kwds))) {
         PyErr_SetString(PyExc_ValueError,
@@ -1434,7 +1959,7 @@ kqueue_queue_close(kqueue_queue_Object *self)
 {
     errno = kqueue_queue_internal_close(self);
     if (errno < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
     Py_RETURN_NONE;
@@ -1497,7 +2022,7 @@ kqueue_queue_control(kqueue_queue_Object *self, PyObject *args)
     PyObject *result = NULL;
     struct kevent *evl = NULL;
     struct kevent *chl = NULL;
-    struct timespec timeoutspec;
+    struct timespec timeout;
     struct timespec *ptimeoutspec;
 
     if (self->kqfd < 0)
@@ -1517,28 +2042,16 @@ kqueue_queue_control(kqueue_queue_Object *self, PyObject *args)
         ptimeoutspec = NULL;
     }
     else if (PyNumber_Check(otimeout)) {
-        double timeout;
-        long seconds;
+        if (_PyTime_ObjectToTimespec(otimeout, &timeout.tv_sec,
+                                     &timeout.tv_nsec, _PyTime_ROUND_UP) == -1)
+            return NULL;
 
-        timeout = PyFloat_AsDouble(otimeout);
-        if (timeout == -1 && PyErr_Occurred())
-            return NULL;
-        if (timeout > (double)LONG_MAX) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "timeout period too long");
-            return NULL;
-        }
-        if (timeout < 0) {
+        if (timeout.tv_sec < 0) {
             PyErr_SetString(PyExc_ValueError,
                             "timeout must be positive or None");
             return NULL;
         }
-
-        seconds = (long)timeout;
-        timeout = timeout - (double)seconds;
-        timeoutspec.tv_sec = seconds;
-        timeoutspec.tv_nsec = (long)(timeout * 1E9);
-        ptimeoutspec = &timeoutspec;
+        ptimeoutspec = &timeout;
     }
     else {
         PyErr_Format(PyExc_TypeError,
@@ -1715,6 +2228,11 @@ static PyTypeObject kqueue_queue_Type = {
 };
 
 #endif /* HAVE_KQUEUE */
+
+
+
+
+
 /* ************************************************************************ */
 
 PyDoc_STRVAR(select_doc,
@@ -1738,7 +2256,7 @@ arguments; each contains the subset of the corresponding file descriptors\n\
 that are ready.\n\
 \n\
 *** IMPORTANT NOTICE ***\n\
-On Windows and OpenVMS, only sockets are supported; on Unix, all file\n\
+On Windows only sockets are supported; on Unix, all file\n\
 descriptors can be used.");
 
 static PyMethodDef select_methods[] = {
@@ -1746,6 +2264,9 @@ static PyMethodDef select_methods[] = {
 #if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
     {"poll",            select_poll,    METH_NOARGS,    poll_doc},
 #endif /* HAVE_POLL */
+#ifdef HAVE_SYS_DEVPOLL_H
+    {"devpoll",         select_devpoll, METH_NOARGS,    devpoll_doc},
+#endif
     {0,         0},     /* sentinel */
 };
 
@@ -1753,7 +2274,7 @@ PyDoc_STRVAR(module_doc,
 "This module supports asynchronous I/O on multiple file descriptors.\n\
 \n\
 *** IMPORTANT NOTICE ***\n\
-On Windows and OpenVMS, only sockets are supported; on Unix, all file descriptors.");
+On Windows only sockets are supported; on Unix, all file descriptors.");
 
 
 static struct PyModuleDef selectmodule = {
@@ -1768,6 +2289,9 @@ static struct PyModuleDef selectmodule = {
     NULL
 };
 
+
+
+
 PyMODINIT_FUNC
 PyInit_select(void)
 {
@@ -1776,16 +2300,15 @@ PyInit_select(void)
     if (m == NULL)
         return NULL;
 
-    SelectError = PyErr_NewException("select.error", NULL, NULL);
-    Py_INCREF(SelectError);
-    PyModule_AddObject(m, "error", SelectError);
+    Py_INCREF(PyExc_OSError);
+    PyModule_AddObject(m, "error", PyExc_OSError);
 
 #ifdef PIPE_BUF
 #ifdef HAVE_BROKEN_PIPE_BUF
 #undef PIPE_BUF
 #define PIPE_BUF 512
 #endif
-    PyModule_AddIntConstant(m, "PIPE_BUF", PIPE_BUF);
+    PyModule_AddIntMacro(m, PIPE_BUF);
 #endif
 
 #if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
@@ -1800,30 +2323,35 @@ PyInit_select(void)
 #endif
         if (PyType_Ready(&poll_Type) < 0)
             return NULL;
-        PyModule_AddIntConstant(m, "POLLIN", POLLIN);
-        PyModule_AddIntConstant(m, "POLLPRI", POLLPRI);
-        PyModule_AddIntConstant(m, "POLLOUT", POLLOUT);
-        PyModule_AddIntConstant(m, "POLLERR", POLLERR);
-        PyModule_AddIntConstant(m, "POLLHUP", POLLHUP);
-        PyModule_AddIntConstant(m, "POLLNVAL", POLLNVAL);
+        PyModule_AddIntMacro(m, POLLIN);
+        PyModule_AddIntMacro(m, POLLPRI);
+        PyModule_AddIntMacro(m, POLLOUT);
+        PyModule_AddIntMacro(m, POLLERR);
+        PyModule_AddIntMacro(m, POLLHUP);
+        PyModule_AddIntMacro(m, POLLNVAL);
 
 #ifdef POLLRDNORM
-        PyModule_AddIntConstant(m, "POLLRDNORM", POLLRDNORM);
+        PyModule_AddIntMacro(m, POLLRDNORM);
 #endif
 #ifdef POLLRDBAND
-        PyModule_AddIntConstant(m, "POLLRDBAND", POLLRDBAND);
+        PyModule_AddIntMacro(m, POLLRDBAND);
 #endif
 #ifdef POLLWRNORM
-        PyModule_AddIntConstant(m, "POLLWRNORM", POLLWRNORM);
+        PyModule_AddIntMacro(m, POLLWRNORM);
 #endif
 #ifdef POLLWRBAND
-        PyModule_AddIntConstant(m, "POLLWRBAND", POLLWRBAND);
+        PyModule_AddIntMacro(m, POLLWRBAND);
 #endif
 #ifdef POLLMSG
-        PyModule_AddIntConstant(m, "POLLMSG", POLLMSG);
+        PyModule_AddIntMacro(m, POLLMSG);
 #endif
     }
 #endif /* HAVE_POLL */
+
+#ifdef HAVE_SYS_DEVPOLL_H
+    if (PyType_Ready(&devpoll_Type) < 0)
+        return NULL;
+#endif
 
 #ifdef HAVE_EPOLL
     Py_TYPE(&pyEpoll_Type) = &PyType_Type;
@@ -1833,22 +2361,26 @@ PyInit_select(void)
     Py_INCREF(&pyEpoll_Type);
     PyModule_AddObject(m, "epoll", (PyObject *) &pyEpoll_Type);
 
-    PyModule_AddIntConstant(m, "EPOLLIN", EPOLLIN);
-    PyModule_AddIntConstant(m, "EPOLLOUT", EPOLLOUT);
-    PyModule_AddIntConstant(m, "EPOLLPRI", EPOLLPRI);
-    PyModule_AddIntConstant(m, "EPOLLERR", EPOLLERR);
-    PyModule_AddIntConstant(m, "EPOLLHUP", EPOLLHUP);
-    PyModule_AddIntConstant(m, "EPOLLET", EPOLLET);
+    PyModule_AddIntMacro(m, EPOLLIN);
+    PyModule_AddIntMacro(m, EPOLLOUT);
+    PyModule_AddIntMacro(m, EPOLLPRI);
+    PyModule_AddIntMacro(m, EPOLLERR);
+    PyModule_AddIntMacro(m, EPOLLHUP);
+    PyModule_AddIntMacro(m, EPOLLET);
 #ifdef EPOLLONESHOT
     /* Kernel 2.6.2+ */
-    PyModule_AddIntConstant(m, "EPOLLONESHOT", EPOLLONESHOT);
+    PyModule_AddIntMacro(m, EPOLLONESHOT);
 #endif
     /* PyModule_AddIntConstant(m, "EPOLL_RDHUP", EPOLLRDHUP); */
-    PyModule_AddIntConstant(m, "EPOLLRDNORM", EPOLLRDNORM);
-    PyModule_AddIntConstant(m, "EPOLLRDBAND", EPOLLRDBAND);
-    PyModule_AddIntConstant(m, "EPOLLWRNORM", EPOLLWRNORM);
-    PyModule_AddIntConstant(m, "EPOLLWRBAND", EPOLLWRBAND);
-    PyModule_AddIntConstant(m, "EPOLLMSG", EPOLLMSG);
+    PyModule_AddIntMacro(m, EPOLLRDNORM);
+    PyModule_AddIntMacro(m, EPOLLRDBAND);
+    PyModule_AddIntMacro(m, EPOLLWRNORM);
+    PyModule_AddIntMacro(m, EPOLLWRBAND);
+    PyModule_AddIntMacro(m, EPOLLMSG);
+
+#ifdef EPOLL_CLOEXEC
+    PyModule_AddIntMacro(m, EPOLL_CLOEXEC);
+#endif
 #endif /* HAVE_EPOLL */
 
 #ifdef HAVE_KQUEUE

@@ -22,12 +22,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 ProfileVal SCRIPTCALL_PROFILE("scriptCall");
-ProfileVal ONTIMER_PROFILE("onTimer");
 ProfileVal ONMOVE_PROFILE("onMove");
 ProfileVal ON_NAVIGATE_PROFILE( "onNavigate" );
 ProfileVal CLIENT_UPDATE_PROFILE( "clientUpdate" );
 
 EventHistoryStats g_privateClientEventHistoryStats("PrivateClientEvents");
 EventHistoryStats g_publicClientEventHistoryStats("PublicClientEvents");
+EventHistoryStats g_publicCellEventHistoryStats("PublicCellEvents");
 
 }
