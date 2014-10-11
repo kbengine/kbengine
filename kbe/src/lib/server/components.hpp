@@ -151,7 +151,7 @@ public:
 	/** 
 		检查所有的组件， 防止有重复的uuid， 此时应该报错.
 	*/
-	bool checkComponents(int32 uid, COMPONENT_ID componentID);
+	bool checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid);
 
 	void pHandler(ComponentsNotificationHandler* ph){ _pHandler = ph; };
 

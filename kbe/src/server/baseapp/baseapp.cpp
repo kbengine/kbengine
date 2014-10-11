@@ -690,6 +690,25 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	cinfos = 
 		Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
 
+	if (cinfos == NULL)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onGetEntityAppFromDbmgr: Illegal app(uid:{0}, username:{1}, componentType:{2}, "
+				"componentID:{3}, globalorderID={9}, grouporderID={10}, intaddr:{4}, intport:{5}, extaddr:{6}, extport:{7},  from {8})\n",
+				uid, 
+				username,
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
+				componentID,
+				inet_ntoa((struct in_addr&)intaddr),
+				ntohs(intport),
+				(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+				ntohs(extport),
+				pChannel->c_str(),
+				((int32)globalorderID), 
+				((int32)grouporderID)));
+
+		return;
+	}
+
 	cinfos->pChannel = NULL;
 
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);

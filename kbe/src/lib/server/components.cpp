@@ -75,7 +75,7 @@ Components::~Components()
 }
 
 //-------------------------------------------------------------------------------------
-bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
+bool Components::checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid)
 {
 	if(componentID <= 0)
 		return true;
@@ -91,10 +91,13 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			//ERROR_MSG(fmt::format("Components::checkComponents: uid:{}, componentType={}, componentID:{} exist.\n",
-			//	uid, COMPONENT_NAME_EX(ct), componentID));
+			if(pid != cinfos->pid)
+			{
+				ERROR_MSG(fmt::format("Components::checkComponents: uid:{}, componentType={}, componentID:{} exist.\n",
+					uid, COMPONENT_NAME_EX(ct), componentID));
 
-			// KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
+				KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
+			}
 			return false;
 		}
 	}
@@ -112,7 +115,7 @@ void Components::addComponent(int32 uid, const char* username,
 {
 	COMPONENTS& components = getComponents(componentType);
 
-	if(!checkComponents(uid, componentID))
+	if(!checkComponents(uid, componentID, pid))
 		return;
 
 	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
