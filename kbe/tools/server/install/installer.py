@@ -63,7 +63,9 @@ kbe_res_path = ""
 # 工具环境变量名
 INSTALLER_EVN_NAME = 'KBT'
 
+_zip_kbengine_path = ""
 _zip_kbengine_dirname = ""
+_install_path = ""
 
 def hello():
 	# echoSystemEnvironment()
@@ -228,16 +230,16 @@ def resetKBEEnvironment():
 			x_KBE_ROOT.replace("\\", "/").replace("//", "/")
 		
 		if platform.system() == 'Windows':
-			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res;%KBE_ROOT%/demo/;%KBE_ROOT%/demo/res"
+			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res/;%KBE_ROOT%/demo/;%KBE_ROOT%/demo/res/"
 		else:
-			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res;$KBE_ROOT/demo/;$KBE_ROOT/demo/res"
+			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res/;$KBE_ROOT/demo/;$KBE_ROOT/demo/res/"
 			
 	if platform.architecture()[0] == '32bit':
-		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid"
+		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid/"
 	else:
-		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid64"
+		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid64/"
 		if not os.path.isdir(x_KBE_HYBRID_PATH):
-			x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid"
+			x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid/"
 	
 	if platform.system() != 'Windows':
 		x_KBE_HYBRID_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
@@ -458,13 +460,16 @@ def removeLinuxEnvironment(scope, name):
 	assert scope in ('user', 'system')
 	bodys = []
 	f = open(os.path.expanduser("~/.bashrc"))
+	
 	for x in f.readlines():
 		if name in x:
 			continue
-		body.append(x)
-		
+			
+		bodys.append(x)
+	
+	f.close()
 	f = open(os.path.expanduser("~/.bashrc"), "w")
-	f.writelines(body)
+	f.writelines(bodys)
 	f.close()
 	
 	syscommand('bash -c \'source \~/.bashrc\'', False)
@@ -513,6 +518,8 @@ def remmoveEnvironment(scope, name):
 			winreg.DeleteValue(key, name)
 		except WindowsError:
 			pass
+	else:
+		removeLinuxEnvironment(scope, name)
 
 def removeKBEEnvironment():
 	INFO_MSG("Remove the KBEngine-environment variables.")
@@ -521,7 +528,7 @@ def removeKBEEnvironment():
 	remmoveEnvironment("user", "KBE_RES_PATH")
 	remmoveEnvironment("user", "KBE_HYBRID_PATH")
 	remmoveEnvironment("user", "KBE_UID")
-	remmoveEnvironment("user", "INSTALLER_EVN_NAME")
+	remmoveEnvironment("user", INSTALLER_EVN_NAME)
 
 	global KBE_ROOT
 	global KBE_RES_PATH
@@ -1062,7 +1069,7 @@ def get_sources_infos():
 def download_hookreport(count, block_size, total_size):
 	s = ""
 	if total_size <= 0:
-		s = '\rdownloading : %dMB' % (count * block_size / 1024 / 1024)
+		s = '\rdownloading : %.2fMB' % (count * block_size / 1024 / 1024.0)
 	else:
 		s = '\rdownloading : %d/%d (%02d%%)' % (count * block_size, total_size, 100.0 * count * block_size / total_size)
 
@@ -1080,51 +1087,98 @@ def download(currurl, fname = None):
 
 	return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
 
-def download_sources(release = True):
-	global _zip_kbengine_dirname
-	_zip_kbengine_dirname = ""
+def getInstallPath():
+	global KBE_ROOT
+	global _install_path
+	_install_path = ""
 	
-	OUT_MSG("")
-	INFO_MSG("Getting the latest source code...")
-	urls = get_sources_infos()
-	src_master_zip_url = urls[0]
-	src_zip_url = urls[1]
-	src_tgz_url = urls[2]
-	release_title = urls[3]
-	descrs = urls[4]
+	global _zip_kbengine_dirname
+	
+	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
+	
+	if len(KBE_ROOT) > 0:
+		INFO_MSG("Already installed KBEngine, KBE_ROOT=[%s].\n" % (KBE_ROOT))
+		if getInput("Want to install to [%s]?[yes|no]" % (KBE_ROOT)) == "yes":
+			_install_path = ""
+			return
 
-	currurl = src_zip_url
-
-	# 如果release为False则下载git master版本
-	if not release:
-		currurl = src_master_zip_url
-
-	INFO_MSG("")
-	INFO_MSG(release_title)
-	INFO_MSG(descrs)
-
-	file = download(currurl)[0]
-	namelist = extract_file(file)
-	os.remove(file)
-
-	for n in namelist[0].replace("\\", "/").split("/"):
-		if "kbengine" in n:
-			_zip_kbengine_dirname = n
+	while True:
+		if os.path.isdir(_install_path):
 			break
+			
+		_install_path = getInput("Please enter the installation path:")
+		_install_path = _install_path + "/" + _zip_kbengine_dirname + "/"
+		if os.path.isdir(_install_path):
+			if getInput("Coverage of this directory? [yes|no]") == "yes":
+				break
+				
+			ERROR_MSG("%s has exist!" % _install_path)
+			_install_path = ""
+			continue
+		
+		break
+	
+	if not os.path.isdir(_install_path):
+		os.mkdir(_install_path)
 
+def copyFilesTo(root_src_dir, root_dst_dir):
+	for src_dir, dirs, files in os.walk(root_src_dir):
+	    dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
+	    if not os.path.exists(dst_dir):
+	        os.mkdir(dst_dir)
+	    for file_ in files:
+	        src_file = os.path.join(src_dir, file_)
+	        dst_file = os.path.join(dst_dir, file_)
+	        if os.path.exists(dst_file):
+	            os.remove(dst_file)
+	        shutil.move(src_file, dst_dir)
+	        	
 def copy_new_to_kbengine_dir(checksources = True):
-	checkKBEEnvironment()
+	global _install_path
 	global KBE_ROOT
 	global KBE_RES_PATH
 	global KBE_HYBRID_PATH
 	global KBE_UID
 	global kbe_res_path
+	global _zip_kbengine_path
+	global _zip_kbengine_dirname
+	
+	currkbedir = _zip_kbengine_path + "/" + _zip_kbengine_dirname
+	
+	if len(_install_path) == 0:
+		checkKBEEnvironment()
+	else:
+		KBE_ROOT = _install_path
+		if platform.system() == 'Windows':
+			KBE_RES_PATH = "%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/res/"
+			if platform.architecture()[0] == '32bit':
+				KBE_HYBRID_PATH = "%KBE_ROOT%kbe/bin/Hybrid/"
+			else:
+				KBE_HYBRID_PATH = "%KBE_ROOT%kbe/bin/Hybrid64/"
+		else:
+			KBE_RES_PATH = "$KBE_ROOTkbe/res/;$KBE_ROOTdemo/;$KBE_ROOTdemo/res/"
+			if platform.architecture()[0] == '32bit':
+				KBE_HYBRID_PATH = "$KBE_ROOTkbe/bin/Hybrid/"
+			else:
+				KBE_HYBRID_PATH = "$KBE_ROOTkbe/bin/Hybrid64/"
+		
+		setEnvironment('user', 'KBE_ROOT', KBE_ROOT)
+		setEnvironment('user', 'KBE_RES_PATH', KBE_RES_PATH)
+		setEnvironment('user', 'KBE_HYBRID_PATH', KBE_HYBRID_PATH)
+		
+		INFO_MSG("KBE_ROOT = %s" % KBE_ROOT)
+		INFO_MSG("KBE_RES_PATH = %s" % KBE_RES_PATH)
+		INFO_MSG("KBE_HYBRID_PATH = %s" % KBE_HYBRID_PATH)
+		
+		INFO_MSG("\n\nInstall KBEngine...")
+		INFO_MSG("copy %s to %s..." % (currkbedir, _install_path))
+		copyFilesTo(currkbedir, _install_path)
+		return
 	
 	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
 	KBE_RES_PATH = getEnvironment('user', 'KBE_RES_PATH')
 	KBE_HYBRID_PATH = getEnvironment('user', 'KBE_HYBRID_PATH')
 	
-	currkbedir = os.getcwd() + "/" + _zip_kbengine_dirname
 	currkbedir = currkbedir.replace("\\", "/").replace("//", "/")
 	KBE_ROOT = KBE_ROOT.replace("\\", "/").replace("//", "/")
 	
@@ -1168,16 +1222,54 @@ def copy_new_to_kbengine_dir(checksources = True):
 		shutil.copytree(currkbedir + "/kbe/tools", kbe_tools_path)
 		shutil.copytree(currkbedir + "/kbe/res", kbe_res_path1)
 
+def download_sources(release = True):
+	global _zip_kbengine_dirname
+	_zip_kbengine_dirname = ""
+	global _zip_kbengine_path
+	_zip_kbengine_path = ""
+	
+	OUT_MSG("")
+	INFO_MSG("Getting the latest source code...")
+	urls = get_sources_infos()
+	src_master_zip_url = urls[0]
+	src_zip_url = urls[1]
+	src_tgz_url = urls[2]
+	release_title = urls[3]
+	descrs = urls[4]
+
+	currurl = src_zip_url
+
+	# 如果release为False则下载git master版本
+	if not release:
+		currurl = src_master_zip_url
+
+	INFO_MSG("")
+	INFO_MSG(release_title)
+	INFO_MSG(descrs)
+
+	file = download(currurl)[0]
+	_zip_kbengine_path = file + "_et"
+	namelist = extract_file(file, _zip_kbengine_path)
+	os.remove(file)
+	
+	for n in namelist[0].replace("\\", "/").split("/"):
+		if "kbengine" in n:
+			_zip_kbengine_dirname = n
+			break
+
 def download_binary():
 	global _zip_kbengine_dirname
 	_zip_kbengine_dirname = ""
+	global _zip_kbengine_path
+	_zip_kbengine_path = ""
 
 	OUT_MSG("")
 	INFO_MSG("Getting the latest KBEngine...")        
 	file = download(bin_zip_url)[0]
-	namelist = extract_file(file)
+	_zip_kbengine_path = file + "_et"	
+	namelist = extract_file(file, _zip_kbengine_path)
 	os.remove(file)
-
+	
 	for n in namelist[0].replace("\\", "/").split("/"):
 		if "kbengine" in n:
 			_zip_kbengine_dirname = n
@@ -1197,7 +1289,7 @@ def getRealUrl(url):
 def extract_file(src_file, extractPath = "./"):
 	OUT_MSG("")
 	INFO_MSG("unzip(%s)..." % (src_file))
-
+	
 	f = zipfile.ZipFile(src_file, 'r')
 	total_count = len(f.namelist())
 	count = 0
@@ -1206,7 +1298,7 @@ def extract_file(src_file, extractPath = "./"):
 	for file in f.namelist():
 		f.extract(file, extractPath)
 		count += 1
-		s = "\rextract: %s %d/%d(%d%%)" % (file, count, total_count, (count / total_count) * 100)
+		s = "\rextract: %d/%d (%d%%)" % (count, total_count, (count / total_count) * 100)
 		sys.stdout.write(s)
 		sys.stdout.flush()
 	
@@ -1215,6 +1307,11 @@ def extract_file(src_file, extractPath = "./"):
 	return namelist
 
 def normalinstall():
+	global _zip_kbengine_path
+	if len(_zip_kbengine_path) > 0:
+		INFO_MSG("Clean up temporary files...")
+		shutil.rmtree(_zip_kbengine_path)
+	
 	checkDeps()
 	if modifyKBEConfig():
 		INFO_MSG("KBEngine has been successfully installed.")
@@ -1223,8 +1320,9 @@ def normalinstall():
 		
 def sourceinstall():
 	download_sources()
+	getInstallPath()
 	copy_new_to_kbengine_dir(True)
-	
+
 	if platform.system() != 'Windows':
 		global KBE_ROOT
 		syscommand('bash -c \'chmod -R 755 %s\'' % (KBE_ROOT), True)
@@ -1233,6 +1331,7 @@ def sourceinstall():
 	
 def binaryinstall():
 	download_binary()
+	getInstallPath()
 	copy_new_to_kbengine_dir(False)
 	
 	if platform.system() != 'Windows':
