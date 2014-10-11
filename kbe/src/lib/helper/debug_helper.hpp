@@ -179,15 +179,13 @@ private:
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
-#define SCRIPT_MSG(m)					DebugHelper::getSingleton().script_msg((m))									// 输出任何信息
-#define PRINT_MSG(m)					DebugHelper::getSingleton().print_msg((m))									// 输出任何信息
-#define ERROR_MSG(m)					DebugHelper::getSingleton().error_msg((m))									// 输出一个错误
-#define DEBUG_MSG(m)					DebugHelper::getSingleton().debug_msg((m))									// 输出一个debug信息
-#define INFO_MSG(m)						DebugHelper::getSingleton().info_msg((m))									// 输出一个info信息
-#define WARNING_MSG(m)					DebugHelper::getSingleton().warning_msg((m))								// 输出一个警告信息
-#define CRITICAL_MSG(m)					DebugHelper::getSingleton().setFile(__FUNCTION__, \
-										__FILE__, __LINE__); \
-										DebugHelper::getSingleton().critical_msg((m))
+#define SCRIPT_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().script_msg((m))		// 输出任何信息
+#define PRINT_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().print_msg((m))		// 输出任何信息
+#define ERROR_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().error_msg((m))		// 输出一个错误
+#define DEBUG_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().debug_msg((m))		// 输出一个debug信息
+#define INFO_MSG(m)		DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().info_msg((m))		// 输出一个info信息
+#define WARNING_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().warning_msg((m))		// 输出一个警告信息
+#define CRITICAL_MSG(m)	DebugHelper::getSingleton().setFile(__FUNCTION__, __FILE__, __LINE__); DebugHelper::getSingleton().critical_msg((m))
 
 /*---------------------------------------------------------------------------------
 	调试宏

@@ -2,7 +2,7 @@
 import KBEngine
 from KBEDebug import *
 import d_spaces
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class SpaceContext(dict):
 	"""
 	产生space上下文

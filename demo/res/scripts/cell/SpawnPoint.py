@@ -4,7 +4,7 @@ import wtimer
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class SpawnPoint(KBEngine.Entity, GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)

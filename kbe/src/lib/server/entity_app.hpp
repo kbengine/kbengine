@@ -582,14 +582,14 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 
 	SCRIPT_ERROR_CHECK();
 
-	if(g_debugEntity)
-	{
-		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
-	}
-	else
-	{
-		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {0} {1}\n", entityType, id));
-	}
+	//if(g_debugEntity)
+	//{
+	//	INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
+	//}
+	//else
+	//{
+	//	INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {0} {1}\n", entityType, id));
+	//}
 
 	return entity;
 }

@@ -3,7 +3,7 @@ import KBEngine
 import Functor
 import socket
 from KBEDebug import *
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Poller:
 	"""
 	演示：

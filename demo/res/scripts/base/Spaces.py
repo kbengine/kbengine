@@ -6,7 +6,7 @@ from interfaces.GameObject import GameObject
 from SpaceAlloc import *
 import d_spaces
 import wtimer
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Spaces(KBEngine.Base, GameObject):
 	def __init__(self):
 		KBEngine.Base.__init__(self)

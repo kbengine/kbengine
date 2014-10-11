@@ -3006,8 +3006,8 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 
 	if(base)
 	{
-		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), size={}.\n",
-			base->scriptName(), baseID, s.opsize()));
+		//INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), size={}.\n",
+		//	base->scriptName(), baseID, s.opsize()));
 
 		base->onBackupCellData(pChannel, s);
 	}

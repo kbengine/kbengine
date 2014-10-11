@@ -7,7 +7,7 @@ import d_spaces
 import KBEngine
 from KBEDebug import *
 from interfaces.GameObject import GameObject
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Gate(KBEngine.Entity, GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
