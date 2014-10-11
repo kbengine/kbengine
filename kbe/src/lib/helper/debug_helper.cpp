@@ -314,6 +314,14 @@ void DebugHelper::sync()
 		return;
 	}
 
+	static bool alertmsg = false;
+	if(!alertmsg)
+	{
+		LOG4CXX_WARN(g_logger, fmt::format("The message is forwarded to the messagelog[{}]...\n", 
+			pMessagelogChannel->c_str()));
+		alertmsg = true;
+	}
+
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
 
@@ -387,8 +395,6 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
 		return;
-
-
 
 	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
