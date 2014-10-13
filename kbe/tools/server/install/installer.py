@@ -1106,7 +1106,7 @@ def getInstallPath():
 	while True:
 		if os.path.isdir(_install_path):
 			break
-			
+
 		_install_path = getInput("Please enter the installation path:")
 		_install_path = _install_path + "/" + _zip_kbengine_dirname + "/"
 		if os.path.isdir(_install_path):
@@ -1315,6 +1315,18 @@ def getRealUrl(url):
 	
 	return url
 	
+def getCompressedFileRootDir(src_file):
+	f = None
+	
+	if ".tar" in src_file:
+		f = tarfile.open(src_file)
+		namelist = f.getnames()
+	else:
+		f = zipfile.ZipFile(src_file, 'r')
+		namelist = f.namelist()
+
+	return namelist[0]
+	
 def extract_file(src_file, extractPath = "./"):
 	OUT_MSG("")
 	
@@ -1377,6 +1389,7 @@ def localfileinstall(file):
 	global _zip_kbengine_path
 	_zip_kbengine_path = ""
 	
+	_zip_kbengine_dirname = getCompressedFileRootDir(file)
 	getInstallPath()
 	
 	_zip_kbengine_path = tempfile.mkdtemp("_kbengine")
