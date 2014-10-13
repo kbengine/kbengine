@@ -84,38 +84,38 @@ def hello():
 	OUT_MSG("")
     
 def help():
-	OUT_MSG("-------------------commands-----------------------")
-	OUT_MSG("\tUsage:")
-	OUT_MSG("\t\tpython installer.py [command]")
+	OUT_MSG("")
+	OUT_MSG("Usage:")
+	OUT_MSG("\tpython installer.py [command]")
 	OUT_MSG("")
 
-	OUT_MSG("\t-i, --install:")
-	OUT_MSG("\t\tInstall KBEngine.\n")
-	OUT_MSG("\t\tinstaller.py -i : Install development environment (dependent, environment variables, etc.), From the KBE_ROOT search.")
-	OUT_MSG("\t\tinstaller.py --install=localsrc : Install from local-disk(Source code), From the KBE_ROOT search.")
-	OUT_MSG("\t\tinstaller.py --install=remotesrc : Install from github(Source code).")
-	OUT_MSG("\t\tinstaller.py --install=remotebin : Install from sourceforge(Binary releases).")
-	OUT_MSG("\t\tinstaller.py --install={xxx.zip, xxx.tar.gz} : Install .zip/.tar.gz file.")
+	OUT_MSG("install:")
+	OUT_MSG("\tInstall KBEngine.\n")
+	OUT_MSG("\tinstaller.py install: Install development environment (dependent, environment variables, etc.), From the KBE_ROOT search.")
+	OUT_MSG("\tinstaller.py install=localsrc : Install from local-disk(Source code), From the KBE_ROOT search.")
+	OUT_MSG("\tinstaller.py install=remotesrc : Install from github(Source code).")
+	OUT_MSG("\tinstaller.py install=remotebin : Install from sourceforge(Binary releases).")
+	OUT_MSG("\tinstaller.py install={xxx.zip, xxx.tar.gz} : Install .zip/.tar.gz file.")
 	OUT_MSG("")
 	
-	OUT_MSG("\t-u, --uninstall:")
-	OUT_MSG("\t\tUninstall KBEngine.")
+	OUT_MSG("uninstall:")
+	OUT_MSG("\tUninstall KBEngine.")
 	OUT_MSG("")
 	
-	OUT_MSG("\t-v, --version:")
-	OUT_MSG("\t\tTo view the KBEngine version.")
+	OUT_MSG("version:")
+	OUT_MSG("\tTo view the KBEngine version.")
 	OUT_MSG("")
 	
-	OUT_MSG("\t-e, --evn:")
-	OUT_MSG("\t\tThe output of the KBEngine environment.")
+	OUT_MSG("evn:")
+	OUT_MSG("\tThe output of the KBEngine environment.")
 	OUT_MSG("")
 	
-	OUT_MSG("\t-r, --resetevn:")
-	OUT_MSG("\t\tReset the KBEngine environment.")
+	OUT_MSG("resetevn:")
+	OUT_MSG("\tReset the KBEngine environment.")
 	OUT_MSG("")
 	
-	OUT_MSG("\t-h, --help:")
-	OUT_MSG("\t\tList all of the command descriptions.")
+	OUT_MSG("help:")
+	OUT_MSG("\tList all of the command descriptions.")
 	OUT_MSG("--------------------------------------------------")
 
 def OUT_MSG(msg):
@@ -1324,7 +1324,9 @@ def getCompressedFileRootDir(src_file):
 	else:
 		f = zipfile.ZipFile(src_file, 'r')
 		namelist = f.namelist()
-
+	
+	f.close()
+	
 	return namelist[0]
 	
 def extract_file(src_file, extractPath = "./"):
@@ -1415,51 +1417,39 @@ def uninstall():
 	INFO_MSG("Uninstall KBEngine completed!")
 
 def processCommand():
-	shortargs = 'vheuir'  
-	longargs = ['install=', 'uninstall', 'version', 'evn', 'resetevn', 're', 'help']  
-
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs) 
-	except getopt.GetoptError: 
-		help() 
-		ERROR_MSG('argv is error! argv=%s' % (sys.argv[1:]))
-		return
-
-	if len(opts) == 0:
+	const_args = {
+		'uninstall'	: uninstall, 
+		'version'	: echoKBEVersion, 
+		'evn'		: echoKBEEnvironment, 
+		'resetevn'	: resetKBEEnvironment, 
+		'help'		: help
+	}
+	  
+	if len(sys.argv[1:]) == 0:
 		hello()
 		help() 
 		return
-
-	for o, a in opts: 
-		if o in ("-v", "--version"):  
-			echoKBEVersion()
-			sys.exit() 
-		elif o in ("-h", "--help"):  
-			hello()
-			help()  
-			sys.exit()  
-		elif o in ("-e", "--evn"):  
-			echoKBEEnvironment()
-			sys.exit() 
-		elif o in ("-r", "--resetevn"):  
-			resetKBEEnvironment()
-			sys.exit() 
-		elif o in ("-u", '--uninstall'):  
-			uninstall()
-			sys.exit() 
-		elif o in ("-i", "--install"):  
-			if a == "remotesrc":
+		
+	argv = sys.argv[1:][0]
+	func = const_args.get(argv)
+	if func:
+		func()
+		return
+	else:
+		if argv.startswith("install="):
+			argv = argv.replace("install=", "")
+			if argv == "remotesrc":
 				sourceinstall()
-			elif a == "remotebin":
+			elif argv == "remotebin":
 				binaryinstall()
-			elif os.path.isfile(a):
-				localfileinstall(a)
+			elif os.path.isfile(argv):
+				localfileinstall(argv)
 			else:
 				normalinstall()
 				
-			sys.exit() 
-		else:  
-			assert False, "unhandled option"  
+			return
+
+	help() 
  
 if __name__ == "__main__":
 	processCommand()
