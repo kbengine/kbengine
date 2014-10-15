@@ -1498,6 +1498,7 @@ def localfileinstall(file):
 	normalinstall()
 	
 def uninstall():
+	global KBE_ROOT
 	INFO_MSG("Uninstall KBEngine ...")
 	
 	if len(KBE_ROOT) > 0:
