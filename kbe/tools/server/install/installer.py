@@ -681,8 +681,8 @@ def findMysqlService():
 	if platform.system() == 'Windows':
 		ret, cret = syscommand('net start', True)
 	else:
-		ret, cret = syscommand('bash -c \'service --status-all\'', True)
-		
+		ret, cret = syscommand('bash -c \'service --status-all | grep \"mysql\"\'', True)
+
 	for s in ret:
 		if "mysql" in s.strip().lower():
 			if platform.system() != 'Windows':
@@ -690,7 +690,11 @@ def findMysqlService():
 					continue
 					
 			if len(mysql_sercive_name) == 0:
-				mysql_sercive_name = s.strip()
+				if "mysqld" in s:
+					mysql_sercive_name = "mysqld"
+				else:
+					mysql_sercive_name = "mysql"
+					
 				INFO_MSG("found mysql service[%s]" % mysql_sercive_name)
 				
 			return True
@@ -751,7 +755,8 @@ def modifyKBEConfig():
 	global kbe_res_path
 	
 	kbengine_defs = kbe_res_path + "server/kbengine_defs.xml"
-	print(kbengine_defs)
+	INFO_MSG("Modified: %s" % kbengine_defs)
+	
 	if not os.path.isfile(kbengine_defs):
 		ERROR_MSG("not found [%s], KBEngine is not installed?" % kbengine_defs)
 		ERROR_MSG("Please use the \'python installer.py --install=remotesrc\' or \'python installer.py --install=bin\'")
@@ -1529,6 +1534,7 @@ def processCommand():
 	
 			if argv == 'install':
 				normalinstall()
+				return
 			else:
 				if argv.startswith("install="):
 					argv = argv.replace("install=", "")
