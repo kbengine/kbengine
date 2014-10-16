@@ -153,9 +153,6 @@
     <ProjectReference Include="..\dependencies\apr-util\aprutil.vcxproj">
       <Project>{7cdbbfff-3b84-413e-ba1a-47cb8d454a46}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependencies\apr-util\xml\expat\lib\expat.vcxproj">
-      <Project>{7e8f0ca1-081e-42b2-94d9-74ae146a47af}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\dependencies\apr\apr.vcxproj">
       <Project>{c6c836e6-2899-458a-90ba-184192342d30}</Project>
     </ProjectReference>
