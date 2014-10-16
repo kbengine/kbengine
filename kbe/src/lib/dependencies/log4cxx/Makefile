@@ -8,3 +8,9 @@ config.status:  configure
 	$(SHELL) configure $(CONFIG_ARGS)
 	@make
 	@if ! test -e ../../../libs/liblog4cxx.a; then \cp -f "src/main/cpp/.libs/liblog4cxx.a" "../../../libs"; fi
+
+.PHONY: clean
+
+clean::
+	echo "clean"
+

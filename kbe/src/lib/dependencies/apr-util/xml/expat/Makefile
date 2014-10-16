@@ -8,3 +8,8 @@ config.status:  configure
 	$(SHELL) configure $(CONFIG_ARGS)
 	@make
 	@if ! test -e ../../../libs/libexpat.a; then \cp -f ".libs/libexpat.a" "../../../libs"; fi
+
+.PHONY: clean
+
+clean::
+	echo "clean"
