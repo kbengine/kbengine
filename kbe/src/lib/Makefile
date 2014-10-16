@@ -29,6 +29,7 @@ all install clean full:
 	cd dependencies/jwsmtp/jwsmtp/jwsmtp && $(MAKE) $@
 	cd dependencies/jemalloc && $(MAKE) $@
 	cd dependencies/apr && $(MAKE) $@
+	cd dependencies/apr-util/xml/expat && $(MAKE) $@
 	cd dependencies/apr-util && $(MAKE) $@
 	cd dependencies/log4cxx && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
