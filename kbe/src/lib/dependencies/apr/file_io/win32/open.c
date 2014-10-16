@@ -26,7 +26,7 @@
 #endif
 #include <winbase.h>
 #include <string.h>
-#if APR_HAVE_SYS_STAT_H
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
 #include "apr_arch_misc.h"

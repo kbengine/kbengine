@@ -1256,6 +1256,13 @@ APR_IFALLYES(header:os2.h,
 APR_IFALLYES(header:windows.h,
              [havewin32shm="1"
               APR_DECIDE(USE_SHMEM_WIN32, [Windows shared memory])])
+AC_ARG_ENABLE(posix-shm,
+[  --enable-posix-shm      Use POSIX shared memory (shm_open) if available],
+[
+if test "$havemmapshm" = "1"; then
+  APR_DECISION_OVERRIDE(USE_SHMEM_MMAP_SHM)
+fi
+])
 case $host in
     *linux* ) 
         # Linux pre-2.4 had problems with MM_SHMT_MMANON even though

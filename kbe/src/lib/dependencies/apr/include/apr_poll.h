@@ -42,7 +42,9 @@ extern "C" {
  */
 
 /**
- * Poll options
+ * @defgroup pollopts Poll options
+ * @ingroup apr_poll
+ * @{
  */
 #define APR_POLLIN    0x001     /**< Can read without blocking */
 #define APR_POLLPRI   0x002     /**< Priority data available */
@@ -50,9 +52,12 @@ extern "C" {
 #define APR_POLLERR   0x010     /**< Pending error */
 #define APR_POLLHUP   0x020     /**< Hangup occurred */
 #define APR_POLLNVAL  0x040     /**< Descriptor invalid */
+/** @} */
 
 /**
- * Pollset Flags
+ * @defgroup pollflags Pollset Flags
+ * @ingroup apr_poll
+ * @{
  */
 #define APR_POLLSET_THREADSAFE 0x001 /**< Adding or removing a descriptor is
                                       * thread-safe
@@ -67,6 +72,7 @@ extern "C" {
                                       * the specified non-default method cannot be
                                       * used
                                       */
+/** @} */
 
 /**
  * Pollset Methods

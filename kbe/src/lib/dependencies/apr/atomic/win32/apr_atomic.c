@@ -49,7 +49,7 @@ APR_DECLARE(apr_uint32_t) apr_atomic_add32(volatile apr_uint32_t *mem, apr_uint3
 #elif defined(__MINGW32__)
     return InterlockedExchangeAdd((long *)mem, val);
 #else
-	return InterlockedExchangeAdd(mem, val);
+    return ((apr_atomic_win32_ptr_val_fn)InterlockedExchangeAdd)(mem, val);
 #endif
 }
 
@@ -65,7 +65,7 @@ APR_DECLARE(void) apr_atomic_sub32(volatile apr_uint32_t *mem, apr_uint32_t val)
 #elif defined(__MINGW32__)
     InterlockedExchangeAdd((long *)mem, -val);
 #else
-	InterlockedExchangeAdd(mem, -val);
+    ((apr_atomic_win32_ptr_val_fn)InterlockedExchangeAdd)(mem, -val);
 #endif
 }
 
@@ -77,7 +77,7 @@ APR_DECLARE(apr_uint32_t) apr_atomic_inc32(volatile apr_uint32_t *mem)
 #elif defined(__MINGW32__)
     return InterlockedIncrement((long *)mem) - 1;
 #else
-	return InterlockedIncrement(mem) - 1;
+    return ((apr_atomic_win32_ptr_fn)InterlockedIncrement)(mem) - 1;
 #endif
 }
 
@@ -88,7 +88,7 @@ APR_DECLARE(int) apr_atomic_dec32(volatile apr_uint32_t *mem)
 #elif defined(__MINGW32__)
     return InterlockedDecrement((long *)mem);
 #else
-	return InterlockedDecrement(mem);
+    return ((apr_atomic_win32_ptr_fn)InterlockedDecrement)(mem);
 #endif
 }
 
@@ -99,7 +99,7 @@ APR_DECLARE(void) apr_atomic_set32(volatile apr_uint32_t *mem, apr_uint32_t val)
 #elif defined(__MINGW32__)
     InterlockedExchange((long*)mem, val);
 #else
-	InterlockedExchange(mem, val);
+    ((apr_atomic_win32_ptr_val_fn)InterlockedExchange)(mem, val);
 #endif
 }
 
@@ -116,7 +116,7 @@ APR_DECLARE(apr_uint32_t) apr_atomic_cas32(volatile apr_uint32_t *mem, apr_uint3
 #elif defined(__MINGW32__)
     return InterlockedCompareExchange((long*)mem, with, cmp);
 #else
-	return InterlockedCompareExchange(mem, with, cmp);
+    return ((apr_atomic_win32_ptr_val_val_fn)InterlockedCompareExchange)(mem, with, cmp);
 #endif
 }
 
@@ -128,7 +128,7 @@ APR_DECLARE(void *) apr_atomic_casptr(volatile void **mem, void *with, const voi
     return InterlockedCompareExchangePointer((void**)mem, with, (void*)cmp);
 #else
     /* Too many VC6 users have stale win32 API files, stub this */
-	return InterlockedCompareExchangePointer((void* volatile*)mem, with, (void*)cmp);
+    return ((apr_atomic_win32_ptr_ptr_ptr_fn)InterlockedCompareExchange)(mem, with, cmp);
 #endif
 }
 
@@ -139,7 +139,7 @@ APR_DECLARE(apr_uint32_t) apr_atomic_xchg32(volatile apr_uint32_t *mem, apr_uint
 #elif defined(__MINGW32__)
     return InterlockedExchange((long *)mem, val);
 #else
-	return InterlockedExchange(mem, val);
+    return ((apr_atomic_win32_ptr_val_fn)InterlockedExchange)(mem, val);
 #endif
 }
 
@@ -149,6 +149,6 @@ APR_DECLARE(void*) apr_atomic_xchgptr(volatile void **mem, void *with)
     return InterlockedExchangePointer((void**)mem, with);
 #else
     /* Too many VC6 users have stale win32 API files, stub this */
-	return InterlockedExchangePointer((void**)mem, with);
+    return ((apr_atomic_win32_ptr_ptr_fn)InterlockedExchange)(mem, with);
 #endif
 }

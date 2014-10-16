@@ -4,6 +4,8 @@ Status
 ------
 
 This build support is currently intended only for Microsoft Windows.
+Only Windows NT-based systems can be targeted.  (The traditional 
+Windows build support for APR can target Windows 9x as well.)
 
 This build support is experimental.  Specifically,
 

@@ -22,6 +22,7 @@
 #include "apr_errno.h"
 #include "apr_general.h"
 #include "apr_lib.h"
+#include "apr_thread_proc.h"
 #include "testutil.h"
 
 static void test_mkdir(abts_case *tc, void *data)
@@ -59,6 +60,73 @@ static void test_mkdir_recurs(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, APR_DIR, finfo.filetype);
 }
 
+struct thread_data
+{
+    abts_case *tc;
+    apr_pool_t *pool;
+};
+
+static void *APR_THREAD_FUNC thread_mkdir_func(apr_thread_t *thd, void *data)
+{
+    struct thread_data *td = data;
+    apr_status_t s1, s2, s3, s4, s5;
+
+    s1 = apr_dir_make_recursive("data/prll/one/thwo/three",
+                                APR_FPROT_UREAD | APR_FPROT_UWRITE | APR_FPROT_UEXECUTE,
+                                td->pool);
+    s2 = apr_dir_make_recursive("data/prll/four/five/six/seven/eight",
+                                APR_FPROT_UREAD | APR_FPROT_UWRITE | APR_FPROT_UEXECUTE,
+                                td->pool);
+    s3 = apr_dir_make_recursive("data/prll/nine/ten",
+                                APR_FPROT_UREAD | APR_FPROT_UWRITE | APR_FPROT_UEXECUTE,
+                                td->pool);
+    s4 = apr_dir_make_recursive("data/prll/11/12/13/14/15/16/17/18/19/20",
+                                APR_FPROT_UREAD | APR_FPROT_UWRITE | APR_FPROT_UEXECUTE,
+                                td->pool);
+    s5 = apr_dir_make_recursive("data/fortytwo",
+                                APR_FPROT_UREAD | APR_FPROT_UWRITE | APR_FPROT_UEXECUTE,
+                                td->pool);
+
+    ABTS_INT_EQUAL(td->tc, APR_SUCCESS, s1);
+    ABTS_INT_EQUAL(td->tc, APR_SUCCESS, s2);
+    ABTS_INT_EQUAL(td->tc, APR_SUCCESS, s3);
+    ABTS_INT_EQUAL(td->tc, APR_SUCCESS, s4);
+    ABTS_INT_EQUAL(td->tc, APR_SUCCESS, s5);
+    return NULL;
+}
+
+static void test_mkdir_recurs_parallel(abts_case *tc, void *data)
+{
+    struct thread_data td1, td2, td3, td4;
+    apr_thread_t *t1, *t2, *t3, *t4;
+    apr_status_t s1, s2, s3, s4;
+
+    td1.tc = td2.tc = td3.tc = td4.tc = tc;
+    apr_pool_create(&td1.pool, p);
+    apr_pool_create(&td2.pool, p);
+    apr_pool_create(&td3.pool, p);
+    apr_pool_create(&td4.pool, p);
+
+    s1 = apr_thread_create(&t1, NULL, thread_mkdir_func, &td1, td1.pool);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s1);
+    s2 = apr_thread_create(&t2, NULL, thread_mkdir_func, &td2, td2.pool);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s2);
+    s3 = apr_thread_create(&t3, NULL, thread_mkdir_func, &td3, td3.pool);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s3);
+    s4 = apr_thread_create(&t4, NULL, thread_mkdir_func, &td4, td4.pool);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s4);
+
+    apr_thread_join(&s1, t1);
+    apr_thread_join(&s2, t2);
+    apr_thread_join(&s3, t3);
+    apr_thread_join(&s4, t4);
+
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s1);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s2);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s3);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, s4);
+}
+
 static void test_remove(abts_case *tc, void *data)
 {
     apr_status_t rv;
@@ -90,6 +158,72 @@ static void test_removeall(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 
     rv = apr_dir_remove("data/one", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/one/thwo/three", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/one/thwo", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/one", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/four/five/six/seven/eight", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/four/five/six/seven", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/four/five/six", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/four/five", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/four", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/nine/ten", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/nine", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15/16/17/18/19/20", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15/16/17/18/19", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15/16/17/18", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15/16/17", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15/16", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14/15", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13/14", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12/13", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11/12", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll/11", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/prll", p);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
+
+    rv = apr_dir_remove("data/fortytwo", p);
     ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 }
 
@@ -245,6 +379,7 @@ abts_suite *testdir(abts_suite *suite)
 
     abts_run_test(suite, test_mkdir, NULL);
     abts_run_test(suite, test_mkdir_recurs, NULL);
+    abts_run_test(suite, test_mkdir_recurs_parallel, NULL);
     abts_run_test(suite, test_remove, NULL);
     abts_run_test(suite, test_removeall_fail, NULL);
     abts_run_test(suite, test_removeall, NULL);

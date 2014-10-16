@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include"
+				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;Py_NO_ENABLE_SHARED;USE_PYTHON;_DEBUG;KBE_USE_ASSERTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -135,7 +135,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include"
+				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;NDEBUG;Py_NO_ENABLE_SHARED;USE_PYTHON;KBE_USE_ASSERTS"
 				MinimalRebuild="false"
 				RuntimeLibrary="0"

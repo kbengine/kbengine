@@ -1,4 +1,45 @@
                                                      -*- coding: utf-8 -*-
+Changes for APR 1.5.1
+
+  *) apr_os_proc_mutex_get() on Unix:  Avoid segfault for cross-
+     process pthread mutexes.  [Yann Ylavic <ylavic.dev gmail.com>]
+
+  *) When using shmget-based shared memory, the ID used for ftok is
+     now an APR hash of the filename instead of the constant '1'.
+     We do this to help avoid collisions. PR 53996 [Jim Jagielski]
+
+  *) apr_socket_atreadeof(): Fix breakage on OS X. [Jim Jagielski]
+
+  *) Fix POSIX shared memory (shm_open) use for named shared memory.
+     Includes adding '--enable-posix-shm' to force POSIX shm if
+     available, and OS X compatibility. PR 55928.
+     [Jozef Hatala <jh-asf skrt org>, Jim Jagielski]
+
+  *) Fix race condition when calling apr_dir_make_recursive from
+     multiple threads on Windows.
+     [Bert Huijben]
+
+  *) Fix apr_escape.c compilation errors on EBCDIC platforms.
+     [Eric Covener]
+
+  *) FreeBSD 10: Correct a regression in 1.5.0 which affected non-
+     blocking sockets in some applications, including httpd.  [Jeff
+     Trawick]
+
+  *) Windows cmake build: Fix incorrect installation of some .pdb
+     files.  Fix incorrect use of some logic intended for Windows 9x,
+     including legacy filesystem interfaces and dynamic loading of
+     some Windows APIs.  [Jeff Trawick]
+
+  *) apr_skiplist: Add compatibility with C++ applications.
+     [Jeff Trawick]
+
+  *) Correct a regression in 1.5.0 which affected out-of-tree
+     builds on Unix.  [Rainer Jung]
+
+  *) Improve platform detection for bundled expat by updating
+     config.guess and config.sub. [Rainer Jung]
+
 Changes for APR 1.5.0
 
   *) Fix Linux kernel version check to recognize more versions,
@@ -9,7 +50,7 @@ Changes for APR 1.5.0
      refers to the wildcard address for the protocol family (e.g.,
      0.0.0.0/INADDR_ANY for IPv4).  [Jeff Trawick]
 
-  *) apr_file_dup2() on Windows: Fix debug RTL assertion in when 
+  *) apr_file_dup2() on Windows: Fix debug RTL assertion when 
      attempting to _commit(stdout) or _commit(stderr).  [Mike Rumph
      <mike.rumph oracle.com>]
 

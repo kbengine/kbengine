@@ -19,6 +19,7 @@
 #include <log4cxx/helpers/socketoutputstream.h>
 #include <log4cxx/helpers/socket.h>
 #include <log4cxx/helpers/bytebuffer.h>
+#include <string.h>
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;

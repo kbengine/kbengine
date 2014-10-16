@@ -93,7 +93,7 @@ random/unix/sha2_glue.lo: random/unix/sha2_glue.c .make.dirs include/apr_allocat
 
 OBJECTS_random_unix = random/unix/apr_random.lo random/unix/sha2.lo random/unix/sha2_glue.lo
 
-shmem/unix/shm.lo: shmem/unix/shm.c .make.dirs include/apr_allocator.h include/apr_errno.h include/apr_general.h include/apr_pools.h include/apr_strings.h include/apr_thread_mutex.h include/apr_user.h include/apr_want.h
+shmem/unix/shm.lo: shmem/unix/shm.c .make.dirs include/apr_allocator.h include/apr_errno.h include/apr_general.h include/apr_hash.h include/apr_pools.h include/apr_strings.h include/apr_thread_mutex.h include/apr_user.h include/apr_want.h
 
 OBJECTS_shmem_unix = shmem/unix/shm.lo
 

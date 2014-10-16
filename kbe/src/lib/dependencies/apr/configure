@@ -920,6 +920,7 @@ enable_lfs
 enable_nonportable_atomics
 enable_threads
 with_efence
+enable_posix_shm
 with_sendfile
 enable_allocator_uses_mmap
 enable_dso
@@ -1564,6 +1565,7 @@ Optional Features:
   --disable-lfs           Disable large file support on 32-bit platforms
   --enable-nonportable-atomics  Use optimized atomic code which may produce nonportable binaries
   --enable-threads        Enable threading support in APR.
+  --enable-posix-shm      Use POSIX shared memory (shm_open) if available
   --enable-allocator-uses-mmap    Use mmap in apr_allocator instead of malloc
   --disable-dso           Disable DSO support
   --enable-other-child    Enable reliable child processes
@@ -21569,6 +21571,23 @@ ac_decision_USE_SHMEM_WIN32_msg='Windows shared memory'
 
 else
     :
+
+fi
+
+# Check whether --enable-posix-shm was given.
+if test "${enable_posix_shm+set}" = set; then :
+  enableval=$enable_posix_shm;
+if test "$havemmapshm" = "1"; then
+      ac_decision=''
+    for ac_item in USE_SHMEM_MMAP_SHM; do
+         eval "ac_decision_this=\$ac_decision_${ac_item}"
+         if test ".$ac_decision_this" = .yes; then
+             ac_decision=$ac_item
+             eval "ac_decision_msg=\$ac_decision_${ac_item}_msg"
+         fi
+    done
+
+fi
 
 fi
 
