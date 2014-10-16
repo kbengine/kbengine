@@ -25,6 +25,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 
+#ifdef USE_JEMALLOC
+#include "jemalloc/jemalloc.h"
+#endif
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG
 //#include "vld/vld.h"
