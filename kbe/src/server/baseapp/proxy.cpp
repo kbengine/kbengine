@@ -344,8 +344,8 @@ void Proxy::giveClientTo(Proxy* proxy)
 		Py_DECREF(clientMailbox());
 		proxy->setClientType(this->getClientType());
 		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
-		proxy->onGiveClientTo(lpChannel);
 		clientMailbox(NULL);
+		proxy->onGiveClientTo(lpChannel);
 		addr(Mercury::Address::NONE);
 		
 		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
