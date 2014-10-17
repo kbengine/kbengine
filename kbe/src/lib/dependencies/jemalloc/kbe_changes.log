@@ -2,11 +2,12 @@ Makefile.in:
 1:
 	LIB =	jemalloc
 	CONFIG_ARGS =
+	#CONFIG_ARGS =--enable-debug --enable-prof --disable-optimize --enable-valgrind
 
-	LIBDIR := $(KBE_ROOT)/kbe/src/libs
 	ifndef KBE_ROOT
 	export KBE_ROOT := $(subst /kbe/src/lib/dependencies/$(LIB),,$(CURDIR))
 	endif
+	LIBDIR := $(KBE_ROOT)/kbe/src/libs
 
 	srcroot := 
 	objroot := 
