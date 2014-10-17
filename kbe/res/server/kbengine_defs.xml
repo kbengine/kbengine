@@ -725,39 +725,4 @@
 		-->
 		<tick_sync_logs> 32 </tick_sync_logs>
 	</messagelog>
-	
-	<resourcemgr>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
-		-->
-		<internalInterface>  </internalInterface>
-		
-		<downloadStreaming>
-			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
-			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
-		</downloadStreaming>
-		
-		<!-- listen监听队列最大值
-		    (listen: Maximum listen queue)
-		 -->
-		<SOMAXCONN> 128 </SOMAXCONN>
-		
-		<respool>
-			<!-- 缓冲区大小也等于资源大小， 在这个KB大小范围以内的资源才可以进入资源池 
-				(Buffer size is equal to the size of resources, 
-				Less than the buffer resources before they can enter the resource pool)
-			-->
-			<buffer_size> 1024 </buffer_size>
-			
-			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) 
-			(Resources have not been accessed overtime will be destroyed (s))
-			-->
-			<timeout> 600 </timeout>
-			
-			<!-- 资源池检查tick(秒) 
-				(Resource pool check tick (secs))
-			-->
-			<checktick>60</checktick>
-		</respool>
-	</resourcemgr>
 </root>
