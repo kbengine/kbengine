@@ -245,6 +245,15 @@ CPPFLAGS += -DUSE_JEMALLOC
 LDLIBS += -ltinyxml
 LDLIBS += -ljsoncpp
 
+ifneq (,$(findstring 64,$(KBE_CONFIG)))
+	x86_64=1
+	OPENSSL_CONFIG="x86_64=1"
+	ARCHFLAGS=-m64 -fPIC
+else
+	OPENSSL_CONFIG=
+	ARCHFLAGS=-m32
+endif
+
 # Use backwards compatible hash table style. This is because Fedora Core 6
 # defaults to using "gnu" style hash tables which produces incompatible
 # binaries with FC5 and before.
