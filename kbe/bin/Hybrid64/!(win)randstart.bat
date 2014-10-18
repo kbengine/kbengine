@@ -6,6 +6,8 @@ if defined KBE_HYBRID_PATH (echo %KBE_HYBRID_PATH%) else set KBE_HYBRID_PATH=%KB
 
 set uid=%random%%%32760+1
 
+call "!(win)kill.bat"
+
 start kbmachine.exe
 #ping 127.0.0.1 -n 1
 start billingsystem.exe

@@ -1,11 +1,11 @@
-taskkill /f /t /im kbmachine.exe
-taskkill /f /t /im messagelog.exe
-taskkill /f /t /im resourcemgr.exe
-taskkill /f /t /im dbmgr.exe
-taskkill /f /t /im baseappmgr.exe
-taskkill /f /t /im cellappmgr.exe
-taskkill /f /t /im baseapp.exe
-taskkill /f /t /im cellapp.exe
-taskkill /f /t /im loginapp.exe
-taskkill /f /t /im billingsystem.exe
-taskkill /f /t /im bots.exe
+taskkill /f /t /im kbmachine.exe > nul 2> nul 
+taskkill /f /t /im messagelog.exe > nul 2> nul 
+taskkill /f /t /im resourcemgr.exe > nul 2> nul 
+taskkill /f /t /im dbmgr.exe > nul 2> nul 
+taskkill /f /t /im baseappmgr.exe > nul 2> nul 
+taskkill /f /t /im cellappmgr.exe > nul 2> nul 
+taskkill /f /t /im baseapp.exe > nul 2> nul 
+taskkill /f /t /im cellapp.exe > nul 2> nul 
+taskkill /f /t /im loginapp.exe > nul 2> nul 
+taskkill /f /t /im billingsystem.exe > nul 2> nul 
+taskkill /f /t /im bots.exe > nul 2> nul 

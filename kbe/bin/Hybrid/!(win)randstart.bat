@@ -5,6 +5,7 @@ if defined KBE_RES_PATH (echo %KBE_RES_PATH%) else set KBE_RES_PATH=%KBE_ROOT%kb
 if defined KBE_HYBRID_PATH (echo %KBE_HYBRID_PATH%) else set KBE_HYBRID_PATH=%KBE_ROOT%kbe/bin/Hybrid/
 
 set uid=%random%%%32760+1
+call "!(win)kill.bat"
 
 start kbmachine.exe
 #ping 127.0.0.1 -n 1
