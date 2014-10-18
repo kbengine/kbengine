@@ -25,18 +25,8 @@ Makefile.pre.in
 	1: all: -> all::
 	2: install: -> install::
 	3: clean: -> clean::
-	4: # Build static library
-		$(KBE_PYTHONLIB): $(LIBRARY_OBJS)
-			-rm -f $@
-			$(AR) $(ARFLAGS) $@ Modules/getbuildinfo.o
-			$(AR) $(ARFLAGS) $@ $(PARSER_OBJS)
-			$(AR) $(ARFLAGS) $@ $(OBJECT_OBJS)
-			$(AR) $(ARFLAGS) $@ $(PYTHON_OBJS) Python/frozen.o         // !!!!!!!!!!added (Python/frozen.o)
-			$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
-			$(AR) $(ARFLAGS) $@ $(MODOBJS)
-			$(RANLIB) $@
 
-	5: 
+	4: 
 	ifndef KBE_ROOT
 	export KBE_ROOT := $(subst /kbe/src/lib/python,,$(CURDIR))
 	endif
@@ -46,6 +36,15 @@ Makefile.pre.in
 	KBELIBDIR = $(KBE_ROOT)/kbe/src/libs
 	KBE_PYTHONLIB = $(KBELIBDIR)/lib$(PYTHONLIB).a
 
+	LIBRARY=	KBE_PYTHONLIB
+	LDLIBRARY=      KBE_PYTHONLIB
+
+	5:
+	$(LIBRARY): $(LIBRARY_OBJS)
+	        ...
+		...
+	        @rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload				!!! added
+	        @cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"			!!! added
 
 setup.py
         search_for_ssl_incs_in = [

@@ -201,8 +201,8 @@ DISTDIRS=	$(SUBDIRS) $(SUBDIRSTOO) Ext-dummy
 DIST=		$(DISTFILES) $(DISTDIRS)
 
 
-LIBRARY=	libpython$(VERSION)$(ABIFLAGS).a
-LDLIBRARY=      libpython$(VERSION)$(ABIFLAGS).a
+LIBRARY=	KBE_PYTHONLIB
+LDLIBRARY=      KBE_PYTHONLIB
 BLDLIBRARY=     $(LDLIBRARY)
 PY3LIBRARY=     
 DLLLIBRARY=	
@@ -595,16 +595,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt
 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
 
-# Build static library
-$(KBE_PYTHONLIB): $(LIBRARY_OBJS)
-	-rm -f $@
-	$(AR) $(ARFLAGS) $@ Modules/getbuildinfo.o
-	$(AR) $(ARFLAGS) $@ $(PARSER_OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJECT_OBJS)
-	$(AR) $(ARFLAGS) $@ $(PYTHON_OBJS) Python/frozen.o
-	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
-	$(AR) $(ARFLAGS) $@ $(MODOBJS)
-	$(RANLIB) $@
 
 # avoid long command lines, same as LIBRARY_OBJS
 $(LIBRARY): $(LIBRARY_OBJS)
@@ -616,6 +606,8 @@ $(LIBRARY): $(LIBRARY_OBJS)
 	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
 	$(AR) $(ARFLAGS) $@ $(MODOBJS)
 	$(RANLIB) $@
+	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
+	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 
 libpython$(LDVERSION).so: $(LIBRARY_OBJS)
 	if test $(INSTSONAME) != $(LDLIBRARY); then \
