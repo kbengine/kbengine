@@ -488,6 +488,8 @@ LIBRARY_OBJS=	\
 # Default target
 all::		build_all
 build_all:	$(BUILDPYTHON) oldsharedmods sharedmods gdbhooks Modules/_testembed python-config
+		@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
+		@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 
 # Compile a binary with gcc profile guided optimization.
 profile-opt:
@@ -606,8 +608,6 @@ $(LIBRARY): $(LIBRARY_OBJS)
 	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
 	$(AR) $(ARFLAGS) $@ $(MODOBJS)
 	$(RANLIB) $@
-	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
-	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 
 libpython$(LDVERSION).so: $(LIBRARY_OBJS)
 	if test $(INSTSONAME) != $(LDLIBRARY); then \

@@ -40,11 +40,9 @@ Makefile.pre.in
 	LDLIBRARY=      KBE_PYTHONLIB
 
 	5:
-	$(LIBRARY): $(LIBRARY_OBJS)
-	        ...
-		...
-	        @rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload				!!! added
-	        @cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"			!!! added
+	build_all:	$(BUILDPYTHON) oldsharedmods sharedmods gdbhooks Modules/_testembed python-config
+		        @rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload				!!! added
+		        @cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"			!!! added
 
 setup.py
         search_for_ssl_incs_in = [

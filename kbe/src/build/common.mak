@@ -153,33 +153,10 @@ CPPFLAGS += -DENABLE_WATCHERS
 endif
 
 ifdef USE_PYTHON
-
- USE_KBE_PYTHON = 1
-
- # If empty string != SystemPython
- ifneq (,$(findstring SystemPython, $(KBE_CONFIG)))
-	USE_KBE_PYTHON = 0
- endif
-
- # If empty string != SingleThreaded
- ifneq (,$(findstring SingleThreaded, $(KBE_CONFIG)))
-	USE_KBE_PYTHON = 1
-	KBE_STANDARD_PYTHON = 1
-	# These flags are defined so that any kbengine library that includes
-	# the Python headers will work correctly. The src/lib/python Makefile
-	# has its own definition of these if it needs to build the same way.
-	CPPFLAGS+=-DKBE_DONT_WRAP_MALLOC -DKBE_PY_NO_RES_FS
- endif
- 
-
- USE_KBE_PYTHON = 1
-
- # This is the version of python kbengine is redistributing
- KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
- KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python
- LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
-
-
+USE_KBE_PYTHON = 1
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python
+LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
 endif # USE_PYTHON
 
 ifdef USE_MYSQL
@@ -267,18 +244,6 @@ CPPFLAGS += -DUSE_JEMALLOC
 
 LDLIBS += -ltinyxml
 LDLIBS += -ljsoncpp
-
-ifneq (,$(findstring 64,$(KBE_CONFIG)))
-	x86_64=1
-	OPENSSL_CONFIG="x86_64=1"
-	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m64 -fPIC"
-	ARCHFLAGS=-m64 -fPIC
-else
-	OPENSSL_CONFIG=
-	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m32"
-	ARCHFLAGS=-m32
-endif
-
 
 # Use backwards compatible hash table style. This is because Fedora Core 6
 # defaults to using "gnu" style hash tables which produces incompatible
@@ -471,18 +436,6 @@ MY_LIBNAMES = $(foreach L, $(MY_LIBS), $(LIBDIR)/lib$(L).a)
 .PHONY: always
 
 KBE_PYTHONLIB=$(LIBDIR)/lib$(PYTHONLIB).a
-
-ifdef USE_KBE_PYTHON
-$(KBE_PYTHONLIB): always
-	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python $(LIBDIR)/lib$(PYTHONLIB).a \
-		"KBE_STANDARD_PYTHON=$(KBE_STANDARD_PYTHON)" \
-		"KBE_CONFIG=$(KBE_CONFIG)" \
-		$(PYTHON_EXTRA_CFLAGS) 
-	
-	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python
-	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
-	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.4" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
-endif
 
 ifeq ($(USE_OPENSSL),1)
 $(LIBDIR)/libcrypto.a: always
