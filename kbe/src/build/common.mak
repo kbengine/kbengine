@@ -26,7 +26,16 @@ endif
 export BUILDING_KBENGINE=1
 
 
-ifeq (,$(findstring $(KBE_CONFIG), Release Hybrid Debug Evaluation ))
+ifeq (,$(findstring $(KBE_CONFIG), Release Hybrid Debug Evaluation \
+	Debug_SingleThreaded \
+	Hybrid_SingleThreaded \
+	Hybrid64 Hybrid64_SingleThreaded \
+	Hybrid_SystemPython Hybrid64_SystemPython \
+	Debug_SystemPython Debug64_SystemPython \
+	Release_SingleThreaded  \
+	Debug64 Debug64_SingleThreaded \
+	Debug64_GCOV Debug64_GCOV_SingleThreaded Debug64_GCOV_SystemPython \
+	Debug_GCOV Debug_GCOV_SingleThreaded Debug_GCOV_SystemPython ))
 all:: 
 	@echo Error - Unknown configuration type $(KBE_CONFIG)
 	@false
