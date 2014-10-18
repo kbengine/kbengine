@@ -165,7 +165,7 @@ and (read-only) attributes:
    data written is always equal to the amount of data supplied.
 
 .. versionchanged:: 3.2
-   Audio device objects also support the context manager protocol, i.e. they can
+   Audio device objects also support the context management protocol, i.e. they can
    be used in a :keyword:`with` statement.
 
 
@@ -357,7 +357,7 @@ The mixer object provides two file-like methods:
    Returns the file handle number of the open mixer device file.
 
 .. versionchanged:: 3.2
-   Mixer objects also support the context manager protocol.
+   Mixer objects also support the context management protocol.
 
 
 The remaining methods are specific to audio mixing:
@@ -407,7 +407,7 @@ The remaining methods are specific to audio mixing:
    (silent) to 100 (full volume).  If the control is monophonic, a 2-tuple is still
    returned, but both volumes are the same.
 
-   Raises :exc:`OSSAudioError` if an invalid control was is specified, or
+   Raises :exc:`OSSAudioError` if an invalid control is specified, or
    :exc:`OSError` if an unsupported control is specified.
 
 

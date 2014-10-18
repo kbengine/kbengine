@@ -460,7 +460,7 @@ PyImport_Cleanup(void)
     while (PyDict_Next(modules, &pos, &key, &value)) {
         if (PyModule_Check(value)) {
             if (Py_VerboseFlag && PyUnicode_Check(key))
-                PySys_FormatStderr("# cleanup[2] removing %U\n", key, value);
+                PySys_FormatStderr("# cleanup[2] removing %U\n", key);
             STORE_MODULE_WEAKREF(key, value);
             PyDict_SetItem(modules, key, Py_None);
         }
@@ -904,6 +904,7 @@ PyImport_ExecCodeModuleObject(PyObject *name, PyObject *co, PyObject *pathname,
                                         &PyId__fix_up_module,
                                         d, name, pathname, cpathname, NULL);
     if (res != NULL) {
+        Py_DECREF(res);
         res = exec_code_in_module(name, d, co);
     }
     return res;

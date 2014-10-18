@@ -1,20 +1,27 @@
 .. currentmodule:: asyncio
 
+.. _asyncio-subprocess:
+
 Subprocess
 ==========
 
-Operating system support
-------------------------
+Windows event loop
+------------------
 
-On Windows, the default event loop uses :class:`selectors.SelectSelector`
-which only supports sockets. The :class:`ProactorEventLoop` should be used to
-support subprocesses. However, the latter does not support SSL.
+On Windows, the default event loop is :class:`SelectorEventLoop` which does not
+support subprocesses. :class:`ProactorEventLoop` should be used instead.
+Example to use it on Windows::
 
-On Mac OS X older than 10.9 (Mavericks), :class:`selectors.KqueueSelector`
-does not support character devices like PTY, whereas it is used by the
-default event loop. The :class:`SelectorEventLoop` can be used with
-:class:`SelectSelector` or :class:`PollSelector` to handle character
-devices on Mac OS X 10.6 (Snow Leopard) and later.
+    import asyncio, os
+
+    if os.name == 'nt':
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+
+.. seealso::
+
+   :ref:`Available event loops <asyncio-event-loops>` and :ref:`Platform
+   support <asyncio-platform-support>`.
 
 
 Create a subprocess: high-level API using Process
@@ -22,8 +29,8 @@ Create a subprocess: high-level API using Process
 
 .. function:: create_subprocess_shell(cmd, stdin=None, stdout=None, stderr=None, loop=None, limit=None, \*\*kwds)
 
-   Run the shell command *cmd* given as a string. Return a :class:`~asyncio.subprocess.Process`
-   instance.
+   Run the shell command *cmd*. See :meth:`BaseEventLoop.subprocess_shell` for
+   parameters. Return a :class:`~asyncio.subprocess.Process` instance.
 
    The optional *limit* parameter sets the buffer limit passed to the
    :class:`StreamReader`.
@@ -32,7 +39,8 @@ Create a subprocess: high-level API using Process
 
 .. function:: create_subprocess_exec(\*args, stdin=None, stdout=None, stderr=None, loop=None, limit=None, \*\*kwds)
 
-   Create a subprocess. Return a :class:`~asyncio.subprocess.Process` instance.
+   Create a subprocess. See :meth:`BaseEventLoop.subprocess_exec` for
+   parameters. Return a :class:`~asyncio.subprocess.Process` instance.
 
    The optional *limit* parameter sets the buffer limit passed to the
    :class:`StreamReader`.
@@ -50,7 +58,9 @@ Run subprocesses asynchronously using the :mod:`subprocess` module.
 
 .. method:: BaseEventLoop.subprocess_exec(protocol_factory, \*args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, \*\*kwargs)
 
-   Create a subprocess from one or more string arguments, where the first string
+   Create a subprocess from one or more string arguments (character strings or
+   bytes strings encoded to the :ref:`filesystem encoding
+   <filesystem-encoding>`), where the first string
    specifies the program to execute, and the remaining strings specify the
    program's arguments. (Thus, together the string arguments form the
    ``sys.argv`` value of the program, assuming it is a Python script.) This is
@@ -94,8 +104,9 @@ Run subprocesses asynchronously using the :mod:`subprocess` module.
 
 .. method:: BaseEventLoop.subprocess_shell(protocol_factory, cmd, \*, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, \*\*kwargs)
 
-   Create a subprocess from *cmd*, which is a string using the platform's
-   "shell" syntax. This is similar to the standard library
+   Create a subprocess from *cmd*, which is a character string or a bytes
+   string encoded to the :ref:`filesystem encoding <filesystem-encoding>`,
+   using the platform's "shell" syntax. This is similar to the standard library
    :class:`subprocess.Popen` class called with ``shell=True``.
 
    See :meth:`~BaseEventLoop.subprocess_exec` for more details about
@@ -180,6 +191,10 @@ Process
       process, or ``None``, if no data should be sent to the child.  The type
       of *input* must be bytes.
 
+      If a :exc:`BrokenPipeError` or :exc:`ConnectionResetError` exception is
+      raised when writing *input* into stdin, the exception is ignored. It
+      occurs when the process exits before all data are written into stdin.
+
       :meth:`communicate` returns a tuple ``(stdoutdata, stderrdata)``.
 
       Note that if you want to send data to the process's stdin, you need to
@@ -193,6 +208,10 @@ Process
          data size is large or unlimited.
 
       This method is a :ref:`coroutine <coroutine>`.
+
+      .. versionchanged:: 3.4.2
+         The method now ignores :exc:`BrokenPipeError` and
+         :exc:`ConnectionResetError`.
 
    .. method:: kill()
 

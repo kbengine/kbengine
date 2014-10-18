@@ -34,27 +34,25 @@ Stream functions
 
 .. function:: start_server(client_connected_cb, host=None, port=None, \*, loop=None, limit=None, **kwds)
 
-   Start a socket server, with a callback for each client connected.
+   Start a socket server, with a callback for each client connected. The return
+   value is the same as :meth:`~BaseEventLoop.create_server()`.
 
-   The first parameter, *client_connected_cb*, takes two parameters:
+   The *client_connected_cb* parameter is called with two parameters:
    *client_reader*, *client_writer*.  *client_reader* is a
    :class:`StreamReader` object, while *client_writer* is a
-   :class:`StreamWriter` object.  This parameter can either be a plain callback
-   function or a :ref:`coroutine function <coroutine>`; if it is a coroutine
-   function, it will be automatically converted into a :class:`Task`.
+   :class:`StreamWriter` object.  The *client_connected_cb* parameter can
+   either be a plain callback function or a :ref:`coroutine function
+   <coroutine>`; if it is a coroutine function, it will be automatically
+   converted into a :class:`Task`.
 
    The rest of the arguments are all the usual arguments to
    :meth:`~BaseEventLoop.create_server()` except *protocol_factory*; most
-   common are positional host and port, with various optional keyword arguments
-   following.  The return value is the same as
-   :meth:`~BaseEventLoop.create_server()`.
+   common are positional *host* and *port*, with various optional keyword
+   arguments following.
 
    Additional optional keyword arguments are *loop* (to set the event loop
    instance to use) and *limit* (to set the buffer limit passed to the
    :class:`StreamReader`).
-
-   The return value is the same as :meth:`~BaseEventLoop.create_server()`, i.e.
-   a :class:`AbstractServer` object which can be used to stop the service.
 
    This function is a :ref:`coroutine <coroutine>`.
 
@@ -174,17 +172,16 @@ StreamWriter
 
       Wait until the write buffer of the underlying transport is flushed.
 
-      This method has an unusual return value. The intended use is to write::
+      The intended use is to write::
 
           w.write(data)
           yield from w.drain()
 
-      When there's nothing to wait for, :meth:`drain()` returns ``()``, and the
-      yield-from continues immediately.  When the transport buffer is full (the
-      protocol is paused), :meth:`drain` creates and returns a
-      :class:`Future` and the yield-from will block until
-      that Future is completed, which will happen when the buffer is
-      (partially) drained and the protocol is resumed.
+      When the transport buffer is full (the protocol is paused), block until
+      the buffer is (partially) drained and the protocol is resumed. When there
+      is nothing to wait for, the yield-from continues immediately.
+
+      This method is a :ref:`coroutine <coroutine>`.
 
    .. method:: get_extra_info(name, default=None)
 

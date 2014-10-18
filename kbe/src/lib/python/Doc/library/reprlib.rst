@@ -49,8 +49,8 @@ string instead.
 
         >>> class MyList(list):
         ...     @recursive_repr()
-        ...      def __repr__(self):
-        ...          return '<' + '|'.join(map(repr, self)) + '>'
+        ...     def __repr__(self):
+        ...         return '<' + '|'.join(map(repr, self)) + '>'
         ...
         >>> m = MyList('abc')
         >>> m.append(m)
@@ -129,9 +129,9 @@ which format specific object types.
 
    Formatting methods for specific types are implemented as methods with a name
    based on the type name.  In the method name, **TYPE** is replaced by
-   ``string.join(string.split(type(obj).__name__, '_'))``. Dispatch to these
-   methods is handled by :meth:`repr1`. Type-specific methods which need to
-   recursively format a value should call ``self.repr1(subobj, level - 1)``.
+   ``'_'.join(type(obj).__name__.split())``. Dispatch to these methods is
+   handled by :meth:`repr1`. Type-specific methods which need to recursively
+   format a value should call ``self.repr1(subobj, level - 1)``.
 
 
 .. _subclassing-reprs:

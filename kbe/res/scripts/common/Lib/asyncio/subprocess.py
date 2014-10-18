@@ -8,6 +8,8 @@ from . import futures
 from . import protocols
 from . import streams
 from . import tasks
+from .coroutines import coroutine
+from .log import logger
 
 
 PIPE = subprocess.PIPE
@@ -26,6 +28,16 @@ class SubprocessStreamProtocol(streams.FlowControlMixin,
         self.waiter = futures.Future(loop=loop)
         self._waiters = collections.deque()
         self._transport = None
+
+    def __repr__(self):
+        info = [self.__class__.__name__]
+        if self.stdin is not None:
+            info.append('stdin=%r' % self.stdin)
+        if self.stdout is not None:
+            info.append('stdout=%r' % self.stdout)
+        if self.stderr is not None:
+            info.append('stderr=%r' % self.stderr)
+        return '<%s>' % ' '.join(info)
 
     def connection_made(self, transport):
         self._transport = transport
@@ -90,11 +102,14 @@ class Process:
         self.stderr = protocol.stderr
         self.pid = transport.get_pid()
 
+    def __repr__(self):
+        return '<%s %s>' % (self.__class__.__name__, self.pid)
+
     @property
     def returncode(self):
         return self._transport.get_returncode()
 
-    @tasks.coroutine
+    @coroutine
     def wait(self):
         """Wait until the process exit and return the process return code."""
         returncode = self._transport.get_returncode()
@@ -122,17 +137,29 @@ class Process:
         self._check_alive()
         self._transport.kill()
 
-    @tasks.coroutine
+    @coroutine
     def _feed_stdin(self, input):
+        debug = self._loop.get_debug()
         self.stdin.write(input)
-        yield from self.stdin.drain()
+        if debug:
+            logger.debug('%r communicate: feed stdin (%s bytes)',
+                        self, len(input))
+        try:
+            yield from self.stdin.drain()
+        except (BrokenPipeError, ConnectionResetError) as exc:
+            # communicate() ignores BrokenPipeError and ConnectionResetError
+            if debug:
+                logger.debug('%r communicate: stdin got %r', self, exc)
+
+        if debug:
+            logger.debug('%r communicate: close stdin', self)
         self.stdin.close()
 
-    @tasks.coroutine
+    @coroutine
     def _noop(self):
         return None
 
-    @tasks.coroutine
+    @coroutine
     def _read_stream(self, fd):
         transport = self._transport.get_pipe_transport(fd)
         if fd == 2:
@@ -140,11 +167,17 @@ class Process:
         else:
             assert fd == 1
             stream = self.stdout
+        if self._loop.get_debug():
+            name = 'stdout' if fd == 1 else 'stderr'
+            logger.debug('%r communicate: read %s', self, name)
         output = yield from stream.read()
+        if self._loop.get_debug():
+            name = 'stdout' if fd == 1 else 'stderr'
+            logger.debug('%r communicate: close %s', self, name)
         transport.close()
         return output
 
-    @tasks.coroutine
+    @coroutine
     def communicate(self, input=None):
         if input:
             stdin = self._feed_stdin(input)
@@ -164,7 +197,7 @@ class Process:
         return (stdout, stderr)
 
 
-@tasks.coroutine
+@coroutine
 def create_subprocess_shell(cmd, stdin=None, stdout=None, stderr=None,
                             loop=None, limit=streams._DEFAULT_LIMIT, **kwds):
     if loop is None:
@@ -178,7 +211,7 @@ def create_subprocess_shell(cmd, stdin=None, stdout=None, stderr=None,
     yield from protocol.waiter
     return Process(transport, protocol, loop)
 
-@tasks.coroutine
+@coroutine
 def create_subprocess_exec(program, *args, stdin=None, stdout=None,
                            stderr=None, loop=None,
                            limit=streams._DEFAULT_LIMIT, **kwds):

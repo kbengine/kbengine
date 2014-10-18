@@ -11,21 +11,15 @@ Include/Python.h
 	#define NDEBUG
 	#endif
 
-pyconfig.h
-	#ifndef _POSIX_C_SOURCE
-	#define _POSIX_C_SOURCE 200809L
-	#endif
-
-	#ifndef _XOPEN_SOURCE
-	#define _XOPEN_SOURCE 700
-	#endif
-
 pgupdate.props:
    <Import Project="$(SolutionDir)\lib\python\PCbuild\pginstrument.props" />
 
-script.hpp   
+script.hpp:
 	#define SCRIPT_BIN_TAG "cpython-34"
 	#define SCRIPT_BIN_CACHEDIR "__pycache__"
+
+common.mak:
+	PYTHONLIB = python
 
 Makefile.pre.in
 	1: all: -> all::

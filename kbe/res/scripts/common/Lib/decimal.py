@@ -116,6 +116,9 @@ __all__ = [
     # Two major classes
     'Decimal', 'Context',
 
+    # Named tuple representation
+    'DecimalTuple',
+
     # Contexts
     'DefaultContext', 'BasicContext', 'ExtendedContext',
 
@@ -123,6 +126,9 @@ __all__ = [
     'DecimalException', 'Clamped', 'InvalidOperation', 'DivisionByZero',
     'Inexact', 'Rounded', 'Subnormal', 'Overflow', 'Underflow',
     'FloatOperation',
+
+    # Exceptional conditions that trigger InvalidOperation
+    'DivisionImpossible', 'InvalidContext', 'ConversionSyntax', 'DivisionUndefined',
 
     # Constants for use in setting up contexts
     'ROUND_DOWN', 'ROUND_HALF_UP', 'ROUND_HALF_EVEN', 'ROUND_CEILING',
@@ -140,7 +146,7 @@ __all__ = [
 
 __version__ = '1.70'    # Highest version of the spec this complies with
                         # See http://speleotrove.com/decimal/
-__libmpdec_version__ = "2.4.0" # compatible libmpdec version
+__libmpdec_version__ = "2.4.1" # compatible libmpdec version
 
 import math as _math
 import numbers as _numbers
@@ -3769,6 +3775,8 @@ class Decimal(object):
         if self._is_special:
             sign = _format_sign(self._sign, spec)
             body = str(self.copy_abs())
+            if spec['type'] == '%':
+                body += '%'
             return _format_align(sign, body, spec)
 
         # a type of None defaults to 'g' or 'G', depending on context

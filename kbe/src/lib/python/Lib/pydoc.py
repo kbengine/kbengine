@@ -64,6 +64,7 @@ import re
 import sys
 import time
 import tokenize
+import urllib.parse
 import warnings
 from collections import deque
 from reprlib import Repr
@@ -595,10 +596,15 @@ class HTMLDoc(Doc):
             elif pep:
                 url = 'http://www.python.org/dev/peps/pep-%04d/' % int(pep)
                 results.append('<a href="%s">%s</a>' % (url, escape(all)))
+            elif selfdot:
+                # Create a link for methods like 'self.method(...)'
+                # and use <strong> for attributes like 'self.attr'
+                if text[end:end+1] == '(':
+                    results.append('self.' + self.namelink(name, methods))
+                else:
+                    results.append('self.<strong>%s</strong>' % name)
             elif text[end:end+1] == '(':
                 results.append(self.namelink(name, methods, funcs, classes))
-            elif selfdot:
-                results.append('self.<strong>%s</strong>' % name)
             else:
                 results.append(self.namelink(name, classes))
             here = end
@@ -643,10 +649,7 @@ class HTMLDoc(Doc):
         head = '<big><big><strong>%s</strong></big></big>' % linkedname
         try:
             path = inspect.getabsfile(object)
-            url = path
-            if sys.platform == 'win32':
-                import nturl2path
-                url = nturl2path.pathname2url(path)
+            url = urllib.parse.quote(path)
             filelink = self.filelink(url, path)
         except TypeError:
             filelink = '(built-in)'
@@ -1412,6 +1415,8 @@ def pager(text):
 
 def getpager():
     """Decide what method to use for paging through text."""
+    if not hasattr(sys.stdin, "isatty"):
+        return plainpager
     if not hasattr(sys.stdout, "isatty"):
         return plainpager
     if not sys.stdin.isatty() or not sys.stdout.isatty():
@@ -1733,7 +1738,6 @@ class Helper:
         'TRACEBACKS': 'TYPES',
         'NONE': ('bltin-null-object', ''),
         'ELLIPSIS': ('bltin-ellipsis-object', 'SLICINGS'),
-        'FILES': ('bltin-file-objects', ''),
         'SPECIALATTRIBUTES': ('specialattrs', ''),
         'CLASSES': ('types', 'class SPECIALMETHODS PRIVATENAMES'),
         'MODULES': ('typesmodules', 'import'),
@@ -2174,8 +2178,8 @@ def _start_server(urlhandler, port):
     class DocServer(http.server.HTTPServer):
 
         def __init__(self, port, callback):
-            self.host = (sys.platform == 'mac') and '127.0.0.1' or 'localhost'
-            self.address = ('', port)
+            self.host = 'localhost'
+            self.address = (self.host, port)
             self.callback = callback
             self.base.__init__(self, self.address, self.handler)
             self.quit = False
@@ -2347,7 +2351,7 @@ def _url_handler(url, content_type="text/html"):
 
     def html_getfile(path):
         """Get and display a source file listing safely."""
-        path = path.replace('%20', ' ')
+        path = urllib.parse.unquote(path)
         with tokenize.open(path) as fp:
             lines = html.escape(fp.read())
         body = '<pre>%s</pre>' % lines

@@ -619,10 +619,7 @@ class _BinaryPlistParser:
                 offset_table_offset
             ) = struct.unpack('>6xBBQQQ', trailer)
             self._fp.seek(offset_table_offset)
-            offset_format = '>' + _BINARY_FORMAT[offset_size] * num_objects
-            self._ref_format = _BINARY_FORMAT[self._ref_size]
-            self._object_offsets = struct.unpack(
-                offset_format, self._fp.read(offset_size * num_objects))
+            self._object_offsets = self._read_ints(num_objects, offset_size)
             return self._read_object(self._object_offsets[top_object])
 
         except (OSError, IndexError, struct.error):
@@ -638,9 +635,16 @@ class _BinaryPlistParser:
 
         return tokenL
 
+    def _read_ints(self, n, size):
+        data = self._fp.read(size * n)
+        if size in _BINARY_FORMAT:
+            return struct.unpack('>' + _BINARY_FORMAT[size] * n, data)
+        else:
+            return tuple(int.from_bytes(data[i: i + size], 'big')
+                         for i in range(0, size * n, size))
+
     def _read_refs(self, n):
-        return struct.unpack(
-            '>' + self._ref_format * n, self._fp.read(n * self._ref_size))
+        return self._read_ints(n, self._ref_size)
 
     def _read_object(self, offset):
         """
@@ -980,18 +984,16 @@ def load(fp, *, fmt=None, use_builtin_types=True, dict_type=dict):
         fp.seek(0)
         for info in _FORMATS.values():
             if info['detect'](header):
-                p = info['parser'](
-                    use_builtin_types=use_builtin_types,
-                    dict_type=dict_type,
-                )
+                P = info['parser']
                 break
 
         else:
             raise InvalidFileException()
 
     else:
-        p = _FORMATS[fmt]['parser'](use_builtin_types=use_builtin_types)
+        P = _FORMATS[fmt]['parser']
 
+    p = P(use_builtin_types=use_builtin_types, dict_type=dict_type)
     return p.parse(fp)
 
 

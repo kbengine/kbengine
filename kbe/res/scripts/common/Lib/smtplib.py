@@ -377,6 +377,7 @@ class SMTP:
             if self.debuglevel > 0:
                 print('reply:', repr(line), file=stderr)
             if len(line) > _MAXLINE:
+                self.close()
                 raise SMTPResponseException(500, "Line too long.")
             resp.append(line[4:].strip(b' \t\r\n'))
             code = line[:3]
@@ -865,6 +866,10 @@ class SMTP:
     def quit(self):
         """Terminate the SMTP session."""
         res = self.docmd("quit")
+        # A new EHLO is required after reconnecting with connect()
+        self.ehlo_resp = self.helo_resp = None
+        self.esmtp_features = {}
+        self.does_esmtp = False
         self.close()
         return res
 

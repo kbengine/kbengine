@@ -180,9 +180,9 @@ Key Derivation Function
 -----------------------
 
 Key derivation and key stretching algorithms are designed for secure password
-hashing. Naive algorithms such as ``sha1(password)`` are not resistant
-against brute-force attacks. A good password hashing function must be tunable,
-slow and include a salt.
+hashing. Naive algorithms such as ``sha1(password)`` are not resistant against
+brute-force attacks. A good password hashing function must be tunable, slow, and
+include a `salt <https://en.wikipedia.org/wiki/Salt_%28cryptography%29>`_.
 
 
 .. function:: pbkdf2_hmac(name, password, salt, rounds, dklen=None)
@@ -197,8 +197,7 @@ slow and include a salt.
    a proper source, e.g. :func:`os.urandom`.
 
    The number of *rounds* should be chosen based on the hash algorithm and
-   computing power. As of 2013 a value of at least 100,000 rounds of SHA-256
-   have been suggested.
+   computing power. As of 2013, at least 100,000 rounds of SHA-256 is suggested.
 
    *dklen* is the length of the derived key. If *dklen* is ``None`` then the
    digest size of the hash algorithm *name* is used, e.g. 64 for SHA-512.
@@ -210,9 +209,11 @@ slow and include a salt.
 
    .. versionadded:: 3.4
 
-   .. note:: A fast implementation of *pbkdf2_hmac* is available with OpenSSL.
-      The Python implementation uses an inline version of :mod:`hmac`. It is
-      about three times slower and doesn't release the GIL.
+   .. note::
+
+      A fast implementation of *pbkdf2_hmac* is available with OpenSSL.  The
+      Python implementation uses an inline version of :mod:`hmac`. It is about
+      three times slower and doesn't release the GIL.
 
 
 .. seealso::

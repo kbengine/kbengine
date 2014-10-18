@@ -757,7 +757,7 @@ class PosixTester(unittest.TestCase):
 
     @unittest.skipUnless(hasattr(os, 'getegid'), "test needs os.getegid()")
     def test_getgroups(self):
-        with os.popen('id -G') as idg:
+        with os.popen('id -G 2>/dev/null') as idg:
             groups = idg.read().strip()
             ret = idg.close()
 
@@ -768,7 +768,7 @@ class PosixTester(unittest.TestCase):
         if sys.platform == 'darwin':
             import sysconfig
             dt = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET') or '10.0'
-            if float(dt) < 10.6:
+            if tuple(int(n) for n in dt.split('.')[0:2]) < (10, 6):
                 raise unittest.SkipTest("getgroups(2) is broken prior to 10.6")
 
         # 'id -G' and 'os.getgroups()' should return the same

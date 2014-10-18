@@ -1,5 +1,6 @@
 import unittest
 from test import support
+from test import test_urllib
 
 import os
 import io
@@ -13,6 +14,7 @@ import urllib.request
 from urllib.request import Request, OpenerDirector, _parse_proxy, _proxy_bypass_macosx_sysconf
 from urllib.parse import urlparse
 import urllib.error
+import http.client
 
 # XXX
 # Request
@@ -678,7 +680,7 @@ class HandlerTests(unittest.TestCase):
             self.assertEqual(int(headers["Content-length"]), len(data))
 
     def test_file(self):
-        import email.utils, socket
+        import email.utils
         h = urllib.request.FileHandler()
         o = h.parent = MockOpener()
 
@@ -725,6 +727,7 @@ class HandlerTests(unittest.TestCase):
         for url in [
             "file://localhost:80%s" % urlpath,
             "file:///file_does_not_exist.txt",
+            "file://not-a-local-host.com//dir/file.txt",
             "file://%s:80%s/%s" % (socket.gethostbyname('localhost'),
                                    os.getcwd(), TESTFN),
             "file://somerandomhost.ontheinternet.com%s/%s" %
@@ -1391,6 +1394,33 @@ class HandlerTests(unittest.TestCase):
         opener.open(request_url)
         self.assertEqual(len(http_handler.requests), 1)
         self.assertFalse(http_handler.requests[0].has_header(auth_header))
+
+    def test_http_closed(self):
+        """Test the connection is cleaned up when the response is closed"""
+        for (transfer, data) in (
+            ("Connection: close", b"data"),
+            ("Transfer-Encoding: chunked", b"4\r\ndata\r\n0\r\n\r\n"),
+            ("Content-Length: 4", b"data"),
+        ):
+            header = "HTTP/1.1 200 OK\r\n{}\r\n\r\n".format(transfer)
+            conn = test_urllib.fakehttp(header.encode() + data)
+            handler = urllib.request.AbstractHTTPHandler()
+            req = Request("http://dummy/")
+            req.timeout = None
+            with handler.do_open(conn, req) as resp:
+                resp.read()
+            self.assertTrue(conn.fakesock.closed,
+                "Connection not closed with {!r}".format(transfer))
+
+    def test_invalid_closed(self):
+        """Test the connection is cleaned up after an invalid response"""
+        conn = test_urllib.fakehttp(b"")
+        handler = urllib.request.AbstractHTTPHandler()
+        req = Request("http://dummy/")
+        req.timeout = None
+        with self.assertRaises(http.client.BadStatusLine):
+            handler.do_open(conn, req)
+        self.assertTrue(conn.fakesock.closed, "Connection not closed")
 
 
 class MiscTests(unittest.TestCase):

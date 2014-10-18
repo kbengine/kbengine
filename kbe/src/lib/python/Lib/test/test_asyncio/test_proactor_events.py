@@ -12,10 +12,10 @@ from asyncio.proactor_events import _ProactorDuplexPipeTransport
 from asyncio import test_utils
 
 
-class ProactorSocketTransportTests(unittest.TestCase):
+class ProactorSocketTransportTests(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
+        self.loop = self.new_test_loop()
         self.proactor = mock.Mock()
         self.loop._proactor = self.proactor
         self.protocol = test_utils.make_test_protocol(asyncio.Protocol)
@@ -343,7 +343,7 @@ class ProactorSocketTransportTests(unittest.TestCase):
         tr.close()
 
 
-class BaseProactorEventLoopTests(unittest.TestCase):
+class BaseProactorEventLoopTests(test_utils.TestCase):
 
     def setUp(self):
         self.sock = mock.Mock(socket.socket)
@@ -356,17 +356,19 @@ class BaseProactorEventLoopTests(unittest.TestCase):
                 return (self.ssock, self.csock)
 
         self.loop = EventLoop(self.proactor)
+        self.set_event_loop(self.loop, cleanup=False)
 
-    @mock.patch.object(BaseProactorEventLoop, 'call_soon')
+    @mock.patch.object(BaseProactorEventLoop, '_call_soon')
     @mock.patch.object(BaseProactorEventLoop, '_socketpair')
-    def test_ctor(self, socketpair, call_soon):
+    def test_ctor(self, socketpair, _call_soon):
         ssock, csock = socketpair.return_value = (
             mock.Mock(), mock.Mock())
         loop = BaseProactorEventLoop(self.proactor)
         self.assertIs(loop._ssock, ssock)
         self.assertIs(loop._csock, csock)
         self.assertEqual(loop._internal_fds, 1)
-        call_soon.assert_called_with(loop._loop_self_reading)
+        _call_soon.assert_called_with(loop._loop_self_reading, (),
+                                      check_loop=False)
 
     def test_close_self_pipe(self):
         self.loop._close_self_pipe()
@@ -433,7 +435,7 @@ class BaseProactorEventLoopTests(unittest.TestCase):
 
     def test_write_to_self(self):
         self.loop._write_to_self()
-        self.csock.send.assert_called_with(b'x')
+        self.csock.send.assert_called_with(b'\0')
 
     def test_process_events(self):
         self.loop._process_events([])

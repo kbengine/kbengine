@@ -411,7 +411,7 @@ class ZipInfo (object):
         # Try to decode the extra field.
         extra = self.extra
         unpack = struct.unpack
-        while extra:
+        while len(extra) >= 4:
             tp, ln = unpack('<HH', extra[:4])
             if tp == 1:
                 if ln >= 24:
@@ -1764,18 +1764,7 @@ def main(args = None):
             sys.exit(1)
 
         with ZipFile(args[1], 'r') as zf:
-            out = args[2]
-            for path in zf.namelist():
-                if path.startswith('./'):
-                    tgt = os.path.join(out, path[2:])
-                else:
-                    tgt = os.path.join(out, path)
-
-                tgtdir = os.path.dirname(tgt)
-                if not os.path.exists(tgtdir):
-                    os.makedirs(tgtdir)
-                with open(tgt, 'wb') as fp:
-                    fp.write(zf.read(path))
+            zf.extractall(args[2])
 
     elif args[0] == '-c':
         if len(args) < 3:

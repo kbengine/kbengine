@@ -77,7 +77,7 @@ are still reachable.
    module for information on controlling the collection of cyclic garbage.
    Other implementations act differently and CPython may change.
    Do not depend on immediate finalization of objects when they become
-   unreachable (ex: always close files).
+   unreachable (so you should always close files explicitly).
 
 Note that the use of the implementation's tracing or debugging facilities may
 keep objects alive that would normally be collectable. Also note that catching
@@ -285,16 +285,17 @@ Sequences
             single: integer
             single: Unicode
 
-         A string is a sequence of values that represent Unicode codepoints.
-         All the codepoints in range ``U+0000 - U+10FFFF`` can be represented
-         in a string.  Python doesn't have a :c:type:`chr` type, and
-         every character in the string is represented as a string object
-         with length ``1``.  The built-in function :func:`ord` converts a
-         character to its codepoint (as an integer); :func:`chr` converts
-         an integer in range ``0 - 10FFFF`` to the corresponding character.
+         A string is a sequence of values that represent Unicode code points.
+         All the code points in the range ``U+0000 - U+10FFFF`` can be
+         represented in a string.  Python doesn't have a :c:type:`char` type;
+         instead, every code point in the string is represented as a string
+         object with length ``1``.  The built-in function :func:`ord`
+         converts a code point from its string form to an integer in the
+         range ``0 - 10FFFF``; :func:`chr` converts an integer in the range
+         ``0 - 10FFFF`` to the corresponding length ``1`` string object.
          :meth:`str.encode` can be used to convert a :class:`str` to
-         :class:`bytes` using the given encoding, and :meth:`bytes.decode` can
-         be used to achieve the opposite.
+         :class:`bytes` using the given text encoding, and
+         :meth:`bytes.decode` can be used to achieve the opposite.
 
       Tuples
          .. index::
@@ -1722,7 +1723,7 @@ property creation, proxies, frameworks, and automatic resource
 locking/synchronization.
 
 Here is an example of a metaclass that uses an :class:`collections.OrderedDict`
-to remember the order that class members were defined::
+to remember the order that class variables are defined::
 
     class OrderedClass(type):
 
@@ -2102,9 +2103,9 @@ left undefined.
 
    .. note::
 
-      When :meth:`__index__` is defined, :meth:`__int__` should also be defined,
-      and both shuld return the same value, in order to have a coherent integer
-      type class.
+      In order to have a coherent integer type class, when :meth:`__index__` is
+      defined :meth:`__int__` should also be defined, and both should return
+      the same value.
 
 
 .. _context-managers:

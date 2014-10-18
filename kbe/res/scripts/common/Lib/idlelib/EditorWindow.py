@@ -2,7 +2,7 @@ import importlib
 import importlib.abc
 import importlib.util
 import os
-from platform import python_version
+import platform
 import re
 import string
 import sys
@@ -25,6 +25,8 @@ from idlelib import macosxSupport
 
 # The default tab setting for a Text widget, in average-width characters.
 TK_TABWIDTH_DEFAULT = 8
+
+_py_version = ' (%s)' % platform.python_version()
 
 def _sphinx_version():
     "Format sys.version_info to produce the Sphinx version string used to install the chm docs"
@@ -79,7 +81,7 @@ class HelpDialog(object):
         self.parent = None
 
 helpDialog = HelpDialog()  # singleton instance
-def _Help_dialog(parent):  # wrapper for htest
+def _help_dialog(parent):  # wrapper for htest
     helpDialog.show_dialog(parent)
 
 
@@ -122,7 +124,7 @@ class EditorWindow(object):
                     # Safari requires real file:-URLs
                     EditorWindow.help_url = 'file://' + EditorWindow.help_url
             else:
-                EditorWindow.help_url = "http://docs.python.org/%d.%d" % sys.version_info[:2]
+                EditorWindow.help_url = "https://docs.python.org/%d.%d/" % sys.version_info[:2]
         currentTheme=idleConf.CurrentTheme()
         self.flist = flist
         root = root or flist.root
@@ -222,6 +224,7 @@ class EditorWindow(object):
             text.bind("<<close-all-windows>>", self.flist.close_all_callback)
             text.bind("<<open-class-browser>>", self.open_class_browser)
             text.bind("<<open-path-browser>>", self.open_path_browser)
+            text.bind("<<open-turtle-demo>>", self.open_turtle_demo)
 
         self.set_status_bar()
         vbar['command'] = text.yview
@@ -705,6 +708,14 @@ class EditorWindow(object):
         from idlelib import PathBrowser
         PathBrowser.PathBrowser(self.flist)
 
+    def open_turtle_demo(self, event = None):
+        import subprocess
+
+        cmd = [sys.executable,
+               '-c',
+               'from turtledemo.__main__ import main; main()']
+        p = subprocess.Popen(cmd, shell=False)
+
     def gotoline(self, lineno):
         if lineno is not None and lineno > 0:
             self.text.mark_set("insert", "%d.0" % lineno)
@@ -935,7 +946,7 @@ class EditorWindow(object):
         short = self.short_title()
         long = self.long_title()
         if short and long:
-            title = short + " - " + long
+            title = short + " - " + long + _py_version
         elif short:
             title = short
         elif long:
@@ -959,14 +970,13 @@ class EditorWindow(object):
         self.undo.reset_undo()
 
     def short_title(self):
-        pyversion = "Python " + python_version() + ": "
         filename = self.io.filename
         if filename:
             filename = os.path.basename(filename)
         else:
             filename = "Untitled"
         # return unicode string to display non-ASCII chars correctly
-        return pyversion + self._filename_to_unicode(filename)
+        return self._filename_to_unicode(filename)
 
     def long_title(self):
         # return unicode string to display non-ASCII chars correctly
@@ -1702,21 +1712,18 @@ def fixwordbreaks(root):
     tk.call('set', 'tcl_nonwordchars', '[^a-zA-Z0-9_]')
 
 
-def _Editor_window(parent):
+def _editor_window(parent):
     root = parent
     fixwordbreaks(root)
-    root.withdraw()
     if sys.argv[1:]:
         filename = sys.argv[1]
     else:
         filename = None
     macosxSupport.setupApp(root, None)
     edit = EditorWindow(root=root, filename=filename)
-    edit.set_close_hook(root.quit)
     edit.text.bind("<<close-all-windows>>", edit.close_event)
+    parent.mainloop()
 
 if __name__ == '__main__':
     from idlelib.idle_test.htest import run
-    if len(sys.argv) <= 1:
-        run(_Help_dialog)
-    run(_Editor_window)
+    run(_help_dialog, _editor_window)

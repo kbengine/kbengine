@@ -180,7 +180,7 @@ righter than others).
 Assuming you don't want to end the connection, the simplest solution is a fixed
 length message::
 
-   class mysocket:
+   class MySocket:
        """demonstration class only
          - coded for clarity, not efficiency
        """
@@ -189,8 +189,8 @@ length message::
            if sock is None:
                self.sock = socket.socket(
                                socket.AF_INET, socket.SOCK_STREAM)
-               else:
-                   self.sock = sock
+           else:
+               self.sock = sock
 
        def connect(self, host, port):
            self.sock.connect((host, port))
@@ -204,13 +204,15 @@ length message::
                totalsent = totalsent + sent
 
        def myreceive(self):
-           msg = b''
-           while len(msg) < MSGLEN:
-               chunk = self.sock.recv(MSGLEN-len(msg))
+           chunks = []
+           bytes_recd = 0
+           while bytes_recd < MSGLEN:
+               chunk = self.sock.recv(min(MSGLEN - bytes_recd, 2048))
                if chunk == b'':
                    raise RuntimeError("socket connection broken")
-               msg = msg + chunk
-           return msg
+               chunks.append(chunk)
+               bytes_recd = bytes_recd + len(chunk)
+           return b''.join(chunks)
 
 The sending code here is usable for almost any messaging scheme - in Python you
 send strings, and you can use ``len()`` to determine its length (even if it has

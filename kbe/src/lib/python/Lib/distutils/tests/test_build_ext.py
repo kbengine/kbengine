@@ -31,12 +31,11 @@ class BuildExtTestCase(TempdirManager,
         self.tmp_dir = self.mkdtemp()
         self.sys_path = sys.path, sys.path[:]
         sys.path.append(self.tmp_dir)
-        if sys.version > "2.6":
-            import site
-            self.old_user_base = site.USER_BASE
-            site.USER_BASE = self.mkdtemp()
-            from distutils.command import build_ext
-            build_ext.USER_BASE = site.USER_BASE
+        import site
+        self.old_user_base = site.USER_BASE
+        site.USER_BASE = self.mkdtemp()
+        from distutils.command import build_ext
+        build_ext.USER_BASE = site.USER_BASE
 
     def test_build_ext(self):
         global ALREADY_TESTED
@@ -84,11 +83,10 @@ class BuildExtTestCase(TempdirManager,
         support.unload('xx')
         sys.path = self.sys_path[0]
         sys.path[:] = self.sys_path[1]
-        if sys.version > "2.6":
-            import site
-            site.USER_BASE = self.old_user_base
-            from distutils.command import build_ext
-            build_ext.USER_BASE = self.old_user_base
+        import site
+        site.USER_BASE = self.old_user_base
+        from distutils.command import build_ext
+        build_ext.USER_BASE = self.old_user_base
         super(BuildExtTestCase, self).tearDown()
 
     def test_solaris_enable_shared(self):
@@ -444,8 +442,16 @@ class BuildExtTestCase(TempdirManager,
 
         # get the deployment target that the interpreter was built with
         target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
-        target = tuple(map(int, target.split('.')))
-        target = '%02d%01d0' % target
+        target = tuple(map(int, target.split('.')[0:2]))
+        # format the target value as defined in the Apple
+        # Availability Macros.  We can't use the macro names since
+        # at least one value we test with will not exist yet.
+        if target[1] < 10:
+            # for 10.1 through 10.9.x -> "10n0"
+            target = '%02d%01d0' % target
+        else:
+            # for 10.10 and beyond -> "10nn00"
+            target = '%02d%02d00' % target
         deptarget_ext = Extension(
             'deptarget',
             [deptarget_c],

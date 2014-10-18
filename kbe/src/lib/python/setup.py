@@ -19,6 +19,12 @@ from distutils.spawn import find_executable
 
 cross_compiling = "_PYTHON_HOST_PLATFORM" in os.environ
 
+# Add special CFLAGS reserved for building the interpreter and the stdlib
+# modules (Issue #21121).
+cflags = sysconfig.get_config_var('CFLAGS')
+py_cflags_nodist = sysconfig.get_config_var('PY_CFLAGS_NODIST')
+sysconfig.get_config_vars()['CFLAGS'] = cflags + ' ' + py_cflags_nodist
+
 def get_platform():
     # cross build
     if "_PYTHON_HOST_PLATFORM" in os.environ:
@@ -697,7 +703,9 @@ class PyBuildExt(build_ext):
         if host_platform == 'darwin':
             os_release = int(os.uname()[2].split('.')[0])
             dep_target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
-            if dep_target and dep_target.split('.') < ['10', '5']:
+            if (dep_target and
+                    (tuple(int(n) for n in dep_target.split('.')[0:2])
+                        < (10, 5) ) ):
                 os_release = 8
             if os_release < 9:
                 # MacOSX 10.4 has a broken readline. Don't try to build
@@ -749,7 +757,6 @@ class PyBuildExt(build_ext):
         # socket(2)
         exts.append( Extension('_socket', ['socketmodule.c'],
                                depends = ['socketmodule.h']) )
-
         # Detect SSL support for the socket module (via _ssl)
         search_for_ssl_incs_in = [
                               os.getenv("KBE_ROOT") + '/kbe/src/lib/dependencies/openssl/include/',

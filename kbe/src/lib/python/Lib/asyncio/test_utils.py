@@ -3,6 +3,7 @@
 import collections
 import contextlib
 import io
+import logging
 import os
 import re
 import socket
@@ -11,6 +12,7 @@ import sys
 import tempfile
 import threading
 import time
+import unittest
 from unittest import mock
 
 from http.server import HTTPServer
@@ -26,6 +28,8 @@ from . import events
 from . import futures
 from . import selectors
 from . import tasks
+from .coroutines import coroutine
+from .log import logger
 
 
 if sys.platform == 'win32':  # pragma: no cover
@@ -42,11 +46,14 @@ def dummy_ssl_context():
 
 
 def run_briefly(loop):
-    @tasks.coroutine
+    @coroutine
     def once():
         pass
     gen = once()
-    t = tasks.Task(gen, loop=loop)
+    t = loop.create_task(gen)
+    # Don't log a warning if the task is not done after run_until_complete().
+    # It occurs if the loop is stopped or if a task raises a BaseException.
+    t._log_destroy_pending = False
     try:
         loop.run_until_complete(t)
     finally:
@@ -372,3 +379,47 @@ class MockPattern(str):
     """
     def __eq__(self, other):
         return bool(re.search(str(self), other, re.S))
+
+
+def get_function_source(func):
+    source = events._get_function_source(func)
+    if source is None:
+        raise ValueError("unable to get the source of %r" % (func,))
+    return source
+
+
+class TestCase(unittest.TestCase):
+    def set_event_loop(self, loop, *, cleanup=True):
+        assert loop is not None
+        # ensure that the event loop is passed explicitly in asyncio
+        events.set_event_loop(None)
+        if cleanup:
+            self.addCleanup(loop.close)
+
+    def new_test_loop(self, gen=None):
+        loop = TestLoop(gen)
+        self.set_event_loop(loop)
+        return loop
+
+    def tearDown(self):
+        events.set_event_loop(None)
+
+
+@contextlib.contextmanager
+def disable_logger():
+    """Context manager to disable asyncio logger.
+
+    For example, it can be used to ignore warnings in debug mode.
+    """
+    old_level = logger.level
+    try:
+        logger.setLevel(logging.CRITICAL+1)
+        yield
+    finally:
+        logger.setLevel(old_level)
+
+def mock_nonblocking_socket():
+    """Create a mock of a non-blocking socket."""
+    sock = mock.Mock(socket.socket)
+    sock.gettimeout.return_value = 0.0
+    return sock

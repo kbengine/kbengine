@@ -3,6 +3,7 @@ from test import support
 
 import errno
 import io
+import itertools
 import socket
 import select
 import tempfile
@@ -37,6 +38,11 @@ try:
 except ImportError:
     thread = None
     threading = None
+try:
+    import _socket
+except ImportError:
+    _socket = None
+
 
 def _have_socket_can():
     """Check whether CAN sockets are supported on this host."""
@@ -657,6 +663,19 @@ class GeneralModuleTests(unittest.TestCase):
         self.assertIn('[closed]', repr(s))
         self.assertNotIn('laddr', repr(s))
 
+    @unittest.skipUnless(_socket is not None, 'need _socket module')
+    def test_csocket_repr(self):
+        s = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+        try:
+            expected = ('<socket object, fd=%s, family=%s, type=%s, proto=%s>'
+                        % (s.fileno(), s.family, s.type, s.proto))
+            self.assertEqual(repr(s), expected)
+        finally:
+            s.close()
+        expected = ('<socket object, fd=-1, family=%s, type=%s, proto=%s>'
+                    % (s.family, s.type, s.proto))
+        self.assertEqual(repr(s), expected)
+
     def test_weakref(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         p = proxy(s)
@@ -1145,17 +1164,24 @@ class GeneralModuleTests(unittest.TestCase):
         sock.close()
 
     def test_getsockaddrarg(self):
-        host = '0.0.0.0'
+        sock = socket.socket()
+        self.addCleanup(sock.close)
         port = support.find_unused_port()
         big_port = port + 65536
         neg_port = port - 65536
-        sock = socket.socket()
-        try:
-            self.assertRaises(OverflowError, sock.bind, (host, big_port))
-            self.assertRaises(OverflowError, sock.bind, (host, neg_port))
-            sock.bind((host, port))
-        finally:
-            sock.close()
+        self.assertRaises(OverflowError, sock.bind, (HOST, big_port))
+        self.assertRaises(OverflowError, sock.bind, (HOST, neg_port))
+        # Since find_unused_port() is inherently subject to race conditions, we
+        # call it a couple times if necessary.
+        for i in itertools.count():
+            port = support.find_unused_port()
+            try:
+                sock.bind((HOST, port))
+            except OSError as e:
+                if e.errno != errno.EADDRINUSE or i == 5:
+                    raise
+            else:
+                break
 
     @unittest.skipUnless(os.name == "nt", "Windows specific")
     def test_sock_ioctl(self):
@@ -1456,6 +1482,7 @@ class BasicCANTest(unittest.TestCase):
 
 
 @unittest.skipUnless(HAVE_SOCKET_CAN, 'SocketCan required for this test.')
+@unittest.skipUnless(thread, 'Threading required for this test.')
 class CANTest(ThreadedCANSocketTest):
 
     def __init__(self, methodName='runTest'):

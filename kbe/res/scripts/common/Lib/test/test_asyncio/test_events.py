@@ -5,6 +5,7 @@ import gc
 import io
 import os
 import platform
+import re
 import signal
 import socket
 try:
@@ -26,6 +27,7 @@ from test import support  # find_unused_port, IPV6_ENABLED, TEST_HOME_DIR
 
 
 import asyncio
+from asyncio import proactor_events
 from asyncio import selector_events
 from asyncio import test_utils
 
@@ -223,7 +225,7 @@ class EventLoopTestsMixin:
     def setUp(self):
         super().setUp()
         self.loop = self.create_event_loop()
-        asyncio.set_event_loop(None)
+        self.set_event_loop(self.loop)
 
     def tearDown(self):
         # just in case if we have transport close callbacks
@@ -382,6 +384,25 @@ class EventLoopTestsMixin:
         self.assertEqual(read, data)
 
     def _basetest_sock_client_ops(self, httpd, sock):
+        if not isinstance(self.loop, proactor_events.BaseProactorEventLoop):
+            # in debug mode, socket operations must fail
+            # if the socket is not in blocking mode
+            self.loop.set_debug(True)
+            sock.setblocking(True)
+            with self.assertRaises(ValueError):
+                self.loop.run_until_complete(
+                    self.loop.sock_connect(sock, httpd.address))
+            with self.assertRaises(ValueError):
+                self.loop.run_until_complete(
+                    self.loop.sock_sendall(sock, b'GET / HTTP/1.0\r\n\r\n'))
+            with self.assertRaises(ValueError):
+                self.loop.run_until_complete(
+                    self.loop.sock_recv(sock, 1024))
+            with self.assertRaises(ValueError):
+                self.loop.run_until_complete(
+                    self.loop.sock_accept(sock))
+
+        # test in non-blocking mode
         sock.setblocking(False)
         self.loop.run_until_complete(
             self.loop.sock_connect(sock, httpd.address))
@@ -521,6 +542,7 @@ class EventLoopTestsMixin:
         tr, pr = self.loop.run_until_complete(connection_fut)
         self.assertIsInstance(tr, asyncio.Transport)
         self.assertIsInstance(pr, asyncio.Protocol)
+        self.assertIs(pr.transport, tr)
         if check_sockname:
             self.assertIsNotNone(tr.get_extra_info('sockname'))
         self.loop.run_until_complete(pr.done)
@@ -713,7 +735,7 @@ class EventLoopTestsMixin:
             with self.assertRaisesRegex(ValueError,
                                         'path and sock can not be specified '
                                         'at the same time'):
-                server = self.loop.run_until_complete(f)
+                self.loop.run_until_complete(f)
 
     def _create_ssl_context(self, certfile, keyfile=None):
         sslcontext = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
@@ -817,9 +839,10 @@ class EventLoopTestsMixin:
         # no CA loaded
         f_c = self.loop.create_connection(MyProto, host, port,
                                           ssl=sslcontext_client)
-        with self.assertRaisesRegex(ssl.SSLError,
-                                    'certificate verify failed '):
-            self.loop.run_until_complete(f_c)
+        with test_utils.disable_logger():
+            with self.assertRaisesRegex(ssl.SSLError,
+                                        'certificate verify failed '):
+                self.loop.run_until_complete(f_c)
 
         # close connection
         self.assertIsNone(proto.transport)
@@ -843,9 +866,10 @@ class EventLoopTestsMixin:
         f_c = self.loop.create_unix_connection(MyProto, path,
                                                ssl=sslcontext_client,
                                                server_hostname='invalid')
-        with self.assertRaisesRegex(ssl.SSLError,
-                                    'certificate verify failed '):
-            self.loop.run_until_complete(f_c)
+        with test_utils.disable_logger():
+            with self.assertRaisesRegex(ssl.SSLError,
+                                        'certificate verify failed '):
+                self.loop.run_until_complete(f_c)
 
         # close connection
         self.assertIsNone(proto.transport)
@@ -869,10 +893,11 @@ class EventLoopTestsMixin:
         # incorrect server_hostname
         f_c = self.loop.create_connection(MyProto, host, port,
                                           ssl=sslcontext_client)
-        with self.assertRaisesRegex(
-                ssl.CertificateError,
-                "hostname '127.0.0.1' doesn't match 'localhost'"):
-            self.loop.run_until_complete(f_c)
+        with test_utils.disable_logger():
+            with self.assertRaisesRegex(
+                    ssl.CertificateError,
+                    "hostname '127.0.0.1' doesn't match 'localhost'"):
+                self.loop.run_until_complete(f_c)
 
         # close connection
         proto.transport.close()
@@ -1044,12 +1069,21 @@ class EventLoopTestsMixin:
         s_transport, server = self.loop.run_until_complete(coro)
         host, port = s_transport.get_extra_info('sockname')
 
+        self.assertIsInstance(s_transport, asyncio.Transport)
+        self.assertIsInstance(server, TestMyDatagramProto)
+        self.assertEqual('INITIALIZED', server.state)
+        self.assertIs(server.transport, s_transport)
+
         coro = self.loop.create_datagram_endpoint(
             lambda: MyDatagramProto(loop=self.loop),
             remote_addr=(host, port))
         transport, client = self.loop.run_until_complete(coro)
 
+        self.assertIsInstance(transport, asyncio.Transport)
+        self.assertIsInstance(client, MyDatagramProto)
         self.assertEqual('INITIALIZED', client.state)
+        self.assertIs(client.transport, transport)
+
         transport.sendto(b'xxx')
         test_utils.run_until(self.loop, lambda: server.nbytes)
         self.assertEqual(3, server.nbytes)
@@ -1070,6 +1104,7 @@ class EventLoopTestsMixin:
     def test_internal_fds(self):
         loop = self.create_event_loop()
         if not isinstance(loop, selector_events.BaseSelectorEventLoop):
+            loop.close()
             self.skipTest('loop is not a BaseSelectorEventLoop')
 
         self.assertEqual(1, loop._internal_fds)
@@ -1196,6 +1231,7 @@ class EventLoopTestsMixin:
                          "Don't support pipes for Windows")
     def test_write_pipe_disconnect_on_close(self):
         rsock, wsock = test_utils.socketpair()
+        rsock.setblocking(False)
         pipeobj = io.open(wsock.detach(), 'wb', 1024)
 
         proto = MyWritePipeProto(loop=self.loop)
@@ -1333,6 +1369,7 @@ class EventLoopTestsMixin:
             for sock_type in (socket.SOCK_STREAM, socket.SOCK_DGRAM):
                 sock = socket.socket(family, sock_type)
                 with sock:
+                    sock.setblocking(False)
                     connect = self.loop.sock_connect(sock, address)
                     with self.assertRaises(ValueError) as cm:
                         self.loop.run_until_complete(connect)
@@ -1362,6 +1399,15 @@ class EventLoopTestsMixin:
             loop.add_reader(r, callback)
         with self.assertRaises(RuntimeError):
             loop.add_writer(w, callback)
+
+    def test_close_running_event_loop(self):
+        @asyncio.coroutine
+        def close_loop(loop):
+            self.loop.close()
+
+        coro = close_loop(self.loop)
+        with self.assertRaises(RuntimeError):
+            self.loop.run_until_complete(coro)
 
 
 class SubprocessTestsMixin:
@@ -1627,14 +1673,14 @@ class SubprocessTestsMixin:
 
 if sys.platform == 'win32':
 
-    class SelectEventLoopTests(EventLoopTestsMixin, unittest.TestCase):
+    class SelectEventLoopTests(EventLoopTestsMixin, test_utils.TestCase):
 
         def create_event_loop(self):
             return asyncio.SelectorEventLoop()
 
     class ProactorEventLoopTests(EventLoopTestsMixin,
                                  SubprocessTestsMixin,
-                                 unittest.TestCase):
+                                 test_utils.TestCase):
 
         def create_event_loop(self):
             return asyncio.ProactorEventLoop()
@@ -1689,7 +1735,7 @@ else:
     if hasattr(selectors, 'KqueueSelector'):
         class KqueueEventLoopTests(UnixEventLoopTestsMixin,
                                    SubprocessTestsMixin,
-                                   unittest.TestCase):
+                                   test_utils.TestCase):
 
             def create_event_loop(self):
                 return asyncio.SelectorEventLoop(
@@ -1714,7 +1760,7 @@ else:
     if hasattr(selectors, 'EpollSelector'):
         class EPollEventLoopTests(UnixEventLoopTestsMixin,
                                   SubprocessTestsMixin,
-                                  unittest.TestCase):
+                                  test_utils.TestCase):
 
             def create_event_loop(self):
                 return asyncio.SelectorEventLoop(selectors.EpollSelector())
@@ -1722,7 +1768,7 @@ else:
     if hasattr(selectors, 'PollSelector'):
         class PollEventLoopTests(UnixEventLoopTestsMixin,
                                  SubprocessTestsMixin,
-                                 unittest.TestCase):
+                                 test_utils.TestCase):
 
             def create_event_loop(self):
                 return asyncio.SelectorEventLoop(selectors.PollSelector())
@@ -1730,70 +1776,158 @@ else:
     # Should always exist.
     class SelectEventLoopTests(UnixEventLoopTestsMixin,
                                SubprocessTestsMixin,
-                               unittest.TestCase):
+                               test_utils.TestCase):
 
         def create_event_loop(self):
             return asyncio.SelectorEventLoop(selectors.SelectSelector())
 
 
-class HandleTests(unittest.TestCase):
+def noop(*args):
+    pass
+
+
+class HandleTests(test_utils.TestCase):
+
+    def setUp(self):
+        self.loop = mock.Mock()
+        self.loop.get_debug.return_value = True
 
     def test_handle(self):
         def callback(*args):
             return args
 
         args = ()
-        h = asyncio.Handle(callback, args, mock.Mock())
+        h = asyncio.Handle(callback, args, self.loop)
         self.assertIs(h._callback, callback)
         self.assertIs(h._args, args)
         self.assertFalse(h._cancelled)
 
-        r = repr(h)
-        self.assertTrue(r.startswith(
-            'Handle('
-            '<function HandleTests.test_handle.<locals>.callback'))
-        self.assertTrue(r.endswith('())'))
-
         h.cancel()
         self.assertTrue(h._cancelled)
-
-        r = repr(h)
-        self.assertTrue(r.startswith(
-            'Handle('
-            '<function HandleTests.test_handle.<locals>.callback'))
-        self.assertTrue(r.endswith('())<cancelled>'), r)
 
     def test_handle_from_handle(self):
         def callback(*args):
             return args
-        m_loop = object()
-        h1 = asyncio.Handle(callback, (), loop=m_loop)
+        h1 = asyncio.Handle(callback, (), loop=self.loop)
         self.assertRaises(
-            AssertionError, asyncio.Handle, h1, (), m_loop)
+            AssertionError, asyncio.Handle, h1, (), self.loop)
 
     def test_callback_with_exception(self):
         def callback():
             raise ValueError()
 
-        m_loop = mock.Mock()
-        m_loop.call_exception_handler = mock.Mock()
+        self.loop = mock.Mock()
+        self.loop.call_exception_handler = mock.Mock()
 
-        h = asyncio.Handle(callback, (), m_loop)
+        h = asyncio.Handle(callback, (), self.loop)
         h._run()
 
-        m_loop.call_exception_handler.assert_called_with({
+        self.loop.call_exception_handler.assert_called_with({
             'message': test_utils.MockPattern('Exception in callback.*'),
             'exception': mock.ANY,
-            'handle': h
+            'handle': h,
+            'source_traceback': h._source_traceback,
         })
 
     def test_handle_weakref(self):
         wd = weakref.WeakValueDictionary()
-        h = asyncio.Handle(lambda: None, (), object())
+        h = asyncio.Handle(lambda: None, (), self.loop)
         wd['h'] = h  # Would fail without __weakref__ slot.
+
+    def test_handle_repr(self):
+        self.loop.get_debug.return_value = False
+
+        # simple function
+        h = asyncio.Handle(noop, (1, 2), self.loop)
+        filename, lineno = test_utils.get_function_source(noop)
+        self.assertEqual(repr(h),
+                        '<Handle noop(1, 2) at %s:%s>'
+                        % (filename, lineno))
+
+        # cancelled handle
+        h.cancel()
+        self.assertEqual(repr(h),
+                        '<Handle cancelled>')
+
+        # decorated function
+        cb = asyncio.coroutine(noop)
+        h = asyncio.Handle(cb, (), self.loop)
+        self.assertEqual(repr(h),
+                        '<Handle noop() at %s:%s>'
+                        % (filename, lineno))
+
+        # partial function
+        cb = functools.partial(noop, 1, 2)
+        h = asyncio.Handle(cb, (3,), self.loop)
+        regex = (r'^<Handle noop\(1, 2\)\(3\) at %s:%s>$'
+                 % (re.escape(filename), lineno))
+        self.assertRegex(repr(h), regex)
+
+        # partial method
+        if sys.version_info >= (3, 4):
+            method = HandleTests.test_handle_repr
+            cb = functools.partialmethod(method)
+            filename, lineno = test_utils.get_function_source(method)
+            h = asyncio.Handle(cb, (), self.loop)
+
+            cb_regex = r'<function HandleTests.test_handle_repr .*>'
+            cb_regex = (r'functools.partialmethod\(%s, , \)\(\)' % cb_regex)
+            regex = (r'^<Handle %s at %s:%s>$'
+                     % (cb_regex, re.escape(filename), lineno))
+            self.assertRegex(repr(h), regex)
+
+    def test_handle_repr_debug(self):
+        self.loop.get_debug.return_value = True
+
+        # simple function
+        create_filename = __file__
+        create_lineno = sys._getframe().f_lineno + 1
+        h = asyncio.Handle(noop, (1, 2), self.loop)
+        filename, lineno = test_utils.get_function_source(noop)
+        self.assertEqual(repr(h),
+                        '<Handle noop(1, 2) at %s:%s created at %s:%s>'
+                        % (filename, lineno, create_filename, create_lineno))
+
+        # cancelled handle
+        h.cancel()
+        self.assertEqual(repr(h),
+                        '<Handle cancelled noop(1, 2) at %s:%s created at %s:%s>'
+                        % (filename, lineno, create_filename, create_lineno))
+
+    def test_handle_source_traceback(self):
+        loop = asyncio.get_event_loop_policy().new_event_loop()
+        loop.set_debug(True)
+        self.set_event_loop(loop)
+
+        def check_source_traceback(h):
+            lineno = sys._getframe(1).f_lineno - 1
+            self.assertIsInstance(h._source_traceback, list)
+            self.assertEqual(h._source_traceback[-1][:3],
+                             (__file__,
+                              lineno,
+                              'test_handle_source_traceback'))
+
+        # call_soon
+        h = loop.call_soon(noop)
+        check_source_traceback(h)
+
+        # call_soon_threadsafe
+        h = loop.call_soon_threadsafe(noop)
+        check_source_traceback(h)
+
+        # call_later
+        h = loop.call_later(0, noop)
+        check_source_traceback(h)
+
+        # call_at
+        h = loop.call_later(0, noop)
+        check_source_traceback(h)
 
 
 class TimerTests(unittest.TestCase):
+
+    def setUp(self):
+        self.loop = mock.Mock()
 
     def test_hash(self):
         when = time.monotonic()
@@ -1805,36 +1939,67 @@ class TimerTests(unittest.TestCase):
         def callback(*args):
             return args
 
-        args = ()
+        args = (1, 2, 3)
         when = time.monotonic()
         h = asyncio.TimerHandle(when, callback, args, mock.Mock())
         self.assertIs(h._callback, callback)
         self.assertIs(h._args, args)
         self.assertFalse(h._cancelled)
 
-        r = repr(h)
-        self.assertTrue(r.endswith('())'))
-
+        # cancel
         h.cancel()
         self.assertTrue(h._cancelled)
+        self.assertIsNone(h._callback)
+        self.assertIsNone(h._args)
 
-        r = repr(h)
-        self.assertTrue(r.endswith('())<cancelled>'), r)
-
+        # when cannot be None
         self.assertRaises(AssertionError,
                           asyncio.TimerHandle, None, callback, args,
-                          mock.Mock())
+                          self.loop)
+
+    def test_timer_repr(self):
+        self.loop.get_debug.return_value = False
+
+        # simple function
+        h = asyncio.TimerHandle(123, noop, (), self.loop)
+        src = test_utils.get_function_source(noop)
+        self.assertEqual(repr(h),
+                        '<TimerHandle when=123 noop() at %s:%s>' % src)
+
+        # cancelled handle
+        h.cancel()
+        self.assertEqual(repr(h),
+                        '<TimerHandle cancelled when=123>')
+
+    def test_timer_repr_debug(self):
+        self.loop.get_debug.return_value = True
+
+        # simple function
+        create_filename = __file__
+        create_lineno = sys._getframe().f_lineno + 1
+        h = asyncio.TimerHandle(123, noop, (), self.loop)
+        filename, lineno = test_utils.get_function_source(noop)
+        self.assertEqual(repr(h),
+                        '<TimerHandle when=123 noop() '
+                        'at %s:%s created at %s:%s>'
+                        % (filename, lineno, create_filename, create_lineno))
+
+        # cancelled handle
+        h.cancel()
+        self.assertEqual(repr(h),
+                        '<TimerHandle cancelled when=123 noop() '
+                        'at %s:%s created at %s:%s>'
+                        % (filename, lineno, create_filename, create_lineno))
+
 
     def test_timer_comparison(self):
-        loop = mock.Mock()
-
         def callback(*args):
             return args
 
         when = time.monotonic()
 
-        h1 = asyncio.TimerHandle(when, callback, (), loop)
-        h2 = asyncio.TimerHandle(when, callback, (), loop)
+        h1 = asyncio.TimerHandle(when, callback, (), self.loop)
+        h2 = asyncio.TimerHandle(when, callback, (), self.loop)
         # TODO: Use assertLess etc.
         self.assertFalse(h1 < h2)
         self.assertFalse(h2 < h1)
@@ -1850,8 +2015,8 @@ class TimerTests(unittest.TestCase):
         h2.cancel()
         self.assertFalse(h1 == h2)
 
-        h1 = asyncio.TimerHandle(when, callback, (), loop)
-        h2 = asyncio.TimerHandle(when + 10.0, callback, (), loop)
+        h1 = asyncio.TimerHandle(when, callback, (), self.loop)
+        h2 = asyncio.TimerHandle(when + 10.0, callback, (), self.loop)
         self.assertTrue(h1 < h2)
         self.assertFalse(h2 < h1)
         self.assertTrue(h1 <= h2)
@@ -1863,7 +2028,7 @@ class TimerTests(unittest.TestCase):
         self.assertFalse(h1 == h2)
         self.assertTrue(h1 != h2)
 
-        h3 = asyncio.Handle(callback, (), loop)
+        h3 = asyncio.Handle(callback, (), self.loop)
         self.assertIs(NotImplemented, h1.__eq__(h3))
         self.assertIs(NotImplemented, h1.__ne__(h3))
 
@@ -1882,7 +2047,11 @@ class AbstractEventLoopTests(unittest.TestCase):
         self.assertRaises(
             NotImplementedError, loop.is_running)
         self.assertRaises(
+            NotImplementedError, loop.is_closed)
+        self.assertRaises(
             NotImplementedError, loop.close)
+        self.assertRaises(
+            NotImplementedError, loop.create_task, None)
         self.assertRaises(
             NotImplementedError, loop.call_later, None, None)
         self.assertRaises(
@@ -1940,6 +2109,16 @@ class AbstractEventLoopTests(unittest.TestCase):
             mock.sentinel)
         self.assertRaises(
             NotImplementedError, loop.subprocess_exec, f)
+        self.assertRaises(
+            NotImplementedError, loop.set_exception_handler, f)
+        self.assertRaises(
+            NotImplementedError, loop.default_exception_handler, f)
+        self.assertRaises(
+            NotImplementedError, loop.call_exception_handler, f)
+        self.assertRaises(
+            NotImplementedError, loop.get_debug)
+        self.assertRaises(
+            NotImplementedError, loop.set_debug, f)
 
 
 class ProtocolsAbsTests(unittest.TestCase):

@@ -1926,6 +1926,86 @@ class POSIXProcessTestCase(BaseTestCase):
                          "Some fds not in pass_fds were left open")
         self.assertIn(1, remaining_fds, "Subprocess failed")
 
+
+    @unittest.skipIf(sys.platform.startswith("freebsd") and
+                     os.stat("/dev").st_dev == os.stat("/dev/fd").st_dev,
+                     "Requires fdescfs mounted on /dev/fd on FreeBSD.")
+    def test_close_fds_when_max_fd_is_lowered(self):
+        """Confirm that issue21618 is fixed (may fail under valgrind)."""
+        fd_status = support.findfile("fd_status.py", subdir="subprocessdata")
+
+        # This launches the meat of the test in a child process to
+        # avoid messing with the larger unittest processes maximum
+        # number of file descriptors.
+        #  This process launches:
+        #  +--> Process that lowers its RLIMIT_NOFILE aftr setting up
+        #    a bunch of high open fds above the new lower rlimit.
+        #    Those are reported via stdout before launching a new
+        #    process with close_fds=False to run the actual test:
+        #    +--> The TEST: This one launches a fd_status.py
+        #      subprocess with close_fds=True so we can find out if
+        #      any of the fds above the lowered rlimit are still open.
+        p = subprocess.Popen([sys.executable, '-c', textwrap.dedent(
+        '''
+        import os, resource, subprocess, sys, textwrap
+        open_fds = set()
+        # Add a bunch more fds to pass down.
+        for _ in range(40):
+            fd = os.open("/dev/null", os.O_RDONLY)
+            open_fds.add(fd)
+
+        # Leave a two pairs of low ones available for use by the
+        # internal child error pipe and the stdout pipe.
+        # We also leave 10 more open as some Python buildbots run into
+        # "too many open files" errors during the test if we do not.
+        for fd in sorted(open_fds)[:14]:
+            os.close(fd)
+            open_fds.remove(fd)
+
+        for fd in open_fds:
+            #self.addCleanup(os.close, fd)
+            os.set_inheritable(fd, True)
+
+        max_fd_open = max(open_fds)
+
+        # Communicate the open_fds to the parent unittest.TestCase process.
+        print(','.join(map(str, sorted(open_fds))))
+        sys.stdout.flush()
+
+        rlim_cur, rlim_max = resource.getrlimit(resource.RLIMIT_NOFILE)
+        try:
+            # 29 is lower than the highest fds we are leaving open.
+            resource.setrlimit(resource.RLIMIT_NOFILE, (29, rlim_max))
+            # Launch a new Python interpreter with our low fd rlim_cur that
+            # inherits open fds above that limit.  It then uses subprocess
+            # with close_fds=True to get a report of open fds in the child.
+            # An explicit list of fds to check is passed to fd_status.py as
+            # letting fd_status rely on its default logic would miss the
+            # fds above rlim_cur as it normally only checks up to that limit.
+            subprocess.Popen(
+                [sys.executable, '-c',
+                 textwrap.dedent("""
+                     import subprocess, sys
+                     subprocess.Popen([sys.executable, %r] +
+                                      [str(x) for x in range({max_fd})],
+                                      close_fds=True).wait()
+                     """.format(max_fd=max_fd_open+1))],
+                close_fds=False).wait()
+        finally:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_cur, rlim_max))
+        ''' % fd_status)], stdout=subprocess.PIPE)
+
+        output, unused_stderr = p.communicate()
+        output_lines = output.splitlines()
+        self.assertEqual(len(output_lines), 2,
+                         msg="expected exactly two lines of output:\n%r" % output)
+        opened_fds = set(map(int, output_lines[0].strip().split(b',')))
+        remaining_fds = set(map(int, output_lines[1].strip().split(b',')))
+
+        self.assertFalse(remaining_fds & opened_fds,
+                         msg="Some fds were left open.")
+
+
     # Mac OS X Tiger (10.4) has a kernel bug: sometimes, the file
     # descriptor of a pipe closed in the parent process is valid in the
     # child process according to fstat(), but the mode of the file

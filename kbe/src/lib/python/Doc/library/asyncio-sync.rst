@@ -34,7 +34,7 @@ Lock
 
    :meth:`acquire` is a coroutine and should be called with ``yield from``.
 
-   Locks also support the context manager protocol.  ``(yield from lock)``
+   Locks also support the context management protocol.  ``(yield from lock)``
    should be used as context manager expression.
 
    Usage::
@@ -130,7 +130,7 @@ Event
 Condition
 ^^^^^^^^^
 
-.. class:: Condition(\*, loop=None)
+.. class:: Condition(lock=None, \*, loop=None)
 
    A Condition implementation, asynchronous equivalent to
    :class:`threading.Condition`.
@@ -139,7 +139,9 @@ Condition
    allows one or more coroutines to wait until they are notified by another
    coroutine.
 
-   A new :class:`Lock` object is created and used as the underlying lock.
+   If the *lock* argument is given and not ``None``, it must be a :class:`Lock`
+   object, and it is used as the underlying lock.  Otherwise,
+   a new :class:`Lock` object is created and used as the underlying lock.
 
    .. method:: acquire()
 
@@ -227,7 +229,7 @@ Semaphore
    counter can never go below zero; when :meth:`acquire` finds that it is zero,
    it blocks, waiting until some other thread calls :meth:`release`.
 
-   Semaphores also support the context manager protocol.
+   Semaphores also support the context management protocol.
 
    The optional argument gives the initial value for the internal counter; it
    defaults to ``1``. If the value given is less than ``0``, :exc:`ValueError`

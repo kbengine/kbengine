@@ -48,7 +48,6 @@ def _get_sep(path):
 
 def normcase(s):
     """Normalize case of pathname.  Has no effect under Posix"""
-    # TODO: on Mac OS X, this should really return s.lower().
     if not isinstance(s, (bytes, str)):
         raise TypeError("normcase() argument must be str or bytes, "
                         "not '{}'".format(s.__class__.__name__))
@@ -84,12 +83,10 @@ def join(a, *p):
             else:
                 path += sep + b
     except TypeError:
-        valid_types = all(isinstance(s, (str, bytes, bytearray))
-                          for s in (a, ) + p)
-        if valid_types:
+        if all(isinstance(s, (str, bytes)) for s in (a,) + p):
             # Must have a mixture of text and binary data
             raise TypeError("Can't mix strings and bytes in path "
-                            "components.") from None
+                            "components") from None
         raise
     return path
 

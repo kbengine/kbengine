@@ -3,11 +3,11 @@ import os
 import py_compile
 import shutil
 import stat
-import sys
 import tempfile
 import unittest
 
-from test import support, script_helper
+from test import support
+
 
 class PyCompileTests(unittest.TestCase):
 
@@ -92,6 +92,12 @@ class PyCompileTests(unittest.TestCase):
         finally:
             os.chmod(self.directory, mode.st_mode)
 
+    def test_bad_coding(self):
+        bad_coding = os.path.join(os.path.dirname(__file__), 'bad_coding2.py')
+        with support.captured_stderr():
+            self.assertIsNone(py_compile.compile(bad_coding, doraise=False))
+        self.assertFalse(os.path.exists(
+            importlib.util.cache_from_source(bad_coding)))
 
 if __name__ == "__main__":
     unittest.main()

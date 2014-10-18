@@ -26,7 +26,6 @@ include $(KBE_ROOT)/kbe/src/build/common.mak
 
 KBELIBDIR = $(KBE_ROOT)/kbe/src/libs
 KBE_PYTHONLIB = $(KBELIBDIR)/lib$(PYTHONLIB).a
-
 # === Variables set by makesetup ===
 
 MODOBJS=        _MODOBJS_
@@ -80,12 +79,17 @@ OPT=		@OPT@
 BASECFLAGS=	@BASECFLAGS@
 BASECPPFLAGS=	@BASECPPFLAGS@
 CONFIGURE_CFLAGS=	@CFLAGS@
+# CFLAGS_NODIST is used for building the interpreter and stdlib C extensions.
+# Use it when a compiler flag should _not_ be part of the distutils CFLAGS
+# once Python is installed (Issue #21121).
+CONFIGURE_CFLAGS_NODIST=@CFLAGS_NODIST@
 CONFIGURE_CPPFLAGS=	@CPPFLAGS@
 CONFIGURE_LDFLAGS=	@LDFLAGS@
 # Avoid assigning CFLAGS, LDFLAGS, etc. so users can use them on the
 # command line to append to these values without stomping the pre-set
 # values.
 PY_CFLAGS=	$(BASECFLAGS) $(OPT) $(CONFIGURE_CFLAGS) $(CFLAGS) $(EXTRA_CFLAGS)
+PY_CFLAGS_NODIST=$(CONFIGURE_CFLAGS_NODIST) $(CFLAGS_NODIST)
 # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
 # be able to build extension modules using the directories specified in the
 # environment variables
@@ -100,7 +104,7 @@ ARFLAGS=	@ARFLAGS@
 # Extra C flags added for building the interpreter object files.
 CFLAGSFORSHARED=@CFLAGSFORSHARED@
 # C flags used for building the interpreter object files
-PY_CORE_CFLAGS=	$(PY_CFLAGS) $(PY_CPPFLAGS) $(CFLAGSFORSHARED) -DPy_BUILD_CORE
+PY_CORE_CFLAGS=	$(PY_CFLAGS) $(PY_CFLAGS_NODIST) $(PY_CPPFLAGS) $(CFLAGSFORSHARED) -DPy_BUILD_CORE
 
 
 # Machine-dependent subdirectories
@@ -550,8 +554,18 @@ platform: $(BUILDPYTHON) pybuilddir.txt
 # Create build directory and generate the sysconfig build-time data there.
 # pybuilddir.txt contains the name of the build dir and is used for
 # sys.path fixup -- see Modules/getpath.c.
+# Since this step runs before shared modules are built, try to avoid bootstrap
+# problems by creating a dummy pybuilddir.txt just to allow interpreter
+# initialization to succeed.  It will be overwritten by generate-posix-vars
+# or removed in case of failure.
 pybuilddir.txt: $(BUILDPYTHON)
-	$(RUNSHARED) $(PYTHON_FOR_BUILD) -S -m sysconfig --generate-posix-vars
+	@echo "none" > ./pybuilddir.txt
+	$(RUNSHARED) $(PYTHON_FOR_BUILD) -S -m sysconfig --generate-posix-vars ;\
+	if test $$? -ne 0 ; then \
+		echo "generate-posix-vars failed" ; \
+		rm -f ./pybuilddir.txt ; \
+		exit 1 ; \
+	fi
 
 # Build the shared modules
 # Under GNU make, MAKEFLAGS are sorted and normalized; the 's' for

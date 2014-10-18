@@ -33,8 +33,8 @@ Module interface:
 - socket.ntohl(32 bit value) --> new int object
 - socket.htons(16 bit value) --> new int object
 - socket.htonl(32 bit value) --> new int object
-- socket.getaddrinfo(host, port [, family, socktype, proto, flags])
-    --> List of (family, socktype, proto, canonname, sockaddr)
+- socket.getaddrinfo(host, port [, family, type, proto, flags])
+    --> List of (family, type, proto, canonname, sockaddr)
 - socket.getnameinfo(sockaddr, flags) --> (host, port)
 - socket.AF_INET, socket.SOCK_STREAM, etc.: constants from <socket.h>
 - socket.has_ipv6: boolean value indicating if IPv6 is supported
@@ -3868,8 +3868,13 @@ sock_dealloc(PySocketSockObject *s)
 static PyObject *
 sock_repr(PySocketSockObject *s)
 {
+    long sock_fd;
+    /* On Windows, this test is needed because SOCKET_T is unsigned */
+    if (s->sock_fd == INVALID_SOCKET) {
+        sock_fd = -1;
+    }
 #if SIZEOF_SOCKET_T > SIZEOF_LONG
-    if (s->sock_fd > LONG_MAX) {
+    else if (s->sock_fd > LONG_MAX) {
         /* this can occur on Win64, and actually there is a special
            ugly printf formatter for decimal pointer length integer
            printing, only bother if necessary*/
@@ -3879,9 +3884,11 @@ sock_repr(PySocketSockObject *s)
         return NULL;
     }
 #endif
+    else
+        sock_fd = (long)s->sock_fd;
     return PyUnicode_FromFormat(
         "<socket object, fd=%ld, family=%d, type=%d, proto=%d>",
-        (long)s->sock_fd, s->sock_family,
+        sock_fd, s->sock_family,
         s->sock_type,
         s->sock_proto);
 }
@@ -5292,8 +5299,8 @@ socket_getaddrinfo(PyObject *self, PyObject *args, PyObject* kwargs)
 }
 
 PyDoc_STRVAR(getaddrinfo_doc,
-"getaddrinfo(host, port [, family, socktype, proto, flags])\n\
-    -> list of (family, socktype, proto, canonname, sockaddr)\n\
+"getaddrinfo(host, port [, family, type, proto, flags])\n\
+    -> list of (family, type, proto, canonname, sockaddr)\n\
 \n\
 Resolve host and port into addrinfo struct.");
 

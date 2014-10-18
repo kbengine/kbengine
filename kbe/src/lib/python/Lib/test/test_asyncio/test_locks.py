@@ -17,14 +17,10 @@ STR_RGX_REPR = (
 RGX_REPR = re.compile(STR_RGX_REPR)
 
 
-class LockTests(unittest.TestCase):
+class LockTests(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
-        asyncio.set_event_loop(None)
-
-    def tearDown(self):
-        self.loop.close()
+        self.loop = self.new_test_loop()
 
     def test_ctor_loop(self):
         loop = mock.Mock()
@@ -35,12 +31,9 @@ class LockTests(unittest.TestCase):
         self.assertIs(lock._loop, self.loop)
 
     def test_ctor_noloop(self):
-        try:
-            asyncio.set_event_loop(self.loop)
-            lock = asyncio.Lock()
-            self.assertIs(lock._loop, self.loop)
-        finally:
-            asyncio.set_event_loop(None)
+        asyncio.set_event_loop(self.loop)
+        lock = asyncio.Lock()
+        self.assertIs(lock._loop, self.loop)
 
     def test_repr(self):
         lock = asyncio.Lock(loop=self.loop)
@@ -240,14 +233,10 @@ class LockTests(unittest.TestCase):
         self.assertFalse(lock.locked())
 
 
-class EventTests(unittest.TestCase):
+class EventTests(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
-        asyncio.set_event_loop(None)
-
-    def tearDown(self):
-        self.loop.close()
+        self.loop = self.new_test_loop()
 
     def test_ctor_loop(self):
         loop = mock.Mock()
@@ -258,12 +247,9 @@ class EventTests(unittest.TestCase):
         self.assertIs(ev._loop, self.loop)
 
     def test_ctor_noloop(self):
-        try:
-            asyncio.set_event_loop(self.loop)
-            ev = asyncio.Event()
-            self.assertIs(ev._loop, self.loop)
-        finally:
-            asyncio.set_event_loop(None)
+        asyncio.set_event_loop(self.loop)
+        ev = asyncio.Event()
+        self.assertIs(ev._loop, self.loop)
 
     def test_repr(self):
         ev = asyncio.Event(loop=self.loop)
@@ -376,14 +362,10 @@ class EventTests(unittest.TestCase):
         self.assertTrue(t.result())
 
 
-class ConditionTests(unittest.TestCase):
+class ConditionTests(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
-        asyncio.set_event_loop(None)
-
-    def tearDown(self):
-        self.loop.close()
+        self.loop = self.new_test_loop()
 
     def test_ctor_loop(self):
         loop = mock.Mock()
@@ -394,12 +376,9 @@ class ConditionTests(unittest.TestCase):
         self.assertIs(cond._loop, self.loop)
 
     def test_ctor_noloop(self):
-        try:
-            asyncio.set_event_loop(self.loop)
-            cond = asyncio.Condition()
-            self.assertIs(cond._loop, self.loop)
-        finally:
-            asyncio.set_event_loop(None)
+        asyncio.set_event_loop(self.loop)
+        cond = asyncio.Condition()
+        self.assertIs(cond._loop, self.loop)
 
     def test_wait(self):
         cond = asyncio.Condition(loop=self.loop)
@@ -677,15 +656,26 @@ class ConditionTests(unittest.TestCase):
 
         self.assertFalse(cond.locked())
 
+    def test_explicit_lock(self):
+        lock = asyncio.Lock(loop=self.loop)
+        cond = asyncio.Condition(lock, loop=self.loop)
 
-class SemaphoreTests(unittest.TestCase):
+        self.assertIs(cond._lock, lock)
+        self.assertIs(cond._loop, lock._loop)
+
+    def test_ambiguous_loops(self):
+        loop = self.new_test_loop()
+        self.addCleanup(loop.close)
+
+        lock = asyncio.Lock(loop=self.loop)
+        with self.assertRaises(ValueError):
+            asyncio.Condition(lock, loop=loop)
+
+
+class SemaphoreTests(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
-        asyncio.set_event_loop(None)
-
-    def tearDown(self):
-        self.loop.close()
+        self.loop = self.new_test_loop()
 
     def test_ctor_loop(self):
         loop = mock.Mock()
@@ -696,12 +686,9 @@ class SemaphoreTests(unittest.TestCase):
         self.assertIs(sem._loop, self.loop)
 
     def test_ctor_noloop(self):
-        try:
-            asyncio.set_event_loop(self.loop)
-            sem = asyncio.Semaphore()
-            self.assertIs(sem._loop, self.loop)
-        finally:
-            asyncio.set_event_loop(None)
+        asyncio.set_event_loop(self.loop)
+        sem = asyncio.Semaphore()
+        self.assertIs(sem._loop, self.loop)
 
     def test_initial_value_zero(self):
         sem = asyncio.Semaphore(0, loop=self.loop)
@@ -811,6 +798,7 @@ class SemaphoreTests(unittest.TestCase):
 
         # cleanup locked semaphore
         sem.release()
+        self.loop.run_until_complete(t4)
 
     def test_acquire_cancel(self):
         sem = asyncio.Semaphore(loop=self.loop)

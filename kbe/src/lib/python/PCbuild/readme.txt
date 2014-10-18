@@ -9,16 +9,19 @@ requirements are as follows:
 
 Visual C++ 2010 Express Edition
     Required for building 32-bit Debug and Release configuration builds.
-    This edition does not support "solution folders", which pcbuild.sln
-    uses; this will not prevent building.
+    The Python build solution pcbuild.sln makes use of Solution Folders,
+    which this edition does not support.  Any time pcbuild.sln is opened
+    or reloaded by Visual C++, a warning about Solution Folders will be
+    displayed which can be safely dismissed with no impact on your
+    ability to build Python.
 Visual Studio 2010 Professional Edition
     Required for building 64-bit Debug and Release configuration builds
 Visual Studio 2010 Premium Edition
     Required for building Release configuration builds that make use of
     Profile Guided Optimization (PGO), on either platform.
 
-The official Python releases are built with PGO using Visual Studio 2010
-Ultimate Edition.
+Installing Service Pack 1 for Visual Studio 2010 is highly recommended
+to avoid LNK1123 errors.
 
 All you need to do to build is open the solution "pcbuild.sln" in Visual
 Studio, select the desired combination of configuration and platform,
@@ -46,7 +49,7 @@ Debug
     development of CPython, you will most likely use this configuration.
 PGInstrument, PGUpdate
     Used to build Python in Release configuration using PGO, which
-    requires Professional Edition of Visual Studio.  See the "Profile
+    requires Premium Edition of Visual Studio.  See the "Profile
     Guided Optimization" section below for more information.  Build
     output from each of these configurations lands in its own
     sub-directory of this directory.  The official Python releases are
@@ -168,7 +171,7 @@ _lzma
     Homepage:
         http://tukaani.org/xz/
 _ssl
-    Python wrapper for version 1.0.1g of the OpenSSL secure sockets
+    Python wrapper for version 1.0.1h of the OpenSSL secure sockets
     library, which is built by ssl.vcxproj
     Homepage:
         http://www.openssl.org/

@@ -7,6 +7,7 @@ import http.client
 import email.message
 import io
 import unittest
+from unittest.mock import patch
 from test import support
 import os
 import sys
@@ -47,46 +48,71 @@ def urlopen(url, data=None, proxies=None):
         return opener.open(url, data)
 
 
+def fakehttp(fakedata):
+    class FakeSocket(io.BytesIO):
+        io_refs = 1
+
+        def sendall(self, data):
+            FakeHTTPConnection.buf = data
+
+        def makefile(self, *args, **kwds):
+            self.io_refs += 1
+            return self
+
+        def read(self, amt=None):
+            if self.closed:
+                return b""
+            return io.BytesIO.read(self, amt)
+
+        def readline(self, length=None):
+            if self.closed:
+                return b""
+            return io.BytesIO.readline(self, length)
+
+        def close(self):
+            self.io_refs -= 1
+            if self.io_refs == 0:
+                io.BytesIO.close(self)
+
+    class FakeHTTPConnection(http.client.HTTPConnection):
+
+        # buffer to store data for verification in urlopen tests.
+        buf = None
+        fakesock = FakeSocket(fakedata)
+
+        def connect(self):
+            self.sock = self.fakesock
+
+    return FakeHTTPConnection
+
+
 class FakeHTTPMixin(object):
     def fakehttp(self, fakedata):
-        class FakeSocket(io.BytesIO):
-            io_refs = 1
-
-            def sendall(self, data):
-                FakeHTTPConnection.buf = data
-
-            def makefile(self, *args, **kwds):
-                self.io_refs += 1
-                return self
-
-            def read(self, amt=None):
-                if self.closed:
-                    return b""
-                return io.BytesIO.read(self, amt)
-
-            def readline(self, length=None):
-                if self.closed:
-                    return b""
-                return io.BytesIO.readline(self, length)
-
-            def close(self):
-                self.io_refs -= 1
-                if self.io_refs == 0:
-                    io.BytesIO.close(self)
-
-        class FakeHTTPConnection(http.client.HTTPConnection):
-
-            # buffer to store data for verification in urlopen tests.
-            buf = None
-
-            def connect(self):
-                self.sock = FakeSocket(fakedata)
-
         self._connection_class = http.client.HTTPConnection
-        http.client.HTTPConnection = FakeHTTPConnection
+        http.client.HTTPConnection = fakehttp(fakedata)
 
     def unfakehttp(self):
         http.client.HTTPConnection = self._connection_class
+
+
+class FakeFTPMixin(object):
+    def fakeftp(self):
+        class FakeFtpWrapper(object):
+            def __init__(self,  user, passwd, host, port, dirs, timeout=None,
+                     persistent=True):
+                pass
+
+            def retrfile(self, file, type):
+                return io.BytesIO(), 0
+
+            def close(self):
+                pass
+
+        self._ftpwrapper_class = urllib.request.ftpwrapper
+        urllib.request.ftpwrapper = FakeFtpWrapper
+
+    def unfakeftp(self):
+        urllib.request.ftpwrapper = self._ftpwrapper_class
 
 
 class urlopen_FileTests(unittest.TestCase):
@@ -195,7 +221,7 @@ class ProxyTests(unittest.TestCase):
         self.env.set('NO_PROXY', 'localhost, anotherdomain.com, newdomain.com')
         self.assertTrue(urllib.request.proxy_bypass_environment('anotherdomain.com'))
 
-class urlopen_HttpTests(unittest.TestCase, FakeHTTPMixin):
+class urlopen_HttpTests(unittest.TestCase, FakeHTTPMixin, FakeFTPMixin):
     """Test urlopen() opening a fake http connection."""
 
     def check_read(self, ver):
@@ -308,6 +334,15 @@ Content-Type: text/html; charset=iso-8859-1
             urlopen('ftp://localhost/a/file/which/doesnot/exists.py')
         self.assertFalse(e.exception.filename)
         self.assertTrue(e.exception.reason)
+
+    @patch.object(urllib.request, 'MAXFTPCACHE', 0)
+    def test_ftp_cache_pruning(self):
+        self.fakeftp()
+        try:
+            urllib.request.ftpcache['test'] = urllib.request.ftpwrapper('user', 'pass', 'localhost', 21, [])
+            urlopen('ftp://localhost')
+        finally:
+            self.unfakeftp()
 
 
     def test_userpass_inurl(self):

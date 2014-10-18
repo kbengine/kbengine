@@ -26,16 +26,7 @@ endif
 export BUILDING_KBENGINE=1
 
 
-ifeq (,$(findstring $(KBE_CONFIG), Release Hybrid Debug Evaluation \
-	Debug_SingleThreaded \
-	Hybrid_SingleThreaded \
-	Hybrid64 Hybrid64_SingleThreaded \
-	Hybrid_SystemPython Hybrid64_SystemPython \
-	Debug_SystemPython Debug64_SystemPython \
-	Release_SingleThreaded  \
-	Debug64 Debug64_SingleThreaded \
-	Debug64_GCOV Debug64_GCOV_SingleThreaded Debug64_GCOV_SystemPython \
-	Debug_GCOV Debug_GCOV_SingleThreaded Debug_GCOV_SystemPython ))
+ifeq (,$(findstring $(KBE_CONFIG), Release Hybrid Debug Evaluation ))
 all:: 
 	@echo Error - Unknown configuration type $(KBE_CONFIG)
 	@false
@@ -51,11 +42,7 @@ endif
 # In order to build src/lib/python, which includes this file, we need to define
 # this even when not explicitly requiring Python. This assists in setting up
 # the target for libpython<version>.a when common.mak is re-included.
-ifeq ($(KBE_CONFIG), Hybrid64)
-PYTHONLIB = python64_34
-else
-PYTHONLIB = python32_34
-endif
+PYTHONLIB = python
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable
 # will be placed in a separate file. For example, cellapp and cellapp.dbg. The

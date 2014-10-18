@@ -7,14 +7,10 @@ import asyncio
 from asyncio import test_utils
 
 
-class _QueueTestBase(unittest.TestCase):
+class _QueueTestBase(test_utils.TestCase):
 
     def setUp(self):
-        self.loop = test_utils.TestLoop()
-        asyncio.set_event_loop(None)
-
-    def tearDown(self):
-        self.loop.close()
+        self.loop = self.new_test_loop()
 
 
 class QueueBasicTests(_QueueTestBase):
@@ -32,8 +28,7 @@ class QueueBasicTests(_QueueTestBase):
             self.assertAlmostEqual(0.2, when)
             yield 0.1
 
-        loop = test_utils.TestLoop(gen)
-        self.addCleanup(loop.close)
+        loop = self.new_test_loop(gen)
 
         q = asyncio.Queue(loop=loop)
         self.assertTrue(fn(q).startswith('<Queue'), fn(q))
@@ -80,12 +75,9 @@ class QueueBasicTests(_QueueTestBase):
         self.assertIs(q._loop, self.loop)
 
     def test_ctor_noloop(self):
-        try:
-            asyncio.set_event_loop(self.loop)
-            q = asyncio.Queue()
-            self.assertIs(q._loop, self.loop)
-        finally:
-            asyncio.set_event_loop(None)
+        asyncio.set_event_loop(self.loop)
+        q = asyncio.Queue()
+        self.assertIs(q._loop, self.loop)
 
     def test_repr(self):
         self._test_repr_or_str(repr, True)
@@ -126,8 +118,7 @@ class QueueBasicTests(_QueueTestBase):
             self.assertAlmostEqual(0.02, when)
             yield 0.01
 
-        loop = test_utils.TestLoop(gen)
-        self.addCleanup(loop.close)
+        loop = self.new_test_loop(gen)
 
         q = asyncio.Queue(maxsize=2, loop=loop)
         self.assertEqual(2, q.maxsize)
@@ -194,8 +185,7 @@ class QueueGetTests(_QueueTestBase):
             self.assertAlmostEqual(0.01, when)
             yield 0.01
 
-        loop = test_utils.TestLoop(gen)
-        self.addCleanup(loop.close)
+        loop = self.new_test_loop(gen)
 
         q = asyncio.Queue(loop=loop)
         started = asyncio.Event(loop=loop)
@@ -241,8 +231,7 @@ class QueueGetTests(_QueueTestBase):
             self.assertAlmostEqual(0.061, when)
             yield 0.05
 
-        loop = test_utils.TestLoop(gen)
-        self.addCleanup(loop.close)
+        loop = self.new_test_loop(gen)
 
         q = asyncio.Queue(loop=loop)
 
@@ -302,8 +291,7 @@ class QueuePutTests(_QueueTestBase):
             self.assertAlmostEqual(0.01, when)
             yield 0.01
 
-        loop = test_utils.TestLoop(gen)
-        self.addCleanup(loop.close)
+        loop = self.new_test_loop(gen)
 
         q = asyncio.Queue(maxsize=1, loop=loop)
         started = asyncio.Event(loop=loop)
@@ -339,6 +327,21 @@ class QueuePutTests(_QueueTestBase):
         q.put_nowait(1)
         self.assertRaises(asyncio.QueueFull, q.put_nowait, 2)
 
+    def test_float_maxsize(self):
+        q = asyncio.Queue(maxsize=1.3, loop=self.loop)
+        q.put_nowait(1)
+        q.put_nowait(2)
+        self.assertTrue(q.full())
+        self.assertRaises(asyncio.QueueFull, q.put_nowait, 3)
+
+        q = asyncio.Queue(maxsize=1.3, loop=self.loop)
+        @asyncio.coroutine
+        def queue_put():
+            yield from q.put(1)
+            yield from q.put(2)
+            self.assertTrue(q.full())
+        self.loop.run_until_complete(queue_put())
+
     def test_put_cancelled(self):
         q = asyncio.Queue(loop=self.loop)
 
@@ -359,16 +362,21 @@ class QueuePutTests(_QueueTestBase):
     def test_put_cancelled_race(self):
         q = asyncio.Queue(loop=self.loop, maxsize=1)
 
-        asyncio.Task(q.put('a'), loop=self.loop)
-        asyncio.Task(q.put('c'), loop=self.loop)
-        t = asyncio.Task(q.put('b'), loop=self.loop)
+        put_a = asyncio.Task(q.put('a'), loop=self.loop)
+        put_b = asyncio.Task(q.put('b'), loop=self.loop)
+        put_c = asyncio.Task(q.put('X'), loop=self.loop)
 
         test_utils.run_briefly(self.loop)
-        t.cancel()
+        self.assertTrue(put_a.done())
+        self.assertFalse(put_b.done())
+
+        put_c.cancel()
         test_utils.run_briefly(self.loop)
-        self.assertTrue(t.done())
+        self.assertTrue(put_c.done())
         self.assertEqual(q.get_nowait(), 'a')
-        self.assertEqual(q.get_nowait(), 'c')
+        self.assertEqual(q.get_nowait(), 'b')
+
+        self.loop.run_until_complete(put_b)
 
     def test_put_with_waiting_getters(self):
         q = asyncio.Queue(loop=self.loop)
@@ -428,18 +436,20 @@ class JoinableQueueTests(_QueueTestBase):
 
         @asyncio.coroutine
         def test():
-            for _ in range(2):
-                asyncio.Task(worker(), loop=self.loop)
+            tasks = [asyncio.Task(worker(), loop=self.loop)
+                     for index in range(2)]
 
             yield from q.join()
+            return tasks
 
-        self.loop.run_until_complete(test())
+        tasks = self.loop.run_until_complete(test())
         self.assertEqual(sum(range(100)), accumulator)
 
         # close running generators
         running = False
-        for i in range(2):
+        for i in range(len(tasks)):
             q.put_nowait(0)
+        self.loop.run_until_complete(asyncio.wait(tasks, loop=self.loop))
 
     def test_join_empty_queue(self):
         q = asyncio.JoinableQueue(loop=self.loop)

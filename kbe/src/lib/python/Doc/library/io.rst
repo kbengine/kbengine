@@ -289,7 +289,7 @@ I/O Base Classes
       most *size* bytes will be read.
 
       The line terminator is always ``b'\n'`` for binary files; for text files,
-      the *newlines* argument to :func:`open` can be used to select the line
+      the *newline* argument to :func:`open` can be used to select the line
       terminator(s) recognized.
 
    .. method:: readlines(hint=-1)
@@ -352,6 +352,12 @@ I/O Base Classes
       Write a list of lines to the stream.  Line separators are not added, so it
       is usual for each of the lines provided to have a line separator at the
       end.
+
+   .. method:: __del__()
+
+      Prepare for object destruction. :class:`IOBase` provides a default
+      implementation of this method that calls the instance's
+      :meth:`~IOBase.close` method.
 
 
 .. class:: RawIOBase

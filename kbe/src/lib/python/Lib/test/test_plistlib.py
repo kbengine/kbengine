@@ -207,6 +207,9 @@ class TestPlistlib(unittest.TestCase):
         for fmt in ALL_FORMATS:
             with self.subTest(fmt=fmt):
                 pl = self._create(fmt=fmt)
+                pl2 = plistlib.loads(TESTDATA[fmt], fmt=fmt)
+                self.assertEqual(dict(pl), dict(pl2),
+                    "generated data was not identical to Apple's output")
                 pl2 = plistlib.loads(TESTDATA[fmt])
                 self.assertEqual(dict(pl), dict(pl2),
                     "generated data was not identical to Apple's output")
@@ -217,6 +220,8 @@ class TestPlistlib(unittest.TestCase):
                 b = BytesIO()
                 pl = self._create(fmt=fmt)
                 plistlib.dump(pl, b, fmt=fmt)
+                pl2 = plistlib.load(BytesIO(b.getvalue()), fmt=fmt)
+                self.assertEqual(dict(pl), dict(pl2))
                 pl2 = plistlib.load(BytesIO(b.getvalue()))
                 self.assertEqual(dict(pl), dict(pl2))
 
@@ -410,6 +415,18 @@ class TestPlistlib(unittest.TestCase):
                 data = bom + data.decode('utf-8').encode(encoding)
                 pl2 = plistlib.loads(data)
                 self.assertEqual(dict(pl), dict(pl2))
+
+    def test_nonstandard_refs_size(self):
+        # Issue #21538: Refs and offsets are 24-bit integers
+        data = (b'bplist00'
+                b'\xd1\x00\x00\x01\x00\x00\x02QaQb'
+                b'\x00\x00\x08\x00\x00\x0f\x00\x00\x11'
+                b'\x00\x00\x00\x00\x00\x00'
+                b'\x03\x03'
+                b'\x00\x00\x00\x00\x00\x00\x00\x03'
+                b'\x00\x00\x00\x00\x00\x00\x00\x00'
+                b'\x00\x00\x00\x00\x00\x00\x00\x13')
+        self.assertEqual(plistlib.loads(data), {'a': 'b'})
 
 
 class TestPlistlibDeprecated(unittest.TestCase):

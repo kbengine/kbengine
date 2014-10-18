@@ -8,15 +8,72 @@ __all__ = ['AbstractEventLoopPolicy',
            'get_child_watcher', 'set_child_watcher',
            ]
 
-import subprocess
-import threading
+import functools
+import inspect
+import reprlib
 import socket
+import subprocess
+import sys
+import threading
+import traceback
+
+
+_PY34 = sys.version_info >= (3, 4)
+
+
+def _get_function_source(func):
+    if _PY34:
+        func = inspect.unwrap(func)
+    elif hasattr(func, '__wrapped__'):
+        func = func.__wrapped__
+    if inspect.isfunction(func):
+        code = func.__code__
+        return (code.co_filename, code.co_firstlineno)
+    if isinstance(func, functools.partial):
+        return _get_function_source(func.func)
+    if _PY34 and isinstance(func, functools.partialmethod):
+        return _get_function_source(func.func)
+    return None
+
+
+def _format_args(args):
+    """Format function arguments.
+
+    Special case for a single parameter: ('hello',) is formatted as ('hello').
+    """
+    # use reprlib to limit the length of the output
+    args_repr = reprlib.repr(args)
+    if len(args) == 1 and args_repr.endswith(',)'):
+        args_repr = args_repr[:-2] + ')'
+    return args_repr
+
+
+def _format_callback(func, args, suffix=''):
+    if isinstance(func, functools.partial):
+        if args is not None:
+            suffix = _format_args(args) + suffix
+        return _format_callback(func.func, func.args, suffix)
+
+    func_repr = getattr(func, '__qualname__', None)
+    if not func_repr:
+        func_repr = repr(func)
+
+    if args is not None:
+        func_repr += _format_args(args)
+    if suffix:
+        func_repr += suffix
+
+    source = _get_function_source(func)
+    if source:
+        func_repr += ' at %s:%s' % source
+    return func_repr
 
 
 class Handle:
     """Object returned by callback registration methods."""
 
-    __slots__ = ['_callback', '_args', '_cancelled', '_loop', '__weakref__']
+    __slots__ = ('_callback', '_args', '_cancelled', '_loop',
+                 '_source_traceback', '_repr', '__weakref__')
 
     def __init__(self, callback, args, loop):
         assert not isinstance(callback, Handle), 'A Handle is not a callback'
@@ -24,27 +81,53 @@ class Handle:
         self._callback = callback
         self._args = args
         self._cancelled = False
+        self._repr = None
+        if self._loop.get_debug():
+            self._source_traceback = traceback.extract_stack(sys._getframe(1))
+        else:
+            self._source_traceback = None
+
+    def _repr_info(self):
+        info = [self.__class__.__name__]
+        if self._cancelled:
+            info.append('cancelled')
+        if self._callback is not None:
+            info.append(_format_callback(self._callback, self._args))
+        if self._source_traceback:
+            frame = self._source_traceback[-1]
+            info.append('created at %s:%s' % (frame[0], frame[1]))
+        return info
 
     def __repr__(self):
-        res = 'Handle({}, {})'.format(self._callback, self._args)
-        if self._cancelled:
-            res += '<cancelled>'
-        return res
+        if self._repr is not None:
+            return self._repr
+        info = self._repr_info()
+        return '<%s>' % ' '.join(info)
 
     def cancel(self):
         self._cancelled = True
+        if self._loop.get_debug():
+            # Keep a representation in debug mode to keep callback and
+            # parameters. For example, to log the warning "Executing <Handle
+            # ...> took 2.5 second"
+            self._repr = repr(self)
+        self._callback = None
+        self._args = None
 
     def _run(self):
         try:
             self._callback(*self._args)
         except Exception as exc:
-            msg = 'Exception in callback {}{!r}'.format(self._callback,
-                                                        self._args)
-            self._loop.call_exception_handler({
+            cb = _format_callback(self._callback, self._args)
+            msg = 'Exception in callback {}'.format(cb)
+            context = {
                 'message': msg,
                 'exception': exc,
                 'handle': self,
-            })
+            }
+            if self._source_traceback:
+                context['source_traceback'] = self._source_traceback
+            self._loop.call_exception_handler(context)
         self = None  # Needed to break cycles when an exception occurs.
 
 
@@ -56,17 +139,15 @@ class TimerHandle(Handle):
     def __init__(self, when, callback, args, loop):
         assert when is not None
         super().__init__(callback, args, loop)
-
+        if self._source_traceback:
+            del self._source_traceback[-1]
         self._when = when
 
-    def __repr__(self):
-        res = 'TimerHandle({}, {}, {})'.format(self._when,
-                                               self._callback,
-                                               self._args)
-        if self._cancelled:
-            res += '<cancelled>'
-
-        return res
+    def _repr_info(self):
+        info = super()._repr_info()
+        pos = 2 if self._cancelled else 1
+        info.insert(pos, 'when=%s' % self._when)
+        return info
 
     def __hash__(self):
         return hash(self._when)
@@ -140,6 +221,10 @@ class AbstractEventLoop:
         """Return whether the event loop is currently running."""
         raise NotImplementedError
 
+    def is_closed(self):
+        """Returns True if the event loop was closed."""
+        raise NotImplementedError
+
     def close(self):
         """Close the loop.
 
@@ -163,6 +248,11 @@ class AbstractEventLoop:
         raise NotImplementedError
 
     def time(self):
+        raise NotImplementedError
+
+    # Method scheduling a coroutine object: create a task.
+
+    def create_task(self, coro):
         raise NotImplementedError
 
     # Methods for interacting with threads.
@@ -257,11 +347,11 @@ class AbstractEventLoop:
     # Pipes and subprocesses.
 
     def connect_read_pipe(self, protocol_factory, pipe):
-        """Register read pipe in event loop.
+        """Register read pipe in event loop. Set the pipe to non-blocking mode.
 
         protocol_factory should instantiate object with Protocol interface.
-        pipe is file-like object already switched to nonblocking.
-        Return pair (transport, protocol), where transport support
+        pipe is a file-like object.
+        Return pair (transport, protocol), where transport supports the
         ReadTransport interface."""
         # The reason to accept file-like object instead of just file descriptor
         # is: we need to own pipe and close it at transport finishing
@@ -355,25 +445,33 @@ class AbstractEventLoopPolicy:
     """Abstract policy for accessing the event loop."""
 
     def get_event_loop(self):
-        """XXX"""
+        """Get the event loop for the current context.
+
+        Returns an event loop object implementing the BaseEventLoop interface,
+        or raises an exception in case no event loop has been set for the
+        current context and the current policy does not specify to create one.
+
+        It should never return None."""
         raise NotImplementedError
 
     def set_event_loop(self, loop):
-        """XXX"""
+        """Set the event loop for the current context to loop."""
         raise NotImplementedError
 
     def new_event_loop(self):
-        """XXX"""
+        """Create and return a new event loop object according to this
+        policy's rules. If there's need to set this loop as the event loop for
+        the current context, set_event_loop must be called explicitly."""
         raise NotImplementedError
 
     # Child processes handling (Unix only).
 
     def get_child_watcher(self):
-        """XXX"""
+        "Get the watcher for child processes."
         raise NotImplementedError
 
     def set_child_watcher(self, watcher):
-        """XXX"""
+        """Set the watcher for child processes."""
         raise NotImplementedError
 
 
@@ -447,39 +545,42 @@ def _init_event_loop_policy():
 
 
 def get_event_loop_policy():
-    """XXX"""
+    """Get the current event loop policy."""
     if _event_loop_policy is None:
         _init_event_loop_policy()
     return _event_loop_policy
 
 
 def set_event_loop_policy(policy):
-    """XXX"""
+    """Set the current event loop policy.
+
+    If policy is None, the default policy is restored."""
     global _event_loop_policy
     assert policy is None or isinstance(policy, AbstractEventLoopPolicy)
     _event_loop_policy = policy
 
 
 def get_event_loop():
-    """XXX"""
+    """Equivalent to calling get_event_loop_policy().get_event_loop()."""
     return get_event_loop_policy().get_event_loop()
 
 
 def set_event_loop(loop):
-    """XXX"""
+    """Equivalent to calling get_event_loop_policy().set_event_loop(loop)."""
     get_event_loop_policy().set_event_loop(loop)
 
 
 def new_event_loop():
-    """XXX"""
+    """Equivalent to calling get_event_loop_policy().new_event_loop()."""
     return get_event_loop_policy().new_event_loop()
 
 
 def get_child_watcher():
-    """XXX"""
+    """Equivalent to calling get_event_loop_policy().get_child_watcher()."""
     return get_event_loop_policy().get_child_watcher()
 
 
 def set_child_watcher(watcher):
-    """XXX"""
+    """Equivalent to calling
+    get_event_loop_policy().set_child_watcher(watcher)."""
     return get_event_loop_policy().set_child_watcher(watcher)

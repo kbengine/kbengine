@@ -121,6 +121,16 @@ WriteTransport
 
       Return the current size of the output buffer used by the transport.
 
+   .. method:: get_write_buffer_limits()
+
+      Get the *high*- and *low*-water limits for write flow control. Return a
+      tuple ``(low, high)`` where *low* and *high* are positive number of
+      bytes.
+
+      Use :meth:`set_write_buffer_limits` to set the limits.
+
+      .. versionadded:: 3.4.2
+
    .. method:: set_write_buffer_limits(high=None, low=None)
 
       Set the *high*- and *low*-water limits for write flow control.
@@ -140,6 +150,8 @@ WriteTransport
       Use of zero for either limit is generally sub-optimal as it
       reduces opportunities for doing I/O and computation
       concurrently.
+
+      Use :meth:`get_write_buffer_limits` to get the limits.
 
    .. method:: write(data)
 
@@ -272,8 +284,8 @@ Protocol classes
 Connection callbacks
 --------------------
 
-These callbacks may be called on :class:`Protocol` and
-:class:`SubprocessProtocol` instances:
+These callbacks may be called on :class:`Protocol`, :class:`DatagramProtocol`
+and :class:`SubprocessProtocol` instances:
 
 .. method:: BaseProtocol.connection_made(transport)
 
@@ -291,10 +303,10 @@ These callbacks may be called on :class:`Protocol` and
    The latter means a regular EOF is received, or the connection was
    aborted or closed by this side of the connection.
 
-:meth:`connection_made` and :meth:`connection_lost` are called exactly once
-per successful connection.  All other callbacks will be called between those
-two methods, which allows for easier resource management in your protocol
-implementation.
+:meth:`~BaseProtocol.connection_made` and :meth:`~BaseProtocol.connection_lost`
+are called exactly once per successful connection.  All other callbacks will be
+called between those two methods, which allows for easier resource management
+in your protocol implementation.
 
 The following callbacks may be called only on :class:`SubprocessProtocol`
 instances:
@@ -459,7 +471,7 @@ The event loop is running twice. The
 example to raise an exception if the server is not listening, instead of
 having to write a short coroutine to handle the exception and stop the
 running loop. At :meth:`~BaseEventLoop.run_until_complete` exit, the loop is
-no more running, so there is no need to stop the loop in case of an error.
+no longer running, so there is no need to stop the loop in case of an error.
 
 Echo server
 -----------

@@ -235,11 +235,12 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
     char rawmode[6], *m;
     int line_buffering, isatty;
 
-    PyObject *raw, *modeobj = NULL, *buffer = NULL, *wrapper = NULL;
+    PyObject *raw, *modeobj = NULL, *buffer, *wrapper, *result = NULL;
 
     _Py_IDENTIFIER(isatty);
     _Py_IDENTIFIER(fileno);
     _Py_IDENTIFIER(mode);
+    _Py_IDENTIFIER(close);
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|sizzziO:open", kwlist,
                                      &file, &mode, &buffering,
@@ -354,6 +355,7 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
                                 "OsiO", file, rawmode, closefd, opener);
     if (raw == NULL)
         return NULL;
+    result = raw;
 
     modeobj = PyUnicode_FromString(mode);
     if (modeobj == NULL)
@@ -412,7 +414,7 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
         }
 
         Py_DECREF(modeobj);
-        return raw;
+        return result;
     }
 
     /* wraps into a buffered file */
@@ -433,15 +435,16 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
 
         buffer = PyObject_CallFunction(Buffered_class, "Oi", raw, buffering);
     }
-    Py_CLEAR(raw);
     if (buffer == NULL)
         goto error;
+    result = buffer;
+    Py_DECREF(raw);
 
 
     /* if binary, returns the buffered file */
     if (binary) {
         Py_DECREF(modeobj);
-        return buffer;
+        return result;
     }
 
     /* wraps into a TextIOWrapper */
@@ -450,20 +453,37 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
 				    buffer,
 				    encoding, errors, newline,
 				    line_buffering);
-    Py_CLEAR(buffer);
     if (wrapper == NULL)
         goto error;
+    result = wrapper;
+    Py_DECREF(buffer);
 
     if (_PyObject_SetAttrId(wrapper, &PyId_mode, modeobj) < 0)
         goto error;
     Py_DECREF(modeobj);
-    return wrapper;
+    return result;
 
   error:
-    Py_XDECREF(raw);
+    if (result != NULL) {
+        PyObject *exc, *val, *tb, *close_result;
+        PyErr_Fetch(&exc, &val, &tb);
+        close_result = _PyObject_CallMethodId(result, &PyId_close, NULL);
+        if (close_result != NULL) {
+            Py_DECREF(close_result);
+            PyErr_Restore(exc, val, tb);
+        } else {
+            PyObject *exc2, *val2, *tb2;
+            PyErr_Fetch(&exc2, &val2, &tb2);
+            PyErr_NormalizeException(&exc, &val, &tb);
+            Py_XDECREF(exc);
+            Py_XDECREF(tb);
+            PyErr_NormalizeException(&exc2, &val2, &tb2);
+            PyException_SetContext(val2, val);
+            PyErr_Restore(exc2, val2, tb2);
+        }
+        Py_DECREF(result);
+    }
     Py_XDECREF(modeobj);
-    Py_XDECREF(buffer);
-    Py_XDECREF(wrapper);
     return NULL;
 }
 

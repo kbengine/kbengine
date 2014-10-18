@@ -5,9 +5,14 @@ from test import support
 # If this fails, the test will be skipped.
 thread = support.import_module('_thread')
 
-import asyncore, asynchat, socket, time
-import unittest
+import asynchat
+import asyncore
+import errno
+import socket
 import sys
+import time
+import unittest
+import unittest.mock
 try:
     import threading
 except ImportError:
@@ -28,8 +33,8 @@ if threading:
             self.event = event
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.port = support.bind_port(self.sock)
-            # This will be set if the client wants us to wait before echoing data
-            # back.
+            # This will be set if the client wants us to wait before echoing
+            # data back.
             self.start_resend_event = None
 
         def run(self):
@@ -52,8 +57,8 @@ if threading:
 
             # re-send entire set of collected data
             try:
-                # this may fail on some tests, such as test_close_when_done, since
-                # the client closes the channel when it's done sending
+                # this may fail on some tests, such as test_close_when_done,
+                # since the client closes the channel when it's done sending
                 while self.buffer:
                     n = conn.send(self.buffer[:self.chunk_size])
                     time.sleep(0.001)
@@ -96,7 +101,7 @@ if threading:
         s.start()
         event.wait()
         event.clear()
-        time.sleep(0.01) # Give server time to start accepting.
+        time.sleep(0.01)   # Give server time to start accepting.
         return s, event
 
 
@@ -104,10 +109,10 @@ if threading:
 class TestAsynchat(unittest.TestCase):
     usepoll = False
 
-    def setUp (self):
+    def setUp(self):
         self._threads = support.threading_setup()
 
-    def tearDown (self):
+    def tearDown(self):
         support.threading_cleanup(*self._threads)
 
     def line_terminator_check(self, term, server_chunk):
@@ -117,7 +122,7 @@ class TestAsynchat(unittest.TestCase):
         s.start()
         event.wait()
         event.clear()
-        time.sleep(0.01) # Give server time to start accepting.
+        time.sleep(0.01)   # Give server time to start accepting.
         c = echo_client(term, s.port)
         c.push(b"hello ")
         c.push(b"world" + term)
@@ -136,17 +141,17 @@ class TestAsynchat(unittest.TestCase):
 
     def test_line_terminator1(self):
         # test one-character terminator
-        for l in (1,2,3):
+        for l in (1, 2, 3):
             self.line_terminator_check(b'\n', l)
 
     def test_line_terminator2(self):
         # test two-character terminator
-        for l in (1,2,3):
+        for l in (1, 2, 3):
             self.line_terminator_check(b'\r\n', l)
 
     def test_line_terminator3(self):
         # test three-character terminator
-        for l in (1,2,3):
+        for l in (1, 2, 3):
             self.line_terminator_check(b'qqq', l)
 
     def numeric_terminator_check(self, termlen):
@@ -249,14 +254,47 @@ class TestAsynchat(unittest.TestCase):
         # (which could still result in the client not having received anything)
         self.assertGreater(len(s.buffer), 0)
 
+    def test_push(self):
+        # Issue #12523: push() should raise a TypeError if it doesn't get
+        # a bytes string
+        s, event = start_echo_server()
+        c = echo_client(b'\n', s.port)
+        data = b'bytes\n'
+        c.push(data)
+        c.push(bytearray(data))
+        c.push(memoryview(data))
+        self.assertRaises(TypeError, c.push, 10)
+        self.assertRaises(TypeError, c.push, 'unicode')
+        c.push(SERVER_QUIT)
+        asyncore.loop(use_poll=self.usepoll, count=300, timeout=.01)
+        s.join(timeout=TIMEOUT)
+        self.assertEqual(c.contents, [b'bytes', b'bytes', b'bytes'])
+
 
 class TestAsynchat_WithPoll(TestAsynchat):
     usepoll = True
+
+
+class TestAsynchatMocked(unittest.TestCase):
+    def test_blockingioerror(self):
+        # Issue #16133: handle_read() must ignore BlockingIOError
+        sock = unittest.mock.Mock()
+        sock.recv.side_effect = BlockingIOError(errno.EAGAIN)
+
+        dispatcher = asynchat.async_chat()
+        dispatcher.set_socket(sock)
+        self.addCleanup(dispatcher.del_channel)
+
+        with unittest.mock.patch.object(dispatcher, 'handle_error') as error:
+            dispatcher.handle_read()
+        self.assertFalse(error.called)
+
 
 class TestHelperFunctions(unittest.TestCase):
     def test_find_prefix_at_end(self):
         self.assertEqual(asynchat.find_prefix_at_end("qwerty\r", "\r\n"), 1)
         self.assertEqual(asynchat.find_prefix_at_end("qwertydkjf", "\r\n"), 0)
+
 
 class TestFifo(unittest.TestCase):
     def test_basic(self):
@@ -281,6 +319,14 @@ class TestFifo(unittest.TestCase):
         self.assertEqual(f.pop(), (1, 17))
         self.assertEqual(f.pop(), (1, 3))
         self.assertEqual(f.pop(), (0, None))
+
+
+class TestNotConnected(unittest.TestCase):
+    def test_disallow_negative_terminator(self):
+        # Issue #11259
+        client = asynchat.async_chat()
+        self.assertRaises(ValueError, client.set_terminator, -1)
+
 
 
 if __name__ == "__main__":

@@ -16,8 +16,9 @@ from . import base_subprocess
 from . import constants
 from . import events
 from . import selector_events
-from . import tasks
+from . import selectors
 from . import transports
+from .coroutines import coroutine
 from .log import logger
 
 
@@ -28,6 +29,11 @@ __all__ = ['SelectorEventLoop',
 
 if sys.platform == 'win32':  # pragma: no cover
     raise ImportError('Signals are not really supported on Windows')
+
+
+def _sighandler_noop(signum, frame):
+    """Dummy signal handler."""
+    pass
 
 
 class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
@@ -44,9 +50,16 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
         return socket.socketpair()
 
     def close(self):
+        super().close()
         for sig in list(self._signal_handlers):
             self.remove_signal_handler(sig)
-        super().close()
+
+    def _process_self_data(self, data):
+        for signum in data:
+            if not signum:
+                # ignore null bytes written by _write_to_self()
+                continue
+            self._handle_signal(signum)
 
     def add_signal_handler(self, sig, callback, *args):
         """Add a handler for a signal.  UNIX only.
@@ -61,14 +74,18 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             # event loop running in another thread cannot add a signal
             # handler.
             signal.set_wakeup_fd(self._csock.fileno())
-        except ValueError as exc:
+        except (ValueError, OSError) as exc:
             raise RuntimeError(str(exc))
 
         handle = events.Handle(callback, args, self)
         self._signal_handlers[sig] = handle
 
         try:
-            signal.signal(sig, self._handle_signal)
+            # Register a dummy signal handler to ask Python to write the signal
+            # number in the wakup file descriptor. _process_self_data() will
+            # read signal numbers from this file descriptor to handle signals.
+            signal.signal(sig, _sighandler_noop)
+
             # Set SA_RESTART to limit EINTR occurrences.
             signal.siginterrupt(sig, False)
         except OSError as exc:
@@ -76,7 +93,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             if not self._signal_handlers:
                 try:
                     signal.set_wakeup_fd(-1)
-                except ValueError as nexc:
+                except (ValueError, OSError) as nexc:
                     logger.info('set_wakeup_fd(-1) failed: %s', nexc)
 
             if exc.errno == errno.EINVAL:
@@ -84,7 +101,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             else:
                 raise
 
-    def _handle_signal(self, sig, arg):
+    def _handle_signal(self, sig):
         """Internal helper that is the actual signal handler."""
         handle = self._signal_handlers.get(sig)
         if handle is None:
@@ -121,7 +138,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
         if not self._signal_handlers:
             try:
                 signal.set_wakeup_fd(-1)
-            except ValueError as exc:
+            except (ValueError, OSError) as exc:
                 logger.info('set_wakeup_fd(-1) failed: %s', exc)
 
         return True
@@ -147,7 +164,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
                                    extra=None):
         return _UnixWritePipeTransport(self, pipe, protocol, waiter, extra)
 
-    @tasks.coroutine
+    @coroutine
     def _make_subprocess_transport(self, protocol, args, shell,
                                    stdin, stdout, stderr, bufsize,
                                    extra=None, **kwargs):
@@ -164,7 +181,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
     def _child_watcher_callback(self, pid, returncode, transp):
         self.call_soon_threadsafe(transp._process_exited, returncode)
 
-    @tasks.coroutine
+    @coroutine
     def create_unix_connection(self, protocol_factory, path, *,
                                ssl=None, sock=None,
                                server_hostname=None):
@@ -199,7 +216,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             sock, protocol_factory, ssl, server_hostname)
         return transport, protocol
 
-    @tasks.coroutine
+    @coroutine
     def create_unix_server(self, protocol_factory, path=None, *,
                            sock=None, backlog=100, ssl=None):
         if isinstance(ssl, bool):
@@ -223,6 +240,9 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
                     raise OSError(errno.EADDRINUSE, msg) from None
                 else:
                     raise
+            except:
+                sock.close()
+                raise
         else:
             if sock is None:
                 raise ValueError(
@@ -239,10 +259,14 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
         return server
 
 
-def _set_nonblocking(fd):
-    flags = fcntl.fcntl(fd, fcntl.F_GETFL)
-    flags = flags | os.O_NONBLOCK
-    fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+if hasattr(os, 'set_blocking'):
+    def _set_nonblocking(fd):
+        os.set_blocking(fd, False)
+else:
+    def _set_nonblocking(fd):
+        flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+        flags = flags | os.O_NONBLOCK
+        fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
 
 class _UnixReadPipeTransport(transports.ReadTransport):
@@ -266,7 +290,22 @@ class _UnixReadPipeTransport(transports.ReadTransport):
         self._loop.add_reader(self._fileno, self._read_ready)
         self._loop.call_soon(self._protocol.connection_made, self)
         if waiter is not None:
-            self._loop.call_soon(waiter.set_result, None)
+            # wait until protocol.connection_made() has been called
+            self._loop.call_soon(waiter._set_result_unless_cancelled, None)
+
+    def __repr__(self):
+        info = [self.__class__.__name__, 'fd=%s' % self._fileno]
+        if self._pipe is not None:
+            polling = selector_events._test_selector_event(
+                          self._loop._selector,
+                          self._fileno, selectors.EVENT_READ)
+            if polling:
+                info.append('polling')
+            else:
+                info.append('idle')
+        else:
+            info.append('closed')
+        return '<%s>' % ' '.join(info)
 
     def _read_ready(self):
         try:
@@ -279,6 +318,8 @@ class _UnixReadPipeTransport(transports.ReadTransport):
             if data:
                 self._protocol.data_received(data)
             else:
+                if self._loop.get_debug():
+                    logger.info("%r was closed by peer", self)
                 self._closing = True
                 self._loop.remove_reader(self._fileno)
                 self._loop.call_soon(self._protocol.eof_received)
@@ -296,7 +337,10 @@ class _UnixReadPipeTransport(transports.ReadTransport):
 
     def _fatal_error(self, exc, message='Fatal error on pipe transport'):
         # should be called by exception handler only
-        if not (isinstance(exc, OSError) and exc.errno == errno.EIO):
+        if (isinstance(exc, OSError) and exc.errno == errno.EIO):
+            if self._loop.get_debug():
+                logger.debug("%r: %s", self, message, exc_info=True)
+        else:
             self._loop.call_exception_handler({
                 'message': message,
                 'exception': exc,
@@ -350,13 +394,33 @@ class _UnixWritePipeTransport(transports._FlowControlMixin,
 
         self._loop.call_soon(self._protocol.connection_made, self)
         if waiter is not None:
-            self._loop.call_soon(waiter.set_result, None)
+            # wait until protocol.connection_made() has been called
+            self._loop.call_soon(waiter._set_result_unless_cancelled, None)
+
+    def __repr__(self):
+        info = [self.__class__.__name__, 'fd=%s' % self._fileno]
+        if self._pipe is not None:
+            polling = selector_events._test_selector_event(
+                          self._loop._selector,
+                          self._fileno, selectors.EVENT_WRITE)
+            if polling:
+                info.append('polling')
+            else:
+                info.append('idle')
+
+            bufsize = self.get_write_buffer_size()
+            info.append('bufsize=%s' % bufsize)
+        else:
+            info.append('closed')
+        return '<%s>' % ' '.join(info)
 
     def get_write_buffer_size(self):
         return sum(len(data) for data in self._buffer)
 
     def _read_ready(self):
         # Pipe was closed by peer.
+        if self._loop.get_debug():
+            logger.info("%r was closed by peer", self)
         if self._buffer:
             self._close(BrokenPipeError())
         else:
@@ -448,7 +512,10 @@ class _UnixWritePipeTransport(transports._FlowControlMixin,
 
     def _fatal_error(self, exc, message='Fatal error on pipe transport'):
         # should be called by exception handler only
-        if not isinstance(exc, (BrokenPipeError, ConnectionResetError)):
+        if isinstance(exc, (BrokenPipeError, ConnectionResetError)):
+            if self._loop.get_debug():
+                logger.debug("%r: %s", self, message, exc_info=True)
+        else:
             self._loop.call_exception_handler({
                 'message': message,
                 'exception': exc,
@@ -491,7 +558,7 @@ class _UnixSubprocessTransport(base_subprocess.BaseSubprocessTransport):
             universal_newlines=False, bufsize=bufsize, **kwargs)
         if stdin_w is not None:
             stdin.close()
-            self._proc.stdin = open(stdin_w.detach(), 'rb', buffering=bufsize)
+            self._proc.stdin = open(stdin_w.detach(), 'wb', buffering=bufsize)
 
 
 class AbstractChildWatcher:
@@ -524,7 +591,7 @@ class AbstractChildWatcher:
         process 'pid' terminates. Specifying another callback for the same
         process replaces the previous handler.
 
-        Note: callback() must be thread-safe
+        Note: callback() must be thread-safe.
         """
         raise NotImplementedError()
 
@@ -680,13 +747,18 @@ class SafeChildWatcher(BaseChildWatcher):
                 return
 
             returncode = self._compute_returncode(status)
+            if self._loop.get_debug():
+                logger.debug('process %s exited with returncode %s',
+                             expected_pid, returncode)
 
         try:
             callback, args = self._callbacks.pop(pid)
         except KeyError:  # pragma: no cover
             # May happen if .remove_child_handler() is called
             # after os.waitpid() returns.
-            pass
+            if self._loop.get_debug():
+                logger.warning("Child watcher got an unexpected pid: %r",
+                               pid, exc_info=True)
         else:
             callback(pid, returncode, *args)
 
@@ -777,8 +849,16 @@ class FastChildWatcher(BaseChildWatcher):
                     if self._forks:
                         # It may not be registered yet.
                         self._zombies[pid] = returncode
+                        if self._loop.get_debug():
+                            logger.debug('unknown process %s exited '
+                                         'with returncode %s',
+                                         pid, returncode)
                         continue
                     callback = None
+                else:
+                    if self._loop.get_debug():
+                        logger.debug('process %s exited with returncode %s',
+                                     pid, returncode)
 
             if callback is None:
                 logger.warning(
@@ -819,7 +899,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
             self._watcher.attach_loop(loop)
 
     def get_child_watcher(self):
-        """Get the child watcher
+        """Get the watcher for child processes.
 
         If not yet set, a SafeChildWatcher object is automatically created.
         """
@@ -829,7 +909,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
         return self._watcher
 
     def set_child_watcher(self, watcher):
-        """Set the child watcher"""
+        """Set the watcher for child processes."""
 
         assert watcher is None or isinstance(watcher, AbstractChildWatcher)
 

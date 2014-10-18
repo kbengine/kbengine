@@ -11,7 +11,6 @@
 #ifdef _XOPEN_SOURCE
 #undef _XOPEN_SOURCE
 #endif
-
 #include "patchlevel.h"
 #include "pyconfig.h"
 #include "pymacconfig.h"

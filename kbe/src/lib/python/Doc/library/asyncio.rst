@@ -4,6 +4,13 @@
 .. module:: asyncio
    :synopsis: Asynchronous I/O, event loop, coroutines and tasks.
 
+.. note::
+
+   The asyncio package has been included in the standard library on a
+   :term:`provisional basis <provisional package>`. Backwards incompatible
+   changes (up to and including removal of the module) may occur if deemed
+   necessary by the core developers.
+
 .. versionadded:: 3.4
 
 **Source code:** :source:`Lib/asyncio/`
@@ -39,12 +46,13 @@ Here is a more detailed list of the package contents:
   you absolutely, positively have to use a library that makes blocking
   I/O calls.
 
-Table of content:
+Table of contents:
 
 .. toctree::
    :maxdepth: 3
 
    asyncio-eventloop.rst
+   asyncio-eventloops.rst
    asyncio-task.rst
    asyncio-protocol.rst
    asyncio-stream.rst
@@ -54,6 +62,6 @@ Table of content:
 
 .. seealso::
 
-   The :mod:`asyncio` module was designed in the :PEP:`3156`. For a
+   The :mod:`asyncio` module was designed in :PEP:`3156`. For a
    motivational primer on transports and protocols, see :PEP:`3153`.
 

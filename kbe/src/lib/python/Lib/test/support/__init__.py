@@ -3,28 +3,29 @@
 if __name__ != 'test.support':
     raise ImportError('support must be imported from the test package')
 
+import collections.abc
 import contextlib
 import errno
+import fnmatch
 import functools
 import gc
-import socket
-import sys
-import os
-import platform
-import shutil
-import warnings
-import unittest
 import importlib
 import importlib.util
-import collections.abc
-import re
-import subprocess
-import time
-import sysconfig
-import fnmatch
 import logging.handlers
+import os
+import platform
+import re
+import shutil
+import socket
+import stat
 import struct
+import subprocess
+import sys
+import sysconfig
 import tempfile
+import time
+import unittest
+import warnings
 
 try:
     import _thread, threading
@@ -84,7 +85,7 @@ __all__ = [
     "skip_unless_symlink", "requires_gzip", "requires_bz2", "requires_lzma",
     "bigmemtest", "bigaddrspacetest", "cpython_only", "get_attribute",
     "requires_IEEE_754", "skip_unless_xattr", "requires_zlib",
-    "anticipate_failure",
+    "anticipate_failure", "load_package_tests",
     # sys
     "is_jython", "check_impl_detail",
     # network
@@ -186,6 +187,25 @@ def anticipate_failure(condition):
     if condition:
         return unittest.expectedFailure
     return lambda f: f
+
+def load_package_tests(pkg_dir, loader, standard_tests, pattern):
+    """Generic load_tests implementation for simple test packages.
+
+    Most packages can implement load_tests using this function as follows:
+
+       def load_tests(*args):
+           return load_package_tests(os.path.dirname(__file__), *args)
+    """
+    if pattern is None:
+        pattern = "test*"
+    top_dir = os.path.dirname(              # Lib
+                  os.path.dirname(              # test
+                      os.path.dirname(__file__)))   # support
+    package_tests = loader.discover(start_dir=pkg_dir,
+                                    top_level_dir=top_dir,
+                                    pattern=pattern)
+    standard_tests.addTests(package_tests)
+    return standard_tests
 
 
 def import_fresh_module(name, fresh=(), blocked=(), deprecated=False):
@@ -316,7 +336,13 @@ if sys.platform.startswith("win"):
         def _rmtree_inner(path):
             for name in os.listdir(path):
                 fullname = os.path.join(path, name)
-                if os.path.isdir(fullname):
+                try:
+                    mode = os.lstat(fullname).st_mode
+                except OSError as exc:
+                    print("support.rmtree(): os.lstat(%r) failed with %s" % (fullname, exc),
+                          file=sys.__stderr__)
+                    mode = 0
+                if stat.S_ISDIR(mode):
                     _waitfor(_rmtree_inner, fullname, waitall=True)
                     os.rmdir(fullname)
                 else:
@@ -454,23 +480,17 @@ def _is_gui_available():
     return _is_gui_available.result
 
 def is_resource_enabled(resource):
-    """Test whether a resource is enabled.  Known resources are set by
-    regrtest.py."""
-    return use_resources is not None and resource in use_resources
+    """Test whether a resource is enabled.
+
+    Known resources are set by regrtest.py.  If not running under regrtest.py,
+    all resources are assumed enabled unless use_resources has been set.
+    """
+    return use_resources is None or resource in use_resources
 
 def requires(resource, msg=None):
-    """Raise ResourceDenied if the specified resource is not available.
-
-    If the caller's module is __main__ then automatically return True.  The
-    possibility of False being returned occurs when regrtest.py is
-    executing.
-    """
+    """Raise ResourceDenied if the specified resource is not available."""
     if resource == 'gui' and not _is_gui_available():
         raise ResourceDenied(_is_gui_available.reason)
-    # see if the caller's module is __main__ - if so, treat as if
-    # the resource was set
-    if sys._getframe(1).f_globals.get("__name__") == "__main__":
-        return
     if not is_resource_enabled(resource):
         if msg is None:
             msg = "Use of the %r resource not enabled" % resource

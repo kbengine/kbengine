@@ -1,5 +1,6 @@
 import unittest
 import tkinter
+from tkinter import TclError
 import os
 import sys
 from test.support import requires
@@ -65,7 +66,7 @@ class ToplevelTest(AbstractToplevelTest, unittest.TestCase):
         'takefocus', 'use', 'visual', 'width',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Toplevel(self.root, **kwargs)
 
     def test_menu(self):
@@ -104,7 +105,7 @@ class FrameTest(AbstractToplevelTest, unittest.TestCase):
         'relief', 'takefocus', 'visual', 'width',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Frame(self.root, **kwargs)
 
 
@@ -119,7 +120,7 @@ class LabelFrameTest(AbstractToplevelTest, unittest.TestCase):
         'takefocus', 'text', 'visual', 'width',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.LabelFrame(self.root, **kwargs)
 
     def test_labelanchor(self):
@@ -157,7 +158,7 @@ class LabelTest(AbstractLabelTest, unittest.TestCase):
         'underline', 'width', 'wraplength',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Label(self.root, **kwargs)
 
 
@@ -174,7 +175,7 @@ class ButtonTest(AbstractLabelTest, unittest.TestCase):
         'state', 'takefocus', 'text', 'textvariable',
         'underline', 'width', 'wraplength')
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Button(self.root, **kwargs)
 
     def test_default(self):
@@ -198,7 +199,7 @@ class CheckbuttonTest(AbstractLabelTest, unittest.TestCase):
         'underline', 'variable', 'width', 'wraplength',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Checkbutton(self.root, **kwargs)
 
 
@@ -226,7 +227,7 @@ class RadiobuttonTest(AbstractLabelTest, unittest.TestCase):
         'underline', 'value', 'variable', 'width', 'wraplength',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Radiobutton(self.root, **kwargs)
 
     def test_value(self):
@@ -249,7 +250,7 @@ class MenubuttonTest(AbstractLabelTest, unittest.TestCase):
     )
     _conv_pixels = staticmethod(pixels_round)
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Menubutton(self.root, **kwargs)
 
     def test_direction(self):
@@ -267,7 +268,7 @@ class MenubuttonTest(AbstractLabelTest, unittest.TestCase):
                      'crashes with Cocoa Tk (issue19733)')
     def test_image(self):
         widget = self.create()
-        image = tkinter.PhotoImage('image1')
+        image = tkinter.PhotoImage(master=self.root, name='image1')
         self.checkParam(widget, 'image', image, conv=str)
         errmsg = 'image "spam" doesn\'t exist'
         with self.assertRaises(tkinter.TclError) as cm:
@@ -302,7 +303,7 @@ class MenubuttonTest(AbstractLabelTest, unittest.TestCase):
 
 class OptionMenuTest(MenubuttonTest, unittest.TestCase):
 
-    def _create(self, default='b', values=('a', 'b', 'c'), **kwargs):
+    def create(self, default='b', values=('a', 'b', 'c'), **kwargs):
         return tkinter.OptionMenu(self.root, None, default, *values, **kwargs)
 
 
@@ -321,7 +322,7 @@ class EntryTest(AbstractWidgetTest, unittest.TestCase):
         'validate', 'validatecommand', 'width', 'xscrollcommand',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Entry(self.root, **kwargs)
 
     def test_disabledbackground(self):
@@ -395,7 +396,7 @@ class SpinboxTest(EntryTest, unittest.TestCase):
         'width', 'wrap', 'xscrollcommand',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Spinbox(self.root, **kwargs)
 
     test_show = None
@@ -466,11 +467,7 @@ class SpinboxTest(EntryTest, unittest.TestCase):
 
     def test_bbox(self):
         widget = self.create()
-        bbox = widget.bbox(0)
-        self.assertEqual(len(bbox), 4)
-        for item in bbox:
-            self.assertIsInstance(item, int)
-
+        self.assertIsBoundingBox(widget.bbox(0))
         self.assertRaises(tkinter.TclError, widget.bbox, 'noindex')
         self.assertRaises(tkinter.TclError, widget.bbox, None)
         self.assertRaises(TypeError, widget.bbox)
@@ -493,9 +490,9 @@ class TextTest(AbstractWidgetTest, unittest.TestCase):
         'xscrollcommand', 'yscrollcommand',
     )
     if tcl_version < (8, 5):
-        wantobjects = False
+        _stringify = True
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Text(self.root, **kwargs)
 
     def test_autoseparators(self):
@@ -623,11 +620,7 @@ class TextTest(AbstractWidgetTest, unittest.TestCase):
 
     def test_bbox(self):
         widget = self.create()
-        bbox = widget.bbox('1.1')
-        self.assertEqual(len(bbox), 4)
-        for item in bbox:
-            self.assertIsInstance(item, int)
-
+        self.assertIsBoundingBox(widget.bbox('1.1'))
         self.assertIsNone(widget.bbox('end'))
         self.assertRaises(tkinter.TclError, widget.bbox, 'noindex')
         self.assertRaises(tkinter.TclError, widget.bbox, None)
@@ -651,9 +644,9 @@ class CanvasTest(AbstractWidgetTest, unittest.TestCase):
     )
 
     _conv_pixels = round
-    wantobjects = False
+    _stringify = True
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Canvas(self.root, **kwargs)
 
     def test_closeenough(self):
@@ -706,7 +699,7 @@ class ListboxTest(AbstractWidgetTest, unittest.TestCase):
         'takefocus', 'width', 'xscrollcommand', 'yscrollcommand',
     )
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Listbox(self.root, **kwargs)
 
     def test_activestyle(self):
@@ -716,7 +709,7 @@ class ListboxTest(AbstractWidgetTest, unittest.TestCase):
 
     def test_listvariable(self):
         widget = self.create()
-        var = tkinter.DoubleVar()
+        var = tkinter.DoubleVar(self.root)
         self.checkVariableParam(widget, 'listvariable', var)
 
     def test_selectmode(self):
@@ -729,6 +722,101 @@ class ListboxTest(AbstractWidgetTest, unittest.TestCase):
     def test_state(self):
         widget = self.create()
         self.checkEnumParam(widget, 'state', 'disabled', 'normal')
+
+    def test_itemconfigure(self):
+        widget = self.create()
+        with self.assertRaisesRegex(TclError, 'item number "0" out of range'):
+            widget.itemconfigure(0)
+        colors = 'red orange yellow green blue white violet'.split()
+        widget.insert('end', *colors)
+        for i, color in enumerate(colors):
+            widget.itemconfigure(i, background=color)
+        with self.assertRaises(TypeError):
+            widget.itemconfigure()
+        with self.assertRaisesRegex(TclError, 'bad listbox index "red"'):
+            widget.itemconfigure('red')
+        self.assertEqual(widget.itemconfigure(0, 'background'),
+                         ('background', 'background', 'Background', '', 'red'))
+        self.assertEqual(widget.itemconfigure('end', 'background'),
+                         ('background', 'background', 'Background', '', 'violet'))
+        self.assertEqual(widget.itemconfigure('@0,0', 'background'),
+                         ('background', 'background', 'Background', '', 'red'))
+
+        d = widget.itemconfigure(0)
+        self.assertIsInstance(d, dict)
+        for k, v in d.items():
+            self.assertIn(len(v), (2, 5))
+            if len(v) == 5:
+                self.assertEqual(v, widget.itemconfigure(0, k))
+                self.assertEqual(v[4], widget.itemcget(0, k))
+
+    def check_itemconfigure(self, name, value):
+        widget = self.create()
+        widget.insert('end', 'a', 'b', 'c', 'd')
+        widget.itemconfigure(0, **{name: value})
+        self.assertEqual(widget.itemconfigure(0, name)[4], value)
+        self.assertEqual(widget.itemcget(0, name), value)
+        with self.assertRaisesRegex(TclError, 'unknown color name "spam"'):
+            widget.itemconfigure(0, **{name: 'spam'})
+
+    def test_itemconfigure_background(self):
+        self.check_itemconfigure('background', '#ff0000')
+
+    def test_itemconfigure_bg(self):
+        self.check_itemconfigure('bg', '#ff0000')
+
+    def test_itemconfigure_fg(self):
+        self.check_itemconfigure('fg', '#110022')
+
+    def test_itemconfigure_foreground(self):
+        self.check_itemconfigure('foreground', '#110022')
+
+    def test_itemconfigure_selectbackground(self):
+        self.check_itemconfigure('selectbackground', '#110022')
+
+    def test_itemconfigure_selectforeground(self):
+        self.check_itemconfigure('selectforeground', '#654321')
+
+    def test_box(self):
+        lb = self.create()
+        lb.insert(0, *('el%d' % i for i in range(8)))
+        lb.pack()
+        self.assertIsBoundingBox(lb.bbox(0))
+        self.assertIsNone(lb.bbox(-1))
+        self.assertIsNone(lb.bbox(10))
+        self.assertRaises(TclError, lb.bbox, 'noindex')
+        self.assertRaises(TclError, lb.bbox, None)
+        self.assertRaises(TypeError, lb.bbox)
+        self.assertRaises(TypeError, lb.bbox, 0, 1)
+
+    def test_curselection(self):
+        lb = self.create()
+        lb.insert(0, *('el%d' % i for i in range(8)))
+        lb.selection_clear(0, tkinter.END)
+        lb.selection_set(2, 4)
+        lb.selection_set(6)
+        self.assertEqual(lb.curselection(), (2, 3, 4, 6))
+        self.assertRaises(TypeError, lb.curselection, 0)
+
+    def test_get(self):
+        lb = self.create()
+        lb.insert(0, *('el%d' % i for i in range(8)))
+        self.assertEqual(lb.get(0), 'el0')
+        self.assertEqual(lb.get(3), 'el3')
+        self.assertEqual(lb.get('end'), 'el7')
+        self.assertEqual(lb.get(8), '')
+        self.assertEqual(lb.get(-1), '')
+        self.assertEqual(lb.get(3, 5), ('el3', 'el4', 'el5'))
+        self.assertEqual(lb.get(5, 'end'), ('el5', 'el6', 'el7'))
+        self.assertEqual(lb.get(5, 0), ())
+        self.assertEqual(lb.get(0, 0), ('el0',))
+        self.assertRaises(TclError, lb.get, 'noindex')
+        self.assertRaises(TclError, lb.get, None)
+        self.assertRaises(TypeError, lb.get)
+        self.assertRaises(TclError, lb.get, 'end', 'noindex')
+        self.assertRaises(TypeError, lb.get, 1, 2, 3)
+        self.assertRaises(TclError, lb.get, 2.4)
+
 
 @add_standard_options(PixelSizeTests, StandardOptionsTests)
 class ScaleTest(AbstractWidgetTest, unittest.TestCase):
@@ -743,7 +831,7 @@ class ScaleTest(AbstractWidgetTest, unittest.TestCase):
     )
     default_orient = 'vertical'
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Scale(self.root, **kwargs)
 
     def test_bigincrement(self):
@@ -809,10 +897,10 @@ class ScrollbarTest(AbstractWidgetTest, unittest.TestCase):
         'takefocus', 'troughcolor', 'width',
     )
     _conv_pixels = round
-    wantobjects = False
+    _stringify = True
     default_orient = 'vertical'
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Scrollbar(self.root, **kwargs)
 
     def test_activerelief(self):
@@ -828,6 +916,24 @@ class ScrollbarTest(AbstractWidgetTest, unittest.TestCase):
         self.checkEnumParam(widget, 'orient', 'vertical', 'horizontal',
                 errmsg='bad orientation "{}": must be vertical or horizontal')
 
+    def test_activate(self):
+        sb = self.create()
+        for e in ('arrow1', 'slider', 'arrow2'):
+            sb.activate(e)
+        sb.activate('')
+        self.assertRaises(TypeError, sb.activate)
+        self.assertRaises(TypeError, sb.activate, 'arrow1', 'arrow2')
+
+    def test_set(self):
+        sb = self.create()
+        sb.set(0.2, 0.4)
+        self.assertEqual(sb.get(), (0.2, 0.4))
+        self.assertRaises(TclError, sb.set, 'abc', 'def')
+        self.assertRaises(TclError, sb.set, 0.6, 'def')
+        self.assertRaises(TclError, sb.set, 0.6, None)
+        self.assertRaises(TclError, sb.set, 0.6)
+        self.assertRaises(TclError, sb.set, 0.6, 0.7, 0.8)
+
 
 @add_standard_options(StandardOptionsTests)
 class PanedWindowTest(AbstractWidgetTest, unittest.TestCase):
@@ -840,7 +946,7 @@ class PanedWindowTest(AbstractWidgetTest, unittest.TestCase):
     )
     default_orient = 'horizontal'
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.PanedWindow(self.root, **kwargs)
 
     def test_handlepad(self):
@@ -887,6 +993,105 @@ class PanedWindowTest(AbstractWidgetTest, unittest.TestCase):
         self.checkPixelsParam(widget, 'width', 402, 403.4, 404.6, -402, 0, '5i',
                               conv=noconv)
 
+    def create2(self):
+        p = self.create()
+        b = tkinter.Button(p)
+        c = tkinter.Button(p)
+        p.add(b)
+        p.add(c)
+        return p, b, c
+
+    def test_paneconfigure(self):
+        p, b, c = self.create2()
+        self.assertRaises(TypeError, p.paneconfigure)
+        d = p.paneconfigure(b)
+        self.assertIsInstance(d, dict)
+        for k, v in d.items():
+            self.assertEqual(len(v), 5)
+            self.assertEqual(v, p.paneconfigure(b, k))
+            self.assertEqual(v[4], p.panecget(b, k))
+
+    def check_paneconfigure(self, p, b, name, value, expected, stringify=False):
+        conv = lambda x: x
+        if not self.wantobjects or stringify:
+            expected = str(expected)
+        if self.wantobjects and stringify:
+            conv = str
+        p.paneconfigure(b, **{name: value})
+        self.assertEqual(conv(p.paneconfigure(b, name)[4]), expected)
+        self.assertEqual(conv(p.panecget(b, name)), expected)
+
+    def check_paneconfigure_bad(self, p, b, name, msg):
+        with self.assertRaisesRegex(TclError, msg):
+            p.paneconfigure(b, **{name: 'badValue'})
+
+    def test_paneconfigure_after(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'after', c, str(c))
+        self.check_paneconfigure_bad(p, b, 'after',
+                                     'bad window path name "badValue"')
+
+    def test_paneconfigure_before(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'before', c, str(c))
+        self.check_paneconfigure_bad(p, b, 'before',
+                                     'bad window path name "badValue"')
+
+    def test_paneconfigure_height(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'height', 10, 10,
+                                 stringify=tcl_version < (8, 5))
+        self.check_paneconfigure_bad(p, b, 'height',
+                                     'bad screen distance "badValue"')
+
+    @requires_tcl(8, 5)
+    def test_paneconfigure_hide(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'hide', False, 0)
+        self.check_paneconfigure_bad(p, b, 'hide',
+                                     'expected boolean value but got "badValue"')
+
+    def test_paneconfigure_minsize(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'minsize', 10, 10)
+        self.check_paneconfigure_bad(p, b, 'minsize',
+                                     'bad screen distance "badValue"')
+
+    def test_paneconfigure_padx(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'padx', 1.3, 1)
+        self.check_paneconfigure_bad(p, b, 'padx',
+                                     'bad screen distance "badValue"')
+
+    def test_paneconfigure_pady(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'pady', 1.3, 1)
+        self.check_paneconfigure_bad(p, b, 'pady',
+                                     'bad screen distance "badValue"')
+
+    def test_paneconfigure_sticky(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'sticky', 'nsew', 'nesw')
+        self.check_paneconfigure_bad(p, b, 'sticky',
+                                     'bad stickyness value "badValue": must '
+                                     'be a string containing zero or more of '
+                                     'n, e, s, and w')
+
+    @requires_tcl(8, 5)
+    def test_paneconfigure_stretch(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'stretch', 'alw', 'always')
+        self.check_paneconfigure_bad(p, b, 'stretch',
+                                     'bad stretch "badValue": must be '
+                                     'always, first, last, middle, or never')
+
+    def test_paneconfigure_width(self):
+        p, b, c = self.create2()
+        self.check_paneconfigure(p, b, 'width', 10, 10,
+                                 stringify=tcl_version < (8, 5))
+        self.check_paneconfigure_bad(p, b, 'width',
+                                     'bad screen distance "badValue"')
+
 
 @add_standard_options(StandardOptionsTests)
 class MenuTest(AbstractWidgetTest, unittest.TestCase):
@@ -899,7 +1104,7 @@ class MenuTest(AbstractWidgetTest, unittest.TestCase):
     )
     _conv_pixels = noconv
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Menu(self.root, **kwargs)
 
     def test_postcommand(self):
@@ -923,6 +1128,39 @@ class MenuTest(AbstractWidgetTest, unittest.TestCase):
         self.checkEnumParam(widget, 'type',
                 'normal', 'tearoff', 'menubar')
 
+    def test_entryconfigure(self):
+        m1 = self.create()
+        m1.add_command(label='test')
+        self.assertRaises(TypeError, m1.entryconfigure)
+        with self.assertRaisesRegex(TclError, 'bad menu entry index "foo"'):
+            m1.entryconfigure('foo')
+        d = m1.entryconfigure(1)
+        self.assertIsInstance(d, dict)
+        for k, v in d.items():
+            self.assertIsInstance(k, str)
+            self.assertIsInstance(v, tuple)
+            self.assertEqual(len(v), 5)
+            self.assertEqual(v[0], k)
+            self.assertEqual(m1.entrycget(1, k), v[4])
+        m1.destroy()
+
+    def test_entryconfigure_label(self):
+        m1 = self.create()
+        m1.add_command(label='test')
+        self.assertEqual(m1.entrycget(1, 'label'), 'test')
+        m1.entryconfigure(1, label='changed')
+        self.assertEqual(m1.entrycget(1, 'label'), 'changed')
+
+    def test_entryconfigure_variable(self):
+        m1 = self.create()
+        v1 = tkinter.BooleanVar(self.root)
+        v2 = tkinter.BooleanVar(self.root)
+        m1.add_checkbutton(variable=v1, onvalue=True, offvalue=False,
+                           label='Nonsense')
+        self.assertEqual(str(m1.entrycget(1, 'variable')), str(v1))
+        m1.entryconfigure(1, variable=v2)
+        self.assertEqual(str(m1.entrycget(1, 'variable')), str(v2))
+
 
 @add_standard_options(PixelSizeTests, StandardOptionsTests)
 class MessageTest(AbstractWidgetTest, unittest.TestCase):
@@ -935,7 +1173,7 @@ class MessageTest(AbstractWidgetTest, unittest.TestCase):
     )
     _conv_pad_pixels = noconv
 
-    def _create(self, **kwargs):
+    def create(self, **kwargs):
         return tkinter.Message(self.root, **kwargs)
 
     def test_aspect(self):

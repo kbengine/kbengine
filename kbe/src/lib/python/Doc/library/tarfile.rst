@@ -81,6 +81,10 @@ Some facts and figures:
    If *fileobj* is specified, it is used as an alternative to a :term:`file object`
    opened in binary mode for *name*. It is supposed to be at position 0.
 
+   For modes ``'w:gz'``, ``'r:gz'``, ``'w:bz2'``, ``'r:bz2'``, :func:`tarfile.open`
+   accepts the keyword argument *compresslevel* to specify the compression level of
+   the file.
+
    For special purposes, there is a second format for *mode*:
    ``'filemode|[compression]'``.  :func:`tarfile.open` will return a :class:`TarFile`
    object that processes its data as a stream of blocks.  No random seeking will
@@ -234,7 +238,7 @@ be finalized; only the internally used file object will be closed. See the
 :ref:`tar-examples` section for a use case.
 
 .. versionadded:: 3.2
-   Added support for the context manager protocol.
+   Added support for the context management protocol.
 
 .. class:: TarFile(name=None, mode='r', fileobj=None, format=DEFAULT_FORMAT, tarinfo=TarInfo, dereference=False, ignore_zeros=False, encoding=ENCODING, errors='surrogateescape', pax_headers=None, debug=0, errorlevel=0)
 
@@ -292,7 +296,7 @@ be finalized; only the internally used file object will be closed. See the
    will be added as a pax global header if *format* is :const:`PAX_FORMAT`.
 
 
-.. method:: TarFile.open(...)
+.. classmethod:: TarFile.open(...)
 
    Alternative constructor. The :func:`tarfile.open` function is actually a
    shortcut to this classmethod.
@@ -509,7 +513,7 @@ A ``TarInfo`` object has the following public data attributes:
    :const:`AREGTYPE`, :const:`LNKTYPE`, :const:`SYMTYPE`, :const:`DIRTYPE`,
    :const:`FIFOTYPE`, :const:`CONTTYPE`, :const:`CHRTYPE`, :const:`BLKTYPE`,
    :const:`GNUTYPE_SPARSE`.  To determine the type of a :class:`TarInfo` object
-   more conveniently, use the ``is_*()`` methods below.
+   more conveniently, use the ``is*()`` methods below.
 
 
 .. attribute:: TarInfo.linkname

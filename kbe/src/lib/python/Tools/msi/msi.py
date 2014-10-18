@@ -1158,7 +1158,7 @@ def add_files(db):
     for f in ['i18n', 'pynche', 'Scripts']:
         lib = PyDirectory(db, cab, tooldir, f, f, "%s|%s" % (tooldir.make_short(f), f))
         lib.glob("*.py")
-        lib.glob("*.pyw", exclude=['pydocgui.pyw'])
+        lib.glob("*.pyw")
         lib.remove_pyc()
         lib.glob("*.txt")
         if f == "pynche":
@@ -1170,9 +1170,6 @@ def add_files(db):
             lib.add_file("2to3.py", src="2to3")
             lib.add_file("pydoc3.py", src="pydoc3")
             lib.add_file("pyvenv.py", src="pyvenv")
-            if have_tcl:
-                lib.start_component("pydocgui.pyw", tcltk, keyfile="pydocgui.pyw")
-                lib.add_file("pydocgui.pyw")
     # Add documentation
     htmlfiles.set_current()
     lib = PyDirectory(db, cab, root, "Doc", "Doc", "DOC|Doc")
@@ -1320,27 +1317,38 @@ def add_registry(db):
     add_data(db, "RemoveFile",
              [("MenuDir", "TARGETDIR", None, "MenuDir", 2)])
     tcltkshortcuts = []
+    if msilib.Win64:
+        bitted = "64 bit"
+    else:
+        bitted = "32 bit"
     if have_tcl:
         tcltkshortcuts = [
-              ("IDLE", "MenuDir", "IDLE|IDLE (Python GUI)", "pythonw.exe",
-               tcltk.id, r'"[TARGETDIR]Lib\idlelib\idle.pyw"', None, None, "python_icon.exe", 0, None, "TARGETDIR"),
+              ("IDLE", "MenuDir",
+               "IDLE|IDLE (Python "+short_version+" GUI - "+bitted+")",
+               "pythonw.exe", tcltk.id, r'"[TARGETDIR]Lib\idlelib\idle.pyw"',
+               None, None, "python_icon.exe", 0, None, "TARGETDIR"),
               ]
     add_data(db, "Shortcut",
              tcltkshortcuts +
              [# Advertised shortcuts: targets are features, not files
-              ("Python", "MenuDir", "PYTHON|Python (command line)", "python.exe",
-               default_feature.id, None, None, None, "python_icon.exe", 2, None, "TARGETDIR"),
+              ("Python", "MenuDir",
+               "PYTHON|Python "+short_version+" (command line - "+bitted+")",
+               "python.exe", default_feature.id, None, None, None,
+               "python_icon.exe", 2, None, "TARGETDIR"),
               # Advertising the Manual breaks on (some?) Win98, and the shortcut lacks an
               # icon first.
               #("Manual", "MenuDir", "MANUAL|Python Manuals", "documentation",
               # htmlfiles.id, None, None, None, None, None, None, None),
               ## Non-advertised shortcuts: must be associated with a registry component
-              ("Manual", "MenuDir", "MANUAL|Python Manuals", "REGISTRY.doc",
-               "[#%s]" % docfile, None,
-               None, None, None, None, None, None),
-              ("PyDoc", "MenuDir", "MODDOCS|Module Docs", "python.exe",
-               default_feature.id, r'-m pydoc -b', None, None, "python_icon.exe", 0, None, "TARGETDIR"),
-              ("Uninstall", "MenuDir", "UNINST|Uninstall Python", "REGISTRY",
+              ("Manual", "MenuDir", "MANUAL|Python "+short_version+" Manuals",
+               "REGISTRY.doc", "[#%s]" % docfile,
+               None, None, None, None, None, None, None),
+              ("PyDoc", "MenuDir",
+               "MODDOCS|Python "+short_version+" Docs Server (pydoc - "+
+               bitted+")", "python.exe", default_feature.id, r'-m pydoc -b',
+               None, None, "python_icon.exe", 0, None, "TARGETDIR"),
+              ("Uninstall", "MenuDir", "UNINST|Uninstall Python "+
+               short_version+" ("+bitted+")", "REGISTRY",
                SystemFolderName+"msiexec",  "/x%s" % product_code,
                None, None, None, None, None, None),
               ])

@@ -540,6 +540,10 @@ class _BasePurePathTest(object):
         self.assertRaises(ValueError, P('').with_name, 'd.xml')
         self.assertRaises(ValueError, P('.').with_name, 'd.xml')
         self.assertRaises(ValueError, P('/').with_name, 'd.xml')
+        self.assertRaises(ValueError, P('a/b').with_name, '')
+        self.assertRaises(ValueError, P('a/b').with_name, '/c')
+        self.assertRaises(ValueError, P('a/b').with_name, 'c/')
+        self.assertRaises(ValueError, P('a/b').with_name, 'c/d')
 
     def test_with_suffix_common(self):
         P = self.cls
@@ -547,6 +551,9 @@ class _BasePurePathTest(object):
         self.assertEqual(P('/a/b').with_suffix('.gz'), P('/a/b.gz'))
         self.assertEqual(P('a/b.py').with_suffix('.gz'), P('a/b.gz'))
         self.assertEqual(P('/a/b.py').with_suffix('.gz'), P('/a/b.gz'))
+        # Stripping suffix
+        self.assertEqual(P('a/b.py').with_suffix(''), P('a/b'))
+        self.assertEqual(P('/a/b').with_suffix(''), P('/a/b'))
         # Path doesn't have a "filename" component
         self.assertRaises(ValueError, P('').with_suffix, '.gz')
         self.assertRaises(ValueError, P('.').with_suffix, '.gz')
@@ -554,9 +561,12 @@ class _BasePurePathTest(object):
         # Invalid suffix
         self.assertRaises(ValueError, P('a/b').with_suffix, 'gz')
         self.assertRaises(ValueError, P('a/b').with_suffix, '/')
+        self.assertRaises(ValueError, P('a/b').with_suffix, '.')
         self.assertRaises(ValueError, P('a/b').with_suffix, '/.gz')
         self.assertRaises(ValueError, P('a/b').with_suffix, 'c/d')
         self.assertRaises(ValueError, P('a/b').with_suffix, '.c/.d')
+        self.assertRaises(ValueError, P('a/b').with_suffix, './.d')
+        self.assertRaises(ValueError, P('a/b').with_suffix, '.d/.')
 
     def test_relative_to_common(self):
         P = self.cls
@@ -950,6 +960,10 @@ class PureWindowsPathTest(_BasePurePathTest, unittest.TestCase):
         self.assertRaises(ValueError, P('c:').with_name, 'd.xml')
         self.assertRaises(ValueError, P('c:/').with_name, 'd.xml')
         self.assertRaises(ValueError, P('//My/Share').with_name, 'd.xml')
+        self.assertRaises(ValueError, P('c:a/b').with_name, 'd:')
+        self.assertRaises(ValueError, P('c:a/b').with_name, 'd:e')
+        self.assertRaises(ValueError, P('c:a/b').with_name, 'd:/e')
+        self.assertRaises(ValueError, P('c:a/b').with_name, '//My/Share')
 
     def test_with_suffix(self):
         P = self.cls
@@ -1200,7 +1214,7 @@ class _BasePathTest(object):
 
     def setUp(self):
         os.mkdir(BASE)
-        self.addCleanup(shutil.rmtree, BASE)
+        self.addCleanup(support.rmtree, BASE)
         os.mkdir(join('dirA'))
         os.mkdir(join('dirB'))
         os.mkdir(join('dirC'))
@@ -1385,7 +1399,7 @@ class _BasePathTest(object):
         self._check_resolve_relative(p, P(BASE, 'dirB', 'fileB'))
         # Now create absolute symlinks
         d = tempfile.mkdtemp(suffix='-dirD')
-        self.addCleanup(shutil.rmtree, d)
+        self.addCleanup(support.rmtree, d)
         os.symlink(os.path.join(d), join('dirA', 'linkX'))
         os.symlink(join('dirB'), os.path.join(d, 'linkY'))
         p = P(BASE, 'dirA', 'linkX', 'linkY', 'fileB')

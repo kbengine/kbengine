@@ -653,6 +653,20 @@ class IOTest(unittest.TestCase):
             fileio.close()
             f2.readline()
 
+    def test_nonbuffered_textio(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            with self.assertRaises(ValueError):
+                self.open(support.TESTFN, 'w', buffering=0)
+            support.gc_collect()
+        self.assertEqual(recorded, [])
+
+    def test_invalid_newline(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            with self.assertRaises(ValueError):
+                self.open(support.TESTFN, 'w', newline='invalid')
+            support.gc_collect()
+        self.assertEqual(recorded, [])
+
 
 class CIOTest(IOTest):
 
@@ -792,7 +806,25 @@ class CommonBufferedTests:
         with self.assertRaises(OSError) as err: # exception not swallowed
             b.close()
         self.assertEqual(err.exception.args, ('close',))
+        self.assertIsInstance(err.exception.__context__, OSError)
         self.assertEqual(err.exception.__context__.args, ('flush',))
+        self.assertFalse(b.closed)
+
+    def test_nonnormalized_close_error_on_close(self):
+        # Issue #21677
+        raw = self.MockRawIO()
+        def bad_flush():
+            raise non_existing_flush
+        def bad_close():
+            raise non_existing_close
+        raw.close = bad_close
+        b = self.tp(raw)
+        b.flush = bad_flush
+        with self.assertRaises(NameError) as err: # exception not swallowed
+            b.close()
+        self.assertIn('non_existing_close', str(err.exception))
+        self.assertIsInstance(err.exception.__context__, NameError)
+        self.assertIn('non_existing_flush', str(err.exception.__context__))
         self.assertFalse(b.closed)
 
     def test_multi_close(self):
@@ -2576,6 +2608,39 @@ class TextIOWrapperTest(unittest.TestCase):
         self.assertRaises(OSError, txt.close) # exception not swallowed
         self.assertTrue(txt.closed)
 
+    def test_close_error_on_close(self):
+        buffer = self.BytesIO(self.testdata)
+        def bad_flush():
+            raise OSError('flush')
+        def bad_close():
+            raise OSError('close')
+        buffer.close = bad_close
+        txt = self.TextIOWrapper(buffer, encoding="ascii")
+        txt.flush = bad_flush
+        with self.assertRaises(OSError) as err: # exception not swallowed
+            txt.close()
+        self.assertEqual(err.exception.args, ('close',))
+        self.assertIsInstance(err.exception.__context__, OSError)
+        self.assertEqual(err.exception.__context__.args, ('flush',))
+        self.assertFalse(txt.closed)
+
+    def test_nonnormalized_close_error_on_close(self):
+        # Issue #21677
+        buffer = self.BytesIO(self.testdata)
+        def bad_flush():
+            raise non_existing_flush
+        def bad_close():
+            raise non_existing_close
+        buffer.close = bad_close
+        txt = self.TextIOWrapper(buffer, encoding="ascii")
+        txt.flush = bad_flush
+        with self.assertRaises(NameError) as err: # exception not swallowed
+            txt.close()
+        self.assertIn('non_existing_close', str(err.exception))
+        self.assertIsInstance(err.exception.__context__, NameError)
+        self.assertIn('non_existing_flush', str(err.exception.__context__))
+        self.assertFalse(txt.closed)
+
     def test_multi_close(self):
         txt = self.TextIOWrapper(self.BytesIO(self.testdata), encoding="ascii")
         txt.close()
@@ -3233,6 +3298,8 @@ class SignalsTest(unittest.TestCase):
     def test_interrupted_write_buffered(self):
         self.check_interrupted_write(b"xy", b"xy", mode="wb")
 
+    # Issue #22331: The test hangs on FreeBSD 7.2
+    @support.requires_freebsd_version(8)
     def test_interrupted_write_text(self):
         self.check_interrupted_write("xy", b"xy", mode="w", encoding="ascii")
 

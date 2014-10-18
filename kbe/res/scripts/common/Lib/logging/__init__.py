@@ -52,34 +52,6 @@ __date__    = "07 February 2010"
 #---------------------------------------------------------------------------
 
 #
-# _srcfile is used when walking the stack to check when we've got the first
-# caller stack frame.
-#
-if hasattr(sys, 'frozen'): #support for py2exe
-    _srcfile = "logging%s__init__%s" % (os.sep, __file__[-4:])
-else:
-    _srcfile = __file__
-_srcfile = os.path.normcase(_srcfile)
-
-
-if hasattr(sys, '_getframe'):
-    currentframe = lambda: sys._getframe(3)
-else: #pragma: no cover
-    def currentframe():
-        """Return the frame object for the caller's stack frame."""
-        try:
-            raise Exception
-        except Exception:
-            return sys.exc_info()[2].tb_frame.f_back
-
-# _srcfile is only used in conjunction with sys._getframe().
-# To provide compatibility with older versions of Python, set _srcfile
-# to None if _getframe() is not available; this value will prevent
-# findCaller() from being called.
-#if not hasattr(sys, "_getframe"):
-#    _srcfile = None
-
-#
 #_startTime is used as the base when calculating the relative time of events
 #
 _startTime = time.time()
@@ -157,7 +129,8 @@ def getLevelName(level):
 
     Otherwise, the string "Level %s" % level is returned.
     """
-    return _levelToName.get(level, ("Level %s" % level))
+    # See Issue #22386 for the reason for this convoluted expression
+    return _levelToName.get(level, _nameToLevel.get(level, ("Level %s" % level)))
 
 def addLevelName(level, levelName):
     """
@@ -171,6 +144,40 @@ def addLevelName(level, levelName):
         _nameToLevel[levelName] = level
     finally:
         _releaseLock()
+
+if hasattr(sys, '_getframe'):
+    currentframe = lambda: sys._getframe(3)
+else: #pragma: no cover
+    def currentframe():
+        """Return the frame object for the caller's stack frame."""
+        try:
+            raise Exception
+        except Exception:
+            return sys.exc_info()[2].tb_frame.f_back
+
+#
+# _srcfile is used when walking the stack to check when we've got the first
+# caller stack frame, by skipping frames whose filename is that of this
+# module's source. It therefore should contain the filename of this module's
+# source file.
+#
+# Ordinarily we would use __file__ for this, but frozen modules don't always
+# have __file__ set, for some reason (see Issue #21736). Thus, we get the
+# filename from a handy code object from a function defined in this module.
+# (There's no particular reason for picking addLevelName.)
+#
+
+_srcfile = os.path.normcase(addLevelName.__code__.co_filename)
+
+# _srcfile is only used in conjunction with sys._getframe().
+# To provide compatibility with older versions of Python, set _srcfile
+# to None if _getframe() is not available; this value will prevent
+# findCaller() from being called. You can also do this if you want to avoid
+# the overhead of fetching caller information, even when _getframe() is
+# available.
+#if not hasattr(sys, '_getframe'):
+#    _srcfile = None
+
 
 def _checkLevel(level):
     if isinstance(level, int):

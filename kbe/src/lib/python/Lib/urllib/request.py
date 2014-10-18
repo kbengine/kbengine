@@ -846,23 +846,12 @@ class AbstractBasicAuthHandler:
             password_mgr = HTTPPasswordMgr()
         self.passwd = password_mgr
         self.add_password = self.passwd.add_password
-        self.retried = 0
-
-    def reset_retry_count(self):
-        self.retried = 0
 
     def http_error_auth_reqed(self, authreq, host, req, headers):
         # host may be an authority (without userinfo) or a URL with an
         # authority
         # XXX could be multiple headers
         authreq = headers.get(authreq, None)
-
-        if self.retried > 5:
-            # retry sending the username:password 5 times before failing.
-            raise HTTPError(req.get_full_url(), 401, "basic auth failed",
-                    headers, None)
-        else:
-            self.retried += 1
 
         if authreq:
             scheme = authreq.split()[0]
@@ -878,17 +867,14 @@ class AbstractBasicAuthHandler:
                         warnings.warn("Basic Auth Realm was unquoted",
                                       UserWarning, 2)
                     if scheme.lower() == 'basic':
-                        response = self.retry_http_basic_auth(host, req, realm)
-                        if response and response.code != 401:
-                            self.retried = 0
-                        return response
+                        return self.retry_http_basic_auth(host, req, realm)
 
     def retry_http_basic_auth(self, host, req, realm):
         user, pw = self.passwd.find_user_password(realm, host)
         if pw is not None:
             raw = "%s:%s" % (user, pw)
             auth = "Basic " + base64.b64encode(raw.encode()).decode("ascii")
-            if req.headers.get(self.auth_header, None) == auth:
+            if req.get_header(self.auth_header, None) == auth:
                 return None
             req.add_unredirected_header(self.auth_header, auth)
             return self.parent.open(req, timeout=req.timeout)
@@ -904,7 +890,6 @@ class HTTPBasicAuthHandler(AbstractBasicAuthHandler, BaseHandler):
         url = req.full_url
         response = self.http_error_auth_reqed('www-authenticate',
                                           url, req, headers)
-        self.reset_retry_count()
         return response
 
 
@@ -920,7 +905,6 @@ class ProxyBasicAuthHandler(AbstractBasicAuthHandler, BaseHandler):
         authority = req.host
         response = self.http_error_auth_reqed('proxy-authenticate',
                                           authority, req, headers)
-        self.reset_retry_count()
         return response
 
 
@@ -1186,18 +1170,21 @@ class AbstractHTTPHandler(BaseHandler):
             h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
 
         try:
-            h.request(req.get_method(), req.selector, req.data, headers)
-        except OSError as err: # timeout error
-            h.close()
-            raise URLError(err)
-        else:
+            try:
+                h.request(req.get_method(), req.selector, req.data, headers)
+            except OSError as err: # timeout error
+                raise URLError(err)
             r = h.getresponse()
-            # If the server does not send us a 'Connection: close' header,
-            # HTTPConnection assumes the socket should be left open. Manually
-            # mark the socket to be closed when this response object goes away.
-            if h.sock:
-                h.sock.close()
-                h.sock = None
+        except:
+            h.close()
+            raise
+
+        # If the server does not send us a 'Connection: close' header,
+        # HTTPConnection assumes the socket should be left open. Manually
+        # mark the socket to be closed when this response object goes away.
+        if h.sock:
+            h.sock.close()
+            h.sock = None
 
         r.url = req.get_full_url()
         # This line replaces the .msg attribute of the HTTPResponse
@@ -1315,7 +1302,7 @@ class FileHandler(BaseHandler):
         url = req.selector
         if url[:2] == '//' and url[2:3] != '/' and (req.host and
                 req.host != 'localhost'):
-            if not req.host is self.get_names():
+            if not req.host in self.get_names():
                 raise URLError("file:// scheme is supported only on localhost")
         else:
             return self.open_local_file(req)
@@ -1911,7 +1898,7 @@ class URLopener:
         # XXX thread unsafe!
         if len(self.ftpcache) > MAXFTPCACHE:
             # Prune the cache, rather arbitrarily
-            for k in self.ftpcache.keys():
+            for k in list(self.ftpcache):
                 if k != key:
                     v = self.ftpcache[k]
                     del self.ftpcache[k]

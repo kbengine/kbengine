@@ -1,4 +1,5 @@
 from asyncio import subprocess
+from asyncio import test_utils
 import asyncio
 import signal
 import sys
@@ -9,9 +10,6 @@ if sys.platform != 'win32':
 
 # Program blocking
 PROGRAM_BLOCKED = [sys.executable, '-c', 'import time; time.sleep(3600)']
-
-# Program sleeping during 1 second
-PROGRAM_SLEEP_1SEC = [sys.executable, '-c', 'import time; time.sleep(1)']
 
 # Program copying input to output
 PROGRAM_CAT = [
@@ -44,7 +42,7 @@ class SubprocessMixin:
             return (exitcode, data)
 
         task = run(b'some data')
-        task = asyncio.wait_for(task, 10.0, loop=self.loop)
+        task = asyncio.wait_for(task, 60.0, loop=self.loop)
         exitcode, stdout = self.loop.run_until_complete(task)
         self.assertEqual(exitcode, 0)
         self.assertEqual(stdout, b'some data')
@@ -63,7 +61,7 @@ class SubprocessMixin:
             return proc.returncode, stdout
 
         task = run(b'some data')
-        task = asyncio.wait_for(task, 10.0, loop=self.loop)
+        task = asyncio.wait_for(task, 60.0, loop=self.loop)
         exitcode, stdout = self.loop.run_until_complete(task)
         self.assertEqual(exitcode, 0)
         self.assertEqual(stdout, b'some data')
@@ -110,22 +108,56 @@ class SubprocessMixin:
 
     @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
     def test_send_signal(self):
-        args = PROGRAM_BLOCKED
-        create = asyncio.create_subprocess_exec(*args, loop=self.loop)
+        code = 'import time; print("sleeping", flush=True); time.sleep(3600)'
+        args = [sys.executable, '-c', code]
+        create = asyncio.create_subprocess_exec(*args, loop=self.loop, stdout=subprocess.PIPE)
         proc = self.loop.run_until_complete(create)
-        proc.send_signal(signal.SIGHUP)
-        returncode = self.loop.run_until_complete(proc.wait())
+
+        @asyncio.coroutine
+        def send_signal(proc):
+            # basic synchronization to wait until the program is sleeping
+            line = yield from proc.stdout.readline()
+            self.assertEqual(line, b'sleeping\n')
+
+            proc.send_signal(signal.SIGHUP)
+            returncode = (yield from proc.wait())
+            return returncode
+
+        returncode = self.loop.run_until_complete(send_signal(proc))
         self.assertEqual(-signal.SIGHUP, returncode)
 
-    def test_broken_pipe(self):
+    def prepare_broken_pipe_test(self):
+        # buffer large enough to feed the whole pipe buffer
         large_data = b'x' * support.PIPE_MAX_SIZE
 
+        # the program ends before the stdin can be feeded
         create = asyncio.create_subprocess_exec(
-                             *PROGRAM_SLEEP_1SEC,
+                             sys.executable, '-c', 'pass',
                              stdin=subprocess.PIPE,
                              loop=self.loop)
         proc = self.loop.run_until_complete(create)
-        with self.assertRaises(BrokenPipeError):
+        return (proc, large_data)
+
+    def test_stdin_broken_pipe(self):
+        proc, large_data = self.prepare_broken_pipe_test()
+
+        @asyncio.coroutine
+        def write_stdin(proc, data):
+            proc.stdin.write(data)
+            yield from proc.stdin.drain()
+
+        coro = write_stdin(proc, large_data)
+        # drain() must raise BrokenPipeError or ConnectionResetError
+        with test_utils.disable_logger():
+            self.assertRaises((BrokenPipeError, ConnectionResetError),
+                              self.loop.run_until_complete, coro)
+        self.loop.run_until_complete(proc.wait())
+
+    def test_communicate_ignore_broken_pipe(self):
+        proc, large_data = self.prepare_broken_pipe_test()
+
+        # communicate() must ignore BrokenPipeError when feeding stdin
+        with test_utils.disable_logger():
             self.loop.run_until_complete(proc.communicate(large_data))
         self.loop.run_until_complete(proc.wait())
 
@@ -140,7 +172,7 @@ if sys.platform != 'win32':
             policy = asyncio.get_event_loop_policy()
             self.loop = policy.new_event_loop()
 
-            # ensure that the event loop is passed explicitly in the code
+            # ensure that the event loop is passed explicitly in asyncio
             policy.set_event_loop(None)
 
             watcher = self.Watcher()
@@ -151,33 +183,34 @@ if sys.platform != 'win32':
             policy = asyncio.get_event_loop_policy()
             policy.set_child_watcher(None)
             self.loop.close()
-            policy.set_event_loop(None)
+            super().tearDown()
 
     class SubprocessSafeWatcherTests(SubprocessWatcherMixin,
-                                     unittest.TestCase):
+                                     test_utils.TestCase):
 
         Watcher = unix_events.SafeChildWatcher
 
     class SubprocessFastWatcherTests(SubprocessWatcherMixin,
-                                     unittest.TestCase):
+                                     test_utils.TestCase):
 
         Watcher = unix_events.FastChildWatcher
 
 else:
     # Windows
-    class SubprocessProactorTests(SubprocessMixin, unittest.TestCase):
+    class SubprocessProactorTests(SubprocessMixin, test_utils.TestCase):
 
         def setUp(self):
             policy = asyncio.get_event_loop_policy()
             self.loop = asyncio.ProactorEventLoop()
 
-            # ensure that the event loop is passed explicitly in the code
+            # ensure that the event loop is passed explicitly in asyncio
             policy.set_event_loop(None)
 
         def tearDown(self):
             policy = asyncio.get_event_loop_policy()
             self.loop.close()
             policy.set_event_loop(None)
+            super().tearDown()
 
 
 if __name__ == '__main__':

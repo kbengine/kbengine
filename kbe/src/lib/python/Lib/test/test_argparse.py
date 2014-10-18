@@ -235,8 +235,8 @@ class ParserTesterMetaclass(type):
                 parser = self._get_parser(tester)
                 for args_str in tester.failures:
                     args = args_str.split()
-                    raises = tester.assertRaises
-                    raises(ArgumentParserError, parser.parse_args, args)
+                    with tester.assertRaises(ArgumentParserError, msg=args):
+                        parser.parse_args(args)
 
             def test_successes(self, tester):
                 parser = self._get_parser(tester)
@@ -4550,6 +4550,12 @@ class TestNamespace(TestCase):
         self.assertTrue(ns1 != ns4)
         self.assertTrue(ns2 != ns3)
         self.assertTrue(ns2 != ns4)
+
+    def test_equality_returns_notimplemeted(self):
+        # See issue 21481
+        ns = argparse.Namespace(a=1, b=2)
+        self.assertIs(ns.__eq__(None), NotImplemented)
+        self.assertIs(ns.__ne__(None), NotImplemented)
 
 
 # ===================

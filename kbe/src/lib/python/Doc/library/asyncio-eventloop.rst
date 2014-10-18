@@ -2,8 +2,8 @@
 
 .. _asyncio-event-loop:
 
-Event loops
-===========
+Base Event Loop
+===============
 
 The event loop is the central execution device provided by :mod:`asyncio`.
 It provides multiple facilities, amongst which:
@@ -18,78 +18,9 @@ It provides multiple facilities, amongst which:
 
 * Delegating costly function calls to a pool of threads.
 
-Event loop policies and the default policy
-------------------------------------------
+.. class:: BaseEventLoop
 
-Event loop management is abstracted with a *policy* pattern, to provide maximal
-flexibility for custom platforms and frameworks. Throughout the execution of a
-process, a single global policy object manages the event loops available to the
-process based on the calling context. A policy is an object implementing the
-:class:`AbstractEventLoopPolicy` interface.
-
-For most users of :mod:`asyncio`, policies never have to be dealt with
-explicitly, since the default global policy is sufficient.
-
-The default policy defines context as the current thread, and manages an event
-loop per thread that interacts with :mod:`asyncio`. The module-level functions
-:func:`get_event_loop` and :func:`set_event_loop` provide convenient access to
-event loops managed by the default policy.
-
-Event loop functions
---------------------
-
-The following functions are convenient shortcuts to accessing the methods of the
-global policy. Note that this provides access to the default policy, unless an
-alternative policy was set by calling :func:`set_event_loop_policy` earlier in
-the execution of the process.
-
-.. function:: get_event_loop()
-
-   Equivalent to calling ``get_event_loop_policy().get_event_loop()``.
-
-.. function:: set_event_loop(loop)
-
-   Equivalent to calling ``get_event_loop_policy().set_event_loop(loop)``.
-
-.. function:: new_event_loop()
-
-   Equivalent to calling ``get_event_loop_policy().new_event_loop()``.
-
-Event loop policy interface
----------------------------
-
-An event loop policy must implement the following interface:
-
-.. class:: AbstractEventLoopPolicy
-
-   .. method:: get_event_loop()
-
-   Get the event loop for current context. Returns an event loop object
-   implementing :class:`BaseEventLoop` interface, or raises an exception in case
-   no event loop has been set for the current context and the current policy
-   does not specify to create one. It should never return ``None``.
-
-   .. method:: set_event_loop(loop)
-
-   Set the event loop of the current context to *loop*.
-
-   .. method:: new_event_loop()
-
-   Create and return a new event loop object according to this policy's rules.
-   If there's need to set this loop as the event loop of the current context,
-   :meth:`set_event_loop` must be called explicitly.
-
-Access to the global loop policy
---------------------------------
-
-.. function:: get_event_loop_policy()
-
-   Get the current event loop policy.
-
-.. function:: set_event_loop_policy(policy)
-
-   Set the current event loop policy. If *policy* is ``None``, the default
-   policy is restored.
+   Base class of event loops.
 
 Run an event loop
 -----------------
@@ -102,8 +33,8 @@ Run an event loop
 
    Run until the :class:`Future` is done.
 
-   If the argument is a :ref:`coroutine <coroutine>`, it is wrapped
-   in a :class:`Task`.
+   If the argument is a :ref:`coroutine object <coroutine>`, it is wrapped by
+   :func:`async`.
 
    Return the Future's result, or raise its exception.
 
@@ -116,12 +47,19 @@ Run an event loop
    Stop running the event loop.
 
    Every callback scheduled before :meth:`stop` is called will run.
-   Callback scheduled after :meth:`stop` is called won't.  However, those
-   callbacks will run if :meth:`run_forever` is called again later.
+   Callbacks scheduled after :meth:`stop` is called will not run.
+   However, those callbacks will run if :meth:`run_forever` is called
+   again later.
+
+.. method:: BaseEventLoop.is_closed()
+
+   Returns ``True`` if the event loop was closed.
+
+   .. versionadded:: 3.4.2
 
 .. method:: BaseEventLoop.close()
 
-   Close the event loop. The loop should not be running.
+   Close the event loop. The loop must not be running.
 
    This clears the queues and shuts down the executor, but does not wait for
    the executor to finish.
@@ -197,6 +135,24 @@ a different clock than :func:`time.time`.
    The :func:`asyncio.sleep` function.
 
 
+Coroutines
+----------
+
+.. method:: BaseEventLoop.create_task(coro)
+
+   Schedule the execution of a :ref:`coroutine object <coroutine>`: wrap it in
+   a future. Return a :class:`Task` object.
+
+   Third-party event loops can use their own subclass of :class:`Task` for
+   interoperability. In this case, the result type is a subclass of
+   :class:`Task`.
+
+   This method was added in Python 3.4.2. Use the :func:`async` function to
+   support also older Python versions.
+
+   .. versionadded:: 3.4.2
+
+
 Creating connections
 --------------------
 
@@ -265,6 +221,8 @@ Creating connections
      to bind the socket to locally.  The *local_host* and *local_port*
      are looked up using getaddrinfo(), similarly to *host* and *port*.
 
+   On Windows with :class:`ProactorEventLoop`, SSL/TLS is not supported.
+
    .. seealso::
 
       The :func:`open_connection` function can be used to get a pair of
@@ -283,6 +241,8 @@ Creating connections
 
    See the :meth:`BaseEventLoop.create_connection` method for parameters.
 
+   On Windows with :class:`ProactorEventLoop`, this method is not supported.
+
 
 .. method:: BaseEventLoop.create_unix_connection(protocol_factory, path, \*, ssl=None, sock=None, server_hostname=None)
 
@@ -295,6 +255,8 @@ Creating connections
    establish the connection in the background.  When successful, the
    coroutine returns a ``(transport, protocol)`` pair.
 
+   On Windows with :class:`ProactorEventLoop`, SSL/TLS is not supported.
+
    See the :meth:`BaseEventLoop.create_connection` method for parameters.
 
    Availability: UNIX.
@@ -305,19 +267,19 @@ Creating listening connections
 
 .. method:: BaseEventLoop.create_server(protocol_factory, host=None, port=None, \*, family=socket.AF_UNSPEC, flags=socket.AI_PASSIVE, sock=None, backlog=100, ssl=None, reuse_address=None)
 
-   A :ref:`coroutine <coroutine>` method which creates a TCP server bound to
-   host and port.
+   Create a TCP server bound to *host* and *port*. Return a :class:`Server` object,
+   its :attr:`~Server.sockets` attribute contains created sockets. Use the
+   :meth:`Server.close` method to stop the server: close listening sockets.
 
-   The return value is a :class:`AbstractServer` object which can be used to stop
-   the service.
+   This method is a :ref:`coroutine <coroutine>`.
 
-   If *host* is an empty string or None all interfaces are assumed
+   If *host* is an empty string or ``None``, all interfaces are assumed
    and a list of multiple sockets will be returned (most likely
    one for IPv4 and another one for IPv6).
 
-   *family* can be set to either :data:`~socket.AF_INET` or
+   *family* can be set to either :data:`socket.AF_INET` or
    :data:`~socket.AF_INET6` to force the socket to use IPv4 or IPv6. If not set
-   it will be determined from host (defaults to :data:`~socket.AF_UNSPEC`).
+   it will be determined from host (defaults to :data:`socket.AF_UNSPEC`).
 
    *flags* is a bitmask for :meth:`getaddrinfo`.
 
@@ -327,13 +289,15 @@ Creating listening connections
    *backlog* is the maximum number of queued connections passed to
    :meth:`~socket.socket.listen` (defaults to 100).
 
-   ssl can be set to an :class:`~ssl.SSLContext` to enable SSL over the
+   *ssl* can be set to an :class:`~ssl.SSLContext` to enable SSL over the
    accepted connections.
 
    *reuse_address* tells the kernel to reuse a local socket in
    TIME_WAIT state, without waiting for its natural timeout to
    expire. If not specified will automatically be set to True on
    UNIX.
+
+   On Windows with :class:`ProactorEventLoop`, SSL/TLS is not supported.
 
    .. seealso::
 
@@ -349,9 +313,13 @@ Creating listening connections
    Availability: UNIX.
 
 
-
 Watch file descriptors
 ----------------------
+
+On Windows with :class:`SelectorEventLoop`, only socket handles are supported
+(ex: pipe file descriptors are not supported).
+
+On Windows with :class:`ProactorEventLoop`, these methods are not supported.
 
 .. method:: BaseEventLoop.add_reader(fd, callback, \*args)
 
@@ -381,6 +349,9 @@ Low-level socket operations
    representing the data received.  The maximum amount of data to be received
    at once is specified by *nbytes*.
 
+   With :class:`SelectorEventLoop` event loop, the socket *sock* must be
+   non-blocking.
+
    This method is a :ref:`coroutine <coroutine>`.
 
    .. seealso::
@@ -394,6 +365,9 @@ Low-level socket operations
    been sent or an error occurs.  ``None`` is returned on success.  On error,
    an exception is raised, and there is no way to determine how much data, if
    any, was successfully processed by the receiving end of the connection.
+
+   With :class:`SelectorEventLoop` event loop, the socket *sock* must be
+   non-blocking.
 
    This method is a :ref:`coroutine <coroutine>`.
 
@@ -411,6 +385,9 @@ Low-level socket operations
    :py:data:`~socket.AF_INET` and :py:data:`~socket.AF_INET6` address families.
    Use :meth:`getaddrinfo` to resolve the hostname asynchronously.
 
+   With :class:`SelectorEventLoop` event loop, the socket *sock* must be
+   non-blocking.
+
    This method is a :ref:`coroutine <coroutine>`.
 
    .. seealso::
@@ -427,6 +404,8 @@ Low-level socket operations
    is a *new* socket object usable to send and receive data on the connection,
    and *address* is the address bound to the socket on the other end of the
    connection.
+
+   The socket *sock* must be non-blocking.
 
    This method is a :ref:`coroutine <coroutine>`.
 
@@ -453,14 +432,20 @@ Resolve host name
 Connect pipes
 -------------
 
+On Windows with :class:`SelectorEventLoop`, these methods are not supported.
+Use :class:`ProactorEventLoop` to support pipes on Windows.
+
 .. method:: BaseEventLoop.connect_read_pipe(protocol_factory, pipe)
 
    Register read pipe in eventloop.
 
    *protocol_factory* should instantiate object with :class:`Protocol`
-   interface.  pipe is file-like object already switched to nonblocking.
-   Return pair (transport, protocol), where transport support
+   interface.  *pipe* is a :term:`file-like object <file object>`.
+   Return pair ``(transport, protocol)``, where *transport* supports the
    :class:`ReadTransport` interface.
+
+   With :class:`SelectorEventLoop` event loop, the *pipe* is set to
+   non-blocking mode.
 
    This method is a :ref:`coroutine <coroutine>`.
 
@@ -469,9 +454,12 @@ Connect pipes
    Register write pipe in eventloop.
 
    *protocol_factory* should instantiate object with :class:`BaseProtocol`
-   interface.  Pipe is file-like object already switched to nonblocking.
+   interface. *pipe* is file-like object.
    Return pair (transport, protocol), where transport support
    :class:`WriteTransport` interface.
+
+   With :class:`SelectorEventLoop` event loop, the *pipe* is set to
+   non-blocking mode.
 
    This method is a :ref:`coroutine <coroutine>`.
 
@@ -580,31 +568,55 @@ Debug mode
 
 .. method:: BaseEventLoop.get_debug()
 
-   Get the debug mode (:class:`bool`) of the event loop, ``False`` by default.
+   Get the debug mode (:class:`bool`) of the event loop.
+
+   The default value is ``True`` if the environment variable
+   :envvar:`PYTHONASYNCIODEBUG` is set to a non-empty string, ``False``
+   otherwise.
+
+   .. versionadded:: 3.4.2
 
 .. method:: BaseEventLoop.set_debug(enabled: bool)
 
    Set the debug mode of the event loop.
 
+   .. versionadded:: 3.4.2
+
 .. seealso::
 
-   The :ref:`Develop with asyncio <asyncio-dev>` section.
-
+   The :ref:`debug mode of asyncio <asyncio-debug-mode>`.
 
 Server
 ------
 
-.. class:: AbstractServer
+.. class:: Server
 
-   Abstract server returned by :func:`BaseEventLoop.create_server`.
+   Server listening on sockets.
+
+   Object created by the :meth:`BaseEventLoop.create_server` method and the
+   :func:`start_server` function. Don't instanciate the class directly.
 
    .. method:: close()
 
-      Stop serving.  This leaves existing connections open.
+      Stop serving: close listening sockets and set the :attr:`sockets`
+      attribute to ``None``.
+
+      The sockets that represent existing incoming client connections are
+      leaved open.
+
+      The server is closed asynchonously, use the :meth:`wait_closed` coroutine
+      to wait until the server is closed.
 
    .. method:: wait_closed()
 
-      A :ref:`coroutine <coroutine>` to wait until service is closed.
+      Wait until the :meth:`close` method completes.
+
+      This method is a :ref:`coroutine <coroutine>`.
+
+   .. attribute:: sockets
+
+      List of :class:`socket.socket` objects the server is listening to, or
+      ``None`` if the server is closed.
 
 
 Handle
@@ -618,7 +630,8 @@ Handle
 
    .. method:: cancel()
 
-   Cancel the call.
+      Cancel the call.
+
 
 
 .. _asyncio-hello-world-callback:
@@ -636,7 +649,10 @@ Print ``Hello World`` every two seconds, using a callback::
 
     loop = asyncio.get_event_loop()
     loop.call_soon(print_and_repeat, loop)
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 
 .. seealso::
 
@@ -664,5 +680,8 @@ Register handlers for signals :py:data:`SIGINT` and :py:data:`SIGTERM`::
 
     print("Event loop running forever, press CTRL+c to interrupt.")
     print("pid %s: send SIGINT or SIGTERM to exit." % os.getpid())
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 

@@ -1,7 +1,6 @@
 import sys
 import os
 import io
-import shutil
 from hashlib import md5
 
 import unittest
@@ -352,10 +351,16 @@ class CommonReadTest(ReadTest):
 
 
 class MiscReadTestBase(CommonReadTest):
+    def requires_name_attribute(self):
+        pass
+
     def test_no_name_argument(self):
+        self.requires_name_attribute()
         with open(self.tarname, "rb") as fobj:
-            tar = tarfile.open(fileobj=fobj, mode=self.mode)
-            self.assertEqual(tar.name, os.path.abspath(fobj.name))
+            self.assertIsInstance(fobj.name, str)
+            with tarfile.open(fileobj=fobj, mode=self.mode) as tar:
+                self.assertIsInstance(tar.name, str)
+                self.assertEqual(tar.name, os.path.abspath(fobj.name))
 
     def test_no_name_attribute(self):
         with open(self.tarname, "rb") as fobj:
@@ -363,7 +368,7 @@ class MiscReadTestBase(CommonReadTest):
         fobj = io.BytesIO(data)
         self.assertRaises(AttributeError, getattr, fobj, "name")
         tar = tarfile.open(fileobj=fobj, mode=self.mode)
-        self.assertEqual(tar.name, None)
+        self.assertIsNone(tar.name)
 
     def test_empty_name_attribute(self):
         with open(self.tarname, "rb") as fobj:
@@ -371,7 +376,25 @@ class MiscReadTestBase(CommonReadTest):
         fobj = io.BytesIO(data)
         fobj.name = ""
         with tarfile.open(fileobj=fobj, mode=self.mode) as tar:
-            self.assertEqual(tar.name, None)
+            self.assertIsNone(tar.name)
+
+    def test_int_name_attribute(self):
+        # Issue 21044: tarfile.open() should handle fileobj with an integer
+        # 'name' attribute.
+        fd = os.open(self.tarname, os.O_RDONLY)
+        with open(fd, 'rb') as fobj:
+            self.assertIsInstance(fobj.name, int)
+            with tarfile.open(fileobj=fobj, mode=self.mode) as tar:
+                self.assertIsNone(tar.name)
+
+    def test_bytes_name_attribute(self):
+        self.requires_name_attribute()
+        tarname = os.fsencode(self.tarname)
+        with open(tarname, 'rb') as fobj:
+            self.assertIsInstance(fobj.name, bytes)
+            with tarfile.open(fileobj=fobj, mode=self.mode) as tar:
+                self.assertIsInstance(tar.name, bytes)
+                self.assertEqual(tar.name, os.path.abspath(fobj.name))
 
     def test_illegal_mode_arg(self):
         with open(tmpname, 'wb'):
@@ -456,16 +479,16 @@ class MiscReadTestBase(CommonReadTest):
         # Test hardlink extraction (e.g. bug #857297).
         with tarfile.open(tarname, errorlevel=1, encoding="iso8859-1") as tar:
             tar.extract("ustar/regtype", TEMPDIR)
-            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/regtype"))
+            self.addCleanup(support.unlink, os.path.join(TEMPDIR, "ustar/regtype"))
 
             tar.extract("ustar/lnktype", TEMPDIR)
-            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/lnktype"))
+            self.addCleanup(support.unlink, os.path.join(TEMPDIR, "ustar/lnktype"))
             with open(os.path.join(TEMPDIR, "ustar/lnktype"), "rb") as f:
                 data = f.read()
             self.assertEqual(md5sum(data), md5_regtype)
 
             tar.extract("ustar/symtype", TEMPDIR)
-            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/symtype"))
+            self.addCleanup(support.unlink, os.path.join(TEMPDIR, "ustar/symtype"))
             with open(os.path.join(TEMPDIR, "ustar/symtype"), "rb") as f:
                 data = f.read()
             self.assertEqual(md5sum(data), md5_regtype)
@@ -498,7 +521,7 @@ class MiscReadTestBase(CommonReadTest):
                 self.assertEqual(tarinfo.mtime, file_mtime, errmsg)
         finally:
             tar.close()
-            shutil.rmtree(DIR)
+            support.rmtree(DIR)
 
     def test_extract_directory(self):
         dirtype = "ustar/dirtype"
@@ -513,7 +536,7 @@ class MiscReadTestBase(CommonReadTest):
                 if sys.platform != "win32":
                     self.assertEqual(os.stat(extracted).st_mode & 0o777, 0o755)
         finally:
-            shutil.rmtree(DIR)
+            support.rmtree(DIR)
 
     def test_init_close_fobj(self):
         # Issue #7341: Close the internal file object in the TarFile
@@ -549,11 +572,11 @@ class GzipMiscReadTest(GzipTest, MiscReadTestBase, unittest.TestCase):
     pass
 
 class Bz2MiscReadTest(Bz2Test, MiscReadTestBase, unittest.TestCase):
-    def test_no_name_argument(self):
+    def requires_name_attribute(self):
         self.skipTest("BZ2File have no name attribute")
 
 class LzmaMiscReadTest(LzmaTest, MiscReadTestBase, unittest.TestCase):
-    def test_no_name_argument(self):
+    def requires_name_attribute(self):
         self.skipTest("LZMAFile have no name attribute")
 
 
@@ -877,7 +900,7 @@ class GNUReadTest(LongnameTest, ReadTest, unittest.TestCase):
                 fobj.seek(4096)
                 fobj.truncate()
             s = os.stat(name)
-            os.remove(name)
+            support.unlink(name)
             return s.st_blocks == 0
         else:
             return False
@@ -1010,7 +1033,7 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            os.rmdir(path)
+            support.rmdir(path)
 
     @unittest.skipUnless(hasattr(os, "link"),
                          "Missing hardlink implementation")
@@ -1030,8 +1053,8 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            os.remove(target)
-            os.remove(link)
+            support.unlink(target)
+            support.unlink(link)
 
     @support.skip_unless_symlink
     def test_symlink_size(self):
@@ -1045,7 +1068,7 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            os.remove(path)
+            support.unlink(path)
 
     def test_add_self(self):
         # Test for #1257255.
@@ -1092,7 +1115,7 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            shutil.rmtree(tempdir)
+            support.rmtree(tempdir)
 
     def test_filter(self):
         tempdir = os.path.join(TEMPDIR, "filter")
@@ -1128,7 +1151,7 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            shutil.rmtree(tempdir)
+            support.rmtree(tempdir)
 
     # Guarantee that stored pathnames are not modified. Don't
     # remove ./ or ../ or double slashes. Still make absolute
@@ -1156,9 +1179,9 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             tar.close()
 
         if not dir:
-            os.remove(foo)
+            support.unlink(foo)
         else:
-            os.rmdir(foo)
+            support.rmdir(foo)
 
         self.assertEqual(t.name, cmp_path or path.replace(os.sep, "/"))
 
@@ -1189,8 +1212,8 @@ class WriteTest(WriteTestBase, unittest.TestCase):
             finally:
                 tar.close()
         finally:
-            os.unlink(temparchive)
-            shutil.rmtree(tempdir)
+            support.unlink(temparchive)
+            support.rmtree(tempdir)
 
     def test_pathnames(self):
         self._test_pathname("foo")
@@ -1290,7 +1313,7 @@ class StreamWriteTest(WriteTestBase, unittest.TestCase):
         # Test for issue #8464: Create files with correct
         # permissions.
         if os.path.exists(tmpname):
-            os.remove(tmpname)
+            support.unlink(tmpname)
 
         original_umask = os.umask(0o022)
         try:
@@ -1644,7 +1667,7 @@ class AppendTestBase:
     def setUp(self):
         self.tarname = tmpname
         if os.path.exists(self.tarname):
-            os.remove(self.tarname)
+            support.unlink(self.tarname)
 
     def _create_testtar(self, mode="w:"):
         with tarfile.open(tarname, encoding="iso8859-1") as src:
@@ -2151,7 +2174,7 @@ def setUpModule():
 
 def tearDownModule():
     if os.path.exists(TEMPDIR):
-        shutil.rmtree(TEMPDIR)
+        support.rmtree(TEMPDIR)
 
 if __name__ == "__main__":
     unittest.main()

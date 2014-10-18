@@ -6,7 +6,7 @@ import collections
 
 from . import events
 from . import futures
-from . import tasks
+from .coroutines import coroutine
 
 
 class _ContextManager:
@@ -63,7 +63,7 @@ class Lock:
 
     acquire() is a coroutine and should be called with 'yield from'.
 
-    Locks also support the context manager protocol.  '(yield from lock)'
+    Locks also support the context management protocol.  '(yield from lock)'
     should be used as context manager expression.
 
     Usage:
@@ -112,7 +112,7 @@ class Lock:
         """Return True if lock is acquired."""
         return self._locked
 
-    @tasks.coroutine
+    @coroutine
     def acquire(self):
         """Acquire a lock.
 
@@ -225,7 +225,7 @@ class Event:
         to true again."""
         self._value = False
 
-    @tasks.coroutine
+    @coroutine
     def wait(self):
         """Block until the internal flag is true.
 
@@ -255,14 +255,17 @@ class Condition:
     A new Lock object is created and used as the underlying lock.
     """
 
-    def __init__(self, *, loop=None):
+    def __init__(self, lock=None, *, loop=None):
         if loop is not None:
             self._loop = loop
         else:
             self._loop = events.get_event_loop()
 
-        # Lock as an attribute as in threading.Condition.
-        lock = Lock(loop=self._loop)
+        if lock is None:
+            lock = Lock(loop=self._loop)
+        elif lock._loop is not self._loop:
+            raise ValueError("loop argument must agree with lock")
+
         self._lock = lock
         # Export the lock's locked(), acquire() and release() methods.
         self.locked = lock.locked
@@ -278,7 +281,7 @@ class Condition:
             extra = '{},waiters:{}'.format(extra, len(self._waiters))
         return '<{} [{}]>'.format(res[1:-1], extra)
 
-    @tasks.coroutine
+    @coroutine
     def wait(self):
         """Wait until notified.
 
@@ -306,7 +309,7 @@ class Condition:
         finally:
             yield from self.acquire()
 
-    @tasks.coroutine
+    @coroutine
     def wait_for(self, predicate):
         """Wait until a predicate becomes true.
 
@@ -373,7 +376,7 @@ class Semaphore:
     can never go below zero; when acquire() finds that it is zero, it blocks,
     waiting until some other thread calls release().
 
-    Semaphores also support the context manager protocol.
+    Semaphores also support the context management protocol.
 
     The optional argument gives the initial value for the internal
     counter; it defaults to 1. If the value given is less than 0,
@@ -402,7 +405,7 @@ class Semaphore:
         """Returns True if semaphore can not be acquired immediately."""
         return self._value == 0
 
-    @tasks.coroutine
+    @coroutine
     def acquire(self):
         """Acquire a semaphore.
 

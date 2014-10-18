@@ -274,9 +274,10 @@ The following exceptions are the exceptions that are usually raised.
 
    Raised when the result of an arithmetic operation is too large to be
    represented.  This cannot occur for integers (which would rather raise
-   :exc:`MemoryError` than give up).  Because of the lack of standardization of
-   floating point exception handling in C, most floating point operations also
-   aren't checked.
+   :exc:`MemoryError` than give up).  However, for historical reasons,
+   OverflowError is sometimes raised for integers that are outside a required
+   range.   Because of the lack of standardization of floating point exception
+   handling in C, most floating point operations are not checked.
 
 
 .. exception:: ReferenceError
@@ -456,10 +457,6 @@ starting from Python 3.3, they are aliases of :exc:`OSError`.
 .. exception:: EnvironmentError
 
 .. exception:: IOError
-
-.. exception:: VMSError
-
-   Only available on VMS.
 
 .. exception:: WindowsError
 
