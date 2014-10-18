@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __HTTP_CB_HANDLER__
-#define __HTTP_CB_HANDLER__
+#ifndef KBE_HTTP_CB_HANDLER_HPP
+#define KBE_HTTP_CB_HANDLER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 
@@ -57,4 +57,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_HTTP_CB_HANDLER_HPP

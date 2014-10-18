@@ -23,7 +23,7 @@ namespace KBEngine {
 namespace script{
 
 template <class T>
-INLINE T PyWatcherObject<T>::getVal()
+INLINE T PyWatcherObject<T>::getValue()
 {
 	T v;
 

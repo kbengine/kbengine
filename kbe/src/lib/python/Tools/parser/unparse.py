@@ -1,6 +1,5 @@
 "Usage: unparse.py <path to source file>"
 import sys
-import math
 import ast
 import tokenize
 import io
@@ -147,6 +146,14 @@ class Unparser:
             self.dispatch(t.value)
         self.write(")")
 
+    def _YieldFrom(self, t):
+        self.write("(")
+        self.write("yield from")
+        if t.value:
+            self.write(" ")
+            self.dispatch(t.value)
+        self.write(")")
+
     def _Raise(self, t):
         self.fill("raise")
         if not t.exc:
@@ -158,12 +165,11 @@ class Unparser:
             self.write(" from ")
             self.dispatch(t.cause)
 
-    def _TryExcept(self, t):
+    def _Try(self, t):
         self.fill("try")
         self.enter()
         self.dispatch(t.body)
         self.leave()
-
         for ex in t.handlers:
             self.dispatch(ex)
         if t.orelse:
@@ -171,21 +177,11 @@ class Unparser:
             self.enter()
             self.dispatch(t.orelse)
             self.leave()
-
-    def _TryFinally(self, t):
-        if len(t.body) == 1 and isinstance(t.body[0], ast.TryExcept):
-            # try-except-finally
-            self.dispatch(t.body)
-        else:
-            self.fill("try")
+        if t.finalbody:
+            self.fill("finally")
             self.enter()
-            self.dispatch(t.body)
+            self.dispatch(t.finalbody)
             self.leave()
-
-        self.fill("finally")
-        self.enter()
-        self.dispatch(t.finalbody)
-        self.leave()
 
     def _ExceptHandler(self, t):
         self.fill("except")
@@ -296,10 +292,7 @@ class Unparser:
 
     def _With(self, t):
         self.fill("with ")
-        self.dispatch(t.context_expr)
-        if t.optional_vars:
-            self.write(" as ")
-            self.dispatch(t.optional_vars)
+        interleave(lambda: self.write(", "), self.dispatch, t.items)
         self.enter()
         self.dispatch(t.body)
         self.leave()
@@ -313,6 +306,9 @@ class Unparser:
 
     def _Name(self, t):
         self.write(t.id)
+
+    def _NameConstant(self, t):
+        self.write(repr(t.value))
 
     def _Num(self, t):
         # Substitute overflowing decimal literal for AST infinities.
@@ -522,10 +518,10 @@ class Unparser:
             else: self.write(", ")
             self.write("*")
             if t.vararg:
-                self.write(t.vararg)
-                if t.varargannotation:
+                self.write(t.vararg.arg)
+                if t.vararg.annotation:
                     self.write(": ")
-                    self.dispatch(t.varargannotation)
+                    self.dispatch(t.vararg.annotation)
 
         # keyword-only arguments
         if t.kwonlyargs:
@@ -541,10 +537,10 @@ class Unparser:
         if t.kwarg:
             if first:first = False
             else: self.write(", ")
-            self.write("**"+t.kwarg)
-            if t.kwargannotation:
+            self.write("**"+t.kwarg.arg)
+            if t.kwarg.annotation:
                 self.write(": ")
-                self.dispatch(t.kwargannotation)
+                self.dispatch(t.kwarg.annotation)
 
     def _keyword(self, t):
         self.write(t.arg)
@@ -563,6 +559,12 @@ class Unparser:
         self.write(t.name)
         if t.asname:
             self.write(" as "+t.asname)
+
+    def _withitem(self, t):
+        self.dispatch(t.context_expr)
+        if t.optional_vars:
+            self.write(" as ")
+            self.dispatch(t.optional_vars)
 
 def roundtrip(filename, output=sys.stdout):
     with open(filename, "rb") as pyfile:

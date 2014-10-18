@@ -11,6 +11,8 @@ typedef struct {
     PyObject *md_dict;
     struct PyModuleDef *md_def;
     void *md_state;
+    PyObject *md_weaklist;
+    PyObject *md_name;  /* for logging purposes after md_dict is cleared */
 } PyModuleObject;
 
 static PyMemberDef module_members[] = {
@@ -26,35 +28,69 @@ static PyTypeObject moduledef_type = {
 };
 
 
+static int
+module_init_dict(PyModuleObject *mod, PyObject *md_dict,
+                 PyObject *name, PyObject *doc)
+{
+    if (md_dict == NULL)
+        return -1;
+    if (doc == NULL)
+        doc = Py_None;
+
+    if (PyDict_SetItemString(md_dict, "__name__", name) != 0)
+        return -1;
+    if (PyDict_SetItemString(md_dict, "__doc__", doc) != 0)
+        return -1;
+    if (PyDict_SetItemString(md_dict, "__package__", Py_None) != 0)
+        return -1;
+    if (PyDict_SetItemString(md_dict, "__loader__", Py_None) != 0)
+        return -1;
+    if (PyDict_SetItemString(md_dict, "__spec__", Py_None) != 0)
+        return -1;
+    if (PyUnicode_CheckExact(name)) {
+        Py_INCREF(name);
+        Py_XDECREF(mod->md_name);
+        mod->md_name = name;
+    }
+
+    return 0;
+}
+
+
 PyObject *
-PyModule_New(const char *name)
+PyModule_NewObject(PyObject *name)
 {
     PyModuleObject *m;
-    PyObject *nameobj;
     m = PyObject_GC_New(PyModuleObject, &PyModule_Type);
     if (m == NULL)
         return NULL;
     m->md_def = NULL;
     m->md_state = NULL;
-    nameobj = PyUnicode_FromString(name);
+    m->md_weaklist = NULL;
+    m->md_name = NULL;
     m->md_dict = PyDict_New();
-    if (m->md_dict == NULL || nameobj == NULL)
+    if (module_init_dict(m, m->md_dict, name, NULL) != 0)
         goto fail;
-    if (PyDict_SetItemString(m->md_dict, "__name__", nameobj) != 0)
-        goto fail;
-    if (PyDict_SetItemString(m->md_dict, "__doc__", Py_None) != 0)
-        goto fail;
-    if (PyDict_SetItemString(m->md_dict, "__package__", Py_None) != 0)
-        goto fail;
-    Py_DECREF(nameobj);
     PyObject_GC_Track(m);
     return (PyObject *)m;
 
  fail:
-    Py_XDECREF(nameobj);
     Py_DECREF(m);
     return NULL;
 }
+
+PyObject *
+PyModule_New(const char *name)
+{
+    PyObject *nameobj, *module;
+    nameobj = PyUnicode_FromString(name);
+    if (nameobj == NULL)
+        return NULL;
+    module = PyModule_NewObject(nameobj);
+    Py_DECREF(nameobj);
+    return module;
+}
+
 
 PyObject *
 PyModule_Create2(struct PyModuleDef* module, int module_api_version)
@@ -175,24 +211,35 @@ PyModule_GetDict(PyObject *m)
     return d;
 }
 
-const char *
-PyModule_GetName(PyObject *m)
+PyObject*
+PyModule_GetNameObject(PyObject *m)
 {
     PyObject *d;
-    PyObject *nameobj;
+    PyObject *name;
     if (!PyModule_Check(m)) {
         PyErr_BadArgument();
         return NULL;
     }
     d = ((PyModuleObject *)m)->md_dict;
     if (d == NULL ||
-        (nameobj = PyDict_GetItemString(d, "__name__")) == NULL ||
-        !PyUnicode_Check(nameobj))
+        (name = PyDict_GetItemString(d, "__name__")) == NULL ||
+        !PyUnicode_Check(name))
     {
         PyErr_SetString(PyExc_SystemError, "nameless module");
         return NULL;
     }
-    return _PyUnicode_AsString(nameobj);
+    Py_INCREF(name);
+    return name;
+}
+
+const char *
+PyModule_GetName(PyObject *m)
+{
+    PyObject *name = PyModule_GetNameObject(m);
+    if (name == NULL)
+        return NULL;
+    Py_DECREF(name);   /* module dict has still a reference */
+    return _PyUnicode_AsString(name);
 }
 
 PyObject*
@@ -225,7 +272,7 @@ PyModule_GetFilename(PyObject *m)
     if (fileobj == NULL)
         return NULL;
     utf8 = _PyUnicode_AsString(fileobj);
-    Py_DECREF(fileobj);
+    Py_DECREF(fileobj);   /* module dict has still a reference */
     return utf8;
 }
 
@@ -252,6 +299,14 @@ PyModule_GetState(PyObject* m)
 void
 _PyModule_Clear(PyObject *m)
 {
+    PyObject *d = ((PyModuleObject *)m)->md_dict;
+    if (d != NULL)
+        _PyModule_ClearDict(d);
+}
+
+void
+_PyModule_ClearDict(PyObject *d)
+{
     /* To make the execution order of destructors for global
        objects a bit more predictable, we first zap all objects
        whose name starts with a single underscore, before we clear
@@ -261,18 +316,13 @@ _PyModule_Clear(PyObject *m)
 
     Py_ssize_t pos;
     PyObject *key, *value;
-    PyObject *d;
-
-    d = ((PyModuleObject *)m)->md_dict;
-    if (d == NULL)
-        return;
 
     /* First, clear only names starting with a single underscore */
     pos = 0;
     while (PyDict_Next(d, &pos, &key, &value)) {
         if (value != Py_None && PyUnicode_Check(key)) {
-            Py_UNICODE *u = PyUnicode_AS_UNICODE(key);
-            if (u[0] == '_' && u[1] != '_') {
+            if (PyUnicode_READ_CHAR(key, 0) == '_' &&
+                PyUnicode_READ_CHAR(key, 1) != '_') {
                 if (Py_VerboseFlag > 1) {
                     const char *s = _PyUnicode_AsString(key);
                     if (s != NULL)
@@ -280,7 +330,8 @@ _PyModule_Clear(PyObject *m)
                     else
                         PyErr_Clear();
                 }
-                PyDict_SetItem(d, key, Py_None);
+                if (PyDict_SetItem(d, key, Py_None) != 0)
+                    PyErr_Clear();
             }
         }
     }
@@ -289,9 +340,8 @@ _PyModule_Clear(PyObject *m)
     pos = 0;
     while (PyDict_Next(d, &pos, &key, &value)) {
         if (value != Py_None && PyUnicode_Check(key)) {
-            Py_UNICODE *u = PyUnicode_AS_UNICODE(key);
-            if (u[0] != '_'
-                || PyUnicode_CompareWithASCIIString(key, "__builtins__") != 0)
+            if (PyUnicode_READ_CHAR(key, 0) != '_' ||
+                PyUnicode_CompareWithASCIIString(key, "__builtins__") != 0)
             {
                 if (Py_VerboseFlag > 1) {
                     const char *s = _PyUnicode_AsString(key);
@@ -300,7 +350,8 @@ _PyModule_Clear(PyObject *m)
                     else
                         PyErr_Clear();
                 }
-                PyDict_SetItem(d, key, Py_None);
+                if (PyDict_SetItem(d, key, Py_None) != 0)
+                    PyErr_Clear();
             }
         }
     }
@@ -328,9 +379,7 @@ module_init(PyModuleObject *m, PyObject *args, PyObject *kwds)
             return -1;
         m->md_dict = dict;
     }
-    if (PyDict_SetItemString(dict, "__name__", name) < 0)
-        return -1;
-    if (PyDict_SetItemString(dict, "__doc__", doc) < 0)
+    if (module_init_dict(m, dict, name, doc) < 0)
         return -1;
     return 0;
 }
@@ -339,12 +388,15 @@ static void
 module_dealloc(PyModuleObject *m)
 {
     PyObject_GC_UnTrack(m);
+    if (Py_VerboseFlag && m->md_name) {
+        PySys_FormatStderr("# destroy %S\n", m->md_name);
+    }
+    if (m->md_weaklist != NULL)
+        PyObject_ClearWeakRefs((PyObject *) m);
     if (m->md_def && m->md_def->m_free)
         m->md_def->m_free(m);
-    if (m->md_dict != NULL) {
-        _PyModule_Clear((PyObject *)m);
-        Py_DECREF(m->md_dict);
-    }
+    Py_XDECREF(m->md_dict);
+    Py_XDECREF(m->md_name);
     if (m->md_state != NULL)
         PyMem_FREE(m->md_state);
     Py_TYPE(m)->tp_free((PyObject *)m);
@@ -353,22 +405,10 @@ module_dealloc(PyModuleObject *m)
 static PyObject *
 module_repr(PyModuleObject *m)
 {
-    const char *name;
-    PyObject *filename, *repr;
+    PyThreadState *tstate = PyThreadState_GET();
+    PyInterpreterState *interp = tstate->interp;
 
-    name = PyModule_GetName((PyObject *)m);
-    if (name == NULL) {
-        PyErr_Clear();
-        name = "?";
-    }
-    filename = PyModule_GetFilenameObject((PyObject *)m);
-    if (filename == NULL) {
-        PyErr_Clear();
-        return PyUnicode_FromFormat("<module '%s' (built-in)>", name);
-    }
-    repr = PyUnicode_FromFormat("<module '%s' from '%U'>", name, filename);
-    Py_DECREF(filename);
-    return repr;
+    return PyObject_CallMethod(interp->importlib, "_module_repr", "O", m);
 }
 
 static int
@@ -394,6 +434,35 @@ module_clear(PyModuleObject *m)
     Py_CLEAR(m->md_dict);
     return 0;
 }
+
+static PyObject *
+module_dir(PyObject *self, PyObject *args)
+{
+    _Py_IDENTIFIER(__dict__);
+    PyObject *result = NULL;
+    PyObject *dict = _PyObject_GetAttrId(self, &PyId___dict__);
+
+    if (dict != NULL) {
+        if (PyDict_Check(dict))
+            result = PyDict_Keys(dict);
+        else {
+            const char *name = PyModule_GetName(self);
+            if (name)
+                PyErr_Format(PyExc_TypeError,
+                             "%.200s.__dict__ is not a dictionary",
+                             name);
+        }
+    }
+
+    Py_XDECREF(dict);
+    return result;
+}
+
+static PyMethodDef module_methods[] = {
+    {"__dir__", module_dir, METH_NOARGS,
+     PyDoc_STR("__dir__() -> list\nspecialized dir() implementation")},
+    {0}
+};
 
 
 PyDoc_STRVAR(module_doc,
@@ -428,10 +497,10 @@ PyTypeObject PyModule_Type = {
     (traverseproc)module_traverse,              /* tp_traverse */
     (inquiry)module_clear,                      /* tp_clear */
     0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
+    offsetof(PyModuleObject, md_weaklist),      /* tp_weaklistoffset */
     0,                                          /* tp_iter */
     0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
+    module_methods,                             /* tp_methods */
     module_members,                             /* tp_members */
     0,                                          /* tp_getset */
     0,                                          /* tp_base */

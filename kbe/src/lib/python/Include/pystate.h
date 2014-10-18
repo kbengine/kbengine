@@ -25,7 +25,7 @@ typedef struct _is {
     PyObject *modules_by_index;
     PyObject *sysdict;
     PyObject *builtins;
-    PyObject *modules_reloading;
+    PyObject *importlib;
 
     PyObject *codec_search_path;
     PyObject *codec_search_cache;
@@ -40,6 +40,7 @@ typedef struct _is {
     int tscdump;
 #endif
 
+    PyObject *builtins_copy;
 } PyInterpreterState;
 #endif
 
@@ -68,15 +69,16 @@ typedef struct _ts PyThreadState;
 typedef struct _ts {
     /* See Python/ceval.c for comments explaining most fields */
 
+    struct _ts *prev;
     struct _ts *next;
     PyInterpreterState *interp;
 
     struct _frame *frame;
     int recursion_depth;
     char overflowed; /* The stack has overflowed. Allow 50 more calls
-		        to handle the runtime error. */
-    char recursion_critical; /* The current calls must not cause 
-				a stack overflow. */
+                        to handle the runtime error. */
+    char recursion_critical; /* The current calls must not cause
+                                a stack overflow. */
     /* 'tracing' keeps track of the execution depth when tracing/profiling.
        This is to prevent the actual trace/profile code from being recorded in
        the trace/profile. */
@@ -98,16 +100,6 @@ typedef struct _ts {
 
     PyObject *dict;  /* Stores per-thread state */
 
-    /* XXX doesn't mean anything anymore (the comment below is obsolete)
-       => deprecate or remove? */
-    /* tick_counter is incremented whenever the check_interval ticker
-     * reaches zero. The purpose is to give a useful measure of the number
-     * of interpreted bytecode instructions in a given thread.  This
-     * extremely lightweight statistic collector may be of interest to
-     * profilers (like psyco.jit()), although nothing in the core uses it.
-     */
-    int tick_counter;
-
     int gilstate_counter;
 
     PyObject *async_exc; /* Asynchronous exception to raise */
@@ -115,6 +107,32 @@ typedef struct _ts {
 
     int trash_delete_nesting;
     PyObject *trash_delete_later;
+
+    /* Called when a thread state is deleted normally, but not when it
+     * is destroyed after fork().
+     * Pain:  to prevent rare but fatal shutdown errors (issue 18808),
+     * Thread.join() must wait for the join'ed thread's tstate to be unlinked
+     * from the tstate chain.  That happens at the end of a thread's life,
+     * in pystate.c.
+     * The obvious way doesn't quite work:  create a lock which the tstate
+     * unlinking code releases, and have Thread.join() wait to acquire that
+     * lock.  The problem is that we _are_ at the end of the thread's life:
+     * if the thread holds the last reference to the lock, decref'ing the
+     * lock will delete the lock, and that may trigger arbitrary Python code
+     * if there's a weakref, with a callback, to the lock.  But by this time
+     * _PyThreadState_Current is already NULL, so only the simplest of C code
+     * can be allowed to run (in particular it must not be possible to
+     * release the GIL).
+     * So instead of holding the lock directly, the tstate holds a weakref to
+     * the lock:  that's the value of on_delete_data below.  Decref'ing a
+     * weakref is harmless.
+     * on_delete points to _threadmodule.c's static release_sentinel() function.
+     * After the tstate is unlinked, release_sentinel is called with the
+     * weakref-to-lock (on_delete_data) argument, and release_sentinel releases
+     * the indirectly held lock.
+     */
+    void (*on_delete)(void *);
+    void *on_delete_data;
 
     /* XXX signal handlers should also be here */
 
@@ -126,13 +144,22 @@ PyAPI_FUNC(PyInterpreterState *) PyInterpreterState_New(void);
 PyAPI_FUNC(void) PyInterpreterState_Clear(PyInterpreterState *);
 PyAPI_FUNC(void) PyInterpreterState_Delete(PyInterpreterState *);
 PyAPI_FUNC(int) _PyState_AddModule(PyObject*, struct PyModuleDef*);
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03030000
+/* New in 3.3 */
+PyAPI_FUNC(int) PyState_AddModule(PyObject*, struct PyModuleDef*);
+PyAPI_FUNC(int) PyState_RemoveModule(struct PyModuleDef*);
+#endif
 PyAPI_FUNC(PyObject*) PyState_FindModule(struct PyModuleDef*);
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(void) _PyState_ClearModules(void);
+#endif
 
 PyAPI_FUNC(PyThreadState *) PyThreadState_New(PyInterpreterState *);
 PyAPI_FUNC(PyThreadState *) _PyThreadState_Prealloc(PyInterpreterState *);
 PyAPI_FUNC(void) _PyThreadState_Init(PyThreadState *);
 PyAPI_FUNC(void) PyThreadState_Clear(PyThreadState *);
 PyAPI_FUNC(void) PyThreadState_Delete(PyThreadState *);
+PyAPI_FUNC(void) _PyThreadState_DeleteExcept(PyThreadState *tstate);
 #ifdef WITH_THREAD
 PyAPI_FUNC(void) PyThreadState_DeleteCurrent(void);
 PyAPI_FUNC(void) _PyGILState_Reinit(void);
@@ -162,6 +189,8 @@ PyAPI_DATA(_Py_atomic_address) _PyThreadState_Current;
 typedef
     enum {PyGILState_LOCKED, PyGILState_UNLOCKED}
         PyGILState_STATE;
+
+#ifdef WITH_THREAD
 
 /* Ensure that the current thread is ready to call the Python
    C API, regardless of the current state of Python, or of its
@@ -203,6 +232,15 @@ PyAPI_FUNC(void) PyGILState_Release(PyGILState_STATE);
    on the main thread.
 */
 PyAPI_FUNC(PyThreadState *) PyGILState_GetThisThreadState(void);
+
+/* Helper/diagnostic function - return 1 if the current thread
+ * currently holds the GIL, 0 otherwise
+ */
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(int) PyGILState_Check(void);
+#endif
+
+#endif   /* #ifdef WITH_THREAD */
 
 /* The implementation of sys._current_frames()  Returns a dict mapping
    thread id to that thread's current frame.

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_KBE_TABLE_MYSQL__
-#define __KBE_KBE_TABLE_MYSQL__
+#ifndef KBE_KBE_TABLE_MYSQL_HPP
+#define KBE_KBE_TABLE_MYSQL_HPP
 
 #include "common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -49,7 +49,7 @@ public:
 
 	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
-	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid);
+	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType);
 protected:
 	
 };
@@ -73,20 +73,6 @@ public:
 	virtual bool updatePassword(DBInterface * dbi, const std::string& name, const std::string& password);
 protected:
 };
-
-class KBEEntityTypeMysql : public KBEEntityType
-{
-public:
-	KBEEntityTypeMysql();
-	virtual ~KBEEntityTypeMysql(){}
-	
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB(DBInterface* dbi);
-protected:
-};
-
 
 class KBEEmailVerificationTableMysql : public KBEEmailVerificationTable
 {
@@ -113,4 +99,4 @@ protected:
 
 }
 
-#endif // __KBE_KBE_TABLE_MYSQL__
+#endif // KBE_KBE_TABLE_MYSQL_HPP

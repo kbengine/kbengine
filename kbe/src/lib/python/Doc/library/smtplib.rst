@@ -20,46 +20,89 @@ details of SMTP and ESMTP operation, consult :rfc:`821` (Simple Mail Transfer
 Protocol) and :rfc:`1869` (SMTP Service Extensions).
 
 
-.. class:: SMTP(host='', port=0, local_hostname=None[, timeout])
+.. class:: SMTP(host='', port=0, local_hostname=None[, timeout], source_address=None)
 
    A :class:`SMTP` instance encapsulates an SMTP connection.  It has methods
    that support a full repertoire of SMTP and ESMTP operations. If the optional
-   host and port parameters are given, the SMTP :meth:`connect` method is called
-   with those parameters during initialization.  An :exc:`SMTPConnectError` is
-   raised if the specified host doesn't respond correctly. The optional
+   host and port parameters are given, the SMTP :meth:`connect` method is
+   called with those parameters during initialization.  If specified,
+   *local_hostname* is used as the FQDN of the local host in the HELO/EHLO
+   command.  Otherwise, the local hostname is found using
+   :func:`socket.getfqdn`.  If the :meth:`connect` call returns anything other
+   than a success code, an :exc:`SMTPConnectError` is raised. The optional
    *timeout* parameter specifies a timeout in seconds for blocking operations
    like the connection attempt (if not specified, the global default timeout
-   setting will be used).
+   setting will be used).  If the timeout expires, :exc:`socket.timeout` is
+   raised.  The optional source_address parameter allows to bind
+   to some specific source address in a machine with multiple network
+   interfaces, and/or to some specific source TCP port. It takes a 2-tuple
+   (host, port), for the socket to bind to as its source address before
+   connecting. If omitted (or if host or port are ``''`` and/or 0 respectively)
+   the OS default behavior will be used.
 
    For normal use, you should only require the initialization/connect,
    :meth:`sendmail`, and :meth:`~smtplib.quit` methods.
    An example is included below.
 
+   The :class:`SMTP` class supports the :keyword:`with` statement.  When used
+   like this, the SMTP ``QUIT`` command is issued automatically when the
+   :keyword:`with` statement exits.  E.g.::
 
-.. class:: SMTP_SSL(host='', port=0, local_hostname=None, keyfile=None, certfile=None[, timeout])
+    >>> from smtplib import SMTP
+    >>> with SMTP("domain.org") as smtp:
+    ...     smtp.noop()
+    ...
+    (250, b'Ok')
+    >>>
+
+   .. versionchanged:: 3.3
+      Support for the :keyword:`with` statement was added.
+
+   .. versionchanged:: 3.3
+      source_address argument was added.
+
+.. class:: SMTP_SSL(host='', port=0, local_hostname=None, keyfile=None, \
+                    certfile=None [, timeout], context=None, \
+                    source_address=None)
 
    A :class:`SMTP_SSL` instance behaves exactly the same as instances of
    :class:`SMTP`. :class:`SMTP_SSL` should be used for situations where SSL is
    required from the beginning of the connection and using :meth:`starttls` is
    not appropriate. If *host* is not specified, the local host is used. If
-   *port* is zero, the standard SMTP-over-SSL port (465) is used. *keyfile*
-   and *certfile* are also optional, and can contain a PEM formatted private key
-   and certificate chain file for the SSL connection. The optional *timeout*
-   parameter specifies a timeout in seconds for blocking operations like the
-   connection attempt (if not specified, the global default timeout setting
-   will be used).
+   *port* is zero, the standard SMTP-over-SSL port (465) is used.  The optional
+   arguments *local_hostname*, *timeout* and *source_address* have the same
+   meaning as they do in the :class:`SMTP` class.  *context*, also optional,
+   can contain a :class:`~ssl.SSLContext` and allows to configure various
+   aspects of the secure connection.  Please read :ref:`ssl-security` for
+   best practices.
 
+   *keyfile* and *certfile* are a legacy alternative to *context*, and can
+   point to a PEM formatted private key and certificate chain file for the
+   SSL connection.
 
-.. class:: LMTP(host='', port=LMTP_PORT, local_hostname=None)
+   .. versionchanged:: 3.3
+      *context* was added.
+
+   .. versionchanged:: 3.3
+      source_address argument was added.
+
+   .. versionchanged:: 3.4
+      The class now supports hostname check with
+      :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
+      :data:`ssl.HAS_SNI`).
+
+.. class:: LMTP(host='', port=LMTP_PORT, local_hostname=None, source_address=None)
 
    The LMTP protocol, which is very similar to ESMTP, is heavily based on the
-   standard SMTP client. It's common to use Unix sockets for LMTP, so our :meth:`connect`
-   method must support that as well as a regular host:port server. To specify a
-   Unix socket, you must use an absolute path for *host*, starting with a '/'.
+   standard SMTP client. It's common to use Unix sockets for LMTP, so our
+   :meth:`connect` method must support that as well as a regular host:port
+   server. The optional arguments local_hostname and source_address have the
+   same meaning as they do in the :class:`SMTP` class. To specify a Unix
+   socket, you must use an absolute path for *host*, starting with a '/'.
 
-   Authentication is supported, using the regular SMTP mechanism. When using a Unix
-   socket, LMTP generally don't support or require any authentication, but your
-   mileage might vary.
+   Authentication is supported, using the regular SMTP mechanism. When using a
+   Unix socket, LMTP generally don't support or require any authentication, but
+   your mileage might vary.
 
 
 A nice selection of exceptions is defined as well:
@@ -67,7 +110,11 @@ A nice selection of exceptions is defined as well:
 
 .. exception:: SMTPException
 
-   Base exception class for all exceptions raised by this module.
+   Subclass of :exc:`OSError` that is the base exception class for all
+   the other exceptions provided by this module.
+
+   .. versionchanged:: 3.4
+      SMTPException became subclass of :exc:`OSError`
 
 
 .. exception:: SMTPServerDisconnected
@@ -146,15 +193,6 @@ An :class:`SMTP` instance has the following methods:
    for connection and for all messages sent to and received from the server.
 
 
-.. method:: SMTP.connect(host='localhost', port=0)
-
-   Connect to a host on a given port.  The defaults are to connect to the local
-   host at the standard SMTP port (25). If the hostname ends with a colon (``':'``)
-   followed by a number, that suffix will be stripped off and the number
-   interpreted as the port number to use. This method is automatically invoked by
-   the constructor if a host is specified during instantiation.
-
-
 .. method:: SMTP.docmd(cmd, args='')
 
    Send a command *cmd* to the server.  The optional argument *args* is simply
@@ -169,6 +207,17 @@ An :class:`SMTP` instance has the following methods:
 
    If the connection to the server is lost while waiting for the reply,
    :exc:`SMTPServerDisconnected` will be raised.
+
+
+.. method:: SMTP.connect(host='localhost', port=0)
+
+   Connect to a host on a given port.  The defaults are to connect to the local
+   host at the standard SMTP port (25). If the hostname ends with a colon (``':'``)
+   followed by a number, that suffix will be stripped off and the number
+   interpreted as the port number to use. This method is automatically invoked by
+   the constructor if a host is specified during instantiation.  Returns a
+   2-tuple of the response code and message sent by the server in its
+   connection response.
 
 
 .. method:: SMTP.helo(name='')
@@ -243,7 +292,7 @@ An :class:`SMTP` instance has the following methods:
       No suitable authentication method was found.
 
 
-.. method:: SMTP.starttls(keyfile=None, certfile=None)
+.. method:: SMTP.starttls(keyfile=None, certfile=None, context=None)
 
    Put the SMTP connection in TLS (Transport Layer Security) mode.  All SMTP
    commands that follow will be encrypted.  You should then call :meth:`ehlo`
@@ -251,6 +300,9 @@ An :class:`SMTP` instance has the following methods:
 
    If *keyfile* and *certfile* are provided, these are passed to the :mod:`socket`
    module's :func:`ssl` function.
+
+   Optional *context* parameter is a :class:`ssl.SSLContext` object; This is an alternative to
+   using a keyfile and a certfile and if specified both *keyfile* and *certfile* should be None.
 
    If there has been no previous ``EHLO`` or ``HELO`` command this session,
    this method tries ESMTP ``EHLO`` first.
@@ -263,6 +315,14 @@ An :class:`SMTP` instance has the following methods:
 
    :exc:`RuntimeError`
      SSL/TLS support is not available to your Python interpreter.
+
+   .. versionchanged:: 3.3
+      *context* was added.
+
+   .. versionchanged:: 3.4
+      The method now supports hostname check with
+      :attr:`SSLContext.check_hostname` and *Server Name Indicator* (see
+      :data:`~ssl.HAS_SNI`).
 
 
 .. method:: SMTP.sendmail(from_addr, to_addrs, msg, mail_options=[], rcpt_options=[])
@@ -321,7 +381,8 @@ An :class:`SMTP` instance has the following methods:
    Unless otherwise noted, the connection will be open even after an exception is
    raised.
 
-   .. versionchanged:: 3.2 *msg* may be a byte string.
+   .. versionchanged:: 3.2
+      *msg* may be a byte string.
 
 
 .. method:: SMTP.send_message(msg, from_addr=None, to_addrs=None, \

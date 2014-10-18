@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __PROXY_INTERFACE_MACRO_H__
+	#undef KBE_PROXY_INTERFACE_MACRO_HPP
 #endif
 
 
-#ifndef __PROXY_INTERFACE_MACRO_H__
-#define __PROXY_INTERFACE_MACRO_H__
+#ifndef KBE_PROXY_INTERFACE_MACRO_HPP
+#define KBE_PROXY_INTERFACE_MACRO_HPP
 
 // common include	
 #include "network/interface_defs.hpp"
@@ -61,9 +61,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 
@@ -116,9 +116,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 
@@ -173,9 +173,9 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(boost::format(										\
-					"Messagehandler::handle: can't found entityID:%1%.\n") %	\
-					eid);														\
+				ERROR_MSG(fmt::format(											\
+					"Messagehandler::handle: can't found entityID:{}.\n",		\
+					eid));														\
 			}																	\
 	}																			\
 

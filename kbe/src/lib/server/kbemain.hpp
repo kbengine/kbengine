@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBEMAIN__
-#define __KBEMAIN__
+#ifndef KBE_KBEMAIN_HPP
+#define KBE_KBEMAIN_HPP
+
 #include "helper/memory_helper.hpp"
 
 #include "serverapp.hpp"
@@ -28,9 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/stringconv.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
+#include "network/message_handler.hpp"
 #include "network/network_interface.hpp"
 #include "server/componentbridge.hpp"
-#include "server/serverinfos.hpp"
+#include "server/machine_infos.hpp"
 #include "resmgr/resmgr.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -41,18 +43,21 @@ namespace KBEngine{
 
 inline void START_MSG(const char * name, uint64 appuid)
 {
-	ServerInfos serverInfo;
+	MachineInfos machineInfo;
 	
-	std::string s = (boost::format("---- %1% "
-			"Version: %2%. "
-			"Config: %3%. "
-			"Built: %4% %5%. "
-			"AppUID: %6%. "
-			"UID: %7%. "
-			"PID: %8% ----\n") %
-		name % KBEVersion::versionString().c_str() %
-		KBE_CONFIG % __TIME__ % __DATE__ %
-		appuid % getUserUID() % getProcessPID()).str();
+	std::string s = (fmt::format("---- {} "
+			"Version: {}. "
+			"ScriptVersion: {}. "
+			"Protocol: {}. "
+			"Config: {}. "
+			"Built: {} {}. "
+			"AppID: {}. "
+			"UID: {}. "
+			"PID: {} ----\n",
+		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
+		Mercury::MessageHandlers::getDigestStr(),
+		KBE_CONFIG, __TIME__, __DATE__,
+		appuid, getUserUID(), getProcessPID()));
 
 	INFO_MSG(s);
 	
@@ -60,10 +65,10 @@ inline void START_MSG(const char * name, uint64 appuid)
 	printf("%s", s.c_str());
 #endif
 
-	s = (boost::format("Server %1%: %2% with %3% RAM\n") %
-		serverInfo.serverName().c_str() %
-		serverInfo.cpuInfo().c_str() %
-		serverInfo.memInfo().c_str() ).str();
+	s = (fmt::format("Server {}: {} with {} RAM\n",
+		machineInfo.machineName(),
+		machineInfo.cpuInfo(),
+		machineInfo.memInfo()));
 
 	INFO_MSG(s);
 
@@ -130,12 +135,10 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
-#ifdef USE_OPENSSL	
 	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
 		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
-#endif
 
-	Resmgr::getSingleton().pirnt();
+	Resmgr::getSingleton().print();
 
 	Mercury::EventDispatcher dispatcher;
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);
@@ -157,7 +160,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	
 	if(getUserUID() <= 0)
 	{
-		WARNING_MSG(boost::format("invalid UID(%1%) <= 0, please check UID for environment!\n") % getUserUID());
+		WARNING_MSG(fmt::format("invalid UID({}) <= 0, please check UID for environment!\n", getUserUID()));
 	}
 
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, g_componentID);
@@ -172,9 +175,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		return -1;
 	}
 	
-	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
+	INFO_MSG(fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType)));
 #if KBE_PLATFORM == PLATFORM_WIN32
-	printf("[INFO]: %s", (boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType)).str().c_str());
+	printf("[INFO]: %s", (fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType))).c_str());
 
 	wchar_t exe_path[MAX_PATH];
 	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
@@ -189,7 +192,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	SAFE_RELEASE(pComponentbridge);
 	app.finalise();
-	INFO_MSG(boost::format("%1%(%2%) has shut down.\n") % COMPONENT_NAME_EX(componentType) % g_componentID);
+	INFO_MSG(fmt::format("{}({}) has shut down.\n", COMPONENT_NAME_EX(componentType), g_componentID));
 	return ret;
 }
 
@@ -296,12 +299,12 @@ kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
 	loadConfig();																										\
-	parseMainCommandArgs(argc, argv);																					\
 	g_componentID = genUUID64();																						\
+	parseMainCommandArgs(argc, argv);																					\
 	return kbeMain(argc, argv);																							\
 }																														\
 int kbeMain
 #endif
 }
 
-#endif // __KBEMAIN__
+#endif // KBE_KBEMAIN_HPP

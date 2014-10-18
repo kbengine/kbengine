@@ -64,8 +64,6 @@ mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
 pBlowfishFilter_(NULL),
-time_(),
-timers_(),
 threadPool_(),
 entryScript_(),
 state_(C_STATE_INIT)
@@ -111,7 +109,7 @@ int ClientApp::unregisterPyObjectToScript(const char* attrName)
 //-------------------------------------------------------------------------------------	
 bool ClientApp::initializeBegin()
 {
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
@@ -135,6 +133,13 @@ bool ClientApp::initializeEnd()
 	{
 		SCRIPT_ERROR_CHECK();
 		return false;
+	}
+
+	if(g_kbeConfig.useLastAccountName())
+	{
+		EventData_LastAccountInfo eventdata;
+		eventdata.name = g_kbeConfig.accountName();
+		eventHandler_.fire(&eventdata);
 	}
 
 	return true;
@@ -179,6 +184,11 @@ bool ClientApp::installEntityDef()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,			__py_fireEvent,									METH_VARARGS,	0)
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,				__py_getPlayer,									METH_VARARGS,	0)
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getSpaceData,		__py_GetSpaceData,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	callback,			__py_callback,									METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	cancelCallback,		__py_cancelCallback,							METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,								METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	disconnect,			__py_disconnect,								METH_VARARGS,	0)
 	return true;
 }
 
@@ -257,7 +267,7 @@ bool ClientApp::uninstallPyModules()
 void ClientApp::finalise(void)
 {
 	if(pServerChannel_ && pServerChannel_->endpoint())
-		getNetworkInterface().deregisterChannel(pServerChannel_);
+		networkInterface().deregisterChannel(pServerChannel_);
 
 	SAFE_RELEASE(pTCPPacketReceiver_);
 
@@ -290,20 +300,26 @@ void ClientApp::handleTimeout(TimerHandle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
+void ClientApp::onServerClosed()
+{
+	ClientObjectBase::onServerClosed();
+	state_ = C_STATE_INIT;
+}
+
+//-------------------------------------------------------------------------------------
 void ClientApp::handleGameTick()
 {
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	handleTimers();
 	
 	if(lastAddr.ip != 0)
 	{
-		getNetworkInterface().deregisterChannel(lastAddr);
-		getNetworkInterface().registerChannel(pServerChannel_);
+		networkInterface().deregisterChannel(lastAddr);
+		networkInterface().registerChannel(pServerChannel_);
 		lastAddr.ip = 0;
 	}
 
-	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	tickSend();
 
 	switch(state_)
@@ -334,8 +350,8 @@ void ClientApp::handleGameTick()
 				if(pServerChannel_->endpoint())
 				{
 					lastAddr = pServerChannel_->endpoint()->addr();
-					getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
-					exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+					networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+					exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 				}
 
 				bool ret = initBaseappChannel() != NULL;
@@ -343,21 +359,22 @@ void ClientApp::handleGameTick()
 				{
 					if(!exist)
 					{
-						getNetworkInterface().registerChannel(pServerChannel_);
-						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+						networkInterface().registerChannel(pServerChannel_);
+						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 					}
 					else
 					{
 						pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 					}
 
-					getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+					networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 					
 					// 先握手然后等helloCB之后再进行登录
 					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString();
-					
+					(*pBundle) << KBEVersion::scriptVersionString();
+
 					if(Mercury::g_channelExternalEncryptType == 1)
 					{
 						pBlowfishFilter_ = new Mercury::BlowfishFilter();
@@ -392,12 +409,6 @@ void ClientApp::handleGameTick()
 			KBE_ASSERT(false);
 			break;
 	};
-}
-
-//-------------------------------------------------------------------------------------
-void ClientApp::handleTimers()
-{
-	timers().process(g_kbetime);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -520,7 +531,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------	
 void ClientApp::shutDown()
 {
-	INFO_MSG( "ClientApp::shutDown: shutting down\n" );
+	INFO_MSG("ClientApp::shutDown: shutting down\n");
 	mainDispatcher_.breakProcessing();
 }
 
@@ -532,8 +543,8 @@ void ClientApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG(boost::format("ClientApp::onChannelTimeOut: "
-		"Channel %1% timed out.\n") % pChannel->c_str());
+	INFO_MSG(fmt::format("ClientApp::onChannelTimeOut: "
+		"Channel {} timed out.\n", pChannel->c_str()));
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
@@ -553,8 +564,8 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	if(pServerChannel_->endpoint())
 	{
 		lastAddr = pServerChannel_->endpoint()->addr();
-		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
-		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+		networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+		exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 	}
 
 	bool ret = initLoginappChannel(accountName, passwd, ip, port) != NULL;
@@ -562,20 +573,21 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	{
 		if(!exist)
 		{
-			getNetworkInterface().registerChannel(pServerChannel_);
-			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+			networkInterface().registerChannel(pServerChannel_);
+			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 		}
 		else
 		{
 			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 		}
 
-		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
 		// 先握手然后等helloCB之后再进行登录
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(LoginappInterface::hello);
 		(*pBundle) << KBEVersion::versionString();
+		(*pBundle) << KBEVersion::scriptVersionString();
 
 		if(Mercury::g_channelExternalEncryptType == 1)
 		{
@@ -597,6 +609,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 //-------------------------------------------------------------------------------------	
 void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
@@ -622,12 +635,45 @@ void ClientApp::onVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onScriptVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onScriptVersionNotMatch(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
 	Config::getSingleton().writeAccountName(name_.c_str());
 
 	state_ = C_STATE_LOGIN_GATEWAY_CHANNEL;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onLoginFailed(pChannel, s);
+	canReset_ = true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
+	canReset_ = true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	ClientObjectBase::onReLoginGatewayFailed(pChannel, failedcode);
+	canReset_ = true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	

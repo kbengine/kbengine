@@ -1,6 +1,8 @@
 import unittest
 from ctypes import *
 
+from ctypes.test import need_symbol
+
 formats = "bBhHiIlLqQfd"
 
 formats = c_byte, c_ubyte, c_short, c_ushort, c_int, c_uint, \
@@ -84,8 +86,8 @@ class ArrayTestCase(unittest.TestCase):
         self.assertEqual(values, [1, 2, 3, 4, 5])
 
     def test_classcache(self):
-        self.assertTrue(not ARRAY(c_int, 3) is ARRAY(c_int, 4))
-        self.assertTrue(ARRAY(c_int, 3) is ARRAY(c_int, 3))
+        self.assertIsNot(ARRAY(c_int, 3), ARRAY(c_int, 4))
+        self.assertIs(ARRAY(c_int, 3), ARRAY(c_int, 3))
 
     def test_from_address(self):
         # Failed with 0.9.8, reported by JUrner
@@ -98,20 +100,16 @@ class ArrayTestCase(unittest.TestCase):
         self.assertEqual(sz[1:4:2], b"o")
         self.assertEqual(sz.value, b"foo")
 
-    try:
-        create_unicode_buffer
-    except NameError:
-        pass
-    else:
-        def test_from_addressW(self):
-            p = create_unicode_buffer("foo")
-            sz = (c_wchar * 3).from_address(addressof(p))
-            self.assertEqual(sz[:], "foo")
-            self.assertEqual(sz[::], "foo")
-            self.assertEqual(sz[::-1], "oof")
-            self.assertEqual(sz[::3], "f")
-            self.assertEqual(sz[1:4:2], "o")
-            self.assertEqual(sz.value, "foo")
+    @need_symbol('create_unicode_buffer')
+    def test_from_addressW(self):
+        p = create_unicode_buffer("foo")
+        sz = (c_wchar * 3).from_address(addressof(p))
+        self.assertEqual(sz[:], "foo")
+        self.assertEqual(sz[::], "foo")
+        self.assertEqual(sz[::-1], "oof")
+        self.assertEqual(sz[::3], "f")
+        self.assertEqual(sz[1:4:2], "o")
+        self.assertEqual(sz.value, "foo")
 
     def test_cache(self):
         # Array types are cached internally in the _ctypes extension,
@@ -125,7 +123,7 @@ class ArrayTestCase(unittest.TestCase):
         # Create a new array type based on it:
         t1 = my_int * 1
         t2 = my_int * 1
-        self.assertTrue(t1 is t2)
+        self.assertIs(t1, t2)
 
     def test_subclass(self):
         class T(Array):

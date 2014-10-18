@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MESSAGE_HANDLER_HPP__
-#define __MESSAGE_HANDLER_HPP__
+#ifndef KBE_MESSAGE_HANDLER_HPP
+#define KBE_MESSAGE_HANDLER_HPP
 
 #include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -27,6 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine{
+
+class KBE_MD5;
+
 namespace Mercury
 {
 class Channel;
@@ -94,7 +97,7 @@ public:
 		return MERCURY_MESSAGE_TYPE_COMPONENT; 
 	}
 
-	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE / 2; }
+	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE; }
 
 	const char* c_str();
 
@@ -134,6 +137,8 @@ public:
 	static std::vector<MessageHandlers*>& messageHandlers();
 
 	const MessageHandlerMap& msgHandlers(){ return msgHandlers_; }
+
+	static std::string getDigestStr();
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;

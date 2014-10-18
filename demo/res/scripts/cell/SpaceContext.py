@@ -15,7 +15,7 @@ class SpaceContext(dict):
 		return {}
 		
 		
-class SpaceCopyContext(SpaceContext):
+class SpaceDuplicateContext(SpaceContext):
 	"""
 	产生space上下文
 	"""
@@ -33,6 +33,5 @@ def createContext(entity, spaceUType):
 	
 	return {
 		"Space" : SpaceContext,
-		"SpaceCopy" : SpaceCopyContext,
-		"SpaceFightCopy" : SpaceCopyContext,
+		"SpaceDuplicate" : SpaceDuplicateContext,
 	}[spaceData["entityType"]].create(entity)

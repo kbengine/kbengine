@@ -140,8 +140,8 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 	int space = pPacket->opsize() - pRetTCPPacket->fillfree();
 	if(space > 0)
 	{
-		WARNING_MSG(boost::format("HTML5PacketFilter::send: no free space, buffer added:%1%, total=%2%.\n") % 
-			space % pRetTCPPacket->size());
+		WARNING_MSG(fmt::format("HTML5PacketFilter::send: no free space, buffer added:{}, total={}.\n",
+			space, pRetTCPPacket->size()));
 
 		pRetTCPPacket->data_resize(pRetTCPPacket->size() + space);
 	}
@@ -188,8 +188,8 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 						(*pPacket) >> basicSize_;
 						if(basicSize_ != BINARY_FRAME)
 						{
-							ERROR_MSG(boost::format("HTML5PacketFilter::recv: frame_opcode(%1%) != %2%, addr=%3%\n") % 
-								basicSize_ % BINARY_FRAME % pChannel->c_str());
+							ERROR_MSG(fmt::format("HTML5PacketFilter::recv: frame_opcode({}) != {}, addr={}\n", 
+								basicSize_, BINARY_FRAME, pChannel->c_str()));
 
 							this->pChannel_->condemn();
 							return REASON_HTML5_ERROR;
@@ -214,8 +214,8 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					if(basicSize_ > 127)
 					{
 						this->pChannel_->condemn();
-						ERROR_MSG(boost::format("HTML5PacketReader::processMessages: basicSize(%1%) is error! addr=%2%!\n") % 
-							basicSize_ % pChannel_->c_str());
+						ERROR_MSG(fmt::format("HTML5PacketReader::processMessages: basicSize({}) is error! addr={}!\n",
+							basicSize_, pChannel_->c_str()));
 						return REASON_HTML5_ERROR;
 					}
 

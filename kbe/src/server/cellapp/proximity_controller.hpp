@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_PROXIMITYCONTROLLER_HPP__
-#define __KBE_PROXIMITYCONTROLLER_HPP__
+#ifndef KBE_PROXIMITYCONTROLLER_HPP
+#define KBE_PROXIMITYCONTROLLER_HPP
 
 #include "controller.hpp"	
 
@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class TrapTrigger;
+class CoordinateNode;
 
 /*
 	π‹¿Ìtrap°£
@@ -35,15 +36,21 @@ class ProximityController : public Controller
 {
 public:
 	ProximityController(Entity* pEntity, float xz, float y, int32 userarg, uint32 id = 0);
+	ProximityController(Entity* pEntity);
 	~ProximityController();
 	
-	bool reinstall(RangeNode* pRangeNode);
+	bool reinstall(CoordinateNode* pCoordinateNode);
 
 	void onEnter(Entity* pEntity, float xz, float y);
 	void onLeave(Entity* pEntity, float xz, float y);
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
 protected:
 	TrapTrigger* pTrapTrigger_;
+	float xz_; 
+	float y_;
 };
 
 }
-#endif // __KBE_PROXIMITYCONTROLLER_HPP__
+#endif // KBE_PROXIMITYCONTROLLER_HPP

@@ -5,6 +5,7 @@ SRCS =				\
 	clientapp		\
 	clientobjectbase	\
 	config			\
+	script_callbacks	\
 	entity			\
 	entity_aspect		\
 	event			\

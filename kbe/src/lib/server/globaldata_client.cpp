@@ -59,8 +59,8 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 	{
 		if (PyDict_SetItem(pyDict_, pyKey, pyValue) == -1)
 		{
-			ERROR_MSG(boost::format("Map::write: is eror! key=%1%, val=%2%\n") % 
-				PyBytes_AsString(pyKey) % PyBytes_AsString(pyValue));
+			ERROR_MSG(fmt::format("Map::write: is eror! key={}, val={}\n", 
+				PyBytes_AsString(pyKey), PyBytes_AsString(pyValue)));
 		}
 		else
 		{
@@ -69,8 +69,8 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Map::write:unpickle is error. key=%1%, val=%2%\n") %
-			PyBytes_AsString(pyKey) % PyBytes_AsString(pyValue));
+		ERROR_MSG(fmt::format("Map::write:unpickle is error. key={}, val={}\n",
+			PyBytes_AsString(pyKey), PyBytes_AsString(pyValue)));
 
 		PyErr_Print();
 	}
@@ -89,7 +89,7 @@ bool GlobalDataClient::del(PyObject* pyKey)
 	{
 		if (PyDict_GetItem(pyDict_, pyKey) && PyDict_DelItem(pyDict_, pyKey) == -1)
 		{
-			ERROR_MSG(boost::format("Map::del: delete key is failed! key=%1%.\n") % PyBytes_AsString(pyKey));
+			ERROR_MSG(fmt::format("Map::del: delete key is failed! key={}.\n", PyBytes_AsString(pyKey)));
 			PyErr_Clear();
 		}
 		else
@@ -100,7 +100,7 @@ bool GlobalDataClient::del(PyObject* pyKey)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("Map::del: delete key is error! key=%1%.\n") % PyBytes_AsString(pyKey));
+		ERROR_MSG(fmt::format("Map::del: delete key is error! key={}.\n", PyBytes_AsString(pyKey)));
 		PyErr_Print();
 	}
 

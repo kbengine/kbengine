@@ -1,5 +1,7 @@
 import unittest
+import operator
 import sys
+import pickle
 
 from test import support
 
@@ -61,7 +63,25 @@ class N:
     def __iter__(self):
         return self
 
-class EnumerateTestCase(unittest.TestCase):
+class PickleTest:
+    # Helper to check picklability
+    def check_pickle(self, itorg, seq):
+        d = pickle.dumps(itorg)
+        it = pickle.loads(d)
+        self.assertEqual(type(itorg), type(it))
+        self.assertEqual(list(it), seq)
+
+        it = pickle.loads(d)
+        try:
+            next(it)
+        except StopIteration:
+            self.assertFalse(seq[1:])
+            return
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        self.assertEqual(list(it), seq[1:])
+
+class EnumerateTestCase(unittest.TestCase, PickleTest):
 
     enum = enumerate
     seq, res = 'abc', [(0,'a'), (1,'b'), (2,'c')]
@@ -72,6 +92,9 @@ class EnumerateTestCase(unittest.TestCase):
         self.assertEqual(iter(e), e)
         self.assertEqual(list(self.enum(self.seq)), self.res)
         self.enum.__doc__
+
+    def test_pickle(self):
+        self.check_pickle(self.enum(self.seq), self.res)
 
     def test_getitemseqn(self):
         self.assertEqual(list(self.enum(G(self.seq))), self.res)
@@ -126,7 +149,7 @@ class TestBig(EnumerateTestCase):
     seq = range(10,20000,2)
     res = list(zip(range(20000), seq))
 
-class TestReversed(unittest.TestCase):
+class TestReversed(unittest.TestCase, PickleTest):
 
     def test_simple(self):
         class A:
@@ -146,15 +169,12 @@ class TestReversed(unittest.TestCase):
         x = range(1)
         self.assertEqual(type(reversed(x)), type(iter(x)))
 
-    @support.cpython_only
     def test_len(self):
-        # This is an implementation detail, not an interface requirement
-        from test.test_iterlen import len
         for s in ('hello', tuple('hello'), list('hello'), range(5)):
-            self.assertEqual(len(reversed(s)), len(s))
+            self.assertEqual(operator.length_hint(reversed(s)), len(s))
             r = reversed(s)
             list(r)
-            self.assertEqual(len(r), 0)
+            self.assertEqual(operator.length_hint(r), 0)
         class SeqWithWeirdLen:
             called = False
             def __len__(self):
@@ -165,7 +185,7 @@ class TestReversed(unittest.TestCase):
             def __getitem__(self, index):
                 return index
         r = reversed(SeqWithWeirdLen())
-        self.assertRaises(ZeroDivisionError, len, r)
+        self.assertRaises(ZeroDivisionError, operator.length_hint, r)
 
 
     def test_gc(self):
@@ -182,11 +202,10 @@ class TestReversed(unittest.TestCase):
         self.assertRaises(TypeError, reversed)
         self.assertRaises(TypeError, reversed, [], 'extra')
 
+    @unittest.skipUnless(hasattr(sys, 'getrefcount'), 'test needs sys.getrefcount()')
     def test_bug1229429(self):
         # this bug was never in reversed, it was in
         # PyObject_CallMethod, and reversed_new calls that sometimes.
-        if not hasattr(sys, "getrefcount"):
-            return
         def f():
             pass
         r = f.__reversed__ = object()
@@ -211,6 +230,10 @@ class TestReversed(unittest.TestCase):
             def __len__(self): return 2
         ngi = NoGetItem()
         self.assertRaises(TypeError, reversed, ngi)
+
+    def test_pickle(self):
+        for data in 'abc', range(5), tuple(enumerate('abc')), range(1,17,5):
+            self.check_pickle(reversed(data), list(data)[::-1])
 
 
 class EnumerateStartTestCase(EnumerateTestCase):

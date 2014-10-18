@@ -2,10 +2,10 @@ r"""Test correct treatment of various string literals by the parser.
 
 There are four types of string literals:
 
-    'abc'   -- normal str
-    r'abc'  -- raw str
-    b'xyz'  -- normal bytes
-    br'xyz' -- raw bytes
+    'abc'             -- normal str
+    r'abc'            -- raw str
+    b'xyz'            -- normal bytes
+    br'xyz' | rb'xyz' -- raw bytes
 
 The difference between normal and raw strings is of course that in a
 raw string, \ escapes (while still used to determine the end of the
@@ -133,18 +133,38 @@ class TestLiterals(unittest.TestCase):
 
     def test_eval_bytes_raw(self):
         self.assertEqual(eval(""" br'x' """), b'x')
+        self.assertEqual(eval(""" rb'x' """), b'x')
         self.assertEqual(eval(r""" br'\x01' """), b'\\' + b'x01')
+        self.assertEqual(eval(r""" rb'\x01' """), b'\\' + b'x01')
         self.assertEqual(eval(""" br'\x01' """), byte(1))
+        self.assertEqual(eval(""" rb'\x01' """), byte(1))
         self.assertEqual(eval(r""" br'\x81' """), b"\\" + b"x81")
+        self.assertEqual(eval(r""" rb'\x81' """), b"\\" + b"x81")
         self.assertRaises(SyntaxError, eval, """ br'\x81' """)
+        self.assertRaises(SyntaxError, eval, """ rb'\x81' """)
         self.assertEqual(eval(r""" br'\u1881' """), b"\\" + b"u1881")
+        self.assertEqual(eval(r""" rb'\u1881' """), b"\\" + b"u1881")
         self.assertRaises(SyntaxError, eval, """ br'\u1881' """)
+        self.assertRaises(SyntaxError, eval, """ rb'\u1881' """)
         self.assertEqual(eval(r""" br'\U0001d120' """), b"\\" + b"U0001d120")
+        self.assertEqual(eval(r""" rb'\U0001d120' """), b"\\" + b"U0001d120")
         self.assertRaises(SyntaxError, eval, """ br'\U0001d120' """)
-        self.assertRaises(SyntaxError, eval, """ rb'' """)
+        self.assertRaises(SyntaxError, eval, """ rb'\U0001d120' """)
         self.assertRaises(SyntaxError, eval, """ bb'' """)
         self.assertRaises(SyntaxError, eval, """ rr'' """)
         self.assertRaises(SyntaxError, eval, """ brr'' """)
+        self.assertRaises(SyntaxError, eval, """ bbr'' """)
+        self.assertRaises(SyntaxError, eval, """ rrb'' """)
+        self.assertRaises(SyntaxError, eval, """ rbb'' """)
+
+    def test_eval_str_u(self):
+        self.assertEqual(eval(""" u'x' """), 'x')
+        self.assertEqual(eval(""" U'\u00e4' """), 'ä')
+        self.assertEqual(eval(""" u'\N{LATIN SMALL LETTER A WITH DIAERESIS}' """), 'ä')
+        self.assertRaises(SyntaxError, eval, """ ur'' """)
+        self.assertRaises(SyntaxError, eval, """ ru'' """)
+        self.assertRaises(SyntaxError, eval, """ bu'' """)
+        self.assertRaises(SyntaxError, eval, """ ub'' """)
 
     def check_encoding(self, encoding, extra=""):
         modname = "xx_" + encoding.replace("-", "_")
@@ -167,7 +187,7 @@ class TestLiterals(unittest.TestCase):
         self.assertRaises(SyntaxError, self.check_encoding, "utf-8", extra)
 
     def test_file_utf8(self):
-        self.check_encoding("utf8")
+        self.check_encoding("utf-8")
 
     def test_file_iso_8859_1(self):
         self.check_encoding("iso-8859-1")

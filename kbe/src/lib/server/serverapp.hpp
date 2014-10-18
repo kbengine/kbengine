@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __SERVER_APP_H__
-#define __SERVER_APP_H__
+#ifndef KBE_SERVER_APP_HPP
+#define KBE_SERVER_APP_HPP
+
 // common include
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -32,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/watcher.hpp"
 #include "helper/profile.hpp"
 #include "helper/profiler.hpp"
+#include "helper/profile_handler.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "server/common.hpp"
 #include "server/components.hpp"
@@ -108,8 +110,8 @@ public:
 
 	thread::ThreadPool& threadPool(){ return threadPool_; }
 
-	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
+	Mercury::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Mercury::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
@@ -142,7 +144,7 @@ public:
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 	/** 网络接口
 		某个app向本app告知处于活动状态。
@@ -170,17 +172,31 @@ public:
 	virtual void queryLoad(Mercury::Channel* pChannel);
 
 	/** 网络接口
+		请求关闭服务器
+	*/
+	void reqKillServer(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		客户端与服务端第一次建立交互, 客户端发送自己的版本号与通讯密钥等信息
 		给服务端， 服务端返回是否握手成功
 	*/
 	virtual void hello(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onHello(Mercury::Channel* pChannel, 
 		const std::string& verInfo, 
+		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
 	// 引擎版本不匹配
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
 
+	// 引擎脚本层版本不匹配
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		console请求开始profile
+	*/
+	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
@@ -203,4 +219,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_SERVER_APP_HPP

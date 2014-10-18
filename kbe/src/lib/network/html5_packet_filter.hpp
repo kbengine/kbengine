@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __HTML5_PACKET_FILTER_HPP__
-#define __HTML5_PACKET_FILTER_HPP__
+#ifndef KBE_HTML5_PACKET_FILTER_HPP
+#define KBE_HTML5_PACKET_FILTER_HPP
 
 #include "network/packet_filter.hpp"
 
@@ -81,4 +81,4 @@ protected:
 }
 }
 
-#endif // __HTML5_PACKET_FILTER_HPP__
+#endif // KBE_HTML5_PACKET_FILTER_HPP

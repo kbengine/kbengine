@@ -13,8 +13,8 @@ SQLite for internal data storage.  It's also possible to prototype an
 application using SQLite and then port the code to a larger database such as
 PostgreSQL or Oracle.
 
-sqlite3 was written by Gerhard Häring and provides a SQL interface compliant
-with the DB-API 2.0 specification described by :pep:`249`.
+The sqlite3 module was written by Gerhard Häring.  It provides a SQL interface
+compliant with the DB-API 2.0 specification described by :pep:`249`.
 
 To use the module, you must first create a :class:`Connection` object that
 represents the database.  Here the data will be stored in the
@@ -31,23 +31,29 @@ and call its :meth:`~Cursor.execute` method to perform SQL commands::
    c = conn.cursor()
 
    # Create table
-   c.execute('''create table stocks
-   (date text, trans text, symbol text,
-    qty real, price real)''')
+   c.execute('''CREATE TABLE stocks
+                (date text, trans text, symbol text, qty real, price real)''')
 
    # Insert a row of data
-   c.execute("""insert into stocks
-             values ('2006-01-05','BUY','RHAT',100,35.14)""")
+   c.execute("INSERT INTO stocks VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
 
    # Save (commit) the changes
    conn.commit()
 
-   # We can also close the cursor if we are done with it
-   c.close()
+   # We can also close the connection if we are done with it.
+   # Just be sure any changes have been committed or they will be lost.
+   conn.close()
+
+The data you've saved is persistent and is available in subsequent sessions::
+
+   import sqlite3
+   conn = sqlite3.connect('example.db')
+   c = conn.cursor()
 
 Usually your SQL operations will need to use values from Python variables.  You
 shouldn't assemble your query using Python's string operations because doing so
-is insecure; it makes your program vulnerable to an SQL injection attack.
+is insecure; it makes your program vulnerable to an SQL injection attack
+(see http://xkcd.com/327/ for humorous example of what can go wrong).
 
 Instead, use the DB-API's parameter substitution.  Put ``?`` as a placeholder
 wherever you want to use a value, and then provide a tuple of values as the
@@ -56,19 +62,20 @@ modules may use a different placeholder, such as ``%s`` or ``:1``.) For
 example::
 
    # Never do this -- insecure!
-   symbol = 'IBM'
-   c.execute("select * from stocks where symbol = '%s'" % symbol)
+   symbol = 'RHAT'
+   c.execute("SELECT * FROM stocks WHERE symbol = '%s'" % symbol)
 
    # Do this instead
-   t = ('IBM',)
-   c.execute('select * from stocks where symbol=?', t)
+   t = ('RHAT',)
+   c.execute('SELECT * FROM stocks WHERE symbol=?', t)
+   print(c.fetchone())
 
-   # Larger example
-   for t in [('2006-03-28', 'BUY', 'IBM', 1000, 45.00),
-             ('2006-04-05', 'BUY', 'MSFT', 1000, 72.00),
-             ('2006-04-06', 'SELL', 'IBM', 500, 53.00),
-            ]:
-       c.execute('insert into stocks values (?,?,?,?,?)', t)
+   # Larger example that inserts many records at a time
+   purchases = [('2006-03-28', 'BUY', 'IBM', 1000, 45.00),
+                ('2006-04-05', 'BUY', 'MSFT', 1000, 72.00),
+                ('2006-04-06', 'SELL', 'IBM', 500, 53.00),
+               ]
+   c.executemany('INSERT INTO stocks VALUES (?,?,?,?,?)', purchases)
 
 To retrieve data after executing a SELECT statement, you can either treat the
 cursor as an :term:`iterator`, call the cursor's :meth:`~Cursor.fetchone` method to
@@ -77,27 +84,27 @@ matching rows.
 
 This example uses the iterator form::
 
-   >>> c = conn.cursor()
-   >>> c.execute('select * from stocks order by price')
-   >>> for row in c:
-   ...     print(row)
-   ...
+   >>> for row in c.execute('SELECT * FROM stocks ORDER BY price'):
+           print(row)
+
    ('2006-01-05', 'BUY', 'RHAT', 100, 35.14)
    ('2006-03-28', 'BUY', 'IBM', 1000, 45.0)
    ('2006-04-06', 'SELL', 'IBM', 500, 53.0)
-   ('2006-04-05', 'BUY', 'MSOFT', 1000, 72.0)
-   >>>
+   ('2006-04-05', 'BUY', 'MSFT', 1000, 72.0)
 
 
 .. seealso::
 
-   http://code.google.com/p/pysqlite/
+   https://github.com/ghaering/pysqlite
       The pysqlite web page -- sqlite3 is developed externally under the name
       "pysqlite".
 
    http://www.sqlite.org
       The SQLite web page; the documentation describes the syntax and the
       available data types for the supported SQL dialect.
+
+   http://www.w3schools.com/sql/
+      Tutorial, reference and examples for learning SQL syntax.
 
    :pep:`249` - Database API Specification 2.0
       PEP written by Marc-André Lemburg.
@@ -159,7 +166,7 @@ Module functions and constants
    first blank for the column name: the column name would simply be "x".
 
 
-.. function:: connect(database[, timeout, detect_types, isolation_level, check_same_thread, factory, cached_statements])
+.. function:: connect(database[, timeout, detect_types, isolation_level, check_same_thread, factory, cached_statements, uri])
 
    Opens a connection to the SQLite database file *database*. You can use
    ``":memory:"`` to open a database connection to a database that resides in RAM
@@ -174,7 +181,7 @@ Module functions and constants
    For the *isolation_level* parameter, please see the
    :attr:`Connection.isolation_level` property of :class:`Connection` objects.
 
-   SQLite natively supports only the types TEXT, INTEGER, FLOAT, BLOB and NULL. If
+   SQLite natively supports only the types TEXT, INTEGER, REAL, BLOB and NULL. If
    you want to use other types you must add support for them yourself. The
    *detect_types* parameter and the using custom **converters** registered with the
    module-level :func:`register_converter` function allow you to easily do that.
@@ -194,6 +201,18 @@ Module functions and constants
    overhead. If you want to explicitly set the number of statements that are cached
    for the connection, you can set the *cached_statements* parameter. The currently
    implemented default is to cache 100 statements.
+
+   If *uri* is true, *database* is interpreted as a URI. This allows you
+   to specify options. For example, to open a database in read-only mode
+   you can use::
+
+       db = sqlite3.connect('file:path/to/database?mode=ro', uri=True)
+
+   More information about this feature, including a list of recognized options, can
+   be found in the `SQLite URI documentation <http://www.sqlite.org/uri.html>`_.
+
+   .. versionchanged:: 3.4
+      Added the *uri* parameter.
 
 
 .. function:: register_converter(typename, callable)
@@ -229,10 +248,10 @@ Module functions and constants
 .. function:: enable_callback_tracebacks(flag)
 
    By default you will not get any tracebacks in user-defined functions,
-   aggregates, converters, authorizer callbacks etc. If you want to debug them, you
-   can call this function with *flag* as True. Afterwards, you will get tracebacks
-   from callbacks on ``sys.stderr``. Use :const:`False` to disable the feature
-   again.
+   aggregates, converters, authorizer callbacks etc. If you want to debug them,
+   you can call this function with *flag* set to ``True``. Afterwards, you will
+   get tracebacks from callbacks on ``sys.stderr``. Use :const:`False` to
+   disable the feature again.
 
 
 .. _sqlite3-connection-objects:
@@ -391,6 +410,22 @@ Connection Objects
       method with :const:`None` for *handler*.
 
 
+   .. method:: set_trace_callback(trace_callback)
+
+      Registers *trace_callback* to be called for each SQL statement that is
+      actually executed by the SQLite backend.
+
+      The only argument passed to the callback is the statement (as string) that
+      is being executed. The return value of the callback is ignored. Note that
+      the backend does not only run statements passed to the :meth:`Cursor.execute`
+      methods.  Other sources include the transaction management of the Python
+      module and the execution of triggers defined in the current database.
+
+      Passing :const:`None` as *trace_callback* will disable the trace callback.
+
+      .. versionadded:: 3.3
+
+
    .. method:: enable_load_extension(enabled)
 
       This routine allows/disallows the SQLite engine to load SQLite extensions
@@ -489,7 +524,7 @@ Cursor Objects
 
    .. method:: execute(sql, [parameters])
 
-      Executes an SQL statement. The SQL statement may be parametrized (i. e.
+      Executes an SQL statement. The SQL statement may be parameterized (i. e.
       placeholders instead of SQL literals). The :mod:`sqlite3` module supports two
       kinds of placeholders: question marks (qmark style) and named placeholders
       (named style).
@@ -611,7 +646,7 @@ Row Objects
 
    .. method:: keys
 
-      This method returns a tuple of column names. Immediately after a query,
+      This method returns a list of column names. Immediately after a query,
       it is the first member of each tuple in :attr:`Cursor.description`.
 
 Let's assume we initialize a table as in the example given above::
@@ -686,19 +721,20 @@ The following Python types can thus be sent to SQLite without any problem:
 
 This is how SQLite types are converted to Python types by default:
 
-+-------------+---------------------------------------------+
-| SQLite type | Python type                                 |
-+=============+=============================================+
-| ``NULL``    | :const:`None`                               |
-+-------------+---------------------------------------------+
-| ``INTEGER`` | :class:`int`                                |
-+-------------+---------------------------------------------+
-| ``REAL``    | :class:`float`                              |
-+-------------+---------------------------------------------+
-| ``TEXT``    | depends on text_factory, str by default     |
-+-------------+---------------------------------------------+
-| ``BLOB``    | :class:`bytes`                              |
-+-------------+---------------------------------------------+
++-------------+----------------------------------------------+
+| SQLite type | Python type                                  |
++=============+==============================================+
+| ``NULL``    | :const:`None`                                |
++-------------+----------------------------------------------+
+| ``INTEGER`` | :class:`int`                                 |
++-------------+----------------------------------------------+
+| ``REAL``    | :class:`float`                               |
++-------------+----------------------------------------------+
+| ``TEXT``    | depends on :attr:`~Connection.text_factory`, |
+|             | :class:`str` by default                      |
++-------------+----------------------------------------------+
+| ``BLOB``    | :class:`bytes`                               |
++-------------+----------------------------------------------+
 
 The type system of the :mod:`sqlite3` module is extensible in two ways: you can
 store additional Python types in a SQLite database via object adaptation, and
@@ -713,9 +749,6 @@ As described before, SQLite supports only a limited set of types natively. To
 use other Python types with SQLite, you must **adapt** them to one of the
 sqlite3 module's supported types for SQLite: one of NoneType, int, float,
 str, bytes.
-
-The :mod:`sqlite3` module uses Python object adaptation, as described in
-:pep:`246` for this.  The protocol to use is :class:`PrepareProtocol`.
 
 There are two ways to enable the :mod:`sqlite3` module to adapt a custom Python
 type to one of the supported ones.
@@ -772,8 +805,8 @@ and constructs a :class:`Point` object from it.
 
 .. note::
 
-   Converter functions **always** get called with a string, no matter under which
-   data type you sent the value to SQLite.
+   Converter functions **always** get called with a :class:`bytes` object, no
+   matter under which data type you sent the value to SQLite.
 
 ::
 

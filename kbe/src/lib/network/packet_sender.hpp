@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORKPACKET_SENDER__
-#define __NETWORKPACKET_SENDER__
+#ifndef KBE_NETWORKPACKET_SENDER_HPP
+#define KBE_NETWORKPACKET_SENDER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -57,4 +57,4 @@ protected:
 #ifdef CODE_INLINE
 #include "packet_sender.ipp"
 #endif
-#endif // __NETWORKPACKET_RECEIVER__
+#endif // KBE_NETWORKPACKET_SENDER_HPP

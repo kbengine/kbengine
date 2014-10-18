@@ -23,7 +23,9 @@ def raise1():
 def raise2():
     raise SystemError
 
-class TestCase(unittest.TestCase):
+
+class GeneralTest(unittest.TestCase):
+
     def setUp(self):
         self.save_stdout = sys.stdout
         self.save_stderr = sys.stderr
@@ -74,6 +76,25 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ZeroDivisionError, atexit._run_exitfuncs)
         self.assertIn("ZeroDivisionError", self.stream.getvalue())
 
+    def test_print_tracebacks(self):
+        # Issue #18776: the tracebacks should be printed when errors occur.
+        def f():
+            1/0  # one
+        def g():
+            1/0  # two
+        def h():
+            1/0  # three
+        atexit.register(f)
+        atexit.register(g)
+        atexit.register(h)
+
+        self.assertRaises(ZeroDivisionError, atexit._run_exitfuncs)
+        stderr = self.stream.getvalue()
+        self.assertEqual(stderr.count("ZeroDivisionError"), 3)
+        self.assertIn("# one", stderr)
+        self.assertIn("# two", stderr)
+        self.assertIn("# three", stderr)
+
     def test_stress(self):
         a = [0]
         def inc():
@@ -122,8 +143,43 @@ class TestCase(unittest.TestCase):
         self.assertEqual(l, [5])
 
 
+class SubinterpreterTest(unittest.TestCase):
+
+    def test_callbacks_leak(self):
+        # This test shows a leak in refleak mode if atexit doesn't
+        # take care to free callbacks in its per-subinterpreter module
+        # state.
+        n = atexit._ncallbacks()
+        code = r"""if 1:
+            import atexit
+            def f():
+                pass
+            atexit.register(f)
+            del atexit
+            """
+        ret = support.run_in_subinterp(code)
+        self.assertEqual(ret, 0)
+        self.assertEqual(atexit._ncallbacks(), n)
+
+    def test_callbacks_leak_refcycle(self):
+        # Similar to the above, but with a refcycle through the atexit
+        # module.
+        n = atexit._ncallbacks()
+        code = r"""if 1:
+            import atexit
+            def f():
+                pass
+            atexit.register(f)
+            atexit.__atexit = atexit
+            """
+        ret = support.run_in_subinterp(code)
+        self.assertEqual(ret, 0)
+        self.assertEqual(atexit._ncallbacks(), n)
+
+
 def test_main():
-    support.run_unittest(TestCase)
+    support.run_unittest(__name__)
+
 
 if __name__ == "__main__":
     test_main()

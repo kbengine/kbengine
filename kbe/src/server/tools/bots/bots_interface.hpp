@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __BOTS_INTERFACE_H__
+	#undef KBE_BOTS_INTERFACE_HPP
 #endif
 
 
-#ifndef __BOTS_INTERFACE_H__
-#define __BOTS_INTERFACE_H__
+#ifndef KBE_BOTS_INTERFACE_HPP
+#define KBE_BOTS_INTERFACE_HPP
 
 // common include	
 #if defined(BOTS)
@@ -64,6 +64,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BotsInterface)
 
 	// 添加bots。
 	BOTS_MESSAGE_DECLARE_STREAM(addBots,								MERCURY_VARIABLE_MESSAGE)
+
+	// 请求查询watcher数据
+	BOTS_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
+
+	// 开始profile
+	BOTS_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	BOTS_MESSAGE_DECLARE_STREAM(reqKillServer,							MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

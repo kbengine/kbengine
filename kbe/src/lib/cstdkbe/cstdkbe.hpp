@@ -17,13 +17,15 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __CSTDKBE__
-#define __CSTDKBE__
+#ifndef KBE_CSTDKBE_HPP
+#define KBE_CSTDKBE_HPP
 #include "cstdkbe/platform.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/kbeversion.hpp"
 #include "cstdkbe/kbemalloc.hpp"
 #include "cstdkbe/stringconv.hpp"
+#include "cstdkbe/format.hpp"
+
 namespace KBEngine{
 /** 安全的释放一个指针内存 */
 #define SAFE_RELEASE(i)										\
@@ -101,14 +103,12 @@ enum COMPONENT_TYPE
 	BASEAPP_TYPE			= 6,
 	CLIENT_TYPE				= 7,
 	MACHINE_TYPE			= 8,
-	CENTER_TYPE				= 9,
-	CONSOLE_TYPE			= 10,
-	MESSAGELOG_TYPE			= 11,
-	RESOURCEMGR_TYPE		= 12,
-	BOTS_TYPE				= 13,
-	WATCHER_TYPE			= 14,
-	BILLING_TYPE			= 15,
-	COMPONENT_END_TYPE		= 16,
+	CONSOLE_TYPE			= 9,
+	MESSAGELOG_TYPE			= 10,
+	BOTS_TYPE				= 11,
+	WATCHER_TYPE			= 12,
+	BILLING_TYPE			= 13,
+	COMPONENT_END_TYPE		= 14,
 };
 
 /** 当前服务器组件类别和ID */
@@ -126,10 +126,8 @@ const char COMPONENT_NAME[][255] = {
 	"baseapp",
 	"client",
 	"kbmachine",
-	"kbcenter",
 	"console",
 	"messagelog",
-	"resourcemgr",
 	"bots",
 	"watcher",
 	"billing",
@@ -145,10 +143,8 @@ const char COMPONENT_NAME_1[][255] = {
 	"baseapp    ",
 	"client     ",
 	"kbmachine  ",
-	"kbcenter   ",
 	"console    ",
 	"messagelog ",
-	"resourcemgr",
 	"bots",
 	"watcher",
 	"billing",
@@ -187,31 +183,52 @@ inline COMPONENT_TYPE ComponentName2ComponentType(const char* name)
 
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, MESSAGELOG_TYPE, RESOURCEMGR_TYPE, 
-						CENTER_TYPE, WATCHER_TYPE, BILLING_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, MESSAGELOG_TYPE, 
+						WATCHER_TYPE, BILLING_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的后端组件列表
 const COMPONENT_TYPE ALL_SERVER_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, MESSAGELOG_TYPE, RESOURCEMGR_TYPE, 
-						CENTER_TYPE, WATCHER_TYPE, BILLING_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, MESSAGELOG_TYPE, 
+						WATCHER_TYPE, BILLING_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的后端组件列表
 const COMPONENT_TYPE ALL_GAME_SERVER_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
 						BASEAPP_TYPE, LOGINAPP_TYPE, BILLING_TYPE, UNKNOWN_COMPONENT_TYPE};
 
+// 所有的辅助性组件
+const COMPONENT_TYPE ALL_HELPER_COMPONENT_TYPE[] = {MESSAGELOG_TYPE, UNKNOWN_COMPONENT_TYPE};
+
 // 返回是否是一个有效的组件
 #define VALID_COMPONENT(C_TYPE) ((C_TYPE) > 0 && (C_TYPE) < COMPONENT_END_TYPE)
 
 
-// 前端应用的类别
+// 前端应用的类别, All client type
 enum COMPONENT_CLIENT_TYPE
 {
 	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
-	CLIENT_TYPE_MOBILE				= 1,	// 手机类
-	CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
-	CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
-	CLIENT_TYPE_BOTS				= 4,	// bots
-	CLIENT_TYPE_END					= 5		// end
+
+	// 移动类，手机，平板电脑
+	// Mobile, Phone, Pad(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
+	CLIENT_TYPE_MOBILE				= 1,
+
+	// 独立的Windows/Linux/Mac应用程序(包含python脚本，entitydefs解析与检查entitydefs的MD5，原生的)
+	// Windows/Linux/Mac Application program (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
+	CLIENT_TYPE_PC					= 2,	
+
+	// 不包含Python脚本，entitydefs协议可使用网络导入
+	// Web, HTML5, Flash
+	CLIENT_TYPE_BROWSER				= 3,	
+
+	// 包含Python脚本，entitydefs解析与检查entitydefs的MD5，原生的
+	// bots	 (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
+	CLIENT_TYPE_BOTS				= 4,	
+
+	// 轻端类, 可不包含python脚本，entitydefs协议可使用网络导入
+	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
+	CLIENT_TYPE_MINI				= 5,	
+
+	// End
+	CLIENT_TYPE_END					= 6		
 };
 
 /** 定义前端应用的类别名称 */
@@ -221,11 +238,12 @@ const char COMPONENT_CLIENT_NAME[][255] = {
 	"CLIENT_TYPE_PC",
 	"CLIENT_TYPE_BROWSER",
 	"CLIENT_TYPE_BOTS",
+	"CLIENT_TYPE_MINI",
 };
 
 // 所有前端应用的类别
 const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYPE_PC, CLIENT_TYPE_BROWSER, 
-												CLIENT_TYPE_BOTS, UNKNOWN_CLIENT_COMPONENT_TYPE};
+												CLIENT_TYPE_BOTS, CLIENT_TYPE_MINI, UNKNOWN_CLIENT_COMPONENT_TYPE};
 
 typedef int8 CLIENT_CTYPE;
 
@@ -323,4 +341,4 @@ inline bool email_isvalid(const char *address)
 }
 
 }
-#endif // __CSTDKBE__
+#endif // KBE_CSTDKBE_HPP

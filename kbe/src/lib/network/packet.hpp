@@ -8,8 +8,8 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __SOCKETPACKET_H__
-#define __SOCKETPACKET_H__
+#ifndef KBE_SOCKETPACKET_HPP
+#define KBE_SOCKETPACKET_HPP
 	
 // common include
 #include "cstdkbe/memorystream.hpp"
@@ -56,6 +56,14 @@ public:
 		MemoryStream::onReclaimObject();
 		resetPacket();
 	}
+	
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(msgID_) + sizeof(isTCPPacket_) + sizeof(encrypted_) + sizeof(pBundle_)
+		 + sizeof(sentSize);
+
+		return MemoryStream::getPoolObjectBytes() + bytes;
+	}
 
 	Bundle* pBundle()const{ return pBundle_; }
 	void pBundle(Bundle* v){ pBundle_ = v; }
@@ -101,4 +109,5 @@ public:
 typedef SmartPointer<Packet> PacketPtr;
 }
 }
-#endif
+
+#endif // KBE_SOCKETPACKET_HPP

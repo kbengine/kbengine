@@ -5,14 +5,15 @@
 # complains several times about module random having no attribute
 # randrange, and then Python hangs.
 
+import _imp as imp
 import os
-import imp
+import importlib
 import sys
 import time
 import shutil
 import unittest
-from test.support import verbose, import_module, run_unittest, TESTFN
-thread = import_module('_thread')
+from test.support import (
+    verbose, import_module, run_unittest, TESTFN, reap_threads, forget, unlink)
 threading = import_module('threading')
 
 def task(N, done, done_tasks, errors):
@@ -30,7 +31,7 @@ def task(N, done, done_tasks, errors):
     except Exception as e:
         errors.append(e.with_traceback(None))
     finally:
-        done_tasks.append(thread.get_ident())
+        done_tasks.append(threading.get_ident())
         finished = len(done_tasks) == N
         if finished:
             done.set()
@@ -56,29 +57,30 @@ circular_imports_modules = {
 }
 
 class Finder:
-    """A dummy finder to detect concurrent access to its find_module()
+    """A dummy finder to detect concurrent access to its find_spec()
     method."""
 
     def __init__(self):
         self.numcalls = 0
         self.x = 0
-        self.lock = thread.allocate_lock()
+        self.lock = threading.Lock()
 
-    def find_module(self, name, path=None):
-        # Simulate some thread-unsafe behaviour. If calls to find_module()
+    def find_spec(self, name, path=None, target=None):
+        # Simulate some thread-unsafe behaviour. If calls to find_spec()
         # are properly serialized, `x` will end up the same as `numcalls`.
         # Otherwise not.
+        assert imp.lock_held()
         with self.lock:
             self.numcalls += 1
         x = self.x
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.x = x + 1
 
 class FlushingFinder:
     """A dummy finder which flushes sys.path_importer_cache when it gets
     called."""
 
-    def find_module(self, name, path=None):
+    def find_spec(self, name, path=None, target=None):
         sys.path_importer_cache.clear()
 
 
@@ -113,8 +115,10 @@ class ThreadedImportTests(unittest.TestCase):
             done_tasks = []
             done.clear()
             for i in range(N):
-                thread.start_new_thread(task, (N, done, done_tasks, errors,))
-            done.wait(60)
+                t = threading.Thread(target=task,
+                                     args=(N, done, done_tasks, errors,))
+                t.start()
+            self.assertTrue(done.wait(60))
             self.assertFalse(errors)
             if verbose:
                 print("OK.")
@@ -124,7 +128,7 @@ class ThreadedImportTests(unittest.TestCase):
 
     def test_parallel_meta_path(self):
         finder = Finder()
-        sys.meta_path.append(finder)
+        sys.meta_path.insert(0, finder)
         try:
             self.check_parallel_module_init()
             self.assertGreater(finder.numcalls, 0)
@@ -141,13 +145,13 @@ class ThreadedImportTests(unittest.TestCase):
         # dedicated meta_path entry.
         flushing_finder = FlushingFinder()
         def path_hook(path):
-            finder.find_module('')
+            finder.find_spec('')
             raise ImportError
-        sys.path_hooks.append(path_hook)
+        sys.path_hooks.insert(0, path_hook)
         sys.meta_path.append(flushing_finder)
         try:
             # Flush the cache a first time
-            flushing_finder.find_module('')
+            flushing_finder.find_spec('')
             numtests = self.check_parallel_module_init()
             self.assertGreater(finder.numcalls, 0)
             self.assertEqual(finder.x, finder.numcalls)
@@ -185,8 +189,9 @@ class ThreadedImportTests(unittest.TestCase):
             contents = contents % {'delay': delay}
             with open(os.path.join(TESTFN, name + ".py"), "wb") as f:
                 f.write(contents.encode('utf-8'))
-            self.addCleanup(sys.modules.pop, name, None)
+            self.addCleanup(forget, name)
 
+        importlib.invalidate_caches()
         results = []
         def import_ab():
             import A
@@ -202,9 +207,38 @@ class ThreadedImportTests(unittest.TestCase):
         t2.join()
         self.assertEqual(set(results), {'a', 'b'})
 
+    def test_side_effect_import(self):
+        code = """if 1:
+            import threading
+            def target():
+                import random
+            t = threading.Thread(target=target)
+            t.start()
+            t.join()"""
+        sys.path.insert(0, os.curdir)
+        self.addCleanup(sys.path.remove, os.curdir)
+        filename = TESTFN + ".py"
+        with open(filename, "wb") as f:
+            f.write(code.encode('utf-8'))
+        self.addCleanup(unlink, filename)
+        self.addCleanup(forget, TESTFN)
+        importlib.invalidate_caches()
+        __import__(TESTFN)
 
+
+@reap_threads
 def test_main():
-    run_unittest(ThreadedImportTests)
+    old_switchinterval = None
+    try:
+        old_switchinterval = sys.getswitchinterval()
+        sys.setswitchinterval(1e-5)
+    except AttributeError:
+        pass
+    try:
+        run_unittest(ThreadedImportTests)
+    finally:
+        if old_switchinterval is not None:
+            sys.setswitchinterval(old_switchinterval)
 
 if __name__ == "__main__":
     test_main()

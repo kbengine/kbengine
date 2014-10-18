@@ -239,7 +239,7 @@ class Test_TestLoader(unittest.TestCase):
         try:
             loader.loadTestsFromName('sdasfasfasdf')
         except ImportError as e:
-            self.assertEqual(str(e), "No module named sdasfasfasdf")
+            self.assertEqual(str(e), "No module named 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise ImportError")
 
@@ -324,7 +324,7 @@ class Test_TestLoader(unittest.TestCase):
     # Does loadTestsFromName raise TypeError when the `module` argument
     # isn't a module object?
     #
-    # XXX Accepts the not-a-module object, ignorning the object's type
+    # XXX Accepts the not-a-module object, ignoring the object's type
     # This should raise an exception or the method name should be changed
     #
     # XXX Some people are relying on this, so keep it for now
@@ -619,7 +619,7 @@ class Test_TestLoader(unittest.TestCase):
         try:
             loader.loadTestsFromNames(['sdasfasfasdf'])
         except ImportError as e:
-            self.assertEqual(str(e), "No module named sdasfasfasdf")
+            self.assertEqual(str(e), "No module named 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromNames failed to raise ImportError")
 
@@ -797,6 +797,22 @@ class Test_TestLoader(unittest.TestCase):
         class MyTestCase(unittest.TestCase):
             def test(self):
                 pass
+        m.testcase_1 = MyTestCase
+
+        loader = unittest.TestLoader()
+        suite = loader.loadTestsFromNames(['testcase_1.test'], m)
+        self.assertIsInstance(suite, loader.suiteClass)
+
+        ref_suite = unittest.TestSuite([MyTestCase('test')])
+        self.assertEqual(list(suite), [ref_suite])
+
+    # #14971: Make sure the dotted name resolution works even if the actual
+    # function doesn't have the same name as is used to find it.
+    def test_loadTestsFromName__function_with_different_name_than_method(self):
+        # lambdas have the name '<lambda>'.
+        m = types.ModuleType('m')
+        class MyTestCase(unittest.TestCase):
+            test = lambda: 1
         m.testcase_1 = MyTestCase
 
         loader = unittest.TestLoader()
@@ -1289,4 +1305,8 @@ class Test_TestLoader(unittest.TestCase):
     # "The default value is the TestSuite class"
     def test_suiteClass__default_value(self):
         loader = unittest.TestLoader()
-        self.assertTrue(loader.suiteClass is unittest.TestSuite)
+        self.assertIs(loader.suiteClass, unittest.TestSuite)
+
+
+if __name__ == "__main__":
+    unittest.main()

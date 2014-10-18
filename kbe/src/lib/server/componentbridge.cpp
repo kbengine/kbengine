@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/error_reporter.hpp"
 #include "network/udp_packet.hpp"
 #include "helper/sys_info.hpp"
+#include "server/serverconfig.hpp"
 
 #include "../../server/machine/machine_interface.hpp"
 
@@ -57,17 +58,15 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 	{
 	case CELLAPP_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
-		findComponentTypes_[1] = RESOURCEMGR_TYPE;
-		findComponentTypes_[2] = DBMGR_TYPE;
-		findComponentTypes_[3] = CELLAPPMGR_TYPE;
-		findComponentTypes_[4] = BASEAPPMGR_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = CELLAPPMGR_TYPE;
+		findComponentTypes_[3] = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
-		findComponentTypes_[1] = RESOURCEMGR_TYPE;
-		findComponentTypes_[2] = DBMGR_TYPE;
-		findComponentTypes_[3] = BASEAPPMGR_TYPE;
-		findComponentTypes_[4] = CELLAPPMGR_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		findComponentTypes_[3] = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
@@ -143,8 +142,8 @@ bool Componentbridge::findInterfaces()
 			int8 findComponentType = findComponentTypes_[findIdx_];
 
 			static int count = 0;
-			INFO_MSG(boost::format("Componentbridge::process: finding %1%(%2%)...\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % ++count);
+			INFO_MSG(fmt::format("Componentbridge::process: finding {}({})...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			
 			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 			if(!bhandler.good())
@@ -170,7 +169,7 @@ bool Componentbridge::findInterfaces()
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs21 args;
+			MachineInterface::onBroadcastInterfaceArgs22 args;
 
 RESTART_RECV:
 
@@ -195,8 +194,8 @@ RESTART_RECV:
 					
 					if(args.componentIDEx != componentID_)
 					{
-						WARNING_MSG(boost::format("Componentbridge::process: msg.componentID %1% != %2%.\n") % 
-							args.componentIDEx % componentID_);
+						WARNING_MSG(fmt::format("Componentbridge::process: msg.componentID {} != {}.\n", 
+							args.componentIDEx, componentID_));
 						
 						args.componentIDEx = 0;
 						goto RESTART_RECV;
@@ -209,14 +208,14 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
-						inet_ntoa((struct in_addr&)args.intaddr) %
-						ntohs(args.intport));
+					INFO_MSG(fmt::format("Componentbridge::process: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+						inet_ntoa((struct in_addr&)args.intaddr),
+						ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-						args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, 
+						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
 						args.usedmem, args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
 					isContinue = true;
@@ -231,11 +230,16 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+							ERROR_MSG(fmt::format("Componentbridge::register self to {} is error!\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
 							return false;
+						}
+						else
+						{
+							findIdx_++;
+							continue;
 						}
 					}
 				}
@@ -257,15 +261,24 @@ RESTART_RECV:
 					}
 
 					// 如果是这些辅助组件没找到则跳过
-					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+					int helperComponentIdx = 0;
+					while(1)
 					{
-						WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+						COMPONENT_TYPE helperComponentType = ALL_HELPER_COMPONENT_TYPE[helperComponentIdx++];
+						if(helperComponentType == UNKNOWN_COMPONENT_TYPE)
+						{
+							break;
+						}
+						else if(findComponentType == helperComponentType)
+						{
+							WARNING_MSG(fmt::format("Componentbridge::process: not found {}!\n",
+								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
-						findComponentTypes_[findIdx_] = -1; // 跳过标志
-						count = 0;
-						findIdx_++;
-						return false;
+							findComponentTypes_[findIdx_] = -1; // 跳过标志
+							count = 0;
+							findIdx_++;
+							return false;
+						}
 					}
 				}
 
@@ -294,13 +307,13 @@ RESTART_RECV:
 				return false;
 			}
 
-			INFO_MSG(boost::format("Componentbridge::process: register self to %1%...\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+			INFO_MSG(fmt::format("Componentbridge::process: register self to {}...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 			if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				ERROR_MSG(fmt::format("Componentbridge::register self to {} is error!\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;
 			}
@@ -324,10 +337,10 @@ bool Componentbridge::process()
 			Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
-			MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 				networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
-				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
+				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
 			
 			bhandler.broadcast();

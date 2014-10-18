@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SCRIPT_MATH_H__
-#define __SCRIPT_MATH_H__
+#ifndef KBE_SCRIPT_MATH_HPP
+#define KBE_SCRIPT_MATH_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "scriptobject.hpp"
 #include "vector2.hpp"
@@ -35,4 +36,5 @@ bool uninstallModule();
 }
 }
 }
-#endif
+
+#endif // KBE_SCRIPT_MATH_HPP

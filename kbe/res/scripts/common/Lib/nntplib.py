@@ -80,10 +80,17 @@ from email.header import decode_header as _email_decode_header
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 
 __all__ = ["NNTP",
-           "NNTPReplyError", "NNTPTemporaryError", "NNTPPermanentError",
-           "NNTPProtocolError", "NNTPDataError",
+           "NNTPError", "NNTPReplyError", "NNTPTemporaryError",
+           "NNTPPermanentError", "NNTPProtocolError", "NNTPDataError",
            "decode_header",
            ]
+
+# maximal line length when calling readline(). This is to prevent
+# reading arbitrary length lines. RFC 3977 limits NNTP line length to
+# 512 characters, including CRLF. We have selected 2048 just to be on
+# the safe side.
+_MAXLINE = 2048
+
 
 # Exceptions raised when an error or invalid response is received
 class NNTPError(Exception):
@@ -166,7 +173,7 @@ def decode_header(header_str):
             parts.append(v.decode(enc or 'ascii'))
         else:
             parts.append(v)
-    return ' '.join(parts)
+    return ''.join(parts)
 
 def _parse_overview_fmt(lines):
     """Parse a list of string representing the response to LIST OVERVIEW.FMT
@@ -272,7 +279,7 @@ def _unparse_datetime(dt, legacy=False):
 
 if _have_ssl:
 
-    def _encrypt_on(sock, context):
+    def _encrypt_on(sock, context, hostname):
         """Wrap a socket in SSL/TLS. Arguments:
         - sock: Socket to wrap
         - context: SSL context to use for the encrypted connection
@@ -281,10 +288,9 @@ if _have_ssl:
         """
         # Generate a default SSL context if none was passed.
         if context is None:
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-            # SSLv2 considered harmful.
-            context.options |= ssl.OP_NO_SSLv2
-        return context.wrap_socket(sock)
+            context = ssl._create_stdlib_context()
+        server_hostname = hostname if ssl.HAS_SNI else None
+        return context.wrap_socket(sock, server_hostname=server_hostname)
 
 
 # The classes themselves
@@ -351,6 +357,20 @@ class _NNTPBase:
         # Log in and encryption setup order is left to subclasses.
         self.authenticated = False
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        is_connected = lambda: hasattr(self, "file")
+        if is_connected():
+            try:
+                self.quit()
+            except (OSError, EOFError):
+                pass
+            finally:
+                if is_connected():
+                    self._close()
+
     def getwelcome(self):
         """Get the welcome message from the server
         (this is read and squirreled away by __init__()).
@@ -410,7 +430,9 @@ class _NNTPBase:
         """Internal: return one line from the server, stripping _CRLF.
         Raise EOFError if the connection is closed.
         Returns a bytes object."""
-        line = self.file.readline()
+        line = self.file.readline(_MAXLINE +1)
+        if len(line) > _MAXLINE:
+            raise NNTPDataError('line too long')
         if self.debugging > 1:
             print('*get*', repr(line))
         if not line: raise EOFError
@@ -819,7 +841,7 @@ class _NNTPBase:
         - list: list of (name,title) strings"""
         warnings.warn("The XGTITLE extension is not actively used, "
                       "use descriptions() instead",
-                      PendingDeprecationWarning, 2)
+                      DeprecationWarning, 2)
         line_pat = re.compile('^([^ \t]+)[ \t]+(.*)$')
         resp, raw_lines = self._longcmdstring('XGTITLE ' + group, file)
         lines = []
@@ -837,7 +859,7 @@ class _NNTPBase:
         path: directory path to article
         """
         warnings.warn("The XPATH extension is not actively used",
-                      PendingDeprecationWarning, 2)
+                      DeprecationWarning, 2)
 
         resp = self._shortcmd('XPATH {0}'.format(id))
         if not resp.startswith('223'):
@@ -933,7 +955,7 @@ class _NNTPBase:
                 if auth:
                     user = auth[0]
                     password = auth[2]
-        except IOError:
+        except OSError:
             pass
         # Perform NNTP authentication if needed.
         if not user:
@@ -984,7 +1006,7 @@ class _NNTPBase:
             resp = self._shortcmd('STARTTLS')
             if resp.startswith('382'):
                 self.file.close()
-                self.sock = _encrypt_on(self.sock, context)
+                self.sock = _encrypt_on(self.sock, context, self.host)
                 self.file = self.sock.makefile("rwb")
                 self.tls_on = True
                 # Capabilities may change after TLS starts up, so ask for them
@@ -1044,7 +1066,7 @@ if _have_ssl:
             in default port and the `ssl_context` argument for SSL connections.
             """
             self.sock = socket.create_connection((host, port), timeout)
-            self.sock = _encrypt_on(self.sock, ssl_context)
+            self.sock = _encrypt_on(self.sock, ssl_context, host)
             file = self.sock.makefile("rwb")
             _NNTPBase.__init__(self, file, host,
                                readermode=readermode, timeout=timeout)
@@ -1063,7 +1085,6 @@ if _have_ssl:
 # Test retrieval when run as a script.
 if __name__ == '__main__':
     import argparse
-    from email.utils import parsedate
 
     parser = argparse.ArgumentParser(description="""\
         nntplib built-in demo - display the latest articles in a newsgroup""")

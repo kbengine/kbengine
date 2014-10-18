@@ -1,9 +1,17 @@
+import math
 import unittest
 import sys
 import _ast
+import types
 from test import support
 
 class TestSpecifics(unittest.TestCase):
+
+    def compile_single(self, source):
+        compile(source, "<single>", "single")
+
+    def assertInvalidSingle(self, source):
+        self.assertRaises(SyntaxError, self.compile_single, source)
 
     def test_no_ending_newline(self):
         compile("hi", "<test>", "exec")
@@ -191,7 +199,7 @@ if 1:
         else:
             self.fail("How many bits *does* this machine have???")
         # Verify treatment of constant folding on -(sys.maxsize+1)
-        # i.e. -2147483648 on 32 bit platforms.  Should return int, not long.
+        # i.e. -2147483648 on 32 bit platforms.  Should return int.
         self.assertIsInstance(eval("%s" % (-sys.maxsize - 1)), int)
         self.assertIsInstance(eval("%s" % (-sys.maxsize - 2)), int)
 
@@ -296,9 +304,26 @@ if 1:
         l = lambda: "foo"
         self.assertIsNone(l.__doc__)
 
-##     def test_unicode_encoding(self):
-##         code = "# -*- coding: utf-8 -*-\npass\n"
-##         self.assertRaises(SyntaxError, compile, code, "tmp", "exec")
+    def test_encoding(self):
+        code = b'# -*- coding: badencoding -*-\npass\n'
+        self.assertRaises(SyntaxError, compile, code, 'tmp', 'exec')
+        code = '# -*- coding: badencoding -*-\n"\xc2\xa4"\n'
+        compile(code, 'tmp', 'exec')
+        self.assertEqual(eval(code), '\xc2\xa4')
+        code = '"\xc2\xa4"\n'
+        self.assertEqual(eval(code), '\xc2\xa4')
+        code = b'"\xc2\xa4"\n'
+        self.assertEqual(eval(code), '\xa4')
+        code = b'# -*- coding: latin1 -*-\n"\xc2\xa4"\n'
+        self.assertEqual(eval(code), '\xc2\xa4')
+        code = b'# -*- coding: utf-8 -*-\n"\xc2\xa4"\n'
+        self.assertEqual(eval(code), '\xa4')
+        code = b'# -*- coding: iso8859-15 -*-\n"\xc2\xa4"\n'
+        self.assertEqual(eval(code), '\xc2\u20ac')
+        code = '"""\\\n# -*- coding: iso8859-15 -*-\n\xc2\xa4"""\n'
+        self.assertEqual(eval(code), '# -*- coding: iso8859-15 -*-\n\xc2\xa4')
+        code = b'"""\\\n# -*- coding: iso8859-15 -*-\n\xc2\xa4"""\n'
+        self.assertEqual(eval(code), '# -*- coding: iso8859-15 -*-\n\xa4')
 
     def test_subscripts(self):
         # SF bug 1448804
@@ -433,9 +458,104 @@ if 1:
         ast.body = [_ast.BoolOp()]
         self.assertRaises(TypeError, compile, ast, '<ast>', 'exec')
 
+    @support.cpython_only
+    def test_same_filename_used(self):
+        s = """def f(): pass\ndef g(): pass"""
+        c = compile(s, "myfile", "exec")
+        for obj in c.co_consts:
+            if isinstance(obj, types.CodeType):
+                self.assertIs(obj.co_filename, c.co_filename)
 
-def test_main():
-    support.run_unittest(TestSpecifics)
+    def test_single_statement(self):
+        self.compile_single("1 + 2")
+        self.compile_single("\n1 + 2")
+        self.compile_single("1 + 2\n")
+        self.compile_single("1 + 2\n\n")
+        self.compile_single("1 + 2\t\t\n")
+        self.compile_single("1 + 2\t\t\n        ")
+        self.compile_single("1 + 2 # one plus two")
+        self.compile_single("1; 2")
+        self.compile_single("import sys; sys")
+        self.compile_single("def f():\n   pass")
+        self.compile_single("while False:\n   pass")
+        self.compile_single("if x:\n   f(x)")
+        self.compile_single("if x:\n   f(x)\nelse:\n   g(x)")
+        self.compile_single("class T:\n   pass")
+
+    def test_bad_single_statement(self):
+        self.assertInvalidSingle('1\n2')
+        self.assertInvalidSingle('def f(): pass')
+        self.assertInvalidSingle('a = 13\nb = 187')
+        self.assertInvalidSingle('del x\ndel y')
+        self.assertInvalidSingle('f()\ng()')
+        self.assertInvalidSingle('f()\n# blah\nblah()')
+        self.assertInvalidSingle('f()\nxy # blah\nblah()')
+        self.assertInvalidSingle('x = 5 # comment\nx = 6\n')
+
+    @support.cpython_only
+    def test_compiler_recursion_limit(self):
+        # Expected limit is sys.getrecursionlimit() * the scaling factor
+        # in symtable.c (currently 3)
+        # We expect to fail *at* that limit, because we use up some of
+        # the stack depth limit in the test suite code
+        # So we check the expected limit and 75% of that
+        # XXX (ncoghlan): duplicating the scaling factor here is a little
+        # ugly. Perhaps it should be exposed somewhere...
+        fail_depth = sys.getrecursionlimit() * 3
+        success_depth = int(fail_depth * 0.75)
+
+        def check_limit(prefix, repeated):
+            expect_ok = prefix + repeated * success_depth
+            self.compile_single(expect_ok)
+            broken = prefix + repeated * fail_depth
+            details = "Compiling ({!r} + {!r} * {})".format(
+                         prefix, repeated, fail_depth)
+            with self.assertRaises(RuntimeError, msg=details):
+                self.compile_single(broken)
+
+        check_limit("a", "()")
+        check_limit("a", ".b")
+        check_limit("a", "[0]")
+        check_limit("a", "*a")
+
+
+class TestStackSize(unittest.TestCase):
+    # These tests check that the computed stack size for a code object
+    # stays within reasonable bounds (see issue #21523 for an example
+    # dysfunction).
+    N = 100
+
+    def check_stack_size(self, code):
+        # To assert that the alleged stack size is not O(N), we
+        # check that it is smaller than log(N).
+        if isinstance(code, str):
+            code = compile(code, "<foo>", "single")
+        max_size = math.ceil(math.log(len(code.co_code)))
+        self.assertLessEqual(code.co_stacksize, max_size)
+
+    def test_and(self):
+        self.check_stack_size("x and " * self.N + "x")
+
+    def test_or(self):
+        self.check_stack_size("x or " * self.N + "x")
+
+    def test_and_or(self):
+        self.check_stack_size("x and x or " * self.N + "x")
+
+    def test_chained_comparison(self):
+        self.check_stack_size("x < " * self.N + "x")
+
+    def test_if_else(self):
+        self.check_stack_size("x if x else " * self.N + "x")
+
+    def test_binop(self):
+        self.check_stack_size("x + " * self.N + "x")
+
+    def test_func_and(self):
+        code = "def f(x):\n"
+        code += "   x and x\n" * self.N
+        self.check_stack_size(code)
+
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

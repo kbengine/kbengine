@@ -1,4 +1,0 @@
-John Judnich - main author
-Erik Hjortsberg (erik.hjortsberg@iteam.se)
-Thomas Fischer (thomas@rigsofrods.com) - maintainer since 2010
-m2codegen@rambler.ru - optimizations and performance improvements, releases 1.1.1 RC1

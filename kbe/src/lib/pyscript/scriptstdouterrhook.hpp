@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SCRIPTSTDOUTERRHOOK_H__
-#define __SCRIPTSTDOUTERRHOOK_H__
+#ifndef KBE_SCRIPTSTDOUTERRHOOK_HPP
+#define KBE_SCRIPTSTDOUTERRHOOK_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "scriptobject.hpp"
 #include "scriptstdouterr.hpp"
@@ -52,4 +53,4 @@ protected:
 #include "scriptstdouterrhook.ipp"
 #endif
 
-#endif
+#endif // KBE_SCRIPTSTDOUTERRHOOK_HPP

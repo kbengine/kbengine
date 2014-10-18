@@ -32,7 +32,7 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-static ObjectPool<TCPPacket> _g_objPool;
+static ObjectPool<TCPPacket> _g_objPool("TCPPacket");
 ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 {
 	return _g_objPool;
@@ -41,8 +41,8 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 //-------------------------------------------------------------------------------------
 void TCPPacket::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("TCPPacket::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("TCPPacket::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -84,7 +84,7 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	// 注意:必须在大于0的时候否则DEBUG_MSG将会导致WSAGetLastError返回0从而陷入死循环
 	if(len > 0) 
 	{
-		DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
+		DEBUG_MSG(fmt::format("TCPPacket::recvFromEndPoint: datasize={}, wpos={}.\n", len, wpos()));
 	}
 	*/
 	return len; 

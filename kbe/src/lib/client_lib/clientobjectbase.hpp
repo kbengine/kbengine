@@ -19,10 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __CLIENT_OBJECT_BASE_H__
-#define __CLIENT_OBJECT_BASE_H__
+#ifndef CLIENT_OBJECT_BASE_HPP
+#define CLIENT_OBJECT_BASE_HPP
 
 #include "event.hpp"
+#include "script_callbacks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
@@ -61,6 +62,7 @@ public:
 
 	void finalise(void);
 	virtual void reset(void);
+	void canReset(bool v){ canReset_ = v; }
 
 	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 
@@ -80,12 +82,15 @@ public:
 
 	void tickSend();
 	
-	virtual Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
+	virtual Mercury::Channel* initLoginappChannel(std::string accountName, 
+		std::string passwd, std::string ip, KBEngine::uint32 port);
 	virtual Mercury::Channel* initBaseappChannel();
 
 	bool createAccount();
 	bool login();
+	
 	bool loginGateWay();
+	bool reLoginGateWay();
 
 	int32 appID()const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
@@ -113,6 +118,14 @@ public:
 		return PyLong_FromLong(pClientObjectBase->appID());	
 	}
 	
+	static PyObject* __py_callback(PyObject* self, PyObject* args);
+	static PyObject* __py_cancelCallback(PyObject* self, PyObject* args);
+
+	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
+	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
+
+	static PyObject* __py_disconnect(PyObject* self, PyObject* args);
+
 	/**
 		如果entitiessize小于256
 		通过索引位置来获取entityID
@@ -128,8 +141,9 @@ public:
 	/** 网络接口
 		客户端与服务端第一次建立交互, 服务端返回
 	*/
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+		const std::string& scriptVerInfo, const std::string& protocolMD5, 
+		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
 
@@ -138,6 +152,10 @@ public:
 	*/
 	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 	
+	/** 网络接口
+		和服务端的脚本层版本不匹配
+	*/
+	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		创建账号成功和失败回调
@@ -172,6 +190,12 @@ public:
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
+	/** 网络接口
+	   重登陆baseapp成功
+	*/
+	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity
@@ -200,12 +224,12 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入space了
 	*/
-	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器上的entity已经离开space了
 	*/
-	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid);
 
 	/** 网络接口
 		远程调用entity的方法 
@@ -268,7 +292,8 @@ public:
 	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
 	
-	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, float pitch, float yaw);
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, 
+		float pitch, float yaw, int8 isOnGound);
 
 	/** 
 		更新玩家到服务端 
@@ -303,7 +328,7 @@ public:
 	/** 网络接口
 		错误码描述导出(通常是web等才会应用到)
 	*/
-	virtual void onImportMercuryErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
+	virtual void onImportServerErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
 
 	/** 网络接口
 		重置账号密码请求返回
@@ -356,6 +381,19 @@ public:
 	bool hasSpaceData(const std::string& key);
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
+	void clearSpace(bool isAll);
+
+	Timers & timers() { return timers_; }
+	void handleTimers();
+
+	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
+
+	void locktime(uint64 t){ locktime_ = t; }
+	uint64 locktime()const{ return locktime_; }
+
+	virtual void onServerClosed();
+
+	uint64 rndUUID()const{ return rndUUID_; }
 protected:				
 	int32													appID_;
 
@@ -378,6 +416,9 @@ protected:
 
 	std::string												ip_;
 	uint16													port_;
+
+	std::string												gatewayIP_;
+	uint16													gateWayPort_;
 
 	uint64													lastSentActiveTickTime_;
 	uint64													lastSentUpdateDataTime_;
@@ -405,7 +446,17 @@ protected:
 	bool													isLoadedGeometry_;
 
 	SPACE_DATA												spacedatas_;
+
+	Timers													timers_;
+	ScriptCallbacks											scriptCallbacks_;
+
+	uint64													locktime_;
+	
+	// 用于重登陆网关时的key
+	uint64													rndUUID_; 
 };
+
+
 
 }
 #endif

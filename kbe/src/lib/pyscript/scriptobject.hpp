@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SCRIPTOBJECT_H__
-#define __SCRIPTOBJECT_H__
+#ifndef KBE_SCRIPTOBJECT_HPP
+#define KBE_SCRIPTOBJECT_HPP
+
 #include <vector>	
 #include "Python.h"     
 #include "pyattr_macro.hpp" 
@@ -327,7 +328,7 @@ public:																						\
 			Py_INCREF(&_scriptType);														\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG(boost::format("PyModule_AddObject(%1%) is error!") % name);		\
+				ERROR_MSG(fmt::format("PyModule_AddObject({}) is error!", name));			\
 			}																				\
 		}																					\
 																							\
@@ -519,7 +520,7 @@ public:
 	/** 
 		获取对象类别名称
 	*/
-	const char* getScriptName() const{ return ob_type->tp_name; }
+	const char* scriptName() const{ return ob_type->tp_name; }
 
 	/** 
 		脚本被安装时被调用 
@@ -540,4 +541,4 @@ public:
 #include "scriptobject.ipp"
 #endif
 
-#endif
+#endif // KBE_SCRIPTOBJECT_HPP

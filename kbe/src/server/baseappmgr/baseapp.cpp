@@ -27,7 +27,8 @@ numBases_(0),
 numProxices_(0),
 load_(0.f),
 isDestroyed_(false),
-watchers_()
+watchers_(),
+initProgress_(0.f)
 {
 }
 

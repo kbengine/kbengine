@@ -87,6 +87,8 @@ void CreateAccountTask::removeLog()
 //-------------------------------------------------------------------------------------
 bool CreateAccountTask::process()
 {
+	retcode = SERVER_ERR_OP_FAILED;
+
 	if(!enable)
 	{
 		return false;
@@ -95,7 +97,7 @@ bool CreateAccountTask::process()
 	// 如果没有设置第三方服务地址则我们默认为成功
 	if(strlen(serviceAddr()) == 0)
 	{
-		success = true;
+		retcode = SERVER_SUCCESS;
 		getDatas = postDatas;
 		return false;
 	}
@@ -111,7 +113,7 @@ bool CreateAccountTask::process()
 
 	if(postDatas.size() == 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: %1% postData is NULL.\n") % commitName);
+		ERROR_MSG(fmt::format("BillingTask::process: {} postData is NULL.\n", commitName));
 		return false;
 	}
 
@@ -120,8 +122,8 @@ bool CreateAccountTask::process()
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: connect billingserver(%1%:%2%) is error(%3%)!\n") % 
-			serviceAddr() % servicePort() % kbe_strerror());
+		ERROR_MSG(fmt::format("BillingTask::process: connect billingserver({}:{}) is error({})!\n", 
+			serviceAddr(), servicePort(), kbe_strerror()));
 
 		endpoint.close();
 		return false;
@@ -145,8 +147,8 @@ bool CreateAccountTask::process()
 	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
 	if(selgot <= 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: %1% send(%2%).\n") % commitName % postDatas);
-		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error(%2%).\n") % commitName % KBEngine::kbe_strerror());
+		ERROR_MSG(fmt::format("BillingTask::process: {} send({}).\n", commitName, postDatas));
+		ERROR_MSG(fmt::format("BillingTask::process: {} recv is error({}).\n", commitName, KBEngine::kbe_strerror()));
 		endpoint.close();
 		return false;
 	}
@@ -155,7 +157,7 @@ bool CreateAccountTask::process()
 
 	if(len <= 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: %1% recv is size<= 0.\n===>postdatas=%2%\n") % commitName % postDatas);
+		ERROR_MSG(fmt::format("BillingTask::process: {} recv is size<= 0.\n===>postdatas={}\n", commitName, postDatas));
 		endpoint.close();
 		return false;
 	}
@@ -190,7 +192,7 @@ bool CreateAccountTask::process()
 
 					if(error != 0)
 					{
-						success = false;
+						retcode = SERVER_ERR_OP_FAILED;
 						endpoint.close();
 						
 						std::string err;
@@ -209,12 +211,14 @@ bool CreateAccountTask::process()
 
 						}
 
-						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! err=%2%\n<==send(%3%)\n==>recv(%4%).\n") % commitName % err % postDatas % getDatas);
+						DEBUG_MSG(fmt::format("BillingTask::process: ({})op is failed! err={}\n<==send({})\n==>recv({}).\n", 
+							commitName, err, postDatas, getDatas));
+						
 						return false;
 					}
 					else
 					{
-						success = true;
+						retcode = SERVER_SUCCESS;
 					}
 
 					break;
@@ -242,9 +246,9 @@ bool CreateAccountTask::process()
 	}
 	catch(...)
 	{
-		success = false;
-		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error.\n===>postdatas=%2%\n===>recv=%3%\n") % 
-			commitName % postDatas % getDatas);
+		retcode = SERVER_ERR_OP_FAILED;
+		ERROR_MSG(fmt::format("BillingTask::process: {} recv is error.\n===>postdatas={}\n===>recv={}\n", 
+			commitName, postDatas, getDatas));
 	}
 
 	endpoint.close();
@@ -258,27 +262,27 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	if(!enable)
 	{
 		removeLog();
-		DEBUG_MSG(boost::format("CreateAccountTask::presentMainThread: commitName=%1% is disable!\n") % commitName);
+		DEBUG_MSG(fmt::format("CreateAccountTask::presentMainThread: commitName={} is disable!\n", commitName));
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
-	(*(*bundle)) << baseappID << commitName << accountName << password << success;
+	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
+	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
+		ERROR_MSG(fmt::format("BillingTask::presentMainThread: not found channel. commitName={}\n", commitName));
 	}
 
 	removeLog();
@@ -310,33 +314,33 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 	if(!enable)
 	{
 		removeLog();
-		DEBUG_MSG(boost::format("LoginAccountTask::presentMainThread: commitName=%1% is disable!\n") % commitName);
+		DEBUG_MSG(fmt::format("LoginAccountTask::presentMainThread: commitName={} is disable!\n", commitName));
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	
-	if(success)
+	if(retcode == SERVER_ERR_OP_FAILED)
 	{
 		if(accountName.size() == 0)
 			accountName = commitName;
 	}
 
 	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
-	(*(*bundle)) << baseappID << commitName << accountName << password << success;
+	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
+	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
+		ERROR_MSG(fmt::format("BillingTask::presentMainThread: not found channel. commitName={}\n", commitName));
 	}
 
 	removeLog();
@@ -347,7 +351,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 ChargeTask::ChargeTask():
 BillingTask(),
 pOrders(NULL),
-success(false)
+retcode(SERVER_ERR_OP_FAILED)
 {
 }
 
@@ -361,8 +365,8 @@ bool ChargeTask::process()
 {
 	if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
 	{
-		WARNING_MSG(boost::format("ChargeTask::process: not found ordersID(%1%), exit threadProcess.\n")
-			% orders.ordersID);
+		WARNING_MSG(fmt::format("ChargeTask::process: not found ordersID({}), exit threadProcess.\n",
+			orders.ordersID));
 		return false;
 	}
 	
@@ -375,7 +379,7 @@ bool ChargeTask::process()
 	// 如果是不需要请求的直接返回成功
 	if(pOrders->postDatas.size() == 0)
 	{
-		success = true;
+		retcode = SERVER_SUCCESS;
 		return false;
 	}
 
@@ -386,7 +390,7 @@ bool ChargeTask::process()
 		pOrders->getDatas = pOrders->postDatas;
 		orders.state = pOrders->state;
 		orders.getDatas = pOrders->getDatas;
-		success = true;
+		retcode = SERVER_SUCCESS;
 		return false;
 	}
 
@@ -414,8 +418,8 @@ bool ChargeTask::process()
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		ERROR_MSG(boost::format("ChargeTask::process: connect billing server is error(%1%)!\n") % 
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ChargeTask::process: connect billing server is error({})!\n", 
+			kbe_strerror()));
 
 		pOrders->getDatas = "connect is error!";
 		orders.getDatas = pOrders->getDatas;
@@ -440,7 +444,7 @@ bool ChargeTask::process()
 	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
 	if(selgot <= 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: recv is error(%1%).\n") % KBEngine::kbe_strerror());
+		ERROR_MSG(fmt::format("BillingTask::process: recv is error({}).\n", KBEngine::kbe_strerror()));
 		pOrders->getDatas = "recv is error!";
 		orders.getDatas = pOrders->getDatas;
 		return false;
@@ -450,7 +454,7 @@ bool ChargeTask::process()
 
 	if(len <= 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: recv is size<= 0.\n===>postdatas=%1%\n") % pOrders->postDatas);
+		ERROR_MSG(fmt::format("BillingTask::process: recv is size<= 0.\n===>postdatas={}\n", pOrders->postDatas));
 		pOrders->getDatas = "recv is error!";
 		orders.getDatas = pOrders->getDatas;
 		return false;
@@ -462,11 +466,14 @@ bool ChargeTask::process()
 	orders.getDatas = pOrders->getDatas;
 
 	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
-	success = fi != std::string::npos;
+
+	if(fi != std::string::npos)
+		retcode = SERVER_SUCCESS;
+
 	endpoint.close();
 
-	INFO_MSG(boost::format("ChargeTask::process: orders=%1%, commit=%2%\n==>postdatas=%3%\n") % 
-		pOrders->ordersID % success % pOrders->getDatas);
+	INFO_MSG(fmt::format("ChargeTask::process: orders={}, commit={}\n==>postdatas={}\n", 
+		pOrders->ordersID, retcode, pOrders->getDatas));
 
 	return false;
 }
@@ -475,12 +482,13 @@ bool ChargeTask::process()
 thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 {
 	// 如果成功使用异步接收处理
-	if(!success)
+	if(retcode != SERVER_SUCCESS)
 	{
 		if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
 		{
-			WARNING_MSG(boost::format("ChargeTask::presentMainThread: not found ordersID(%1%), exit thread!\n")
-				% orders.ordersID);
+			WARNING_MSG(fmt::format("ChargeTask::presentMainThread: not found ordersID({}), exit thread!\n",
+				orders.ordersID));
+
 			return thread::TPTask::TPTASK_STATE_COMPLETED;
 		}
 	
@@ -490,21 +498,21 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
 		(*(*bundle)).appendBlob(orders.getDatas);
 		(*(*bundle)) << orders.cbid;
-		(*(*bundle)) << success;
+		(*(*bundle)) << retcode;
 
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orders.address);
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{
-			WARNING_MSG(boost::format("ChargeTask::presentMainThread: orders=%1% commit is failed!\n") % 
-				pOrders->ordersID);
+			WARNING_MSG(fmt::format("ChargeTask::presentMainThread: orders={} commit is failed!\n", 
+				pOrders->ordersID));
 
-			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+			(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 		}
 		else
 		{
-			ERROR_MSG(boost::format("ChargeTask::presentMainThread: not found channel. orders=%1%\n") % 
-				orders.ordersID);
+			ERROR_MSG(fmt::format("ChargeTask::presentMainThread: not found channel. orders={}\n", 
+				orders.ordersID));
 		}
 
 		BillingSystem::getSingleton().lockthread();

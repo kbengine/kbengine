@@ -33,7 +33,7 @@ const Address Address::NONE(0, 0);
 
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Address> _g_objPool;
+static ObjectPool<Address> _g_objPool("Address");
 ObjectPool<Address>& Address::ObjPool()
 {
 	return _g_objPool;
@@ -42,8 +42,8 @@ ObjectPool<Address>& Address::ObjPool()
 //-------------------------------------------------------------------------------------
 void Address::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("Address::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("Address::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }

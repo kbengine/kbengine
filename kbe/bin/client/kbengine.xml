@@ -55,13 +55,21 @@
 	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
 	<debugEntity>0</debugEntity>
 
-	<!-- apps发布状态, 可在脚本中获取该值
-		Type: Integer8
-		0 : debug
-		1 : release
-		其他自定义
-	-->
-	<app_publish>0</app_publish>
+	<publish>
+		<!-- 发布状态, 可在脚本中获取该值。 KBEngine.publish()
+			(apps released state, This value can be obtained in the script. KBEngine.publish())
+			Type: Integer8
+			0 : debug
+			1 : release
+			其他自定义(Other custom)
+		-->
+		<state>0</state>
+
+		<!-- 脚本层发布的版本号
+			(Script layer released version number)
+		 -->
+		<script_version> 0.1.0 </script_version>
+	</publish>
 	
 	<channelCommon> 
 		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该频道 -->
@@ -106,9 +114,9 @@
 	<ip> localhost </ip>
 	<port> 20013 </port>
 
-	<!-- 如果被占用则向后尝试50001.. -->
+	<!-- 如果被占用则向后尝试51001.. -->
 	<telnet_service>
-		<port> 50000 </port>
+		<port> 51000 </port>
 		<password> kbe </password>
 		<!-- 命令默认层 -->
 		<default_layer> python </default_layer>

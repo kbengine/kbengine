@@ -1,14 +1,17 @@
 import io
+import socket
 import datetime
 import textwrap
 import unittest
 import functools
 import contextlib
 from test import support
-from nntplib import NNTP, GroupInfo, _have_ssl
+from nntplib import NNTP, GroupInfo
 import nntplib
-if _have_ssl:
+try:
     import ssl
+except ImportError:
+    ssl = None
 
 TIMEOUT = 30
 
@@ -198,23 +201,23 @@ class NetworkedNNTPTestsMixin:
         resp, caps = self.server.capabilities()
         _check_caps(caps)
 
-    if _have_ssl:
-        def test_starttls(self):
-            file = self.server.file
-            sock = self.server.sock
-            try:
-                self.server.starttls()
-            except nntplib.NNTPPermanentError:
-                self.skipTest("STARTTLS not supported by server.")
-            else:
-                # Check that the socket and internal pseudo-file really were
-                # changed.
-                self.assertNotEqual(file, self.server.file)
-                self.assertNotEqual(sock, self.server.sock)
-                # Check that the new socket really is an SSL one
-                self.assertIsInstance(self.server.sock, ssl.SSLSocket)
-                # Check that trying starttls when it's already active fails.
-                self.assertRaises(ValueError, self.server.starttls)
+    @unittest.skipUnless(ssl, 'requires SSL support')
+    def test_starttls(self):
+        file = self.server.file
+        sock = self.server.sock
+        try:
+            self.server.starttls()
+        except nntplib.NNTPPermanentError:
+            self.skipTest("STARTTLS not supported by server.")
+        else:
+            # Check that the socket and internal pseudo-file really were
+            # changed.
+            self.assertNotEqual(file, self.server.file)
+            self.assertNotEqual(sock, self.server.sock)
+            # Check that the new socket really is an SSL one
+            self.assertIsInstance(self.server.sock, ssl.SSLSocket)
+            # Check that trying starttls when it's already active fails.
+            self.assertRaises(ValueError, self.server.starttls)
 
     def test_zlogin(self):
         # This test must be the penultimate because further commands will be
@@ -257,6 +260,26 @@ class NetworkedNNTPTestsMixin:
             # value
             setattr(cls, name, wrap_meth(meth))
 
+    def test_with_statement(self):
+        def is_connected():
+            if not hasattr(server, 'file'):
+                return False
+            try:
+                server.help()
+            except (OSError, EOFError):
+                return False
+            return True
+
+        with self.NNTP_CLASS(self.NNTP_HOST, timeout=TIMEOUT, usenetrc=False) as server:
+            self.assertTrue(is_connected())
+            self.assertTrue(server.help())
+        self.assertFalse(is_connected())
+
+        with self.NNTP_CLASS(self.NNTP_HOST, timeout=TIMEOUT, usenetrc=False) as server:
+            server.quit()
+        self.assertFalse(is_connected())
+
+
 NetworkedNNTPTestsMixin.wrap_methods()
 
 
@@ -279,25 +302,24 @@ class NetworkedNNTPTests(NetworkedNNTPTestsMixin, unittest.TestCase):
         if cls.server is not None:
             cls.server.quit()
 
+@unittest.skipUnless(ssl, 'requires SSL support')
+class NetworkedNNTP_SSLTests(NetworkedNNTPTests):
 
-if _have_ssl:
-    class NetworkedNNTP_SSLTests(NetworkedNNTPTests):
+    # Technical limits for this public NNTP server (see http://www.aioe.org):
+    # "Only two concurrent connections per IP address are allowed and
+    # 400 connections per day are accepted from each IP address."
 
-        # Technical limits for this public NNTP server (see http://www.aioe.org):
-        # "Only two concurrent connections per IP address are allowed and
-        # 400 connections per day are accepted from each IP address."
+    NNTP_HOST = 'nntp.aioe.org'
+    GROUP_NAME = 'comp.lang.python'
+    GROUP_PAT = 'comp.lang.*'
 
-        NNTP_HOST = 'nntp.aioe.org'
-        GROUP_NAME = 'comp.lang.python'
-        GROUP_PAT = 'comp.lang.*'
+    NNTP_CLASS = getattr(nntplib, 'NNTP_SSL', None)
 
-        NNTP_CLASS = nntplib.NNTP_SSL
+    # Disabled as it produces too much data
+    test_list = None
 
-        # Disabled as it produces too much data
-        test_list = None
-
-        # Disabled as the connection will already be encrypted.
-        test_starttls = None
+    # Disabled as the connection will already be encrypted.
+    test_starttls = None
 
 
 #
@@ -563,6 +585,11 @@ class NNTPv1Handler:
                 <a4929a40-6328-491a-aaaf-cb79ed7309a2@q2g2000vbk.googlegroups.com>
                 <f30c0419-f549-4218-848f-d7d0131da931@y3g2000vbm.googlegroups.com>
                 .""")
+        elif (group == 'comp.lang.python' and
+              date_str in ('20100101', '100101') and
+              time_str == '090000'):
+            self.push_lit('too long line' * 3000 +
+                          '\n.')
         else:
             self.push_lit("""\
                 230 An empty list of newsarticles follows
@@ -894,7 +921,7 @@ class NNTPv1v2TestsMixin:
 
     def _check_article_body(self, lines):
         self.assertEqual(len(lines), 4)
-        self.assertEqual(lines[-1].decode('utf8'), "-- Signed by André.")
+        self.assertEqual(lines[-1].decode('utf-8'), "-- Signed by André.")
         self.assertEqual(lines[-2], b"")
         self.assertEqual(lines[-3], b".Here is a dot-starting line.")
         self.assertEqual(lines[-4], b"This is just a test article.")
@@ -1133,12 +1160,12 @@ class NNTPv1v2TestsMixin:
         self.assertEqual(resp, success_resp)
         # With an iterable of terminated lines
         def iterlines(b):
-            return iter(b.splitlines(True))
+            return iter(b.splitlines(keepends=True))
         resp = self._check_post_ihave_sub(func, *args, file_factory=iterlines)
         self.assertEqual(resp, success_resp)
         # With an iterable of non-terminated lines
         def iterlines(b):
-            return iter(b.splitlines(False))
+            return iter(b.splitlines(keepends=False))
         resp = self._check_post_ihave_sub(func, *args, file_factory=iterlines)
         self.assertEqual(resp, success_resp)
 
@@ -1157,6 +1184,11 @@ class NNTPv1v2TestsMixin:
             self.server.ihave("<another.message.id>", self.sample_post)
         self.assertEqual(cm.exception.response,
                          "435 Article not wanted")
+
+    def test_too_long_lines(self):
+        dt = datetime.datetime(2010, 1, 1, 9, 0, 0)
+        self.assertRaises(nntplib.NNTPDataError,
+                          self.server.newnews, "comp.lang.python", dt)
 
 
 class NNTPv1Tests(NNTPv1v2TestsMixin, MockedNNTPTestsMixin, unittest.TestCase):
@@ -1376,14 +1408,22 @@ class MiscTests(unittest.TestCase):
         gives(2000, 6, 23, "000623", "000000")
         gives(2010, 6, 5, "100605", "000000")
 
+    @unittest.skipUnless(ssl, 'requires SSL support')
+    def test_ssl_support(self):
+        self.assertTrue(hasattr(nntplib, 'NNTP_SSL'))
 
-def test_main():
-    tests = [MiscTests, NNTPv1Tests, NNTPv2Tests, CapsAfterLoginNNTPv2Tests,
-            SendReaderNNTPv2Tests, NetworkedNNTPTests]
-    if _have_ssl:
-        tests.append(NetworkedNNTP_SSLTests)
-    support.run_unittest(*tests)
 
+class PublicAPITests(unittest.TestCase):
+    """Ensures that the correct values are exposed in the public API."""
+
+    def test_module_all_attribute(self):
+        self.assertTrue(hasattr(nntplib, '__all__'))
+        target_api = ['NNTP', 'NNTPError', 'NNTPReplyError',
+                      'NNTPTemporaryError', 'NNTPPermanentError',
+                      'NNTPProtocolError', 'NNTPDataError', 'decode_header']
+        if ssl is not None:
+            target_api.append('NNTP_SSL')
+        self.assertEqual(set(nntplib.__all__), set(target_api))
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

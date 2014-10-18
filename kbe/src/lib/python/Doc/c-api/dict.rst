@@ -36,11 +36,11 @@ Dictionary Objects
    Return a new empty dictionary, or *NULL* on failure.
 
 
-.. c:function:: PyObject* PyDictProxy_New(PyObject *dict)
+.. c:function:: PyObject* PyDictProxy_New(PyObject *mapping)
 
-   Return a proxy object for a mapping which enforces read-only behavior.
-   This is normally used to create a proxy to prevent modification of the
-   dictionary for non-dynamic class types.
+   Return a :class:`types.MappingProxyType` object for a mapping which
+   enforces read-only behavior.  This is normally used to create a view to
+   prevent modification of the dictionary for non-dynamic class types.
 
 
 .. c:function:: void PyDict_Clear(PyObject *p)
@@ -84,7 +84,7 @@ Dictionary Objects
    on failure.
 
 
-.. c:function:: int PyDict_DelItemString(PyObject *p, char *key)
+.. c:function:: int PyDict_DelItemString(PyObject *p, const char *key)
 
    Remove the entry in dictionary *p* which has a key specified by the string
    *key*.  Return ``0`` on success or ``-1`` on failure.
@@ -108,6 +108,15 @@ Dictionary Objects
 
    This is the same as :c:func:`PyDict_GetItem`, but *key* is specified as a
    :c:type:`char\*`, rather than a :c:type:`PyObject\*`.
+
+
+.. c:function:: PyObject* PyDict_SetDefault(PyObject *p, PyObject *key, PyObject *default)
+
+   This is the same as the Python-level :meth:`dict.setdefault`.  If present, it
+   returns the value corresponding to *key* from the dictionary *p*.  If the key
+   is not in the dict, it is inserted with value *defaultobj* and *defaultobj*
+   is returned.  This function evaluates the hash function of *key* only once,
+   instead of evaluating it independently for the lookup and the insertion.
 
 
 .. c:function:: PyObject* PyDict_Items(PyObject *p)
@@ -192,8 +201,11 @@ Dictionary Objects
 
 .. c:function:: int PyDict_Update(PyObject *a, PyObject *b)
 
-   This is the same as ``PyDict_Merge(a, b, 1)`` in C, or ``a.update(b)`` in
-   Python.  Return ``0`` on success or ``-1`` if an exception was raised.
+   This is the same as ``PyDict_Merge(a, b, 1)`` in C, and is similar to
+   ``a.update(b)`` in Python except that :c:func:`PyDict_Update` doesn't fall
+   back to the iterating over a sequence of key value pairs if the second
+   argument has no "keys" attribute.  Return ``0`` on success or ``-1`` if an
+   exception was raised.
 
 
 .. c:function:: int PyDict_MergeFromSeq2(PyObject *a, PyObject *seq2, int override)
@@ -209,3 +221,10 @@ Dictionary Objects
           for key, value in seq2:
               if override or key not in a:
                   a[key] = value
+
+
+.. c:function:: int PyDict_ClearFreeList()
+
+   Clear the free list. Return the total number of freed items.
+
+   .. versionadded:: 3.3

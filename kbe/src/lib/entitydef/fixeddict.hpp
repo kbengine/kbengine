@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FIXED_DICT_H__
-#define __FIXED_DICT_H__
+#ifndef KBE_FIXED_DICT_HPP
+#define KBE_FIXED_DICT_HPP
+
 #include <string>
 #include "datatype.hpp"
 #include "helper/debug_helper.hpp"
@@ -39,7 +40,7 @@ public:
 	FixedDict(DataType* dataType);
 	FixedDict(DataType* dataType, std::string& strDictInitData);
 	FixedDict(DataType* dataType, PyObject* pyDictInitData);
-	FixedDict(DataType* dataType, MemoryStream* streamInitData);
+	FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream);
 
 	virtual ~FixedDict();
 
@@ -75,7 +76,7 @@ public:
 	*/
 	void initialize(std::string strDictInitData);
 	void initialize(PyObject* pyDictInitData);
-	void initialize(MemoryStream* streamInitData);
+	void initialize(MemoryStream* streamInitData, bool isPersistentsStream);
 
 	/** 
 		检查数据改变 
@@ -88,9 +89,15 @@ public:
 		更新字典数据到自己的数据中 
 	*/
 	PyObject* update(PyObject* args);
+
+	/** 
+		获得对象的描述 
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
 protected:
 	FixedDictType* _dataType;
 } ;
 
 }
-#endif
+#endif // KBE_FIXED_DICT_HPP

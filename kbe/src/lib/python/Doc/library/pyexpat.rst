@@ -100,6 +100,11 @@ The :mod:`xml.parsers.expat` module contains two functions:
       http://www.python.org/ns/ elem1
       elem2
 
+   Due to limitations in the ``Expat`` library used by :mod:`pyexpat`,
+   the :class:`xmlparser` instance returned can only be used to parse a single
+   XML document.  Call ``ParserCreate`` for each document to provide unique
+   parser instances.
+
 
 .. seealso::
 
@@ -119,7 +124,9 @@ XMLParser Objects
 
    Parses the contents of the string *data*, calling the appropriate handler
    functions to process the parsed data.  *isfinal* must be true on the final call
-   to this method.  *data* can be the empty string at any time.
+   to this method; it allows the parsing of a single file in fragments,
+   not the submission of multiple files.
+   *data* can be the empty string at any time.
 
 
 .. method:: xmlparser.ParseFile(file)
@@ -339,8 +346,10 @@ otherwise stated.
 .. method:: xmlparser.StartElementHandler(name, attributes)
 
    Called for the start of every element.  *name* is a string containing the
-   element name, and *attributes* is a dictionary mapping attribute names to their
-   values.
+   element name, and *attributes* is the element attributes. If
+   :attr:`ordered_attributes` is true, this is a list (see
+   :attr:`ordered_attributes` for a full description). Otherwise it's a
+   dictionary mapping names to values.
 
 
 .. method:: xmlparser.EndElementHandler(name)
@@ -482,8 +491,8 @@ ExpatError Exceptions
 .. attribute:: ExpatError.code
 
    Expat's internal error number for the specific error.  The
-   :data:`errors.messages` dictionary maps these error numbers to Expat's error
-   messages.  For example::
+   :data:`errors.messages <xml.parsers.expat.errors.messages>` dictionary maps
+   these error numbers to Expat's error messages.  For example::
 
       from xml.parsers.expat import ParserCreate, ExpatError, errors
 
@@ -493,9 +502,9 @@ ExpatError Exceptions
       except ExpatError as err:
           print("Error:", errors.messages[err.code])
 
-   The :mod:`errors` module also provides error message constants and a
-   dictionary :data:`~errors.codes` mapping these messages back to the error
-   codes, see below.
+   The :mod:`~xml.parsers.expat.errors` module also provides error message
+   constants and a dictionary :data:`~xml.parsers.expat.errors.codes` mapping
+   these messages back to the error codes, see below.
 
 
 .. attribute:: ExpatError.lineno
@@ -859,5 +868,5 @@ The ``errors`` module has the following attributes:
 .. [#] The encoding string included in XML output should conform to the
    appropriate standards. For example, "UTF-8" is valid, but "UTF8" is
    not. See http://www.w3.org/TR/2006/REC-xml11-20060816/#NT-EncodingDecl
-   and http://www.iana.org/assignments/character-sets .
+   and http://www.iana.org/assignments/character-sets\ .
 

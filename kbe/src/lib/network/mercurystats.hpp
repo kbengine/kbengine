@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MERCURY_STATS__
-#define __MERCURY_STATS__
+#ifndef KBE_MERCURY_STATS_HPP
+#define KBE_MERCURY_STATS_HPP
 
 #include "network/interfaces.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -79,4 +79,4 @@ private:
 
 }
 }
-#endif // __MERCURY_STATS__
+#endif // KBE_MERCURY_STATS_HPP

@@ -94,8 +94,8 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
-				WARNING_MSG(boost::format("PacketReader::processMessages: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
-					currMsgID_ % pPacket1->opsize() % pChannel_->c_str());
+				WARNING_MSG(fmt::format("PacketReader::processMessages: invalide msgID={}, msglen={}, from {}.\n",
+					currMsgID_, pPacket1->opsize(), pChannel_->c_str()));
 
 				currMsgID_ = 0;
 				currMsgLen_ = 0;
@@ -143,8 +143,8 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
-				WARNING_MSG(boost::format("PacketReader::processMessages(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
-					pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % pChannel_->c_str());
+				WARNING_MSG(fmt::format("PacketReader::processMessages({0}): msglen exceeds the limit! msgID={1}, msglen=({2}:{3}), maxlen={5}, from {4}.\n", 
+					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->opsize(), pChannel_->c_str(), pMsgHandler->msglenMax()));
 
 				currMsgLen_ = 0;
 				pChannel_->condemn();
@@ -180,8 +180,8 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				{
 					if(frpos != pPacket->rpos())
 					{
-						WARNING_MSG(boost::format("PacketReader::processMessages(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
-							pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
+						WARNING_MSG(fmt::format("PacketReader::processMessages({}): rpos({}) invalid, expect={}. msgID={}, msglen={}.\n",
+							pMsgHandler->name.c_str(), pPacket->rpos(), frpos, currMsgID_, currMsgLen_));
 
 						pPacket->rpos(frpos);
 					}
@@ -218,8 +218,8 @@ void PacketReader::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Pac
 		pPacket->opfini();
 	}
 
-	DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") % 
-		pChannel_->c_str() % pChannel_ % fragmentDatasFlag % pFragmentDatasRemain_);
+	DEBUG_MSG(fmt::format("PacketReader::writeFragmentMessage({}): channel[{:p}], fragmentDatasFlag={}, remainsize={}, currMsgID={}, currMsgLen={}.\n", 
+		pChannel_->c_str(), (void*)pChannel_, fragmentDatasFlag, pFragmentDatasRemain_, currMsgID_, currMsgLen_));
 }
 
 //-------------------------------------------------------------------------------------
@@ -257,11 +257,12 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 		};
 
+		DEBUG_MSG(fmt::format("PacketReader::mergeFragmentMessage({}): channel[{:p}], fragmentDatasFlag={}, currMsgID={}, currMsgLen={}, completed!\n", 
+			pChannel_->c_str(), (void*)pChannel_, fragmentDatasFlag_, currMsgID_, currMsgLen_));
+
 		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 		pFragmentDatasRemain_ = 0;
 		SAFE_RELEASE_ARRAY(pFragmentDatas_);
-		DEBUG_MSG(boost::format("PacketReader::mergeFragmentMessage(%1%): channel[%2%], completed!\n") % 
-			pChannel_->c_str() % pChannel_);
 	}
 	else
 	{
@@ -270,8 +271,8 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 		pFragmentDatasWpos_ += opsize;
 		pPacket->rpos(pPacket->rpos() + opsize);
 
-		DEBUG_MSG(boost::format("PacketReader::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
-			pChannel_->c_str() % pChannel_ % fragmentDatasFlag_ % pFragmentDatasRemain_);
+		DEBUG_MSG(fmt::format("PacketReader::mergeFragmentMessage({}): channel[{:p}], fragmentDatasFlag={}, remainsize={}, currMsgID={}, currMsgLen={}.\n",
+			pChannel_->c_str(), (void*)pChannel_, fragmentDatasFlag_, pFragmentDatasRemain_, currMsgID_, currMsgLen_));
 	}	
 }
 

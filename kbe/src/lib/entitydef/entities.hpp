@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENTITIES_H__
-#define __ENTITIES_H__
+#ifndef KBE_ENTITIES_HPP
+#define KBE_ENTITIES_HPP
 	
 // common include	
 #include "helper/debug_helper.hpp"
@@ -62,15 +62,7 @@ public:
 
 	void finalise()
 	{
-		ENTITYS_MAP& entities = getEntities();
-		ENTITYS_MAP::const_iterator iter = entities.begin();
-		while (iter != entities.end())
-		{
-			Py_DECREF(iter->second.get());
-			iter++;
-		}
-
-		entities.clear();
+		clear(false);
 	}
 
 	/** 
@@ -94,9 +86,12 @@ public:
 	static PyMappingMethods mappingMethods;
 
 	ENTITYS_MAP& getEntities(void){ return _entities; }
+
 	void add(ENTITY_ID id, T* entity);
-	void clear(void);
+	void clear(bool callScript);
+	void clear(bool callScript, std::vector<ENTITY_ID> excludes);
 	PyObjectPtr erase(ENTITY_ID id);
+
 	T* find(ENTITY_ID id);
 
 	size_t size()const { return _entities.size(); }
@@ -270,7 +265,7 @@ void Entities<T>::add(ENTITY_ID id, T* entity)
 	ENTITYS_MAP::const_iterator iter = _entities.find(id);
 	if(iter != _entities.end())
 	{
-		ERROR_MSG(boost::format("Entities::add: entityID:%1% has exist\n.") % id);
+		ERROR_MSG(fmt::format("Entities::add: entityID:{} has exist\n.", id));
 		return;
 	}
 
@@ -279,17 +274,39 @@ void Entities<T>::add(ENTITY_ID id, T* entity)
 
 //-------------------------------------------------------------------------------------
 template<typename T>
-void Entities<T>::clear(void)
+void Entities<T>::clear(bool callScript)
 {
 	ENTITYS_MAP::const_iterator iter = _entities.begin();
 	while (iter != _entities.end())
 	{
-		T* entity = iter->second.get();
-		entity->destroy();
+		T* entity = (T*)iter->second.get();
+		entity->destroy(callScript);
 		iter++;
 	}
 
 	_entities.clear();
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+void Entities<T>::clear(bool callScript, std::vector<ENTITY_ID> excludes)
+{
+	ENTITYS_MAP::const_iterator iter = _entities.begin();
+	for (;iter != _entities.end();)
+	{
+		if(std::find(excludes.begin(), excludes.end(), iter->first) != excludes.end())
+		{
+			iter++;
+			continue;
+		}
+
+		T* entity = (T*)iter->second.get();
+		entity->destroy(callScript);
+		_entities.erase(iter++);
+	}
+	
+	// 由于存在excludes不能清空
+	// _entities.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -321,4 +338,5 @@ PyObjectPtr Entities<T>::erase(ENTITY_ID id)
 }
 
 }
-#endif
+#endif // KBE_ENTITIES_HPP
+

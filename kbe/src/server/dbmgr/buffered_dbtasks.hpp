@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BUFFERED_DBTASKS_H__
-#define __BUFFERED_DBTASKS_H__
+#ifndef KBE_BUFFERED_DBTASKS_HPP
+#define KBE_BUFFERED_DBTASKS_HPP
 
 // common include	
 // #define NDEBUG
@@ -44,18 +44,51 @@ public:
 	Buffered_DBTasks();
 	virtual ~Buffered_DBTasks();
 	
-	bool hasTask(DBID dbid);
-	bool hasTask(ENTITY_ID entityID);
-
 	void addTask(EntityDBTask* pTask);
 
-	void onFiniTask(EntityDBTask* pTask);
+	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+
+	/**
+		提供给watcher使用
+	*/
+	uint32 dbid_tasksSize()
+	{ 
+		mutex_.lockMutex();
+		uint32 ret = (uint32)dbid_tasks_.size(); 
+		mutex_.unlockMutex();
+		return ret;
+	}
+
+	/**
+		提供给watcher使用
+	*/
+	uint32 entityid_tasksSize()
+	{ 
+		mutex_.lockMutex();
+		uint32 ret = (uint32)entityid_tasks_.size(); 
+		mutex_.unlockMutex();
+		return ret;
+	}
+
+	/**
+		提供给watcher使用
+	*/
+	std::string printBuffered_dbid();
+	std::string printBuffered_entityID();
+	std::string printBuffered_dbid_();
+	std::string printBuffered_entityID_();
 protected:
+	bool hasTask_(DBID dbid);
+	bool hasTask_(ENTITY_ID entityID);
+
 	DBID_TASKS_MAP dbid_tasks_;
 	ENTITYID_TASKS_MAP entityid_tasks_;
+
+	KBEngine::thread::ThreadMutex mutex_;
 };
 
 }
-#endif
+
+#endif // KBE_BUFFERED_DBTASKS_HPP

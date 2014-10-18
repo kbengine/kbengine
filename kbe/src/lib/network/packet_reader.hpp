@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PACKET_READER_HPP__
-#define __PACKET_READER_HPP__
+#ifndef KBE_PACKET_READER_HPP
+#define KBE_PACKET_READER_HPP
 
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"

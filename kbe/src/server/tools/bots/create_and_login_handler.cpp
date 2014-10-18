@@ -30,11 +30,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
+uint64 g_accountID = 0;
+
 //-------------------------------------------------------------------------------------
 CreateAndLoginHandler::CreateAndLoginHandler()
 {
-	timerHandle_ = Bots::getSingleton().getNetworkInterface().dispatcher().addTimer(
+	timerHandle_ = Bots::getSingleton().networkInterface().dispatcher().addTimer(
 							1 * 1000000, this);
+
+	g_accountID = KBEngine::genUUID64() * 100000;
+	if(g_kbeSrvConfig.getBots().bots_account_name_suffix_inc > 0)
+	{
+		g_accountID = g_kbeSrvConfig.getBots().bots_account_name_suffix_inc;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,12 +67,14 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 		return;
 	}
 
-	uint64 accountID = KBEngine::genUUID64() * 100000;
 	uint32 count = bots.reqCreateAndLoginTickCount();
 
 	while(bots.reqCreateAndLoginTotalCount() - bots.clients().size() > 0 && count-- > 0)
 	{
-		ClientObject* pClient = new ClientObject(KBEngine::StringConv::val2str(accountID++), Bots::getSingleton().getNetworkInterface());
+		ClientObject* pClient = new ClientObject(g_kbeSrvConfig.getBots().bots_account_name_prefix + 
+			KBEngine::StringConv::val2str(g_componentID) + "_" + KBEngine::StringConv::val2str(g_accountID++), 
+			Bots::getSingleton().networkInterface());
+
 		Bots::getSingleton().addClient(pClient);
 	}
 

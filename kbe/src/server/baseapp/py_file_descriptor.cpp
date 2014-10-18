@@ -34,18 +34,18 @@ PyFileDescriptor::PyFileDescriptor(int fd, PyObject* pyCallback, bool write) :
 	write_(write)
 {
 	if(write)
-		Baseapp::getSingleton().getNetworkInterface().dispatcher().registerWriteFileDescriptor(fd_, this);
+		Baseapp::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor(fd_, this);
 	else
-		Baseapp::getSingleton().getNetworkInterface().dispatcher().registerFileDescriptor(fd_, this);
+		Baseapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(fd_, this);
 }
 
 //-------------------------------------------------------------------------------------
 PyFileDescriptor::~PyFileDescriptor()
 {
 	if(write_)
-		Baseapp::getSingleton().getNetworkInterface().dispatcher().deregisterWriteFileDescriptor(fd_);
+		Baseapp::getSingleton().networkInterface().dispatcher().deregisterWriteFileDescriptor(fd_);
 	else
-		Baseapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(fd_);
+		Baseapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(fd_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ PyObject* PyFileDescriptor::__py_deregisterFileDescriptor(PyObject* self, PyObje
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, true));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->find(fd, true));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -186,7 +186,7 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, false));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->find(fd, false));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -197,8 +197,8 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleInputNotification(int fd)
 {
-	INFO_MSG(boost::format("PyFileDescriptor:handleInputNotification: fd = %1%\n") %
-				fd );
+	INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
+				fd));
 
 	callback();
 	return 0;
@@ -220,7 +220,7 @@ void PyFileDescriptor::callback()
 	}
 	else
 	{
-		ERROR_MSG(boost::format("PyFileDescriptor::callback: can't found callback:%1%.\n") % fd_);
+		ERROR_MSG(fmt::format("PyFileDescriptor::callback: can't found callback:{}.\n", fd_));
 	}
 }
 

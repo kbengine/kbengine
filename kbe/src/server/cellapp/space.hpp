@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPACE_HPP__
-#define __SPACE_HPP__
+#ifndef KBE_SPACE_HPP
+#define KBE_SPACE_HPP
 
-#include "range_list.hpp"
+#include "coordinate_system.hpp"
 #include "cell.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -67,7 +67,7 @@ public:
 
 	void onEntityAttachWitness(Entity* pEntity);
 
-	SPACE_ID getID()const{ return id_; }
+	SPACE_ID id()const{ return id_; }
 
 	const SPACE_ENTITIES& entities()const{ return entities_; }
 
@@ -107,11 +107,13 @@ public:
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
 	static PyObject* __py_DelSpaceData(PyObject* self, PyObject* args);
 
-	RangeList* pRangeList(){ return &rangeList_; }
+	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
 
 	bool isDestroyed()const{ return destroyed_; }
+
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
+
 protected:
 	// 这个space的ID
 	SPACE_ID id_;	
@@ -128,7 +130,7 @@ protected:
 	// 每个space最多只有一个cell
 	Cell* pCell_;
 
-	RangeList rangeList_;
+	CoordinateSystem coordinateSystem_;
 
 	NavigationHandlePtr pNavHandle_;
 

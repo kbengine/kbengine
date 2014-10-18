@@ -76,7 +76,7 @@ are ignored by the syntax; they are not tokens.
 Encoding declarations
 ---------------------
 
-.. index:: source character set, encodings
+.. index:: source character set, encoding declarations (source file)
 
 If a comment in the first or second line of the Python script matches the
 regular expression ``coding[=:]\s*([-\w.]+)``, this comment is processed as an
@@ -401,7 +401,7 @@ String literals are described by the following lexical definitions:
 
 .. productionlist::
    stringliteral: [`stringprefix`](`shortstring` | `longstring`)
-   stringprefix: "r" | "R"
+   stringprefix: "r" | "u" | "R" | "U"
    shortstring: "'" `shortstringitem`* "'" | '"' `shortstringitem`* '"'
    longstring: "'''" `longstringitem`* "'''" | '"""' `longstringitem`* '"""'
    shortstringitem: `shortstringchar` | `stringescapeseq`
@@ -412,7 +412,7 @@ String literals are described by the following lexical definitions:
 
 .. productionlist::
    bytesliteral: `bytesprefix`(`shortbytes` | `longbytes`)
-   bytesprefix: "b" | "B" | "br" | "Br" | "bR" | "BR"
+   bytesprefix: "b" | "B" | "br" | "Br" | "bR" | "BR" | "rb" | "rB" | "Rb" | "RB"
    shortbytes: "'" `shortbytesitem`* "'" | '"' `shortbytesitem`* '"'
    longbytes: "'''" `longbytesitem`* "'''" | '"""' `longbytesitem`* '"""'
    shortbytesitem: `shortbyteschar` | `bytesescapeseq`
@@ -441,10 +441,24 @@ instance of the :class:`bytes` type instead of the :class:`str` type.  They
 may only contain ASCII characters; bytes with a numeric value of 128 or greater
 must be expressed with escapes.
 
+As of Python 3.3 it is possible again to prefix unicode strings with a
+``u`` prefix to simplify maintenance of dual 2.x and 3.x codebases.
+
 Both string and bytes literals may optionally be prefixed with a letter ``'r'``
 or ``'R'``; such strings are called :dfn:`raw strings` and treat backslashes as
 literal characters.  As a result, in string literals, ``'\U'`` and ``'\u'``
-escapes in raw strings are not treated specially.
+escapes in raw strings are not treated specially. Given that Python 2.x's raw
+unicode literals behave differently than Python 3.x's the ``'ur'`` syntax
+is not supported.
+
+   .. versionadded:: 3.3
+      The ``'rb'`` prefix of raw bytes literals has been added as a synonym
+      of ``'br'``.
+
+   .. versionadded:: 3.3
+      Support for the unicode legacy literal (``u'value'``) was reintroduced
+      to simplify the maintenance of dual Python 2.x and 3.x codebases.
+      See :pep:`414` for more information.
 
 In triple-quoted strings, unescaped newlines and quotes are allowed (and are
 retained), except that three unescaped quotes in a row terminate the string.  (A
@@ -492,13 +506,13 @@ Escape sequences only recognized in string literals are:
 +-----------------+---------------------------------+-------+
 | Escape Sequence | Meaning                         | Notes |
 +=================+=================================+=======+
-| ``\N{name}``    | Character named *name* in the   |       |
+| ``\N{name}``    | Character named *name* in the   | \(4)  |
 |                 | Unicode database                |       |
 +-----------------+---------------------------------+-------+
-| ``\uxxxx``      | Character with 16-bit hex value | \(4)  |
+| ``\uxxxx``      | Character with 16-bit hex value | \(5)  |
 |                 | *xxxx*                          |       |
 +-----------------+---------------------------------+-------+
-| ``\Uxxxxxxxx``  | Character with 32-bit hex value | \(5)  |
+| ``\Uxxxxxxxx``  | Character with 32-bit hex value | \(6)  |
 |                 | *xxxxxxxx*                      |       |
 +-----------------+---------------------------------+-------+
 
@@ -516,13 +530,15 @@ Notes:
    with the given value.
 
 (4)
+   .. versionchanged:: 3.3
+      Support for name aliases [#]_ has been added.
+
+(5)
    Individual code units which form parts of a surrogate pair can be encoded using
    this escape sequence.  Exactly four hex digits are required.
 
-(5)
-   Any Unicode character can be encoded this way, but characters outside the Basic
-   Multilingual Plane (BMP) will be encoded using a surrogate pair if Python is
-   compiled to use 16-bit code units (the default).  Exactly eight hex digits
+(6)
+   Any Unicode character can be encoded this way.  Exactly eight hex digits
    are required.
 
 
@@ -688,7 +704,7 @@ Delimiters
 The following tokens serve as delimiters in the grammar::
 
    (       )       [       ]       {       }
-   ,       :       .       ;       @       =
+   ,       :       .       ;       @       =       ->
    +=      -=      *=      /=      //=     %=
    &=      |=      ^=      >>=     <<=     **=
 
@@ -706,3 +722,8 @@ The following printing ASCII characters are not used in Python.  Their
 occurrence outside string literals and comments is an unconditional error::
 
    $       ?       `
+
+
+.. rubric:: Footnotes
+
+.. [#] http://www.unicode.org/Public/6.1.0/ucd/NameAliases.txt

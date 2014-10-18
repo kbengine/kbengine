@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __READ_ENTITY_HELPER_H__
-#define __READ_ENTITY_HELPER_H__
+#ifndef KBE_READ_ENTITY_HELPER_HPP
+#define KBE_READ_ENTITY_HELPER_HPP
 
 // common include	
 // #define NDEBUG
@@ -131,4 +131,4 @@ protected:
 };
 
 }
-#endif
+#endif // KBE_READ_ENTITY_HELPER_HPP

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SHUTDOWNER_HANDLER__
-#define __SHUTDOWNER_HANDLER__
+#ifndef KBE_SHUTDOWNER_HANDLER_HPP
+#define KBE_SHUTDOWNER_HANDLER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -58,4 +58,4 @@ protected:
 
 }
 
-#endif
+#endif // KBE_SHUTDOWNER_HANDLER_HPP

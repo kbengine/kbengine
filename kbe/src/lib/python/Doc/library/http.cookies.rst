@@ -22,8 +22,11 @@ many current day browsers and servers have relaxed parsing rules when comes to
 Cookie handling.  As a result, the parsing rules used are a bit less strict.
 
 The character set, :data:`string.ascii_letters`, :data:`string.digits` and
-``!#$%&'*+-.^_`|~`` denote the set of valid characters allowed by this module
+``!#$%&'*+-.^_`|~:`` denote the set of valid characters allowed by this module
 in Cookie name (as :attr:`~Morsel.key`).
+
+.. versionchanged:: 3.3
+   Allowed ':' as a valid Cookie name character.
 
 
 .. note::

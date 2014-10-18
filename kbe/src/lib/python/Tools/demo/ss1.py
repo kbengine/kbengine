@@ -7,8 +7,8 @@ SS1 -- a spreadsheet-like application.
 import os
 import re
 import sys
-import html
 from xml.parsers import expat
+from xml.sax.saxutils import escape
 
 LEFT, CENTER, RIGHT = "LEFT", "CENTER", "RIGHT"
 
@@ -79,10 +79,10 @@ class Sheet:
             del self.cells[xy]
 
     def clearrows(self, y1, y2):
-        self.clearcells(0, y1, sys.maxint, y2)
+        self.clearcells(0, y1, sys.maxsize, y2)
 
     def clearcolumns(self, x1, x2):
-        self.clearcells(x1, 0, x2, sys.maxint)
+        self.clearcells(x1, 0, x2, sys.maxsize)
 
     def selectcells(self, x1, y1, x2, y2):
         if x1 > x2:
@@ -113,23 +113,23 @@ class Sheet:
 
     def insertrows(self, y, n):
         assert n > 0
-        self.movecells(0, y, sys.maxint, sys.maxint, 0, n)
+        self.movecells(0, y, sys.maxsize, sys.maxsize, 0, n)
 
     def deleterows(self, y1, y2):
         if y1 > y2:
             y1, y2 = y2, y1
         self.clearrows(y1, y2)
-        self.movecells(0, y2+1, sys.maxint, sys.maxint, 0, y1-y2-1)
+        self.movecells(0, y2+1, sys.maxsize, sys.maxsize, 0, y1-y2-1)
 
     def insertcolumns(self, x, n):
         assert n > 0
-        self.movecells(x, 0, sys.maxint, sys.maxint, n, 0)
+        self.movecells(x, 0, sys.maxsize, sys.maxsize, n, 0)
 
     def deletecolumns(self, x1, x2):
         if x1 > x2:
             x1, x2 = x2, x1
         self.clearcells(x1, x2)
-        self.movecells(x2+1, 0, sys.maxint, sys.maxint, x1-x2-1, 0)
+        self.movecells(x2+1, 0, sys.maxsize, sys.maxsize, x1-x2-1, 0)
 
     def getsize(self):
         maxx = maxy = 0
@@ -205,7 +205,7 @@ class Sheet:
             if hasattr(cell, 'xml'):
                 cellxml = cell.xml()
             else:
-                cellxml = '<value>%s</value>' % html.escape(cell)
+                cellxml = '<value>%s</value>' % escape(cell)
             out.append('<cell row="%s" col="%s">\n  %s\n</cell>' %
                        (y, x, cellxml))
         out.append('</spreadsheet>')
@@ -213,16 +213,14 @@ class Sheet:
 
     def save(self, filename):
         text = self.xml()
-        f = open(filename, "w")
-        f.write(text)
-        if text and not text.endswith('\n'):
-            f.write('\n')
-        f.close()
+        with open(filename, "w", encoding='utf-8') as f:
+            f.write(text)
+            if text and not text.endswith('\n'):
+                f.write('\n')
 
     def load(self, filename):
-        f = open(filename, 'rb')
-        SheetParser(self).parsefile(f)
-        f.close()
+        with open(filename, 'rb') as f:
+            SheetParser(self).parsefile(f)
 
 class SheetParser:
 
@@ -239,13 +237,10 @@ class SheetParser:
     def startelement(self, tag, attrs):
         method = getattr(self, 'start_'+tag, None)
         if method:
-            for key, value in attrs.items():
-                attrs[key] = str(value) # XXX Convert Unicode to 8-bit
             method(attrs)
         self.texts = []
 
     def data(self, text):
-        text = str(text) # XXX Convert Unicode to 8-bit
         self.texts.append(text)
 
     def endelement(self, tag):
@@ -269,11 +264,7 @@ class SheetParser:
         except:
             self.value = None
 
-    def end_long(self, text):
-        try:
-            self.value = int(text)
-        except:
-            self.value = None
+    end_long = end_int
 
     def end_double(self, text):
         try:
@@ -288,10 +279,7 @@ class SheetParser:
             self.value = None
 
     def end_string(self, text):
-        try:
-            self.value = text
-        except:
-            self.value = None
+        self.value = text
 
     def end_value(self, text):
         if isinstance(self.value, BaseCell):
@@ -328,7 +316,7 @@ class BaseCell:
 class NumericCell(BaseCell):
 
     def __init__(self, value, fmt="%s", alignment=RIGHT):
-        assert isinstance(value, (int, int, float, complex))
+        assert isinstance(value, (int, float, complex))
         assert alignment in (LEFT, CENTER, RIGHT)
         self.value = value
         self.fmt = fmt
@@ -355,21 +343,18 @@ class NumericCell(BaseCell):
         if -2**31 <= self.value < 2**31:
             return '<int>%s</int>' % self.value
         else:
-            return self._xml_long()
-
-    def _xml_long(self):
-        return '<long>%s</long>' % self.value
+            return '<long>%s</long>' % self.value
 
     def _xml_float(self):
-        return '<double>%s</double>' % repr(self.value)
+        return '<double>%r</double>' % self.value
 
     def _xml_complex(self):
-        return '<complex>%s</double>' % repr(self.value)
+        return '<complex>%r</complex>' % self.value
 
 class StringCell(BaseCell):
 
     def __init__(self, text, fmt="%s", alignment=LEFT):
-        assert isinstance(text, (str, str))
+        assert isinstance(text, str)
         assert alignment in (LEFT, CENTER, RIGHT)
         self.text = text
         self.fmt = fmt
@@ -386,7 +371,7 @@ class StringCell(BaseCell):
         return s % (
             align2xml[self.alignment],
             self.fmt,
-            html.escape(self.text))
+            escape(self.text))
 
 class FormulaCell(BaseCell):
 
@@ -404,7 +389,6 @@ class FormulaCell(BaseCell):
     def recalc(self, ns):
         if self.value is None:
             try:
-                # A hack to evaluate expressions using true division
                 self.value = eval(self.translated, ns)
             except:
                 exc = sys.exc_info()[0]
@@ -425,7 +409,7 @@ class FormulaCell(BaseCell):
         return '<formula align="%s" format="%s">%s</formula>' % (
             align2xml[self.alignment],
             self.fmt,
-            self.formula)
+            escape(self.formula))
 
     def renumber(self, x1, y1, x2, y2, dx, dy):
         out = []
@@ -626,29 +610,29 @@ class SheetGUI:
 
     def selectall(self, event):
         self.setcurrent(1, 1)
-        self.setcorner(sys.maxint, sys.maxint)
+        self.setcorner(sys.maxsize, sys.maxsize)
 
     def selectcolumn(self, event):
         x, y = self.whichxy(event)
         self.setcurrent(x, 1)
-        self.setcorner(x, sys.maxint)
+        self.setcorner(x, sys.maxsize)
 
     def extendcolumn(self, event):
         x, y = self.whichxy(event)
         if x > 0:
             self.setcurrent(self.currentxy[0], 1)
-            self.setcorner(x, sys.maxint)
+            self.setcorner(x, sys.maxsize)
 
     def selectrow(self, event):
         x, y = self.whichxy(event)
         self.setcurrent(1, y)
-        self.setcorner(sys.maxint, y)
+        self.setcorner(sys.maxsize, y)
 
     def extendrow(self, event):
         x, y = self.whichxy(event)
         if y > 0:
             self.setcurrent(1, self.currentxy[1])
-            self.setcorner(sys.maxint, y)
+            self.setcorner(sys.maxsize, y)
 
     def press(self, event):
         x, y = self.whichxy(event)
@@ -709,14 +693,14 @@ class SheetGUI:
         self.setbeacon(x1, y1, x2, y2)
 
     def setbeacon(self, x1, y1, x2, y2):
-        if x1 == y1 == 1 and x2 == y2 == sys.maxint:
+        if x1 == y1 == 1 and x2 == y2 == sys.maxsize:
             name = ":"
-        elif (x1, x2) == (1, sys.maxint):
+        elif (x1, x2) == (1, sys.maxsize):
             if y1 == y2:
                 name = "%d" % y1
             else:
                 name = "%d:%d" % (y1, y2)
-        elif (y1, y2) == (1, sys.maxint):
+        elif (y1, y2) == (1, sys.maxsize):
             if x1 == x2:
                 name = "%s" % colnum2name(x1)
             else:
@@ -776,7 +760,7 @@ class SheetGUI:
         if text.startswith('='):
             cell = FormulaCell(text[1:])
         else:
-            for cls in int, int, float, complex:
+            for cls in int, float, complex:
                 try:
                     value = cls(text)
                 except:
@@ -812,7 +796,6 @@ class SheetGUI:
 
 def test_basic():
     "Basic non-gui self-test."
-    import os
     a = Sheet()
     for x in range(1, 11):
         for y in range(1, 11):

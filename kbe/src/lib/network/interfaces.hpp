@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORK_INTERFACES__
-#define __NETWORK_INTERFACES__
+#ifndef KBE_NETWORK_INTERFACES_HPP
+#define KBE_NETWORK_INTERFACES_HPP
 
 namespace KBEngine { 
 namespace Mercury
@@ -73,4 +73,5 @@ public:
 
 }
 }
-#endif // __NETWORK_INTERFACES__
+
+#endif // KBE_NETWORK_INTERFACES_HPP

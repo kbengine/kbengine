@@ -8,17 +8,15 @@ ASMS =
 
 MY_LIBS =		\
 	server		\
+	pyscript        \
 	network		\
 	thread
 	
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
-USE_G3DMATH=1
-
-ifndef USE_OPENSSL
-	USE_OPENSSL = 0
-endif
+USE_G3DMATH = 1
+USE_OPENSSL = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0

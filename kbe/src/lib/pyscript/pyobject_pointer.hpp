@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PYOBJECT_POINTER__
-#define __PYOBJECT_POINTER__
+#ifndef KBE_PYOBJECT_POINTER_HPP
+#define KBE_PYOBJECT_POINTER_HPP
+
 namespace KBEngine { 
 
 typedef SmartPointer<PyObject> PyObjectPtr;
@@ -37,4 +38,4 @@ inline void decrementReferenceCount(const PyObject& obj)
 };
 
 }
-#endif // __PYOBJECT_POINT__
+#endif // KBE_PYOBJECT_POINTER_HPP

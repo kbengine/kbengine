@@ -19,11 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBE_MEMORY_HELPER_HPP__
-#define __KBE_MEMORY_HELPER_HPP__
+#ifndef KBE_MEMORY_HELPER_HPP
+#define KBE_MEMORY_HELPER_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
+
+#ifdef USE_JEMALLOC
+#include "jemalloc/jemalloc.h"
+#endif
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG
@@ -32,8 +36,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 	inline void startLeakDetection(COMPONENT_TYPE type, COMPONENT_ID id)
 	{
-		std::wstring leak_filename = (boost::wformat(L".\\%1%_%2%.leaks") % COMPONENT_NAME_EX(type) % 
-			id).str();
+		//std::wstring leak_filename = fmt::format(L".\\{}_{}.leaks", COMPONENT_NAME_EX(type), 
+		//	id);
 
 		//VLDSetReportOptions (VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, leak_filename.c_str());
 	}
@@ -55,4 +59,4 @@ namespace KBEngine{
 
 }
 
-#endif // __KBE_DEBUG_OPTION_HPP__
+#endif // KBE_MEMORY_HELPER_HPP

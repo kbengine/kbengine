@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BASEAPPMGR_BASEAPP_H__
-#define __BASEAPPMGR_BASEAPP_H__
+#ifndef KBE_BASEAPPMGR_BASEAPP_HPP
+#define KBE_BASEAPPMGR_BASEAPP_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -44,6 +44,9 @@ public:
 	
 	void destroy(){ isDestroyed_ = true; }
 	bool isDestroyed()const { return isDestroyed_; }
+
+	float initProgress()const{ return initProgress_; }
+	void initProgress(float v){ initProgress_ = v; }
 protected:
 	ENTITY_ID numBases_;
 	ENTITY_ID numProxices_;
@@ -52,7 +55,10 @@ protected:
 	bool isDestroyed_;
 
 	Watchers watchers_;
+
+	float initProgress_;
 };
 
 }
-#endif
+
+#endif // KBE_BASEAPPMGR_BASEAPP_HPP

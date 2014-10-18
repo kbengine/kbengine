@@ -51,7 +51,7 @@ class AI:
 		删除领地
 		"""
 		if self.territoryControllerID > 0:
-			self.cancel(self.territoryControllerID)
+			self.cancelController(self.territoryControllerID)
 			self.territoryControllerID = 0
 			INFO_MSG("%s::delTerritory: %i" % (self.getScriptName(), self.id))
 			
@@ -151,22 +151,29 @@ class AI:
 		if self.targetID <= 0:
 			return
 		
+		dragon = (self.modelID == 20002001)
+
+		# demo简单实现， 如果是龙的话， 攻击距离比较远, 攻击距离应该调用不同技能来判定
+		attackMaxDist = 2.0
+		if dragon:
+			attackMaxDist = 20.0
+			
 		entity = KBEngine.entities.get(self.targetID)
-		if entity.position.distTo(self.position) > 2.0:
+
+		if entity.position.distTo(self.position) > attackMaxDist:
 			runSpeed = self.getDatas()["runSpeed"]
 			if runSpeed != self.moveSpeed:
 				self.moveSpeed = runSpeed
-			self.gotoPosition(entity.position, 1.8)
+			self.gotoPosition(entity.position, attackMaxDist - 0.2)
 			return
 		else:
 			self.resetSpeed()
 			
-			skilID = 1
-			if self.modelID == 20002001:
-				if random.random() > 0.5:
-					skillID = 7000101
-					
-			self.spellTarget(skilID, entity.id)
+			skillID = 1
+			if dragon:
+				skillID = 7000101
+
+			self.spellTarget(skillID, entity.id)
 			
 	def onThinkOther(self):
 		"""

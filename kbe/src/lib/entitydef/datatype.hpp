@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __DATA_TYPE_H__
-#define __DATA_TYPE_H__
+#ifndef KBE_DATA_TYPE_HPP
+#define KBE_DATA_TYPE_HPP
 
 // common include
 #include "cstdkbe/cstdkbe.hpp"
@@ -617,8 +617,10 @@ public:
 	bool isSameItemType(PyObject* pyValue);
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents);
 
 	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -670,6 +672,7 @@ public:
 	void addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents);
 
 	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
@@ -737,4 +740,5 @@ template class IntType<int32>;
 #ifdef CODE_INLINE
 #include "datatype.ipp"
 #endif
-#endif
+#endif // KBE_DATA_TYPE_HPP
+

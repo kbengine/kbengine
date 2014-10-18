@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __LOGINAPP_INTERFACE_H__
+	#undef KBE_LOGINAPP_INTERFACE_HPP
 #endif
 
 
-#ifndef __LOGINAPP_INTERFACE_H__
-#define __LOGINAPP_INTERFACE_H__
+#ifndef KBE_LOGINAPP_INTERFACE_HPP
+#define KBE_LOGINAPP_INTERFACE_HPP
 
 // common include	
 #if defined(LOGINAPP)
@@ -50,8 +50,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,							MERCURY_FIXED_MESSAGE)
 
 	// 错误码描述导出。
-	LOGINAPP_MESSAGE_EXPOSED(importMercuryErrorsDescr)
-	LOGINAPP_MESSAGE_DECLARE_ARGS0(importMercuryErrorsDescr,						MERCURY_FIXED_MESSAGE)
+	LOGINAPP_MESSAGE_EXPOSED(importServerErrorsDescr)
+	LOGINAPP_MESSAGE_DECLARE_ARGS0(importServerErrorsDescr,							MERCURY_FIXED_MESSAGE)
 
 	// 某app主动请求断线。
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(reqClose,										MERCURY_FIXED_MESSAGE)
@@ -110,7 +110,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS4(onLoginAccountQueryBaseappAddrFromBaseappmgr,	MERCURY_VARIABLE_MESSAGE,
 									std::string,									loginName, 
 									std::string,									accountName,
-									uint32,											addr,
+									std::string,									addr,
 									uint16,											port)
 
 	// 向dbmgr请求创建账号返回结果
@@ -138,6 +138,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 请求查询watcher数据
 	LOGINAPP_MESSAGE_DECLARE_STREAM(queryWatcher,									MERCURY_VARIABLE_MESSAGE)
+
+	// baseapp同步自己的初始化信息
+	LOGINAPP_MESSAGE_DECLARE_ARGS1(onBaseappInitProgress,							MERCURY_FIXED_MESSAGE,
+									float,											progress)
+
+	// 开始profile
+	LOGINAPP_MESSAGE_DECLARE_STREAM(startProfile,									MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	LOGINAPP_MESSAGE_DECLARE_STREAM(reqKillServer,									MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

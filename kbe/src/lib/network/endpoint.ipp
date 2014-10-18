@@ -528,19 +528,5 @@ INLINE int EndPoint::getInterfaceAddress(const char * name, u_int32_t & address)
 }
 #endif
 
-INLINE int EndPoint::transmitQueueSize() const
-{
-	int tx=0, rx=0;
-	this->getQueueSizes(tx, rx);
-	return tx;
-}
-
-INLINE int EndPoint::receiveQueueSize() const
-{
-	int tx=0, rx=0;
-	this->getQueueSizes(tx, rx);
-	return rx;
-}
-
 }
 }

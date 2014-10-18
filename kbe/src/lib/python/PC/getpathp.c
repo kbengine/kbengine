@@ -1,6 +1,6 @@
 
 /* Return the initial module search path. */
-/* Used by DOS, OS/2, Windows 3.1, Windows 95/98, Windows NT. */
+/* Used by DOS, Windows 3.1, Windows 95/98, Windows NT. */
 
 /* ----------------------------------------------------------------
    PATH RULES FOR WINDOWS:
@@ -245,13 +245,13 @@ getpythonregpath(HKEY keyBase, int skipcore)
     /* Tried to use sysget("winver") but here is too early :-( */
     versionLen = strlen(PyWin_DLLVersionString);
     /* Space for all the chars, plus one \0 */
-    keyBuf = keyBufPtr = malloc(sizeof(keyPrefix) +
-                                sizeof(WCHAR)*(versionLen-1) +
-                                sizeof(keySuffix));
+    keyBuf = keyBufPtr = PyMem_RawMalloc(sizeof(keyPrefix) +
+                                         sizeof(WCHAR)*(versionLen-1) +
+                                         sizeof(keySuffix));
     if (keyBuf==NULL) goto done;
 
     memcpy(keyBufPtr, keyPrefix, sizeof(keyPrefix)-sizeof(WCHAR));
-    keyBufPtr += sizeof(keyPrefix)/sizeof(WCHAR) - 1;
+    keyBufPtr += Py_ARRAY_LENGTH(keyPrefix) - 1;
     mbstowcs(keyBufPtr, PyWin_DLLVersionString, versionLen);
     keyBufPtr += versionLen;
     /* NULL comes with this one! */
@@ -271,7 +271,7 @@ getpythonregpath(HKEY keyBase, int skipcore)
     /* Allocate a temp array of char buffers, so we only need to loop
        reading the registry once
     */
-    ppPaths = malloc( sizeof(WCHAR *) * numKeys );
+    ppPaths = PyMem_RawMalloc( sizeof(WCHAR *) * numKeys );
     if (ppPaths==NULL) goto done;
     memset(ppPaths, 0, sizeof(WCHAR *) * numKeys);
     /* Loop over all subkeys, allocating a temp sub-buffer. */
@@ -293,7 +293,7 @@ getpythonregpath(HKEY keyBase, int skipcore)
         /* Find the value of the buffer size, malloc, then read it */
         RegQueryValueExW(subKey, NULL, 0, NULL, NULL, &reqdSize);
         if (reqdSize) {
-            ppPaths[index] = malloc(reqdSize);
+            ppPaths[index] = PyMem_RawMalloc(reqdSize);
             if (ppPaths[index]) {
                 RegQueryValueExW(subKey, NULL, 0, NULL,
                                 (LPBYTE)ppPaths[index],
@@ -308,7 +308,7 @@ getpythonregpath(HKEY keyBase, int skipcore)
     if (dataSize == 0) goto done;
 
     /* original datasize from RegQueryInfo doesn't include the \0 */
-    dataBuf = malloc((dataSize+1) * sizeof(WCHAR));
+    dataBuf = PyMem_RawMalloc((dataSize+1) * sizeof(WCHAR));
     if (dataBuf) {
         WCHAR *szCur = dataBuf;
         DWORD reqdSize = dataSize;
@@ -346,14 +346,13 @@ getpythonregpath(HKEY keyBase, int skipcore)
 done:
     /* Loop freeing my temp buffers */
     if (ppPaths) {
-        for(index=0;index<numKeys;index++)
-            if (ppPaths[index]) free(ppPaths[index]);
-        free(ppPaths);
+        for(index=0; index<numKeys; index++)
+            PyMem_RawFree(ppPaths[index]);
+        PyMem_RawFree(ppPaths);
     }
     if (newKey)
         RegCloseKey(newKey);
-    if (keyBuf)
-        free(keyBuf);
+    PyMem_RawFree(keyBuf);
     return retval;
 }
 #endif /* Py_ENABLE_SHARED */
@@ -423,6 +422,53 @@ get_progpath(void)
         progpath[0] = '\0';
 }
 
+static int
+find_env_config_value(FILE * env_file, const wchar_t * key, wchar_t * value)
+{
+    int result = 0; /* meaning not found */
+    char buffer[MAXPATHLEN*2+1];  /* allow extra for key, '=', etc. */
+
+    fseek(env_file, 0, SEEK_SET);
+    while (!feof(env_file)) {
+        char * p = fgets(buffer, MAXPATHLEN*2, env_file);
+        wchar_t tmpbuffer[MAXPATHLEN*2+1];
+        PyObject * decoded;
+        size_t n;
+
+        if (p == NULL)
+            break;
+        n = strlen(p);
+        if (p[n - 1] != '\n') {
+            /* line has overflowed - bail */
+            break;
+        }
+        if (p[0] == '#')    /* Comment - skip */
+            continue;
+        decoded = PyUnicode_DecodeUTF8(buffer, n, "surrogateescape");
+        if (decoded != NULL) {
+            Py_ssize_t k;
+            k = PyUnicode_AsWideChar(decoded,
+                                     tmpbuffer, MAXPATHLEN * 2);
+            Py_DECREF(decoded);
+            if (k >= 0) {
+                wchar_t * tok = wcstok(tmpbuffer, L" \t\r\n");
+                if ((tok != NULL) && !wcscmp(tok, key)) {
+                    tok = wcstok(NULL, L" \t");
+                    if ((tok != NULL) && !wcscmp(tok, L"=")) {
+                        tok = wcstok(NULL, L"\r\n");
+                        if (tok != NULL) {
+                            wcsncpy(value, tok, MAXPATHLEN);
+                            result = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
 static void
 calculate_path(void)
 {
@@ -457,6 +503,40 @@ calculate_path(void)
     /* progpath guaranteed \0 terminated in MAXPATH+1 bytes. */
     wcscpy(argv0_path, progpath);
     reduce(argv0_path);
+
+    /* Search for an environment configuration file, first in the
+       executable's directory and then in the parent directory.
+       If found, open it for use when searching for prefixes.
+    */
+
+    {
+        wchar_t tmpbuffer[MAXPATHLEN+1];
+        wchar_t *env_cfg = L"pyvenv.cfg";
+        FILE * env_file = NULL;
+
+        wcscpy(tmpbuffer, argv0_path);
+        join(tmpbuffer, env_cfg);
+        env_file = _Py_wfopen(tmpbuffer, L"r");
+        if (env_file == NULL) {
+            errno = 0;
+            reduce(tmpbuffer);
+            reduce(tmpbuffer);
+            join(tmpbuffer, env_cfg);
+            env_file = _Py_wfopen(tmpbuffer, L"r");
+            if (env_file == NULL) {
+                errno = 0;
+            }
+        }
+        if (env_file != NULL) {
+            /* Look for a 'home' variable and set argv0_path to it, if found */
+            if (find_env_config_value(env_file, L"home", tmpbuffer)) {
+                wcscpy(argv0_path, tmpbuffer);
+            }
+            fclose(env_file);
+            env_file = NULL;
+        }
+    }
+
     if (pythonhome == NULL || *pythonhome == '\0') {
         if (search_for_prefix(argv0_path, LANDMARK))
             pythonhome = prefix;
@@ -535,7 +615,7 @@ calculate_path(void)
     if (envpath != NULL)
         bufsz += wcslen(envpath) + 1;
 
-    module_search_path = buf = malloc(bufsz*sizeof(wchar_t));
+    module_search_path = buf = PyMem_RawMalloc(bufsz*sizeof(wchar_t));
     if (buf == NULL) {
         /* We can't exit, so print a warning and limp along */
         fprintf(stderr, "Can't malloc dynamic PYTHONPATH.\n");
@@ -548,10 +628,8 @@ calculate_path(void)
             module_search_path = PYTHONPATH;
         }
 #ifdef MS_WINDOWS
-        if (machinepath)
-            free(machinepath);
-        if (userpath)
-            free(userpath);
+        PyMem_RawFree(machinepath);
+        PyMem_RawFree(userpath);
 #endif /* MS_WINDOWS */
         return;
     }
@@ -571,13 +649,13 @@ calculate_path(void)
         wcscpy(buf, userpath);
         buf = wcschr(buf, L'\0');
         *buf++ = DELIM;
-        free(userpath);
+        PyMem_RawFree(userpath);
     }
     if (machinepath) {
         wcscpy(buf, machinepath);
         buf = wcschr(buf, L'\0');
         *buf++ = DELIM;
-        free(machinepath);
+        PyMem_RawFree(machinepath);
     }
     if (pythonhome == NULL) {
         if (!skipdefault) {
@@ -664,7 +742,7 @@ void
 Py_SetPath(const wchar_t *path)
 {
     if (module_search_path != NULL) {
-        free(module_search_path);
+        PyMem_RawFree(module_search_path);
         module_search_path = NULL;
     }
     if (path != NULL) {
@@ -672,10 +750,10 @@ Py_SetPath(const wchar_t *path)
         wchar_t *prog = Py_GetProgramName();
         wcsncpy(progpath, prog, MAXPATHLEN);
         prefix[0] = L'\0';
-        module_search_path = malloc((wcslen(path) + 1) * sizeof(wchar_t));
+        module_search_path = PyMem_RawMalloc((wcslen(path) + 1) * sizeof(wchar_t));
         if (module_search_path != NULL)
             wcscpy(module_search_path, path);
-	}
+    }
 }
 
 wchar_t *
@@ -708,8 +786,8 @@ Py_GetProgramFullPath(void)
     return progpath;
 }
 
-/* Load python3.dll before loading any extension module that might refer 
-   to it. That way, we can be sure that always the python3.dll corresponding 
+/* Load python3.dll before loading any extension module that might refer
+   to it. That way, we can be sure that always the python3.dll corresponding
    to this python DLL is loaded, not a python3.dll that might be on the path
    by chance.
    Return whether the DLL was found.

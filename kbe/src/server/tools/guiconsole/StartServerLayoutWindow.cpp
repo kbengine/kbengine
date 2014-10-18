@@ -65,7 +65,6 @@ BOOL CStartServerLayoutWindow::OnInitDialog()
 	m_componentlist.AddString(L"baseappmgr");
 	m_componentlist.AddString(L"loginapp");
 	m_componentlist.AddString(L"dbmgr");
-	m_componentlist.AddString(L"resourcemgr");
 
 	m_port.SetWindowTextW(L"20099");
 

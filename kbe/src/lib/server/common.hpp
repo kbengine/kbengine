@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_COMMON_H__
-#define __SERVER_COMMON_H__
+#ifndef KBE_SERVER_COMMON_HPP
+#define KBE_SERVER_COMMON_HPP
 
 // common include
 #include "cstdkbe/timer.hpp"
@@ -103,19 +103,14 @@ namespace KBEngine {
 				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
-		case RESOURCEMGR_TYPE:																				\
-			{																								\
-				BUNDLE.newMessage(ResourcemgrInterface::MESSAGENAME);										\
-			}																								\
-			break;																							\
 		case BILLING_TYPE:																					\
 			{																								\
 				BUNDLE.newMessage(BillingSystemInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
 		default:																							\
-			ERROR_MSG(boost::format("not support componentType=%1%(%2%)\n")									\
-					% COMPONENTTYPE % COMPONENT_NAME_EX(COMPONENTTYPE));									\
+			ERROR_MSG(fmt::format("not support componentType={}({})\n",										\
+					COMPONENTTYPE, COMPONENT_NAME_EX(COMPONENTTYPE)));										\
 			KBE_ASSERT(false && "not support componentType!\n");											\
 			break;																							\
 		};																									\
@@ -135,8 +130,8 @@ namespace KBEngine {
 			}																								\
 			break;																							\
 		default:																							\
-			ERROR_MSG(boost::format("not support componentType=%1%(%2%)")									\
-					% COMPONENTTYPE % COMPONENT_NAME_EX(COMPONENTTYPE));									\
+			ERROR_MSG(fmt::format("not support componentType={}({})\n",										\
+					COMPONENTTYPE, COMPONENT_NAME_EX(COMPONENTTYPE)));										\
 			KBE_ASSERT(false && "not support componentType!\n");											\
 			break;																							\
 		};																									\
@@ -171,4 +166,5 @@ inline uint64 secondsToStamps(float seconds)
 uint16 datatype2id(std::string datatype);
 
 }
-#endif
+
+#endif // KBE_SERVER_COMMON_HPP

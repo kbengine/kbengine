@@ -19,18 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __KBE_DEBUG_HPP__
-#define __KBE_DEBUG_HPP__
+#ifndef KBE_DEBUG_HPP
+#define KBE_DEBUG_HPP
 
 #include <assert.h>
 #include <time.h>	
 #include <stdarg.h> 
-#include <list> 
+#include <queue> 
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4819)
 #endif
-#include "boost/format.hpp"
-#include "cstdkbe/tasks.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
@@ -103,8 +101,7 @@ inline const char* KBELOG_TYPE_NAME_EX(uint32 CTYPE)
 	return " UNKNOWN";
 }
 
-class DebugHelper : public Task, 
-					public Singleton<DebugHelper>
+class DebugHelper  : public Singleton<DebugHelper>
 {
 public:
 	DebugHelper();
@@ -125,37 +122,20 @@ public:
 
 	void lockthread();
 	void unlockthread();
-
-	/** 
-		同步日志到messagelog
-	*/
-	void sync();
-	bool process();
     
 	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
 	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
-
-	void print_msg(boost::format& fmt);
-	void print_msg(std::string s);
-
-	void debug_msg(boost::format& fmt);
-	void debug_msg(std::string s);
-
-	void error_msg(boost::format& fmt);
-	void error_msg(std::string s);
-
-	void info_msg(boost::format& fmt);
-	void info_msg(std::string s);
-
-	void warning_msg(boost::format& fmt);
-	void warning_msg(std::string s);
-
-	void critical_msg(boost::format& fmt);
-	void critical_msg(std::string s);
 	
-	void script_msg(boost::format& fmt);
-	void script_msg(std::string s);
+	Mercury:: EventDispatcher* pDispatcher()const{ return pDispatcher_; }
+	Mercury:: NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
+	void print_msg(const std::string& s);
+	void debug_msg(const std::string& s);
+	void error_msg(const std::string& s);
+	void info_msg(const std::string& s);
+	void warning_msg(const std::string& s);
+	void critical_msg(const std::string& s);
+	void script_msg(const std::string& s);
 	void backtrace_msg();
 
 	void onMessage(uint32 logType, const char * str, uint32 length);
@@ -165,23 +145,35 @@ public:
 
 	void changeLogger(std::string name);
 
-	void clearBufferedLog();
+	void clearBufferedLog(bool destroy = false);
 
 	void setScriptMsgType(int msgtype);
 
 	void shouldWriteToSyslog(bool v = true);
+
+	/** 
+		同步日志到messagelog
+	*/
+	void sync();
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
+
 	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
-	std::list< Mercury::Bundle* > bufferedLogPackets_;
-	bool syncStarting_;
+
+	std::queue< Mercury::Bundle* > bufferedLogPackets_;
+	size_t hasBufferedLogPackets_;
+
 	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;
 
 	int scriptMsgType_;
+
+	bool noSyncLog_;
+
+	bool canLogFile_;
 };
 
 /*---------------------------------------------------------------------------------
@@ -222,4 +214,4 @@ void myassert(const char* exp, const char * func, const char * file, unsigned in
 
 }
 
-#endif // __KBE_DEBUG_HPP__
+#endif // KBE_DEBUG_HPP

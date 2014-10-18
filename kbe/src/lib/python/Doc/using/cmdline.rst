@@ -24,7 +24,7 @@ Command line
 
 When invoking Python, you may specify any of these options::
 
-    python [-bBdEhiORqsSuvVWx?] [-c command | -m module-name | script | - ] [args]
+    python [-bBdEhiIOqsSuvVWx?] [-c command | -m module-name | script | - ] [args]
 
 The most common use case is, of course, a simple invocation of a script::
 
@@ -81,7 +81,8 @@ source.
    the implementation may not always enforce this (e.g. it may allow you to
    use a name that includes a hyphen).
 
-   Package names are also permitted. When a package name is supplied instead
+   Package names (including namespace packages) are also permitted. When a
+   package name is supplied instead
    of a normal module, the interpreter will execute ``<pkg>.__main__`` as
    the main module. This behaviour is deliberately similar to the handling
    of directories and zipfiles that are passed to the interpreter as the
@@ -115,6 +116,9 @@ source.
    .. versionchanged:: 3.1
       Supply the package name to run a ``__main__`` submodule.
 
+   .. versionchanged:: 3.4
+      namespace packages are also supported
+
 
 .. describe:: -
 
@@ -147,7 +151,12 @@ source.
 
 If no interface option is given, :option:`-i` is implied, ``sys.argv[0]`` is
 an empty string (``""``) and the current directory will be added to the
-start of :data:`sys.path`.
+start of :data:`sys.path`.  Also, tab-completion and history editing is
+automatically enabled, if available on your platform (see
+:ref:`rlcompleter-config`).
+
+.. versionchanged:: 3.4
+   Automatic enabling of tab-completion and history editing.
 
 .. seealso::  :ref:`tut-invoking`
 
@@ -169,6 +178,8 @@ Generic options
 
        Python 3.0
 
+
+.. _using-on-misc-options:
 
 Miscellaneous options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -208,6 +219,17 @@ Miscellaneous options
    raises an exception.  See also :envvar:`PYTHONINSPECT`.
 
 
+.. cmdoption:: -I
+
+   Run Python in isolated mode. This also implies -E and -s.
+   In isolated mode :data:`sys.path` contains neither the script's directory nor
+   the user's site-packages directory. All :envvar:`PYTHON*` environment
+   variables are ignored, too. Further restrictions may be imposed to prevent
+   the user from injecting malicious code.
+
+   .. versionadded:: 3.4
+
+
 .. cmdoption:: -O
 
    Turn on basic optimizations.  This changes the filename extension for
@@ -229,23 +251,22 @@ Miscellaneous options
 
 .. cmdoption:: -R
 
-   Turn on hash randomization, so that the :meth:`__hash__` values of str, bytes
-   and datetime objects are "salted" with an unpredictable random value.
-   Although they remain constant within an individual Python process, they are
-   not predictable between repeated invocations of Python.
+   Kept for compatibility.  On Python 3.3 and greater, hash randomization is
+   turned on by default.
 
-   This is intended to provide protection against a denial-of-service caused by
-   carefully-chosen inputs that exploit the worst case performance of a dict
-   construction, O(n^2) complexity.  See
+   On previous versions of Python, this option turns on hash randomization,
+   so that the :meth:`__hash__` values of str, bytes and datetime
+   are "salted" with an unpredictable random value.  Although they remain
+   constant within an individual Python process, they are not predictable
+   between repeated invocations of Python.
+
+   Hash randomization is intended to provide protection against a
+   denial-of-service caused by carefully-chosen inputs that exploit the worst
+   case performance of a dict construction, O(n^2) complexity.  See
    http://www.ocert.org/advisories/ocert-2011-003.html for details.
 
-   Changing hash values affects the order in which keys are retrieved from a
-   dict.  Although Python has never made guarantees about this ordering (and it
-   typically varies between 32-bit and 64-bit builds), enough real-world code
-   implicitly relies on this non-guaranteed behavior that the randomization is
-   disabled by default.
-
-   See also :envvar:`PYTHONHASHSEED`.
+   :envvar:`PYTHONHASHSEED` allows you to set a fixed value for the hash
+   seed secret.
 
    .. versionadded:: 3.2.3
 
@@ -263,13 +284,15 @@ Miscellaneous options
 .. cmdoption:: -S
 
    Disable the import of the module :mod:`site` and the site-dependent
-   manipulations of :data:`sys.path` that it entails.
+   manipulations of :data:`sys.path` that it entails.  Also disable these
+   manipulations if :mod:`site` is explicitly imported later (call
+   :func:`site.main` if you want them to be triggered).
 
 
 .. cmdoption:: -u
 
-   Force the binary layer of the stdin, stdout and stderr streams (which is
-   available as their ``buffer`` attribute) to be unbuffered.  The text I/O
+   Force the binary layer of the stdout and stderr streams (which is
+   available as their ``buffer`` attribute) to be unbuffered. The text I/O
    layer will still be line-buffered if writing to the console, or
    block-buffered if redirected to a non-interactive file.
 
@@ -357,11 +380,28 @@ Miscellaneous options
 .. cmdoption:: -X
 
    Reserved for various implementation-specific options.  CPython currently
-   defines none of them, but allows to pass arbitrary values and retrieve
-   them through the :data:`sys._xoptions` dictionary.
+   defines the following possible values:
+
+   * ``-X faulthandler`` to enable :mod:`faulthandler`;
+   * ``-X showrefcount`` to enable the output of the total reference count
+     and memory blocks (only works on debug builds);
+   * ``-X tracemalloc`` to start tracing Python memory allocations using the
+     :mod:`tracemalloc` module. By default, only the most recent frame is
+     stored in a traceback of a trace. Use ``-X tracemalloc=NFRAME`` to start
+     tracing with a traceback limit of *NFRAME* frames. See the
+     :func:`tracemalloc.start` for more information.
+
+   It also allows to pass arbitrary values and retrieve them through the
+   :data:`sys._xoptions` dictionary.
 
    .. versionchanged:: 3.2
       It is now allowed to pass :option:`-X` with CPython.
+
+   .. versionadded:: 3.3
+      The ``-X faulthandler`` option.
+
+   .. versionadded:: 3.4
+      The ``-X showrefcount`` and ``-X tracemalloc`` options.
 
 
 Options you shouldn't use
@@ -380,7 +420,7 @@ Environment variables
 ---------------------
 
 These environment variables influence Python's behavior, they are processed
-before the command-line switches other than -E.  It is customary that
+before the command-line switches other than -E or -I.  It is customary that
 command-line switches override environmental variables where there is a
 conflict.
 
@@ -425,7 +465,7 @@ conflict.
    is executed in the same namespace where interactive commands are executed so
    that objects defined or imported in it can be used without qualification in
    the interactive session.  You can also change the prompts :data:`sys.ps1` and
-   :data:`sys.ps2` in this file.
+   :data:`sys.ps2` and the hook :data:`sys.__interactivehook__` in this file.
 
 
 .. envvar:: PYTHONY2K
@@ -475,21 +515,20 @@ conflict.
 .. envvar:: PYTHONCASEOK
 
    If this is set, Python ignores case in :keyword:`import` statements.  This
-   only works on Windows, OS X, and OS/2.
+   only works on Windows and OS X.
 
 
 .. envvar:: PYTHONDONTWRITEBYTECODE
 
-   If this is set, Python won't try to write ``.pyc`` or ``.pyo`` files on the
-   import of source modules.  This is equivalent to specifying the :option:`-B`
-   option.
+   If this is set to a non-empty string, Python won't try to write ``.pyc`` or
+   ``.pyo`` files on the import of source modules.  This is equivalent to
+   specifying the :option:`-B` option.
 
 
 .. envvar:: PYTHONHASHSEED
 
-   If this variable is set to ``random``, the effect is the same as specifying
-   the :option:`-R` option: a random value is used to seed the hashes of str,
-   bytes and datetime objects.
+   If this variable is not set or set to ``random``, a random value is used
+   to seed the hashes of str, bytes and datetime objects.
 
    If :envvar:`PYTHONHASHSEED` is set to an integer value, it is used as a fixed
    seed for generating the hash() of the types covered by the hash
@@ -500,8 +539,7 @@ conflict.
    values.
 
    The integer must be a decimal number in the range [0,4294967295].  Specifying
-   the value 0 will lead to the same hash values as when hash randomization is
-   disabled.
+   the value 0 will disable hash randomization.
 
    .. versionadded:: 3.2.3
 
@@ -509,12 +547,15 @@ conflict.
 .. envvar:: PYTHONIOENCODING
 
    If this is set before running the interpreter, it overrides the encoding used
-   for stdin/stdout/stderr, in the syntax ``encodingname:errorhandler``. The
-   ``:errorhandler`` part is optional and has the same meaning as in
-   :func:`str.encode`.
+   for stdin/stdout/stderr, in the syntax ``encodingname:errorhandler``.  Both
+   the ``encodingname`` and the ``:errorhandler`` parts are optional and have
+   the same meaning as in :func:`str.encode`.
 
    For stderr, the ``:errorhandler`` part is ignored; the handler will always be
    ``'backslashreplace'``.
+
+   .. versionchanged:: 3.4
+      The ``encodingname`` part is now optional.
 
 
 .. envvar:: PYTHONNOUSERSITE
@@ -531,8 +572,8 @@ conflict.
 
    Defines the :data:`user base directory <site.USER_BASE>`, which is used to
    compute the path of the :data:`user site-packages directory <site.USER_SITE>`
-   and :ref:`Distutils installation paths <inst-alt-install-user>` for ``python
-   setup.py install --user``.
+   and :ref:`Distutils installation paths <inst-alt-install-user>` for
+   ``python setup.py install --user``.
 
    .. seealso::
 
@@ -550,6 +591,35 @@ conflict.
    This is equivalent to the :option:`-W` option. If set to a comma
    separated string, it is equivalent to specifying :option:`-W` multiple
    times.
+
+.. envvar:: PYTHONFAULTHANDLER
+
+   If this environment variable is set to a non-empty string,
+   :func:`faulthandler.enable` is called at startup: install a handler for
+   :const:`SIGSEGV`, :const:`SIGFPE`, :const:`SIGABRT`, :const:`SIGBUS` and
+   :const:`SIGILL` signals to dump the Python traceback.  This is equivalent to
+   :option:`-X` ``faulthandler`` option.
+
+   .. versionadded:: 3.3
+
+
+.. envvar:: PYTHONTRACEMALLOC
+
+   If this environment variable is set to a non-empty string, start tracing
+   Python memory allocations using the :mod:`tracemalloc` module. The value of
+   the variable is the maximum number of frames stored in a traceback of a
+   trace. For example, ``PYTHONTRACEMALLOC=1`` stores only the most recent
+   frame. See the :func:`tracemalloc.start` for more information.
+
+   .. versionadded:: 3.4
+
+
+.. envvar:: PYTHONASYNCIODEBUG
+
+   If this environment variable is set to a non-empty string, enable the
+   :ref:`debug mode <asyncio-debug-mode>` of the :mod:`asyncio` module.
+
+   .. versionadded:: 3.4
 
 
 Debug-mode variables

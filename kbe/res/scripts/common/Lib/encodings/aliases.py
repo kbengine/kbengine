@@ -33,9 +33,9 @@ aliases = {
     'us'                 : 'ascii',
     'us_ascii'           : 'ascii',
 
-    ## base64_codec codec
-    #'base64'             : 'base64_codec',
-    #'base_64'            : 'base64_codec',
+    # base64_codec codec
+    'base64'             : 'base64_codec',
+    'base_64'            : 'base64_codec',
 
     # big5 codec
     'big5_tw'            : 'big5',
@@ -45,8 +45,8 @@ aliases = {
     'big5_hkscs'         : 'big5hkscs',
     'hkscs'              : 'big5hkscs',
 
-    ## bz2_codec codec
-    #'bz2'                : 'bz2_codec',
+    # bz2_codec codec
+    'bz2'                : 'bz2_codec',
 
     # cp037 codec
     '037'                : 'cp037',
@@ -62,6 +62,12 @@ aliases = {
     '1026'               : 'cp1026',
     'csibm1026'          : 'cp1026',
     'ibm1026'            : 'cp1026',
+
+    # cp1125 codec
+    '1125'                : 'cp1125',
+    'ibm1125'             : 'cp1125',
+    'cp866u'              : 'cp1125',
+    'ruscii'              : 'cp1125',
 
     # cp1140 codec
     '1140'               : 'cp1140',
@@ -102,6 +108,11 @@ aliases = {
     # cp1258 codec
     '1258'               : 'cp1258',
     'windows_1258'       : 'cp1258',
+
+    # cp273 codec
+    '273'                : 'cp273',
+    'ibm273'             : 'cp273',
+    'csibm273'           : 'cp273',
 
     # cp424 codec
     '424'                : 'cp424',
@@ -248,8 +259,8 @@ aliases = {
     'cp936'              : 'gbk',
     'ms936'              : 'gbk',
 
-    ## hex_codec codec
-    #'hex'                : 'hex_codec',
+    # hex_codec codec
+    'hex'                : 'hex_codec',
 
     # hp_roman8 codec
     'roman8'             : 'hp_roman8',
@@ -450,13 +461,13 @@ aliases = {
     'cp154'              : 'ptcp154',
     'cyrillic_asian'     : 'ptcp154',
 
-    ## quopri_codec codec
-    #'quopri'             : 'quopri_codec',
-    #'quoted_printable'   : 'quopri_codec',
-    #'quotedprintable'    : 'quopri_codec',
+    # quopri_codec codec
+    'quopri'             : 'quopri_codec',
+    'quoted_printable'   : 'quopri_codec',
+    'quotedprintable'    : 'quopri_codec',
 
-    ## rot_13 codec
-    #'rot13'              : 'rot_13',
+    # rot_13 codec
+    'rot13'              : 'rot_13',
 
     # shift_jis codec
     'csshiftjis'         : 'shift_jis',
@@ -518,12 +529,12 @@ aliases = {
     'utf8_ucs2'          : 'utf_8',
     'utf8_ucs4'          : 'utf_8',
 
-    ## uu_codec codec
-    #'uu'                 : 'uu_codec',
+    # uu_codec codec
+    'uu'                 : 'uu_codec',
 
-    ## zlib_codec codec
-    #'zip'                : 'zlib_codec',
-    #'zlib'               : 'zlib_codec',
+    # zlib_codec codec
+    'zip'                : 'zlib_codec',
+    'zlib'               : 'zlib_codec',
 
     # temporary mac CJK aliases, will be replaced by proper codecs in 3.1
     'x_mac_japanese'      : 'shift_jis',

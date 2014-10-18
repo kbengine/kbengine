@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __KBE_NAVIGATION_HPP__
-#define __KBE_NAVIGATION_HPP__
+#ifndef KBE_NAVIGATION_HPP
+#define KBE_NAVIGATION_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"

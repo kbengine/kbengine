@@ -2,6 +2,7 @@
 import KBEngine
 import random
 import wtimer
+import time
 import d_spaces
 import d_avatar_inittab
 from KBEDebug import *
@@ -20,11 +21,11 @@ class Avatar(KBEngine.Proxy,
 		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
 		avatar_inittab = d_avatar_inittab.datas[self.roleType]
 
-		if "Copy" in spacedatas["entityType"]:
+		if "Duplicate" in spacedatas["entityType"]:
 			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
 			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
 			self.cellData["position"] = avatar_inittab["spawnPos"]
-
+		
 		self.accountEntity = None
 		self.cellData["dbid"] = self.databaseID
 		self.nameB = self.cellData["name"]
@@ -39,6 +40,26 @@ class Avatar(KBEngine.Proxy,
 		cell部分。
 		"""
 		INFO_MSG("Avatar[%i-%s] entities enable. spaceUTypeB=%s, mailbox:%s" % (self.id, self.nameB, self.spaceUTypeB, self.client))
+		
+		if hasattr(self, "cellData"):
+			# 防止使用统一个号登陆不同的demo造成无法找到匹配的地图从而无法加载资源导致无法进入游戏
+			# 这里检查一下， 发现不对则强制同步到匹配的地图
+			if self.getClientType() == 2:
+				self.cellData["spaceUType"] = 2
+				spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+				self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+			elif self.getClientType() == 5:
+				if self.cellData["spaceUType"] == 1 or self.cellData["spaceUType"] == 2:
+					self.cellData["spaceUType"] = 3
+					spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+					self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+			else:
+				self.cellData["spaceUType"] = 1
+				spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+				self.cellData["position"] = spacedatas.get("spawnPos", (0,0,0))
+			
+			self.spaceUTypeB = self.cellData["spaceUType"]
+		
 		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB, {})
 		
 	def onGetCell(self):
@@ -68,10 +89,13 @@ class Avatar(KBEngine.Proxy,
 			
 		# 如果帐号ENTITY存在 则也通知销毁它
 		if self.accountEntity != None:
-			self.accountEntity.activeCharacter = None
-			self.accountEntity.destroy()
-			self.accountEntity = None
-			
+			if time.time() - self.accountEntity.relogin > 1:
+				self.accountEntity.activeCharacter = None
+				self.accountEntity.destroy()
+				self.accountEntity = None
+			else:
+				DEBUG_MSG("Avatar[%i].destroySelf: relogin =%i" % (self.id, time.time() - self.accountEntity.relogin))
+				
 		# 销毁base
 		self.destroy()
 
@@ -84,11 +108,6 @@ class Avatar(KBEngine.Proxy,
 		# 防止正在请求创建cell的同时客户端断开了， 我们延时一段时间来执行销毁cell直到销毁base
 		# 这段时间内客户端短连接登录则会激活entity
 		self._destroyTimer = self.addTimer(1, 0, wtimer.TIMER_TYPE_DESTROY)
-		
-		if self.spaceID > 0:
-			self.getCurrSpaceBase().logoutSpace(self.id)
-		else:
-			self.getSpaceMgr().logoutSpace(self.id, self.spaceID)
 			
 	def onClientGetCell(self):
 		"""

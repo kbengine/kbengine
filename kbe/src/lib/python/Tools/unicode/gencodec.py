@@ -102,7 +102,7 @@ def readmap(filename):
             comment = ''
         else:
             comment = comment[1:].strip()
-        if enc < 256:
+        if not isinstance(enc, tuple) and enc < 256:
             if enc in unmapped:
                 unmapped.remove(enc)
             if enc == uni:
@@ -202,11 +202,10 @@ def python_tabledef_code(varname, map, comments=1, key_precision=2):
     # Analyze map and create table dict
     mappings = sorted(map.items())
     table = {}
-    maxkey = 0
+    maxkey = 255
     if 'IDENTITY' in map:
         for key in range(256):
             table[key] = (key, '')
-        maxkey = 255
         del map['IDENTITY']
     for mapkey, mapvalue in mappings:
         mapcomment = ''
@@ -224,6 +223,7 @@ def python_tabledef_code(varname, map, comments=1, key_precision=2):
         return None
 
     # Create table code
+    maxchar = 0
     for key in range(maxkey + 1):
         if key not in table:
             mapvalue = MISSING_CODE
@@ -238,6 +238,7 @@ def python_tabledef_code(varname, map, comments=1, key_precision=2):
                 return None
             else:
                 mapchar = chr(mapvalue)
+        maxchar = max(maxchar, ord(mapchar))
         if mapcomment and comments:
             append('    %a \t#  %s -> %s' % (mapchar,
                                             hexrepr(key, key_precision),
@@ -245,6 +246,8 @@ def python_tabledef_code(varname, map, comments=1, key_precision=2):
         else:
             append('    %a' % mapchar)
 
+    if maxchar < 256:
+        append('    %a \t## Widen to UCS2 for optimization' % UNI_UNDEFINED)
     append(')')
     return l
 
@@ -287,27 +290,27 @@ import codecs
 
 class Codec(codecs.Codec):
 
-    def encode(self,input,errors='strict'):
-        return codecs.charmap_encode(input,errors,encoding_%s)
+    def encode(self, input, errors='strict'):
+        return codecs.charmap_encode(input, errors, encoding_%s)
 
-    def decode(self,input,errors='strict'):
-        return codecs.charmap_decode(input,errors,decoding_%s)
+    def decode(self, input, errors='strict'):
+        return codecs.charmap_decode(input, errors, decoding_%s)
 ''' % (encodingname, name, suffix, suffix)]
     l.append('''\
 class IncrementalEncoder(codecs.IncrementalEncoder):
     def encode(self, input, final=False):
-        return codecs.charmap_encode(input,self.errors,encoding_%s)[0]
+        return codecs.charmap_encode(input, self.errors, encoding_%s)[0]
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
     def decode(self, input, final=False):
-        return codecs.charmap_decode(input,self.errors,decoding_%s)[0]''' %
+        return codecs.charmap_decode(input, self.errors, decoding_%s)[0]''' %
         (suffix, suffix))
 
     l.append('''
-class StreamWriter(Codec,codecs.StreamWriter):
+class StreamWriter(Codec, codecs.StreamWriter):
     pass
 
-class StreamReader(Codec,codecs.StreamReader):
+class StreamReader(Codec, codecs.StreamReader):
     pass
 
 ### encodings module API
@@ -340,7 +343,7 @@ def getregentry():
     if decoding_table_code:
         l.append('''
 ### Encoding table
-encoding_table=codecs.charmap_build(decoding_table)
+encoding_table = codecs.charmap_build(decoding_table)
 ''')
     else:
         l.append('''

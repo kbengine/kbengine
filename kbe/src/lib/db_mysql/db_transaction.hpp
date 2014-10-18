@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DB_TRANSACTION_HELPER_H__
-#define __DB_TRANSACTION_HELPER_H__
+#ifndef KBE_DB_TRANSACTION_HELPER_HPP
+#define KBE_DB_TRANSACTION_HELPER_HPP
 
 namespace KBEngine { 
 class DBInterface;
@@ -47,5 +47,5 @@ private:
 };
 
 }
-#endif // __MYSQL_TRANSACTION_HELPER_H__
+#endif // KBE_DB_TRANSACTION_HELPER_HPP
 

@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_PLATFORM_H__
-#define __KBE_PLATFORM_H__
+#ifndef KBE_PLATFORM_HPP
+#define KBE_PLATFORM_HPP
+
 // common include	
 #include <stdio.h>
 #include <stdlib.h>
@@ -613,24 +614,38 @@ extern COMPONENT_ORDER g_componentGroupOrder;
 
 inline uint64 genUUID64()
 {
-	srand(getSystemTime());
+	static uint64 tv = (uint64)getSystemTime();
+	static uint32 lastNum = 0;
+	
+	uint64 now = (uint64)getSystemTime();	
+	if(now != tv)
+	{
+		tv = now;
+		lastNum = 0;
+	}
 	
 	if(g_componentGlobalOrder <= 0)
 	{
-		// 时间戳32位， 16位随机数， 16位迭代数
-		uint64 tv = getSystemTime();
-		static uint16 lastNum0 = rand() % 65535;
-		uint32 rnd = rand() % 65535;
-		return (tv << 32) + (rnd << (24)) + lastNum0++;
+		// 16位随机数， 时间戳32位， 16位迭代数
+		static uint64 rnd = 0;
+		if(rnd == 0)
+		{
+			srand(getSystemTime());
+			rnd = ((uint64)rand() % 65535) + 1;
+		}
+		
+		assert(lastNum < 65536 && "genUUID64(): overflow!");
+		
+		return (rnd << 48) + (tv << 16) + lastNum++;
 	}
 	else
 	{
-		// app顺序数8位，时间戳32位， 8位随机数， 16位迭代数
-		uint32 tv = getSystemTime();
-		uint64 appOrder = g_componentGlobalOrder;
-		static uint16 lastNum1 = rand() % 65535;
-		uint32 rnd = rand() % 255;
-		return (appOrder << 56) + (tv << (24)) + (rnd << (8)) + lastNum1++;
+		// app顺序数8位，时间戳32位， 24位迭代数（16777216：24位最大数+1）
+		static uint64 appOrder = g_componentGlobalOrder;
+		
+		assert(lastNum < 16777216 && "genUUID64(): overflow!");
+		
+		return (appOrder << 56) + (tv << 24) + lastNum++;
 	}
 }
 
@@ -658,4 +673,4 @@ inline bool isPlatformLittleEndian()
 }
 
 }
-#endif
+#endif // KBE_PLATFORM_HPP

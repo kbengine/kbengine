@@ -11,13 +11,8 @@ class Space(KBEngine.Entity, GameObject):
 		GameObject.__init__(self)
 		
 		resPath = d_spaces.datas.get(self.spaceUType)['resPath']
-		
-		if resPath == "":
-			resPath = "../../res/Media/Scenes/Scene1"
-			KBEngine.addSpaceGeometryMapping(self.spaceID, None, resPath)
-		else:
-			KBEngine.addSpaceGeometryMapping(self.spaceID, None, resPath)
-		
+		KBEngine.addSpaceGeometryMapping(self.spaceID, None, resPath)
+
 		DEBUG_MSG('created space[%d] entityID = %i, res = %s.' % (self.spaceUType, self.id, resPath))
 		
 		KBEngine.globalData["space_%i" % self.spaceID] = self.base
@@ -27,6 +22,7 @@ class Space(KBEngine.Entity, GameObject):
 		KBEngine method.
 		"""
 		del KBEngine.globalData["space_%i" % self.spaceID]
+		self.destroySpace()
 		
 	def onEnter(self, entityMailbox):
 		"""

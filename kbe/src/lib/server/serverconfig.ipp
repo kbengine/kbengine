@@ -64,27 +64,21 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getKBMachine(void)
 }
 
 //-------------------------------------------------------------------------------------		
-INLINE ENGINE_COMPONENT_INFO& ServerConfig::getKBCenter(void)
-{
-	return _kbCenterInfo;
-}
-
-//-------------------------------------------------------------------------------------		
 INLINE ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
 {
 	return _botsInfo;
 }
 
 //-------------------------------------------------------------------------------------		
-INLINE ENGINE_COMPONENT_INFO& ServerConfig::getResourcemgr(void)
-{
-	return _resourcemgrInfo;
-}
-
-//-------------------------------------------------------------------------------------		
 INLINE ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
 {
 	return _messagelogInfo;
+}
+
+//-------------------------------------------------------------------------------------	
+INLINE ENGINE_COMPONENT_INFO& ServerConfig::getConfig()
+{
+	return getComponent(g_componentType);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -106,10 +100,6 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componen
 		return getBaseApp();
 	case MACHINE_TYPE:
 		return getKBMachine();
-	case CENTER_TYPE:
-		return getKBCenter();
-	case RESOURCEMGR_TYPE:
-		return getResourcemgr();
 	case MESSAGELOG_TYPE:
 		return getMessagelog();
 	default:

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MESSAGELOG_H__
-#define __MESSAGELOG_H__
+#ifndef KBE_MESSAGELOG_HPP
+#define KBE_MESSAGELOG_HPP
 	
 // common include	
 #include "server/kbemain.hpp"
@@ -88,4 +88,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_MESSAGELOG_HPP

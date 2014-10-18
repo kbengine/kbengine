@@ -6,12 +6,23 @@ from KBEDebug import *
 
 class Poller:
 	"""
+	演示：
+	可以向kbengine注册一个socket，由引擎层的网络模块处理异步通知收发。
+	用法: 
+	import Poller
+	poller = Poller()
+	
+	开启
+	poller.start("localhost", 12345)
+	
+	停止
+	poller.stop()
 	"""
 	def __init__(self):
 		self._socket = None
 		self._clients = {}
 		
-	def startServer(self, addr, port):
+	def start(self, addr, port):
 		"""
 		virtual method.
 		"""
@@ -22,7 +33,7 @@ class Poller:
 		KBEngine.registerFileDescriptor(self._socket.fileno(), self.onRecv)
 		# KBEngine.registerWriteFileDescriptor(self._socket.fileno(), self.onWrite)
 
-	def close(self):
+	def stop(self):
 		if self._socket:
 			KBEngine.deregisterFileDescriptor(self._socket.fileno())
 			self._socket.close()

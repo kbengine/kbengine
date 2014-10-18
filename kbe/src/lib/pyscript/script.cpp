@@ -135,9 +135,9 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	pyPaths += pySysPaths;
 	free(pwpySysResPath);
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
-#else
+
+#if KBE_PLATFORM != PLATFORM_WIN32
 	std::wstring fs = L";";
 	std::wstring rs = L":";
 	size_t pos = 0; 
@@ -149,9 +149,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		pyPaths.replace(pos, fs.length(), rs);
 	}  
 
-	Py_SetPath(pyPaths.c_str()); 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
-	DEBUG_MSG(boost::format("Script::install: paths=%1%.\n") % tmpchar);
+	DEBUG_MSG(fmt::format("Script::install(): paths={}.\n", tmpchar));
 	free(tmpchar);
 	
 #endif
@@ -163,16 +162,14 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	// Py_TabcheckFlag = 1;
 	Py_NoSiteFlag = 1;
 	Py_IgnoreEnvironmentFlag = 1;
+
+	Py_SetPath(pyPaths.c_str());
 	Py_Initialize();                      											// python解释器的初始化  
     if (!Py_IsInitialized())
     {
-    	ERROR_MSG("Script::install::Py_Initialize is failed!\n");
+    	ERROR_MSG("Script::install(): Py_Initialize is failed!\n");
         return false;
     } 
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	PySys_SetPath(pyPaths.c_str());
-#endif
 
 	PyObject *m = PyImport_AddModule("__main__");
 
@@ -183,8 +180,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
-		ERROR_MSG(boost::format("Script::init: Unable to set KBEngine.component to %1%\n") %
-			componentName );
+		ERROR_MSG(fmt::format("Script::install(): Unable to set KBEngine.component to {}\n",
+			componentName));
 		return false;
 	}
 	
@@ -193,7 +190,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	if(!install_py_dlls())
 	{
-		ERROR_MSG("Script::init: install_py_dlls() is failed!\n");
+		ERROR_MSG("Script::install(): install_py_dlls() is failed!\n");
 		return false;
 	}
 
@@ -238,7 +235,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
-	INFO_MSG("Script::install is successfully!\n");
+	INFO_MSG(fmt::format("Script::install(): is successfully, Python=({})!\n", Py_GetVersion()));
 	return installExtraModule("KBExtra");
 }
 
@@ -255,7 +252,7 @@ bool Script::uninstall()
 	if(pyStdouterr_)
 	{
 		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
-			ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+			ERROR_MSG("Script::uninstall(): pyStdouterr_->uninstall() is failed!\n");
 		}
 		else
 			Py_DECREF(pyStdouterr_);
@@ -264,7 +261,7 @@ bool Script::uninstall()
 	if(pyStdouterrHook_)
 	{
 		if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
-			ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
+			ERROR_MSG("Script::uninstall(): pyStdouterrHook_->uninstall() is failed!\n");
 		}
 		else
 			Py_DECREF(pyStdouterrHook_);
@@ -272,6 +269,12 @@ bool Script::uninstall()
 
 	ScriptStdOutErr::uninstallScript();	
 	ScriptStdOutErrHook::uninstallScript();
+
+	if(!uninstall_py_dlls())
+	{
+		ERROR_MSG("Script::uninstall(): uninstall_py_dlls() is failed!\n");
+		return false;
+	}
 
 #ifndef KBE_SINGLE_THREADED
 	if (s_pOurInitTimeModules != NULL)
@@ -282,7 +285,7 @@ bool Script::uninstall()
 #endif
 
 	Py_Finalize();																// 卸载python解释器
-	INFO_MSG("Script::uninstall is successfully!\n");
+	INFO_MSG("Script::uninstall(): is successfully!\n");
 	return true;	
 }
 
@@ -300,9 +303,7 @@ bool Script::installExtraModule(const char* moduleName)
 
 	PyObject_SetAttrString(m, moduleName, extraModule_);						// 将扩展模块对象加入main
 
-	INFO_MSG(boost::format("Script::install %1% is successfully!\n") 
-		% moduleName);
-
+	INFO_MSG(fmt::format("Script::install(): {} is successfully!\n", moduleName));
 	return true;
 }
 

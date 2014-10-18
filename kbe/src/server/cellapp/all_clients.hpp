@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ALL_CLIENTS_H__
-#define __ALL_CLIENTS_H__
+#ifndef KBE_ALL_CLIENTS_HPP
+#define KBE_ALL_CLIENTS_HPP
 	
 // common include	
 #include "cstdkbe/cstdkbe.hpp"
@@ -81,7 +81,7 @@ public:
 	/** 
 		ªÒ»°entityID 
 	*/
-	ENTITY_ID getID()const{ return id_; }
+	ENTITY_ID id()const{ return id_; }
 	void setID(int id){ id_ = id; }
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
@@ -95,4 +95,5 @@ protected:
 };
 
 }
-#endif
+
+#endif // KBE_ALL_CLIENTS_HPP

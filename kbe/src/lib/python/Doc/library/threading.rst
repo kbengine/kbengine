@@ -20,35 +20,14 @@ The :mod:`dummy_threading` module is provided for situations where
    methods and functions in this module in the Python 2.x series are still
    supported by this module.
 
-.. impl-detail::
 
-   In CPython, due to the :term:`Global Interpreter Lock`, only one thread
-   can execute Python code at once (even though certain performance-oriented
-   libraries might overcome this limitation).
-   If you want your application to make better use of the computational
-   resources of multi-core machines, you are advised to use
-   :mod:`multiprocessing` or :class:`concurrent.futures.ProcessPoolExecutor`.
-   However, threading is still an appropriate model if you want to run
-   multiple I/O-bound tasks simultaneously.
-
-
-This module defines the following functions and objects:
+This module defines the following functions:
 
 
 .. function:: active_count()
 
    Return the number of :class:`Thread` objects currently alive.  The returned
    count is equal to the length of the list returned by :func:`.enumerate`.
-
-
-.. function:: Condition()
-   :noindex:
-
-   A factory function that returns a new condition variable object. A condition
-   variable allows one or more threads to wait until they are notified by another
-   thread.
-
-   See :ref:`condition-objects`.
 
 
 .. function:: current_thread()
@@ -59,6 +38,17 @@ This module defines the following functions and objects:
    returned.
 
 
+.. function:: get_ident()
+
+   Return the 'thread identifier' of the current thread.  This is a nonzero
+   integer.  Its value has no direct meaning; it is intended as a magic cookie
+   to be used e.g. to index a dictionary of thread-specific data.  Thread
+   identifiers may be recycled when a thread exits and another thread is
+   created.
+
+   .. versionadded:: 3.3
+
+
 .. function:: enumerate()
 
    Return a list of all :class:`Thread` objects currently alive.  The list
@@ -67,87 +57,13 @@ This module defines the following functions and objects:
    and threads that have not yet been started.
 
 
-.. function:: Event()
-   :noindex:
+.. function:: main_thread()
 
-   A factory function that returns a new event object.  An event manages a flag
-   that can be set to true with the :meth:`~Event.set` method and reset to false
-   with the :meth:`clear` method.  The :meth:`wait` method blocks until the flag
-   is true.
+   Return the main :class:`Thread` object.  In normal conditions, the
+   main thread is the thread from which the Python interpreter was
+   started.
 
-   See :ref:`event-objects`.
-
-
-.. class:: local
-
-   A class that represents thread-local data.  Thread-local data are data whose
-   values are thread specific.  To manage thread-local data, just create an
-   instance of :class:`local` (or a subclass) and store attributes on it::
-
-      mydata = threading.local()
-      mydata.x = 1
-
-   The instance's values will be different for separate threads.
-
-   For more details and extensive examples, see the documentation string of the
-   :mod:`_threading_local` module.
-
-
-.. function:: Lock()
-
-   A factory function that returns a new primitive lock object.  Once a thread has
-   acquired it, subsequent attempts to acquire it block, until it is released; any
-   thread may release it.
-
-   See :ref:`lock-objects`.
-
-
-.. function:: RLock()
-
-   A factory function that returns a new reentrant lock object. A reentrant lock
-   must be released by the thread that acquired it. Once a thread has acquired a
-   reentrant lock, the same thread may acquire it again without blocking; the
-   thread must release it once for each time it has acquired it.
-
-   See :ref:`rlock-objects`.
-
-
-.. function:: Semaphore(value=1)
-   :noindex:
-
-   A factory function that returns a new semaphore object.  A semaphore manages a
-   counter representing the number of :meth:`release` calls minus the number of
-   :meth:`acquire` calls, plus an initial value. The :meth:`acquire` method blocks
-   if necessary until it can return without making the counter negative.  If not
-   given, *value* defaults to 1.
-
-   See :ref:`semaphore-objects`.
-
-
-.. function:: BoundedSemaphore(value=1)
-
-   A factory function that returns a new bounded semaphore object.  A bounded
-   semaphore checks to make sure its current value doesn't exceed its initial
-   value.  If it does, :exc:`ValueError` is raised. In most situations semaphores
-   are used to guard resources with limited capacity.  If the semaphore is released
-   too many times it's a sign of a bug.  If not given, *value* defaults to 1.
-
-
-.. class:: Thread
-   :noindex:
-
-   A class that represents a thread of control.  This class can be safely
-   subclassed in a limited fashion.
-
-   See :ref:`thread-objects`.
-
-
-.. class:: Timer
-   :noindex:
-
-   A thread that executes a function after a specified interval has passed.
-
-   See :ref:`timer-objects`.
+   .. versionadded:: 3.4
 
 
 .. function:: settrace(func)
@@ -156,7 +72,7 @@ This module defines the following functions and objects:
 
    Set a trace function for all threads started from the :mod:`threading` module.
    The *func* will be passed to  :func:`sys.settrace` for each thread, before its
-   :meth:`run` method is called.
+   :meth:`~Thread.run` method is called.
 
 
 .. function:: setprofile(func)
@@ -165,7 +81,7 @@ This module defines the following functions and objects:
 
    Set a profile function for all threads started from the :mod:`threading` module.
    The *func* will be passed to  :func:`sys.setprofile` for each thread, before its
-   :meth:`run` method is called.
+   :meth:`~Thread.run` method is called.
 
 
 .. function:: stack_size([size])
@@ -173,15 +89,15 @@ This module defines the following functions and objects:
    Return the thread stack size used when creating new threads.  The optional
    *size* argument specifies the stack size to be used for subsequently created
    threads, and must be 0 (use platform or configured default) or a positive
-   integer value of at least 32,768 (32kB). If changing the thread stack size is
-   unsupported, a :exc:`ThreadError` is raised.  If the specified stack size is
-   invalid, a :exc:`ValueError` is raised and the stack size is unmodified.  32kB
+   integer value of at least 32,768 (32 KiB). If changing the thread stack size is
+   unsupported, a :exc:`RuntimeError` is raised.  If the specified stack size is
+   invalid, a :exc:`ValueError` is raised and the stack size is unmodified.  32 KiB
    is currently the minimum supported stack size value to guarantee sufficient
    stack space for the interpreter itself.  Note that some platforms may have
    particular restrictions on values for the stack size, such as requiring a
-   minimum stack size > 32kB or requiring allocation in multiples of the system
+   minimum stack size > 32 KiB or requiring allocation in multiples of the system
    memory page size - platform documentation should be referred to for more
-   information (4kB pages are common; using multiples of 4096 for the stack size is
+   information (4 KiB pages are common; using multiples of 4096 for the stack size is
    the suggested approach in the absence of more specific information).
    Availability: Windows, systems with POSIX threads.
 
@@ -198,7 +114,8 @@ This module also defines the following constant:
    .. versionadded:: 3.2
 
 
-Detailed interfaces for the objects are documented below.
+This module defines a number of classes, which are detailed in the sections
+below.
 
 The design of this module is loosely based on Java's threading model. However,
 where Java makes locks and condition variables basic behavior of every object,
@@ -211,17 +128,38 @@ when implemented, are mapped to module-level functions.
 All of the methods described below are executed atomically.
 
 
+Thread-Local Data
+-----------------
+
+Thread-local data is data whose values are thread specific.  To manage
+thread-local data, just create an instance of :class:`local` (or a
+subclass) and store attributes on it::
+
+  mydata = threading.local()
+  mydata.x = 1
+
+The instance's values will be different for separate threads.
+
+
+.. class:: local()
+
+   A class that represents thread-local data.
+
+   For more details and extensive examples, see the documentation string of the
+   :mod:`_threading_local` module.
+
+
 .. _thread-objects:
 
 Thread Objects
 --------------
 
-This class represents an activity that is run in a separate thread of control.
-There are two ways to specify the activity: by passing a callable object to the
-constructor, or by overriding the :meth:`~Thread.run` method in a subclass.
-No other methods (except for the constructor) should be overridden in a
-subclass.  In other words,  *only*  override the :meth:`~Thread.__init__`
-and :meth:`~Thread.run` methods of this class.
+The :class:`Thread` class represents an activity that is run in a separate
+thread of control.  There are two ways to specify the activity: by passing a
+callable object to the constructor, or by overriding the :meth:`~Thread.run`
+method in a subclass.  No other methods (except for the constructor) should be
+overridden in a subclass.  In other words, *only*  override the
+:meth:`~Thread.__init__` and :meth:`~Thread.run` methods of this class.
 
 Once a thread object is created, its activity must be started by calling the
 thread's :meth:`~Thread.start` method.  This invokes the :meth:`~Thread.run`
@@ -239,10 +177,11 @@ called is terminated.
 A thread has a name.  The name can be passed to the constructor, and read or
 changed through the :attr:`~Thread.name` attribute.
 
-A thread can be flagged as a "daemon thread".  The significance of this flag
-is that the entire Python program exits when only daemon threads are left.
-The initial value is inherited from the creating thread.  The flag can be
-set through the :attr:`~Thread.daemon` property.
+A thread can be flagged as a "daemon thread".  The significance of this flag is
+that the entire Python program exits when only daemon threads are left.  The
+initial value is inherited from the creating thread.  The flag can be set
+through the :attr:`~Thread.daemon` property or the *daemon* constructor
+argument.
 
 .. note::
    Daemon threads are abruptly stopped at shutdown.  Their resources (such
@@ -261,7 +200,8 @@ daemonic, and cannot be :meth:`~Thread.join`\ ed.  They are never deleted,
 since it is impossible to detect the termination of alien threads.
 
 
-.. class:: Thread(group=None, target=None, name=None, args=(), kwargs={})
+.. class:: Thread(group=None, target=None, name=None, args=(), kwargs={}, *, \
+                  daemon=None)
 
    This constructor should always be called with keyword arguments.  Arguments
    are:
@@ -280,9 +220,16 @@ since it is impossible to detect the termination of alien threads.
    *kwargs* is a dictionary of keyword arguments for the target invocation.
    Defaults to ``{}``.
 
+   If not ``None``, *daemon* explicitly sets whether the thread is daemonic.
+   If ``None`` (the default), the daemonic property is inherited from the
+   current thread.
+
    If the subclass overrides the constructor, it must make sure to invoke the
    base class constructor (``Thread.__init__()``) before doing anything else to
    the thread.
+
+   .. versionchanged:: 3.3
+      Added the *daemon* argument.
 
    .. method:: start()
 
@@ -374,6 +321,18 @@ since it is impossible to detect the termination of alien threads.
       property instead.
 
 
+.. impl-detail::
+
+   In CPython, due to the :term:`Global Interpreter Lock`, only one thread
+   can execute Python code at once (even though certain performance-oriented
+   libraries might overcome this limitation).
+   If you want your application to make better use of the computational
+   resources of multi-core machines, you are advised to use
+   :mod:`multiprocessing` or :class:`concurrent.futures.ProcessPoolExecutor`.
+   However, threading is still an appropriate model if you want to run
+   multiple I/O-bound tasks simultaneously.
+
+
 .. _lock-objects:
 
 Lock Objects
@@ -395,7 +354,7 @@ called in the locked state; it changes the state to unlocked and returns
 immediately. If an attempt is made to release an unlocked lock, a
 :exc:`RuntimeError` will be raised.
 
-Locks also support the :ref:`context manager protocol <with-locks>`.
+Locks also support the :ref:`context management protocol <with-locks>`.
 
 When more than one thread is blocked in :meth:`~Lock.acquire` waiting for the
 state to turn to unlocked, only one thread proceeds when a :meth:`~Lock.release`
@@ -405,45 +364,55 @@ is not defined, and may vary across implementations.
 All methods are executed atomically.
 
 
-.. method:: Lock.acquire(blocking=True, timeout=-1)
+.. class:: Lock()
 
-   Acquire a lock, blocking or non-blocking.
+   The class implementing primitive lock objects.  Once a thread has acquired a
+   lock, subsequent attempts to acquire it block, until it is released; any
+   thread may release it.
 
-   When invoked with the *blocking* argument set to ``True`` (the default),
-   block until the lock is unlocked, then set it to locked and return ``True``.
-
-   When invoked with the *blocking* argument set to ``False``, do not block.
-   If a call with *blocking* set to ``True`` would block, return ``False``
-   immediately; otherwise, set the lock to locked and return ``True``.
-
-   When invoked with the floating-point *timeout* argument set to a positive
-   value, block for at most the number of seconds specified by *timeout*
-   and as long as the lock cannot be acquired.  A negative *timeout* argument
-   specifies an unbounded wait.  It is forbidden to specify a *timeout*
-   when *blocking* is false.
-
-   The return value is ``True`` if the lock is acquired successfully,
-   ``False`` if not (for example if the *timeout* expired).
-
-   .. versionchanged:: 3.2
-      The *timeout* parameter is new.
-
-   .. versionchanged:: 3.2
-      Lock acquires can now be interrupted by signals on POSIX.
+   .. versionchanged:: 3.3
+      Changed from a factory function to a class.
 
 
-.. method:: Lock.release()
+   .. method:: acquire(blocking=True, timeout=-1)
 
-   Release a lock.  This can be called from any thread, not only the thread
-   which has acquired the lock.
+      Acquire a lock, blocking or non-blocking.
 
-   When the lock is locked, reset it to unlocked, and return.  If any other threads
-   are blocked waiting for the lock to become unlocked, allow exactly one of them
-   to proceed.
+      When invoked with the *blocking* argument set to ``True`` (the default),
+      block until the lock is unlocked, then set it to locked and return ``True``.
 
-   When invoked on an unlocked lock, a :exc:`ThreadError` is raised.
+      When invoked with the *blocking* argument set to ``False``, do not block.
+      If a call with *blocking* set to ``True`` would block, return ``False``
+      immediately; otherwise, set the lock to locked and return ``True``.
 
-   There is no return value.
+      When invoked with the floating-point *timeout* argument set to a positive
+      value, block for at most the number of seconds specified by *timeout*
+      and as long as the lock cannot be acquired.  A *timeout* argument of ``-1``
+      specifies an unbounded wait.  It is forbidden to specify a *timeout*
+      when *blocking* is false.
+
+      The return value is ``True`` if the lock is acquired successfully,
+      ``False`` if not (for example if the *timeout* expired).
+
+      .. versionchanged:: 3.2
+         The *timeout* parameter is new.
+
+      .. versionchanged:: 3.2
+         Lock acquires can now be interrupted by signals on POSIX.
+
+
+   .. method:: release()
+
+      Release a lock.  This can be called from any thread, not only the thread
+      which has acquired the lock.
+
+      When the lock is locked, reset it to unlocked, and return.  If any other threads
+      are blocked waiting for the lock to become unlocked, allow exactly one of them
+      to proceed.
+
+      When invoked on an unlocked lock, a :exc:`RuntimeError` is raised.
+
+      There is no return value.
 
 
 .. _rlock-objects:
@@ -464,50 +433,62 @@ call pairs may be nested; only the final :meth:`~Lock.release` (the
 :meth:`~Lock.release` of the outermost pair) resets the lock to unlocked and
 allows another thread blocked in :meth:`~Lock.acquire` to proceed.
 
-Reentrant locks also support the :ref:`context manager protocol <with-locks>`.
+Reentrant locks also support the :ref:`context management protocol <with-locks>`.
 
 
-.. method:: RLock.acquire(blocking=True, timeout=-1)
+.. class:: RLock()
 
-   Acquire a lock, blocking or non-blocking.
+   This class implements reentrant lock objects.  A reentrant lock must be
+   released by the thread that acquired it.  Once a thread has acquired a
+   reentrant lock, the same thread may acquire it again without blocking; the
+   thread must release it once for each time it has acquired it.
 
-   When invoked without arguments: if this thread already owns the lock, increment
-   the recursion level by one, and return immediately.  Otherwise, if another
-   thread owns the lock, block until the lock is unlocked.  Once the lock is
-   unlocked (not owned by any thread), then grab ownership, set the recursion level
-   to one, and return.  If more than one thread is blocked waiting until the lock
-   is unlocked, only one at a time will be able to grab ownership of the lock.
-   There is no return value in this case.
-
-   When invoked with the *blocking* argument set to true, do the same thing as when
-   called without arguments, and return true.
-
-   When invoked with the *blocking* argument set to false, do not block.  If a call
-   without an argument would block, return false immediately; otherwise, do the
-   same thing as when called without arguments, and return true.
-
-   When invoked with the floating-point *timeout* argument set to a positive
-   value, block for at most the number of seconds specified by *timeout*
-   and as long as the lock cannot be acquired.  Return true if the lock has
-   been acquired, false if the timeout has elapsed.
-
-   .. versionchanged:: 3.2
-      The *timeout* parameter is new.
+   Note that ``RLock`` is actually a factory function which returns an instance
+   of the most efficient version of the concrete RLock class that is supported
+   by the platform.
 
 
-.. method:: RLock.release()
+   .. method:: acquire(blocking=True, timeout=-1)
 
-   Release a lock, decrementing the recursion level.  If after the decrement it is
-   zero, reset the lock to unlocked (not owned by any thread), and if any other
-   threads are blocked waiting for the lock to become unlocked, allow exactly one
-   of them to proceed.  If after the decrement the recursion level is still
-   nonzero, the lock remains locked and owned by the calling thread.
+      Acquire a lock, blocking or non-blocking.
 
-   Only call this method when the calling thread owns the lock. A
-   :exc:`RuntimeError` is raised if this method is called when the lock is
-   unlocked.
+      When invoked without arguments: if this thread already owns the lock, increment
+      the recursion level by one, and return immediately.  Otherwise, if another
+      thread owns the lock, block until the lock is unlocked.  Once the lock is
+      unlocked (not owned by any thread), then grab ownership, set the recursion level
+      to one, and return.  If more than one thread is blocked waiting until the lock
+      is unlocked, only one at a time will be able to grab ownership of the lock.
+      There is no return value in this case.
 
-   There is no return value.
+      When invoked with the *blocking* argument set to true, do the same thing as when
+      called without arguments, and return true.
+
+      When invoked with the *blocking* argument set to false, do not block.  If a call
+      without an argument would block, return false immediately; otherwise, do the
+      same thing as when called without arguments, and return true.
+
+      When invoked with the floating-point *timeout* argument set to a positive
+      value, block for at most the number of seconds specified by *timeout*
+      and as long as the lock cannot be acquired.  Return true if the lock has
+      been acquired, false if the timeout has elapsed.
+
+      .. versionchanged:: 3.2
+         The *timeout* parameter is new.
+
+
+   .. method:: release()
+
+      Release a lock, decrementing the recursion level.  If after the decrement it is
+      zero, reset the lock to unlocked (not owned by any thread), and if any other
+      threads are blocked waiting for the lock to become unlocked, allow exactly one
+      of them to proceed.  If after the decrement the recursion level is still
+      nonzero, the lock remains locked and owned by the calling thread.
+
+      Only call this method when the calling thread owns the lock. A
+      :exc:`RuntimeError` is raised if this method is called when the lock is
+      unlocked.
+
+      There is no return value.
 
 
 .. _condition-objects:
@@ -520,7 +501,7 @@ passed in or one will be created by default.  Passing one in is useful when
 several condition variables must share the same lock.  The lock is part of
 the condition object: you don't have to track it separately.
 
-A condition variable obeys the :ref:`context manager protocol <with-locks>`:
+A condition variable obeys the :ref:`context management protocol <with-locks>`:
 using the ``with`` statement acquires the associated lock for the duration of
 the enclosed block.  The :meth:`~Condition.acquire` and
 :meth:`~Condition.release` methods also call the corresponding methods of
@@ -541,10 +522,6 @@ don't release the lock; this means that the thread or threads awakened will
 not return from their :meth:`~Condition.wait` call immediately, but only when
 the thread that called :meth:`~Condition.notify` or :meth:`~Condition.notify_all`
 finally relinquishes ownership of the lock.
-
-
-Usage
-^^^^^
 
 The typical programming style using condition variables uses the lock to
 synchronize access to some shared state; threads that are interested in a
@@ -584,14 +561,17 @@ waiting threads.  E.g. in a typical producer-consumer situation, adding one
 item to the buffer only needs to wake up one consumer thread.
 
 
-Interface
-^^^^^^^^^
-
 .. class:: Condition(lock=None)
+
+   This class implements condition variable objects.  A condition variable
+   allows one or more threads to wait until they are notified by another thread.
 
    If the *lock* argument is given and not ``None``, it must be a :class:`Lock`
    or :class:`RLock` object, and it is used as the underlying lock.  Otherwise,
    a new :class:`RLock` object is created and used as the underlying lock.
+
+   .. versionchanged:: 3.3
+      changed from a factory function to a class.
 
    .. method:: acquire(*args)
 
@@ -697,14 +677,23 @@ call.  The counter can never go below zero; when :meth:`~Semaphore.acquire`
 finds that it is zero, it blocks, waiting until some other thread calls
 :meth:`~Semaphore.release`.
 
-Semaphores also support the :ref:`context manager protocol <with-locks>`.
+Semaphores also support the :ref:`context management protocol <with-locks>`.
 
 
 .. class:: Semaphore(value=1)
 
+   This class implements semaphore objects.  A semaphore manages a counter
+   representing the number of :meth:`release` calls minus the number of
+   :meth:`acquire` calls, plus an initial value.  The :meth:`acquire` method
+   blocks if necessary until it can return without making the counter negative.
+   If not given, *value* defaults to 1.
+
    The optional argument gives the initial *value* for the internal counter; it
    defaults to ``1``. If the *value* given is less than 0, :exc:`ValueError` is
    raised.
+
+   .. versionchanged:: 3.3
+      changed from a factory function to a class.
 
    .. method:: acquire(blocking=True, timeout=None)
 
@@ -738,6 +727,18 @@ Semaphores also support the :ref:`context manager protocol <with-locks>`.
       than zero again, wake up that thread.
 
 
+.. class:: BoundedSemaphore(value=1)
+
+   Class implementing bounded semaphore objects.  A bounded semaphore checks to
+   make sure its current value doesn't exceed its initial value.  If it does,
+   :exc:`ValueError` is raised. In most situations semaphores are used to guard
+   resources with limited capacity.  If the semaphore is released too many times
+   it's a sign of a bug.  If not given, *value* defaults to 1.
+
+   .. versionchanged:: 3.3
+      changed from a factory function to a class.
+
+
 .. _semaphore-examples:
 
 :class:`Semaphore` Example
@@ -749,7 +750,7 @@ you should use a bounded semaphore.  Before spawning any worker threads, your
 main thread would initialize the semaphore::
 
    maxconnections = 5
-   ...
+   # ...
    pool_sema = BoundedSemaphore(value=maxconnections)
 
 Once spawned, worker threads call the semaphore's acquire and release methods
@@ -758,7 +759,7 @@ when they need to connect to the server::
    with pool_sema:
        conn = connectdb()
        try:
-           ... use connection ...
+           # ... use connection ...
        finally:
            conn.close()
 
@@ -781,7 +782,13 @@ method.  The :meth:`~Event.wait` method blocks until the flag is true.
 
 .. class:: Event()
 
-   The internal flag is initially false.
+   Class implementing event objects.  An event manages a flag that can be set to
+   true with the :meth:`~Event.set` method and reset to false with the
+   :meth:`clear` method.  The :meth:`wait` method blocks until the flag is true.
+   The flag is initially false.
+
+   .. versionchanged:: 3.3
+      changed from a factory function to a class.
 
    .. method:: is_set()
 
@@ -827,10 +834,11 @@ This class represents an action that should be run only after a certain amount
 of time has passed --- a timer.  :class:`Timer` is a subclass of :class:`Thread`
 and as such also functions as an example of creating custom threads.
 
-Timers are started, as with threads, by calling their :meth:`start` method.  The
-timer can be stopped (before its action has begun) by calling the :meth:`cancel`
-method.  The interval the timer will wait before executing its action may not be
-exactly the same as the interval specified by the user.
+Timers are started, as with threads, by calling their :meth:`~Timer.start`
+method.  The timer can be stopped (before its action has begun) by calling the
+:meth:`~Timer.cancel` method.  The interval the timer will wait before
+executing its action may not be exactly the same as the interval specified by
+the user.
 
 For example::
 
@@ -841,10 +849,15 @@ For example::
    t.start() # after 30 seconds, "hello, world" will be printed
 
 
-.. class:: Timer(interval, function, args=[], kwargs={})
+.. class:: Timer(interval, function, args=None, kwargs=None)
 
    Create a timer that will run *function* with arguments *args* and  keyword
    arguments *kwargs*, after *interval* seconds have passed.
+   If *args* is None (the default) then an empty list will be used.
+   If *kwargs* is None (the default) then an empty dict will be used.
+
+   .. versionchanged:: 3.3
+      changed from a factory function to a class.
 
    .. method:: cancel()
 
@@ -979,27 +992,3 @@ is equivalent to::
 Currently, :class:`Lock`, :class:`RLock`, :class:`Condition`,
 :class:`Semaphore`, and :class:`BoundedSemaphore` objects may be used as
 :keyword:`with` statement context managers.
-
-
-.. _threaded-imports:
-
-Importing in threaded code
---------------------------
-
-While the import machinery is thread-safe, there are two key restrictions on
-threaded imports due to inherent limitations in the way that thread-safety is
-provided:
-
-* Firstly, other than in the main module, an import should not have the
-  side effect of spawning a new thread and then waiting for that thread in
-  any way. Failing to abide by this restriction can lead to a deadlock if
-  the spawned thread directly or indirectly attempts to import a module.
-* Secondly, all import attempts must be completed before the interpreter
-  starts shutting itself down. This can be most easily achieved by only
-  performing imports from non-daemon threads created through the threading
-  module. Daemon threads and threads created directly with the thread
-  module will require some other form of synchronization to ensure they do
-  not attempt imports after system shutdown has commenced. Failure to
-  abide by this restriction will lead to intermittent exceptions and
-  crashes during interpreter shutdown (as the late imports attempt to
-  access machinery which is no longer in a valid state).

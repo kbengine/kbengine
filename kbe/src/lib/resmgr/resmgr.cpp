@@ -25,6 +25,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM != PLATFORM_WIN32
 #include <unistd.h>
 #include <fcntl.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#else
+#include <tchar.h>
+#include <direct.h>
 #endif
 
 namespace KBEngine{
@@ -60,28 +65,31 @@ bool Resmgr::initializeWatcher()
 }
 
 //-------------------------------------------------------------------------------------
-bool Resmgr::initialize()
+void Resmgr::autoSetPaths()
 {
-	//if(isInit())
-	//	return true;
-
-	// 获取引擎环境配置
-	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
-	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
-	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
-
-	//kb_env_.root				= "/home/kbe/kbengine/";
-	//kb_env_.res_path			= "/home/kbe/kbengine/kbe/res/;/home/kbe/kbengine/demo/;/home/kbe/kbengine/demo/res/"; 
-	//kb_env_.hybrid_path		= "/home/kbe/kbengine/kbe/bin/Hybrid/"; 
+	char path[MAX_BUF];
+	char* ret = getcwd(path, MAX_BUF);
+	if(ret == NULL)
+		return;
 	
-	if(kb_env_.res_path.size() == 0 || kb_env_.root.size() == 0)
-	{
-		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
-#if KBE_PLATFORM == PLATFORM_WIN32
-		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
-#endif
-	}
+	std::string s = path;
+	size_t pos1;
 
+	pos1 = s.find("\\kbe\\bin\\");
+	if(pos1 == std::string::npos)
+		pos1 = s.find("/kbe/bin/");
+
+	if(pos1 == std::string::npos)
+		return;
+
+	s = s.substr(0, pos1 + 1);
+	kb_env_.root = s;
+	kb_env_.res_path = kb_env_.root + "kbe/res/;" + kb_env_.root + "/demo/;" + kb_env_.root + "/demo/res/";
+}
+
+//-------------------------------------------------------------------------------------
+void Resmgr::updatePaths()
+{
 	char ch;
 	
 	if(kb_env_.root.size() > 0)
@@ -138,6 +146,35 @@ bool Resmgr::initialize()
 
 	if(kb_env_.res_path.size() > 0)
 		kb_env_.res_path.erase(kb_env_.res_path.size() - 1);
+}
+
+//-------------------------------------------------------------------------------------
+bool Resmgr::initialize()
+{
+	//if(isInit())
+	//	return true;
+
+	// 获取引擎环境配置
+	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
+	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
+	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
+
+	//kb_env_.root				= "/home/kbengine/";
+	//kb_env_.res_path			= "/home/kbengine/kbe/res/;/home/kbengine/demo/;/home/kbengine/demo/res/"; 
+	//kb_env_.hybrid_path		= "/home/kbengine/kbe/bin/Hybrid/"; 
+	updatePaths();
+
+	if(kb_env_.root == "" || kb_env_.res_path == "")
+		autoSetPaths();
+
+	updatePaths();
+	if(getPySysResPath() == "" || getPyUserResPath() == "")
+	{
+		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
+#if KBE_PLATFORM == PLATFORM_WIN32
+		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+#endif
+	}
 
 	isInit_ = true;
 
@@ -146,15 +183,15 @@ bool Resmgr::initialize()
 }
 
 //-------------------------------------------------------------------------------------
-void Resmgr::pirnt(void)
+void Resmgr::print(void)
 {
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_ROOT=%1%\n") % kb_env_.root.c_str());
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_RES_PATH=%1%\n") % kb_env_.res_path.c_str());
-	INFO_MSG(boost::format("Resmgr::initialize: KBE_HYBRID_PATH=%1%\n") % kb_env_.hybrid_path.c_str());
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_ROOT={0}\n", kb_env_.root));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_RES_PATH={0}\n", kb_env_.res_path));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_HYBRID_PATH={0}\n", kb_env_.hybrid_path));
 }
 
 //-------------------------------------------------------------------------------------
-std::string Resmgr::matchRes(std::string res)
+std::string Resmgr::matchRes(const std::string& res)
 {
 	return matchRes(res.c_str());
 }
@@ -183,7 +220,7 @@ std::string Resmgr::matchRes(const char* res)
 }
 
 //-------------------------------------------------------------------------------------
-bool Resmgr::hasRes(std::string res)
+bool Resmgr::hasRes(const std::string& res)
 {
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
@@ -228,7 +265,155 @@ FILE* Resmgr::openRes(std::string res, const char* mode)
 }
 
 //-------------------------------------------------------------------------------------
-std::string Resmgr::matchPath(std::string path)
+bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std::vector<std::wstring>& results)
+{
+	if(path.size() == 0)
+	{
+		ERROR_MSG("Resmgr::listPathRes: open dir [NULL] error!\n");
+		return false;
+	}
+
+	if(path[path.size() - 1] != L'\\' && path[path.size() - 1] != L'/')
+		path += L"/";
+
+	std::vector<std::wstring> extendNames;
+	strutil::kbe_split<wchar_t>(extendName, L'|', extendNames);
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	struct dirent *filename;
+	DIR *dir;
+
+    char* cpath = strutil::wchar2char(path.c_str());
+    char pathstr[MAX_PATH];
+    strcpy(pathstr, cpath);
+    free(cpath);
+
+	dir = opendir(pathstr);
+	if(dir == NULL)
+	{
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", pathstr));
+		return false;
+	}
+
+	while((filename = readdir(dir)) != NULL)
+	{
+		if(strcmp(filename->d_name, ".") == 0 || strcmp(filename->d_name, "..") == 0)
+			continue;
+
+		struct stat s;
+		char pathstrtmp[MAX_PATH];
+		sprintf(pathstrtmp,"%s%s",pathstr, filename->d_name);
+		lstat(pathstrtmp, &s);
+
+		if(S_ISDIR(s.st_mode))
+		{
+			wchar_t* wstr = strutil::char2wchar(pathstrtmp);
+			listPathRes(wstr, extendName, results);
+			free(wstr);
+		}
+		else
+		{
+			wchar_t* wstr = strutil::char2wchar(filename->d_name);
+
+			if(extendName.size() == 0 || extendName == L"*" || extendName == L"*.*")
+			{
+				results.push_back(path + wstr);
+			}
+			else
+			{
+				if(extendNames.size() > 0)
+				{
+					std::vector<std::wstring> vec;
+					strutil::kbe_split<wchar_t>(wstr, L'.', vec);
+
+					for(size_t ext = 0; ext < extendNames.size(); ext++)
+					{
+						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
+						{
+							results.push_back(path + wstr);
+						}
+					}
+				}
+				else
+				{
+					results.push_back(path + wstr);
+				}
+			}
+
+			free(wstr);
+		}
+	}
+
+	closedir(dir);
+
+#else
+	wchar_t szFind[MAX_PATH];
+	WIN32_FIND_DATA FindFileData;
+	wcscpy(szFind, path.c_str());
+	wcscat(szFind, L"*");
+	
+	HANDLE hFind = FindFirstFile(szFind, &FindFileData);
+	if(INVALID_HANDLE_VALUE == hFind)
+	{
+		char* cstr = strutil::wchar2char(path.c_str());
+		ERROR_MSG(fmt::format("Resmgr::listPathRes: open dir [{}] error!\n", cstr));
+		free(cstr);
+		return false;
+	}
+
+	while(TRUE)
+	{
+		if(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			if(FindFileData.cFileName[0] != L'.')
+			{
+				wcscpy(szFind, path.c_str());
+				wcscat(szFind, L"");
+				wcscat(szFind, FindFileData.cFileName);
+				listPathRes(szFind, extendName, results);
+			}
+		}
+		else
+		{
+			if(extendName.size() == 0 || extendName == L"*" || extendName == L"*.*")
+			{
+				results.push_back(path + FindFileData.cFileName);
+			}
+			else
+			{
+				if(extendNames.size() > 0)
+				{
+					std::vector<std::wstring> vec;
+					strutil::kbe_split<wchar_t>(FindFileData.cFileName, L'.', vec);
+
+					for(size_t ext = 0; ext < extendNames.size(); ext++)
+					{
+						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
+						{
+							results.push_back(path + FindFileData.cFileName);
+						}
+					}
+				}
+				else
+				{
+					results.push_back(path + FindFileData.cFileName);
+				}
+			}
+		}
+
+		if(!FindNextFile(hFind, &FindFileData))
+			break;
+	}
+
+	FindClose(hFind);
+
+#endif
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::matchPath(const std::string& path)
 {
 	return matchPath(path.c_str());
 }

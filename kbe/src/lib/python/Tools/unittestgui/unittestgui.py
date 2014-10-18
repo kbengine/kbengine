@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 GUI framework and application for use with Python unit testing framework.
 Execute tests written using the framework provided by the 'unittest' module.
@@ -28,7 +28,6 @@ SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 __author__ = "Steve Purcell (stephen_purcell@yahoo.com)"
-__version__ = "$Revision: 1.7 $"[11:-2]
 
 import sys
 import traceback

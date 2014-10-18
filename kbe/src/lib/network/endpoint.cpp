@@ -57,7 +57,7 @@ namespace Mercury
 static bool g_networkInitted = false;
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<EndPoint> _g_objPool;
+static ObjectPool<EndPoint> _g_objPool("EndPoint");
 ObjectPool<EndPoint>& EndPoint::ObjPool()
 {
 	return _g_objPool;
@@ -66,8 +66,8 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 //-------------------------------------------------------------------------------------
 void EndPoint::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("EndPoint::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("EndPoint::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -185,7 +185,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[count];
 				interfaces[addrs] = "eth0";
 				char *ip = inet_ntoa (*(struct in_addr *)inaddrs->h_addr_list[count]);
-				DEBUG_MSG(boost::format("EndPoint::getInterfaces: found eth0 %1%\n") % ip);
+				DEBUG_MSG(fmt::format("EndPoint::getInterfaces: found eth0 {}\n", ip));
 				++count;
 			}
 		}
@@ -258,9 +258,9 @@ int EndPoint::findDefaultInterface(char * name)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EndPoint::findDefaultInterface: "
-							"if_nameindex returned NULL (%1%)\n") %
-						kbe_strerror());
+		ERROR_MSG(fmt::format("EndPoint::findDefaultInterface: "
+							"if_nameindex returned NULL ({})\n",
+						kbe_strerror()));
 	}
 
 	return ret;
@@ -296,8 +296,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 
 		if (!ok)
 		{
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"netmask match %1% length %2% is not valid.\n") % iftemp % (slash+1));
+			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+				"netmask match {} length {} is not valid.\n", iftemp, (slash+1)));
 			return -1;
 		}
 	}
@@ -313,8 +313,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-			"No interface matching interface spec '%1%' found\n") % spec);
+		ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+			"No interface matching interface spec '{}' found\n", spec));
 		return -1;
 	}
 
@@ -364,10 +364,10 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 		if (name[0] == 0)
 		{
 			uint8 * qik = (uint8*)&addr;
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"No interface matching netmask spec '%1%' found "
-				"(evals to %2%.%3%.%4%.%5%/%6%)\n") % spec %
-				qik[0] % qik[1] % qik[2] % qik[3] % netmaskbits);
+			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
+				"No interface matching netmask spec '{}' found "
+				"(evals to {}.{}.{}.{}/{})\n", spec,
+				qik[0], qik[1], qik[2], qik[3], netmaskbits));
 
 			return -2; // parsing ok, just didn't match
 		}
@@ -402,96 +402,31 @@ int EndPoint::convertAddress(const char * string, u_int32_t & address)
 }
 
 //-------------------------------------------------------------------------------------
-#ifdef unix
-int EndPoint::getQueueSizes(int & tx, int & rx) const
-{
-	int	ret = -1;
-
-	u_int16_t	nport = 0;
-	this->getlocaladdress(&nport,NULL);
-
-	char		match[16];
-	kbe_snprintf(match, sizeof(match), "%04X", (int)ntohs(nport));
-
-	FILE * f = fopen("/proc/net/udp", "r");
-
-	if (!f)
-	{
-		ERROR_MSG(boost::format("Endpoint::getQueueSizes: "
-				"could not open /proc/net/udp: %1%\n") %
-			kbe_strerror());
-
-		return -1;
-	}
-
-	char	aline[256];
-
-	while (fgets(aline, 256, f) != NULL)
-	{	// it goes "iiii: hhhhhhhh:pppp" (could check ip too 'tho)
-		if(!strncmp(aline+4+1+ 1 +8+1, match, 4))
-		{	// then goes " hhhhhhhh:pppp ss tttttttt:rrrrrrrr"
-			char * start = aline+4+1+ 1 +8+1+4+ 1 +8+1+4+ 1 +2+ 1;
-			start[8] = 0;
-			tx = strtol(start, NULL, 16);
-
-			start += 8+1;
-			start[8] = 0;
-			rx = strtol(start, NULL, 16);
-
-			ret = 0;
-
-			break;
-		}
-	}
-
-	fclose(f);
-
-	return ret;
-}
-#else
-int EndPoint::getQueueSizes(int &, int &) const
-{
-	return -1;
-}
-#endif
-
-//-------------------------------------------------------------------------------------
 int EndPoint::getBufferSize(int optname) const
 {
-#ifdef unix
 	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
 
 	int recvbuf = -1;
 	socklen_t rbargsize = sizeof(int);
+
 	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
 		(char*)&recvbuf, &rbargsize);
 
 	if (rberr == 0 && rbargsize == sizeof(int))
-	{
 		return recvbuf;
-	}
-	else
-	{
-		ERROR_MSG(boost::format("EndPoint::getBufferSize: "
-			"Failed to read option %1%: %2%\n") %
-			(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
-			kbe_strerror());
 
-		return -1;
-	}
+	ERROR_MSG(fmt::format("EndPoint::getBufferSize: "
+		"Failed to read option {}: {}\n",
+		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF"),
+		kbe_strerror()));
 
-#else
 	return -1;
-#endif
 }
 
 //-------------------------------------------------------------------------------------
 bool EndPoint::setBufferSize(int optname, int size)
 {
-#ifdef unix
-	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size,
-		sizeof(size));
-#endif
+	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size, sizeof(size));
 
 	return this->getBufferSize(optname) >= size;
 }
@@ -511,8 +446,8 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 			}
 			else
 			{
-				WARNING_MSG(boost::format("EndPoint::recvAll: Got error '%1%'\n") %
-					kbe_strerror());
+				WARNING_MSG(fmt::format("EndPoint::recvAll: Got error '{}'\n",
+					kbe_strerror()));
 			}
 
 			return false;
@@ -560,11 +495,9 @@ void EndPoint::initNetwork()
 	
 	g_networkInitted = true;
 
-#if !defined(PLAYSTATION3)
-#ifndef unix
+#if KBE_PLATFORM == PLATFORM_WIN32
 	WSAData wsdata;
 	WSAStartup(0x202, &wsdata);
-#endif // !unix
 #endif
 }
 

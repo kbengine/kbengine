@@ -40,7 +40,7 @@ class ReplaceDialog(SearchDialogBase):
 
     def create_entries(self):
         SearchDialogBase.create_entries(self)
-        self.replent = self.make_entry("Replace with:", self.replvar)
+        self.replent = self.make_entry("Replace with:", self.replvar)[0]
 
     def create_command_buttons(self):
         SearchDialogBase.create_command_buttons(self)
@@ -188,3 +188,34 @@ class ReplaceDialog(SearchDialogBase):
     def close(self, event=None):
         SearchDialogBase.close(self, event)
         self.text.tag_remove("hit", "1.0", "end")
+
+def _replace_dialog(parent):
+    root = Tk()
+    root.title("Test ReplaceDialog")
+    width, height, x, y = list(map(int, re.split('[x+]', parent.geometry())))
+    root.geometry("+%d+%d"%(x, y + 150))
+
+    # mock undo delegator methods
+    def undo_block_start():
+        pass
+
+    def undo_block_stop():
+        pass
+
+    text = Text(root)
+    text.undo_block_start = undo_block_start
+    text.undo_block_stop = undo_block_stop
+    text.pack()
+    text.insert("insert","This is a sample string.\n"*10)
+
+    def show_replace():
+        text.tag_add(SEL, "1.0", END)
+        replace(text)
+        text.tag_remove(SEL, "1.0", END)
+
+    button = Button(root, text="Replace", command=show_replace)
+    button.pack()
+
+if __name__ == '__main__':
+    from idlelib.idle_test.htest import run
+    run(_replace_dialog)

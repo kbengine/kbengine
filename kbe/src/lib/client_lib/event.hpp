@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_EVENT_HPP__
-#define __CLIENT_EVENT_HPP__
+#ifndef KBE_CLIENT_EVENT_HPP
+#define KBE_CLIENT_EVENT_HPP
 
 #include "client_lib/entity_aspect.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -48,6 +48,9 @@ typedef int32 EventID;
 #define CLIENT_EVENT_DIRECTION_FORCE 16
 #define CLIENT_EVENT_ADDSPACEGEOMAPPING 17
 #define CLIENT_EVENT_VERSION_NOT_MATCH 18
+#define CLIENT_EVENT_ON_KICKED 19
+#define CLIENT_EVENT_LAST_ACCOUNT_INFO 20
+#define CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH 21
 
 struct EventData
 {
@@ -79,6 +82,18 @@ protected:
 	EVENT_HANDLES eventHandles_;
 };
 
+struct EventData_LastAccountInfo : public EventData
+{
+	EventData_LastAccountInfo():
+	EventData(CLIENT_EVENT_LAST_ACCOUNT_INFO),
+	name(),
+	password()
+	{
+	}
+
+	std::string name, password;
+};
+
 struct EventData_LoginSuccess : public EventData
 {
 	EventData_LoginSuccess():
@@ -90,9 +105,12 @@ struct EventData_LoginSuccess : public EventData
 struct EventData_LoginFailed : public EventData
 {
 	EventData_LoginFailed():
-	EventData(CLIENT_EVENT_LOGIN_FAILED)
+	EventData(CLIENT_EVENT_LOGIN_FAILED),
+	failedcode(0)
 	{
 	}
+
+	int failedcode;
 };
 
 struct EventData_LoginGatewaySuccess : public EventData
@@ -106,22 +124,29 @@ struct EventData_LoginGatewaySuccess : public EventData
 struct EventData_LoginGatewayFailed : public EventData
 {
 	EventData_LoginGatewayFailed():
-	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS)
+	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS),
+	failedcode(0),
+	relogin(false)
 	{
 	}
+
+	int failedcode;
+	bool relogin;
 };
 
 struct EventData_CreatedEntity : public EventData
 {
 	EventData_CreatedEntity():
 	EventData(CLIENT_EVENT_CREATEDENTITY),
-	pEntity(NULL),
-	res()
+	entityID(0),
+//	modelres(),
+	modelScale(0.f)
 	{
 	}
 
-	const EntityAspect* pEntity;
-	std::string res;
+	ENTITY_ID entityID;
+	//std::string modelres;
+	float modelScale;	
 };
 
 struct EventData_EnterWorld : public EventData
@@ -129,30 +154,31 @@ struct EventData_EnterWorld : public EventData
 	EventData_EnterWorld():
 	EventData(CLIENT_EVENT_ENTERWORLD),
 	spaceID(0),
-	pEntity(NULL),
+	entityID(0),
 	res()
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 	std::string res;
 	float x, y, z;
 	float pitch, roll, yaw;
 	float speed;
+	bool isOnGound;
 };
 
 struct EventData_LeaveWorld : public EventData
 {
 	EventData_LeaveWorld():
 	EventData(CLIENT_EVENT_LEAVEWORLD),
-	spaceID(0),
-	pEntity(NULL)
+	entityID(0),
+	spaceID(0)
 	{
 	}
 
+	ENTITY_ID entityID;
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
 };
 
 struct EventData_EnterSpace : public EventData
@@ -160,12 +186,18 @@ struct EventData_EnterSpace : public EventData
 	EventData_EnterSpace():
 	EventData(CLIENT_EVENT_ENTERSPACE),
 	spaceID(0),
-	pEntity(NULL)
+	entityID(0),
+	res()
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
+	std::string res;
+	float x, y, z;
+	float pitch, roll, yaw;
+	float speed;
+	bool isOnGound;
 };
 
 struct EventData_LeaveSpace : public EventData
@@ -173,12 +205,12 @@ struct EventData_LeaveSpace : public EventData
 	EventData_LeaveSpace():
 	EventData(CLIENT_EVENT_LEAVESPACE),
 	spaceID(0),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	SPACE_ID spaceID;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_Script : public EventData
@@ -212,13 +244,13 @@ struct EventData_PositionChanged : public EventData
 	y(0.f),
 	z(0.f),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float x, y, z;
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_PositionForce : public EventData
@@ -229,13 +261,13 @@ struct EventData_PositionForce : public EventData
 	y(0.f),
 	z(0.f),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float x, y, z;
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_DirectionForce : public EventData
@@ -245,12 +277,12 @@ struct EventData_DirectionForce : public EventData
 	yaw(0.f),
 	pitch(0.f),
 	roll(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float yaw, pitch, roll;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_DirectionChanged : public EventData
@@ -260,12 +292,12 @@ struct EventData_DirectionChanged : public EventData
 	yaw(0.f),
 	pitch(0.f),
 	roll(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float yaw, pitch, roll;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_MoveSpeedChanged : public EventData
@@ -273,12 +305,12 @@ struct EventData_MoveSpeedChanged : public EventData
 	EventData_MoveSpeedChanged():
 	EventData(CLIENT_EVENT_MOVESPEED_CHANGED),
 	speed(0.f),
-	pEntity(NULL)
+	entityID(0)
 	{
 	}
 
 	float speed;
-	const EntityAspect* pEntity;
+	ENTITY_ID entityID;
 };
 
 struct EventData_ServerCloased : public EventData
@@ -309,6 +341,28 @@ struct EventData_VersionNotMatch : public EventData
 
 	std::string verInfo;
 	std::string serVerInfo;
+};
+
+struct EventData_ScriptVersionNotMatch : public EventData
+{
+	EventData_ScriptVersionNotMatch():
+	EventData(CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH)
+	{
+	}
+
+	std::string verInfo;
+	std::string serVerInfo;
+};
+
+struct EventData_onKicked : public EventData
+{
+	EventData_onKicked():
+	EventData(CLIENT_EVENT_ON_KICKED),
+	failedcode(0)
+	{
+	}
+
+	uint16 failedcode;
 };
 
 inline EventData* newKBEngineEvent(EventID v)
@@ -368,6 +422,15 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			return new EventData_VersionNotMatch();
+			break;
+		case CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH:
+			return new EventData_ScriptVersionNotMatch();
+			break;
+		case CLIENT_EVENT_ON_KICKED:
+			return new EventData_onKicked();
+			break;
+		case CLIENT_EVENT_LAST_ACCOUNT_INFO:
+			return new EventData_LastAccountInfo();
 			break;
 		default:
 			break;
@@ -453,6 +516,18 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_VERSION_NOT_MATCH:
 			peventdata = new EventData_VersionNotMatch();
 			(*static_cast<EventData_VersionNotMatch*>(peventdata)) = (*static_cast<const EventData_VersionNotMatch*>(lpEventData));
+			break;
+		case CLIENT_EVENT_SCRIPT_VERSION_NOT_MATCH:
+			peventdata = new EventData_ScriptVersionNotMatch();
+			(*static_cast<EventData_ScriptVersionNotMatch*>(peventdata)) = (*static_cast<const EventData_ScriptVersionNotMatch*>(lpEventData));
+			break;
+		case CLIENT_EVENT_ON_KICKED:
+			peventdata = new EventData_onKicked();
+			(*static_cast<EventData_onKicked*>(peventdata)) = (*static_cast<const EventData_onKicked*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LAST_ACCOUNT_INFO:
+			peventdata = new EventData_LastAccountInfo();
+			(*static_cast<EventData_LastAccountInfo*>(peventdata)) = (*static_cast<const EventData_LastAccountInfo*>(lpEventData));
 			break;
 		default:
 			break;

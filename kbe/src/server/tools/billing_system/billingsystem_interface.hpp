@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __BILLINGSYSTEM_INTERFACE_H__
+	#undef KBE_BILLINGSYSTEM_INTERFACE_HPP
 #endif
 
 
-#ifndef __BILLINGSYSTEM_INTERFACE_H__
-#define __BILLINGSYSTEM_INTERFACE_H__
+#ifndef KBE_BILLINGSYSTEM_INTERFACE_HPP
+#define KBE_BILLINGSYSTEM_INTERFACE_HPP
 
 // common include	
 #if defined(BILLINGSYSTEM)
@@ -51,7 +51,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 	// 某app注册自己的接口地址到本app
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -61,7 +61,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 请求创建账号。
 	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCreateAccount,					MERCURY_VARIABLE_MESSAGE)
@@ -90,6 +91,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,
 										std::string,						logkey)
 
+	// 开始profile
+	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(startProfile,						MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqKillServer,						MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
@@ -97,4 +104,5 @@ NETWORK_INTERFACE_DECLARE_END()
 #endif
 
 }
-#endif
+
+#endif // KBE_BILLINGSYSTEM_INTERFACE_HPP

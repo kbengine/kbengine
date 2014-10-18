@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DEADLINE_FORMAT__
-#define __DEADLINE_FORMAT__
+#ifndef KBE_DEADLINE_FORMAT_HPP
+#define KBE_DEADLINE_FORMAT_HPP
 #include "cstdkbe/cstdkbe.hpp"
 #include <math.h>
 
@@ -54,7 +54,7 @@ public:
 
 	std::string print()
 	{
-		return (boost::format("%1%days/%2%:%3%:%4%") % days % hours % minutes % seconds).str();
+		return fmt::format("{}days/{}:{}:{}", days, hours, minutes, seconds);
 	}
 	
 	uint32 days, hours, minutes, seconds;
@@ -64,4 +64,4 @@ public:
 
 }
 
-#endif // __DEADLINE_FORMAT__
+#endif // KBE_DEADLINE_FORMAT_HPP

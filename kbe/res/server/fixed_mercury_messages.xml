@@ -294,6 +294,11 @@
 		<arg>STRING</arg> <!-- respath -->
 	</Client::addSpaceGeometryMapping>
 	
+	<Client::onHelloCB>
+		<id>521</id>
+		<descr>onHelloCB°£</descr>
+	</Client::onHelloCB>
+	
 	<Property::position>
 		<id>40000</id>
 		<descr>Œª÷√ Ù–‘°£</descr>

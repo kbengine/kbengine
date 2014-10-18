@@ -34,6 +34,14 @@ def _make_failed_test(classname, methodname, exception, suiteClass):
     TestClass = type(classname, (case.TestCase,), attrs)
     return suiteClass((TestClass(methodname),))
 
+def _make_skipped_test(methodname, exception, suiteClass):
+    @case.skip(str(exception))
+    def testSkipped(self):
+        pass
+    attrs = {methodname: testSkipped}
+    TestClass = type("ModuleSkipped", (case.TestCase,), attrs)
+    return suiteClass((TestClass(methodname),))
+
 def _jython_aware_splitext(path):
     if path.lower().endswith('$py.class'):
         return path[:-9]
@@ -53,8 +61,9 @@ class TestLoader(object):
     def loadTestsFromTestCase(self, testCaseClass):
         """Return a suite of all tests cases contained in testCaseClass"""
         if issubclass(testCaseClass, suite.TestSuite):
-            raise TypeError("Test cases should not be derived from TestSuite." \
-                                " Maybe you meant to derive from TestCase?")
+            raise TypeError("Test cases should not be derived from "
+                            "TestSuite. Maybe you meant to derive from "
+                            "TestCase?")
         testCaseNames = self.getTestCaseNames(testCaseClass)
         if not testCaseNames and hasattr(testCaseClass, 'runTest'):
             testCaseNames = ['runTest']
@@ -111,7 +120,7 @@ class TestLoader(object):
         elif (isinstance(obj, types.FunctionType) and
               isinstance(parent, type) and
               issubclass(parent, case.TestCase)):
-            name = obj.__name__
+            name = parts[-1]
             inst = parent(name)
             # static methods follow a different path
             if not isinstance(getattr(inst, name), types.FunctionType):
@@ -169,6 +178,9 @@ class TestLoader(object):
         The pattern is deliberately not stored as a loader attribute so that
         packages can continue discovery themselves. top_level_dir is stored so
         load_tests does not need to pass this argument in to loader.discover().
+
+        Paths are sorted before being imported to ensure reproducible execution
+        order even on filesystems with non-alphabetical ordering like ext3/4.
         """
         set_implicit_top = False
         if top_level_dir is None and self._top_level_dir is not None:
@@ -189,6 +201,8 @@ class TestLoader(object):
         self._top_level_dir = top_level_dir
 
         is_not_importable = False
+        is_namespace = False
+        tests = []
         if os.path.isdir(os.path.abspath(start_dir)):
             start_dir = os.path.abspath(start_dir)
             if start_dir != top_level_dir:
@@ -202,15 +216,52 @@ class TestLoader(object):
             else:
                 the_module = sys.modules[start_dir]
                 top_part = start_dir.split('.')[0]
-                start_dir = os.path.abspath(os.path.dirname((the_module.__file__)))
+                try:
+                    start_dir = os.path.abspath(
+                       os.path.dirname((the_module.__file__)))
+                except AttributeError:
+                    # look for namespace packages
+                    try:
+                        spec = the_module.__spec__
+                    except AttributeError:
+                        spec = None
+
+                    if spec and spec.loader is None:
+                        if spec.submodule_search_locations is not None:
+                            is_namespace = True
+
+                            for path in the_module.__path__:
+                                if (not set_implicit_top and
+                                    not path.startswith(top_level_dir)):
+                                    continue
+                                self._top_level_dir = \
+                                    (path.split(the_module.__name__
+                                         .replace(".", os.path.sep))[0])
+                                tests.extend(self._find_tests(path,
+                                                              pattern,
+                                                              namespace=True))
+                    elif the_module.__name__ in sys.builtin_module_names:
+                        # builtin module
+                        raise TypeError('Can not use builtin modules '
+                                        'as dotted module names') from None
+                    else:
+                        raise TypeError(
+                            'don\'t know how to discover from {!r}'
+                            .format(the_module)) from None
+
                 if set_implicit_top:
-                    self._top_level_dir = self._get_directory_containing_module(top_part)
-                    sys.path.remove(top_level_dir)
+                    if not is_namespace:
+                        self._top_level_dir = \
+                           self._get_directory_containing_module(top_part)
+                        sys.path.remove(top_level_dir)
+                    else:
+                        sys.path.remove(top_level_dir)
 
         if is_not_importable:
             raise ImportError('Start directory is not importable: %r' % start_dir)
 
-        tests = list(self._find_tests(start_dir, pattern))
+        if not is_namespace:
+            tests = list(self._find_tests(start_dir, pattern))
         return self.suiteClass(tests)
 
     def _get_directory_containing_module(self, module_name):
@@ -243,9 +294,9 @@ class TestLoader(object):
         # override this method to use alternative matching strategy
         return fnmatch(path, pattern)
 
-    def _find_tests(self, start_dir, pattern):
+    def _find_tests(self, start_dir, pattern, namespace=False):
         """Used by discovery. Yields test suites it loads."""
-        paths = os.listdir(start_dir)
+        paths = sorted(os.listdir(start_dir))
 
         for path in paths:
             full_path = os.path.join(start_dir, path)
@@ -259,12 +310,14 @@ class TestLoader(object):
                 name = self._get_name_from_path(full_path)
                 try:
                     module = self._get_module_from_name(name)
+                except case.SkipTest as e:
+                    yield _make_skipped_test(name, e, self.suiteClass)
                 except:
                     yield _make_failed_import_test(name, self.suiteClass)
                 else:
                     mod_file = os.path.abspath(getattr(module, '__file__', full_path))
-                    realpath = _jython_aware_splitext(mod_file)
-                    fullpath_noext = _jython_aware_splitext(full_path)
+                    realpath = _jython_aware_splitext(os.path.realpath(mod_file))
+                    fullpath_noext = _jython_aware_splitext(os.path.realpath(full_path))
                     if realpath.lower() != fullpath_noext.lower():
                         module_dir = os.path.dirname(realpath)
                         mod_name = _jython_aware_splitext(os.path.basename(full_path))
@@ -274,7 +327,8 @@ class TestLoader(object):
                         raise ImportError(msg % (mod_name, module_dir, expected_dir))
                     yield self.loadTestsFromModule(module)
             elif os.path.isdir(full_path):
-                if not os.path.isfile(os.path.join(full_path, '__init__.py')):
+                if (not namespace and
+                    not os.path.isfile(os.path.join(full_path, '__init__.py'))):
                     continue
 
                 load_tests = None
@@ -291,8 +345,8 @@ class TestLoader(object):
                         # tests loaded from package file
                         yield tests
                     # recurse into the package
-                    for test in self._find_tests(full_path, pattern):
-                        yield test
+                    yield from self._find_tests(full_path, pattern,
+                                                namespace=namespace)
                 else:
                     try:
                         yield load_tests(self, tests, pattern)

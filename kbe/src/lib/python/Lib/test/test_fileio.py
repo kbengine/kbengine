@@ -2,14 +2,14 @@
 
 import sys
 import os
+import io
 import errno
 import unittest
 from array import array
 from weakref import proxy
 from functools import wraps
-import _testcapi
 
-from test.support import TESTFN, check_warnings, run_unittest, make_bad_fd
+from test.support import TESTFN, check_warnings, run_unittest, make_bad_fd, cpython_only
 from collections import UserList
 
 from _io import FileIO as _FileIO
@@ -144,16 +144,16 @@ class AutoFileTests(unittest.TestCase):
         # Unix calls dircheck() and returns "[Errno 21]: Is a directory"
         try:
             _FileIO('.', 'r')
-        except IOError as e:
+        except OSError as e:
             self.assertNotEqual(e.errno, 0)
             self.assertEqual(e.filename, ".")
         else:
-            self.fail("Should have raised IOError")
+            self.fail("Should have raised OSError")
 
     @unittest.skipIf(os.name == 'nt', "test only works on a POSIX-like system")
     def testOpenDirFD(self):
         fd = os.open('.', os.O_RDONLY)
-        with self.assertRaises(IOError) as cm:
+        with self.assertRaises(OSError) as cm:
             _FileIO(fd, 'r')
         os.close(fd)
         self.assertEqual(cm.exception.errno, errno.EISDIR)
@@ -171,7 +171,7 @@ class AutoFileTests(unittest.TestCase):
             finally:
                 try:
                     self.f.close()
-                except IOError:
+                except OSError:
                     pass
         return wrapper
 
@@ -183,14 +183,14 @@ class AutoFileTests(unittest.TestCase):
             os.close(f.fileno())
             try:
                 func(self, f)
-            except IOError as e:
+            except OSError as e:
                 self.assertEqual(e.errno, errno.EBADF)
             else:
-                self.fail("Should have raised IOError")
+                self.fail("Should have raised OSError")
             finally:
                 try:
                     self.f.close()
-                except IOError:
+                except OSError:
                     pass
         return wrapper
 
@@ -237,7 +237,7 @@ class AutoFileTests(unittest.TestCase):
     def ReopenForRead(self):
         try:
             self.f.close()
-        except IOError:
+        except OSError:
             pass
         self.f = _FileIO(TESTFN, 'r')
         os.close(self.f.fileno())
@@ -285,7 +285,7 @@ class OtherFileTests(unittest.TestCase):
             if sys.platform != "win32":
                 try:
                     f = _FileIO("/dev/tty", "a")
-                except EnvironmentError:
+                except OSError:
                     # When run in a cron job there just aren't any
                     # ttys, so skip the test.  This also handles other
                     # OS'es that don't support /dev/tty.
@@ -303,7 +303,7 @@ class OtherFileTests(unittest.TestCase):
         finally:
             os.unlink(TESTFN)
 
-    def testModeStrings(self):
+    def testInvalidModeStrings(self):
         # check invalid mode strings
         for mode in ("", "aU", "wU+", "rw", "rt"):
             try:
@@ -313,6 +313,21 @@ class OtherFileTests(unittest.TestCase):
             else:
                 f.close()
                 self.fail('%r is an invalid file mode' % mode)
+
+    def testModeStrings(self):
+        # test that the mode attribute is correct for various mode strings
+        # given as init args
+        try:
+            for modes in [('w', 'wb'), ('wb', 'wb'), ('wb+', 'rb+'),
+                          ('w+b', 'rb+'), ('a', 'ab'), ('ab', 'ab'),
+                          ('ab+', 'ab+'), ('a+b', 'ab+'), ('r', 'rb'),
+                          ('rb', 'rb'), ('rb+', 'rb+'), ('r+b', 'rb+')]:
+                # read modes are last so that TESTFN will exist first
+                with _FileIO(TESTFN, modes[0]) as f:
+                    self.assertEqual(f.mode, modes[1])
+        finally:
+            if os.path.exists(TESTFN):
+                os.unlink(TESTFN)
 
     def testUnicodeOpen(self):
         # verify repr works for unicode too
@@ -325,8 +340,7 @@ class OtherFileTests(unittest.TestCase):
         try:
             fn = TESTFN.encode("ascii")
         except UnicodeEncodeError:
-            # Skip test
-            return
+            self.skipTest('could not encode %r to ascii' % TESTFN)
         f = _FileIO(fn, "w")
         try:
             f.write(b"abc")
@@ -346,8 +360,12 @@ class OtherFileTests(unittest.TestCase):
         self.assertRaises(OSError, _FileIO, make_bad_fd())
         if sys.platform == 'win32':
             import msvcrt
-            self.assertRaises(IOError, msvcrt.get_osfhandle, make_bad_fd())
+            self.assertRaises(OSError, msvcrt.get_osfhandle, make_bad_fd())
+
+    @cpython_only
+    def testInvalidFd_overflow(self):
         # Issue 15989
+        import _testcapi
         self.assertRaises(TypeError, _FileIO, _testcapi.INT_MAX + 1)
         self.assertRaises(TypeError, _FileIO, _testcapi.INT_MIN - 1)
 
@@ -373,10 +391,10 @@ class OtherFileTests(unittest.TestCase):
         self.assertEqual(f.tell(), 10)
         f.truncate(5)
         self.assertEqual(f.tell(), 10)
-        self.assertEqual(f.seek(0, os.SEEK_END), 5)
+        self.assertEqual(f.seek(0, io.SEEK_END), 5)
         f.truncate(15)
         self.assertEqual(f.tell(), 5)
-        self.assertEqual(f.seek(0, os.SEEK_END), 15)
+        self.assertEqual(f.seek(0, io.SEEK_END), 15)
         f.close()
 
     def testTruncateOnWindows(self):

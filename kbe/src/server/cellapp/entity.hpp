@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENTITY_H__
-#define __ENTITY_H__
+#ifndef KBE_ENTITY_HPP
+#define KBE_ENTITY_HPP
 	
 // common include
 //#include "entitymovecontroller.hpp"
@@ -52,8 +52,8 @@ class EntityMailbox;
 class Cellapp;
 class Witness;
 class AllClients;
-class RangeList;
-class EntityRangeNode;
+class CoordinateSystem;
+class EntityCoordinateNode;
 class Controller;
 class Controllers;
 class Space;
@@ -93,6 +93,23 @@ public:
 	INLINE bool isReal(void)const;
 
 	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE bool hasGhost(void)const;
+
+	/** 
+		判断自身是否是一个realEntity 
+	*/
+	INLINE COMPONENT_ID realCell(void)const;
+	INLINE void realCell(COMPONENT_ID cellID);
+
+	/** 
+		判断自身是否有ghostEntity 
+	*/
+	INLINE COMPONENT_ID ghostCell(void)const;
+	INLINE void ghostCell(COMPONENT_ID cellID);
+
+	/** 
 		定义属性数据被改变了 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
@@ -107,40 +124,40 @@ public:
 	/** 
 		mailbox section
 	*/
-	INLINE EntityMailbox* getBaseMailbox()const;
+	INLINE EntityMailbox* baseMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
-	INLINE void setBaseMailbox(EntityMailbox* mailbox);
+	INLINE void baseMailbox(EntityMailbox* mailbox);
 	
-	INLINE EntityMailbox* getClientMailbox()const;
+	INLINE EntityMailbox* clientMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
-	INLINE void setClientMailbox(EntityMailbox* mailbox);
+	INLINE void clientMailbox(EntityMailbox* mailbox);
 
 	/**
 		all_clients
 	*/
-	INLINE AllClients* getAllClients()const;
+	INLINE AllClients* allClients()const;
 	DECLARE_PY_GET_MOTHOD(pyGetAllClients);
-	INLINE void setAllClients(AllClients* clients);
+	INLINE void allClients(AllClients* clients);
 
 	/**
 		other_clients
 	*/
-	INLINE AllClients* getOtherClients()const;
+	INLINE AllClients* otherClients()const;
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
-	INLINE void setOtherClients(AllClients* clients);
+	INLINE void otherClients(AllClients* clients);
 
 	/** 
 		脚本获取和设置entity的position 
 	*/
-	INLINE Position3D& getPosition();
-	INLINE void setPosition(const Position3D& pos);
+	INLINE Position3D& position();
+	INLINE void position(const Position3D& pos);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
 		脚本获取和设置entity的方向 
 	*/
-	INLINE Direction3D& getDirection();
-	INLINE void setDirection(const Direction3D& dir);
+	INLINE Direction3D& direction();
+	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 
@@ -149,12 +166,13 @@ public:
 	*/
 	INLINE void isOnGround(bool v);
 	INLINE bool isOnGround()const;
+	DECLARE_PY_GET_MOTHOD(pyGetIsOnGround);
 
 	/** 
 		设置entity方向和位置 
 	*/
-	void setPositionAndDirection(const Position3D& position, 
-		const Direction3D& direction);
+	void setPositionAndDirection(const Position3D& pos, 
+		const Direction3D& dir);
 	
 	void onPositionChanged();
 	void onDirectionChanged();
@@ -210,7 +228,8 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
-	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, SPACE_ID destSpaceID);
+	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, 
+		SPACE_ID destSpaceID, COMPONENT_ID componentID);
 
 	/**
 		进入离开cell等回调
@@ -304,15 +323,15 @@ public:
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/
-	float getTopSpeed()const{ return topSpeed_; }
-	INLINE void setTopSpeed(float speed);
+	float topSpeed()const{ return topSpeed_; }
+	INLINE void topSpeed(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeed, pySetTopSpeed);
 	
 	/** 
 		脚本获取和设置entity的最高y移动速度 
 	*/
-	INLINE float getTopSpeedY()const;
-	INLINE void setTopSpeedY(float speed);
+	INLINE float topSpeedY()const;
+	INLINE void topSpeedY(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeedY, pySetTopSpeedY);
 	
 	/** 
@@ -369,25 +388,21 @@ public:
 	void onDelWitnessed();
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
+	INLINE size_t witnessesSize()const;
 
 	/** 网络接口
 		entity绑定了一个观察者(客户端)
 
 	*/
 	void setWitness(Witness* pWitness);
-	void onGetWitness(Mercury::Channel* pChannel);
+	void onGetWitnessFromBase(Mercury::Channel* pChannel);
+	void onGetWitness(bool fromBase = false);
 
 	/** 网络接口
 		entity丢失了一个观察者(客户端)
 
 	*/
 	void onLoseWitness(Mercury::Channel* pChannel);
-
-	/** 网络接口
-		entity丢失了一个观察者(客户端)
-
-	*/
-	void onResetWitness(Mercury::Channel* pChannel);
 
 	/** 
 		client更新数据
@@ -465,19 +480,60 @@ public:
 	/**
 		获取entity所在节点
 	*/
-	INLINE EntityRangeNode* pEntityRangeNode()const;
+	INLINE EntityCoordinateNode* pEntityCoordinateNode()const;
+	INLINE void pEntityCoordinateNode(EntityCoordinateNode* pNode);
 
 	/**
 		安装卸载节点
 	*/
-	void installRangeNodes(RangeList* pRangeList);
-	void uninstallRangeNodes(RangeList* pRangeList);
+	void installCoordinateNodes(CoordinateSystem* pCoordinateSystem);
+	void uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem);
 
 	/**
 		获取entity位置朝向在某时间是否改变过
 	*/
 	INLINE GAME_TIME posChangedTime()const;
 	INLINE GAME_TIME dirChangedTime()const;
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostPropertys(KBEngine::MemoryStream& s);
+	
+	/** 
+		ghost请求调用def方法real
+	*/
+	void onRemoteRealMethodCall(KBEngine::MemoryStream& s);
+
+	/** 
+		real请求更新属性到ghost
+	*/
+	void onUpdateGhostVolatileData(KBEngine::MemoryStream& s);
+
+	/** 
+		转变为ghost, 自身必须为real
+	*/
+	void changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s);
+
+	/** 
+		转变为real, 自身必须为ghost
+	*/
+	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s);
+
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
+	void addTimersToStream(KBEngine::MemoryStream& s);
+	void createTimersFromStream(KBEngine::MemoryStream& s);
+
+	void addControllersToStream(KBEngine::MemoryStream& s);
+	void createControllersFromStream(KBEngine::MemoryStream& s);
+
+	void addWitnessToStream(KBEngine::MemoryStream& s);
+	void createWitnessFromStream(KBEngine::MemoryStream& s);
+
+	void addMoveHandlerToStream(KBEngine::MemoryStream& s);
+	void createMoveHandlerFromStream(KBEngine::MemoryStream& s);
 private:
 	/** 
 		发送teleport结果到base端
@@ -490,6 +546,12 @@ protected:
 
 	// 这个entity的baseapp mailbox
 	EntityMailbox*											baseMailbox_;						
+
+	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
+	COMPONENT_ID											realCell_;	
+
+	// 如果一个entity为real，那么entity可能会存在一个ghost的指向
+	COMPONENT_ID											ghostCell_;	
 
 	// entity的当前位置
 	Position3D												lastpos_;	
@@ -505,9 +567,6 @@ protected:
 	GAME_TIME												posChangedTime_;
 	GAME_TIME												dirChangedTime_;
 
-	// 自己是否是一个realEntity
-	bool													isReal_;	
-
 	// 是否在地面上
 	bool													isOnGround_;						
 
@@ -522,6 +581,7 @@ protected:
 
 	// 是否被任何观察者监视到
 	std::list<ENTITY_ID>									witnesses_;
+	size_t													witnesses_count_;
 
 	// 观察者对象
 	Witness*												pWitness_;							
@@ -530,7 +590,7 @@ protected:
 	AllClients*												otherClients_;
 
 	// entity节点
-	EntityRangeNode*										pEntityRangeNode_;					
+	EntityCoordinateNode*									pEntityCoordinateNode_;					
 
 	// 控制器管理器
 	Controllers*											pControllers_;						
@@ -552,4 +612,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entity.ipp"
 #endif
-#endif
+#endif // KBE_ENTITY_HPP

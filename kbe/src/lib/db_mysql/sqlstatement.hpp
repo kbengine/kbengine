@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SQL_STATEMENT_H__
-#define __SQL_STATEMENT_H__
+#ifndef KBE_SQL_STATEMENT_HPP
+#define KBE_SQL_STATEMENT_HPP
 
 // common include	
 // #define NDEBUG
@@ -64,8 +64,8 @@ public:
 
 		if(!ret)
 		{
-			ERROR_MSG(boost::format("SqlStatement::query: %1%\n\tsql:%2%\n") % 
-				(dbi != NULL ? dbi : dbi_)->getstrerror() % sqlstr_);
+			ERROR_MSG(fmt::format("SqlStatement::query: {}\n\tsql:{}\n", 
+				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}
@@ -151,8 +151,8 @@ public:
 		bool ret = SqlStatement::query(dbi);
 		if(!ret)
 		{
-			ERROR_MSG(boost::format("SqlStatementInsert::query: %1%\n\tsql:%2%\n") % 
-				(dbi != NULL ? dbi : dbi_)->getstrerror() % sqlstr_);
+			ERROR_MSG(fmt::format("SqlStatementInsert::query: {}\n\tsql:{}\n",
+				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}
@@ -271,4 +271,4 @@ protected:
 };
 
 }
-#endif
+#endif // KBE_SQL_STATEMENT_HPP

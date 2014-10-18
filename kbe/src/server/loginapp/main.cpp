@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
@@ -54,11 +55,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr/dbmgr_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "dbmgr/dbmgr_interface.hpp"
-
-#undef DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "tools/bots/bots_interface.hpp"

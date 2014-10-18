@@ -27,8 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		在cpp文件中:
 		template<> A* Singleton<A>::singleton_ = 0;
 */
-#ifndef __SINGLETON_H__
-#define __SINGLETON_H__
+#ifndef KBE_SINGLETON_HPP
+#define KBE_SINGLETON_HPP
+
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
@@ -74,4 +75,4 @@ public:
 template <>	 TYPE * Singleton< TYPE >::singleton_ = 0;	\
 	
 }
-#endif // __SINGLETON_H__
+#endif // KBE_SINGLETON_HPP

@@ -55,11 +55,11 @@ bool Messagelog::run()
 {
 	bool ret = true;
 
-	while(!this->getMainDispatcher().isBreakProcessing())
+	while(!this->mainDispatcher().isBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
+		this->mainDispatcher().processOnce(false);
+		networkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
 		KBEngine::sleep(10);
 	};
 
@@ -87,10 +87,8 @@ bool Messagelog::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Messagelog::initializeEnd()
 {
-	// 由于messagelog接收其他app的log， 不允许文本输出保证安全。
-	if(Mercury::g_trace_packet == 2)
-		Mercury::g_trace_packet = 3;
-
+	// 由于messagelog接收其他app的log，如果跟踪包输出将会非常卡。
+	Mercury::g_trace_packet = 0;
 	return true;
 }
 
@@ -165,8 +163,8 @@ void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::Memory
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->loadFromStream(&s))
 	{
-		ERROR_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is failed!\n") %
-			pChannel->addr().c_str());
+		ERROR_MSG(fmt::format("Messagelog::registerLogWatcher: addr={} is failed!\n",
+			pChannel->addr().c_str()));
 
 		logWatchers_.erase(pChannel->addr());
 		return;
@@ -174,8 +172,8 @@ void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::Memory
 
 	pLogwatcher->addr(pChannel->addr());
 
-	INFO_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is successfully!\n") %
-		pChannel->addr().c_str());
+	INFO_MSG(fmt::format("Messagelog::registerLogWatcher: addr={0} is successfully!\n",
+		pChannel->addr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------

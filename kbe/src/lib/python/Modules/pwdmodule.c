@@ -69,18 +69,10 @@ mkpwent(struct passwd *p)
 #define SETS(i,val) sets(v, i, val)
 
     SETS(setIndex++, p->pw_name);
-#ifdef __VMS
-    SETS(setIndex++, "");
-#else
     SETS(setIndex++, p->pw_passwd);
-#endif
     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromUid(p->pw_uid));
     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromGid(p->pw_gid));
-#ifdef __VMS
-    SETS(setIndex++, "");
-#else
     SETS(setIndex++, p->pw_gecos);
-#endif
     SETS(setIndex++, p->pw_dir);
     SETS(setIndex++, p->pw_shell);
 
@@ -168,12 +160,8 @@ pwd_getpwall(PyObject *self)
     struct passwd *p;
     if ((d = PyList_New(0)) == NULL)
         return NULL;
-#if defined(PYOS_OS2) && defined(PYCC_GCC)
-    if ((p = getpwuid(0)) != NULL) {
-#else
     setpwent();
     while ((p = getpwent()) != NULL) {
-#endif
         PyObject *v = mkpwent(p);
         if (v == NULL || PyList_Append(d, v) != 0) {
             Py_XDECREF(v);
@@ -220,8 +208,9 @@ PyInit_pwd(void)
         return NULL;
 
     if (!initialized) {
-        PyStructSequence_InitType(&StructPwdType,
-                                  &struct_pwd_type_desc);
+        if (PyStructSequence_InitType2(&StructPwdType,
+                                       &struct_pwd_type_desc) < 0)
+            return NULL;
         initialized = 1;
     }
     Py_INCREF((PyObject *) &StructPwdType);

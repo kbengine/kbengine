@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PENDING_LOGIN_MGR__
-#define __PENDING_LOGIN_MGR__
+#ifndef KBE_PENDING_LOGIN_MGR_HPP
+#define KBE_PENDING_LOGIN_MGR_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/tasks.hpp"
@@ -91,4 +91,4 @@ private:
 
 }
 
-#endif // __PENDING_LOGIN_MGR__
+#endif // KBE_PENDING_LOGIN_MGR_HPP

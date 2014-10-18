@@ -16,8 +16,9 @@ import traceback
 
 import spark
 
-def output(string):
-    sys.stdout.write(string + "\n")
+def output(*strings):
+    for s in strings:
+        sys.stdout.write(str(s) + "\n")
 
 
 class Token(object):
@@ -114,28 +115,20 @@ class ASDLParser(spark.GenericParser, object):
         raise ASDLSyntaxError(tok.lineno, tok)
 
     def p_module_0(self, info):
-        " module ::= Id Id version { } "
-        module, name, version, _0, _1 = info
+        " module ::= Id Id { } "
+        module, name, _0, _1 = info
         if module.value != "module":
             raise ASDLSyntaxError(module.lineno,
                                   msg="expected 'module', found %s" % module)
-        return Module(name, None, version)
+        return Module(name, None)
 
     def p_module(self, info):
-        " module ::= Id Id version { definitions } "
-        module, name, version, _0, definitions, _1 = info
+        " module ::= Id Id { definitions } "
+        module, name, _0, definitions, _1 = info
         if module.value != "module":
             raise ASDLSyntaxError(module.lineno,
                                   msg="expected 'module', found %s" % module)
-        return Module(name, definitions, version)
-
-    def p_version(self, info):
-        "version ::= Id String"
-        version, V = info
-        if version.value != "version":
-            raise ASDLSyntaxError(version.lineno,
-                                  msg="expected 'version', found %" % version)
-        return V
+        return Module(name, definitions)
 
     def p_definition_0(self, definition):
         " definitions ::= definition "
@@ -164,16 +157,20 @@ class ASDLParser(spark.GenericParser, object):
         if id.value != "attributes":
             raise ASDLSyntaxError(id.lineno,
                                   msg="expected attributes, found %s" % id)
-        if attributes:
-            attributes.reverse()
         return Sum(sum, attributes)
 
-    def p_product(self, info):
+    def p_product_0(self, info):
         " product ::= ( fields ) "
         _0, fields, _1 = info
-        # XXX can't I just construct things in the right order?
-        fields.reverse()
         return Product(fields)
+
+    def p_product_1(self, info):
+        " product ::= ( fields ) Id ( fields ) "
+        _0, fields, _1, id, _2, attributes, _3 = info
+        if id.value != "attributes":
+            raise ASDLSyntaxError(id.lineno,
+                                  msg="expected attributes, found %s" % id)
+        return Product(fields, attributes)
 
     def p_sum_0(self, constructor):
         " sum ::= constructor "
@@ -196,8 +193,6 @@ class ASDLParser(spark.GenericParser, object):
     def p_constructor_1(self, info):
         " constructor ::= Id ( fields ) "
         id, _0, fields, _1 = info
-        # XXX can't I just construct things in the right order?
-        fields.reverse()
         return Constructor(id, fields)
 
     def p_fields_0(self, field):
@@ -205,8 +200,8 @@ class ASDLParser(spark.GenericParser, object):
         return [field[0]]
 
     def p_fields_1(self, info):
-        " fields ::= field , fields "
-        field, _, fields = info
+        " fields ::= fields , field "
+        fields, _, field = info
         return fields + [field]
 
     def p_field_0(self, type_):
@@ -236,7 +231,7 @@ class ASDLParser(spark.GenericParser, object):
         " field ::= Id ? "
         return Field(type[0], opt=True)
 
-builtin_types = ("identifier", "string", "int", "bool", "object")
+builtin_types = ("identifier", "string", "bytes", "int", "object", "singleton")
 
 # below is a collection of classes to capture the AST of an AST :-)
 # not sure if any of the methods are useful yet, but I'm adding them
@@ -246,10 +241,9 @@ class AST(object):
     pass # a marker class
 
 class Module(AST):
-    def __init__(self, name, dfns, version):
+    def __init__(self, name, dfns):
         self.name = name
         self.dfns = dfns
-        self.version = version
         self.types = {} # maps type name to value (from dfns)
         for type in dfns:
             self.types[type.name.value] = type.value
@@ -304,11 +298,15 @@ class Sum(AST):
             return "Sum(%s, %s)" % (self.types, self.attributes)
 
 class Product(AST):
-    def __init__(self, fields):
+    def __init__(self, fields, attributes=None):
         self.fields = fields
+        self.attributes = attributes or []
 
     def __repr__(self):
-        return "Product(%s)" % self.fields
+        if self.attributes is None:
+            return "Product(%s)" % self.fields
+        else:
+            return "Product(%s, %s)" % (self.fields, self.attributes)
 
 class VisitorBase(object):
 
@@ -400,7 +398,11 @@ def parse(file):
     scanner = ASDLScanner()
     parser = ASDLParser()
 
-    buf = open(file).read()
+    f = open(file)
+    try:
+        buf = f.read()
+    finally:
+        f.close()
     tokens = scanner.tokenize(buf)
     try:
         return parser.parse(tokens)
@@ -431,4 +433,4 @@ if __name__ == "__main__":
             output("Check failed")
         else:
             for dfn in mod.dfns:
-                output(dfn.type)
+                output(dfn.name, dfn.value)

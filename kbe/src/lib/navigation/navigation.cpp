@@ -22,6 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "thread/threadguard.hpp"
 
+#include "navigation_tile_handle.hpp"
+#include "navigation_mesh_handle.hpp"
+
 namespace KBEngine{
 
 KBE_SINGLETON_INIT(Navigation);
@@ -53,13 +56,10 @@ bool Navigation::removeNavigation(std::string name)
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
 	if(navhandles_.find(name) != navhandles_.end())
 	{
-		NavMeshHandle* pNavMeshHandle = (NavMeshHandle*)iter->second.get();
-		dtFreeNavMeshQuery(pNavMeshHandle->navmeshQuery);
-		dtFreeNavMesh(pNavMeshHandle->navmesh);
 		navhandles_.erase(iter);
 		iter->second->decRef();
 
-		DEBUG_MSG(boost::format("Navigation::removeNavigation: (%1%) is destroyed!\n") % name);
+		DEBUG_MSG(fmt::format("Navigation::removeNavigation: ({}) is destroyed!\n", name));
 		return true;
 	}
 
@@ -81,7 +81,7 @@ NavigationHandlePtr Navigation::findNavigation(std::string name)
 		{
 			// 由于tile需要做碰撞， 每一个space都需要一份新的数据， 我们这里采用拷贝的方式来增加构造速度
 			NavTileHandle* pNavTileHandle = new NavTileHandle(*(KBEngine::NavTileHandle*)iter->second.get());
-			DEBUG_MSG(boost::format("Navigation::findNavigation: copy NavTileHandle(%1%)!\n") % pNavTileHandle);
+			DEBUG_MSG(fmt::format("Navigation::findNavigation: copy NavTileHandle({:p})!\n", (void*)pNavTileHandle));
 			return NavigationHandlePtr(pNavTileHandle);
 		}
 
@@ -112,20 +112,31 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name)
 	}
 
 	NavigationHandle* pNavigationHandle_ = NULL;
-	std::string path = "spaces/" + name + "/" + name;
-	
-	if(Resmgr::getSingleton().openRes(path + ".navmesh"))
-	{
-		pNavigationHandle_ = NavMeshHandle::create(name);
-	}
-	else if(Resmgr::getSingleton().openRes(path + ".tmx"))
+
+	std::string path = "spaces/" + name;
+
+	if(Resmgr::getSingleton().openRes(path + "/" + name + ".tmx"))
 	{
 		pNavigationHandle_ = NavTileHandle::create(name);
 	}
-	else
+	else 	
 	{
-		return NULL;
+		path = Resmgr::getSingleton().matchPath(path);
+		wchar_t* wpath = strutil::char2wchar(path.c_str());
+		std::wstring wspath = wpath;
+		free(wpath);
+
+		std::vector<std::wstring> results;
+		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
+
+		if(results.size() == 0)
+		{
+			return NULL;
+		}
+
+		pNavigationHandle_ = NavMeshHandle::create(name);
 	}
+
 
 	navhandles_[name] = NavigationHandlePtr(pNavigationHandle_);
 	return pNavigationHandle_;

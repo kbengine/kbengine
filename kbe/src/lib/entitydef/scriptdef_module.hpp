@@ -19,8 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __SCRIPT_DEF_MODULE_H__
-#define __SCRIPT_DEF_MODULE_H__
+#ifndef KBE_SCRIPT_DEF_MODULE_HPP
+#define KBE_SCRIPT_DEF_MODULE_HPP
+
 #include "cstdkbe/cstdkbe.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -219,4 +220,5 @@ protected:
 #ifdef CODE_INLINE
 #include "scriptdef_module.ipp"
 #endif
-#endif
+#endif // KBE_SCRIPT_DEF_MODULE_HPP
+

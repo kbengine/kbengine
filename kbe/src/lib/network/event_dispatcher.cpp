@@ -32,7 +32,7 @@ namespace Mercury
 {
 
 EventDispatcher::EventDispatcher() :
-	breakProcessing_(false),
+	breakProcessing_(EVENT_DISPATCHER_STATUS_RUNNING),
 	maxWait_(0.1),
 	numTimerCalls_(0),
 	accSpareTime_(0),
@@ -58,8 +58,8 @@ EventDispatcher::~EventDispatcher()
 	
 	if (!pTimers_->empty())
 	{
-		INFO_MSG(boost::format("EventDispatcher()::~EventDispatcher: Num timers = %1%\n") %
-			pTimers_->size());
+		INFO_MSG(fmt::format("EventDispatcher()::~EventDispatcher: Num timers = {}\n",
+			pTimers_->size()));
 	}
 
 	pTimers_->clear(false);
@@ -279,7 +279,9 @@ void EventDispatcher::processUntilBreak()
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processContinuously()
 {
-	breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
+		breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+
 	while(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
 	{
 		this->processOnce(true);
@@ -289,8 +291,11 @@ void EventDispatcher::processContinuously()
 //-------------------------------------------------------------------------------------
 int EventDispatcher::processOnce(bool shouldIdle)
 {
-	breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
+		breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+
 	this->processFrequentTasks();
+
 	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING){
 		this->processTimers();
 	}

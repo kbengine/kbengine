@@ -4,6 +4,7 @@
 """Tests for the raise statement."""
 
 from test import support
+import re
 import sys
 import types
 import unittest
@@ -77,6 +78,16 @@ class TestRaise(unittest.TestCase):
                 nested_reraise()
         self.assertRaises(TypeError, reraise)
 
+    def test_raise_from_None(self):
+        try:
+            try:
+                raise TypeError("foo")
+            except:
+                raise ValueError() from None
+        except ValueError as e:
+            self.assertTrue(isinstance(e.__context__, TypeError))
+            self.assertIsNone(e.__cause__)
+
     def test_with_reraise1(self):
         def reraise():
             try:
@@ -130,8 +141,35 @@ class TestRaise(unittest.TestCase):
         with self.assertRaises(TypeError):
             raise MyException
 
+    def test_assert_with_tuple_arg(self):
+        try:
+            assert False, (3,)
+        except AssertionError as e:
+            self.assertEqual(str(e), "(3,)")
+
+
 
 class TestCause(unittest.TestCase):
+
+    def testCauseSyntax(self):
+        try:
+            try:
+                try:
+                    raise TypeError
+                except Exception:
+                    raise ValueError from None
+            except ValueError as exc:
+                self.assertIsNone(exc.__cause__)
+                self.assertTrue(exc.__suppress_context__)
+                exc.__suppress_context__ = False
+                raise exc
+        except ValueError as exc:
+            e = exc
+
+        self.assertIsNone(e.__cause__)
+        self.assertFalse(e.__suppress_context__)
+        self.assertIsInstance(e.__context__, TypeError)
+
     def test_invalid_cause(self):
         try:
             raise IndexError from 5
@@ -171,6 +209,7 @@ class TestCause(unittest.TestCase):
 
 
 class TestTraceback(unittest.TestCase):
+
     def test_sets_traceback(self):
         try:
             raise IndexError()

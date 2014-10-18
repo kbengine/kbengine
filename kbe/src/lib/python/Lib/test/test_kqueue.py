@@ -75,13 +75,13 @@ class TestKQueue(unittest.TestCase):
         self.assertEqual(ev, ev)
         self.assertNotEqual(ev, other)
 
-        bignum = sys.maxsize * 2 + 1
-        ev = select.kevent(bignum, 1, 2, 3, sys.maxsize, bignum)
+        bignum = 0x7fff
+        ev = select.kevent(bignum, 1, 2, 3, bignum - 1, bignum)
         self.assertEqual(ev.ident, bignum)
         self.assertEqual(ev.filter, 1)
         self.assertEqual(ev.flags, 2)
         self.assertEqual(ev.fflags, 3)
-        self.assertEqual(ev.data, sys.maxsize)
+        self.assertEqual(ev.data, bignum - 1)
         self.assertEqual(ev.udata, bignum)
         self.assertEqual(ev, ev)
         self.assertNotEqual(ev, other)
@@ -94,17 +94,12 @@ class TestKQueue(unittest.TestCase):
         client.setblocking(False)
         try:
             client.connect(('127.0.0.1', serverSocket.getsockname()[1]))
-        except socket.error as e:
+        except OSError as e:
             self.assertEqual(e.args[0], errno.EINPROGRESS)
         else:
             #raise AssertionError("Connect should have raised EINPROGRESS")
             pass # FreeBSD doesn't raise an exception here
         server, addr = serverSocket.accept()
-
-        if sys.platform.startswith("darwin"):
-            flags = select.KQ_EV_ADD | select.KQ_EV_ENABLE
-        else:
-            flags = 0
 
         kq = select.kqueue()
         kq2 = select.kqueue.fromfd(kq.fileno())
@@ -127,11 +122,10 @@ class TestKQueue(unittest.TestCase):
         kq2.control([ev], 0)
 
         events = kq.control(None, 4, 1)
-        events = [(e.ident, e.filter, e.flags) for e in events]
-        events.sort()
-        self.assertEqual(events, [
-            (client.fileno(), select.KQ_FILTER_WRITE, flags),
-            (server.fileno(), select.KQ_FILTER_WRITE, flags)])
+        events = set((e.ident, e.filter) for e in events)
+        self.assertEqual(events, set([
+            (client.fileno(), select.KQ_FILTER_WRITE),
+            (server.fileno(), select.KQ_FILTER_WRITE)]))
 
         client.send(b"Hello!")
         server.send(b"world!!!")
@@ -145,14 +139,12 @@ class TestKQueue(unittest.TestCase):
         else:
             self.fail('timeout waiting for event notifications')
 
-        events = [(e.ident, e.filter, e.flags) for e in events]
-        events.sort()
-
-        self.assertEqual(events, [
-            (client.fileno(), select.KQ_FILTER_WRITE, flags),
-            (client.fileno(), select.KQ_FILTER_READ, flags),
-            (server.fileno(), select.KQ_FILTER_WRITE, flags),
-            (server.fileno(), select.KQ_FILTER_READ, flags)])
+        events = set((e.ident, e.filter) for e in events)
+        self.assertEqual(events, set([
+            (client.fileno(), select.KQ_FILTER_WRITE),
+            (client.fileno(), select.KQ_FILTER_READ),
+            (server.fileno(), select.KQ_FILTER_WRITE),
+            (server.fileno(), select.KQ_FILTER_READ)]))
 
         # Remove completely client, and server read part
         ev = select.kevent(client.fileno(),
@@ -169,10 +161,9 @@ class TestKQueue(unittest.TestCase):
         kq.control([ev], 0, 0)
 
         events = kq.control([], 4, 0.99)
-        events = [(e.ident, e.filter, e.flags) for e in events]
-        events.sort()
-        self.assertEqual(events, [
-            (server.fileno(), select.KQ_FILTER_WRITE, flags)])
+        events = set((e.ident, e.filter) for e in events)
+        self.assertEqual(events, set([
+            (server.fileno(), select.KQ_FILTER_WRITE)]))
 
         client.close()
         server.close()
@@ -193,6 +184,33 @@ class TestKQueue(unittest.TestCase):
         a.close()
         b.close()
         kq.close()
+
+    def test_close(self):
+        open_file = open(__file__, "rb")
+        self.addCleanup(open_file.close)
+        fd = open_file.fileno()
+        kqueue = select.kqueue()
+
+        # test fileno() method and closed attribute
+        self.assertIsInstance(kqueue.fileno(), int)
+        self.assertFalse(kqueue.closed)
+
+        # test close()
+        kqueue.close()
+        self.assertTrue(kqueue.closed)
+        self.assertRaises(ValueError, kqueue.fileno)
+
+        # close() can be called more than once
+        kqueue.close()
+
+        # operations must fail with ValueError("I/O operation on closed ...")
+        self.assertRaises(ValueError, kqueue.control, None, 4)
+
+    def test_fd_non_inheritable(self):
+        kqueue = select.kqueue()
+        self.addCleanup(kqueue.close)
+        self.assertEqual(os.get_inheritable(kqueue.fileno()), False)
+
 
 def test_main():
     support.run_unittest(TestKQueue)

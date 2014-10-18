@@ -106,9 +106,9 @@ NetworkInterface::~NetworkInterface()
 		}
 		else
 		{
-			WARNING_MSG(boost::format("NetworkInterface::~NetworkInterface: "
-					"Channel to %1% is still registered\n") %
-				pChannel->c_str());
+			WARNING_MSG(fmt::format("NetworkInterface::~NetworkInterface: "
+					"Channel to {} is still registered\n",
+				pChannel->c_str()));
 		}
 	}
 
@@ -181,8 +181,8 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->socket(SOCK_STREAM);
 	if (!pEP->good())
 	{
-		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): couldn't create a socket\n") %
-			pEndPointName);
+		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): couldn't create a socket\n",
+			pEndPointName));
 
 		return false;
 	}
@@ -203,29 +203,29 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	if (listeningInterface &&
 		(strcmp(listeningInterface, USE_KBEMACHINED) == 0))
 	{
-		INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Querying KBEMachined for interface\n") % pEndPointName);
+		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Querying KBEMachined for interface\n", pEndPointName));
 		
 		// 没有实现, 向KBEMachined查询接口
 	}
 	else if (pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
 	{
-		INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Creating on interface '%2%' (= %3%)\n") %
-			pEndPointName % listeningInterface % ifname );
+		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Creating on interface '{}' (= {})\n",
+			pEndPointName, listeningInterface, ifname));
 
 		if (pEP->getInterfaceAddress( ifname, ifaddr ) != 0)
 		{
-			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Couldn't get addr of interface %2% so using all interfaces\n") %
-				pEndPointName % ifname );
+			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Couldn't get addr of interface {} so using all interfaces\n",
+				pEndPointName, ifname));
 		}
 	}
 	else if (!listeningInterfaceEmpty)
 	{
-		WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Couldn't parse interface spec '%2%' so using all interfaces\n") %
-			pEndPointName % listeningInterface );
+		WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Couldn't parse interface spec '{}' so using all interfaces\n",
+			pEndPointName, listeningInterface));
 	}
 	
 	bool foundport = false;
@@ -256,9 +256,9 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 	if(!foundport)
 	{
-		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Couldn't bind the socket to %2%:%3% (%4%)\n") %
-			pEndPointName % inet_ntoa((struct in_addr&)ifaddr) % ntohs(listeningPort) % kbe_strerror());
+		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Couldn't bind the socket to {}:{} ({})\n",
+			pEndPointName, inet_ntoa((struct in_addr&)ifaddr), ntohs(listeningPort), kbe_strerror()));
 		
 		pEP->close();
 		pEP->detach();
@@ -274,18 +274,18 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEP->getInterfaceAddress(ifname,
 				(u_int32_t&)address.ip) != 0)
 		{
-			ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Couldn't determine ip addr of default interface\n") % pEndPointName );
+			ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Couldn't determine ip addr of default interface\n", pEndPointName));
 
 			pEP->close();
 			pEP->detach();
 			return false;
 		}
 
-		INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
+		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
 				"bound to all interfaces with default route "
-				"interface on %2% ( %3% )\n") %
-			pEndPointName % ifname % address.c_str() );
+				"interface on {} ( {} )\n",
+			pEndPointName, ifname, address.c_str()));
 	}
 	
 	pEP->setnonblocking(true);
@@ -296,18 +296,18 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
 		{
-			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
-				pEndPointName % pEP->getBufferSize(SO_RCVBUF) % rbuffer);
+			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Operating with a receive buffer of only {} bytes (instead of {})\n",
+				pEndPointName, pEP->getBufferSize(SO_RCVBUF), rbuffer));
 		}
 	}
 	if(wbuffer > 0)
 	{
 		if (!pEP->setBufferSize(SO_SNDBUF, wbuffer))
 		{
-			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Operating with a send buffer of only %2% bytes (instead of %3%)\n") %
-				pEndPointName % pEP->getBufferSize(SO_SNDBUF) % wbuffer);
+			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+				"Operating with a send buffer of only {} bytes (instead of {})\n",
+				pEndPointName, pEP->getBufferSize(SO_SNDBUF), wbuffer));
 		}
 	}
 
@@ -317,17 +317,17 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 	if(pEP->listen(backlog) == -1)
 	{
-		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-			"listen to %2% (%3%)\n") %
-			pEndPointName % address.c_str() % kbe_strerror());
+		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+			"listen to {} ({})\n",
+			pEndPointName, address.c_str(), kbe_strerror()));
 
 		pEP->close();
 		pEP->detach();
 		return false;
 	}
 	
-	INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): address %2%, SOMAXCONN=%3%.\n") % 
-		pEndPointName % address.c_str() % backlog);
+	INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): address {}, SOMAXCONN={}.\n", 
+		pEndPointName, address.c_str(), backlog));
 
 	return true;
 }
@@ -347,8 +347,8 @@ void NetworkInterface::sendIfDelayed(Channel & channel)
 //-------------------------------------------------------------------------------------
 void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 {
-	INFO_MSG(boost::format("NetworkInterface::handleTimeout: EXTERNAL(%1%), INTERNAL(%2%).\n") % 
-		extaddr().c_str() % intaddr().c_str());
+	INFO_MSG(fmt::format("NetworkInterface::handleTimeout: EXTERNAL({}), INTERNAL({}).\n", 
+		extaddr().c_str(), intaddr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -386,8 +386,8 @@ bool NetworkInterface::registerChannel(Channel* pChannel)
 
 	if(pExisting)
 	{
-		CRITICAL_MSG(boost::format("NetworkInterface::registerChannel: channel %1% is exist.\n") %
-		pChannel->c_str());
+		CRITICAL_MSG(fmt::format("NetworkInterface::registerChannel: channel {} is exist.\n",
+		pChannel->c_str()));
 		return false;
 	}
 
@@ -396,7 +396,7 @@ bool NetworkInterface::registerChannel(Channel* pChannel)
 	if(pChannel->isExternal())
 		numExtChannels_++;
 
-	INFO_MSG(boost::format("NetworkInterface::registerChannel: new channel: %1%.\n") % pChannel->c_str());
+	//INFO_MSG(fmt::format("NetworkInterface::registerChannel: new channel: {}.\n", pChannel->c_str()));
 	return true;
 }
 
@@ -428,14 +428,14 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 
 	pChannel->incRef();
 
-	INFO_MSG(boost::format("NetworkInterface::deregisterChannel: del channel: %1%\n") %
-		pChannel->c_str());
+	//INFO_MSG(fmt::format("NetworkInterface::deregisterChannel: del channel: {}\n",
+	//	pChannel->c_str()));
 
 	if (!channelMap_.erase(addr))
 	{
-		CRITICAL_MSG(boost::format("NetworkInterface::deregisterChannel: "
-				"Channel not found %1%!\n") %
-			pChannel->c_str() );
+		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
+				"Channel not found {}!\n",
+			pChannel->c_str()));
 
 		return false;
 	}
@@ -455,9 +455,9 @@ bool NetworkInterface::deregisterChannel(const Address & addr)
 	ChannelMap::iterator iter = channelMap_.find(addr);
 	if(iter == channelMap_.end())
 	{
-		CRITICAL_MSG(boost::format("NetworkInterface::deregisterChannel: "
-				"addr not found %1%!\n") %
-			addr.c_str() );
+		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
+				"addr not found {}!\n",
+			addr.c_str()));
 		return false;
 	}
 
@@ -472,14 +472,14 @@ bool NetworkInterface::deregisterChannel(const Address & addr)
 		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
 	}
 
-	INFO_MSG(boost::format("NetworkInterface::deregisterChannel: del channel: %1%\n") %
-		pChannel->c_str());
+	INFO_MSG(fmt::format("NetworkInterface::deregisterChannel: del channel: {}\n",
+		pChannel->c_str()));
 
 	if (!channelMap_.erase(addr))
 	{
-		CRITICAL_MSG(boost::format("NetworkInterface::deregisterChannel: "
-				"Channel not found %1%!\n") %
-			pChannel->c_str() );
+		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
+				"Channel not found {}!\n",
+			pChannel->c_str()));
 
 		return false;
 	}
@@ -501,9 +501,9 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("NetworkInterface::onChannelTimeOut: "
-					"Channel %1% timed out but no handler is registered.\n") %
-				pChannel->c_str() );
+		ERROR_MSG(fmt::format("NetworkInterface::onChannelTimeOut: "
+					"Channel {} timed out but no handler is registered.\n",
+				pChannel->c_str()));
 	}
 }
 
@@ -525,8 +525,8 @@ Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("NetworkInterface::send: channel(%1%) send error, reason=%2%.\n") % pChannel->c_str() % 
-			reasonToString(REASON_CHANNEL_CONDEMN));
+		ERROR_MSG(fmt::format("NetworkInterface::send: channel({}) send error, reason={}.\n", pChannel->c_str(), 
+			reasonToString(REASON_CHANNEL_CONDEMN)));
 
 		reason = REASON_CHANNEL_CONDEMN;
 	}
@@ -604,9 +604,9 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 				}
 			}
 
-			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
-				"Transmit queue full, waiting for space... (%1%)\n") %
-				retries );
+			WARNING_MSG(fmt::format("NetworkInterface::basicSendWithRetries: "
+				"Transmit queue full, waiting for space... ({})\n",
+				retries));
 			
 			KBEngine::sleep(pChannel->isInternal() ? g_intReSendInterval : g_extReSendInterval);
 			continue;
@@ -616,7 +616,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 	}
 
 	// 其他错误退出尝试
-	ERROR_MSG(boost::format("NetworkInterface::basicSendWithRetries: packet discarded(reason=%1%).\n") % (reasonToString(reason)));
+	ERROR_MSG(fmt::format("NetworkInterface::basicSendWithRetries: packet discarded(reason={}).\n", (reasonToString(reason))));
 	return reason;
 }
 
@@ -625,8 +625,8 @@ Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket
 {
 	if(pChannel->isCondemn())
 	{
-		ERROR_MSG(boost::format("NetworkInterface::basicSendSingleTry: channel(%1%) send error, reason=%2%.\n") % pChannel->c_str() % 
-			reasonToString(REASON_CHANNEL_CONDEMN));
+		ERROR_MSG(fmt::format("NetworkInterface::basicSendSingleTry: channel({}) send error, reason={}.\n", pChannel->c_str(), 
+			reasonToString(REASON_CHANNEL_CONDEMN)));
 		return REASON_CHANNEL_CONDEMN;
 	}
 
@@ -688,16 +688,16 @@ Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint,
 	{
 		if (reason != REASON_NO_SUCH_PORT)
 		{
-			ERROR_MSG(boost::format("NetworkInterface::getSendErrorReason(%1%): "
-					"Could not send packet: %2%\n") %
-				endpoint->addr().c_str() % kbe_strerror( err ) );
+			ERROR_MSG(fmt::format("NetworkInterface::getSendErrorReason({}): "
+					"Could not send packet: {}\n",
+				endpoint->addr().c_str(), kbe_strerror( err )));
 		}
 	}
 	else
 	{
-		WARNING_MSG(boost::format("NetworkInterface::getSendErrorReason(%1%): "
-			"Packet length %2% does not match sent length %3% (%4%)\n") %
-			endpoint->addr().c_str() % packetTotalSize % retSendSize % kbe_strerror( err ) );
+		WARNING_MSG(fmt::format("NetworkInterface::getSendErrorReason({}): "
+			"Packet length {} does not match sent length {} ({})\n",
+			endpoint->addr().c_str(), packetTotalSize, retSendSize, kbe_strerror( err )));
 	}
 
 	return reason;

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SENDMAIL_THREADTASKS_H__
-#define __SENDMAIL_THREADTASKS_H__
+#ifndef KBE_SENDMAIL_THREADTASKS_HPP
+#define KBE_SENDMAIL_THREADTASKS_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "thread/threadtask.hpp"
@@ -117,4 +117,5 @@ protected:
 
 
 }
-#endif
+
+#endif // KBE_SENDMAIL_THREADTASKS_HPP

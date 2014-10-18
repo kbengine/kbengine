@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_RSA__
-#define __KBENGINE_RSA__
+#ifndef KBENGINE_RSA_HPP
+#define KBENGINE_RSA_HPP
 
 #include <string>
 
@@ -43,8 +43,10 @@ public:
 	bool generateKey(const std::string& pubkeyname, 
 		const std::string& prikeyname, int keySize = 1024, int e = 65537);
 
+	std::string encrypt(const std::string& instr);
 	int encrypt(const std::string& instr, std::string& outCertifdata);
 	int decrypt(const std::string& inCertifdata, std::string& outstr);
+	std::string decrypt(const std::string& instr);
 
 	static void hexCertifData(const std::string& inCertifdata);
 
@@ -59,4 +61,4 @@ protected:
 
 }
 
-#endif // __KBENGINE_RSA__
+#endif // KBENGINE_RSA_HPP

@@ -1,32 +1,68 @@
-* kbe\src\lib\python\PC\dl_nt.c 注释掉dllmain
-* 注释掉 pyconfig -> //#define _POSIX_C_SOURCE 200112L
-* 注释掉 pyconfig -> //#define _XOPEN_SOURCE 600
+Include/Python.h
+	#ifdef _POSIX_C_SOURCE
+	#undef _POSIX_C_SOURCE
+	#endif
 
-* kbe\src\lib\python\Include
-pyconfig:
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200112L
-#endif
+	#ifdef _XOPEN_SOURCE
+	#undef _XOPEN_SOURCE
+	#endif
+	
+	#ifndef NDEBUG
+	#define NDEBUG
+	#endif
 
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 600
-#endif
+pgupdate.props:
+   <Import Project="$(SolutionDir)\lib\python\PCbuild\pginstrument.props" />
 
+script.hpp:
+	#define SCRIPT_BIN_TAG "cpython-34"
+	#define SCRIPT_BIN_CACHEDIR "__pycache__"
 
-* 使用自带openssl
-$ sudo vi Modules/Setup.dist
-# Socket module helper for SSL support; you must comment out the other
-# socket line above, and possibly edit the SSL variable:
-SSL=$(KBE_ROOT)/kbe/src/lib/third_party/openssl
-_ssl _ssl.c \
-        -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-        -L$(SSL)/lib -lssl -lcrypto
+common.mak:
+	PYTHONLIB = python
 
-还有其他等功能
-cp Modules/Setup.dist to Modules/Setup
+Makefile.pre.in
+	1: all: -> all::
+	2: install: -> install::
+	3: clean: -> clean::
+		...
+		-rm -f $(KBE_PYTHONLIB)
+		-rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
 
-* 改变了Makefile.pre.in， 使其能够和kbengine兼容编译
+	4: 
+	ifndef KBE_ROOT
+	export KBE_ROOT := $(subst /kbe/src/lib/python,,$(CURDIR))
+	endif
 
-* 将pythoncore， _socket, _ssl, select等windows项目改变为静态库
+	include $(KBE_ROOT)/kbe/src/build/common.mak
 
-* 修改pgupdate.vsprops使其能够被kbengine项目加载python工程
+	KBELIBDIR = $(KBE_ROOT)/kbe/src/libs
+	KBE_PYTHONLIB = $(KBELIBDIR)/lib$(PYTHONLIB).a
+
+	LIBRARY=	$(KBE_PYTHONLIB)
+	LDLIBRARY=      $(KBE_PYTHONLIB)
+
+	5:
+	build_all:	$(BUILDPYTHON) oldsharedmods sharedmods gdbhooks Modules/_testembed python-config
+		        @rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload				!!! added
+		        @cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-$(VERSION)" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"			!!! added
+
+setup.py
+        search_for_ssl_incs_in = [
+                              os.getenv("KBE_ROOT") + '/kbe/src/lib/dependencies/openssl/include/',
+                              os.getenv("KBE_ROOT") + 'kbe/src/lib/dependencies/openssl/include/',
+                              os.getcwd()[0 : os.getcwd().find("kbe/src/lib") + len("kbe/src/lib")] + "/dependencies/openssl/include/',
+                             ]
+
+        ssl_incs = find_file('openssl/ssl.h', [],
+                             search_for_ssl_incs_in
+                             )
+
+        ssl_libs = find_library_file(self.compiler, 'ssl',[],
+                                     [os.getenv("KBE_ROOT") + '/kbe/src/libs/',
+                                     os.getenv("KBE_ROOT") + 'kbe/src/libs/',
+                                     os.getcwd()[0 : os.getcwd().find("kbe/src/") + len("kbe/src/")] + "libs/,
+                                     ] )
+
+        opensslv_h = find_file('openssl/opensslv.h', [],
+                search_for_ssl_incs_in)

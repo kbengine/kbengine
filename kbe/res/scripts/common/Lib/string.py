@@ -46,23 +46,7 @@ def capwords(s, sep=None):
 
 ####################################################################
 import re as _re
-
-class _multimap:
-    """Helper class for combining multiple mappings.
-
-    Used by .{safe_,}substitute() to combine the mapping and keyword
-    arguments.
-    """
-    def __init__(self, primary, secondary):
-        self._primary = primary
-        self._secondary = secondary
-
-    def __getitem__(self, key):
-        try:
-            return self._primary[key]
-        except KeyError:
-            return self._secondary[key]
-
+from collections import ChainMap
 
 class _TemplateMetaclass(type):
     pattern = r"""
@@ -100,7 +84,7 @@ class Template(metaclass=_TemplateMetaclass):
 
     def _invalid(self, mo):
         i = mo.start('invalid')
-        lines = self.template[:i].splitlines(True)
+        lines = self.template[:i].splitlines(keepends=True)
         if not lines:
             colno = 1
             lineno = 1
@@ -116,7 +100,7 @@ class Template(metaclass=_TemplateMetaclass):
         if not args:
             mapping = kws
         elif kws:
-            mapping = _multimap(kws, args[0])
+            mapping = ChainMap(kws, args[0])
         else:
             mapping = args[0]
         # Helper function for .sub()
@@ -142,7 +126,7 @@ class Template(metaclass=_TemplateMetaclass):
         if not args:
             mapping = kws
         elif kws:
-            mapping = _multimap(kws, args[0])
+            mapping = ChainMap(kws, args[0])
         else:
             mapping = args[0]
         # Helper function for .sub()
@@ -185,7 +169,8 @@ class Formatter:
         self.check_unused_args(used_args, args, kwargs)
         return result
 
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth,
+                 auto_arg_index=0):
         if recursion_depth < 0:
             raise ValueError('Max string recursion exceeded')
         result = []
@@ -201,6 +186,23 @@ class Formatter:
                 # this is some markup, find the object and do
                 #  the formatting
 
+                # handle arg indexing when empty field_names are given.
+                if field_name == '':
+                    if auto_arg_index is False:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    field_name = str(auto_arg_index)
+                    auto_arg_index += 1
+                elif field_name.isdigit():
+                    if auto_arg_index:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    # disable auto arg incrementing, if it gets
+                    # used later on, then an exception will be raised
+                    auto_arg_index = False
+
                 # given the field_name, find the object it references
                 #  and the argument it came from
                 obj, arg_used = self.get_field(field_name, args, kwargs)
@@ -211,7 +213,8 @@ class Formatter:
 
                 # expand the format spec, if needed
                 format_spec = self._vformat(format_spec, args, kwargs,
-                                            used_args, recursion_depth-1)
+                                            used_args, recursion_depth-1,
+                                            auto_arg_index=auto_arg_index)
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, format_spec))

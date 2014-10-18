@@ -1,3 +1,55 @@
+import gc
+import sys
+import unittest
+import weakref
+
+from test import support
+
+
+class FinalizationTest(unittest.TestCase):
+
+    def test_frame_resurrect(self):
+        # A generator frame can be resurrected by a generator's finalization.
+        def gen():
+            nonlocal frame
+            try:
+                yield
+            finally:
+                frame = sys._getframe()
+
+        g = gen()
+        wr = weakref.ref(g)
+        next(g)
+        del g
+        support.gc_collect()
+        self.assertIs(wr(), None)
+        self.assertTrue(frame)
+        del frame
+        support.gc_collect()
+
+    def test_refcycle(self):
+        # A generator caught in a refcycle gets finalized anyway.
+        old_garbage = gc.garbage[:]
+        finalized = False
+        def gen():
+            nonlocal finalized
+            try:
+                g = yield
+                yield 1
+            finally:
+                finalized = True
+
+        g = gen()
+        next(g)
+        g.send(g)
+        self.assertGreater(sys.getrefcount(g), 2)
+        self.assertFalse(finalized)
+        del g
+        support.gc_collect()
+        self.assertTrue(finalized)
+        self.assertEqual(gc.garbage, old_garbage)
+
+
 tutorial_tests = """
 Let's try a simple generator:
 
@@ -384,8 +436,8 @@ From the Iterators list, about the types of these things.
 >>> [s for s in dir(i) if not s.startswith('_')]
 ['close', 'gi_code', 'gi_frame', 'gi_running', 'send', 'throw']
 >>> from test.support import HAVE_DOCSTRINGS
->>> print(i.__next__.__doc__ if HAVE_DOCSTRINGS else 'x.__next__() <==> next(x)')
-x.__next__() <==> next(x)
+>>> print(i.__next__.__doc__ if HAVE_DOCSTRINGS else 'Implement next(self).')
+Implement next(self).
 >>> iter(i) is i
 True
 >>> import types
@@ -729,29 +781,6 @@ Ye olde Fibonacci generator, tee style.
 
 syntax_tests = """
 
->>> def f():
-...     return 22
-...     yield 1
-Traceback (most recent call last):
-  ..
-SyntaxError: 'return' with argument inside generator
-
->>> def f():
-...     yield 1
-...     return 22
-Traceback (most recent call last):
-  ..
-SyntaxError: 'return' with argument inside generator
-
-"return None" is not the same as "return" in a generator:
-
->>> def f():
-...     yield 1
-...     return None
-Traceback (most recent call last):
-  ..
-SyntaxError: 'return' with argument inside generator
-
 These are fine:
 
 >>> def f():
@@ -866,20 +895,6 @@ These are fine:
 ...         yield 2
 >>> type(f())
 <class 'generator'>
-
-
->>> def f():
-...     if 0:
-...         lambda x:  x        # shouldn't trigger here
-...         return              # or here
-...         def f(i):
-...             return 2*i      # or here
-...         if 0:
-...             return 3        # but *this* sucks (line 8)
-...     if 0:
-...         yield 2             # because it's a generator (line 10)
-Traceback (most recent call last):
-SyntaxError: 'return' with argument inside generator
 
 This one caused a crash (see SF bug 567538):
 
@@ -1567,11 +1582,6 @@ Traceback (most recent call last):
   ...
 SyntaxError: 'yield' outside function
 
->>> def f(): return lambda x=(yield): 1
-Traceback (most recent call last):
-  ...
-SyntaxError: 'return' with argument inside generator
-
 >>> def f(): x = yield = y
 Traceback (most recent call last):
   ...
@@ -1771,9 +1781,7 @@ Our ill-behaved code should be invoked during GC:
 >>> g = f()
 >>> next(g)
 >>> del g
->>> sys.stderr.getvalue().startswith(
-...     "Exception RuntimeError: 'generator ignored GeneratorExit' in "
-... )
+>>> "RuntimeError: generator ignored GeneratorExit" in sys.stderr.getvalue()
 True
 >>> sys.stderr = old
 
@@ -1883,22 +1891,23 @@ to test.
 ...     sys.stderr = io.StringIO()
 ...     class Leaker:
 ...         def __del__(self):
-...             raise RuntimeError
+...             def invoke(message):
+...                 raise RuntimeError(message)
+...             invoke("test")
 ...
 ...     l = Leaker()
 ...     del l
 ...     err = sys.stderr.getvalue().strip()
-...     err.startswith(
-...         "Exception RuntimeError: RuntimeError() in <"
-...     )
-...     err.endswith("> ignored")
-...     len(err.splitlines())
+...     "Exception ignored in" in err
+...     "RuntimeError: test" in err
+...     "Traceback" in err
+...     "in invoke" in err
 ... finally:
 ...     sys.stderr = old
 True
 True
-1
-
+True
+True
 
 
 These refleak tests should perhaps be in a testfile of their own,
@@ -1923,6 +1932,7 @@ __test__ = {"tut":      tutorial_tests,
 # so this works as expected in both ways of running regrtest.
 def test_main(verbose=None):
     from test import support, test_generators
+    support.run_unittest(__name__)
     support.run_doctest(test_generators, verbose)
 
 # This part isn't needed for regrtest, but for running the test directly.

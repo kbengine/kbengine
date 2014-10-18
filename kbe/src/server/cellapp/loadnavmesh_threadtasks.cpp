@@ -42,8 +42,8 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 	Space* pSpace = Spaces::findSpace(spaceID_);
 	if(pSpace == NULL)
 	{
-		ERROR_MSG(boost::format("LoadNavmeshTask::presentMainThread(): not found space(%1%)\n") % 
-			spaceID_);
+		ERROR_MSG(fmt::format("LoadNavmeshTask::presentMainThread(): not found space({})\n",
+			spaceID_));
 	}
 	else
 	{

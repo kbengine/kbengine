@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FIXED_MERCURY_MESSAGES__
-#define __FIXED_MERCURY_MESSAGES__
+#ifndef KBE_FIXED_MERCURY_MESSAGES_HPP
+#define KBE_FIXED_MERCURY_MESSAGES_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -57,4 +57,4 @@ private:
 
 }
 }
-#endif // __FIXED_MERCURY_MESSAGES__
+#endif // KBE_FIXED_MERCURY_MESSAGES_HPP

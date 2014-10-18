@@ -87,7 +87,7 @@ class register(PyPIRCCommand):
         '''
         url = self.repository+'?:action=list_classifiers'
         response = urllib.request.urlopen(url)
-        log.info(response.read())
+        log.info(self._read_pypi_response(response))
 
     def verify_metadata(self):
         ''' Send the metadata to the package index server to be checked.
@@ -300,5 +300,5 @@ Your selection [default 1]: ''', log.INFO)
             result = 200, 'OK'
         if self.show_response:
             dashes = '-' * 75
-            self.announce('%s%s%s' % (dashes, data, dashes))
+            self.announce('%s%r%s' % (dashes, data, dashes))
         return result

@@ -36,7 +36,7 @@ INLINE DataType* PropertyDescription::getDataType(void)const
 	return dataType_; 
 };
 
-INLINE const uint32& PropertyDescription::getFlags(void)const
+INLINE uint32 PropertyDescription::getFlags(void)const
 { 
 	return flags_; 
 };

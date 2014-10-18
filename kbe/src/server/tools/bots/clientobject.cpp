@@ -55,6 +55,7 @@ SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
+Mercury::TCPPacketReceiver(),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT),
 pBlowfishFilter_(0)
@@ -62,12 +63,30 @@ pBlowfishFilter_(0)
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
 	extradatas_ = "bots";
+
+	this->pNetworkInterface_ = &ninterface;
 }
 
 //-------------------------------------------------------------------------------------
 ClientObject::~ClientObject()
 {
 	SAFE_RELEASE(pBlowfishFilter_);
+}
+
+//-------------------------------------------------------------------------------------		
+void ClientObject::reset(void)
+{
+	if(pServerChannel_ && pServerChannel_->endpoint())
+		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
+
+	std::string name = name_;
+	std::string passwd = password_;
+	ClientObjectBase::reset();
+	
+	name_ = name;
+	password_ = passwd;
+	extradatas_ = "bots";
+	state_ = C_STATE_INIT;
 }
 
 //-------------------------------------------------------------------------------------
@@ -90,11 +109,12 @@ bool ClientObject::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
+			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_INIT;
 		return false;
 	}
 
@@ -110,7 +130,7 @@ bool ClientObject::initCreate()
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -124,6 +144,8 @@ bool ClientObject::initCreate()
 	}
 
 	pServerChannel_->pushBundle(pBundle);
+
+	this->pEndpoint_ = pEndpoint;
 	return true;
 }
 
@@ -164,9 +186,9 @@ bool ClientObject::processSocket(bool expectingPacket)
 
 	if(ret != Mercury::REASON_SUCCESS)
 	{
-		ERROR_MSG(boost::format("ClientObject::processSocket: "
-					"Throwing %1%\n") %
-					Mercury::reasonToString(ret));
+		ERROR_MSG(fmt::format("ClientObject::processSocket: "
+					"Throwing {}\n",
+					Mercury::reasonToString(ret)));
 	}
 
 	return true;
@@ -192,11 +214,12 @@ bool ClientObject::initLoginGateWay()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initLogin: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
+			kbe_strerror(), name_));
 
 		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 		return false;
 	}
 
@@ -212,7 +235,7 @@ bool ClientObject::initLoginGateWay()
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 	
 	if(Mercury::g_channelExternalEncryptType == 1)
 	{
@@ -245,7 +268,16 @@ void ClientObject::gameTick()
 			eventHandler_.fire(&eventdata);
 			connectedGateway_ = false;
 			canReset_ = true;
+			state_ = C_STATE_INIT;
+			
+			DEBUG_MSG(fmt::format("ClientObject({})::tickSend: serverCloased! name({})!\n", 
+			this->appID(), this->name()));
 		}
+	}
+
+	if(locktime() > 0 && timestamp() < locktime())
+	{
+		return;
 	}
 
 	switch(state_)
@@ -302,6 +334,7 @@ void ClientObject::gameTick()
 
 //-------------------------------------------------------------------------------------	
 void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
 	if(Mercury::g_channelExternalEncryptType == 1)
@@ -330,13 +363,19 @@ void ClientObject::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStre
 
 	if(retcode != 0)
 	{
-		error_ = C_ERROR_CREATE_FAILED;
-		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		//error_ = C_ERROR_CREATE_FAILED;
+
+		// ¼ÌÐø³¢ÊÔµÇÂ¼
+		state_ = C_STATE_LOGIN;
+		
+		INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is failed! code={}.\n", 
+			name_, SERVER_ERR_STR[retcode]));
+		
 		return;
 	}
 
 	state_ = C_STATE_LOGIN;
-	INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is successfully!\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -349,7 +388,8 @@ void ClientObject::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream
 	s >> port_;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	INFO_MSG(fmt::format("ClientObject::onLoginSuccessfully: {} addr={}:{}!\n", 
+		name_, ip_, port_));
 
 	state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 }
@@ -362,9 +402,13 @@ void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	s >> failedcode;
 	s.readBlob(extradatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(fmt::format("ClientObject::onLoginFailed: {} failedcode={}!\n", 
+		name_, SERVER_ERR_STR[failedcode]));
 
-	error_ = C_ERROR_LOGIN_FAILED;
+	// error_ = C_ERROR_LOGIN_FAILED;
+
+	// ¼ÌÐø³¢ÊÔµÇÂ¼
+	state_ = C_STATE_LOGIN;
 }
 
 //-------------------------------------------------------------------------------------

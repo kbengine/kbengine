@@ -41,15 +41,15 @@ INLINE float RangeTrigger::range_y()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeTrigger::origin()const
+INLINE CoordinateNode* RangeTrigger::origin()const
 {
 	return origin_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeTrigger::origin(RangeNode* pRangeNode)
+INLINE void RangeTrigger::origin(CoordinateNode* pCoordinateNode)
 {
-	origin_ = pRangeNode;
+	origin_ = pCoordinateNode;
 }
 
 //-------------------------------------------------------------------------------------

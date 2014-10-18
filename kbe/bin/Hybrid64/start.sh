@@ -1,8 +1,10 @@
 #!/bin/sh
 
 echo KBE_ROOT = \"${KBE_ROOT}\"
-echo KBE_ROOT = \"${KBE_RES_PATH}\"
-echo KBE_ROOT = \"${KBE_HYBRID_PATH}\"
+echo KBE_RES_PATH = \"${KBE_RES_PATH}\"
+echo KBE_HYBRID_PATH = \"${KBE_HYBRID_PATH}\"
+
+sh ./kill.sh
 
 ./kbmachine&
 sleep 1s

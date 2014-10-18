@@ -146,7 +146,7 @@ class DictWriter:
             wrong_fields = [k for k in rowdict if k not in self.fieldnames]
             if wrong_fields:
                 raise ValueError("dict contains fields not in fieldnames: "
-                                 + ", ".join(wrong_fields))
+                                 + ", ".join([repr(x) for x in wrong_fields]))
         return [rowdict.get(key, self.restval) for key in self.fieldnames]
 
     def writerow(self, rowdict):
@@ -264,8 +264,9 @@ class Sniffer:
 
         # if we see an extra quote between delimiters, we've got a
         # double quoted format
-        dq_regexp = re.compile(r"((%(delim)s)|^)\W*%(quote)s[^%(delim)s\n]*%(quote)s[^%(delim)s\n]*%(quote)s\W*((%(delim)s)|$)" % \
-                               {'delim':delim, 'quote':quotechar}, re.MULTILINE)
+        dq_regexp = re.compile(
+                               r"((%(delim)s)|^)\W*%(quote)s[^%(delim)s\n]*%(quote)s[^%(delim)s\n]*%(quote)s\W*((%(delim)s)|$)" % \
+                               {'delim':re.escape(delim), 'quote':quotechar}, re.MULTILINE)
 
 
 

@@ -8,7 +8,8 @@ from test.support import run_unittest
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 from distutils.util import (get_platform, convert_path, change_root,
                             check_environ, split_quoted, strtobool,
-                            rfc822_escape, byte_compile)
+                            rfc822_escape, byte_compile,
+                            grok_environment_error)
 from distutils import util # used to patch _environ_checked
 from distutils.sysconfig import get_config_vars
 from distutils import sysconfig
@@ -236,7 +237,7 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertRaises(DistutilsPlatformError,
                           change_root, 'c:\\root', 'its\\here')
 
-        # XXX platforms to be covered: os2, mac
+        # XXX platforms to be covered: mac
 
     def test_check_environ(self):
         util._environ_checked = 0
@@ -266,7 +267,7 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
             self.assertTrue(strtobool(y))
 
         for n in no:
-            self.assertTrue(not strtobool(n))
+            self.assertFalse(strtobool(n))
 
     def test_rfc822_escape(self):
         header = 'I am a\npoor\nlonesome\nheader\n'
@@ -284,6 +285,13 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
             self.assertRaises(DistutilsByteCompileError, byte_compile, [])
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
+
+    def test_grok_environment_error(self):
+        # test obsolete function to ensure backward compat (#4931)
+        exc = IOError("Unable to find batch file")
+        msg = grok_environment_error(exc)
+        self.assertEqual(msg, "error: Unable to find batch file")
+
 
 def test_suite():
     return unittest.makeSuite(UtilTestCase)

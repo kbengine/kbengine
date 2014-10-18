@@ -24,12 +24,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_exception.hpp"
 #include "thread/threadguard.hpp"
 #include "helper/watcher.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
 KBEngine::thread::ThreadMutex logMutex;
 KBEUnordered_map< std::string, uint32 > g_querystatistics;
 bool _g_installedWatcher = false;
+bool _g_debug = false;
 
 void querystatistics(const char* strCommand, uint32 size)
 {
@@ -126,6 +128,8 @@ void initializeWatcher()
 		return;
 
 	_g_installedWatcher = true;
+	_g_debug = g_kbeSrvConfig.getDBMgr().debugDBMgr;
+
 	WATCH_OBJECT("db_querys/select", &KBEngine::watcher_select);
 	WATCH_OBJECT("db_querys/delete", &KBEngine::watcher_delete);
 	WATCH_OBJECT("db_querys/insert", &KBEngine::watcher_insert);
@@ -145,8 +149,7 @@ hasLostConnection_(false),
 inTransaction_(false),
 lock_(NULL, false),
 characterSet_(characterSet),
-collation_(collation),
-lastquery_()
+collation_(collation)
 {
 	lock_.pdbi(this);
 }
@@ -181,22 +184,23 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 			return false;
 		}
 		
-		DEBUG_MSG(boost::format("DBInterfaceMysql::attach: connect: %1%:%2% starting...\n") % db_ip_ % db_port_);
+		DEBUG_MSG(fmt::format("DBInterfaceMysql::attach: connect: {}:{} starting...\n", db_ip_, db_port_));
 		if(mysql_real_connect(mysql(), db_ip_, db_username_, 
     		db_password_, db_name_, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
 		{
 			if(mysql_select_db(mysql(), db_name_) != 0)
 			{
-				ERROR_MSG(boost::format("DBInterfaceMysql::attach: Could not set active db[%1%]\n") %
-					db_name_);
+				ERROR_MSG(fmt::format("DBInterfaceMysql::attach: Could not set active db[{}]\n",
+					db_name_));
 
 				return false;
 			}
 		}
 		else
 		{
-			ERROR_MSG(boost::format("DBInterfaceMysql::attach: mysql_errno=%1%, mysql_error=%2%\n") %
-				mysql_errno(pMysql_) % mysql_error(pMysql_));
+			ERROR_MSG(fmt::format("DBInterfaceMysql::attach: mysql_errno={}, mysql_error={}\n",
+				mysql_errno(pMysql_), mysql_error(pMysql_)));
+
 			return false;
 		}
 
@@ -204,6 +208,9 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		{
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 		}
+
+		// 关闭自动提交
+		mysql_autocommit(mysql(), 0);
 
 		char characterset_sql[MAX_BUF];
 		kbe_snprintf(characterset_sql, MAX_BUF, "ALTER DATABASE CHARACTER SET %s COLLATE %s", 
@@ -213,7 +220,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	}
 	catch (std::exception& e)
 	{
-		ERROR_MSG(boost::format("DBInterfaceMysql::attach: %1%\n") % e.what());
+		ERROR_MSG(fmt::format("DBInterfaceMysql::attach: {}\n", e.what()));
 		hasLostConnection_ = true;
 		return false;
 	}
@@ -222,7 +229,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 
 	if(ret)
 	{
-		DEBUG_MSG(boost::format("DBInterfaceMysql::attach: successfully! addr: %1%:%2%\n") % db_ip_ % db_port_);
+		DEBUG_MSG(fmt::format("DBInterfaceMysql::attach: successfully! addr: {}:{}\n", db_ip_, db_port_));
 	}
 
     return ret;
@@ -234,7 +241,7 @@ bool DBInterfaceMysql::checkEnvironment()
 	std::string querycmd = "SHOW VARIABLES LIKE \"%lower_case_table_names%\"";
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
-		ERROR_MSG(boost::format("DBInterfaceMysql::checkEnvironment: %1%, query is error!\n") % querycmd);
+		ERROR_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: {}, query is error!\n", querycmd));
 		return false;
 	}
 
@@ -256,7 +263,7 @@ bool DBInterfaceMysql::checkEnvironment()
 				}
 				else
 				{
-					CRITICAL_MSG(boost::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 0, curr=%1%!\n") % v);
+					CRITICAL_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 0, curr={}!\n", v));
 				}
 			}
 			
@@ -267,6 +274,40 @@ bool DBInterfaceMysql::checkEnvironment()
 	}
 	
 	return lower_case_table_names;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::checkErrors()
+{
+	std::string querycmd = fmt::format("SHOW TABLES LIKE \"tbl_{}\"", DBUtil::accountScriptName());
+	if(!query(querycmd.c_str(), querycmd.size(), true))
+	{
+		ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
+		return false;
+	}
+
+	bool foundAccountTable = false;
+	MYSQL_RES * pResult = mysql_store_result(mysql());
+	if(pResult)
+	{
+		foundAccountTable = mysql_num_rows(pResult) > 0;
+		mysql_free_result(pResult);
+	}
+
+	if(!foundAccountTable)
+	{
+		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
+
+		try
+		{
+			query(querycmd.c_str(), querycmd.size(), false);
+		}
+		catch (...)
+		{
+		}
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -311,7 +352,7 @@ bool DBInterfaceMysql::dropEntityTableFromDB(const char* tablename)
 {
 	KBE_ASSERT(tablename != NULL);
   
-	DEBUG_MSG(boost::format("DBInterfaceMysql::dropEntityTableFromDB: %1%.\n") % tablename);
+	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tablename));
 
 	char sql_str[MAX_BUF];
 	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tablename);
@@ -323,8 +364,8 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const ch
 {
 	KBE_ASSERT(tablename != NULL && tableItemName != NULL);
   
-	DEBUG_MSG(boost::format("DBInterfaceMysql::dropEntityTableItemFromDB: %1% %2%.\n") % 
-		tablename % tableItemName);
+	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableItemFromDB: {} {}.\n", 
+		tablename, tableItemName));
 
 	char sql_str[MAX_BUF];
 	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tablename, tableItemName);
@@ -351,7 +392,7 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 	{
 		if(showexecinfo)
 		{
-			ERROR_MSG(boost::format("DBInterfaceMysql::query: has no attach(db).sql:(%1%)\n") % lastquery_);
+			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
 		}
 
 		return false;
@@ -360,13 +401,20 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 	querystatistics(strCommand, size);
 
 	lastquery_ = strCommand;
+
+	if(_g_debug)
+	{
+		DEBUG_MSG(fmt::format("DBInterfaceMysql::query({:p}): {}\n", (void*)this, lastquery_));
+	}
+
     int nResult = mysql_real_query(pMysql_, strCommand, size);  
+
     if(nResult != 0)  
     {  
 		if(showexecinfo)
 		{
-			ERROR_MSG(boost::format("DBInterfaceMysql::query: is error(%1%:%2%)!\nsql:(%3%)\n") % 
-				mysql_errno(pMysql_) % mysql_error(pMysql_) % lastquery_); 
+			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
+				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
 		}
 
 		this->throwError();
@@ -526,7 +574,7 @@ void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
 	MYSQL_RES*	result = mysql_list_fields(mysql(), sqlname.c_str(), NULL);
 	if(result == NULL)
 	{
-		ERROR_MSG(boost::format("EntityTableMysql::loadFields:%1%\n") % getstrerror());
+		ERROR_MSG(fmt::format("EntityTableMysql::loadFields:{}\n", getstrerror()));
 		return;
 	}
 
@@ -572,47 +620,47 @@ bool DBInterfaceMysql::processException(std::exception & e)
 
 	if (dbe->isLostConnection())
 	{
-		INFO_MSG(boost::format("DBInterfaceMysql::processException: "
-				"Thread %p lost connection to database. Exception: %s. "
-				"Attempting to reconnect.\n") %
-			this %
-			dbe->what() );
+		INFO_MSG(fmt::format("DBInterfaceMysql::processException: "
+				"Thread {:p} lost connection to database. Exception: {}. "
+				"Attempting to reconnect.\n",
+			(void*)this,
+			dbe->what()));
 
 		int attempts = 1;
 
 		while (!this->reattach())
 		{
-			ERROR_MSG(boost::format("DBInterfaceMysql::processException: "
-							"Thread %p reconnect(%s) attempt %d failed(%s).\n") %
-						this %
-						db_name_ %
-						attempts %
-						getLastError());
+			ERROR_MSG(fmt::format("DBInterfaceMysql::processException: "
+							"Thread {:p} reconnect({}) attempt {} failed({}).\n",
+						(void*)this,
+						db_name_,
+						attempts,
+						getLastError()));
 
 			KBEngine::sleep(30);
 			++attempts;
 		}
 
-		INFO_MSG(boost::format("DBInterfaceMysql::processException: "
-					"Thread %p reconnected(%s). Attempts = %d\n") %
-				this %
-				db_name_ %
-				attempts);
+		INFO_MSG(fmt::format("DBInterfaceMysql::processException: "
+					"Thread {:p} reconnected({}). Attempts = {}\n",
+				(void*)this,
+				db_name_,
+				attempts));
 
 		retry = true;
 	}
 	else if (dbe->shouldRetry())
 	{
-		WARNING_MSG(boost::format("DBInterfaceMysql::processException: Retrying %1%\nException:%2%\nnlastquery=%3%\n") %
-				this % dbe->what() % lastquery_);
+		WARNING_MSG(fmt::format("DBInterfaceMysql::processException: Retrying {:p}\nException:{}\nnlastquery={}\n",
+				(void*)this, dbe->what(), lastquery_));
 
 		retry = true;
 	}
 	else
 	{
-		WARNING_MSG(boost::format("DBInterfaceMysql::processException: "
-				"Exception: %1%\nlastquery=%2%\n") %
-			dbe->what() % lastquery_);
+		WARNING_MSG(fmt::format("DBInterfaceMysql::processException: "
+				"Exception: {}\nlastquery={}\n",
+			dbe->what(), lastquery_));
 	}
 
 	return retry;

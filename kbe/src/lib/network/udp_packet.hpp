@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SOCKETUDPPACKET_H__
-#define __SOCKETUDPPACKET_H__
+#ifndef KBE_SOCKETUDPPACKET_HPP
+#define KBE_SOCKETUDPPACKET_HPP
 	
 // common include
 #include "network/packet.hpp"
@@ -54,4 +54,5 @@ public:
 typedef SmartPointer<UDPPacket> UDPPacketPtr;
 }
 }
-#endif
+
+#endif // KBE_SOCKETUDPPACKET_HPP

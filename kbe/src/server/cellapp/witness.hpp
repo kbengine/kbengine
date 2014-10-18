@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_WITNESS_HPP__
-#define __KBE_WITNESS_HPP__
+#ifndef KBE_WITNESS_HPP
+#define KBE_WITNESS_HPP
 
 // common include
 #include "updatable.hpp"
@@ -82,6 +82,9 @@ public:
 	Witness();
 	~Witness();
 	
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 	virtual std::string c_str(){ return "Witness"; }
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
@@ -90,10 +93,22 @@ public:
 	static ObjectPool<Witness>& ObjPool();
 	void onReclaimObject();
 
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(pEntity_)
+		 + sizeof(aoiRadius_) + sizeof(aoiHysteresisArea_)
+		  + sizeof(pAOITrigger_) + sizeof(clientAOISize_)
+		  + sizeof(lastBasePos) + (sizeof(EntityRef*) * aoiEntities_.size());
+
+		return bytes;
+	}
+
 	INLINE Entity* pEntity();
 
 	void attach(Entity* pEntity);
 	void detach(Entity* pEntity);
+	void clear(Entity* pEntity);
+	void onAttach(Entity* pEntity);
 
 	void setAoiRadius(float radius, float hyst = 5.0f);
 	
@@ -106,7 +121,7 @@ public:
 	/**
 		基础位置， 如果有坐骑基础位置可能是坐骑等
 	*/
-	const Position3D& getBasePos();
+	INLINE const Position3D& basePos();
 
 	bool update();
 	
@@ -131,7 +146,7 @@ public:
 	/**
 		使用何种协议来更新客户端
 	*/
-	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags);
+	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
 
 	/**
 		添加基础位置到更新包
@@ -150,6 +165,13 @@ public:
 
 	/** entityID是否在aoi内 */
 	INLINE bool entityInAOI(ENTITY_ID entityID);
+
+	INLINE AOITrigger* pAOITrigger();
+
+	/**
+		重置AOI范围内的entities， 使其同步状态恢复到最初未同步的状态
+	*/
+	void resetAOIEntities();
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置

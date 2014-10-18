@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SMARTPOINTER__
-#define __SMARTPOINTER__
+#ifndef KBE_SMARTPOINTER_HPP
+#define KBE_SMARTPOINTER_HPP
+
 #include "cstdkbe/refcountable.hpp"
 
 namespace KBEngine { 
@@ -257,4 +258,4 @@ public:
 };
 
 }
-#endif // __SMARTPOINTER__
+#endif // KBE_SMARTPOINTER_HPP

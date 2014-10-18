@@ -67,6 +67,25 @@ The :mod:`gc` module provides the following functions:
    returned.
 
 
+.. function:: get_stats()
+
+   Return a list of three per-generation dictionaries containing collection
+   statistics since interpreter start.  The number of keys may change
+   in the future, but currently each dictionary will contain the following
+   items:
+
+   * ``collections`` is the number of times this generation was collected;
+
+   * ``collected`` is the total number of objects collected inside this
+     generation;
+
+   * ``uncollectable`` is the total number of objects which were found
+     to be uncollectable (and were therefore moved to the :data:`garbage`
+     list) inside this generation.
+
+   .. versionadded:: 3.4
+
+
 .. function:: set_threshold(threshold0[, threshold1[, threshold2]])
 
    Set the garbage collection thresholds (the collection frequency). Setting
@@ -121,8 +140,8 @@ The :mod:`gc` module provides the following functions:
 
    Return a list of objects directly referred to by any of the arguments. The
    referents returned are those objects visited by the arguments' C-level
-   :attr:`tp_traverse` methods (if any), and may not be all objects actually
-   directly reachable.  :attr:`tp_traverse` methods are supported only by objects
+   :c:member:`~PyTypeObject.tp_traverse` methods (if any), and may not be all objects actually
+   directly reachable.  :c:member:`~PyTypeObject.tp_traverse` methods are supported only by objects
    that support garbage collection, and are only required to visit objects that may
    be involved in a cycle.  So, for example, if an integer is directly reachable
    from an argument, that integer object may or may not appear in the result list.
@@ -130,8 +149,8 @@ The :mod:`gc` module provides the following functions:
 
 .. function:: is_tracked(obj)
 
-   Returns True if the object is currently tracked by the garbage collector,
-   False otherwise.  As a general rule, instances of atomic types aren't
+   Returns ``True`` if the object is currently tracked by the garbage collector,
+   ``False`` otherwise.  As a general rule, instances of atomic types aren't
    tracked and instances of non-atomic types (containers, user-defined
    objects...) are.  However, some type-specific optimizations can be present
    in order to suppress the garbage collector footprint of simple instances
@@ -153,35 +172,63 @@ The :mod:`gc` module provides the following functions:
    .. versionadded:: 3.1
 
 
-The following variable is provided for read-only access (you can mutate its
-value but should not rebind it):
+The following variables are provided for read-only access (you can mutate the
+values but should not rebind them):
 
 .. data:: garbage
 
-   A list of objects which the collector found to be unreachable but could not be
-   freed (uncollectable objects).  By default, this list contains only objects with
-   :meth:`__del__` methods. Objects that have :meth:`__del__` methods and are
-   part of a reference cycle cause the entire reference cycle to be uncollectable,
-   including objects not necessarily in the cycle but reachable only from it.
-   Python doesn't collect such cycles automatically because, in general, it isn't
-   possible for Python to guess a safe order in which to run the :meth:`__del__`
-   methods.  If you know a safe order, you can force the issue by examining the
-   *garbage* list, and explicitly breaking cycles due to your objects within the
-   list.  Note that these objects are kept alive even so by virtue of being in the
-   *garbage* list, so they should be removed from *garbage* too.  For example,
-   after breaking cycles, do ``del gc.garbage[:]`` to empty the list.  It's
-   generally better to avoid the issue by not creating cycles containing objects
-   with :meth:`__del__` methods, and *garbage* can be examined in that case to
-   verify that no such cycles are being created.
+   A list of objects which the collector found to be unreachable but could
+   not be freed (uncollectable objects).  Starting with Python 3.4, this
+   list should be empty most of the time, except when using instances of
+   C extension types with a non-NULL ``tp_del`` slot.
 
-   If :const:`DEBUG_SAVEALL` is set, then all unreachable objects will be added
-   to this list rather than freed.
+   If :const:`DEBUG_SAVEALL` is set, then all unreachable objects will be
+   added to this list rather than freed.
 
    .. versionchanged:: 3.2
       If this list is non-empty at interpreter shutdown, a
       :exc:`ResourceWarning` is emitted, which is silent by default.  If
       :const:`DEBUG_UNCOLLECTABLE` is set, in addition all uncollectable objects
       are printed.
+
+   .. versionchanged:: 3.4
+      Following :pep:`442`, objects with a :meth:`__del__` method don't end
+      up in :attr:`gc.garbage` anymore.
+
+.. data:: callbacks
+
+   A list of callbacks that will be invoked by the garbage collector before and
+   after collection.  The callbacks will be called with two arguments,
+   *phase* and *info*.
+
+   *phase* can be one of two values:
+
+      "start": The garbage collection is about to start.
+
+      "stop": The garbage collection has finished.
+
+   *info* is a dict providing more information for the callback.  The following
+   keys are currently defined:
+
+      "generation": The oldest generation being collected.
+
+      "collected": When *phase* is "stop", the number of objects
+      successfully collected.
+
+      "uncollectable": When *phase* is "stop", the number of objects
+      that could not be collected and were put in :data:`garbage`.
+
+   Applications can add their own callbacks to this list.  The primary
+   use cases are:
+
+      Gathering statistics about garbage collection, such as how often
+      various generations are collected, and how long the collection
+      takes.
+
+      Allowing applications to identify and clear their own uncollectable
+      types when they appear in :data:`garbage`.
+
+   .. versionadded:: 3.3
 
 
 The following constants are provided for use with :func:`set_debug`:

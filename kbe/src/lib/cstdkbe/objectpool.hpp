@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __OBJECTPOOL_H__
-#define __OBJECTPOOL_H__
+#ifndef KBE_OBJECTPOOL_HPP
+#define KBE_OBJECTPOOL_HPP
 	
 // common include	
 //#define NDEBUG
@@ -29,6 +29,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>	
 #include <map>	
 #include <list>	
+#include <vector>
+#include <queue> 
+
 #include "thread/threadmutex.hpp"
 
 // windows include	
@@ -52,19 +55,25 @@ class ObjectPool
 public:
 	typedef std::list<T*> OBJECTS;
 
-	ObjectPool():
+	ObjectPool(std::string name):
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
-		mutex_()
+		mutex_(),
+		name_(name),
+		totalAlloc_(0),
+		obj_count_(0)
 	{
 	}
 
-	ObjectPool(unsigned int preAssignVal, size_t max):
+	ObjectPool(std::string name, unsigned int preAssignVal, size_t max):
 		objects_(),
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
-		mutex_()
+		mutex_(),
+		name_(name),
+		totalAlloc_(0),
+		obj_count_(0)
 	{
 	}
 
@@ -87,6 +96,7 @@ public:
 		}
 				
 		objects_.clear();	
+		obj_count_ = 0;
 		mutex_.unlockMutex();
 	}
 
@@ -96,6 +106,8 @@ public:
 	{
 		for(unsigned int i=0; i<preAssignVal; i++){
 			objects_.push_back(new T);
+			++totalAlloc_;
+			++obj_count_;
 		}
 	}
 
@@ -110,11 +122,11 @@ public:
 
 		while(true)
 		{
-			if(objects_.size() > 0)
+			if(obj_count_ > 0)
 			{
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
-
+				--obj_count_;
 				mutex_.unlockMutex();
 				return t;
 			}
@@ -123,7 +135,7 @@ public:
 		}
 
 		mutex_.unlockMutex();
-		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
+
 		return NULL;
 	}
 
@@ -137,9 +149,11 @@ public:
 
 		while(true)
 		{
-			if(objects_.size() > 0){
+			if(obj_count_ > 0)
+			{
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
+				--obj_count_;
 
 				// 先重置状态
 				t->onReclaimObject();
@@ -152,7 +166,7 @@ public:
 		}
 
 		mutex_.unlockMutex();
-		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
+
 		return NULL;
 	}
 
@@ -162,24 +176,101 @@ public:
 	void reclaimObject(T* obj)
 	{
 		mutex_.lockMutex();
+		reclaimObject_(obj);
+		mutex_.unlockMutex();
+	}
 
-		if(obj != NULL)
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::list<T*>& objs)
+	{
+		mutex_.lockMutex();
+		
+		typename std::list< T* >::iterator iter = objs.begin();
+		for(; iter != objs.end(); iter++)
 		{
-			if(size() >= max_ || isDestroyed_)
-			{
-				delete obj;
-			}
-			else
-			{
-				objects_.push_back(obj);
-			}
+			reclaimObject_((*iter));
+		}
+		
+		objs.clear();
+		mutex_.unlockMutex();
+	}
+
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::vector< T* >& objs)
+	{
+		mutex_.lockMutex();
+		
+		typename std::vector< T* >::iterator iter = objs.begin();
+		for(; iter != objs.end(); iter++)
+		{
+			reclaimObject_((*iter));
+		}
+		
+		objs.clear();
+		mutex_.unlockMutex();
+	}
+
+	/**
+		回收一个对象容器
+	*/
+	void reclaimObject(std::queue<T*>& objs)
+	{
+		mutex_.lockMutex();
+		
+		while(!objs.empty())
+		{
+			T* t = objs.front();
+			objs.pop();
+			reclaimObject_(t);
 		}
 
 		mutex_.unlockMutex();
 	}
 
-	size_t size(void)const{ return objects_.size(); }
+	size_t size(void)const{ return obj_count_; }
 	
+	std::string c_str()
+	{
+		mutex_.lockMutex();
+
+		char buf[1024];
+		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
+			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
+
+		mutex_.unlockMutex();
+		return buf;
+	}
+
+	size_t max()const{ return max_; }
+	size_t totalAlloc()const{ return totalAlloc_; }
+
+	bool isDestroyed()const{ return isDestroyed_; }
+
+protected:
+	/**
+		回收一个对象
+	*/
+	void reclaimObject_(T* obj)
+	{
+		if(obj != NULL)
+		{
+			if(size() >= max_ || isDestroyed_)
+			{
+				delete obj;
+				--totalAlloc_;
+			}
+			else
+			{
+				objects_.push_back(obj);
+				++obj_count_;
+			}
+		}
+	}
+
 protected:
 	OBJECTS objects_;							// 对象缓冲器
 
@@ -188,6 +279,12 @@ protected:
 	bool isDestroyed_;
 
 	KBEngine::thread::ThreadMutex mutex_;
+
+	std::string name_;
+
+	size_t totalAlloc_;
+
+	size_t obj_count_;
 };
 
 /*
@@ -199,6 +296,8 @@ public:
 	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
 	
+	virtual size_t getPoolObjectBytes(){ return 0; }
+
 	/**
 		池对象被析构前的通知
 		某些对象可以在此做一些工作

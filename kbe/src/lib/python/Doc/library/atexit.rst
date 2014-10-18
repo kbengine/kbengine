@@ -9,13 +9,14 @@
 
 The :mod:`atexit` module defines functions to register and unregister cleanup
 functions.  Functions thus registered are automatically executed upon normal
-interpreter termination.  The order in which the functions are called is not
-defined; if you have cleanup operations that depend on each other, you should
-wrap them in a function and register that one.  This keeps :mod:`atexit` simple.
+interpreter termination.  :mod:`atexit` runs these functions in the *reverse*
+order in which they were registered; if you register ``A``, ``B``, and ``C``,
+at interpreter termination time they will be run in the order ``C``, ``B``,
+``A``.
 
-Note: the functions registered via this module are not called when the program
-is killed by a signal not handled by Python, when a Python fatal internal error
-is detected, or when :func:`os._exit` is called.
+**Note:** The functions registered via this module are not called when the
+program is killed by a signal not handled by Python, when a Python fatal
+internal error is detected, or when :func:`os._exit` is called.
 
 
 .. function:: register(func, *args, **kargs)
@@ -67,8 +68,9 @@ automatically when the program terminates without relying on the application
 making an explicit call into this module at termination. ::
 
    try:
-       _count = int(open("counter").read())
-   except IOError:
+       with open("counterfile") as infile:
+           _count = int(infile.read())
+   except FileNotFoundError:
        _count = 0
 
    def incrcounter(n):
@@ -76,7 +78,8 @@ making an explicit call into this module at termination. ::
        _count = _count + n
 
    def savecounter():
-       open("counter", "w").write("%d" % _count)
+       with open("counterfile", "w") as outfile:
+           outfile.write("%d" % _count)
 
    import atexit
    atexit.register(savecounter)

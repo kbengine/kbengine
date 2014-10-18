@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_SCRIPT_H__
-#define __KBENGINE_SCRIPT_H__
+#ifndef KBENGINE_SCRIPT_HPP
+#define KBENGINE_SCRIPT_HPP
+
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -47,7 +48,7 @@ namespace KBEngine{ namespace script{
 #endif
 
 // 脚本编译后的后缀名和缓存文件夹
-#define SCRIPT_BIN_TAG "cpython-32"
+#define SCRIPT_BIN_TAG "cpython-34"
 #define SCRIPT_BIN_CACHEDIR "__pycache__"
 
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v);
@@ -168,4 +169,4 @@ protected:
 #include "script.ipp"
 #endif
 
-#endif
+#endif // KBENGINE_SCRIPT_HPP

@@ -85,8 +85,6 @@ __version__ = "0.6"
 __all__ = ["HTTPServer", "BaseHTTPRequestHandler"]
 
 import html
-import email.message
-import email.parser
 import http.client
 import io
 import mimetypes
@@ -100,11 +98,14 @@ import sys
 import time
 import urllib.parse
 import copy
+import argparse
+
 
 # Default error message template
 DEFAULT_ERROR_MESSAGE = """\
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
         "http://www.w3.org/TR/html4/strict.dtd">
+<html>
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
         <title>Error response</title>
@@ -352,6 +353,7 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
 
         """
         self.send_response_only(100)
+        self.end_headers()
         return True
 
     def handle_one_request(self):
@@ -397,12 +399,17 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         while not self.close_connection:
             self.handle_one_request()
 
-    def send_error(self, code, message=None):
+    def send_error(self, code, message=None, explain=None):
         """Send and log an error reply.
 
-        Arguments are the error code, and a detailed message.
-        The detailed message defaults to the short entry matching the
-        response code.
+        Arguments are
+        * code:    an HTTP error code
+                   3 digits
+        * message: a simple optional 1 line reason phrase.
+                   *( HTAB / SP / VCHAR / %x80-FF )
+                   defaults to short entry matching the response code
+        * explain: a detailed message defaults to the long entry
+                   matching the response code.
 
         This sends an error response (so it must be called before any
         output has been generated), logs the error, and finally sends
@@ -416,20 +423,24 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
             shortmsg, longmsg = '???', '???'
         if message is None:
             message = shortmsg
-        explain = longmsg
+        if explain is None:
+            explain = longmsg
         self.log_error("code %d, message %s", code, message)
         # using _quote_html to prevent Cross Site Scripting attacks (see bug #1100201)
         content = (self.error_message_format %
-                   {'code': code, 'message': _quote_html(message), 'explain': explain})
+                   {'code': code, 'message': _quote_html(message), 'explain': _quote_html(explain)})
+        body = content.encode('UTF-8', 'replace')
         self.send_response(code, message)
         self.send_header("Content-Type", self.error_content_type)
         self.send_header('Connection', 'close')
+        self.send_header('Content-Length', int(len(body)))
         self.end_headers()
         if self.command != 'HEAD' and code >= 200 and code not in (204, 304):
-            self.wfile.write(content.encode('UTF-8', 'replace'))
+            self.wfile.write(body)
 
     def send_response(self, code, message=None):
-        """Send the response header and log the response code.
+        """Add the response header to the headers buffer and log the
+        response code.
 
         Also send two standard headers with the server software
         version and the current date.
@@ -448,16 +459,19 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
             else:
                 message = ''
         if self.request_version != 'HTTP/0.9':
-            self.wfile.write(("%s %d %s\r\n" %
-                              (self.protocol_version, code, message)).encode('latin1', 'strict'))
+            if not hasattr(self, '_headers_buffer'):
+                self._headers_buffer = []
+            self._headers_buffer.append(("%s %d %s\r\n" %
+                    (self.protocol_version, code, message)).encode(
+                        'latin-1', 'strict'))
 
     def send_header(self, keyword, value):
-        """Send a MIME header."""
+        """Send a MIME header to the headers buffer."""
         if self.request_version != 'HTTP/0.9':
             if not hasattr(self, '_headers_buffer'):
                 self._headers_buffer = []
             self._headers_buffer.append(
-                ("%s: %s\r\n" % (keyword, value)).encode('latin1', 'strict'))
+                ("%s: %s\r\n" % (keyword, value)).encode('latin-1', 'strict'))
 
         if keyword.lower() == 'connection':
             if value.lower() == 'close':
@@ -469,6 +483,10 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         """Send the blank line ending the MIME headers."""
         if self.request_version != 'HTTP/0.9':
             self._headers_buffer.append(b"\r\n")
+            self.flush_headers()
+
+    def flush_headers(self):
+        if hasattr(self, '_headers_buffer'):
             self.wfile.write(b"".join(self._headers_buffer))
             self._headers_buffer = []
 
@@ -514,7 +532,7 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         """
 
         sys.stderr.write("%s - - [%s] %s\n" %
-                         (self.client_address[0],
+                         (self.address_string(),
                           self.log_date_time_string(),
                           format%args))
 
@@ -548,15 +566,9 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     def address_string(self):
-        """Return the client address formatted for logging.
+        """Return the client address."""
 
-        This version looks up the full hostname using gethostbyaddr(),
-        and tries to find a name that contains at least one dot.
-
-        """
-
-        host, port = self.client_address[:2]
-        return socket.getfqdn(host)
+        return self.client_address[0]
 
     # Essentially static class variables
 
@@ -569,7 +581,7 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
 
     # Table mapping response codes to messages; entries have the
     # form {code: (shortmessage, longmessage)}.
-    # See RFC 2616.
+    # See RFC 2616 and 6585.
     responses = {
         100: ('Continue', 'Request received, please continue'),
         101: ('Switching Protocols',
@@ -624,6 +636,12 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
               'Cannot satisfy request range.'),
         417: ('Expectation Failed',
               'Expect condition could not be satisfied.'),
+        428: ('Precondition Required',
+              'The origin server requires the request to be conditional.'),
+        429: ('Too Many Requests', 'The user has sent too many requests '
+              'in a given amount of time ("rate limiting").'),
+        431: ('Request Header Fields Too Large', 'The server is unwilling to '
+              'process the request because its header fields are too large.'),
 
         500: ('Internal Server Error', 'Server got itself in trouble'),
         501: ('Not Implemented',
@@ -634,6 +652,8 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         504: ('Gateway Timeout',
               'The gateway server did not receive a timely response'),
         505: ('HTTP Version Not Supported', 'Cannot fulfill request.'),
+        511: ('Network Authentication Required',
+              'The client needs to authenticate to gain network access.'),
         }
 
 
@@ -656,8 +676,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         """Serve a GET request."""
         f = self.send_head()
         if f:
-            self.copyfile(f, self.wfile)
-            f.close()
+            try:
+                self.copyfile(f, self.wfile)
+            finally:
+                f.close()
 
     def do_HEAD(self):
         """Serve a HEAD request."""
@@ -695,16 +717,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         ctype = self.guess_type(path)
         try:
             f = open(path, 'rb')
-        except IOError:
+        except OSError:
             self.send_error(404, "File not found")
             return None
-        self.send_response(200)
-        self.send_header("Content-type", ctype)
-        fs = os.fstat(f.fileno())
-        self.send_header("Content-Length", str(fs[6]))
-        self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-        self.end_headers()
-        return f
+        try:
+            self.send_response(200)
+            self.send_header("Content-type", ctype)
+            fs = os.fstat(f.fileno())
+            self.send_header("Content-Length", str(fs[6]))
+            self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+            self.end_headers()
+            return f
+        except:
+            f.close()
+            raise
 
     def list_directory(self, path):
         """Helper to produce a directory listing (absent index.html).
@@ -716,16 +742,27 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         """
         try:
             list = os.listdir(path)
-        except os.error:
+        except OSError:
             self.send_error(404, "No permission to list directory")
             return None
         list.sort(key=lambda a: a.lower())
         r = []
-        displaypath = html.escape(urllib.parse.unquote(self.path))
-        r.append('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
-        r.append("<html>\n<title>Directory listing for %s</title>\n" % displaypath)
-        r.append("<body>\n<h2>Directory listing for %s</h2>\n" % displaypath)
-        r.append("<hr>\n<ul>\n")
+        try:
+            displaypath = urllib.parse.unquote(self.path,
+                                               errors='surrogatepass')
+        except UnicodeDecodeError:
+            displaypath = urllib.parse.unquote(path)
+        displaypath = html.escape(displaypath)
+        enc = sys.getfilesystemencoding()
+        title = 'Directory listing for %s' % displaypath
+        r.append('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" '
+                 '"http://www.w3.org/TR/html4/strict.dtd">')
+        r.append('<html>\n<head>')
+        r.append('<meta http-equiv="Content-Type" '
+                 'content="text/html; charset=%s">' % enc)
+        r.append('<title>%s</title>\n</head>' % title)
+        r.append('<body>\n<h1>%s</h1>' % title)
+        r.append('<hr>\n<ul>')
         for name in list:
             fullname = os.path.join(path, name)
             displayname = linkname = name
@@ -736,11 +773,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             if os.path.islink(fullname):
                 displayname = name + "@"
                 # Note: a link to a directory displays with @ and links with /
-            r.append('<li><a href="%s">%s</a>\n'
-                    % (urllib.parse.quote(linkname), html.escape(displayname)))
-        r.append("</ul>\n<hr>\n</body>\n</html>\n")
-        enc = sys.getfilesystemencoding()
-        encoded = ''.join(r).encode(enc)
+            r.append('<li><a href="%s">%s</a></li>'
+                    % (urllib.parse.quote(linkname,
+                                          errors='surrogatepass'),
+                       html.escape(displayname)))
+        r.append('</ul>\n<hr>\n</body>\n</html>\n')
+        encoded = '\n'.join(r).encode(enc, 'surrogateescape')
         f = io.BytesIO()
         f.write(encoded)
         f.seek(0)
@@ -761,7 +799,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         # abandon query parameters
         path = path.split('?',1)[0]
         path = path.split('#',1)[0]
-        path = posixpath.normpath(urllib.parse.unquote(path))
+        # Don't forget explicit trailing slash when normalizing. Issue17324
+        trailing_slash = path.rstrip().endswith('/')
+        try:
+            path = urllib.parse.unquote(path, errors='surrogatepass')
+        except UnicodeDecodeError:
+            path = urllib.parse.unquote(path)
+        path = posixpath.normpath(path)
         words = path.split('/')
         words = filter(None, words)
         path = os.getcwd()
@@ -770,6 +814,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             head, word = os.path.split(word)
             if word in (os.curdir, os.pardir): continue
             path = os.path.join(path, word)
+        if trailing_slash:
+            path += '/'
         return path
 
     def copyfile(self, source, outputfile):
@@ -888,11 +934,7 @@ def nobody_uid():
 
 def executable(path):
     """Test for executable file."""
-    try:
-        st = os.stat(path)
-    except os.error:
-        return False
-    return st.st_mode & 0o111 != 0
+    return os.access(path, os.X_OK)
 
 
 class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -946,7 +988,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
         (and the next character is a '/' or the end of the string).
 
         """
-        collapsed_path = _url_collapse_path(self.path)
+        collapsed_path = _url_collapse_path(urllib.parse.unquote(self.path))
         dir_sep = collapsed_path.find('/', 1)
         head, tail = collapsed_path[:dir_sep], collapsed_path[dir_sep+1:]
         if head in self.cgi_directories:
@@ -968,10 +1010,9 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
 
     def run_cgi(self):
         """Execute a CGI script."""
-        path = self.path
         dir, rest = self.cgi_info
-
-        i = path.find('/', len(dir) + 1)
+        path = dir + '/' + rest
+        i = path.find('/', len(dir)+1)
         while i >= 0:
             nextdir = path[:i]
             nextrest = path[i+1:]
@@ -979,7 +1020,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
             scriptdir = self.translate_path(nextdir)
             if os.path.isdir(scriptdir):
                 dir, rest = nextdir, nextrest
-                i = path.find('/', len(dir) + 1)
+                i = path.find('/', len(dir)+1)
             else:
                 break
 
@@ -1008,7 +1049,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
                             scriptname)
             return
         ispy = self.is_python(scriptname)
-        if not ispy:
+        if self.have_fork or not ispy:
             if not self.is_executable(scriptfile):
                 self.send_error(403, "CGI script is not executable (%r)" %
                                 scriptname)
@@ -1029,9 +1070,6 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
         env['SCRIPT_NAME'] = scriptname
         if query:
             env['QUERY_STRING'] = query
-        host = self.address_string()
-        if host != self.client_address[0]:
-            env['REMOTE_HOST'] = host
         env['REMOTE_ADDR'] = self.client_address[0]
         authorization = self.headers.get("authorization")
         if authorization:
@@ -1083,6 +1121,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
             env.setdefault(k, "")
 
         self.send_response(200, "Script output follows")
+        self.flush_headers()
 
         decoded_query = query.replace('+', ' ')
 
@@ -1108,7 +1147,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
             try:
                 try:
                     os.setuid(nobody)
-                except os.error:
+                except OSError:
                     pass
                 os.dup2(self.rfile.fileno(), 0)
                 os.dup2(self.wfile.fileno(), 1)
@@ -1161,20 +1200,15 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
                 self.log_message("CGI script exited OK")
 
 
-def test(HandlerClass = BaseHTTPRequestHandler,
-         ServerClass = HTTPServer, protocol="HTTP/1.0"):
+def test(HandlerClass=BaseHTTPRequestHandler,
+         ServerClass=HTTPServer, protocol="HTTP/1.0", port=8000, bind=""):
     """Test the HTTP request handler class.
 
     This runs an HTTP server on port 8000 (or the first command line
     argument).
 
     """
-
-    if sys.argv[1:]:
-        port = int(sys.argv[1])
-    else:
-        port = 8000
-    server_address = ('', port)
+    server_address = (bind, port)
 
     HandlerClass.protocol_version = protocol
     httpd = ServerClass(server_address, HandlerClass)
@@ -1189,4 +1223,19 @@ def test(HandlerClass = BaseHTTPRequestHandler,
         sys.exit(0)
 
 if __name__ == '__main__':
-    test(HandlerClass=SimpleHTTPRequestHandler)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cgi', action='store_true',
+                       help='Run as CGI Server')
+    parser.add_argument('--bind', '-b', default='', metavar='ADDRESS',
+                        help='Specify alternate bind address '
+                             '[default: all interfaces]')
+    parser.add_argument('port', action='store',
+                        default=8000, type=int,
+                        nargs='?',
+                        help='Specify alternate port [default: 8000]')
+    args = parser.parse_args()
+    if args.cgi:
+        handler_class = CGIHTTPRequestHandler
+    else:
+        handler_class = SimpleHTTPRequestHandler
+    test(HandlerClass=handler_class, port=args.port, bind=args.bind)

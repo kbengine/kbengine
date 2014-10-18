@@ -44,7 +44,8 @@ public:
 	static PyObject* __py_values(PyObject* self, PyObject* args);
 	static PyObject* __py_items(PyObject* self, PyObject* args);
 	static PyObject* __py_update(PyObject* self, PyObject* args);
-	
+	static PyObject* __py_get(PyObject* self, PyObject* args);
+
 	/** 
 		map操作函数相关 
 	*/

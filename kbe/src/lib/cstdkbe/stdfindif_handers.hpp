@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __STDFINDIF_HANDERS_HPP__
-#define __STDFINDIF_HANDERS_HPP__
+#ifndef KBE_STDFINDIF_HANDERS_HPP
+#define KBE_STDFINDIF_HANDERS_HPP
 
 #include "cstdkbe/platform.hpp"
 
@@ -70,4 +70,4 @@ private:
 };
 }
 
-#endif // __STDFINDIF_HANDERS_HPP__
+#endif // KBE_STDFINDIF_HANDERS_HPP

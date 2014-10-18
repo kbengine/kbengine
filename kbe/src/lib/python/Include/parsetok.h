@@ -9,7 +9,10 @@ extern "C" {
 
 typedef struct {
     int error;
-    const char *filename;       /* decoded from the filesystem encoding */
+#ifndef PGEN
+    /* The filename is useless for pgen, see comment in tok_state structure */
+    PyObject *filename;
+#endif
     int lineno;
     int offset;
     char *text;                 /* UTF-8-encoded string */
@@ -35,29 +38,49 @@ typedef struct {
 PyAPI_FUNC(node *) PyParser_ParseString(const char *, grammar *, int,
                                               perrdetail *);
 PyAPI_FUNC(node *) PyParser_ParseFile (FILE *, const char *, grammar *, int,
-                                             char *, char *, perrdetail *);
+                                             const char *, const char *,
+                                             perrdetail *);
 
 PyAPI_FUNC(node *) PyParser_ParseStringFlags(const char *, grammar *, int,
                                               perrdetail *, int);
-PyAPI_FUNC(node *) PyParser_ParseFileFlags(FILE *, const char *,
-					   const char*, grammar *,
-						 int, char *, char *,
-						 perrdetail *, int);
+PyAPI_FUNC(node *) PyParser_ParseFileFlags(
+    FILE *fp,
+    const char *filename,       /* decoded from the filesystem encoding */
+    const char *enc,
+    grammar *g,
+    int start,
+    const char *ps1,
+    const char *ps2,
+    perrdetail *err_ret,
+    int flags);
 PyAPI_FUNC(node *) PyParser_ParseFileFlagsEx(
     FILE *fp,
     const char *filename,       /* decoded from the filesystem encoding */
     const char *enc,
     grammar *g,
     int start,
-    char *ps1,
-    char *ps2,
+    const char *ps1,
+    const char *ps2,
+    perrdetail *err_ret,
+    int *flags);
+PyAPI_FUNC(node *) PyParser_ParseFileObject(
+    FILE *fp,
+    PyObject *filename,
+    const char *enc,
+    grammar *g,
+    int start,
+    const char *ps1,
+    const char *ps2,
     perrdetail *err_ret,
     int *flags);
 
-PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilename(const char *,
-					      const char *,
-					      grammar *, int,
-                                              perrdetail *, int);
+PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilename(
+    const char *s,
+    const char *filename,       /* decoded from the filesystem encoding */
+    grammar *g,
+    int start,
+    perrdetail *err_ret,
+    int flags);
 PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilenameEx(
     const char *s,
     const char *filename,       /* decoded from the filesystem encoding */
@@ -65,9 +88,18 @@ PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilenameEx(
     int start,
     perrdetail *err_ret,
     int *flags);
+PyAPI_FUNC(node *) PyParser_ParseStringObject(
+    const char *s,
+    PyObject *filename,
+    grammar *g,
+    int start,
+    perrdetail *err_ret,
+    int *flags);
 
-/* Note that he following function is defined in pythonrun.c not parsetok.c. */
+/* Note that the following functions are defined in pythonrun.c,
+   not in parsetok.c */
 PyAPI_FUNC(void) PyParser_SetError(perrdetail *);
+PyAPI_FUNC(void) PyParser_ClearError(perrdetail *);
 
 #ifdef __cplusplus
 }

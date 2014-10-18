@@ -7,7 +7,8 @@ import os
 import stat
 
 __all__ = ['commonprefix', 'exists', 'getatime', 'getctime', 'getmtime',
-           'getsize', 'isdir', 'isfile']
+           'getsize', 'isdir', 'isfile', 'samefile', 'sameopenfile',
+           'samestat']
 
 
 # Does a path exist?
@@ -16,18 +17,18 @@ def exists(path):
     """Test whether a path exists.  Returns False for broken symbolic links"""
     try:
         os.stat(path)
-    except os.error:
+    except OSError:
         return False
     return True
 
 
 # This follows symbolic links, so both islink() and isdir() can be true
-# for the same path ono systems that support symlinks
+# for the same path on systems that support symlinks
 def isfile(path):
     """Test whether a path is a regular file"""
     try:
         st = os.stat(path)
-    except os.error:
+    except OSError:
         return False
     return stat.S_ISREG(st.st_mode)
 
@@ -39,7 +40,7 @@ def isdir(s):
     """Return true if the pathname refers to an existing directory."""
     try:
         st = os.stat(s)
-    except os.error:
+    except OSError:
         return False
     return stat.S_ISDIR(st.st_mode)
 
@@ -74,6 +75,31 @@ def commonprefix(m):
         if c != s2[i]:
             return s1[:i]
     return s1
+
+# Are two stat buffers (obtained from stat, fstat or lstat)
+# describing the same file?
+def samestat(s1, s2):
+    """Test whether two stat buffers reference the same file"""
+    return (s1.st_ino == s2.st_ino and
+            s1.st_dev == s2.st_dev)
+
+
+# Are two filenames really pointing to the same file?
+def samefile(f1, f2):
+    """Test whether two pathnames reference the same actual file"""
+    s1 = os.stat(f1)
+    s2 = os.stat(f2)
+    return samestat(s1, s2)
+
+
+# Are two open files really referencing the same file?
+# (Not necessarily the same file descriptor!)
+def sameopenfile(fp1, fp2):
+    """Test whether two open file objects reference the same file"""
+    s1 = os.fstat(fp1)
+    s2 = os.fstat(fp2)
+    return samestat(s1, s2)
+
 
 # Split a path in root and extension.
 # The extension is everything starting at the last dot in the last

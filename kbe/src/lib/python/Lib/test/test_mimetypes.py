@@ -22,6 +22,8 @@ class MimeTypesTestCase(unittest.TestCase):
         eq(self.db.guess_type("foo.tgz"), ("application/x-tar", "gzip"))
         eq(self.db.guess_type("foo.tar.gz"), ("application/x-tar", "gzip"))
         eq(self.db.guess_type("foo.tar.Z"), ("application/x-tar", "compress"))
+        eq(self.db.guess_type("foo.tar.bz2"), ("application/x-tar", "bzip2"))
+        eq(self.db.guess_type("foo.tar.xz"), ("application/x-tar", "xz"))
 
     def test_data_urls(self):
         eq = self.assertEqual
@@ -96,7 +98,8 @@ class Win32MimeTypesTestCase(unittest.TestCase):
         # Use file types that should *always* exist:
         eq = self.assertEqual
         eq(self.db.guess_type("foo.txt"), ("text/plain", None))
-
+        eq(self.db.guess_type("image.jpg"), ("image/jpeg", None))
+        eq(self.db.guess_type("image.png"), ("image/png", None))
 
 def test_main():
     support.run_unittest(MimeTypesTestCase,

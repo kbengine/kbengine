@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __BASEAPPMGR_INTERFACE_H__
+	#undef KBE_BASEAPPMGR_INTERFACE_HPP
 #endif
 
 
-#ifndef __BASEAPPMGR_INTERFACE_H__
-#define __BASEAPPMGR_INTERFACE_H__
+#ifndef KBE_BASEAPPMGR_INTERFACE_HPP
+#define KBE_BASEAPPMGR_INTERFACE_HPP
 
 // common include	
 #if defined(BASEAPPMGR)
@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	// 某app注册自己的接口地址到本app
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -57,7 +57,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,											extport,
+									std::string,									extaddrEx)
 
 	// 某app主动请求look。
 	BASEAPPMGR_MESSAGE_DECLARE_ARGS0(lookApp,								MERCURY_FIXED_MESSAGE)
@@ -72,6 +73,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 
 	// baseEntity请求创建在一个新的space中。
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhere,				MERCURY_VARIABLE_MESSAGE)
+
+	// baseEntity请求创建在一个新的space中。
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBID,		MERCURY_VARIABLE_MESSAGE)
 
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。	
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,						MERCURY_VARIABLE_MESSAGE)
@@ -90,7 +94,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_ARGS4(onPendingAccountGetBaseappAddr,		MERCURY_VARIABLE_MESSAGE,
 									std::string,							loginName, 
 									std::string,							accountName,
-									uint32,									addr,
+									std::string,							addr,
 									uint16,									port)
 									
 	// 一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
@@ -118,6 +122,17 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 
 	// 请求查询watcher数据
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
+
+	// baseapp同步自己的初始化信息
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(onBaseappInitProgress,					MERCURY_FIXED_MESSAGE,
+									COMPONENT_ID,							cid,
+									float,									progress)
+
+	// 开始profile
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqKillServer,						MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

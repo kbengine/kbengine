@@ -59,7 +59,7 @@ def checkcache(filename=None):
             continue   # no-op for files loaded via a __loader__
         try:
             stat = os.stat(fullname)
-        except os.error:
+        except OSError:
             del cache[filename]
             continue
         if size != stat.st_size or mtime != stat.st_mtime:
@@ -91,7 +91,7 @@ def updatecache(filename, module_globals=None):
             if name and get_source:
                 try:
                     data = get_source(name)
-                except (ImportError, IOError):
+                except (ImportError, OSError):
                     pass
                 else:
                     if data is None:
@@ -118,14 +118,14 @@ def updatecache(filename, module_globals=None):
             try:
                 stat = os.stat(fullname)
                 break
-            except os.error:
+            except OSError:
                 pass
         else:
             return []
     try:
         with tokenize.open(fullname) as fp:
             lines = fp.readlines()
-    except IOError:
+    except OSError:
         return []
     if lines and not lines[-1].endswith('\n'):
         lines[-1] += '\n'

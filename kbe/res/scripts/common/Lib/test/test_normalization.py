@@ -43,7 +43,7 @@ class NormalizationTest(unittest.TestCase):
         try:
             testdata = open_urlresource(TESTDATAURL, encoding="utf-8",
                                         check=check_version)
-        except (IOError, HTTPException):
+        except (OSError, HTTPException):
             self.skipTest("Could not retrieve " + TESTDATAURL)
         self.addCleanup(testdata.close)
         for line in testdata:
@@ -59,7 +59,7 @@ class NormalizationTest(unittest.TestCase):
                 c1,c2,c3,c4,c5 = [unistr(x) for x in line.split(';')[:-1]]
             except RangeError:
                 # Skip unsupported characters;
-                # try atleast adding c1 if we are in part1
+                # try at least adding c1 if we are in part1
                 if part == "@Part1":
                     try:
                         c1 = unistr(line.split(';')[0])

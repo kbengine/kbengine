@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __NETWORK_BUNDLE__
-#define __NETWORK_BUNDLE__
+#ifndef KBE_NETWORK_BUNDLE_HPP
+#define KBE_NETWORK_BUNDLE_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
@@ -71,12 +71,12 @@ class Channel;
 			}																								\
 			else																							\
 			{																								\
-				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%5%\n") %				\
-						((isrecv == true) ? "====>" : "<====") %											\
-						pCurrMsgHandler->name.c_str() %														\
-						pCurrMsgHandler->msgID %															\
-						length %																			\
-						addr);																				\
+				DEBUG_MSG(fmt::format("{} {}:msgID:{}, currMsgLength:{}, addr:{}\n",						\
+						((isrecv == true) ? "====>" : "<===="),												\
+						pCurrMsgHandler->name.c_str(),														\
+						pCurrMsgHandler->msgID,																\
+						length,																				\
+						addr));																				\
 			}																								\
 		}																									\
 																											\
@@ -113,6 +113,7 @@ public:
 	static ObjectPool<Bundle>& ObjPool();
 	static void destroyObjPool();
 	void onReclaimObject();
+	virtual size_t getPoolObjectBytes();
 
 	typedef std::vector<Packet*> Packets;
 	
@@ -458,4 +459,4 @@ private:
 #ifdef CODE_INLINE
 #include "bundle.ipp"
 #endif
-#endif // __NETWORKINTERFACE__
+#endif // KBE_NETWORK_BUNDLE_HPP

@@ -38,10 +38,10 @@ AnonymousChannel::AnonymousChannel()
 	}
 
 	if (listen.bind(htons(g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort()), 
-		BillingSystem::getSingleton().getNetworkInterface().extaddr().ip) == -1)
+		BillingSystem::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
-		ERROR_MSG(boost::format("AnonymousChannel::bind(%1%): \n") %
-			 kbe_strerror());
+		ERROR_MSG(fmt::format("AnonymousChannel::bind({}): \n",
+			 kbe_strerror()));
 
 		listen.close();
 		return;
@@ -49,8 +49,8 @@ AnonymousChannel::AnonymousChannel()
 
 	if(listen.listen() == -1)
 	{
-		ERROR_MSG(boost::format("AnonymousChannel::listeningSocket(%1%): \n") %
-			 kbe_strerror());
+		ERROR_MSG(fmt::format("AnonymousChannel::listeningSocket({}): \n",
+			 kbe_strerror()));
 
 		listen.close();
 		return;
@@ -58,9 +58,9 @@ AnonymousChannel::AnonymousChannel()
 
 	listen.setnonblocking(true);
 
-	INFO_MSG(boost::format("AnonymousChannel::bind: %1%:%2%\n") %
-		inet_ntoa((struct in_addr&)BillingSystem::getSingleton().getNetworkInterface().extaddr().ip) % 
-		g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort());
+	INFO_MSG(fmt::format("AnonymousChannel::bind: {}:{}\n",
+		inet_ntoa((struct in_addr&)BillingSystem::getSingleton().networkInterface().extaddr().ip), 
+		g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -102,11 +102,11 @@ bool AnonymousChannel::process()
 
 		if(pEndpoint == NULL)
 		{
-			ERROR_MSG(boost::format("AnonymousChannel::process: accept is error:%1%.\n") % kbe_strerror());
+			ERROR_MSG(fmt::format("AnonymousChannel::process: accept is error:{}.\n", kbe_strerror()));
 			continue;
 		}
 
-		INFO_MSG(boost::format("AnonymousChannel::process: accept(%1%).\n") % pEndpoint->c_str());
+		INFO_MSG(fmt::format("AnonymousChannel::process: accept({}).\n", pEndpoint->c_str()));
 
 		Mercury::TCPPacket packet;
 		packet.resize(1024);
@@ -128,7 +128,7 @@ bool AnonymousChannel::process()
 
 		if(len <= 0)
 		{
-			ERROR_MSG(boost::format("AnonymousChannel::process: recv is error(%1%).\n") % KBEngine::kbe_strerror());
+			ERROR_MSG(fmt::format("AnonymousChannel::process: recv is error({}).\n", KBEngine::kbe_strerror()));
 			pEndpoint->close();
 			delete pEndpoint;
 			continue;
@@ -159,13 +159,13 @@ bool AnonymousChannel::process()
 			BACK_ORDERS_DATA orderdata;
 			orderdata.data = getDatas;
 			backOrdersDatas_[orderid] = orderdata;
-			DEBUG_MSG(boost::format("AnonymousChannel::process: getDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
-				getDatas % fi1 % fi2);
+			DEBUG_MSG(fmt::format("AnonymousChannel::process: getDatas={}\nfi1={}\nfi2={}\n", 
+				getDatas, fi1, fi2));
 		}
 		else
 		{
-			ERROR_MSG(boost::format("AnonymousChannel::process: not found orderid!\ngetDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
-				getDatas % fi1 % fi2);
+			ERROR_MSG(fmt::format("AnonymousChannel::process: not found orderid!\ngetDatas={}\nfi1={}\nfi2={}\n", 
+				getDatas, fi1, fi2));
 		}	
 
 	}
@@ -185,7 +185,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	{
 		if(oiter->second->timeout < timestamp())
 		{
-			INFO_MSG(boost::format("AnonymousChannel::presentMainThread: order(%1%) timeout!\n") % oiter->second->ordersID);
+			INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: order({}) timeout!\n", oiter->second->ordersID));
 
 
 			Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
@@ -200,16 +200,16 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			bool success = false;
 			(*(*bundle)) << success;
 
-			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(oiter->second->address);
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(oiter->second->address);
 
 			if(pChannel)
 			{
-				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
-				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
-					oiter->second->ordersID);
+				ERROR_MSG(fmt::format("AnonymousChannel::presentMainThread: not found channel. orders={}\n", 
+					oiter->second->ordersID));
 			}
 
 			oiter = orders.erase(oiter);
@@ -230,8 +230,8 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 
 		if(orderiter == orders.end())
 		{
-			WARNING_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1% not found!\n") % 
-			iter->first);
+			WARNING_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={} not found!\n", 
+			iter->first));
 
 			// continue;
 		}
@@ -255,12 +255,12 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			success = atoi(s.c_str()) > 0;
 		}
 
-		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, dbid=%2%, success=%3%\n") % 
-			ordersID % dbid % success);
+		INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={}, dbid={}, success={}\n", 
+			ordersID, dbid, success));
 		
 		if(orderiter != orders.end())
 		{
-			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orderiter->second->address);
 			if(pChannel)
 			{
 				Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
@@ -270,17 +270,17 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 				(*(*bundle)).appendBlob(iter->second.data);
 				(*(*bundle)) << cbid;
 				(*(*bundle)) << success;
-				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
-				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
-					ordersID);
+				ERROR_MSG(fmt::format("AnonymousChannel::presentMainThread: not found channel. orders={}\n", 
+					ordersID));
 			}
 		}
 		else
 		{
-			const Mercury::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().getNetworkInterface().channels();
+			const Mercury::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().networkInterface().channels();
 			if(channels.size() > 0)
 			{
 				Mercury::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
@@ -296,19 +296,19 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 						(*(*bundle)).appendBlob(iter->second.data);
 						(*(*bundle)) << cbid;
 						(*(*bundle)) << success;
-						(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+						(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 					}
 					else
 					{
-						ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
-							ordersID);
+						ERROR_MSG(fmt::format("AnonymousChannel::presentMainThread: not found channel. orders={}\n", 
+							ordersID));
 					}
 				}
 			}
 			else
 			{
-				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel(channels is NULL). orders=%1%\n") % 
-					ordersID);
+				ERROR_MSG(fmt::format("AnonymousChannel::presentMainThread: not found channel(channels is NULL). orders={}\n", 
+					ordersID));
 			}
 		}
 		

@@ -6,6 +6,7 @@ if defined KBE_HYBRID_PATH (echo %KBE_HYBRID_PATH%) else set KBE_HYBRID_PATH=%KB
 
 if defined uid (echo %uid%) else set uid=%random%%%32760+1
 
+call "!(win)kill.bat"
 
 start kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
 start billingsystem.exe --cid=1129652375332859700 --grouporder=1 --globalorder=2

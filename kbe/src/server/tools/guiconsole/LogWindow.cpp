@@ -42,7 +42,6 @@ BOOL CLogWindow::OnInitDialog()
 	m_componentlist.AddString(L"baseappmgr");
 	m_componentlist.AddString(L"loginapp");
 	m_componentlist.AddString(L"dbmgr");
-	m_componentlist.AddString(L"resourcemgr");
 
 	for(int i=0; i< m_componentlist.GetCount(); i++)
 	{
@@ -134,7 +133,7 @@ void CLogWindow::OnBnClickedButton1()
 
 	Mercury::Address addr = dlg->getTreeItemAddr(item);
 
-	Mercury::Channel* pChannel = dlg->getNetworkInterface().findChannel(addr);
+	Mercury::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
 		::AfxMessageBox(L"messagelog is error!");
@@ -165,7 +164,7 @@ void CLogWindow::OnBnClickedButton1()
 		bundle << (*iter);
 	}
 
-	bundle.send(dlg->getNetworkInterface(), pChannel);
+	bundle.send(dlg->networkInterface(), pChannel);
 }
 
 std::vector<KBEngine::COMPONENT_TYPE> CLogWindow::getSelComponents()
@@ -201,10 +200,6 @@ std::vector<KBEngine::COMPONENT_TYPE> CLogWindow::getSelComponents()
 			else if(s == "dbmgr")
 			{
 				vec.push_back(KBEngine::DBMGR_TYPE);
-			}
-			else if(s == "resourcemgr")
-			{
-				vec.push_back(KBEngine::RESOURCEMGR_TYPE);
 			}
 		}
 	}

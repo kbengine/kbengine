@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __MACHINE_INTERFACE_H__
+	#undef KBE_MACHINE_INTERFACE_HPP
 #endif
 
 
-#ifndef __MACHINE_INTERFACE_H__
-#define __MACHINE_INTERFACE_H__
+#ifndef KBE_MACHINE_INTERFACE_HPP
+#define KBE_MACHINE_INTERFACE_HPP
 
 // common include	
 #if defined(MACHINE)
@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 	// 其他组件向app广播自己的接口地址
-	MACHINE_MESSAGE_DECLARE_ARGS21(onBroadcastInterface,			MERCURY_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS22(onBroadcastInterface,			MERCURY_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -59,6 +59,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									uint16,							intport,
 									uint32,							extaddr, 
 									uint16,							extport,
+									std::string,					extaddrEx,
 									uint32,							pid,
 									float,							cpu, 
 									float,							mem, 
@@ -97,6 +98,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 
 	// 关闭服务器
 	MACHINE_MESSAGE_DECLARE_STREAM(stopserver,						MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

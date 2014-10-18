@@ -20,10 +20,10 @@ def getcaps():
     for mailcap in listmailcapfiles():
         try:
             fp = open(mailcap, 'r')
-        except IOError:
+        except OSError:
             continue
-        morecaps = readmailcapfile(fp)
-        fp.close()
+        with fp:
+            morecaps = readmailcapfile(fp)
         for key, value in morecaps.items():
             if not key in caps:
                 caps[key] = value
@@ -33,10 +33,10 @@ def getcaps():
 
 def listmailcapfiles():
     """Return a list of all mailcap files found on the system."""
-    # XXX Actually, this is Unix-specific
+    # This is mostly a Unix thing, but we use the OS path separator anyway
     if 'MAILCAPS' in os.environ:
-        str = os.environ['MAILCAPS']
-        mailcaps = str.split(':')
+        pathstr = os.environ['MAILCAPS']
+        mailcaps = pathstr.split(os.pathsep)
     else:
         if 'HOME' in os.environ:
             home = os.environ['HOME']

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_AOI_TRIGGER_HPP__
-#define __KBE_AOI_TRIGGER_HPP__
+#ifndef KBE_AOI_TRIGGER_HPP
+#define KBE_AOI_TRIGGER_HPP
 
 #include "range_trigger.hpp"
 
@@ -34,7 +34,7 @@ class Witness;
 class AOITrigger : public RangeTrigger
 {
 public:
-	AOITrigger(RangeNode* origin, float xz = 0.0f, float y = 0.0f);
+	AOITrigger(CoordinateNode* origin, float xz = 0.0f, float y = 0.0f);
 	virtual ~AOITrigger();
 
 
@@ -42,8 +42,8 @@ public:
 	/**
 		某个节点进入或者离开了rangeTrigger
 	*/
-	virtual void onEnter(RangeNode * pNode);
-	virtual void onLeave(RangeNode * pNode);
+	virtual void onEnter(CoordinateNode * pNode);
+	virtual void onLeave(CoordinateNode * pNode);
 
 	INLINE Witness* pWitness()const;
 protected:

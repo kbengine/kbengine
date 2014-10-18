@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __CELLAPP_INTERFACE_H__
+	#undef KBE_CELLAPP_INTERFACE_HPP
 #endif
 
 
-#ifndef __CELLAPP_INTERFACE_H__
-#define __CELLAPP_INTERFACE_H__
+#ifndef KBE_CELLAPP_INTERFACE_HPP
+#define KBE_CELLAPP_INTERFACE_HPP
 
 // common include	
 #if defined(CELLAPP)
@@ -48,7 +48,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPP_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -58,7 +58,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 某app主动请求look。
 	CELLAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
@@ -71,7 +72,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
 	// 当前app需要主动的去与他们建立连接
-	CELLAPP_MESSAGE_DECLARE_ARGS10(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS11(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
@@ -81,7 +82,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,									extport)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// 某app请求获取一个entityID段的回调
 	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,						MERCURY_FIXED_MESSAGE,
@@ -149,14 +151,23 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 开始profile
 	CELLAPP_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
 
-	// 请求teleport到当前cellapp上进行确认
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherValidation,				MERCURY_VARIABLE_MESSAGE)
-
-	// 请求teleport到当前cellapp上进行确认后的应答
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOtherAck,						MERCURY_VARIABLE_MESSAGE)
-
 	// 请求teleport到当前cellapp上
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportOther,						MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToTheCellApp,					MERCURY_VARIABLE_MESSAGE)
+
+	// entity传送到目的cellapp上的space之后， 返回给之前cellapp的回调
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToTheCellAppCB,				MERCURY_VARIABLE_MESSAGE)
+
+	// real请求更新属性到ghost
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					MERCURY_VARIABLE_MESSAGE)
+	
+	// ghost请求调用def方法real
+	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteRealMethodCall,					MERCURY_VARIABLE_MESSAGE)
+
+	// real请求更新易变数据到ghost
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostVolatileData,				MERCURY_VARIABLE_MESSAGE)
+
+	// 请求强制杀死当前app
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqKillServer,							MERCURY_VARIABLE_MESSAGE)
 
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
@@ -185,13 +196,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									float,									z)
 
 	//entity绑定了一个观察者(客户端)
-	ENTITY_MESSAGE_DECLARE_ARGS0(onGetWitness,								MERCURY_FIXED_MESSAGE)
+	ENTITY_MESSAGE_DECLARE_ARGS0(onGetWitnessFromBase,						MERCURY_FIXED_MESSAGE)
 
 	//entity丢失了一个观察者(客户端)
 	ENTITY_MESSAGE_DECLARE_ARGS0(onLoseWitness,								MERCURY_FIXED_MESSAGE)
-
-	//entity 观察者重置(客户端)通常是由于客户端重新绑定造成的
-	ENTITY_MESSAGE_DECLARE_ARGS0(onResetWitness,							MERCURY_FIXED_MESSAGE)
 
 	// entity传送。
 	ENTITY_MESSAGE_DECLARE_ARGS3(teleportFromBaseapp,						MERCURY_FIXED_MESSAGE,

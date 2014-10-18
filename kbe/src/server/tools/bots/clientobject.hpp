@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_OBJECT_H__
-#define __CLIENT_OBJECT_H__
+#ifndef KBE_CLIENT_OBJECT_HPP
+#define KBE_CLIENT_OBJECT_HPP
 
 #include "client_lib/entity.hpp"
 #include "client_lib/clientobjectbase.hpp"
@@ -62,6 +62,8 @@ public:
 	virtual ~ClientObject();
 
 	bool processSocket(bool expectingPacket);
+	
+	void reset(void);
 
 	bool initCreate();
 	bool initLoginGateWay();
@@ -70,8 +72,9 @@ public:
 
 	ClientObject::C_ERROR lasterror(){ return error_; }
 
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
-		COMPONENT_TYPE componentType);
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+		const std::string& scriptVerInfo, const std::string& protocolMD5, 
+		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		创建账号成功和失败回调
@@ -98,6 +101,7 @@ public:
 	   @port: 服务器端口
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+
 protected:
 	C_ERROR error_;
 	C_STATE state_;
@@ -106,4 +110,5 @@ protected:
 
 
 }
-#endif
+
+#endif // KBE_CLIENT_OBJECT_HPP

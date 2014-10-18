@@ -32,10 +32,12 @@ __version__ = "2.6"
 # =======
 
 from io import StringIO, BytesIO, TextIOWrapper
+from collections import Mapping
 import sys
 import os
 import urllib.parse
 from email.parser import FeedParser
+from email.message import Message
 from warnings import warn
 import html
 import locale
@@ -76,11 +78,11 @@ def initlog(*allargs):
     send an error message).
 
     """
-    global logfp, log
+    global log, logfile, logfp
     if logfile and not logfp:
         try:
             logfp = open(logfile, "a")
-        except IOError:
+        except OSError:
             pass
     if not logfp:
         log = nolog
@@ -95,6 +97,15 @@ def dolog(fmt, *args):
 def nolog(*allargs):
     """Dummy function, assigned to log when logging is disabled."""
     pass
+
+def closelog():
+    """Close the log file."""
+    global log, logfile, logfp
+    logfile = ''
+    if logfp:
+        logfp.close()
+        logfp = None
+    log = initlog
 
 log = initlog           # The current logging function
 
@@ -463,18 +474,24 @@ class FieldStorage:
                 self.qs_on_post = environ['QUERY_STRING']
             if 'CONTENT_LENGTH' in environ:
                 headers['content-length'] = environ['CONTENT_LENGTH']
+        else:
+            if not (isinstance(headers, (Mapping, Message))):
+                raise TypeError("headers must be mapping or an instance of "
+                                "email.message.Message")
+        self.headers = headers
         if fp is None:
             self.fp = sys.stdin.buffer
         # self.fp.read() must return bytes
         elif isinstance(fp, TextIOWrapper):
             self.fp = fp.buffer
         else:
+            if not (hasattr(fp, 'read') and hasattr(fp, 'readline')):
+                raise TypeError("fp must be file pointer")
             self.fp = fp
 
         self.encoding = encoding
         self.errors = errors
 
-        self.headers = headers
         if not isinstance(outerboundary, bytes):
             raise TypeError('outerboundary must be bytes, not %s'
                             % type(outerboundary).__name__)
@@ -542,6 +559,12 @@ class FieldStorage:
             self.read_multi(environ, keep_blank_values, strict_parsing)
         else:
             self.read_single()
+
+    def __del__(self):
+        try:
+            self.file.close()
+        except AttributeError:
+            pass
 
     def __repr__(self):
         """Return a printable representation."""
@@ -627,7 +650,9 @@ class FieldStorage:
         """Dictionary style len(x) support."""
         return len(self.keys())
 
-    def __nonzero__(self):
+    def __bool__(self):
+        if self.list is None:
+            raise TypeError("Cannot be converted to bool.")
         return bool(self.list)
 
     def read_urlencoded(self):
@@ -661,7 +686,6 @@ class FieldStorage:
                 encoding=self.encoding, errors=self.errors)
             for key, value in query:
                 self.list.append(MiniFieldStorage(key, value))
-            FieldStorageClass = None
 
         klass = self.FieldStorageClass or self.__class__
         first_line = self.fp.readline() # bytes
@@ -690,7 +714,7 @@ class FieldStorage:
                          self.encoding, self.errors)
             self.bytes_read += part.bytes_read
             self.list.append(part)
-            if self.bytes_read >= self.length:
+            if part.done or self.bytes_read >= self.length > 0:
                 break
         self.skip_lines()
 
@@ -777,6 +801,9 @@ class FieldStorage:
             if not line:
                 self.done = -1
                 break
+            if delim == b"\r":
+                line = delim + line
+                delim = b""
             if line.startswith(b"--") and last_line_lfend:
                 strippedline = line.rstrip()
                 if strippedline == next_boundary:
@@ -793,6 +820,12 @@ class FieldStorage:
                 delim = b"\n"
                 line = line[:-1]
                 last_line_lfend = True
+            elif line.endswith(b"\r"):
+                # We may interrupt \r\n sequences if they span the 2**16
+                # byte boundary
+                delim = b"\r"
+                line = line[:-1]
+                last_line_lfend = False
             else:
                 delim = b""
                 last_line_lfend = False
@@ -940,8 +973,8 @@ def print_directory():
     print("<H3>Current Working Directory:</H3>")
     try:
         pwd = os.getcwd()
-    except os.error as msg:
-        print("os.error:", html.escape(str(msg)))
+    except OSError as msg:
+        print("OSError:", html.escape(str(msg)))
     else:
         print(html.escape(pwd))
     print()
@@ -1003,7 +1036,7 @@ environment as well.  Here are some common variable names:
 def escape(s, quote=None):
     """Deprecated API."""
     warn("cgi.escape is deprecated, use html.escape instead",
-         PendingDeprecationWarning, stacklevel=2)
+         DeprecationWarning, stacklevel=2)
     s = s.replace("&", "&amp;") # Must be done first!
     s = s.replace("<", "&lt;")
     s = s.replace(">", "&gt;")
@@ -1012,7 +1045,7 @@ def escape(s, quote=None):
     return s
 
 
-def valid_boundary(s, _vb_pattern=None):
+def valid_boundary(s):
     import re
     if isinstance(s, bytes):
         _vb_pattern = b"^[ -~]{0,200}[!-~]$"

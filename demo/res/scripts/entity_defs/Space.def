@@ -6,6 +6,7 @@
 	</Volatile>
 
 	<Implements>
+		<Interface>			GameObject		</Interface>
 	</Implements>
 
 	<Properties>

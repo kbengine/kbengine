@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBEENDPOINT__
-#define __KBEENDPOINT__
+#ifndef KBE_ENDPOINT_HPP
+#define KBE_ENDPOINT_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -39,6 +39,14 @@ public:
 	static ObjectPool<EndPoint>& ObjPool();
 	static void destroyObjPool();
 	void onReclaimObject();
+
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(KBESOCKET)
+		 + address_.getPoolObjectBytes();
+
+		return bytes;
+	}
 
 	EndPoint(int fd);
 	EndPoint(Address address);
@@ -89,10 +97,6 @@ public:
 	int findDefaultInterface(char * name);
 	int findIndicatedInterface(const char * spec, char * name);
 	static int convertAddress(const char * string, u_int32_t & address);
-	
-	int transmitQueueSize() const;
-	int receiveQueueSize() const;
-	int getQueueSizes(int & tx, int & rx) const;
 
 	int getBufferSize(int optname) const;
 	bool setBufferSize(int optname, int size);
@@ -129,4 +133,4 @@ protected:
 #ifdef CODE_INLINE
 #include "endpoint.ipp"
 #endif
-#endif // __KBEENDPOINT__
+#endif // KBE_ENDPOINT_HPP

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __ENCRYPTION_FILTER_HPP__
-#define __ENCRYPTION_FILTER_HPP__
+#ifndef KBE_ENCRYPTION_FILTER_HPP
+#define KBE_ENCRYPTION_FILTER_HPP
 
 #include "network/packet_filter.hpp"
 
@@ -41,7 +41,7 @@ public:
 	virtual void decrypt(Packet * pInPacket, Packet * pOutPacket) = 0;
 };
 
-#ifdef USE_OPENSSL
+
 
 class BlowfishFilter : public EncryptionFilter, public KBEBlowfish
 {
@@ -63,20 +63,6 @@ private:
 	uint8 padSize_;
 };
 
-#else
-
-class BlowfishFilter : public EncryptionFilter
-{
-public:
-	BlowfishFilter(const std::string & key){}
-	BlowfishFilter(){}
-	virtual ~BlowfishFilter() {}
-	void encrypt(Packet * pInPacket, Packet * pOutPacket){}
-	void decrypt(Packet * pInPacket, Packet * pOutPacket){}
-};
-
-#endif
-
 typedef SmartPointer<BlowfishFilter> BlowfishFilterPtr;
 
 inline EncryptionFilter* createEncryptionFilter(int8 type, const std::string& datas)
@@ -97,4 +83,4 @@ inline EncryptionFilter* createEncryptionFilter(int8 type, const std::string& da
 }
 }
 
-#endif // __ENCRYPTION_FILTER_HPP__
+#endif // KBE_ENCRYPTION_FILTER_HPP

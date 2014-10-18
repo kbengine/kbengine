@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_CONTROLLERS_HPP__
-#define __KBE_CONTROLLERS_HPP__
+#ifndef KBE_CONTROLLERS_HPP
+#define KBE_CONTROLLERS_HPP
 
 #include "controller.hpp"	
 
@@ -28,23 +28,30 @@ namespace KBEngine{
 class Controllers
 {
 public:
-	Controllers();
+	Controllers(ENTITY_ID entityID);
 	~Controllers();
 
 	bool add(Controller* pController);
 	bool remove(Controller* pController);
 	bool remove(uint32 id);
 	
+	void clear();
+
 	uint32 freeID(){ return ++lastid_; }
 
 	typedef std::map<uint32, KBEShared_ptr< Controller > > CONTROLLERS_MAP;
 	CONTROLLERS_MAP& objects() { return objects_; }
 
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 private:
 	CONTROLLERS_MAP objects_;
 
 	uint32 lastid_;
+
+	ENTITY_ID entityID_;
 };
 
 }
-#endif // __KBE_CONTROLLERS_HPP__
+#endif // KBE_CONTROLLERS_HPP
