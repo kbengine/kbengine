@@ -36,8 +36,8 @@ Makefile.pre.in
 	KBELIBDIR = $(KBE_ROOT)/kbe/src/libs
 	KBE_PYTHONLIB = $(KBELIBDIR)/lib$(PYTHONLIB).a
 
-	LIBRARY=	KBE_PYTHONLIB
-	LDLIBRARY=      KBE_PYTHONLIB
+	LIBRARY=	$(KBE_PYTHONLIB)
+	LDLIBRARY=      $(KBE_PYTHONLIB)
 
 	5:
 	build_all:	$(BUILDPYTHON) oldsharedmods sharedmods gdbhooks Modules/_testembed python-config
