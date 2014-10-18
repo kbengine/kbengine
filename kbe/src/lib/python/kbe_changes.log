@@ -25,6 +25,9 @@ Makefile.pre.in
 	1: all: -> all::
 	2: install: -> install::
 	3: clean: -> clean::
+		...
+		-rm -f $(KBE_PYTHONLIB)
+		-rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
 
 	4: 
 	ifndef KBE_ROOT

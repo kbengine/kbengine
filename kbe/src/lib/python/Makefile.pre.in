@@ -1543,6 +1543,7 @@ clean:: pycremoval
 	-rm -f Lib/lib2to3/*Grammar*.pickle
 	-rm -f Modules/_testembed Modules/_freeze_importlib
 	-rm -f $(KBE_PYTHONLIB)
+	-rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
 
 profile-removal:
 	find . -name '*.gc??' -exec rm -f {} ';'
