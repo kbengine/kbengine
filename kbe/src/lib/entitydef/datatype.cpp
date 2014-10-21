@@ -1266,7 +1266,6 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					PyMem_Free(PyUnicode_AsWideCharStringRet0);
 					Py_DECREF(pyClass);
 					Py_DECREF(pyClassName);
-					Py_DECREF(pyid);
 
 					ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(ccattr);
 					free(ccattr);
