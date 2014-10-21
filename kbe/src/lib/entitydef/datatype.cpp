@@ -1188,22 +1188,13 @@ bool MailboxType::isSameType(PyObject* pyValue)
 		if(type == NULL)
 		{
 			type = script::ScriptObject::getScriptObjectType("Base");
-			if(type && !(PyObject_TypeCheck(pyValue, type)))
+			if(type && !(PyObject_IsInstance(pyValue, (PyObject *)type)))
 			{
 				OUT_TYPE_ERROR("MAILBOX");
 				return false;
 			}
-			else
-			{
-				type = script::ScriptObject::getScriptObjectType("Proxy");
-				if(type && !(PyObject_TypeCheck(pyValue, type)))
-				{
-					OUT_TYPE_ERROR("MAILBOX");
-					return false;
-				}
-			}
 		}
-		else if(!(PyObject_TypeCheck(pyValue, type)))
+		else if(!(PyObject_IsInstance(pyValue, (PyObject *)type)))
 		{
 			OUT_TYPE_ERROR("MAILBOX");
 			return false;
@@ -1227,15 +1218,14 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	uint16 type = 0;
 	ENTITY_SCRIPT_UID utype;
 
-	const char types[3][10] = {
+	const char types[2][10] = {
 		"Entity",
-		"Base",
-		"Proxy",
+		"Base"
 	};
 
 	if(pyValue != Py_None)
 	{
-		for(int i=0; i<3; i++)
+		for(int i=0; i<2; i++)
 		{
 			PyTypeObject* stype = script::ScriptObject::getScriptObjectType(types[i]);
 			{
@@ -1243,7 +1233,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					continue;
 
 				// 是否是一个entity?
-				if(PyObject_TypeCheck(pyValue, stype))
+				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 				{
 					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
 					id = PyLong_AsLong(pyid);
