@@ -34,7 +34,7 @@
 	
 	<Loginapp::login>
 		<id>3</id>
-		<descr>客户端请求登录到服务器的loginapp进程， 此进程受到请求验证合法后会返回一个网关地址。</descr>
+		<descr>客户端请求登录到服务器的loginapp进程， 此进程收到请求验证合法后会返回一个网关地址。</descr>
 		<arg>STRING</arg> <!-- 前端类别 0:调试前端, 1:手机前端, n.. -->
 		<arg>UINT8_ARRAY</arg> <!-- 具体由开发者来解析 -->
 		<arg>STRING</arg> <!-- 账号名 -->
