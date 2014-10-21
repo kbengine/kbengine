@@ -335,6 +335,7 @@ public:																						\
 		SCRIPT_ERROR_CHECK();																\
 		_##CLASS##_py_installed = true;														\
 																							\
+		ScriptObject::scriptObjectTypes[name] = &_scriptType;								\
 	}																						\
 																							\
 	/** 卸载当前脚本模块 
@@ -475,6 +476,11 @@ class ScriptObject: public PyObject
 public:	
 	ScriptObject(PyTypeObject* pyType, bool isInitialised = false);
 	~ScriptObject();
+
+	// 所有的kbe脚本类别
+	typedef KBEUnordered_map<std::string, PyTypeObject*> SCRIPTOBJECT_TYPES;
+	static SCRIPTOBJECT_TYPES scriptObjectTypes;
+	static PyTypeObject* getScriptObjectType(const std::string& name);
 
 	/** 
 		脚本对象引用计数 

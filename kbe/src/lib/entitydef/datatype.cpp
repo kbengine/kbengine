@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef.hpp"
 #include "fixeddict.hpp"
 #include "fixedarray.hpp"
+#include "entity_mailbox.hpp"
+#include "scriptdef_module.hpp"
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
 #include "pyscript/vector4.hpp"
@@ -1180,10 +1182,35 @@ bool MailboxType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	bool ret = script::Pickler::pickle(pyValue).empty();
-	if(ret)
-		OUT_TYPE_ERROR("MAILBOX");
-	return !ret;
+	if(!(PyObject_TypeCheck(pyValue, EntityMailbox::getScriptType()) || pyValue == Py_None))
+	{
+		PyTypeObject* type = script::ScriptObject::getScriptObjectType("Entity");
+		if(type == NULL)
+		{
+			type = script::ScriptObject::getScriptObjectType("Base");
+			if(type && !(PyObject_TypeCheck(pyValue, type)))
+			{
+				OUT_TYPE_ERROR("MAILBOX");
+				return false;
+			}
+			else
+			{
+				type = script::ScriptObject::getScriptObjectType("Proxy");
+				if(type && !(PyObject_TypeCheck(pyValue, type)))
+				{
+					OUT_TYPE_ERROR("MAILBOX");
+					return false;
+				}
+			}
+		}
+		else if(!(PyObject_TypeCheck(pyValue, type)))
+		{
+			OUT_TYPE_ERROR("MAILBOX");
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1195,23 +1222,106 @@ PyObject* MailboxType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	mstream->appendBlob(script::Pickler::pickle(pyValue));
+	COMPONENT_ID cid = 0;
+	ENTITY_ID id = 0;
+	uint16 type = 0;
+	ENTITY_SCRIPT_UID utype;
+
+	const char types[3][10] = {
+		"Entity",
+		"Base",
+		"Proxy",
+	};
+
+	if(pyValue != Py_None)
+	{
+		for(int i=0; i<3; i++)
+		{
+			PyTypeObject* stype = script::ScriptObject::getScriptObjectType(types[i]);
+			{
+				if(stype == NULL)
+					continue;
+
+				// 是否是一个entity?
+				if(PyObject_TypeCheck(pyValue, stype))
+				{
+					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
+					id = PyLong_AsLong(pyid);
+					Py_DECREF(pyid);
+
+					cid = g_componentID;
+
+					if(g_componentType == BASEAPP_TYPE)
+						type = (uint16)MAILBOX_TYPE_BASE;
+					else if(g_componentType == CELLAPP_TYPE)
+						type = (uint16)MAILBOX_TYPE_CELL;
+					else
+						type = (uint16)MAILBOX_TYPE_CLIENT;
+
+					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
+					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
+					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyClassName, NULL);
+					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+
+					PyMem_Free(PyUnicode_AsWideCharStringRet0);
+					Py_DECREF(pyClass);
+					Py_DECREF(pyClassName);
+					Py_DECREF(pyid);
+
+					ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(ccattr);
+					free(ccattr);
+
+					utype = pScriptDefModule->getUType();
+					break;
+				}
+			}
+		}
+		
+		// 只能是mailbox
+		if(id == 0)
+		{
+			EntityMailboxAbstract* pEntityMailboxAbstract = static_cast<EntityMailboxAbstract*>(pyValue);
+			cid = pEntityMailboxAbstract->componentID();
+			id = pEntityMailboxAbstract->id();
+			type = static_cast<int16>(pEntityMailboxAbstract->type());;
+			utype = pEntityMailboxAbstract->utype();
+		}
+	}
+
+	(*mstream) << id;
+	(*mstream) << cid;
+	(*mstream) << type;
+	(*mstream) << utype;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 {
-	std::string val = "";
 	if(mstream)
 	{
-		mstream->readBlob(val);
-	}
-	else
-	{
-		S_Return;
+		COMPONENT_ID cid = 0;
+		ENTITY_ID id = 0;
+		uint16 type;
+		ENTITY_SCRIPT_UID utype;
+
+		(*mstream) >> id >> cid >> type >> utype;
+
+		// 允许传输Py_None
+		if(id > 0)
+		{
+			PyObject* entity = EntityMailbox::tryGetEntity(cid, id);
+			if(entity != NULL)
+			{
+				Py_INCREF(entity);
+				return entity;
+			}
+
+			return new EntityMailbox(EntityDef::findScriptModule(utype), NULL, cid, 
+							id, (ENTITY_MAILBOX_TYPE)type);
+		}
 	}
 
-	return script::Pickler::unpickle(val);
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------

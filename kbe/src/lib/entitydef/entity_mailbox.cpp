@@ -227,6 +227,12 @@ PyObject* EntityMailbox::tp_str()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* EntityMailbox::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID)
+{
+	return __getEntityFunc(componentID, entityID);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 {
 	ENTITY_ID eid = 0;
@@ -256,7 +262,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 
 	// COMPONENT_TYPE componentType = ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[(ENTITY_MAILBOX_TYPE)type];
 	
-	PyObject* entity = __getEntityFunc(componentID, eid);
+	PyObject* entity = tryGetEntity(componentID, eid);
 	if(entity != NULL)
 	{
 		Py_INCREF(entity);
