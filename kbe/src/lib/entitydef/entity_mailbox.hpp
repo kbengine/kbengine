@@ -87,7 +87,7 @@ public:
 	static void onInstallScript(PyObject* mod);
 
 	/** 
-		通过entity的ID尝试寻找它的实力
+		通过entity的ID尝试寻找它的实例
 	*/
 	static PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
 
