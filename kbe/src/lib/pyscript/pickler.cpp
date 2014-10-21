@@ -20,8 +20,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "pickler.hpp"
-namespace KBEngine{ 
-namespace script{
+#include "helper/profile.hpp"
+
+namespace KBEngine{ namespace script {
+
 PyObject* Pickler::picklerMethod_ = NULL;
 PyObject* Pickler::unPicklerMethod_ = NULL;
 PyObject* Pickler::pyPickleFuncTableModule_ = NULL;
@@ -118,6 +120,8 @@ std::string Pickler::pickle(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 {
+	AUTO_SCOPED_PROFILE("pickle");
+
 	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
 		const_cast<char*>("(Oi)"), pyobj, protocol);
 	
@@ -137,6 +141,8 @@ std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 //-------------------------------------------------------------------------------------
 PyObject* Pickler::unpickle(const std::string& str)
 {
+	AUTO_SCOPED_PROFILE("unpickle");
+
 	PyObject* pyRet = PyObject_CallFunction(unPicklerMethod_, 
 			const_cast<char*>("(y#)"), str.data(), str.length());
 	
