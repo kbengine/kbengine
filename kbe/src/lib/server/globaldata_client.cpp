@@ -108,8 +108,14 @@ bool GlobalDataClient::del(PyObject* pyKey)
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool isDelete)
+void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDelete)
 {
+	std::string skey = script::Pickler::pickle(key, 0);
+	std::string sval = "";
+
+	if(value)
+		sval = script::Pickler::pickle(value, 0);
+
 	Components::COMPONENTS& channels = Components::getSingleton().getComponents(serverComponentType_);
 	Components::COMPONENTS::iterator iter1 = channels.begin();
 	uint8 dataType = dataType_;
@@ -127,15 +133,15 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 		(*pBundle) << dataType;
 		(*pBundle) << isDelete;
 
-		slen = key.size();
+		slen = skey.size();
 		(*pBundle) << slen;
-		(*pBundle).assign(key.data(), slen);
+		(*pBundle).assign(skey.data(), slen);
 
 		if(!isDelete)
 		{
-			slen = value.size();
+			slen = sval.size();
 			(*pBundle) << slen;
-			(*pBundle).assign(value.data(), slen);
+			(*pBundle).assign(sval.data(), slen);
 		}
 
 		(*pBundle) << g_componentType;

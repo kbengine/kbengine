@@ -70,23 +70,19 @@ int Map::mp_length(PyObject* self)
 int Map::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
 	Map* lpScriptData = static_cast<Map*>(self);
-	std::string skey = script::Pickler::pickle(key, 0);
-	std::string sval = "";
-	
+
 	if (value == NULL)
 	{
-		lpScriptData->onDataChanged(skey, sval, true);
+		lpScriptData->onDataChanged(key, value, true);
 		return PyDict_DelItem(lpScriptData->pyDict_, key);
 	}
 	
-	sval = script::Pickler::pickle(value, 0);
-
-	lpScriptData->onDataChanged(skey, sval);
+	lpScriptData->onDataChanged(key, value);
 	return PyDict_SetItem(lpScriptData->pyDict_, key, value);
 }
 
 //-------------------------------------------------------------------------------------
-void Map::onDataChanged(std::string& key, std::string& value, bool isDelete)
+void Map::onDataChanged(PyObject* key, PyObject* value, bool isDelete)
 {
 }
 	
@@ -100,6 +96,7 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 		PyErr_SetObject(PyExc_KeyError, key);
 	else
 		Py_INCREF(pyObj);
+
 	return pyObj;
 }
 

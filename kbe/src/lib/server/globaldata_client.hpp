@@ -42,7 +42,7 @@ public:
 	bool del(PyObject* pyKey);
 	
 	/** 数据改变通知 */
-	void onDataChanged(std::string& key, std::string& value, bool isDelete = false);
+	void onDataChanged(PyObject* key, PyObject* value, bool isDelete = false);
 	
 	/** 设置该全局数据客户端的服务器组件类型 */
 	void setServerComponentType(COMPONENT_TYPE ct){ serverComponentType_ = ct; }

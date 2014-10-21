@@ -64,7 +64,7 @@ public:
 	/** 
 		数据改变通知 
 	*/
-	virtual void onDataChanged(std::string& key, std::string& value, 
+	virtual void onDataChanged(PyObject* key, PyObject* value, 
 		bool isDelete = false);
 
 protected:
