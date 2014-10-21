@@ -497,16 +497,22 @@ void DebugHelper::script_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-	if(s[0] == 'T' && s[10] == '(' && s[32] == ')')
+	if(s[0] == 'T')
 	{
-		if(s.substr(0, 33) == "Traceback (most recent call last)")
-			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+		if(s.size() >= 10)
+		{
+			if(s.size() >= 33 && s[10] == '(' && s[32] == ')')
+			{
+				if(s.substr(0, 33) == "Traceback (most recent call last)")
+					setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+			}
+			else if(s[9] == ':' && s.substr(0, 10) == "TypeError:")
+			{
+				setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+			}
+		}
 	}
-	else if(s[0] == 'T' && s[9] == ':' && s.substr(0, 10) == "TypeError:")
-	{
-		setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
-	}
-	else if(s[0] == 'A' && s[14] == ':' && s.substr(0, 15) == "AssertionError:")
+	else if(s[0] == 'A' && s.size() >= 15 && s[14] == ':' && s.substr(0, 15) == "AssertionError:")
 	{
 		setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
 	}
