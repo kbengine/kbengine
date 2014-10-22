@@ -708,7 +708,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 			if(!propertyDescription->getDataType()->isSameType(pyVal))
 			{
 				ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(), 
-					propertyDescription->getName(), pyVal->ob_type->tp_name, propertyDescription->getDataType()->getName()));
+					propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				
 				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
 				propertyDescription->getDataType()->addToStream(mstream, pydefval);
