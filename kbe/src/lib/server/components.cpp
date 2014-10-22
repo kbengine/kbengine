@@ -91,7 +91,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			if(cinfos->pid != 0 /* 等于0通常是预设， 这种情况我们先不作比较 */ && pid != cinfos->pid)
+			if(cinfos->componentType != MACHINE_TYPE && cinfos->pid != 0 /* 等于0通常是预设， 这种情况我们先不作比较 */ && pid != cinfos->pid)
 			{
 				ERROR_MSG(fmt::format("Components::checkComponents: uid:{}, componentType={}, componentID:{} exist.\n",
 					uid, COMPONENT_NAME_EX(ct), componentID));
@@ -513,29 +513,48 @@ Components::ComponentInfos* Components::findComponent(Mercury::Channel * pChanne
 }
 
 //-------------------------------------------------------------------------------------		
-bool Components::checkComponentUsable(const Components::ComponentInfos* info)
+Components::ComponentInfos* Components::findLocalComponent(uint32 pid)
 {
-	// 不对其他machine做处理
-	if(info->componentType == MACHINE_TYPE)
+	int ifind = 0;
+	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
-		return true;
+		COMPONENT_TYPE componentType = ALL_COMPONENT_TYPES[ifind++];
+		COMPONENTS& components = getComponents(componentType);
+		COMPONENTS::iterator iter = components.begin();
+
+		for(; iter != components.end(); iter++)
+		{
+			if(isLocalComponent(&(*iter)) && (*iter).pid == pid)
+			{
+				return &(*iter);
+			}
+		}
 	}
 
-	bool islocal = _pNetworkInterface->intaddr().ip == info->pIntAddr->ip ||
-			_pNetworkInterface->extaddr().ip == info->pIntAddr->ip;
+	return NULL;
+}
 
-	// 如果是本机应用则判断是否还在运行中
-	if(islocal && info->pid > 0)
+//-------------------------------------------------------------------------------------		
+bool Components::isLocalComponent(const Components::ComponentInfos* info)
+{
+	return _pNetworkInterface->intaddr().ip == info->pIntAddr->ip ||
+			_pNetworkInterface->extaddr().ip == info->pIntAddr->ip;
+}
+
+//-------------------------------------------------------------------------------------		
+const Components::ComponentInfos* Components::lookupLocalComponentRunning(uint32 pid)
+{
+	if(pid > 0)
 	{
-		SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(info->pid);
+		SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(pid);
 		if(sysinfos.error)
 		{
-			WARNING_MSG(fmt::format("Components::checkComponentUsable: not found pid({})\n", info->pid));
-			//return false;
+			return NULL;
 		}
 		else
 		{
-			Components::ComponentInfos* winfo = findComponent(info->cid);
+			Components::ComponentInfos* winfo = findLocalComponent(pid);
+
 			if(winfo)
 			{
 				winfo->cpu = sysinfos.cpu;
@@ -543,7 +562,21 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 				winfo->mem = float((winfo->usedmem * 1.0 / SystemInfo::getSingleton().totalmem()) * 100.0);
 			}
+
+			return winfo;
 		}
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------		
+bool Components::checkComponentPortUsable(const Components::ComponentInfos* info)
+{
+	// 不对其他machine做处理
+	if(info->componentType == MACHINE_TYPE)
+	{
+		return true;
 	}
 
 	Mercury::EndPoint epListen;

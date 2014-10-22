@@ -111,6 +111,8 @@ bool SystemInfo::_autocreate()
 //-------------------------------------------------------------------------------------
 bool SystemInfo::hasProcess(uint32 pid)
 {
+	clear();
+
     if(!_autocreate())
 		return false;
 
@@ -159,6 +161,8 @@ uint32 SystemInfo::countCPU()
 //-------------------------------------------------------------------------------------
 SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 {
+	clear();
+
 	PROCESS_INFOS infos;
 	infos.cpu = 0.f;
 	infos.memused = 0;
@@ -177,12 +181,12 @@ _TRYGET:
 		if(!tryed)
 		{
 			clear();
+
 			tryed = true;
+			infos.error = true;
 
 			if(_autocreate())
 				goto _TRYGET;
-
-			infos.error = true;
 		}
 
 		goto _END;

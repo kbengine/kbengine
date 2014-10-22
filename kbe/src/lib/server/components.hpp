@@ -138,7 +138,11 @@ public:
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(Mercury::Channel * pChannel);
-	//const Components::ComponentInfos findComponent(COMPONENT_TYPE componentType, int32 uid);
+
+	/** 
+		通过进程id寻找本地组件
+	*/
+	Components::ComponentInfos* findLocalComponent(uint32 pid);
 
 	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 
@@ -156,9 +160,19 @@ public:
 	void pHandler(ComponentsNotificationHandler* ph){ _pHandler = ph; };
 
 	/** 
-		检查某个组件是否有效.
+		检查某个组件端口是否有效.
 	*/
-	bool checkComponentUsable(const Components::ComponentInfos* info);
+	bool checkComponentPortUsable(const Components::ComponentInfos* info);
+
+	/** 
+		是否是本地组件.
+	*/
+	bool isLocalComponent(const Components::ComponentInfos* info);
+
+	/** 
+		是否本地组件是否在运行中.
+	*/
+	const Components::ComponentInfos* lookupLocalComponentRunning(uint32 pid);
 
 	Components::ComponentInfos* getBaseappmgr();
 	Components::ComponentInfos* getCellappmgr();

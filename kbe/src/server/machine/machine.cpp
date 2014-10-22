@@ -28,7 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle_broadcast.hpp"
 #include "helper/sys_info.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/component_active_report_handler.hpp"
 
 #include "../baseappmgr/baseappmgr_interface.hpp"
@@ -86,11 +85,13 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 									uint64 extradata1, uint64 extradata2, uint64 extradata3)
 {
-	if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
-		return;
-
-	if(intaddr == this->networkInterface().intaddr().ip)
+	// 只记录本机启动的进程
+	if(ep_.addr().ip == intaddr || this->networkInterface().intaddr().ip == intaddr ||
+				this->networkInterface().extaddr().ip == intaddr)
 	{
+		if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
+			return;
+
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
 		{
@@ -104,26 +105,26 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 			INFO_MSG(fmt::format("Machine::onBroadcastInterface: added newUID {0}.\n", uid));
 			localuids_.push_back(uid);
 		}
+
+		INFO_MSG(fmt::format("Machine::onBroadcastInterface[{0}]: uid:{1}, username:{2}, componentType:{3}, "
+			"componentID:{4}, globalorderid={9}, grouporderid={10}, pid:{11}, intaddr:{5}, intport:{6}, extaddr:{7}, extport:{8}.\n",
+				pChannel->c_str(),
+				uid,
+				username.c_str(),
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+				componentID,
+				inet_ntoa((struct in_addr&)intaddr),
+				ntohs(intport),
+				(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+				ntohs(extport),
+				((int32)globalorderid),
+				((int32)grouporderid),
+				pid));
+
+		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
+			pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 	}
-
-	INFO_MSG(fmt::format("Machine::onBroadcastInterface[{0}]: uid:{1}, username:{2}, componentType:{3}, "
-		"componentID:{4}, globalorderid={9}, grouporderid={10}, pid:{11}, intaddr:{5}, intport:{6}, extaddr:{7}, extport:{8}.\n",
-			pChannel->c_str(),
-			uid,
-			username.c_str(),
-			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
-			componentID,
-			inet_ntoa((struct in_addr&)intaddr),
-			ntohs(intport),
-			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
-			ntohs(extport),
-			((int32)globalorderid),
-			((int32)grouporderid),
-			pid));
-
-	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
-		pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 }
 
 //-------------------------------------------------------------------------------------
@@ -160,6 +161,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 	
 	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
 	Components::COMPONENTS::iterator iter = components.begin();
+
 	bool found = false;
 	Mercury::Bundle bundle;
 
@@ -176,7 +178,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 		const Components::ComponentInfos* pinfos = &(*iter);
 		
-		bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+		bool usable = checkComponentUsable(pinfos);
 
 		if(usable)
 		{
@@ -227,6 +229,12 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		bundle.sendto(ep, finderRecvPort, finderAddr);
 	else
 		bundle.send(this->networkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+bool Machine::checkComponentUsable(const Components::ComponentInfos* info)
+{
+	return Componentbridge::getComponents().lookupLocalComponentRunning(info->pid) != NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -299,7 +307,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
 					this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip;
 
-			bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+			bool usable = checkComponentUsable(pinfos);
 
 			if(usable)
 			{
@@ -687,7 +695,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
 			(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
 
-		bool usable = Componentbridge::getComponents().checkComponentUsable(&(*iter));
+		bool usable = checkComponentUsable(&(*iter));
 		
 		if(!usable)
 		{
