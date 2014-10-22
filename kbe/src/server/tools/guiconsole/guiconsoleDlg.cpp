@@ -367,6 +367,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_COMMAND(ID_BUTTON32780, &CguiconsoleDlg::OnToolBar_StartServer)
 	ON_COMMAND(ID_BUTTON32783, &CguiconsoleDlg::OnToolBar_StopServer)
 	ON_WM_CLOSE()
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -1653,6 +1654,7 @@ void CguiconsoleDlg::OnClose()
 {
 	// TODO: Add your message handler code here and/or call default
 	g_isDestroyed = true;
+	//threadPool_.finalise();
 	CDialog::OnClose();
 }
 
@@ -1707,4 +1709,13 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 	}
 
 	return false;
+}
+
+
+void CguiconsoleDlg::OnDestroy()
+{
+	CDialog::OnDestroy();
+
+	// TODO: Add your message handler code here
+	threadPool_.finalise();
 }
