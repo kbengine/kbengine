@@ -114,7 +114,22 @@ PyObject* Pickler::getUnpickleFunc(const char* funcName)
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj)
 {
-	return pickle(pyobj, 2);
+	AUTO_SCOPED_PROFILE("pickle");
+
+	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
+		const_cast<char*>("(O)"), pyobj);
+	
+	SCRIPT_ERROR_CHECK();
+	
+	if(pyRet)
+	{
+		std::string str;
+		str.assign(PyBytes_AsString(pyRet), PyBytes_Size(pyRet));
+		S_RELEASE(pyRet);
+		return str;
+	}
+	
+	return "";
 }
 
 //-------------------------------------------------------------------------------------
