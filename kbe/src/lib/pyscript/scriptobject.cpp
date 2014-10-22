@@ -70,6 +70,24 @@ PyTypeObject* ScriptObject::getScriptObjectType(const std::string& name)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__module__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__qualname__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__name__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* ScriptObject::tp_new(PyTypeObject* type, 
 	PyObject* args, PyObject* kwds)
 {
