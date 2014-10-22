@@ -72,9 +72,15 @@ Sequence::~Sequence()
 //-------------------------------------------------------------------------------------
 bool Sequence::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		return false;
+	}
+
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool Sequence::isSameItemType(PyObject* pyValue)
 {
 	return true;

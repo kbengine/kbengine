@@ -53,6 +53,12 @@ IntType<SPECIFY_TYPE>::~IntType()
 template <typename SPECIFY_TYPE>
 bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("INT");
+		return false;
+	}
+
 	int ival = 0;
 	if(PyLong_Check(pyValue))
 	{
