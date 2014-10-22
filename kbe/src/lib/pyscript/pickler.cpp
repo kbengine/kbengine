@@ -135,7 +135,7 @@ std::string Pickler::pickle(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 {
-	AUTO_SCOPED_PROFILE("pickle");
+	AUTO_SCOPED_PROFILE("pickleEx");
 
 	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
 		const_cast<char*>("(Oi)"), pyobj, protocol);
