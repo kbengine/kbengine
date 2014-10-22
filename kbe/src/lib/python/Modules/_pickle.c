@@ -1565,7 +1565,7 @@ getattribute(PyObject *obj, PyObject *name, int allow_qualname) {
         Py_DECREF(result);
         if (is_equal) {
             PyErr_Format(PyExc_AttributeError,
-                         "Can't get local attribute %R on %R", name, obj);
+                         "Can't get local attribute %s on %R", name, obj);
             Py_DECREF(dotted_path);
             Py_DECREF(obj);
             return NULL;
@@ -1576,7 +1576,7 @@ getattribute(PyObject *obj, PyObject *name, int allow_qualname) {
             if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
                 PyErr_Clear();
                 PyErr_Format(PyExc_AttributeError,
-                             "Can't get attribute %R on %R", name, obj);
+                             "Can't get attribute %s on XXX", name);
             }
             Py_DECREF(dotted_path);
             return NULL;

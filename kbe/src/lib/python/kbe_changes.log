@@ -66,3 +66,11 @@ setup.py
 
         opensslv_h = find_file('openssl/opensslv.h', [],
                 search_for_ssl_incs_in)
+
+
+
+_pickle.c: 补丁包还存在一些问题，等正式版发布再看如何，临时这样解决。
+	http://bugs.python.org/issue22676
+	getattribute(PyObject *obj, PyObject *name, int allow_qualname) {
+                PyErr_Format(PyExc_AttributeError,
+                             "Can't get attribute %s on XXX", name);
