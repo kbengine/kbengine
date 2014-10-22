@@ -126,11 +126,24 @@ public:
 class FindServersTask : public thread::TPTask
 {
 public:
+	std::vector<int8> findComponentTypes;
+
 	FindServersTask():
-	thread::TPTask()
+	thread::TPTask(),
+	findComponentTypes()
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		dlg->clearTree();
+	}
+
+	FindServersTask(int8 findComponentType):
+	thread::TPTask(),
+	findComponentTypes()
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->clearTree();
+
+		findComponentTypes.push_back(findComponentType);
 	}
 
 	virtual ~FindServersTask()
@@ -139,7 +152,7 @@ public:
 
 	virtual bool process()
 	{
-		int8 findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+		//int8 findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
 		if(g_isDestroyed)
@@ -149,13 +162,14 @@ public:
 
 		while(true)
 		{
-			int8 findComponentType = findComponentTypes[ifind];
-			if(findComponentType == UNKNOWN_COMPONENT_TYPE || g_isDestroyed)
+			if(ifind >= findComponentTypes.size() || g_isDestroyed)
 			{
 				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 				//	COMPONENT_NAME_EX(findComponentType));
 				return false;
 			}
+
+			int8 findComponentType = findComponentTypes[ifind];
 
 			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
@@ -188,6 +202,7 @@ public:
 
 			MachineInterface::onBroadcastInterfaceArgs22 args;
 			int32 timeout = 100000;
+
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))
 			{
@@ -806,7 +821,14 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 2:
 		{
-			threadPool_.addTask(new FindServersTask());
+			threadPool_.addTask(new FindServersTask(MESSAGELOG_TYPE));
+			threadPool_.addTask(new FindServersTask(BASEAPP_TYPE));
+			threadPool_.addTask(new FindServersTask(CELLAPP_TYPE));
+			threadPool_.addTask(new FindServersTask(BASEAPPMGR_TYPE));
+			threadPool_.addTask(new FindServersTask(CELLAPPMGR_TYPE));
+			threadPool_.addTask(new FindServersTask(LOGINAPP_TYPE));
+			threadPool_.addTask(new FindServersTask(DBMGR_TYPE));
+			threadPool_.addTask(new FindServersTask(BOTS_TYPE));
 			::KillTimer(m_hWnd, nIDEvent);
 		}
 		break;
