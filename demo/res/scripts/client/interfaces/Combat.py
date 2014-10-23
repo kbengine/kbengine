@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import json
 from KBEDebug import * 
 from interfaces.CombatPropertys import CombatPropertys
 
@@ -15,6 +16,6 @@ class Combat(CombatPropertys):
 			(self.getScriptName(), self.id, attackerID, skillID, damageType, damage))
 		
 		# 通知表现层改变表现
-		KBEngine.fireEvent("recvDamage", self.id, attackerID, skillID, damageType, damage)
+		KBEngine.fireEvent("recvDamage", json.dumps((self.id, attackerID, skillID, damageType, damage)))
 		
 

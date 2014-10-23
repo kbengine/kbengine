@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import KBExtra
+import json
 from KBEDebug import *
 
 class GameObject:
@@ -32,7 +33,7 @@ class GameObject:
 		DEBUG_MSG("%s::set_name: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.name))
 		
 		# 通知表现层改变表现
-		KBEngine.fireEvent("set_name", self.id, self.name)
+		KBEngine.fireEvent("set_name", json.dumps((self.id, self.name)))
 
 	def set_modelID(self, oldValue):
 		"""
@@ -42,7 +43,7 @@ class GameObject:
 		DEBUG_MSG("%s::set_modelID: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.modelID))
 		
 		# 通知表现层改变表现
-		KBEngine.fireEvent("set_modelID", self.id, self.modelID)
+		KBEngine.fireEvent("set_modelID", json.dumps((self.id, self.modelID)))
 		
 	def set_modelScale(self, oldValue):
 		"""
@@ -51,4 +52,4 @@ class GameObject:
 		"""
 		DEBUG_MSG("%s::set_modelScale: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.modelScale))
 		
-		KBEngine.fireEvent("set_modelScale", self.id, self.modelScale)
+		KBEngine.fireEvent("set_modelScale", json.dumps((self.id, self.modelScale)))

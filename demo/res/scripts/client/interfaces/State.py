@@ -2,7 +2,7 @@
 #
 """
 """
-
+import json
 import GlobalDefine
 from KBEDebug import *
 
@@ -37,7 +37,7 @@ class State:
 		virtual method.
 		"""
 		# 通知表现层改变表现
-		KBEngine.fireEvent("set_state", self.id, newState)
+		KBEngine.fireEvent("set_state", json.dumps((self.id, newState)))
 
 	def onForbidChanged_(self, oldForbids, newForbids):
 		"""

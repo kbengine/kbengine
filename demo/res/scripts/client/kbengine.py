@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import kbesystem
+import json
 from KBEDebug import *
 
 def onInit(isReload):

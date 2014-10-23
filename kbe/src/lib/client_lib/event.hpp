@@ -217,23 +217,17 @@ struct EventData_Script : public EventData
 {
 	EventData_Script():
 	EventData(CLIENT_EVENT_SCRIPT),
-	argsSize(0),
 	name(),
-	pyDatas(NULL)
+	datas()
 	{
 	}
 	
 	~EventData_Script()
 	{
-		if(pyDatas != NULL)
-		{
-			Py_DECREF(pyDatas);
-		}
 	}
 	
-	uint8 argsSize;
 	std::string name;
-	PyObject* pyDatas;
+	std::string datas;
 };
 
 struct EventData_PositionChanged : public EventData
@@ -483,7 +477,6 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_SCRIPT:
 			peventdata = new EventData_Script();
 			(*static_cast<EventData_Script*>(peventdata)) = (*static_cast<const EventData_Script*>(lpEventData));
-			Py_INCREF(static_cast<EventData_Script*>(peventdata)->pyDatas);
 			break;
 		case CLIENT_EVENT_POSITION_CHANGED:
 			peventdata = new EventData_PositionChanged();

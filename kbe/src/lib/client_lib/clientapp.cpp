@@ -487,18 +487,17 @@ PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 
 	EventData_Script eventdata;
 	eventdata.name = name;
-	eventdata.argsSize = PyTuple_Size(args) - 1;
 	free(name);
 
-	if(eventdata.argsSize > 0)
+	if(PyTuple_Size(args) - 1 > 0)
 	{
-		eventdata.pyDatas = PyTuple_New(eventdata.argsSize + 1);
-		for(uint32 i=0; i<eventdata.argsSize; i++)
-		{
-			PyObject* pyitem = PyTuple_GetItem(args, i + 1);
-			PyTuple_SetItem(eventdata.pyDatas, i, pyitem);
-			Py_INCREF(pyitem);
-		}
+		PyObject* pyitem = PyTuple_GetItem(args, 1);
+
+		PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyitem, NULL);
+		char* datas = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		eventdata.datas = datas;
+		free(datas);
 	}
 
 	ClientApp::getSingleton().fireEvent(&eventdata);

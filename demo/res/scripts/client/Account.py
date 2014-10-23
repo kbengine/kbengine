@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import *
+import json
+import copy
 
 class Account(KBEngine.Entity):
 	def __init__(self):
@@ -14,9 +16,23 @@ class Account(KBEngine.Entity):
 		define method.
 		"""
 		DEBUG_MSG("Account:onReqAvatarList::%s" % (infos))
-		self.avatars = infos
-		KBEngine.fireEvent("update_avatars", self.avatars)
 		
+		self.avatars = infos
+		self.fireEvent("update_avatars")
+	
+	def fireEvent(self, evtName):
+		firedatas = ""
+		
+		if evtName == "update_avatars":
+			dctinfo = copy.deepcopy(dict(self.avatars))
+			for info in dctinfo.values():
+				for data in info[4].values():
+					data[1] = ""
+			
+			firedatas = json.dumps(dctinfo)
+			
+		KBEngine.fireEvent(evtName, firedatas)
+			
 	def onCreateAvatarResult(self, retcode, info):
 		"""
 		define method.
@@ -28,7 +44,7 @@ class Account(KBEngine.Entity):
 			return
 			
 		self.avatars[info[0]] = info
-		KBEngine.fireEvent("update_avatars", self.avatars)
+		self.fireEvent("update_avatars")
 	
 	def onRemoveAvatar(self, dbid):
 		"""
@@ -37,16 +53,18 @@ class Account(KBEngine.Entity):
 		DEBUG_MSG("Account:onRemoveAvatar:: dbid=%i" % (dbid))
 		del self.avatars[dbid]
 		
-	def reqCreateAvatar(self, roleType, name):
+	def reqCreateAvatar(self, strargs):
 		"""
 		"""
+		roleType, name = json.loads(strargs)
 		DEBUG_MSG("Account:reqCreateAvatar::roleType=%i, name=%s" % (roleType, name))
 		self.base.reqCreateAvatar(roleType, name)
 
-	def selectAvatarGame(self, dbid):
+	def selectAvatarGame(self, strargs):
 		"""
 		选择某个角色进行游戏
 		"""
-		DEBUG_MSG("Account:selectAvatarGame::dbid=%i" % (dbid))
+		dbid = json.loads(strargs)
+		DEBUG_MSG("Account:selectAvatarGame::dbid=%s" % (dbid))
 		self.base.selectAvatarGame(dbid)
 

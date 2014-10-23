@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import json
 from KBEDebug import * 
 
 class CombatPropertys:
@@ -13,7 +14,7 @@ class CombatPropertys:
 		"""
 		DEBUG_MSG("%s::set_HP_Max: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.HP_Max))
 		
-		KBEngine.fireEvent("set_HP_Max", self.id, self.HP_Max)
+		KBEngine.fireEvent("set_HP_Max", json.dumps((self.id, self.HP_Max)))
 
 	def set_HP(self, oldValue):
 		"""
@@ -29,7 +30,7 @@ class CombatPropertys:
 		"""
 		DEBUG_MSG("%s::set_MP_Max: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.MP_Max))
 		
-		KBEngine.fireEvent("set_MP_Max", self.id, self.MP_Max)
+		KBEngine.fireEvent("set_MP_Max", json.dumps((self.id, self.MP_Max)))
 
 	def set_MP(self, oldValue):
 		"""
