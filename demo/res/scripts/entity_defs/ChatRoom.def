@@ -1,0 +1,26 @@
+<root>
+	<!-- BaseApp only -->
+	<Properties>
+	</Properties>
+
+	<ClientMethods>
+	</ClientMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+	<BaseMethods>
+		<broadcast>
+		    <Arg> UNICODE </Arg> <!-- what's been said -->
+			<Arg> UNICODE </Arg> <!-- what's been said -->
+		</broadcast>
+		
+		<enter>
+			<Arg> MAILBOX </Arg> <!-- who's entering -->
+		</enter>
+
+		<leave>
+			<Arg> OBJECT_ID </Arg> <!-- who's leaving -->
+		</leave>
+	</BaseMethods>
+</root>

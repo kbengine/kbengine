@@ -8,4 +8,5 @@
 	<Monster/>
 	<NPC/>
 	<Gate/>
+    <ChatRoom/>
 </root>

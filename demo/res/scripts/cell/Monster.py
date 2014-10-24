@@ -12,7 +12,7 @@ from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.AI import AI
 from interfaces.NPCObject import NPCObject
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Monster(KBEngine.Entity,
 			NPCObject, 
 			Flags,

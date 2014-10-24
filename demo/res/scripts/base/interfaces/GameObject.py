@@ -2,6 +2,7 @@
 import KBEngine
 from KBEDebug import *
 
+INFO_MSG(str.format('exec file: {}....', __file__))
 class GameObject:
 	def __init__(self):
 		pass

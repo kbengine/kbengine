@@ -6,11 +6,12 @@ import copy
 import math
 from KBEDebug import *
 from interfaces.GameObject import GameObject
+import ChatRoom
 import d_entities
 import d_spaces
 import d_spaces_spawns
-import xml.etree.ElementTree as etree 
-
+import xml.etree.ElementTree as etree
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Space(KBEngine.Base, GameObject):
 	def __init__(self):
 		KBEngine.Base.__init__(self)
@@ -118,7 +119,9 @@ class Space(KBEngine.Base, GameObject):
 		进入场景
 		"""
 		self.avatars[entityMailbox.id] = entityMailbox
-		
+
+		KBEngine.globalData["ChatRoomMgr"].enter(entityMailbox)
+
 		if self.cell is not None:
 			self.cell.onEnter(entityMailbox)
 		
@@ -127,9 +130,11 @@ class Space(KBEngine.Base, GameObject):
 		defined method.
 		离开场景
 		"""
+		KBEngine.globalData["ChatRoomMgr"].leave(entityID)
+
 		if entityID in self.avatars:
 			del self.avatars[entityID]
-		
+
 		if self.cell is not None:
 			self.cell.onLeave(entityID)
 		

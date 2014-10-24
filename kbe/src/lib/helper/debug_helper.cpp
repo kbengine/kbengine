@@ -452,10 +452,15 @@ void DebugHelper::print_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	char buf[DBG_PT_SIZE];
+	std::string str = s;
+	strutil::kbe_replace(str,"\n","");
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s  ==>%s(%d)\n", str.c_str(), _currFuncName.c_str(), _currLine);
+
 #ifdef NO_USE_LOG4CXX
 #else
 	if(canLogFile_)
-		LOG4CXX_INFO(g_logger, s);
+		LOG4CXX_INFO(g_logger, buf);
 #endif
 
 	onMessage(KBELOG_PRINT, s.c_str(), s.size());
@@ -466,9 +471,15 @@ void DebugHelper::error_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	char buf[DBG_PT_SIZE];
+	std::string str = s;
+	strutil::kbe_replace(str,"\n","");
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s  ==>%s(%d)\n", str.c_str(), _currFuncName.c_str(), _currLine);
+
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_ERROR(g_logger, s);
+	if(canLogFile_)
+		LOG4CXX_INFO(g_logger, buf);
 #endif
 
 	onMessage(KBELOG_ERROR, s.c_str(), s.size());
@@ -483,10 +494,15 @@ void DebugHelper::info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	char buf[DBG_PT_SIZE];
+	std::string str = s;
+	strutil::kbe_replace(str,"\n","");
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s  ==>%s(%d)\n", str.c_str(), _currFuncName.c_str(), _currLine);
+
 #ifdef NO_USE_LOG4CXX
 #else
 	if(canLogFile_)
-		LOG4CXX_INFO(g_logger, s);
+		LOG4CXX_INFO(g_logger, buf);
 #endif
 
 	onMessage(KBELOG_INFO, s.c_str(), s.size());
@@ -542,10 +558,15 @@ void DebugHelper::debug_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	char buf[DBG_PT_SIZE];
+	std::string str = s;
+	strutil::kbe_replace(str,"\n","");
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s  ==>%s(%d)\n", str.c_str(), _currFuncName.c_str(), _currLine);
+
 #ifdef NO_USE_LOG4CXX
 #else
 	if(canLogFile_)
-		LOG4CXX_DEBUG(g_logger, s);
+		LOG4CXX_INFO(g_logger, buf);
 #endif
 
 	onMessage(KBELOG_DEBUG, s.c_str(), s.size());
@@ -556,10 +577,15 @@ void DebugHelper::warning_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
+	char buf[DBG_PT_SIZE];
+	std::string str = s;
+	strutil::kbe_replace(str,"\n","");
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s  ==>%s(%d)\n", str.c_str(), _currFuncName.c_str(), _currLine);
+
 #ifdef NO_USE_LOG4CXX
 #else
 	if(canLogFile_)
-		LOG4CXX_WARN(g_logger, s);
+		LOG4CXX_INFO(g_logger, buf);
 #endif
 
 	onMessage(KBELOG_WARNING, s.c_str(), s.size());

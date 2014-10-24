@@ -8,7 +8,7 @@ import d_avatar_inittab
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Teleport import Teleport
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Avatar(KBEngine.Proxy,
 			GameObject,
 			Teleport):
@@ -95,9 +95,12 @@ class Avatar(KBEngine.Proxy,
 				self.accountEntity = None
 			else:
 				DEBUG_MSG("Avatar[%i].destroySelf: relogin =%i" % (self.id, time.time() - self.accountEntity.relogin))
-				
+
+		DEBUG_MSG("Avatar[%i].destroy brfore:" % self.id)
 		# 销毁base
 		self.destroy()
+		DEBUG_MSG("Avatar[%i].destroy after :" % self.id)
+
 
 	def onClientDeath(self):
 		"""
@@ -119,6 +122,14 @@ class Avatar(KBEngine.Proxy,
 	def onDestroyTimer(self, tid, tno):
 		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, tno))
 		self.destroySelf()
+
+	def sendMsg(self, msg):
+		DEBUG_MSG(str.format("sned msg to me: {},{}",self.nameB, msg) )
+		KBEngine.globalData["ChatRoomMgr"].broadcast( self.nameB, msg)
+		# for e in KBEngine.entities.values():
+		# 	if e.__class__.__name__ == "Avatar":
+		# 		print(dir(e))
+		# 		e.client.recvMsg(self.nameB,msg)
 
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)

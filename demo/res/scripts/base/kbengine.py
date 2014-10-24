@@ -2,7 +2,7 @@
 import KBEngine
 import d_spaces
 from KBEDebug import *
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 def countPlayers():
 	"""
 	"""
@@ -26,6 +26,8 @@ def onBaseAppReady(bootstrapIdx):
 	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
+		# 创建chatRoomManager
+		KBEngine.createBaseLocally( "ChatRoom", {} )
 
 def onBaseAppShutDown(state):
 	"""

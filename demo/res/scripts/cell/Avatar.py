@@ -13,27 +13,27 @@ from interfaces.Motion import Motion
 from interfaces.SkillBox import SkillBox
 
 class Avatar(KBEngine.Entity,
-			GameObject, 
+			GameObject,
 			Flags,
 			State,
-			Motion, 
+			Motion,
 			SkillBox,
-			Combat, 
-			Spell, 
+			Combat,
+			Spell,
 			Teleport,
 			Dialog):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
-		GameObject.__init__(self) 
-		Flags.__init__(self) 
-		State.__init__(self) 
-		Motion.__init__(self) 
-		SkillBox.__init__(self) 
-		Combat.__init__(self) 
-		Spell.__init__(self) 
-		Teleport.__init__(self) 
-		Dialog.__init__(self) 
-		
+		GameObject.__init__(self)
+		Flags.__init__(self)
+		State.__init__(self)
+		Motion.__init__(self)
+		SkillBox.__init__(self)
+		Combat.__init__(self)
+		Spell.__init__(self)
+		Teleport.__init__(self)
+		Dialog.__init__(self)
+
 		# 设置每秒允许的最快速度, 超速会被拉回去
 		self.topSpeed = self.moveSpeed + 5.0
 		# self.topSpeedY = 10.0
@@ -43,7 +43,7 @@ class Avatar(KBEngine.Entity,
 		virtual method.
 		"""
 		return True
-		
+
 	def startDestroyTimer(self):
 		"""
 		virtual method.
@@ -51,7 +51,7 @@ class Avatar(KBEngine.Entity,
 		启动销毁entitytimer
 		"""
 		pass
-		
+
 	def onGetWitness(self):
 		"""
 		KBEngine method.
@@ -65,7 +65,7 @@ class Avatar(KBEngine.Entity,
 		解绑定了一个观察者(客户端)
 		"""
 		DEBUG_MSG("Avatar::onLoseWitness: %i." % self.id)
-	
+
 	def onDestroy(self):
 		"""
 		KBEngine method.
@@ -74,7 +74,7 @@ class Avatar(KBEngine.Entity,
 		DEBUG_MSG("Avatar::onDestroy: %i." % self.id)
 		Teleport.onDestroy(self)
 		Combat.onDestroy(self)
-		
+
 	def relive(self, exposed, type):
 		"""
 		defined.
@@ -82,13 +82,13 @@ class Avatar(KBEngine.Entity,
 		"""
 		if exposed != self.id:
 			return
-			
+
 		DEBUG_MSG("Avatar::relive: %i, type=%i." % (self.id, type))
-		
+
 		# 回城复活
 		if type == 0:
 			pass
-			
+
 		self.fullPower()
 		self.changeState(GlobalDefine.ENTITY_STATE_FREE)
 
@@ -99,9 +99,9 @@ class Avatar(KBEngine.Entity,
 		"""
 		if exposed != self.id:
 			return
-		
+
 		self.otherClients.onJump()
-		
+
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Flags._timermap)

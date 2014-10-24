@@ -6,7 +6,7 @@ import KBEngine
 from KBEDebug import *
 from interfaces.NPCObject import NPCObject
 from interfaces.Motion import Motion
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class NPC(KBEngine.Entity, NPCObject, Motion):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)

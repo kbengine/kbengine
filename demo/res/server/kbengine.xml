@@ -9,13 +9,25 @@
 	<dbmgr>
 		<!-- <host> localhost </host> -->
 		<!-- <databaseName> kbe </databaseName> -->
+		<databaseName> kbe </databaseName>
+		<!-- 数据库地址 （Database address) -->
+		<host> 192.168.1.4 </host>										<!-- Type: String -->
+		<port> 3306 </port>												<!-- Type: Integer -->
+		
+		<!-- 数据库账号验证  （Database auth) -->
+		<auth>  
+			<username> root </username>									<!-- Type: String -->
+			<password> 123456 </password>								<!-- Type: String -->
+			<!-- 为true则表示password是加密(rsa)的, 可防止明文配置  (is true, password is RSA) -->
+			<encrypt> true </encrypt>
+		</auth>
 	</dbmgr>
 	
 	<cellapp>
 	</cellapp>
 	
 	<baseapp>
-		<backupPeriod> 500 </backupPeriod>
+		<backupPeriod> 5000 </backupPeriod>
 	</baseapp>
 	
 	<cellappmgr>
@@ -35,4 +47,13 @@
 	
 	<bots>
 	</bots>
+	<channelCommon> 
+	<!-- 最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该通道 
+		(If long (configurable value) no communication, channel will be kicked out of the server.)
+	-->
+	<timeout> 
+		<internal> 600.0 </internal>
+		<external> 600.0 </external>
+	</timeout>
+		</channelCommon> 
 </root>

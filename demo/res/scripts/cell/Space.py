@@ -4,7 +4,7 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 
 import d_spaces
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Space(KBEngine.Entity, GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)

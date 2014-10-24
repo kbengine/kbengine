@@ -44,6 +44,12 @@
 		<createCell>
 			<Arg>		MAILBOX		</Arg>
 		</createCell>
+
+		<sendMsg>
+		    <Exposed/>
+			<Arg>		UNICODE		</Arg> <!-- message -->
+		</sendMsg>
+
 	</BaseMethods>
 
 	<CellMethods>
@@ -60,5 +66,9 @@
 	<ClientMethods>
 		<onJump>
 		</onJump>
+		<recvMsg>
+		    <Arg>		UNICODE		</Arg> <!-- name -->
+			<Arg>		UNICODE		</Arg> <!-- message -->
+		</recvMsg>
 	</ClientMethods>
 </root>

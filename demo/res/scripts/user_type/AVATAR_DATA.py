@@ -2,7 +2,7 @@
 import KBEngine
 import GlobalConst
 from KBEDebug import * 
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class TAvatarData(dict):
 	"""
 	"""

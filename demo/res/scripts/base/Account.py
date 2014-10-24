@@ -9,12 +9,17 @@ from AVATAR_DATA import TAvatarData
 from KBEDebug import *
 import d_avatar_inittab
 
+INFO_MSG(str.format('exec file: {}....', __file__))
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
+		# import sys
+		# sys.path.append('C:\Python33\Lib\site-packages\pycharm-debug.egg')
+		# import pydevd
+		# pydevd.settrace('localhost', port=22222, stdoutToServer=True, stderrToServer=True)
 		self.activeCharacter = None
 		self.relogin = time.time()
-		
+
 	def onTimer(self, id, userArg):
 		"""
 		KBEngine method.
@@ -23,7 +28,7 @@ class Account(KBEngine.Proxy):
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
 		DEBUG_MSG(id, userArg)
-		
+
 	def onEntitiesEnabled(self):
 		"""
 		KBEngine method.

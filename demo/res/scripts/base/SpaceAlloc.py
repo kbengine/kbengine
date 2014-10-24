@@ -7,7 +7,7 @@ import d_spaces
 import copy
 
 CONST_WAIT_CREATE = -1
-
+INFO_MSG(str.format('exec file: {}....', __file__))
 class SpaceAlloc:
 	"""
 	普通的场景分配器
