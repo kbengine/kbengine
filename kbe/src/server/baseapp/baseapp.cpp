@@ -844,14 +844,23 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if(pyEntityType)
 	{
-		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
-		entityType = strutil::wchar2char(wEntityType);									
-		PyMem_Free(wEntityType);		
+		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);	
+		if(wEntityType)
+		{
+			entityType = strutil::wchar2char(wEntityType);									
+			PyMem_Free(wEntityType);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
 	}
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error, entityType=%s!", entityType);
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error, entityType=%s!", 
+			(entityType ? entityType : "NULL"));
+
 		PyErr_PrintEx(0);
 
 		if(entityType)
@@ -1045,14 +1054,23 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	if(pyEntityType)
 	{
-		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
-		entityType = strutil::wchar2char(wEntityType);									
-		PyMem_Free(wEntityType);		
+		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);		
+		if(wEntityType)
+		{
+			entityType = strutil::wchar2char(wEntityType);									
+			PyMem_Free(wEntityType);	
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
 	}
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args is error, entityType=%s!", entityType);
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args is error, entityType=%s!", 
+			(entityType ? entityType : "NULL"));
+
 		PyErr_PrintEx(0);
 
 		if(entityType)
