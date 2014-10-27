@@ -27,16 +27,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pyobject_pointer.hpp"
-//#define NDEBUG
-#include <map>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#include <unordered_map>
-#else
-// linux include
-#include <errno.h>
-#include <tr1/unordered_map>
-#endif
 	
 namespace KBEngine{
 
@@ -57,12 +47,18 @@ public:
 
 	~EntityGarbages()
 	{
+		if(size() > 0)
+		{
+			WARNING_MSG(fmt::format("EntityGarbages::~EntityGarbages(): leaked, size={}.\n", 
+				size()));
+		}
+
 		finalise();
 	}	
 
 	void finalise()
 	{
-		clear(false);
+		clear();
 	}
 
 	/** 
@@ -88,8 +84,7 @@ public:
 	ENTITYS_MAP& getEntities(void){ return _entities; }
 
 	void add(ENTITY_ID id, T* entity);
-	void clear(bool callScript);
-	void clear(bool callScript, std::vector<ENTITY_ID> excludes);
+	void clear();
 	void erase(ENTITY_ID id);
 
 	T* find(ENTITY_ID id);
@@ -274,39 +269,9 @@ void EntityGarbages<T>::add(ENTITY_ID id, T* entity)
 
 //-------------------------------------------------------------------------------------
 template<typename T>
-void EntityGarbages<T>::clear(bool callScript)
+void EntityGarbages<T>::clear()
 {
-	ENTITYS_MAP::const_iterator iter = _entities.begin();
-	while (iter != _entities.end())
-	{
-		T* entity = (T*)iter->second;
-		entity->destroy(callScript);
-		iter++;
-	}
-
 	_entities.clear();
-}
-
-//-------------------------------------------------------------------------------------
-template<typename T>
-void EntityGarbages<T>::clear(bool callScript, std::vector<ENTITY_ID> excludes)
-{
-	ENTITYS_MAP::const_iterator iter = _entities.begin();
-	for (;iter != _entities.end();)
-	{
-		if(std::find(excludes.begin(), excludes.end(), iter->first) != excludes.end())
-		{
-			iter++;
-			continue;
-		}
-
-		T* entity = (T*)iter->second;
-		entity->destroy(callScript);
-		_entities.erase(iter++);
-	}
-	
-	// 由于存在excludes不能清空
-	// _entities.clear();
 }
 
 //-------------------------------------------------------------------------------------

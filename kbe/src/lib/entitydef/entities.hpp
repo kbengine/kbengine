@@ -28,16 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "entitydef/entity_garbages.hpp"
-//#define NDEBUG
-#include <map>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#include <unordered_map>
-#else
-// linux include
-#include <errno.h>
-#include <tr1/unordered_map>
-#endif
 	
 namespace KBEngine{
 
