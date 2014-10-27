@@ -113,6 +113,9 @@
     <ClInclude Include="volatileinfo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="entity_garbages.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="datatype.ipp" />

@@ -114,6 +114,7 @@
     <ClInclude Include="datatypes.hpp" />
     <ClInclude Include="detaillevel.hpp" />
     <ClInclude Include="entities.hpp" />
+    <ClInclude Include="entity_garbages.hpp" />
     <ClInclude Include="entity_macro.hpp" />
     <ClInclude Include="entity_mailbox.hpp" />
     <ClInclude Include="entitydef.hpp" />

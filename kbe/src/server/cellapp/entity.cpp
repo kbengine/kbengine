@@ -155,6 +155,9 @@ Entity::~Entity()
 	
 	Py_DECREF(pPyDirection_);
 	pPyDirection_ = NULL;
+
+	if(Cellapp::getSingleton().pEntities())
+		Cellapp::getSingleton().pEntities()->pGetbages()->erase(id());
 }	
 
 //-------------------------------------------------------------------------------------

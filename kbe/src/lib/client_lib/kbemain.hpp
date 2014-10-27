@@ -112,6 +112,7 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 	EntityDef::installScript(script.getModule());
 	client::Entity::installScript(script.getModule());
 	Entities<client::Entity>::installScript(NULL);
+	EntityGarbages<client::Entity>::installScript(NULL);
 	return ret;
 }
 
@@ -119,6 +120,7 @@ inline bool uninstallPyScript(KBEngine::script::Script& script)
 {
 	client::Entity::uninstallScript();
 	Entities<client::Entity>::uninstallScript();
+	EntityGarbages<client::Entity>::uninstallScript();
 	EntityDef::uninstallScript();
 	return script.uninstall();
 }

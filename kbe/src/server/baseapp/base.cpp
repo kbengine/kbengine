@@ -89,6 +89,9 @@ Base::~Base()
 	S_RELEASE(cellMailbox_);
 	S_RELEASE(cellDataDict_);
 	SAFE_RELEASE(pBufferedSendToCellappMessages_);
+
+	if(Baseapp::getSingleton().pEntities())
+		Baseapp::getSingleton().pEntities()->pGetbages()->erase(id());
 }	
 
 //-------------------------------------------------------------------------------------

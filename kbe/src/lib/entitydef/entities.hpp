@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pyobject_pointer.hpp"
+#include "entitydef/entity_garbages.hpp"
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -51,13 +52,15 @@ public:
 	typedef KBEUnordered_map<ENTITY_ID, PyObjectPtr> ENTITYS_MAP;
 
 	Entities():
-	ScriptObject(getScriptType(), false)
+	ScriptObject(getScriptType(), false),
+	_pGarbages(new EntityGarbages<T>())
 	{			
 	}
 
 	~Entities()
 	{
 		finalise();
+		S_RELEASE(_pGarbages);
 	}	
 
 	void finalise()
@@ -95,12 +98,19 @@ public:
 	T* find(ENTITY_ID id);
 
 	size_t size()const { return _entities.size(); }
+
+	EntityGarbages<T>* pGetbages(){ return _pGarbages; }
+	DECLARE_PY_GET_MOTHOD(pyGarbages);
 private:
 	ENTITYS_MAP _entities;
+
+	// 已经调用过destroy但未析构的entity都将存储在这里， 长时间未被析构说明
+	// 脚本层有可能存在循环引用的问题造成内存泄露。
+	EntityGarbages<T>* _pGarbages;
 };
 
 /** 
-	python Entities操作所需要的方法表 
+	Python Entities操作所需要的方法表 
 */
 template<typename T>
 PyMappingMethods Entities<T>::mappingMethods =
@@ -111,17 +121,18 @@ PyMappingMethods Entities<T>::mappingMethods =
 };
 
 TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
-SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("keys",				pyKeys,			METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("values",				pyValues,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("items",				pyItems,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("get",				pyGet,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				pyKeys,					METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				pyValues,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				pyItems,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("get",				pyGet,					METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 TEMPLATE_SCRIPT_MEMBER_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
 SCRIPT_MEMBER_DECLARE_END()
 
 TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
+SCRIPT_GET_DECLARE("garbages",				pyGarbages,				0,							0)
 SCRIPT_GETSET_DECLARE_END()
 TEMPLATE_SCRIPT_INIT(template<typename T>, Entities<T>, Entities, 0, 0, &Entities<T>::mappingMethods, 0, 0)	
 
@@ -200,7 +211,7 @@ PyObject* Entities<T>::pyValues()
 	ENTITYS_MAP::const_iterator iter = entities.begin();
 	while (iter != entities.end())
 	{
-		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+		Py_INCREF(iter->second.get());
 		PyList_SET_ITEM(pyList, i, iter->second.get());
 
 		i++;
@@ -223,7 +234,7 @@ PyObject* Entities<T>::pyItems()
 	{
 		PyObject * pTuple = PyTuple_New(2);
 		PyObject* entityID = PyLong_FromLong(iter->first);
-		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+		Py_INCREF(iter->second.get());
 
 		PyTuple_SET_ITEM(pTuple, 0, entityID);
 		PyTuple_SET_ITEM(pTuple, 1, iter->second.get());
@@ -280,6 +291,7 @@ void Entities<T>::clear(bool callScript)
 	while (iter != _entities.end())
 	{
 		T* entity = (T*)iter->second.get();
+		_pGarbages->add(entity->id(), entity);
 		entity->destroy(callScript);
 		iter++;
 	}
@@ -301,6 +313,7 @@ void Entities<T>::clear(bool callScript, std::vector<ENTITY_ID> excludes)
 		}
 
 		T* entity = (T*)iter->second.get();
+		_pGarbages->add(entity->id(), entity);
 		entity->destroy(callScript);
 		_entities.erase(iter++);
 	}
@@ -330,11 +343,23 @@ PyObjectPtr Entities<T>::erase(ENTITY_ID id)
 	if(iter != _entities.end())
 	{
 		T* entity = static_cast<T*>(iter->second.get());
+		_pGarbages->add(id, entity);
 		_entities.erase(iter);
 		return entity;
 	}
 	
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::pyGarbages()
+{ 
+	if(_pGarbages == NULL)
+		S_Return;
+
+	Py_INCREF(_pGarbages);
+	return _pGarbages; 
 }
 
 }

@@ -429,6 +429,7 @@ template<class E>
 bool EntityApp<E>::installPyModules()
 {
 	Entities<E>::installScript(NULL);
+	EntityGarbages<E>::installScript(NULL);
 	//Entity::installScript(g_script.getModule());
 
 	pEntities_ = new Entities<E>();
@@ -539,6 +540,7 @@ bool EntityApp<E>::uninstallPyModules()
 	S_RELEASE(pGlobalData_); 
 
 	Entities<E>::uninstallScript();
+	EntityGarbages<E>::uninstallScript();
 	//Entity::uninstallScript();
 	EntityDef::uninstallScript();
 	return true;
