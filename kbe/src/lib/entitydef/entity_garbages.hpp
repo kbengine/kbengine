@@ -330,5 +330,5 @@ void EntityGarbages<T>::erase(ENTITY_ID id)
 }
 
 }
-#endif // KBE_ENTITIES_HPP
+#endif // KBE_ENTITYGARBAGES_HPP
 
