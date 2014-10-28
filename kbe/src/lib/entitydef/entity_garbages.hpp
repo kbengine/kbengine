@@ -49,7 +49,7 @@ public:
 	{
 		if(size() > 0)
 		{
-			WARNING_MSG(fmt::format("EntityGarbages::~EntityGarbages(): leaked, size={}.\n", 
+			ERROR_MSG(fmt::format("EntityGarbages::~EntityGarbages(): leaked, size={}.\n", 
 				size()));
 		}
 
