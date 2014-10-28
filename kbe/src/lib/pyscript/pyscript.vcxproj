@@ -98,6 +98,7 @@
     <ClCompile Include="map.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="pickler.cpp" />
+    <ClCompile Include="py_gc.cpp" />
     <ClCompile Include="py_memorystream.cpp" />
     <ClCompile Include="pyprofile.cpp" />
     <ClCompile Include="pyprofile_handler.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="map.hpp" />
     <ClInclude Include="math.hpp" />
     <ClInclude Include="pickler.hpp" />
+    <ClInclude Include="py_gc.hpp" />
     <ClInclude Include="py_memorystream.hpp" />
     <ClInclude Include="pyattr_macro.hpp" />
     <ClInclude Include="pyobject_call_template.hpp" />

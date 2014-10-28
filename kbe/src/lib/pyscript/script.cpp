@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyprofile.hpp"
 #include "copy.hpp"
 #include "pystruct.hpp"
+#include "py_gc.hpp"
 #include "install_py_dlls.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
@@ -228,6 +229,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		return false;
 	}
 	
+	PyGC::initialize();
 	Pickler::initialize();
 	PyProfile::initialize(this);
 	PyStruct::initialize();
@@ -247,11 +249,11 @@ bool Script::uninstall()
 	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
-	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
+	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)
 	{
-		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
+		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{
 			ERROR_MSG("Script::uninstall(): pyStdouterr_->uninstall() is failed!\n");
 		}
 		else
@@ -284,6 +286,7 @@ bool Script::uninstall()
 	}
 #endif
 
+	PyGC::initialize();
 	Py_Finalize();																// 卸载python解释器
 	INFO_MSG("Script::uninstall(): is successfully!\n");
 	return true;	

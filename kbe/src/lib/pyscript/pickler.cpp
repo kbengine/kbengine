@@ -43,7 +43,7 @@ bool Pickler::initialize(void)
 		picklerMethod_ = PyObject_GetAttrString(cPickleModule, "dumps");
 		if (!picklerMethod_)
 		{
-			ERROR_MSG("Pickler::initialize:get dumps is error!\n");
+			ERROR_MSG("Pickler::initialize: get dumps is error!\n");
 			PyErr_PrintEx(0);
 		}
 
@@ -58,7 +58,7 @@ bool Pickler::initialize(void)
 	}
 	else
 	{
-		ERROR_MSG("can't import pickle!\n");
+		ERROR_MSG("PyGC::initialize: can't import pickle!\n");
 		PyErr_PrintEx(0);
 	}
 	

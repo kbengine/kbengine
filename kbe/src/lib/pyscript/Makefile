@@ -6,6 +6,7 @@ SRCS =				\
 	map			\
 	math			\
 	pickler			\
+	py_gc			\
 	pystruct		\
 	pyprofile		\
 	pyprofile_handler	\

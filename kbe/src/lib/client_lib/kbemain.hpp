@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "server/machine_infos.hpp"
 #include "server/serverconfig.hpp"
+#include "pyscript/py_gc.hpp"
 #include "resmgr/resmgr.hpp"
 #include "client_lib/config.hpp"
 
@@ -118,6 +119,8 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 
 inline bool uninstallPyScript(KBEngine::script::Script& script)
 {
+	script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
+	script::PyGC::collect();
 	client::Entity::uninstallScript();
 	Entities<client::Entity>::uninstallScript();
 	EntityGarbages<client::Entity>::uninstallScript();

@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_ENTITY_APP_HPP
 
 // common include
+#include "pyscript/py_gc.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyprofile.hpp"
 #include "pyscript/pyprofile_handler.hpp"
@@ -533,6 +534,8 @@ bool EntityApp<E>::installPyModules()
 template<class E>
 bool EntityApp<E>::uninstallPyModules()
 {
+	script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
+	script::PyGC::collect();
 	unregisterPyObjectToScript("globalData");
 	S_RELEASE(pGlobalData_); 
 
