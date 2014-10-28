@@ -533,11 +533,11 @@ bool EntityApp<E>::installPyModules()
 template<class E>
 bool EntityApp<E>::uninstallPyModules()
 {
-	S_RELEASE(pEntities_);
-	unregisterPyObjectToScript("entities");
-
 	unregisterPyObjectToScript("globalData");
 	S_RELEASE(pGlobalData_); 
+
+	S_RELEASE(pEntities_);
+	unregisterPyObjectToScript("entities");
 
 	Entities<E>::uninstallScript();
 	EntityGarbages<E>::uninstallScript();
