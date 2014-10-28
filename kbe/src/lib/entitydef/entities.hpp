@@ -77,6 +77,7 @@ public:
 	static int mp_length(PyObject * self);
 
 	static PyMappingMethods mappingMethods;
+	static PySequenceMethods mappingSequenceMethods;
 
 	ENTITYS_MAP& getEntities(void){ return _entities; }
 
@@ -110,6 +111,23 @@ PyMappingMethods Entities<T>::mappingMethods =
 	NULL											// mp_ass_subscript
 };
 
+// ²Î¿¼ objects/dictobject.c
+// Hack to implement "key in dict"
+template<typename T>
+PySequenceMethods Entities<T>::mappingSequenceMethods = 
+{
+    0,											/* sq_length */
+    0,											/* sq_concat */
+    0,											/* sq_repeat */
+    0,											/* sq_item */
+    0,											/* sq_slice */
+    0,											/* sq_ass_item */
+    0,											/* sq_ass_slice */
+    PyMapping_HasKey,							/* sq_contains */
+    0,											/* sq_inplace_concat */
+    0,											/* sq_inplace_repeat */
+};
+
 TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
 SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,				METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("keys",				pyKeys,					METH_VARARGS,		0)
@@ -124,7 +142,7 @@ SCRIPT_MEMBER_DECLARE_END()
 TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
 SCRIPT_GET_DECLARE("garbages",				pyGarbages,				0,							0)
 SCRIPT_GETSET_DECLARE_END()
-TEMPLATE_SCRIPT_INIT(template<typename T>, Entities<T>, Entities, 0, 0, &Entities<T>::mappingMethods, 0, 0)	
+TEMPLATE_SCRIPT_INIT(template<typename T>, Entities<T>, Entities, 0, &Entities<T>::mappingSequenceMethods, &Entities<T>::mappingMethods, 0, 0)	
 
 
 //-------------------------------------------------------------------------------------
@@ -153,7 +171,7 @@ PyObject * Entities<T>::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
 	if(pyEntity == NULL)
 	{
 		PyErr_Format(PyExc_KeyError, "%d", entityID);
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return NULL;
 	}
 

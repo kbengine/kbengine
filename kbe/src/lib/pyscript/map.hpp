@@ -32,6 +32,7 @@ class Map : public ScriptObject
 	INSTANCE_SCRIPT_HREADER(Map, ScriptObject)
 public:	
 	static PyMappingMethods mappingMethods;
+	static PySequenceMethods mappingSequenceMethods;
 
 	Map(PyTypeObject* pyType, bool isInitialised = false);
 	virtual ~Map();
@@ -45,7 +46,7 @@ public:
 	static PyObject* __py_items(PyObject* self, PyObject* args);
 	static PyObject* __py_update(PyObject* self, PyObject* args);
 	static PyObject* __py_get(PyObject* self, PyObject* args);
-
+	static int __py_contains(PyObject* self, PyObject* args);
 	/** 
 		map操作函数相关 
 	*/
