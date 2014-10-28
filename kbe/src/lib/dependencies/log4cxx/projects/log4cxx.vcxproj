@@ -1202,9 +1202,6 @@
       <Project>{c6c836e6-2899-458a-90ba-184192342d30}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\expat\lib\expat_static.vcxproj">
-      <Project>{30042fab-ad01-bf78-3c79-f1f6316bc947}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

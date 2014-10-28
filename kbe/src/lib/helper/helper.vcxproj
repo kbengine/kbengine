@@ -154,6 +154,9 @@
     <ProjectReference Include="..\dependencies\apr\apr.vcxproj">
       <Project>{c6c836e6-2899-458a-90ba-184192342d30}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\dependencies\expat\lib\expat_static.vcxproj">
+      <Project>{30042fab-ad01-bf78-3c79-f1f6316bc947}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\dependencies\log4cxx\projects\log4cxx.vcxproj">
       <Project>{561fa9f7-14d0-4d94-822c-aae9b08aacef}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
