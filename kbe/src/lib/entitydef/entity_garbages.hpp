@@ -51,6 +51,18 @@ public:
 		{
 			ERROR_MSG(fmt::format("EntityGarbages::~EntityGarbages(): leaked, size={}.\n", 
 				size()));
+
+			int i = 0;
+
+			ENTITYS_MAP::iterator iter = _entities.begin();
+			for(; iter != _entities.end(); iter++)
+			{
+				if(i++ >= 256)
+					break;
+
+				ERROR_MSG(fmt::format("\t--> leaked: {}({}).\n", 
+					iter->second->ob_type->tp_name, iter->first));
+			}
 		}
 
 		finalise();
