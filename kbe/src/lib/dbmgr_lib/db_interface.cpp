@@ -83,7 +83,7 @@ bool DBUtil::initialize()
 
 	if(dbcfg.db_passwordEncrypt)
 	{
-		// Èç¹ûĞ¡ÓÚ64Ôò±íÊ¾Ä¿Ç°»¹ÊÇÃ÷ÎÄÃÜÂë
+		// å¦‚æœå°äº64åˆ™è¡¨ç¤ºç›®å‰è¿˜æ˜¯æ˜æ–‡å¯†ç 
 		if(strlen(dbcfg.db_password) < 64)
 		{
 			WARNING_MSG(fmt::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n{}\n",
@@ -121,18 +121,18 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 		dbinterface = new DBInterfaceMysql(dbcfg.db_unicodeString_characterSet, dbcfg.db_unicodeString_collation);
 	}
 
+	if(dbinterface == NULL)
+	{
+		ERROR_MSG("DBUtil::createInterface: can't create dbinterface!\n");
+		return NULL;
+	}
+	
 	kbe_snprintf(dbinterface->db_type_, MAX_BUF, "%s", dbcfg.db_type);
 	dbinterface->db_port_ = dbcfg.db_port;	
 	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", dbcfg.db_ip);
 	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", dbcfg.db_username);
 	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
 	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
-
-	if(dbinterface == NULL)
-	{
-		ERROR_MSG("DBUtil::createInterface: can't create dbinterface!\n");
-		return NULL;
-	}
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
