@@ -496,7 +496,7 @@ PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 		PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyitem, NULL);
 		if(PyUnicode_AsWideCharStringRet0 == NULL)
 		{
-			PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent(%s): arg2 not is str!\n", eventdata.name);
+			PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent(%s): arg2 not is str!\n", eventdata.name.c_str());
 			PyErr_PrintEx(0);
 			return NULL;
 		}
