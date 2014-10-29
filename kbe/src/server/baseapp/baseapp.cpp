@@ -338,12 +338,13 @@ PyObject* Baseapp::__py_quantumPassedPercent(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 int Baseapp::quantumPassedPercent(uint64 curr)
 {
-	// 取得间隔差转为微妙级别 / 每秒cpu-stamps = 一秒内所过去的cpu-stamps
+	// 得到上一个tick到现在所流逝的时间戳
 	uint64 pass_stamps = (curr - _g_lastTimestamp) * uint64(1000) / stampsPerSecond();
 
+	// 得到每Hertz的毫秒数
 	static int ms_expected = (1000 / g_kbeSrvConfig.gameUpdateHertz());
 
-	// 得到一个当前tick-pass_stamps占一个时钟周期的的百分比
+	// 得到当前流逝的时间戳占一个时钟周期的的百分比
 	return int(pass_stamps) * 100 / ms_expected;
 }
 
