@@ -199,10 +199,6 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	static SPACE_ID spaceID = 1;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	ForwardItem* pFI = new ForwardItem();
-	pFI->pHandler = NULL;
-	
-	pFI->pBundle = pBundle;
 	(*pBundle).newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -223,6 +219,9 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+		ForwardItem* pFI = new ForwardItem();
+		pFI->pHandler = NULL;
+		pFI->pBundle = pBundle;
 		forward_cellapp_messagebuffer_.push(pFI);
 		return;
 	}
@@ -230,7 +229,6 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	{
 		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		SAFE_RELEASE(pFI);
 	}
 }
 
@@ -248,10 +246,6 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	s >> spaceID;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	ForwardItem* pFI = new ForwardItem();
-	pFI->pHandler = NULL;
-	
-	pFI->pBundle = pBundle;
 	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -272,6 +266,9 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		WARNING_MSG("Cellappmgr::reqRestoreSpaceInCell: not found cellapp, message is buffered.\n");
+		ForwardItem* pFI = new ForwardItem();
+		pFI->pHandler = NULL;
+		pFI->pBundle = pBundle;
 		forward_cellapp_messagebuffer_.push(pFI);
 		return;
 	}
@@ -279,7 +276,6 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	{
 		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		SAFE_RELEASE(pFI);
 	}
 }
 
