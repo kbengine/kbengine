@@ -49,6 +49,7 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
 	bestBaseappID_(0),
 	baseapps_(),
+	pending_logins_(),
 	baseappsInitProgress_(0.f)
 {
 }
@@ -291,8 +292,17 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 												 std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,
 												 COMPONENT_TYPE componentType)
 {
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found loginapp!\n");
+		return;
+	}
+
+	pending_logins_[loginName] = cinfos->cid;
+
 	ENTITY_ID eid = 0;
-	Components::ComponentInfos* cinfos = 
+	cinfos = 
 		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -330,7 +340,16 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
 		accountName, componentID, entityID));
 
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found loginapp!\n");
+		return;
+	}
+
+	pending_logins_[loginName] = cinfos->cid;
+
+	cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr: not found baseapp({}).\n", componentID));
@@ -356,17 +375,19 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
 							  std::string& loginName, std::string& accountName, const std::string& addr, uint16 port)
 {
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
-	size_t componentSize = components.size();
-	
-	if(componentSize == 0)
+	KBEUnordered_map< std::string, COMPONENT_ID >::iterator iter = pending_logins_.find(loginName);
+	if(iter == pending_logins_.end())
 	{
-		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp.\n");
+		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp, pending_logins is error!\n");
 		return;
 	}
-
-	Components::COMPONENTS::iterator iter = components.begin();
-	Mercury::Channel* lpChannel = (*iter).pChannel;
+	
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(iter->second);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp!\n");
+		return;
+	}
 
 	Mercury::Bundle* pBundleToLoginapp = Mercury::Bundle::ObjPool().createObject();
 	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
@@ -374,8 +395,10 @@ void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel,
 	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
 		accountName, addr, port);
 
-	(*pBundleToLoginapp).send(this->networkInterface(), lpChannel);
+	(*pBundleToLoginapp).send(this->networkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
+
+	pending_logins_.erase(iter);
 }
 
 //-------------------------------------------------------------------------------------
