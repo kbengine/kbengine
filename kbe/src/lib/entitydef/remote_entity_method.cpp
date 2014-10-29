@@ -78,8 +78,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream.wpos() > 0)
 			(*pBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		mailbox->postMail(pBundle);
 	}
 	else
 	{

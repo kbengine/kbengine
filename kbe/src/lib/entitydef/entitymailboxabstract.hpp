@@ -102,7 +102,7 @@ public:
 	
 	virtual Mercury::Channel* getChannel(void) = 0;
 
-	virtual bool postMail(Mercury::Bundle& bundle);
+	virtual bool postMail(Mercury::Bundle* pBundle);
 
 	virtual void newMail(Mercury::Bundle& bundle);
 	

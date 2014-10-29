@@ -599,6 +599,7 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	}
 
 	bufferedReceives_[idx].clear();
+	this->send();
 }
 
 //-------------------------------------------------------------------------------------

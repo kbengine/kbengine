@@ -128,14 +128,14 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
+bool EntityMailboxAbstract::postMail(Mercury::Bundle* pBundle)
 {
 	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
 	Mercury::Channel* pChannel = getChannel();
 
 	if(pChannel && !pChannel->isDead())
 	{
-		bundle.send(*Components::getSingleton().pNetworkInterface(), pChannel);
+		pChannel->pushBundle(pBundle);
 		return true;
 	}
 	else
@@ -144,6 +144,7 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 			addr_.c_str()));
 	}
 
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 

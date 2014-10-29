@@ -163,9 +163,8 @@ void Witness::onAttach(Entity* pEntity)
 		(*pForwardBundle) << pEntity_->isOnGround();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-	pEntity_->clientMailbox()->postMail(*pSendBundle);
+	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 }
@@ -192,8 +191,7 @@ void Witness::detach(Entity* pEntity)
 			(*pForwardBundle) << pEntity->id();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-			pClientMB->postMail(*pSendBundle);
-			Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+			pClientMB->postMail(pSendBundle);
 			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 		}
 	}
@@ -382,9 +380,8 @@ void Witness::onEnterSpace(Space* pSpace)
 		(*pForwardBundle) << pEntity_->isOnGround();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-	pEntity_->clientMailbox()->postMail(*pSendBundle);
+	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 
@@ -409,8 +406,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	(*pForwardBundle) << pEntity_->id();
 
 	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-	pEntity_->clientMailbox()->postMail(*pSendBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	pEntity_->clientMailbox()->postMail(pSendBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 
 	lastBasePos.z = -FLT_MAX;
@@ -736,13 +732,6 @@ bool Witness::update()
 				Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 			}
 		}
-	}
-
-	if(pChannel->bundles().size() > 0)
-	{
-		// 如果数据大量阻塞发不出去将会报警
-		AUTO_SCOPED_PROFILE("updateClientSend");
-		pChannel->send();
 	}
 
 	return true;

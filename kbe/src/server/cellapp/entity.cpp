@@ -194,8 +194,7 @@ void Entity::onDestroy(bool callScript)
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(BaseappInterface::onLoseCell);
 			(*pBundle) << id_;
-			baseMailbox_->postMail((*pBundle));
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			baseMailbox_->postMail(pBundle);
 		}
 	}
 
@@ -752,8 +751,7 @@ void Entity::backupCellData()
 		(*pBundle).append(s);
 		MemoryStream::ObjPool().reclaimObject(s);
 
-		baseMailbox_->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		baseMailbox_->postMail(pBundle);
 	}
 	else
 	{
@@ -780,12 +778,11 @@ void Entity::writeToDB(void* data)
 	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
+
 	if(this->baseMailbox())
 	{
-		this->baseMailbox()->postMail((*pBundle));
+		this->baseMailbox()->postMail(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2488,8 +2485,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	// 如果未能正确传输过去则可以从当前cell继续恢复entity.
 	// Cellapp::getSingleton().destroyEntity(id(), false);
 
-	nearbyMBRef->postMail((*pBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	nearbyMBRef->postMail(pBundle);
 
 	// 序列化后将entity先停止移动， 如果传送失败了则可以根据序列化的内容进行恢复
 	stopMove();

@@ -2910,7 +2910,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				
 				mailbox->newMail(bundle);
 				bundle.append(s);
-				mailbox->postMail(bundle);
+				mailbox->postMail(pBundle);
+				reclaim = false;
 			}
 			break;
 		case MAILBOX_TYPE_CLIENT_VIA_BASE: // entity.base.client

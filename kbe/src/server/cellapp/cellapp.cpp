@@ -1065,6 +1065,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	Mercury::Bundle& bundle = *pBundle;
+	bool reclaim = true;
 
 	switch(mailtype)
 	{
@@ -1084,7 +1085,8 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				
 				mailbox->newMail(bundle);
 				bundle.append(s);
-				mailbox->postMail(bundle);
+				mailbox->postMail(pBundle);
+				reclaim = false;
 			}
 			break;
 		case MAILBOX_TYPE_CLIENT_VIA_CELL: // entity.cell.client
@@ -1101,7 +1103,8 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				mailbox->newMail(bundle);
 				bundle.append(s);
 				s.read_skip(s.opsize());
-				mailbox->postMail(bundle);
+				mailbox->postMail(pBundle);
+				reclaim = false;
 			}
 			break;
 		default:
@@ -1111,7 +1114,9 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 	};
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	if(reclaim)
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 	s.opfini();
 }
 
@@ -1621,8 +1626,7 @@ void Cellapp::reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream
 		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 		(*pBundle) << baseMB->id();
 		(*pBundle) << targetCellappID;
-		baseMB->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		baseMB->postMail(pBundle);
 	}
 
 	// 传送成功， 我们销毁这个entity。

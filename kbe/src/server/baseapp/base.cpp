@@ -1254,8 +1254,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle((*pBundle), this->id(), 
 			this->cellMailbox()->componentID(), g_componentID);
 
-		mb->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		mb->postMail(pBundle);
 	}
 	else
 	{
