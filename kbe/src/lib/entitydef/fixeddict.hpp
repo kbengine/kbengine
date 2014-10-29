@@ -36,6 +36,7 @@ class FixedDict : public script::Map
 	INSTANCE_SCRIPT_HREADER(FixedDict, Map)
 public:	
 	static PyMappingMethods mappingMethods;
+	static PySequenceMethods mappingSequenceMethods;
 
 	FixedDict(DataType* dataType);
 	FixedDict(DataType* dataType, std::string& strDictInitData);

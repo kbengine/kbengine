@@ -31,6 +31,21 @@ PyMappingMethods FixedDict::mappingMethods =
 	(objobjargproc)FixedDict::mp_ass_subscript		// mp_ass_subscript
 };
 
+// ²Î¿¼ objects/dictobject.c
+// Hack to implement "key in dict"
+PySequenceMethods FixedDict::mappingSequenceMethods = 
+{
+    0,											/* sq_length */
+    0,											/* sq_concat */
+    0,											/* sq_repeat */
+    0,											/* sq_item */
+    0,											/* sq_slice */
+    0,											/* sq_ass_item */
+    0,											/* sq_ass_slice */
+    PyMapping_HasKey,							/* sq_contains */
+    0,											/* sq_inplace_concat */
+    0,											/* sq_inplace_repeat */
+};
 
 SCRIPT_METHOD_DECLARE_BEGIN(FixedDict)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",				reduce_ex__,			METH_VARARGS,		0)
@@ -46,7 +61,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(FixedDict)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(FixedDict, 0, 0, &FixedDict::mappingMethods, 0, 0)	
+SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
 FixedDict::FixedDict(DataType* dataType, std::string& strDictInitData):
