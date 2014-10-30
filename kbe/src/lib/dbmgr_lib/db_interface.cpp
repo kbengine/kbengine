@@ -83,7 +83,7 @@ bool DBUtil::initialize()
 
 	if(dbcfg.db_passwordEncrypt)
 	{
-		// å¦‚æœå°äº64åˆ™è¡¨ç¤ºç›®å‰è¿˜æ˜¯æ˜æ–‡å¯†ç 
+		// Èç¹ûĞ¡ÓÚ64Ôò±íÃ÷µ±Ç°ÊÇÃ÷ÎÄÃÜÂëÅäÖÃ
 		if(strlen(dbcfg.db_password) < 64)
 		{
 			WARNING_MSG(fmt::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n{}\n",
