@@ -91,7 +91,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			if(cinfos->componentType != MACHINE_TYPE && cinfos->pid != 0 /* µÈÓÚ0Í¨³£ÊÇÔ¤Éè£¬ ÕâÖÖÇé¿öÎÒÃÇÏÈ²»×÷±È½Ï */ && pid != cinfos->pid)
+			if(cinfos->componentType != MACHINE_TYPE && cinfos->pid != 0 /* ç­‰äº0é€šå¸¸æ˜¯é¢„è®¾ï¼Œ è¿™ç§æƒ…å†µæˆ‘ä»¬å…ˆä¸ä½œæ¯”è¾ƒ */ && pid != cinfos->pid)
 			{
 				ERROR_MSG(fmt::format("Components::checkComponents: uid:{}, componentType={}, componentID:{} exist.\n",
 					uid, COMPONENT_NAME_EX(ct), componentID));
@@ -309,7 +309,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				pComponentInfos->pChannel->c_str()));
 
 			pComponentInfos->pChannel->destroy();
-			pComponentInfos->pChannel = NULL;
+			SAFE_RELEASE(pComponentInfos->pChannel);
 			return -1;
 		}
 		else
@@ -388,7 +388,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	{
 		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
 			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
-
+		delete pEndpoint;
 		return -1;
 	}
 
@@ -573,7 +573,7 @@ const Components::ComponentInfos* Components::lookupLocalComponentRunning(uint32
 //-------------------------------------------------------------------------------------		
 bool Components::checkComponentPortUsable(const Components::ComponentInfos* info)
 {
-	// ²»¶ÔÆäËûmachine×ö´¦Àí
+	// ä¸å¯¹å…¶ä»–machineåšå¤„ç†
 	if(info->componentType == MACHINE_TYPE)
 	{
 		return true;
@@ -617,7 +617,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
-	// ÓÉÓÚCOMMON_MERCURY_MESSAGE²»°üº¬client£¬ Èç¹ûÊÇbots£¬ ÎÒÃÇĞèÒªµ¥¶À´¦Àí
+	// ç”±äºCOMMON_MERCURY_MESSAGEä¸åŒ…å«clientï¼Œ å¦‚æœæ˜¯botsï¼Œ æˆ‘ä»¬éœ€è¦å•ç‹¬å¤„ç†
 	if(info->componentType != BOTS_TYPE)
 	{
 		COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
@@ -639,7 +639,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 	int selgot = select(epListen+1, &fds, NULL, NULL, &tv);
 	if(selgot == 0)
 	{
-		return true;	// ³¬Ê±¿ÉÄÜ¶Ô·½·±Ã¦
+		return true;	// è¶…æ—¶å¯èƒ½å¯¹æ–¹ç¹å¿™
 	}
 	else if(selgot == -1)
 	{
