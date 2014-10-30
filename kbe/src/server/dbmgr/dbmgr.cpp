@@ -606,6 +606,21 @@ void Dbmgr::deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::lookUpBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID componentID;
+	ENTITY_SCRIPT_UID sid;
+	CALLBACK_ID callbackID = 0;
+	DBID entityDBID;
+
+	s >> componentID >> entityDBID >> callbackID >> sid;
+	KBE_ASSERT(entityDBID > 0);
+
+	DBUtil::pThreadPool()->addTask(new DBTaskLookUpBaseByDBID(pChannel->addr(), 
+		componentID, entityDBID, callbackID, sid));
+}
+
+//-------------------------------------------------------------------------------------
 void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8 queryMode, DBID dbid, 
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {

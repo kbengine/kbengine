@@ -237,6 +237,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求从数据库删除实体
 	BASEAPP_MESSAGE_DECLARE_STREAM(deleteBaseByDBIDCB,								MERCURY_VARIABLE_MESSAGE)
 	
+	// lookUpBaseByDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(lookUpBaseByDBIDCB,								MERCURY_VARIABLE_MESSAGE)
+
 	// 某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRestoreSpaceCellFromOtherBaseapp,				MERCURY_VARIABLE_MESSAGE)
 

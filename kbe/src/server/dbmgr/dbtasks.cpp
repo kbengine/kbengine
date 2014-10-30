@@ -488,6 +488,75 @@ thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+DBTaskLookUpBaseByDBID::DBTaskLookUpBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid):
+DBTask(addr),
+componentID_(componentID),
+callbackID_(callbackID),
+entityDBID_(entityDBID),
+sid_(sid),
+success_(false),
+entityID_(0),
+entityInAppID_(0)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskLookUpBaseByDBID::~DBTaskLookUpBaseByDBID()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskLookUpBaseByDBID::db_thread_process()
+{
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+
+	KBE_ASSERT(pELTable);
+
+	bool haslog = false;
+	KBEEntityLogTable::EntityLog entitylog;
+
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+
+	// 如果有在线纪录
+	if(pELTable->queryEntity(pdbi_, entityDBID_, entitylog, pModule->getUType()))
+	{
+		success_ = true;
+		entityInAppID_ = entitylog.componentID;
+		entityID_ = entitylog.entityID;
+		KBE_ASSERT(entityID_ > 0 && entityInAppID_ > 0);
+		return false;
+	}
+
+	MemoryStream s;
+	success_ = EntityTables::getSingleton().queryEntity(pdbi_, entityDBID_, &s, pModule);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskLookUpBaseByDBID: {}({}), entityInAppID({}).\n", 
+		pModule->getName(), entityDBID_, entityInAppID_));
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::lookUpBaseByDBIDCB);
+
+	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
 DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, 
 										 std::string& registerName,
 										 std::string& accountName, 

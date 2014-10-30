@@ -276,6 +276,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,										METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,												METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deleteBaseByDBID,				__py_deleteBaseByDBID,										METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		lookUpBaseByDBID,				__py_lookUpBaseByDBID,										METH_VARARGS,			0);
 	return EntityApp<Base>::installPyModules();
 }
 
@@ -3586,6 +3587,147 @@ void Baseapp::deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStr
 		else
 		{
 			ERROR_MSG(fmt::format("Baseapp::deleteBaseByDBIDCB: can't found callback:{}.\n",
+				callbackID));
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args != (entityType, dbID, pycallback)!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	char* entityType = NULL;
+	PyObject* pycallback = NULL;
+	DBID dbid;
+
+	if(PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
+	if(sm == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: entityType(%s) not found!", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(dbid == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: dbid is 0!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	if(!PyCallable_Check(pycallback))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: invalid pycallback!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("KBEngine::lookUpBaseByDBID({}): not found dbmgr!\n");
+		return NULL;
+	}
+
+	CALLBACK_ID callbackID = Baseapp::getSingleton().callbackMgr().save(pycallback);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::lookUpBaseByDBID);
+	(*pBundle) << g_componentID;
+	(*pBundle) << dbid;
+	(*pBundle) << callbackID;
+	(*pBundle) << sm->getUType();
+	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::lookUpBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID = 0;
+	COMPONENT_ID entityInAppID = 0;
+	bool success = false;
+	CALLBACK_ID callbackID;
+	DBID entityDBID;
+	ENTITY_SCRIPT_UID sid;
+
+	s >> success >> entityID >> entityInAppID >> callbackID >> sid >> entityDBID;
+
+	ScriptDefModule* sm = EntityDef::findScriptModule(sid);
+	if(sm == NULL)
+	{
+		ERROR_MSG(fmt::format("Baseapp::lookUpBaseByDBIDCB: entityUType({}) not found!\n", sid));
+		return;
+	}
+
+	if(callbackID > 0)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		// true or false or mailbox
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if(pyfunc != NULL)
+		{
+			PyObject* pyval = NULL;
+
+			if(entityID > 0 && entityInAppID > 0)
+			{
+				Base* e = static_cast<Base*>(this->findEntity(entityID));
+				if(e != NULL)
+				{
+					pyval = e;
+					Py_INCREF(pyval);
+				}
+				else
+				{
+					pyval = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, entityInAppID, entityID, MAILBOX_TYPE_BASE));
+				}
+			}
+			else if(success)
+			{
+				pyval = Py_True;
+				Py_INCREF(pyval);
+			}
+			else
+			{
+				pyval = Py_False;
+				Py_INCREF(pyval);
+			}
+
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("O"), 
+												pyval);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+
+			Py_DECREF(pyval);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Baseapp::lookUpBaseByDBIDCB: can't found callback:{}.\n",
 				callbackID));
 		}
 	}

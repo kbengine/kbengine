@@ -166,6 +166,11 @@ public:
 	void deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		通过dbid查询一个实体是否从数据库检出
+	*/
+	void lookUpBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
 	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 

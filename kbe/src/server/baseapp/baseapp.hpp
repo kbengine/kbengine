@@ -424,6 +424,18 @@ public:
 	*/
 	void deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/**
+		通过dbid查询一个实体是否从数据库检出
+
+		如果实体在线回调返回basemailbox，如果实体不在线则回调返回true，其他任何原因都返回false.
+	*/
+	static PyObject* __py_lookUpBaseByDBID(PyObject* self, PyObject* args);
+
+	/** 网络接口
+		如果实体在线回调返回basemailbox，如果实体不在线则回调返回true，其他任何原因都返回false.
+	*/
+	void lookUpBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/** 网络接口
 		请求绑定email
 	*/
