@@ -491,6 +491,7 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 
 		return false;
 	}
+
 	return true;
 }
 
@@ -724,6 +725,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 		}
 		XML_FOR_END(defPropertyNode);
 	}
+
 	return true;
 }
 
@@ -1004,22 +1006,34 @@ bool EntityDef::isLoadScriptModule(ScriptDefModule* scriptModule)
 	switch(__loadComponentType)
 	{
 	case BASEAPP_TYPE:
-		if(!scriptModule->hasBase())
-			return false;
-		break;
+		{
+			if(!scriptModule->hasBase())
+				return false;
+
+			break;
+		}
 	case CELLAPP_TYPE:
-		if(!scriptModule->hasCell())
-			return false;
-		break;
+		{
+			if(!scriptModule->hasCell())
+				return false;
+
+			break;
+		}
 	case CLIENT_TYPE:
 	case BOTS_TYPE:
-		if(!scriptModule->hasClient())
-			return false;
-		break;
+		{
+			if(!scriptModule->hasClient())
+				return false;
+
+			break;
+		}
 	default:
-		if(!scriptModule->hasCell())
-			return false;
-		break;
+		{
+			if(!scriptModule->hasCell())
+				return false;
+
+			break;
+		}
 	};
 
 	return true;
