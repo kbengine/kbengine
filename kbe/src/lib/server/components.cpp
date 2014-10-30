@@ -309,6 +309,10 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				pComponentInfos->pChannel->c_str()));
 
 			pComponentInfos->pChannel->destroy();
+			
+
+			// 此时不可强制释放内存，destroy中已经对其减引用
+			// SAFE_RELEASE(pComponentInfos->pChannel);
 			pComponentInfos->pChannel = NULL;
 			return -1;
 		}
@@ -389,6 +393,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
 			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
 
+		delete pEndpoint;
 		return -1;
 	}
 
@@ -639,7 +644,8 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 	int selgot = select(epListen+1, &fds, NULL, NULL, &tv);
 	if(selgot == 0)
 	{
-		return true;	// 超时可能对方繁忙
+		// 超时, 可能对方繁忙
+		return true;	
 	}
 	else if(selgot == -1)
 	{
