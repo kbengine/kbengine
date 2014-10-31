@@ -327,9 +327,66 @@ PyObject* ScriptDefModule::getInitDict(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::autoMatchCompOwn()
 {
-	setClient(false);
-	setBase(false);
-	setCell(false);
+	/*
+		entity存在某部分(cell, base, client)的判定规则
+
+		1: entitydef文件中存在实体某部分的方法或者属性，同时也必须也存在py脚本
+		2: 用户在entities.xml明确声明存在某实体部分(为了unity3d或者html5类的前端无法加载py的环境考虑)
+			entities.xml， <Spaces hasCell="true" hasClient="false", hasBase="true"></Spaces>
+	*/
+
+	std::string entitiesFile = Resmgr::getSingleton().matchRes("scripts/entities.xml");
+	// 打开这个entities.xml文件
+	SmartPointer<XmlPlus> xml(new XmlPlus());
+	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
+		return;
+	
+	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
+	TiXmlNode* node = xml.get()->getRootNode();
+	if(node == NULL)
+		return;
+
+	int assertionHasClient = -1;
+	int assertionHasBase = -1;
+	int assertionHasCell = -1;
+
+	// 开始遍历所有的entity节点
+	XML_FOR_BEGIN(node)
+	{
+		std::string moduleName = xml.get()->getKey(node);
+		if(name_ == moduleName)
+		{
+			const char* val = node->ToElement()->Attribute("hasClient");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasClient = 1;
+				else
+					assertionHasClient = 0;
+			}
+
+			val = node->ToElement()->Attribute("hasCell");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasCell = 1;
+				else
+					assertionHasCell = 0;
+			}
+
+			val = node->ToElement()->Attribute("hasBase");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasBase = 1;
+				else
+					assertionHasBase = 0;
+			}
+
+			break;
+		}
+	}
+	XML_FOR_END(node);
 
 	std::string fmodule = "scripts/client/" + name_ + ".py";
 	std::string fmodule_pyc = "scripts/client/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
@@ -338,7 +395,22 @@ void ScriptDefModule::autoMatchCompOwn()
 	{
 		setClient(true);
 	}
-	
+	else
+	{
+		if(assertionHasClient < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			setClient(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setClient(assertionHasClient == 1);
+		}
+	}
+
 	if(g_componentType == CLIENT_TYPE)
 	{
 		setBase(true);
@@ -353,6 +425,21 @@ void ScriptDefModule::autoMatchCompOwn()
 	{
 		setBase(true);
 	}
+	else
+	{
+		if(assertionHasBase < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			setBase(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setBase(assertionHasBase == 1);
+		}
+	}
 
 	fmodule = "scripts/cell/" + name_ + ".py";
 	fmodule_pyc = "scripts/cell/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
@@ -360,6 +447,21 @@ void ScriptDefModule::autoMatchCompOwn()
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
 		setCell(true);
+	}
+	else
+	{
+		if(assertionHasCell < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			setCell(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setCell(assertionHasCell == 1);
+		}
 	}
 }
 
