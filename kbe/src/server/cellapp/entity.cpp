@@ -1987,8 +1987,8 @@ void Entity::debugAOI()
 		}
 	}
 
-	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}", scriptName(), this->id(), 
-		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending));
+	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}, aoiRadius={}, aoiHyst={}", scriptName(), this->id(), 
+		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending, pWitness_->aoiRadius(), pWitness_->aoiHysteresisArea()));
 
 	iter = pWitness_->aoiEntities().begin();
 	for(; iter != pWitness_->aoiEntities().end(); iter++)
