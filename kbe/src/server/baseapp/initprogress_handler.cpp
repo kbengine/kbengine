@@ -67,11 +67,11 @@ bool InitProgressHandler::process()
 	float v = 0.0f;
 	bool completed = false;
 
-	if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "readyForLogin") > 0)
+	if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "onReadyForLogin") > 0)
 	{
 		// 所有脚本都加载完毕
 		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
-											const_cast<char*>("readyForLogin"), 
+											const_cast<char*>("onReadyForLogin"), 
 											const_cast<char*>("i"), 
 											g_componentGroupOrder);
 
