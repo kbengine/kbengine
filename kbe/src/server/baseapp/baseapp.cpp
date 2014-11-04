@@ -578,6 +578,28 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::onRequestRestoreCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID cid, source_cid;
+	bool canRestore = true;
+
+	s >> cid >> source_cid >> canRestore;
+
+	DEBUG_MSG(fmt::format("Baseapp::onRequestRestoreCB: cid={}, source_cid={}, canRestore={}, channel={}.\n", 
+		cid, source_cid, canRestore, pChannel->c_str()));
+
+	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
+	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	{
+		if((*resiter)->cellappID() == source_cid)
+		{
+			(*resiter)->canRestore(canRestore);
+			break;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 {
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();

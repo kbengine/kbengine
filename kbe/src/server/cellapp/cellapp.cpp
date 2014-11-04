@@ -876,6 +876,24 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::requestRestore(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID cid;
+	s >> cid;
+
+	bool canRestore = idClient_.getSize() > 0;
+
+	DEBUG_MSG(fmt::format("Cellapp::requestRestore: cid={}, canRestore={}, channel={}.\n", 
+		cid, canRestore, pChannel->c_str()));
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onRequestRestoreCB);
+	(*pBundle) << g_componentID << cid << canRestore;
+	(*pBundle).send(this->networkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string entityType;

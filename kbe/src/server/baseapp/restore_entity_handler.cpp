@@ -41,7 +41,8 @@ otherRestoredSpaces_(),
 broadcastOtherBaseapps_(false),
 tickReport_(0),
 spaceIDs_(),
-cellappID_(cellappID)
+cellappID_(cellappID),
+canRestore_(false)
 {
 	// networkInterface_.mainDispatcher().addFrequentTask(this);
 }
@@ -72,7 +73,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 	data.id = id;
 	data.creatingCell = false;
 	data.processed = false;
-	
+
 	Base* pBase = Baseapp::getSingleton().findEntity(data.id);
 	if(pBase && !pBase->isDestroyed())
 	{
@@ -113,13 +114,33 @@ bool RestoreEntityHandler::process()
 	{
 		Components::COMPONENTS::iterator ctiter = cts.begin();
 		if((*ctiter).pChannel == NULL)
+		{
+			canRestore(false);
 			return true;
+		}
 
 		pChannel = (*ctiter).pChannel;
 	}
 
 	if(pChannel == NULL)
+	{
+		canRestore(false);
 		return true;
+	}
+
+	if(!canRestore())
+	{
+		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
+		{
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(CellappInterface::requestRestore);
+			(*pBundle) << cellappID();
+			(*pBundle).send(Baseapp::getSingleton().networkInterface(), pChannel);
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		}
+
+		return true;
+	}
 
 	int count = 0;
 
@@ -382,6 +403,7 @@ void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID basea
 
 	otherRestoredSpaces_.push_back(data);
 }
+
 
 //-------------------------------------------------------------------------------------
 

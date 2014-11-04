@@ -53,6 +53,14 @@ public:
 	*/
 	void onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID baseappID, COMPONENT_ID cellappID, 
 		SPACE_ID spaceID, ENTITY_ID spaceEntityID, ENTITY_SCRIPT_UID utype, bool destroyed);
+
+	/** 
+		是否允许进行恢复
+	*/
+	bool canRestore()const{ return canRestore_; }
+	void canRestore(bool v){ canRestore_ = v; }
+
+	COMPONENT_ID cellappID()const{ return cellappID_; }
 private:
 	Mercury::NetworkInterface & networkInterface_;
 	std::vector<RestoreData> entities_;
@@ -69,6 +77,8 @@ private:
 	std::vector<SPACE_ID> spaceIDs_;
 
 	COMPONENT_ID cellappID_;
+
+	bool canRestore_;
 };
 
 

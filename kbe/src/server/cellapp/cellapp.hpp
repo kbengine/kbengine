@@ -123,6 +123,11 @@ public:
 	void onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
+		其他APP请求在此灾难恢复
+	*/
+	void requestRestore(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		baseapp请求在这个cellapp上创建一个entity
 	*/
 	void onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

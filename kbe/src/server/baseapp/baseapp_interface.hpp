@@ -243,6 +243,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRestoreSpaceCellFromOtherBaseapp,				MERCURY_VARIABLE_MESSAGE)
 
+	// 请求在其他APP灾难恢复返回结果。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onRequestRestoreCB,								MERCURY_VARIABLE_MESSAGE)
+
 	// 请求绑定email
 	BASEAPP_MESSAGE_EXPOSED(reqAccountBindEmail)
 	BASEAPP_MESSAGE_DECLARE_ARGS3(reqAccountBindEmail,								MERCURY_VARIABLE_MESSAGE,

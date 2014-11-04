@@ -370,6 +370,11 @@ public:
 	// 引擎脚本层版本不匹配
 	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
 
+	/** 网络接口
+		请求在其他APP灾难恢复返回结果
+	*/
+	void onRequestRestoreCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/**
 		一个cell的entity都恢复完毕
 	*/
