@@ -1970,7 +1970,7 @@ void Entity::debugAOI()
 {
 	if(pWitness_ == NULL)
 	{
-		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} has no witness!\n", scriptName(), this->id()));
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} has no witness!", scriptName(), this->id()));
 		return;
 	}
 	
@@ -1987,7 +1987,7 @@ void Entity::debugAOI()
 		}
 	}
 
-	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}\n", scriptName(), this->id(), 
+	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}", scriptName(), this->id(), 
 		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending));
 
 	iter = pWitness_->aoiEntities().begin();
@@ -2004,7 +2004,7 @@ void Entity::debugAOI()
 			dist = KBEVec3Length(&distvec);
 		}
 
-		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}, Seen={8}\n", 
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}, Seen={8}", 
 			this->id(), 
 			(pEntity != NULL ? pEntity->scriptName() : "unknown"),
 			(*iter)->id(),
