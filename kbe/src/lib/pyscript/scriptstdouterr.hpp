@@ -50,11 +50,14 @@ public:
 	virtual void onPrint(const wchar_t* msg, uint32 msglen);
 
 	INLINE std::wstring& buffer();
+
+	void pyPrint(const std::string& str);
 protected:
 	bool softspace_;
 	PyObject* sysModule_;
 	PyObject* prevStderr_;
 	PyObject* prevStdout_;
+	PyObject* pyPrint_;
 	bool isInstall_;
 	std::wstring sbuffer_;
 } ;

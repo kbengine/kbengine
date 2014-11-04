@@ -42,6 +42,16 @@ INLINE ScriptStdOutErrHook* Script::pyStdouterrHook()const
 	return pyStdouterrHook_;
 }
 
+INLINE ScriptStdOutErr* Script::pyStdouterr()const
+{
+	return pyStdouterr_;
+}
+
+INLINE void Script::pyPrint(const std::string& str)
+{
+	pyStdouterr_->pyPrint(str);
+}
+
 }
 }
 

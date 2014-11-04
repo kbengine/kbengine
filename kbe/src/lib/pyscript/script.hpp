@@ -153,7 +153,10 @@ public:
 	static void acquireLock();
 	static void releaseLock();
 
+	INLINE ScriptStdOutErr* pyStdouterr()const;
 	INLINE ScriptStdOutErrHook* pyStdouterrHook()const;
+
+	INLINE void pyPrint(const std::string& str);
 protected:
 	PyObject* 					module_;
 	PyObject*					extraModule_;		// À©Õ¹½Å±¾Ä£¿é

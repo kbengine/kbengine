@@ -108,6 +108,16 @@ bool ScriptStdOutErr::install(void)
 		return false;
 	}
 
+	PyObject * m = PyImport_ImportModule("builtins");
+	if (!m)
+	{
+		ERROR_MSG("ScriptStdOut: Failed to import builtins module\n");
+		return false;
+	}
+
+	pyPrint_ = PyObject_GetAttrString(m, "print");
+	Py_DECREF(m);
+
 	prevStderr_ = PyObject_GetAttrString(sysModule_, "stderr");
 	prevStdout_ = PyObject_GetAttrString(sysModule_, "stdout");
 
@@ -134,10 +144,30 @@ bool ScriptStdOutErr::uninstall(void)
 		prevStdout_ = NULL;
 	}
 
+	if (pyPrint_)
+	{
+		Py_DECREF(pyPrint_);
+		pyPrint_ = NULL;
+	}
+
 	Py_DECREF(sysModule_);
 	sysModule_ = NULL;
 	isInstall_ = false;
 	return true;	
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptStdOutErr::pyPrint(const std::string& str)
+{
+	PyObject* pyRet = PyObject_CallFunction(pyPrint_, 
+		const_cast<char*>("(s)"), str.c_str());
+	
+	SCRIPT_ERROR_CHECK();
+	
+	if(pyRet)
+	{
+		S_RELEASE(pyRet);
+	}
 }
 
 //-------------------------------------------------------------------------------------

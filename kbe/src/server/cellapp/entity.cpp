@@ -1970,14 +1970,27 @@ void Entity::debugAOI()
 {
 	if(pWitness_ == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::debugAOI: {} has no witness!\n", scriptName(), this->id()));
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} has no witness!\n", scriptName(), this->id()));
 		return;
 	}
 	
-	INFO_MSG(fmt::format("{}::debugAOI: {} size={}\n", scriptName(), this->id(), 
-		pWitness_->aoiEntities().size()));
-
+	int pending = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	{
+		Entity* pEntity = (*iter)->pEntity();
+
+		if(pEntity)
+		{
+			if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
+				pending++;
+		}
+	}
+
+	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}\n", scriptName(), this->id(), 
+		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending));
+
+	iter = pWitness_->aoiEntities().begin();
 	for(; iter != pWitness_->aoiEntities().end(); iter++)
 	{
 		Entity* pEntity = (*iter)->pEntity();
@@ -1991,13 +2004,13 @@ void Entity::debugAOI()
 			dist = KBEVec3Length(&distvec);
 		}
 
-		INFO_MSG(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}\n", 
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}, Seen={8}\n", 
 			this->id(), 
 			(pEntity != NULL ? pEntity->scriptName() : "unknown"),
 			(*iter)->id(),
 			epos.x, epos.y, epos.z,
 			dist,
-			this->scriptName()));
+			this->scriptName(), (((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) ? "false" : "true")));
 	}
 }
 
