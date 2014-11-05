@@ -54,7 +54,7 @@ DataDownload::~DataDownload()
 
 	if(proxy)
 	{
-		proxy->onStreamComplete(id_, totalSentBytes_ == totalBytes_);
+		proxy->onStreamComplete(id_, totalBytes_ > 0 ? totalSentBytes_ == totalBytes_ : false);
 	}
 }
 
