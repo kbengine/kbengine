@@ -514,7 +514,6 @@ bool DBTaskLookUpBaseByDBID::db_thread_process()
 
 	KBE_ASSERT(pELTable);
 
-	bool haslog = false;
 	KBEEntityLogTable::EntityLog entitylog;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
