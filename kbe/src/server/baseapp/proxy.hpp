@@ -113,6 +113,11 @@ public:
 	void onEntitiesEnabled(void);
 	
 	/**
+		一个数据下载任务完成
+	*/
+	void onStreamComplete(int16 id, bool success);
+
+	/**
 		登陆尝试， 当正常的登陆失败之后， 调用这个接口再进行尝试 
 	*/
 	int32 onLogOnAttempt(const char* addr, uint32 port, const char* password);

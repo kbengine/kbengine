@@ -799,4 +799,13 @@ bool Proxy::sendToClient(bool expectData)
 }
 
 //-------------------------------------------------------------------------------------
+void Proxy::onStreamComplete(int16 id, bool success)
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onStreamComplete"), 
+		const_cast<char*>("hO"), id, success ? Py_True : Py_False);
+}
+
+//-------------------------------------------------------------------------------------
 }

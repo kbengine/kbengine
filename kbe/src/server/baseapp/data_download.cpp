@@ -49,6 +49,13 @@ error_(false)
 DataDownload::~DataDownload()
 {
 	SAFE_RELEASE_ARRAY(stream_);
+
+	Proxy* proxy = static_cast<Proxy*>(Baseapp::getSingleton().findEntity(entityID_));
+
+	if(proxy)
+	{
+		proxy->onStreamComplete(id_, totalSentBytes_ == totalBytes_);
+	}
 }
 
 //-------------------------------------------------------------------------------------
