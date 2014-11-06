@@ -118,8 +118,8 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
-	DEBUG_MSG(fmt::format("Witness::attach: {}({}).\n", 
-		pEntity->scriptName(), pEntity->id()));
+	//DEBUG_MSG(fmt::format("Witness::attach: {}({}).\n", 
+	//	pEntity->scriptName(), pEntity->id()));
 
 	pEntity_ = pEntity;
 
@@ -172,8 +172,8 @@ void Witness::onAttach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
-	DEBUG_MSG(fmt::format("Witness::detach: {}({}).\n", 
-		pEntity->scriptName(), pEntity->id()));
+	//DEBUG_MSG(fmt::format("Witness::detach: {}({}).\n", 
+	//	pEntity->scriptName(), pEntity->id()));
 
 	EntityMailbox* pClientMB = pEntity_->clientMailbox();
 	if(pClientMB)
@@ -291,8 +291,8 @@ void Witness::onEnterAOI(Entity* pEntity)
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
-			DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
-				pEntity_->id(), pEntity->id()));
+			//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+			//	pEntity_->id(), pEntity->id()));
 
 			(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 			(*iter)->pEntity(pEntity);
@@ -302,8 +302,8 @@ void Witness::onEnterAOI(Entity* pEntity)
 		return;
 	}
 
-	DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
-		pEntity_->id(), pEntity->id()));
+	//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+	//	pEntity_->id(), pEntity->id()));
 	
 	EntityRef* pEntityRef = new EntityRef(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
@@ -327,8 +327,8 @@ void Witness::onLeaveAOI(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 {
-	DEBUG_MSG(fmt::format("Witness::onLeaveAOI: {} entity={}\n", 
-		pEntity_->id(), pEntityRef->id()));
+	//DEBUG_MSG(fmt::format("Witness::onLeaveAOI: {} entity={}\n", 
+	//	pEntity_->id(), pEntityRef->id()));
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);

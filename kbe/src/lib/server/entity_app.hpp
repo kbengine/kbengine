@@ -135,10 +135,10 @@ public:
 	/**
 		创建一个entity 
 	*/
-	E* createEntityCommon(const char* entityType, PyObject* params,
+	E* createEntity(const char* entityType, PyObject* params,
 		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
 
-	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
+	virtual E* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
@@ -550,13 +550,13 @@ bool EntityApp<E>::uninstallPyModules()
 }
 
 template<class E>
-E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
+E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 										 bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
 	// 检查ID是否足够, 不足返回NULL
 	if(eid <= 0 && idClient_.getSize() == 0)
 	{
-		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntityCommon: is Failed. not enough entityIDs.");
+		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -564,13 +564,13 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -582,7 +582,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	if(id <= 0)
 		id = idClient_.alloc();
 	
-	E* entity = onCreateEntityCommon(obj, sm, id);
+	E* entity = onCreateEntity(obj, sm, id);
 
 	if(initProperty)
 		entity->initProperty();
@@ -598,18 +598,18 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
+		INFO_MSG(fmt::format("EntityApp::createEntity: new {} ({}) refc={}.\n", entityType, id, obj->ob_refcnt));
 	}
 	else
 	{
-		INFO_MSG(fmt::format("EntityApp::createEntityCommon: new {0} {1}\n", entityType, id));
+		INFO_MSG(fmt::format("EntityApp::createEntity: new {0} {1}\n", entityType, id));
 	}
 
 	return entity;
 }
 
 template<class E>
-E* EntityApp<E>::onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
+E* EntityApp<E>::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
 {
 	// 执行Entity的构造函数
 	return new(pyEntity) E(eid, sm);

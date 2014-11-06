@@ -773,7 +773,7 @@ Base* Baseapp::onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENT
 		return new(pyEntity) Proxy(eid, sm);
 	}
 
-	return EntityApp<Base>::onCreateEntityCommon(pyEntity, sm, eid);
+	return EntityApp<Base>::onCreateEntity(pyEntity, sm, eid);
 }
 
 //-------------------------------------------------------------------------------------
@@ -796,7 +796,7 @@ PyObject* Baseapp::__py_createBase(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType, params);
+	PyObject* e = Baseapp::getSingleton().createEntity(entityType, params);
 	if(e != NULL)
 		Py_INCREF(e);
 
@@ -1012,7 +1012,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
-	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
+	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
 		static_cast<Base*>(e)->dbid(dbid);
@@ -1267,7 +1267,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel,
 	s >> wasActive;
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
-	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
+	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
 		static_cast<Base*>(e)->dbid(dbid);
@@ -1511,7 +1511,7 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 	if(strInitData.size() > 0)
 		params = script::Pickler::unpickle(strInitData);
 
-	Base* base = createEntityCommon(entityType.c_str(), params);
+	Base* base = createEntity(entityType.c_str(), params);
 	Py_XDECREF(params);
 
 	if(base == NULL)
@@ -2609,7 +2609,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
+	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
 		NULL, false, entityID));
 
 	Mercury::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);

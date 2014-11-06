@@ -403,7 +403,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	}
 	
 	// 创建entity
-	Entity* pEntity = Cellapp::getSingleton().createEntityCommon(entityType, params, false, 0);
+	Entity* pEntity = Cellapp::getSingleton().createEntity(entityType, params, false, 0);
 
 	if(pEntity != NULL)
 	{
@@ -747,7 +747,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	if(space != NULL)
 	{
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), NULL, false, mailboxEntityID, false);
+		Entity* e = createEntity(entityType.c_str(), NULL, false, mailboxEntityID, false);
 		
 		if(e == NULL)
 		{
@@ -820,7 +820,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 	if(space != NULL)
 	{
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), NULL, false, mailboxEntityID, false);
+		Entity* e = createEntity(entityType.c_str(), NULL, false, mailboxEntityID, false);
 		
 		if(e == NULL)
 		{
@@ -983,7 +983,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		PyObject* cellData = NULL;
 	
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), cellData, false, entityID, false);
+		Entity* e = createEntity(entityType.c_str(), cellData, false, entityID, false);
 		
 		if(e == NULL)
 		{
@@ -1563,7 +1563,7 @@ void Cellapp::reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& 
 	}
 
 	// 创建entity
-	Entity* e = createEntityCommon(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
+	Entity* e = createEntity(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
 	if(e == NULL)
 	{
 		s.rpos(rpos);
