@@ -230,18 +230,6 @@ INLINE bool Entity::isOnGround()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Entity::shouldAutoBackup()const
-{
-	return shouldAutoBackup_;
-}
-
-//-------------------------------------------------------------------------------------
-INLINE void Entity::shouldAutoBackup(int8 v)
-{
-	shouldAutoBackup_ = v;
-}
-
-//-------------------------------------------------------------------------------------
 INLINE GAME_TIME Entity::posChangedTime()const
 {
 	return posChangedTime_;

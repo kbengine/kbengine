@@ -88,7 +88,6 @@ SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
-SCRIPT_GETSET_DECLARE("shouldAutoBackup",			pyGetShouldAutoBackup,			pySetShouldAutoBackup,		0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
@@ -2684,43 +2683,6 @@ void Entity::onRestore()
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::pySetShouldAutoBackup(PyObject *value)
-{
-	if(!isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: not is real entity(%d).", 
-			scriptName(), id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(isDestroyed())	
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d is destroyed!\n",		
-			scriptName(), id());		
-		PyErr_PrintEx(0);
-		return 0;																				
-	}
-
-	if(!PyLong_Check(value))
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::shouldAutoBackup: %d set shouldAutoBackup value is not int!\n",		
-			scriptName(), id());		
-		PyErr_PrintEx(0);
-		return 0;	
-	}
-
-	shouldAutoBackup_ = (int8)PyLong_AsLong(value);
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetShouldAutoBackup()
-{
-	return PyLong_FromLong(shouldAutoBackup_);
-}
-
-//-------------------------------------------------------------------------------------
 bool Entity::_reload(bool fullReload)
 {
 	allClients_->setScriptModule(scriptModule_);
@@ -2861,7 +2823,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 	}
 
 	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
-		isOnGround_ << topSpeed_ << topSpeedY_ << shouldAutoBackup_ << 
+		isOnGround_ << topSpeed_ << topSpeedY_ << 
 		layer_ << baseMailboxComponentID;
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
@@ -2881,7 +2843,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	COMPONENT_ID baseMailboxComponentID;
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> shouldAutoBackup_ >> layer_ >> baseMailboxComponentID;
+		topSpeedY_ >> layer_ >> baseMailboxComponentID;
 
 	this->scriptModule_ = EntityDef::findScriptModule(scriptUType);
 

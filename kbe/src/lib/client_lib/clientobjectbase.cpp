@@ -301,7 +301,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------	
-client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* params,
+client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
 	EntityMailbox* base, EntityMailbox* cell)
 {
@@ -310,7 +310,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntity: entity [%s] not found.\n", 
 			entityType);
 
 		PyErr_PrintEx(0);
@@ -318,7 +318,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	}
 	else if(!sm->hasClient())
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntity: entity [%s] not found.\n", 
 			entityType);
 
 		PyErr_PrintEx(0);
@@ -345,12 +345,12 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(fmt::format("ClientObjectBase::createEntityCommon: new {} ({}) refc={}.\n", 
+		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({}) refc={}.\n", 
 			entityType, eid, obj->ob_refcnt));
 	}
 	else
 	{
-		INFO_MSG(fmt::format("ClientObjectBase::createEntityCommon: new {} ({})\n",
+		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({})\n",
 			entityType, eid));
 	}
 
@@ -743,7 +743,7 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
 		NULL, appID(), eid, MAILBOX_TYPE_BASE);
 
-	createEntityCommon(entityType.c_str(), NULL, true, eid, true, mailbox, NULL);
+	createEntity(entityType.c_str(), NULL, true, eid, true, mailbox, NULL);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -785,7 +785,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
 				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-			entity = createEntityCommon(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+			entity = createEntity(sm->getName(), NULL, true, eid, true, NULL, mailbox);
 
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);

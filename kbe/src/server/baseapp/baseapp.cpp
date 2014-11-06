@@ -766,7 +766,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 }
 
 //-------------------------------------------------------------------------------------
-Base* Baseapp::onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
+Base* Baseapp::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
 {
 	if(PyType_IsSubtype(sm->getScriptType(), Proxy::getScriptType()))
 	{
