@@ -452,6 +452,11 @@ public:
 							uint32 controllerID, int32 userarg);
 
 	/** 
+		一个entity进入了AOI区域
+	*/
+	void onEnteredAoI(Entity* entity);
+
+	/** 
 		停止任何移动行为
 	*/
 	bool stopMove();

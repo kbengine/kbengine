@@ -1082,6 +1082,15 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, ui
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onEnteredAoI(Entity* entity)
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onEnteredAoI"), 
+		const_cast<char*>("O"), entity);
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetPosition(PyObject *value)
 {
 	if(isDestroyed())	

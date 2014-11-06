@@ -282,6 +282,8 @@ void Witness::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 void Witness::onEnterAOI(Entity* pEntity)
 {
+	pEntity_->onEnteredAoI(pEntity);
+
 	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
 		findif_vector_entityref_exist_by_entity_handler(pEntity));
 
