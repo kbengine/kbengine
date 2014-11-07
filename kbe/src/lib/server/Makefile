@@ -2,7 +2,6 @@ LIB =	server
 
 SRCS =				\
 	common			\
-	componentbridge		\
 	components		\
 	component_active_report_handler \
 	entity_app		\
