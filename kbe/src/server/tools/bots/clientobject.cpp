@@ -25,7 +25,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/fixed_messages.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "entitydef/scriptdef_module.hpp"

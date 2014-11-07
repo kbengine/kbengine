@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "entitydef/entitydef.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "helper/profile.hpp"
 #include "client_lib/client_interface.hpp"
@@ -78,7 +78,7 @@ state_(C_STATE_INIT)
 
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
 
-	Components::getSingleton().pNetworkInterface(&ninterface);
+	Components::getSingleton().initialize(&ninterface, CLIENT_TYPE, g_componentID);
 }
 
 //-------------------------------------------------------------------------------------

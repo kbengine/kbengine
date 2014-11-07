@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "network/bundle_broadcast.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include <sstream>
 
 namespace KBEngine{
@@ -101,10 +101,10 @@ void Messagelog::finalise()
 //-------------------------------------------------------------------------------------	
 bool Messagelog::canShutdown()
 {
-	if(Componentbridge::getComponents().getGameSrvComponentsSize() > 0)
+	if(Components::getSingleton().getGameSrvComponentsSize() > 0)
 	{
 		INFO_MSG(fmt::format("Messagelog::canShutdown(): Waiting for components({}) destruction!\n", 
-			Componentbridge::getComponents().getGameSrvComponentsSize()));
+			Components::getSingleton().getGameSrvComponentsSize()));
 
 		return false;
 	}

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "network/bundle.hpp"
+#include "network/tcp_packet.hpp"
 #include "billingsystem.hpp"
 #include "anonymous_channel.hpp"
 #include "orders.hpp"

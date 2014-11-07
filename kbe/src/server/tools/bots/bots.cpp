@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pybots.hpp"
 #include "bots.hpp"
 #include "server/telnet_server.hpp"
+#include "server/components.hpp"
 #include "client_lib/entity.hpp"
 #include "clientobject.hpp"
 #include "bots_interface.hpp"
@@ -30,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "helper/watch_pools.hpp"
 #include "helper/console_helper.hpp"
@@ -44,8 +45,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
-
-Componentbridge* g_pComponentbridge = NULL;
 
 //-------------------------------------------------------------------------------------
 Bots::Bots(Network::EventDispatcher& dispatcher, 
@@ -63,13 +62,13 @@ pEventPoller_(Network::EventPoller::create()),
 pTelnetServer_(NULL)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
-	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
+	Components::getSingleton().initialize(&ninterface, componentType, componentID);
 }
 
 //-------------------------------------------------------------------------------------
 Bots::~Bots()
 {
-	SAFE_RELEASE(g_pComponentbridge);
+	Components::getSingleton().finalise();
 	SAFE_RELEASE(pEventPoller_);
 }
 
@@ -77,7 +76,7 @@ Bots::~Bots()
 bool Bots::initialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
-	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
 	return ClientApp::initialize();
 }
 
@@ -469,7 +468,7 @@ void Bots::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE componentT
 	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
-			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
+			Components::getSingleton().findComponent(componentType, KBEngine::getUserUID(), componentID);
 
 		if(cinfos == NULL)
 		{

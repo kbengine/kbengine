@@ -95,7 +95,6 @@
   <ItemGroup>
     <ClCompile Include="common.cpp" />
     <ClCompile Include="component_active_report_handler.cpp" />
-    <ClCompile Include="componentbridge.cpp" />
     <ClCompile Include="components.cpp" />
     <ClCompile Include="entity_app.cpp" />
     <ClCompile Include="forward_messagebuffer.cpp" />
@@ -117,7 +116,6 @@
     <ClInclude Include="callbackmgr.hpp" />
     <ClInclude Include="common.hpp" />
     <ClInclude Include="component_active_report_handler.hpp" />
-    <ClInclude Include="componentbridge.hpp" />
     <ClInclude Include="components.hpp" />
     <ClInclude Include="entity_app.hpp" />
     <ClInclude Include="forward_messagebuffer.hpp" />

@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/serverconfig.hpp"
 #include "helper/console_helper.hpp"
 

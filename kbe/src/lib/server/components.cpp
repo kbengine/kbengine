@@ -20,12 +20,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "components.hpp"
-#include "componentbridge.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/sys_info.hpp"
 #include "network/channel.hpp"	
 #include "network/address.hpp"	
 #include "network/bundle.hpp"	
+#include "network/udp_packet.hpp"
+#include "network/tcp_packet.hpp"
+#include "network/bundle_broadcast.hpp"
 #include "network/network_interface.hpp"
 #include "client_lib/client_interface.hpp"
 #include "server/serverconfig.hpp"
@@ -40,6 +42,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/tools/bots/bots_interface.hpp"
 #include "../../server/tools/billing_system/billingsystem_interface.hpp"
 
+#include "../../server/machine/machine_interface.hpp"
+
 namespace KBEngine
 {
 int32 Components::ANY_UID = -1;
@@ -49,6 +53,7 @@ Components _g_components;
 
 //-------------------------------------------------------------------------------------
 Components::Components():
+Task(),
 _baseapps(),
 _cellapps(),
 _dbmgrs(),
@@ -65,13 +70,76 @@ _globalOrderLog(),
 _baseappGrouplOrderLog(),
 _cellappGrouplOrderLog(),
 _loginappGrouplOrderLog(),
-_pHandler(NULL)
+_pHandler(NULL),
+componentType_(UNKNOWN_COMPONENT_TYPE),
+componentID_(0),
+state_(0),
+findIdx_(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Components::~Components()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void Components::initialize(Network::NetworkInterface * pNetworkInterface, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+{ 
+	KBE_ASSERT(pNetworkInterface != NULL); 
+	_pNetworkInterface = pNetworkInterface; 
+
+	componentType_ = componentType;
+	componentID_ = componentID;
+
+	for(uint8 i=0; i<8; i++)
+		findComponentTypes_[i] = UNKNOWN_COMPONENT_TYPE;
+
+	switch(componentType_)
+	{
+	case CELLAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = CELLAPPMGR_TYPE;
+		findComponentTypes_[3] = BASEAPPMGR_TYPE;
+		break;
+	case BASEAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		findComponentTypes_[3] = CELLAPPMGR_TYPE;
+		break;
+	case BASEAPPMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = CELLAPPMGR_TYPE;
+		break;
+	case CELLAPPMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		break;
+	case LOGINAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		break;
+	case DBMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		break;
+	default:
+		if(componentType_ != MESSAGELOG_TYPE && 
+			componentType_ != MACHINE_TYPE && 
+			componentType_ != BILLING_TYPE)
+			findComponentTypes_[0] = MESSAGELOG_TYPE;
+		break;
+	};
+}
+
+//-------------------------------------------------------------------------------------
+void Components::finalise()
+{
+	clear(0, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -240,7 +308,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::removeComponentFromChannel(Network::Channel * pChannel)
+void Components::removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown)
 {
 	int ifind = 0;
 	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -257,13 +325,21 @@ void Components::removeComponentFromChannel(Network::Channel * pChannel)
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				ERROR_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}.\n",
-					COMPONENT_NAME_EX(componentType), (*iter).cid));
+				if(!isShutingdown)
+				{
+					ERROR_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit.\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-				printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentFromChannel: {} : {}.\n",
-					COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit!\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
 #endif
+				}
+				else
+				{
+					INFO_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Normal exit!\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid));
+				}
 
 				ComponentInfos* componentInfos = &(*iter);
 
@@ -324,7 +400,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
 				
 				BaseappmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -334,7 +410,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(CellappmgrInterface::onRegisterNewApp);
 				
 				CellappmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -344,7 +420,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 				
 				CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 						_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -354,7 +430,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 				
 				BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -364,7 +440,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(DbmgrInterface::onRegisterNewApp);
 				
 				DbmgrInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -374,7 +450,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				(*pBundle).newMessage(MessagelogInterface::onRegisterNewApp);
 				
 				MessagelogInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
@@ -815,6 +891,268 @@ size_t Components::getGameSrvComponentsSize()
 
 	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
 		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
+}
+
+//-------------------------------------------------------------------------------------
+Network::EventDispatcher & Components::dispatcher()
+{
+	return pNetworkInterface()->dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+void Components::onChannelDeregister(Network::Channel * pChannel, bool isShutingdown)
+{
+	removeComponentFromChannel(pChannel, isShutingdown);
+}
+
+//-------------------------------------------------------------------------------------
+bool Components::findInterfaces()
+{
+	if(state_ == 1)
+	{
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+
+		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
+		{
+			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
+				return false;
+
+			int8 findComponentType = findComponentTypes_[findIdx_];
+
+			static int count = 0;
+			INFO_MSG(fmt::format("Components::process: finding {}({})...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
+			
+			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+			if(!bhandler.good())
+			{
+				return false;
+			}
+
+			bhandler.itry(0);
+			if(bhandler.pCurrPacket() != NULL)
+			{
+				bhandler.pCurrPacket()->resetPacket();
+			}
+
+			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, componentID_, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+			if(!bhandler.broadcast())
+			{
+				ERROR_MSG("Components::process: broadcast error!\n");
+				return false;
+			}
+		
+			int32 timeout = 1500000;
+			bool showerr = true;
+			MachineInterface::onBroadcastInterfaceArgs22 args;
+
+RESTART_RECV:
+
+			if(bhandler.receive(&args, 0, timeout, showerr))
+			{
+				bool isContinue = false;
+				showerr = false;
+				timeout = 1000000;
+
+				do
+				{
+					if(isContinue)
+					{
+						try
+						{
+							args.createFromStream(*bhandler.pCurrPacket());
+						}catch(MemoryStreamException &)
+						{
+							break;
+						}
+					}
+					
+					if(args.componentIDEx != componentID_)
+					{
+						WARNING_MSG(fmt::format("Components::process: msg.componentID {} != {}.\n", 
+							args.componentIDEx, componentID_));
+						
+						args.componentIDEx = 0;
+						goto RESTART_RECV;
+					}
+
+					// 如果找不到
+					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+					{
+						isContinue = true;
+						continue;
+					}
+
+					INFO_MSG(fmt::format("Components::process: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+						inet_ntoa((struct in_addr&)args.intaddr),
+						ntohs(args.intport)));
+
+					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
+						args.usedmem, args.extradata, args.extradata1, args.extradata2, args.extradata3);
+
+					isContinue = true;
+				}while(bhandler.pCurrPacket()->opsize() > 0);
+
+				// 防止接收到的数据不是想要的数据
+				if(findComponentType == args.componentType)
+				{
+					// 这里做个特例， 是messagelog则优先连接上去， 这样可以尽早同步日志
+					if(findComponentType == (int8)MESSAGELOG_TYPE)
+					{
+						findComponentTypes_[findIdx_] = -1;
+						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+						{
+							ERROR_MSG(fmt::format("Components::register self to {} is error!\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+							findIdx_++;
+							//dispatcher().breakProcessing();
+							return false;
+						}
+						else
+						{
+							findIdx_++;
+							continue;
+						}
+					}
+				}
+				
+				goto RESTART_RECV;
+			}
+			else
+			{
+				if(Components::getSingleton().getComponents((COMPONENT_TYPE)findComponentType).size() > 0)
+				{
+					findIdx_++;
+					count = 0;
+				}
+				else
+				{
+					if(showerr)
+					{
+						ERROR_MSG("Components::process: receive error!\n");
+					}
+
+					// 如果是这些辅助组件没找到则跳过
+					int helperComponentIdx = 0;
+					while(1)
+					{
+						COMPONENT_TYPE helperComponentType = ALL_HELPER_COMPONENT_TYPE[helperComponentIdx++];
+						if(helperComponentType == UNKNOWN_COMPONENT_TYPE)
+						{
+							break;
+						}
+						else if(findComponentType == helperComponentType)
+						{
+							WARNING_MSG(fmt::format("Components::process: not found {}!\n",
+								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+
+							findComponentTypes_[findIdx_] = -1; // 跳过标志
+							count = 0;
+							findIdx_++;
+							return false;
+						}
+					}
+				}
+
+				return false;
+			}
+		}
+
+		state_ = 2;
+		findIdx_ = 0;
+		return false;
+	}
+
+	if(state_ == 2)
+	{
+		// 开始注册到所有的组件
+		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
+		{
+			if(dispatcher().isBreakProcessing())
+				return false;
+
+			int8 findComponentType = findComponentTypes_[findIdx_];
+			
+			if(findComponentType == -1)
+			{
+				findIdx_++;
+				return false;
+			}
+
+			INFO_MSG(fmt::format("Components::process: register self to {}...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+
+			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+			{
+				ERROR_MSG(fmt::format("Components::register self to {} is error!\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+				//dispatcher().breakProcessing();
+				return false;
+			}
+
+			findIdx_++;
+			return false;
+		}
+	}
+
+	return true;
+}
+//-------------------------------------------------------------------------------------
+bool Components::process()
+{
+	if(state_ == 0)
+	{
+		uint64 cidex = 0;
+		while(cidex++ < 3)
+		{
+			// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
+			Network::BundleBroadcast bhandler(*pNetworkInterface(), KBE_PORT_BROADCAST_DISCOVERY);
+
+			bhandler.newMessage(MachineInterface::onBroadcastInterface);
+			MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+				pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
+				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
+				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
+			
+			bhandler.broadcast();
+
+			bhandler.close();
+
+			sleep(50);
+		}
+
+		state_ = 1;
+		return true;
+	}
+	else
+	{
+		if(componentType_ != MACHINE_TYPE)
+		{
+			static uint64 lastTime = timestamp();
+			
+			if(timestamp() - lastTime > uint64(stampsPerSecond()))
+			{
+				if(!findInterfaces())
+				{
+					if(state_ != 2)
+						lastTime = timestamp();
+					return true;
+				}
+			}
+			else
+				return true;
+		}
+	}
+
+	return false;
 }
 
 //-------------------------------------------------------------------------------------		

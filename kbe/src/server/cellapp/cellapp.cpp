@@ -31,7 +31,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "forward_message_over_handler.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "server/telnet_server.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
@@ -276,7 +275,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
-	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
 
 	if(cinfos)
@@ -310,10 +309,10 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
-	Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
-	cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	cinfos = Components::getSingleton().findComponent(tcomponentType, uid, componentID);
 	
 	if (cinfos == NULL)
 	{

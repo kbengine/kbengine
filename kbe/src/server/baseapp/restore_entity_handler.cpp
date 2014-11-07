@@ -20,7 +20,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.hpp"
 #include "baseapp.hpp"
 #include "restore_entity_handler.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "entitydef/entitydef.hpp"
@@ -231,7 +230,7 @@ bool RestoreEntityHandler::process()
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
 
 				Network::Channel* pChannel = NULL;
-				Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
+				Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPP_TYPE);
 				Components::COMPONENTS::iterator comsiter = cts.begin();
 				for(; comsiter != cts.end(); comsiter++)
 				{

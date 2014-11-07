@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
 #include "../../server/baseapp/baseapp_interface.hpp"

@@ -38,7 +38,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/fixed_messages.hpp"
 #include "network/encryption_filter.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "server/telnet_server.hpp"
 #include "server/sendmail_threadtasks.hpp"
@@ -162,7 +161,7 @@ Baseapp::~Baseapp()
 //-------------------------------------------------------------------------------------	
 bool Baseapp::canShutdown()
 {
-	Components::COMPONENTS& cellapp_components = Componentbridge::getComponents().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(cellapp_components.size() > 0)
 	{
 		std::string s;
@@ -223,7 +222,7 @@ void Baseapp::onShutdown(bool first)
 			const_cast<char*>("i"), 1);
 	}
 
-	Components::COMPONENTS& cellapp_components = Componentbridge::getComponents().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(cellapp_components.size() == 0)
 	{
 		int count = g_serverConfig.getBaseApp().perSecsDestroyEntitySize;
@@ -459,7 +458,7 @@ void Baseapp::updateLoad()
 	static float loadSmoothingBias = g_kbeSrvConfig.getBaseApp().loadSmoothingBias;
 	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
 
-	Network::Channel* pChannel = Componentbridge::getComponents().getBaseappmgrChannel();
+	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
 	
 	if(pChannel != NULL)
 	{
@@ -701,7 +700,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 	if(pChannel->isExternal())
 		return;
 
-	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
 
 	if(cinfos)
@@ -735,11 +734,11 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
-	Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
 	cinfos = 
-		Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+		Components::getSingleton().findComponent(tcomponentType, uid, componentID);
 
 	if (cinfos == NULL)
 	{

@@ -89,7 +89,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 	if(ep_.addr().ip == intaddr || this->networkInterface().intaddr().ip == intaddr ||
 				this->networkInterface().extaddr().ip == intaddr)
 	{
-		if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
+		if(Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
 			return;
 
 		// 一台硬件上只能存在一个machine
@@ -121,7 +121,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				((int32)grouporderid),
 				pid));
 
-		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
+		Components::getSingleton().addComponent(uid, username.c_str(), 
 			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
 			pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 	}
@@ -159,7 +159,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 		return;
 	}
 	
-	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(tfindComponentType);
 	Components::COMPONENTS::iterator iter = components.begin();
 
 	bool found = false;
@@ -234,7 +234,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 //-------------------------------------------------------------------------------------
 bool Machine::checkComponentUsable(const Components::ComponentInfos* info)
 {
-	return Componentbridge::getComponents().lookupLocalComponentRunning(info->pid) != NULL;
+	return Components::getSingleton().lookupLocalComponentRunning(info->pid) != NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 
 		COMPONENT_TYPE tfindComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
 		int8 findComponentType = (int8)tfindComponentType;
-		Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
+		Components::COMPONENTS& components = Components::getSingleton().getComponents(tfindComponentType);
 		Components::COMPONENTS::iterator iter = components.begin();
 
 		for(; iter != components.end(); )
@@ -667,7 +667,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
 
-	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
 	Components::COMPONENTS::iterator iter = components.begin();
 
 	for(; iter != components.end(); )

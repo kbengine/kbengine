@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/message_handler.hpp"
 #include "network/network_interface.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "server/machine_infos.hpp"
 #include "resmgr/resmgr.hpp"
 
@@ -163,14 +163,15 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		WARNING_MSG(fmt::format("invalid UID({}) <= 0, please check UID for environment!\n", getUserUID()));
 	}
 
-	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, g_componentID);
+	Components::getSingleton().initialize(&networkInterface, componentType, g_componentID);
+
 	SERVER_APP app(dispatcher, networkInterface, componentType, g_componentID);
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 
 	if(!app.initialize())
 	{
 		ERROR_MSG("app::initialize() is error!\n");
-		SAFE_RELEASE(pComponentbridge);
+		Components::getSingleton().finalise();
 		app.finalise();
 		return -1;
 	}
@@ -190,7 +191,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	int ret = app.run();
 
-	SAFE_RELEASE(pComponentbridge);
+	Components::getSingleton().finalise();
 	app.finalise();
 	INFO_MSG(fmt::format("{}({}) has shut down.\n", COMPONENT_NAME_EX(componentType), g_componentID));
 	return ret;

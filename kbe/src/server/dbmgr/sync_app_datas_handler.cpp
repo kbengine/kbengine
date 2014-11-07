@@ -26,7 +26,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "math/math.hpp"
 #include "network/bundle.hpp"
 #include "network/channel.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
@@ -89,7 +88,7 @@ bool SyncAppDatasHandler::process()
 	for(; iter != apps_.end(); iter++)
 	{
 		ComponentInitInfo cInitInfo = (*iter);
-		Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(cInitInfo.cid);
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cInitInfo.cid);
 
 		if(cinfos == NULL)
 			continue;
@@ -120,7 +119,7 @@ bool SyncAppDatasHandler::process()
 	for(; iter != apps_.end(); iter++)
 	{
 		ComponentInitInfo cInitInfo = (*iter);
-		Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(cInitInfo.cid);
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cInitInfo.cid);
 
 		if(cinfos == NULL)
 			continue;

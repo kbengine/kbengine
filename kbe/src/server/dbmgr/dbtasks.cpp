@@ -24,7 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "dbmgr_lib/db_interface.hpp"

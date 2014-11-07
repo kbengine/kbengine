@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
@@ -93,7 +92,7 @@ bool Dbmgr::canShutdown()
 		return false;
 	}
 
-	Components::COMPONENTS& cellapp_components = Componentbridge::getComponents().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(cellapp_components.size() > 0)
 	{
 		std::string s;
@@ -108,7 +107,7 @@ bool Dbmgr::canShutdown()
 		return false;
 	}
 
-	Components::COMPONENTS& baseapp_components = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
+	Components::COMPONENTS& baseapp_components = Components::getSingleton().getComponents(BASEAPP_TYPE);
 	if(baseapp_components.size() > 0)
 	{
 		std::string s;
@@ -336,7 +335,7 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 	
 	int32 startGroupOrder = 1;
-	int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
+	int32 startGlobalOrder = Components::getSingleton().getGlobalOrderLog()[getUserUID()];
 
 	if(grouporderID > 0)
 		startGroupOrder = grouporderID;
@@ -359,18 +358,18 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 		case BASEAPP_TYPE:
 			{
 				if(grouporderID <= 0)
-					startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
+					startGroupOrder = Components::getSingleton().getBaseappGroupOrderLog()[getUserUID()];
 			}
 			break;
 		case CELLAPP_TYPE:
 			{
 				if(grouporderID <= 0)
-					startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
+					startGroupOrder = Components::getSingleton().getCellappGroupOrderLog()[getUserUID()];
 			}
 			break;
 		case LOGINAPP_TYPE:
 			if(grouporderID <= 0)
-				startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
+				startGroupOrder = Components::getSingleton().getLoginappGroupOrderLog()[getUserUID()];
 
 			break;
 		default:

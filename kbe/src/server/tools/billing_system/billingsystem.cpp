@@ -28,7 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
 #include "server/components.hpp"
 
 
@@ -176,8 +175,8 @@ bool BillingSystem::initializeBegin()
 bool BillingSystem::inInitialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
-	Componentbridge::getSingleton().getComponents().pHandler(this);
-	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	Components::getSingleton().pHandler(this);
+	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
 	return true;
 }
 

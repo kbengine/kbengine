@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/component_active_report_handler.hpp"
 #include "server/shutdowner.hpp"
 #include "server/serverconfig.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "network/channel.hpp"
 #include "network/bundle.hpp"
 #include "network/common.hpp"
@@ -155,8 +155,8 @@ bool ServerApp::initialize()
 	
 	// 广播自己的地址给网上上的所有kbemachine
 	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
-	Componentbridge::getSingleton().getComponents().pHandler(this);
-	this->mainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+	Components::getSingleton().pHandler(this);
+	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
 
 	bool ret = initializeEnd();
 
@@ -281,7 +281,7 @@ void ServerApp::onChannelDeregister(Network::Channel * pChannel)
 {
 	if(pChannel->isInternal())
 	{
-		Componentbridge::getSingleton().onChannelDeregister(pChannel);
+		Components::getSingleton().onChannelDeregister(pChannel, this->isShuttingdown());
 	}
 }
 
@@ -339,14 +339,14 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 			((int32)globalorderID),
 			((int32)grouporderID)));
 
-	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
 
 	pChannel->componentID(componentID);
 
 	if(cinfos == NULL)
 	{
-		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
+		Components::getSingleton().addComponent(uid, username.c_str(), 
 			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
@@ -394,7 +394,7 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
-			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
+			Components::getSingleton().findComponent(componentType, KBEngine::getUserUID(), componentID);
 
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{

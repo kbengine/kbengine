@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
-#include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 #include "network/udp_packet_receiver.hpp"

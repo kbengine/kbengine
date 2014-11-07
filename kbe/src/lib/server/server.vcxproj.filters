@@ -21,9 +21,6 @@
     <ClCompile Include="component_active_report_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="componentbridge.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="components.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="component_active_report_handler.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="componentbridge.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="components.hpp">

@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 //#define NDEBUG
 #include "cstdkbe/timer.hpp"
+#include "cstdkbe/tasks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
@@ -50,7 +51,7 @@ class NetworkInterface;
 #define COMPONENT_FLAG_NORMAL 0x00000000
 #define COMPONENT_FLAG_SHUTTINGDOWN 0x00000001
 
-class Components : public Singleton<Components>
+class Components : public Task, public Singleton<Components>
 {
 public:
 	static int32 ANY_UID; 
@@ -107,11 +108,8 @@ public:
 	Components();
 	~Components();
 
-	INLINE void pNetworkInterface(Network::NetworkInterface * networkInterface)
-	{ 
-		KBE_ASSERT(networkInterface != NULL); 
-		_pNetworkInterface = networkInterface; 
-	}
+	void initialize(Network::NetworkInterface * pNetworkInterface, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	void finalise();
 
 	INLINE Network::NetworkInterface* pNetworkInterface()
 	{ 
@@ -128,7 +126,7 @@ public:
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
 		COMPONENT_ID componentID, bool ignoreComponentID = false, bool shouldShowLog = true);
 
-	void removeComponentFromChannel(Network::Channel * pChannel);
+	void removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown = false);
 
 	void clear(int32 uid = -1, bool shouldShowLog = true);
 
@@ -189,6 +187,19 @@ public:
 		获取游戏服务端必要组件的注册数量。
 	*/
 	size_t getGameSrvComponentsSize();
+
+	void componentID(COMPONENT_ID id){ componentID_ = id; }
+	COMPONENT_ID componentID()const { return componentID_; }
+	void componentType(COMPONENT_TYPE t){ componentType_ = t; }
+	COMPONENT_TYPE componentType()const { return componentType_; }
+	
+	Network::EventDispatcher & dispatcher();
+
+	void onChannelDeregister(Network::Channel * pChannel, bool isShutingdown);
+private:
+	virtual bool process();
+	bool findInterfaces();
+
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;
@@ -212,6 +223,14 @@ private:
 	ORDER_LOG								_loginappGrouplOrderLog;
 
 	ComponentsNotificationHandler*			_pHandler;
+
+	// 以下组网用
+	COMPONENT_TYPE							componentType_;
+	// 本组件的ID
+	COMPONENT_ID							componentID_;									
+	uint8									state_;
+	int16									findIdx_;
+	int8									findComponentTypes_[8];
 };
 
 }
