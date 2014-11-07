@@ -59,7 +59,7 @@ public:
 	void componentType(COMPONENT_TYPE t){ componentType_ = t; }
 	COMPONENT_TYPE componentType()const { return componentType_; }
 
-	Mercury:: EventDispatcher & dispatcher();
+	Mercury::EventDispatcher & dispatcher();
 
 	void onChannelDeregister(Mercury::Channel * pChannel);
 private:

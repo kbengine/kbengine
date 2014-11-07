@@ -72,7 +72,7 @@ public:
 	PendingLoginMgr(Mercury::NetworkInterface & networkInterface);
 	~PendingLoginMgr();
 
-	Mercury:: EventDispatcher & dispatcher();
+	Mercury::EventDispatcher & dispatcher();
 
 	bool add(PLInfos* infos);
 	

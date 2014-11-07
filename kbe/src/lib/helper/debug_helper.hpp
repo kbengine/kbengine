@@ -123,11 +123,11 @@ public:
 	void lockthread();
 	void unlockthread();
     
-	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
-	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
+	void pNetworkInterface(Mercury::NetworkInterface* networkInterface);
+	void pDispatcher(Mercury::EventDispatcher* dispatcher);
 	
-	Mercury:: EventDispatcher* pDispatcher()const{ return pDispatcher_; }
-	Mercury:: NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
+	Mercury::EventDispatcher* pDispatcher()const{ return pDispatcher_; }
+	Mercury::NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
 	void print_msg(const std::string& s);
 	void debug_msg(const std::string& s);
@@ -166,8 +166,8 @@ private:
 	std::queue< Mercury::Bundle* > bufferedLogPackets_;
 	size_t hasBufferedLogPackets_;
 
-	Mercury:: NetworkInterface* pNetworkInterface_;
-	Mercury:: EventDispatcher* pDispatcher_;
+	Mercury::NetworkInterface* pNetworkInterface_;
+	Mercury::EventDispatcher* pDispatcher_;
 
 	int scriptMsgType_;
 

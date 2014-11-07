@@ -69,7 +69,7 @@ public:
 	ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface);
 	virtual ~ForwardComponent_MessageBuffer();
 
-	Mercury:: EventDispatcher & dispatcher();
+	Mercury::EventDispatcher & dispatcher();
 
 	void push(COMPONENT_ID componentID, ForwardItem* pHandler);
 	
@@ -94,7 +94,7 @@ public:
 	ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
 	virtual ~ForwardAnywhere_MessageBuffer();
 
-	Mercury:: EventDispatcher & dispatcher();
+	Mercury::EventDispatcher & dispatcher();
 
 	void push(ForwardItem* pHandler);
 	

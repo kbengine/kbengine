@@ -348,14 +348,14 @@ void DebugHelper::sync()
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::pDispatcher(Mercury:: EventDispatcher* dispatcher)
+void DebugHelper::pDispatcher(Mercury::EventDispatcher* dispatcher)
 { 
 	pDispatcher_ = dispatcher; 
 	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::pNetworkInterface(Mercury:: NetworkInterface* networkInterface)
+void DebugHelper::pNetworkInterface(Mercury::NetworkInterface* networkInterface)
 { 
 	pNetworkInterface_ = networkInterface; 
 }
