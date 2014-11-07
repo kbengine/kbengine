@@ -56,9 +56,6 @@ public:
 		uint32 intrbuffer = 0, uint32 intwbuffer = 0);
 
 	~NetworkInterface();
-	
-	void attach(EventDispatcher & mainDispatcher);
-	void detach();
 
 	INLINE const Address & extaddr() const;
 	INLINE const Address & intaddr() const;
@@ -83,8 +80,7 @@ public:
 	void pChannelDeregisterHandler(ChannelDeregisterHandler * pHandler)
 		{ pChannelDeregisterHandler_ = pHandler; }
 
-	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
-	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
+	EventDispatcher & dispatcher()		{ return *pDispatcher_; }
 
 	/* 外部网点和内部网点 */
 	EndPoint & extEndpoint()				{ return extEndpoint_; }
@@ -136,7 +132,6 @@ private:
 	ChannelMap								channelMap_;
 
 	EventDispatcher *						pDispatcher_;
-	EventDispatcher *						pMainDispatcher_;
 
 	void *									pExtensionData_;
 	

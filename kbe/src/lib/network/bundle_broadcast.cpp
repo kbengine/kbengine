@@ -51,7 +51,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 		ERROR_MSG(fmt::format("BundleBroadcast::BundleBroadcast: init socket is error, {}\n", 
 			kbe_strerror()));
 
-		networkInterface_.mainDispatcher().breakProcessing();
+		networkInterface_.dispatcher().breakProcessing();
 	}
 	else
 	{
@@ -122,7 +122,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Couldn't broadcast socket, port {}, {}\n", 
 			port, kbe_strerror()));
 
-		networkInterface_.mainDispatcher().breakProcessing();
+		networkInterface_.dispatcher().breakProcessing();
 		return false;
 	}
 

@@ -111,7 +111,7 @@ Componentbridge::~Componentbridge()
 //-------------------------------------------------------------------------------------
 Mercury::EventDispatcher & Componentbridge::dispatcher()
 {
-	return networkInterface_.mainDispatcher();
+	return networkInterface_.dispatcher();
 }
 
 //-------------------------------------------------------------------------------------

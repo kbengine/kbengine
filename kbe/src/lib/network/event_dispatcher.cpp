@@ -41,8 +41,7 @@ EventDispatcher::EventDispatcher() :
 	lastStatisticsGathered_(0),
 	pFrequentTasks_(new Tasks),
 	pErrorReporter_(NULL),
-	pTimers_(new Timers64),
-	pCouplingToParent_(NULL)
+	pTimers_(new Timers64)
 	
 {
 	pPoller_ = EventPoller::create();
@@ -71,53 +70,6 @@ EventPoller* EventDispatcher::createPoller()
 {
 	pPoller_ = EventPoller::create();
 	return pPoller_;
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::attach(EventDispatcher & childDispatcher)
-{
-	childDispatcher.attachTo(*this);
-	childDispatchers_.push_back(&childDispatcher);
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::attachTo(EventDispatcher & parentDispatcher)
-{
-	KBE_ASSERT(pCouplingToParent_ == NULL);
-	pCouplingToParent_ = new DispatcherCoupling(parentDispatcher, *this);
-
-	int fd = pPoller_->getFileDescriptor();
-
-	if (fd != -1)
-	{
-		parentDispatcher.registerFileDescriptor(fd, pPoller_);
-		parentDispatcher.registerWriteFileDescriptor(fd, pPoller_);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::detach(EventDispatcher & childDispatcher)
-{
-	childDispatcher.detachFrom(*this);
-
-	ChildDispatchers & d = childDispatchers_;
-	d.erase(std::remove(d.begin(), d.end(), &childDispatcher), d.end());
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::detachFrom(EventDispatcher & parentDispatcher)
-{
-	int fd = pPoller_->getFileDescriptor();
-
-	if (fd != -1)
-	{
-		parentDispatcher.deregisterFileDescriptor(fd);
-		parentDispatcher.deregisterWriteFileDescriptor(fd);
-	}
-
-	KBE_ASSERT(pCouplingToParent_ != NULL);
-	delete pCouplingToParent_;
-	pCouplingToParent_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

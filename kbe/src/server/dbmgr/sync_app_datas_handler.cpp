@@ -44,7 +44,7 @@ networkInterface_(networkInterface),
 lastRegAppTime_(0),
 apps_()
 {
-	networkInterface.mainDispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------

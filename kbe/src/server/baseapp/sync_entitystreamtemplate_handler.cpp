@@ -36,7 +36,7 @@ SyncEntityStreamTemplateHandler::SyncEntityStreamTemplateHandler(Mercury::Networ
 Task(),
 networkInterface_(networkInterface)
 {
-	networkInterface.mainDispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addFrequentTask(this);
 
 	MemoryStream accountDefMemoryStream;
 

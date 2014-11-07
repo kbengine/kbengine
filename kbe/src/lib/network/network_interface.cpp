@@ -38,7 +38,7 @@ namespace KBEngine {
 namespace Mercury
 {
 const int NetworkInterface::RECV_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB
-const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
+const char * NetworkInterface::USE_KBEMACHINED = "kbemachine";
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
@@ -49,8 +49,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	extEndpoint_(),
 	intEndpoint_(),
 	channelMap_(),
-	pDispatcher_(new EventDispatcher),
-	pMainDispatcher_(NULL),
+	pDispatcher_(pMainDispatcher),
 	pExtensionData_(NULL),
 	pExtListenerReceiver_(NULL),
 	pIntListenerReceiver_(NULL),
@@ -85,10 +84,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
 		"please check for kbengine_defs.xml!\n");
 
-	if (pMainDispatcher != NULL)
-	{
-		this->attach(*pMainDispatcher);
-	}
+	pDelayedChannels_->init(this->dispatcher(), this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -112,34 +108,17 @@ NetworkInterface::~NetworkInterface()
 		}
 	}
 
-	this->detach();
 	this->closeSocket();
 
-	SAFE_RELEASE(pDispatcher_);
+	if (pDispatcher_ != NULL)
+	{
+		pDelayedChannels_->fini(this->dispatcher());
+		pDispatcher_ = NULL;
+	}
+
 	SAFE_RELEASE(pDelayedChannels_);
 	SAFE_RELEASE(pExtListenerReceiver_);
 	SAFE_RELEASE(pIntListenerReceiver_);
-}
-
-//-------------------------------------------------------------------------------------
-void NetworkInterface::attach(EventDispatcher & mainDispatcher)
-{
-	KBE_ASSERT(pMainDispatcher_ == NULL);
-	pMainDispatcher_ = &mainDispatcher;
-	mainDispatcher.attach(this->dispatcher());
-	
-	pDelayedChannels_->init(this->mainDispatcher(), this);
-}
-
-//-------------------------------------------------------------------------------------
-void NetworkInterface::detach()
-{
-	if (pMainDispatcher_ != NULL)
-	{
-		pDelayedChannels_->fini(this->mainDispatcher());
-		pMainDispatcher_->detach(this->dispatcher());
-		pMainDispatcher_ = NULL;
-	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -629,7 +629,7 @@ bool Channel::waitSend()
 //-------------------------------------------------------------------------------------
 EventDispatcher & Channel::dispatcher()
 {
-	return pNetworkInterface_->mainDispatcher();
+	return pNetworkInterface_->dispatcher();
 }
 
 //-------------------------------------------------------------------------------------

@@ -51,7 +51,7 @@ canRestore_(false)
 RestoreEntityHandler::~RestoreEntityHandler()
 {
 	if(inProcess_)
-		networkInterface_.mainDispatcher().cancelFrequentTask(this);
+		networkInterface_.dispatcher().cancelFrequentTask(this);
 
 	std::vector<RestoreData>::iterator restoreSpacesIter = otherRestoredSpaces_.begin();
 	for(; restoreSpacesIter != otherRestoredSpaces_.end(); restoreSpacesIter++)
@@ -98,7 +98,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 	if(!inProcess_)
 	{
 		inProcess_ = true;
-		networkInterface_.mainDispatcher().addFrequentTask(this);
+		networkInterface_.dispatcher().addFrequentTask(this);
 	}
 
 	tickReport_ = timestamp();

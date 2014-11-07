@@ -58,9 +58,6 @@ public:
 	INLINE void setWaitBreakProcessing();
 	bool processingBroken()const;
 	
-	void attach(EventDispatcher & childDispatcher);
-	void detach(EventDispatcher & childDispatcher);
-	
 	void addFrequentTask(Task * pTask);
 	bool cancelFrequentTask(Task * pTask);
 	
@@ -125,36 +122,8 @@ protected:
 	ErrorReporter * pErrorReporter_;
 	Timers64* pTimers_;
 	EventPoller* pPoller_;
-	DispatcherCoupling * pCouplingToParent_;
 };
 
-
-class DispatcherCoupling : public Task
-{
-public:
-	DispatcherCoupling(EventDispatcher & mainDispatcher,
-			EventDispatcher & childDispatcher) :
-		mainDispatcher_(mainDispatcher),
-		childDispatcher_(childDispatcher)
-	{
-		mainDispatcher.addFrequentTask(this);
-	}
-
-	~DispatcherCoupling()
-	{
-		mainDispatcher_.cancelFrequentTask(this);
-	}
-
-private:
-	bool process()
-	{
-		childDispatcher_.processOnce();
-		return true;
-	}
-
-	EventDispatcher & mainDispatcher_;
-	EventDispatcher & childDispatcher_;
-};
 
 }
 }

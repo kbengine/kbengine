@@ -106,7 +106,6 @@ void ServerApp::onShutdownBegin()
 #endif
 
 	mainDispatcher_.setWaitBreakProcessing();
-	networkInterface_.dispatcher().setWaitBreakProcessing();
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,7 +117,6 @@ void ServerApp::onShutdown(bool first)
 void ServerApp::onShutdownEnd()
 {
 	mainDispatcher_.breakProcessing();
-	networkInterface_.dispatcher().breakProcessing();
 }
 
 //-------------------------------------------------------------------------------------

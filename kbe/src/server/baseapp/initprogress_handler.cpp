@@ -36,7 +36,7 @@ InitProgressHandler::InitProgressHandler(Mercury::NetworkInterface & networkInte
 Task(),
 networkInterface_(networkInterface)
 {
-	networkInterface.mainDispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
