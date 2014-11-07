@@ -40,8 +40,8 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseappmgr);
 
 //-------------------------------------------------------------------------------------
-Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher, 
-			 Mercury::NetworkInterface& ninterface, 
+Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher, 
+			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
@@ -94,7 +94,7 @@ void Baseappmgr::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::onChannelDeregister(Mercury::Channel * pChannel)
+void Baseappmgr::onChannelDeregister(Network::Channel * pChannel)
 {
 	// 如果是app死亡了
 	if(pChannel->isInternal())
@@ -124,7 +124,7 @@ void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
 
 	if(pInfos->componentType == LOGINAPP_TYPE && cinfo->pChannel != NULL)
 	{
-		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+		Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
 
 		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
 		(*(*bundleptr)) << baseappsInitProgress_;
@@ -160,7 +160,7 @@ void Baseappmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
+void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 {
 	COMPONENT_ID sender_componentID, forward_componentID;
 
@@ -176,15 +176,15 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::updateBaseapp(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
 							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
 {
 	Baseapp& baseapp = baseapps_[componentID];
@@ -221,14 +221,14 @@ void Baseappmgr::updateBestBaseapp()
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s) 
+void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 
 		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
@@ -244,24 +244,24 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
 	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::reqCreateBaseAnywhereFromDBID(Mercury::Channel* pChannel, MemoryStream& s) 
+void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 
 		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
@@ -277,17 +277,17 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Mercury::Channel* pChannel, Memor
 	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: %s opsize=%d, selBaseappIdx=%d.\n", 
 	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
+void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, 
 												 std::string& loginName, std::string& accountName, 
 												 std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,
 												 COMPONENT_TYPE componentType)
@@ -307,7 +307,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 
 		pFI->pBundle = pBundle;
@@ -324,15 +324,15 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
 		accountName, bestBaseappID_));
 	
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel, COMPONENT_ID componentID,
 								std::string& loginName, std::string& accountName, std::string& password, 
 								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
 								COMPONENT_TYPE componentType)
@@ -357,22 +357,22 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 		return;
 	}
 	
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
+void Baseappmgr::onPendingAccountGetBaseappAddr(Network::Channel* pChannel, 
 							  std::string& loginName, std::string& accountName, std::string& addr, uint16 port)
 {
 	sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
+void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel, 
 							  std::string& loginName, std::string& accountName, const std::string& addr, uint16 port)
 {
 	KBEUnordered_map< std::string, COMPONENT_ID >::iterator iter = pending_logins_.find(loginName);
@@ -389,20 +389,20 @@ void Baseappmgr::sendAllocatedBaseappAddr(Mercury::Channel* pChannel,
 		return;
 	}
 
-	Mercury::Bundle* pBundleToLoginapp = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundleToLoginapp = Network::Bundle::ObjPool().createObject();
 	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
 
 	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
 		accountName, addr, port);
 
 	(*pBundleToLoginapp).send(this->networkInterface(), cinfos->pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
+	Network::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
 
 	pending_logins_.erase(iter);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID cid, float progress)
+void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress)
 {
 	if(progress > 1.f)
 	{
@@ -441,7 +441,7 @@ void Baseappmgr::onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID 
 		if((*iter).pChannel == NULL)
 			continue;
 
-		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+		Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
 
 		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
 		(*(*bundleptr)) << baseappsInitProgress_;

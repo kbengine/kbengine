@@ -47,7 +47,7 @@ namespace KBEngine{
 class EntityMailbox;
 class ClientObjectBase;
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 }
@@ -129,7 +129,7 @@ public:
 	/**
 		远程呼叫本entity的方法 
 	*/
-	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
 		服务器更新entity属性

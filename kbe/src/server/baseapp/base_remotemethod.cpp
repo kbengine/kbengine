@@ -76,7 +76,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	// 如果是调用客户端方法， 我们记录事件并且记录带宽
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		mailbox->newMail((*pBundle));
 
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
@@ -93,7 +93,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		
 		static_cast<Proxy*>(pEntity)->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 	

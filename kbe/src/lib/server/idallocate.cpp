@@ -55,7 +55,7 @@ void EntityIDClient::onAlloc(void)
 	if(hasReqServerAlloc())
 		return;
 
-	Mercury::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
+	Network::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
 
 	if(pChannel == NULL)
 	{
@@ -63,11 +63,11 @@ void EntityIDClient::onAlloc(void)
 		return;
 	}
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
 	(*pBundle).send(pApp_->networkInterface(), pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	setReqServerAllocFlag(true);
 

@@ -47,7 +47,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BOTS)
 #define BOTS_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##BotsMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##BotsMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			KBEngine::Bots::getSingleton().NAME(pChannel, s);					\
@@ -55,7 +55,7 @@ namespace KBEngine{
 
 #else
 #define BOTS_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##BotsMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##BotsMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
@@ -63,10 +63,10 @@ namespace KBEngine{
 #endif
 #else
 #define BOTS_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##BotsMessagehandler_stream : public Mercury::MessageHandler		\
+	class NAME##BotsMessagehandler_stream : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -88,7 +88,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BOTS)
 #define BOTS_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##BotsMessagehandler0::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler0::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::Bots::getSingleton().NAME(pChannel);						\
@@ -96,7 +96,7 @@ namespace KBEngine{
 
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##BotsMessagehandler0::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler0::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -104,10 +104,10 @@ namespace KBEngine{
 #endif
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS0(NAME)										\
-	class NAME##BotsMessagehandler0 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler0 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -130,7 +130,7 @@ namespace KBEngine{
 #if defined(BOTS)
 #define BOTS_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BotsMessagehandler2::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler2::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -144,7 +144,7 @@ namespace KBEngine{
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BotsMessagehandler2::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler2::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -153,10 +153,10 @@ namespace KBEngine{
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##BotsMessagehandler2 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler2 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -181,7 +181,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BOTS)
 #define BOTS_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##BotsMessagehandler1::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler1::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -191,7 +191,7 @@ namespace KBEngine{
 
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##BotsMessagehandler1::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler1::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -199,10 +199,10 @@ namespace KBEngine{
 #endif
 #else
 #define BOTS_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	class NAME##BotsMessagehandler1 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler1 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -227,7 +227,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BotsMessagehandler4::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler4::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -248,7 +248,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BotsMessagehandler4::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler4::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -259,10 +259,10 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##BotsMessagehandler4 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler4 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -296,7 +296,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BotsMessagehandler5::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler5::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -320,7 +320,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BotsMessagehandler5::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler5::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -332,10 +332,10 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##BotsMessagehandler5 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler5 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -374,7 +374,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BotsMessagehandler6::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler6::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -401,7 +401,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BotsMessagehandler6::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler6::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -414,10 +414,10 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##BotsMessagehandler6 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler6 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -460,7 +460,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BotsMessagehandler8::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler8::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -494,7 +494,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BotsMessagehandler8::handle(Mercury::Channel* pChannel,			\
+	void NAME##BotsMessagehandler8::handle(Network::Channel* pChannel,			\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -509,10 +509,10 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##BotsMessagehandler8 : public Mercury::MessageHandler			\
+	class NAME##BotsMessagehandler8 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

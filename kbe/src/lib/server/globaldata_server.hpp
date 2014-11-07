@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 	
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 	class Channel;
 }
@@ -43,20 +43,20 @@ public:
 	~GlobalDataServer();
 			
 	/** 写数据 */
-	bool write(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, const std::string& value);
+	bool write(Network::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, const std::string& value);
 	
 	/** 删除数据 */
-	bool del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key);	
+	bool del(Network::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key);	
 	
 	/** 添加该服务器所需要关心的组件类别 */
 	void addConcernComponentType(COMPONENT_TYPE ct){ concernComponentTypes_.push_back(ct); }
 	
 	/** 广播一个数据的改变给所关心的组件 */
-	void broadcastDataChanged(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, 
+	void broadcastDataChanged(Network::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, 
 							const std::string& value, bool isDelete = false);
 	
 	/** 一个新的客户端登陆 */
-	void onGlobalDataClientLogon(Mercury::Channel* client, COMPONENT_TYPE componentType);
+	void onGlobalDataClientLogon(Network::Channel* client, COMPONENT_TYPE componentType);
 private:
 	DATA_TYPE dataType_;
 

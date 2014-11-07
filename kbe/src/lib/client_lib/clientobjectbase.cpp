@@ -56,10 +56,10 @@ SCRIPT_INIT(ClientObjectBase, 0, 0, 0, 0, 0)
 static int32 g_appID = 1;
 
 //-------------------------------------------------------------------------------------
-ClientObjectBase::ClientObjectBase(Mercury::NetworkInterface& ninterface, PyTypeObject* pyType):
+ClientObjectBase::ClientObjectBase(Network::NetworkInterface& ninterface, PyTypeObject* pyType):
 ScriptObject(pyType != NULL ? pyType : getScriptType(), false),
 appID_(0),
-pServerChannel_(new Mercury::Channel()),
+pServerChannel_(new Network::Channel()),
 pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
@@ -145,7 +145,7 @@ void ClientObjectBase::reset(void)
 		pServerChannel_ = NULL;
 	}
 
-	pServerChannel_ = new Mercury::Channel();
+	pServerChannel_ = new Network::Channel();
 	pServerChannel_->pNetworkInterface(&ninterface_);
 	pServerChannel_->incRef();
 }
@@ -180,12 +180,12 @@ void ClientObjectBase::tickSend()
 	}
 
 	// 向服务器发送tick
-	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
+	uint64 check = uint64( Network::g_channelExternalTimeout * stampsPerSecond() ) / 2;
 	if (timestamp() - lastSentActiveTickTime_ > check)
 	{
 		lastSentActiveTickTime_ = timestamp();
 
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		if(connectedGateway_)
 			(*pBundle).newMessage(BaseappInterface::onClientActiveTick);
 		else
@@ -213,13 +213,13 @@ bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 }
 
 //-------------------------------------------------------------------------------------	
-Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	return pServerChannel_;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onKicked(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::onKicked: code={}\n", failedcode));
 
@@ -428,7 +428,7 @@ bool ClientObjectBase::deregisterEventHandle(EventHandle* pEventHandle)
 bool ClientObjectBase::createAccount()
 {
 	// 创建账号
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -438,9 +438,9 @@ bool ClientObjectBase::createAccount()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
+Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
 {
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = new Network::EndPoint();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -461,7 +461,7 @@ Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 		return NULL;
 	}
 
-	Mercury::Address addr(ip.c_str(), port);
+	Network::Address addr(ip.c_str(), port);
 	pEndpoint->addr(addr);
 
 	pServerChannel_->endpoint(pEndpoint);
@@ -474,9 +474,9 @@ Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* ClientObjectBase::initBaseappChannel()
+Network::Channel* ClientObjectBase::initBaseappChannel()
 {
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = new Network::EndPoint();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -498,7 +498,7 @@ Mercury::Channel* ClientObjectBase::initBaseappChannel()
 		return NULL;
 	}
 
-	Mercury::Address addr(ip_.c_str(), port_);
+	Network::Address addr(ip_.c_str(), port_);
 	pEndpoint->addr(addr);
 
 	pServerChannel_->endpoint(pEndpoint);
@@ -517,14 +517,14 @@ void ClientObjectBase::fireEvent(const EventData* pEventData)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+void ClientObjectBase::onHelloCB_(Network::Channel* pChannel, const std::string& verInfo, 
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onHelloCB(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string verInfo;
 	s >> verInfo;
@@ -548,7 +548,7 @@ void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onVersionNotMatch(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string verInfo;
 	s >> verInfo;
@@ -563,7 +563,7 @@ void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onScriptVersionNotMatch(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string verInfo;
 	s >> verInfo;
@@ -580,7 +580,7 @@ void ClientObjectBase::onScriptVersionNotMatch(Mercury::Channel* pChannel, Memor
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	// 提交账号密码请求登录
 	(*pBundle).newMessage(LoginappInterface::login);
@@ -600,7 +600,7 @@ bool ClientObjectBase::loginGateWay()
 	// 请求登录网关, 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::loginGateway);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -614,7 +614,7 @@ bool ClientObjectBase::reLoginGateWay()
 	// 请求重登陆网关, 通常是掉线了之后执行
 	connectedGateway_ = true;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::reLoginGateway);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -625,7 +625,7 @@ bool ClientObjectBase::reLoginGateWay()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onCreateAccountResult(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE retcode;
 
@@ -644,7 +644,7 @@ void ClientObjectBase::onCreateAccountResult(Mercury::Channel * pChannel, Memory
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	std::string accountName;
 
@@ -664,7 +664,7 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE failedcode;
 
@@ -679,7 +679,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::onLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
 
@@ -693,7 +693,7 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
 
@@ -707,14 +707,14 @@ void ClientObjectBase::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVE
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	s >> rndUUID_;
 	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewaySuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
+void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity != NULL)
@@ -747,7 +747,7 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	ENTITY_SCRIPT_UID scriptType;
@@ -852,13 +852,13 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityLeaveWorldOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
 	onEntityLeaveWorld(pChannel, getAoiEntityIDFromStream(s));
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
+void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -894,7 +894,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	int8 isOnGound = 0;
@@ -939,7 +939,7 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID eid)
+void ClientObjectBase::onEntityLeaveSpace(Network::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -961,7 +961,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, ENTITY_ID
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
+void ClientObjectBase::onEntityDestroyed(Network::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -977,14 +977,14 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onRemoteMethodCallOptimized(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+void ClientObjectBase::onRemoteMethodCallOptimized(Network::Channel * pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onRemoteMethodCall_(eid, s);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+void ClientObjectBase::onRemoteMethodCall(Network::Channel * pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	s >> eid;
@@ -1006,7 +1006,7 @@ void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdatePropertys(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	s >> eid;
@@ -1014,7 +1014,7 @@ void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdatePropertysOptimized(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdatePropertysOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onUpdatePropertys_(eid, s);
@@ -1096,7 +1096,7 @@ void ClientObjectBase::updatePlayerToServer()
 	if(posNoChanged && dirNoChanged)
 		return;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 	
 	pEntity->position(entityPos_);
@@ -1116,7 +1116,7 @@ void ClientObjectBase::updatePlayerToServer()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
 {
 	float x, y, z;
 	s >> x >> y >> z;
@@ -1129,7 +1129,7 @@ void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
 {
 	float x, z;
 	s >> x >> z;
@@ -1142,7 +1142,7 @@ void ClientObjectBase::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;
 	s >> eid;
@@ -1186,7 +1186,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1199,7 +1199,7 @@ void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1220,7 +1220,7 @@ void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1238,7 +1238,7 @@ void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1256,7 +1256,7 @@ void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1274,7 +1274,7 @@ void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1289,7 +1289,7 @@ void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1304,7 +1304,7 @@ void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1319,7 +1319,7 @@ void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1332,7 +1332,7 @@ void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1355,7 +1355,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1375,7 +1375,7 @@ void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1395,7 +1395,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1415,7 +1415,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1432,7 +1432,7 @@ void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1449,7 +1449,7 @@ void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1466,7 +1466,7 @@ void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1479,7 +1479,7 @@ void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1505,7 +1505,7 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemorySt
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1528,7 +1528,7 @@ void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1551,7 +1551,7 @@ void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1574,7 +1574,7 @@ void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1594,7 +1594,7 @@ void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1614,7 +1614,7 @@ void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1688,17 +1688,17 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
+void ClientObjectBase::onStreamDataStarted(Network::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onStreamDataRecv(Network::Channel* pChannel, MemoryStream& s)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
+void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 id)
 {
 }
 
@@ -1771,7 +1771,7 @@ void ClientObjectBase::clearSpace(bool isAll)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::initSpaceData(Network::Channel* pChannel, MemoryStream& s)
 {
 	clearSpace(false);
 
@@ -1802,7 +1802,7 @@ const std::string& ClientObjectBase::getGeometryPath()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
+void ClientObjectBase::setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
 {
 	if(spaceID_ != spaceID)
 	{
@@ -1854,7 +1854,7 @@ const std::string& ClientObjectBase::getSpaceData(const std::string& key)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
+void ClientObjectBase::delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
 {
 	if(spaceID_ != spaceID)
 	{

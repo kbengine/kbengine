@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_filter.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 class Bundle;
@@ -163,7 +163,7 @@ public:
 	
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_[bufferedReceivesIdx_]; }
 		
-	void processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
 	bool isCondemn()const { return isCondemn_; }
 	void condemn();
@@ -179,8 +179,8 @@ public:
 
 	virtual void handshake();
 
-	KBEngine::Mercury::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
-	void pMsgHandlers(KBEngine::Mercury::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
+	KBEngine::Network::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
+	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
 
 	void readDataToBuffer();
 	bool waitSend();
@@ -245,7 +245,7 @@ private:
 	COMPONENT_ID				componentID_;
 
 	// 支持指定某个通道使用某个消息handlers
-	KBEngine::Mercury::MessageHandlers* pMsgHandlers_;
+	KBEngine::Network::MessageHandlers* pMsgHandlers_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

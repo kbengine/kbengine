@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 	class Bundle;
 	class MessageHandler;
@@ -115,7 +115,7 @@ public:
 	INLINE float aoiRadius()const;
 	INLINE float aoiHysteresisArea()const;
 
-	typedef std::vector<Mercury::Bundle*> Bundles;
+	typedef std::vector<Network::Bundle*> Bundles;
 	Bundles* pBundles();
 
 	/**
@@ -138,25 +138,25 @@ public:
 	uint32 addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity);
 	
 
-	void addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
-		const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
+	void addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
+		const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
 
 	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID)const;
 
 	/**
 		使用何种协议来更新客户端
 	*/
-	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
+	void addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
 
 	/**
 		添加基础位置到更新包
 	*/
-	void addBasePosToStream(Mercury::Bundle* pSendBundle);
+	void addBasePosToStream(Network::Bundle* pSendBundle);
 
 	/**
 		向witness客户端推送一条消息
 	*/
-	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
+	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
 
 	INLINE EntityRef::AOI_ENTITIES& aoiEntities();
 
@@ -177,8 +177,8 @@ private:
 		如果aoi中entity数量小于256则只发送索引位置
 	*/
 	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
-	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef);
-	INLINE void _addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID);
+	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID);
 private:
 	Entity*									pEntity_;
 

@@ -131,16 +131,16 @@ void CLogWindow::OnBnClickedButton1()
 		return;
 	}
 
-	Mercury::Address addr = dlg->getTreeItemAddr(item);
+	Network::Address addr = dlg->getTreeItemAddr(item);
 
-	Mercury::Channel* pChannel = dlg->networkInterface().findChannel(addr);
+	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
 		::AfxMessageBox(L"messagelog is error!");
 		return;
 	}
 
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	bundle.newMessage(MessagelogInterface::registerLogWatcher);
 
 	bundle << getSelLogTypes();

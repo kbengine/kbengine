@@ -46,9 +46,9 @@ struct ACCOUNT_INFOS;
 class DBTask : public DBTaskBase
 {
 public:
-	DBTask(const Mercury::Address& addr, MemoryStream& datas);
+	DBTask(const Network::Address& addr, MemoryStream& datas);
 
-	DBTask(const Mercury::Address& addr):
+	DBTask(const Network::Address& addr):
 	DBTaskBase(),
 	pDatas_(0),
 	addr_(addr)
@@ -57,10 +57,10 @@ public:
 
 	virtual ~DBTask();
 
-	bool send(Mercury::Bundle& bundle);
+	bool send(Network::Bundle& bundle);
 protected:
 	MemoryStream* pDatas_;
-	Mercury::Address addr_;
+	Network::Address addr_;
 };
 
 /*
@@ -69,7 +69,7 @@ protected:
 class EntityDBTask : public DBTask
 {
 public:
-	EntityDBTask(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID, DBID entityDBID):
+	EntityDBTask(const Network::Address& addr, MemoryStream& datas, ENTITY_ID entityID, DBID entityDBID):
 	DBTask(addr, datas),
 	_entityID(entityID),
 	_entityDBID(entityDBID),
@@ -77,7 +77,7 @@ public:
 	{
 	}
 	
-	EntityDBTask(const Mercury::Address& addr, ENTITY_ID entityID, DBID entityDBID):
+	EntityDBTask(const Network::Address& addr, ENTITY_ID entityID, DBID entityDBID):
 	DBTask(addr),
 	_entityID(entityID),
 	_entityDBID(entityDBID),
@@ -106,7 +106,7 @@ private:
 class DBTaskExecuteRawDatabaseCommand : public DBTask
 {
 public:
-	DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas);
+	DBTaskExecuteRawDatabaseCommand(const Network::Address& addr, MemoryStream& datas);
 	virtual ~DBTaskExecuteRawDatabaseCommand();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -126,7 +126,7 @@ protected:
 class DBTaskExecuteRawDatabaseCommandByEntity : public EntityDBTask
 {
 public:
-	DBTaskExecuteRawDatabaseCommandByEntity(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID);
+	DBTaskExecuteRawDatabaseCommandByEntity(const Network::Address& addr, MemoryStream& datas, ENTITY_ID entityID);
 	virtual ~DBTaskExecuteRawDatabaseCommandByEntity();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -145,7 +145,7 @@ protected:
 class DBTaskWriteEntity : public EntityDBTask
 {
 public:
-	DBTaskWriteEntity(const Mercury::Address& addr, COMPONENT_ID componentID, 
+	DBTaskWriteEntity(const Network::Address& addr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
 
 	virtual ~DBTaskWriteEntity();
@@ -166,7 +166,7 @@ protected:
 class DBTaskRemoveEntity : public EntityDBTask
 {
 public:
-	DBTaskRemoveEntity(const Mercury::Address& addr, COMPONENT_ID componentID, 
+	DBTaskRemoveEntity(const Network::Address& addr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
 
 	virtual ~DBTaskRemoveEntity();
@@ -185,7 +185,7 @@ protected:
 class DBTaskDeleteBaseByDBID : public DBTask
 {
 public:
-	DBTaskDeleteBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+	DBTaskDeleteBaseByDBID(const Network::Address& addr, COMPONENT_ID componentID, 
 		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid);
 
 	virtual ~DBTaskDeleteBaseByDBID();
@@ -207,7 +207,7 @@ protected:
 class DBTaskLookUpBaseByDBID : public DBTask
 {
 public:
-	DBTaskLookUpBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+	DBTaskLookUpBaseByDBID(const Network::Address& addr, COMPONENT_ID componentID, 
 		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid);
 
 	virtual ~DBTaskLookUpBaseByDBID();
@@ -229,7 +229,7 @@ protected:
 class DBTaskCreateAccount : public DBTask
 {
 public:
-	DBTaskCreateAccount(const Mercury::Address& addr, std::string& registerName, std::string& accountName, 
+	DBTaskCreateAccount(const Network::Address& addr, std::string& registerName, std::string& accountName, 
 		std::string& password, std::string& postdatas, std::string& getdatas);
 	virtual ~DBTaskCreateAccount();
 	virtual bool db_thread_process();
@@ -252,7 +252,7 @@ protected:
 class DBTaskCreateMailAccount : public DBTask
 {
 public:
-	DBTaskCreateMailAccount(const Mercury::Address& addr, std::string& registerName, std::string& accountName, 
+	DBTaskCreateMailAccount(const Network::Address& addr, std::string& registerName, std::string& accountName, 
 		std::string& password, std::string& postdatas, std::string& getdatas);
 	virtual ~DBTaskCreateMailAccount();
 	virtual bool db_thread_process();
@@ -272,7 +272,7 @@ protected:
 class DBTaskActivateAccount : public DBTask
 {
 public:
-	DBTaskActivateAccount(const Mercury::Address& addr, std::string& code);
+	DBTaskActivateAccount(const Network::Address& addr, std::string& code);
 	virtual ~DBTaskActivateAccount();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -288,7 +288,7 @@ protected:
 class DBTaskReqAccountResetPassword : public DBTask
 {
 public:
-	DBTaskReqAccountResetPassword(const Mercury::Address& addr, std::string& accountName);
+	DBTaskReqAccountResetPassword(const Network::Address& addr, std::string& accountName);
 	virtual ~DBTaskReqAccountResetPassword();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -306,7 +306,7 @@ protected:
 class DBTaskAccountResetPassword : public DBTask
 {
 public:
-	DBTaskAccountResetPassword(const Mercury::Address& addr, std::string& accountName, 
+	DBTaskAccountResetPassword(const Network::Address& addr, std::string& accountName, 
 		std::string& newpassword, std::string& code);
 	virtual ~DBTaskAccountResetPassword();
 	virtual bool db_thread_process();
@@ -325,7 +325,7 @@ protected:
 class DBTaskReqAccountBindEmail : public DBTask
 {
 public:
-	DBTaskReqAccountBindEmail(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
+	DBTaskReqAccountBindEmail(const Network::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string password,std::string& email);
 	virtual ~DBTaskReqAccountBindEmail();
 	virtual bool db_thread_process();
@@ -346,7 +346,7 @@ protected:
 class DBTaskAccountBindEmail : public DBTask
 {
 public:
-	DBTaskAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+	DBTaskAccountBindEmail(const Network::Address& addr, std::string& accountName, 
 		std::string& code);
 	virtual ~DBTaskAccountBindEmail();
 	virtual bool db_thread_process();
@@ -364,7 +364,7 @@ protected:
 class DBTaskAccountNewPassword : public DBTask
 {
 public:
-	DBTaskAccountNewPassword(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
+	DBTaskAccountNewPassword(const Network::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string& oldpassword_, std::string& newpassword);
 	virtual ~DBTaskAccountNewPassword();
 	virtual bool db_thread_process();
@@ -382,7 +382,7 @@ protected:
 class DBTaskQueryAccount : public EntityDBTask
 {
 public:
-	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
+	DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, 
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
@@ -409,7 +409,7 @@ protected:
 class DBTaskAccountOnline : public EntityDBTask
 {
 public:
-	DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
+	DBTaskAccountOnline(const Network::Address& addr, std::string& accountName,
 		COMPONENT_ID componentID, ENTITY_ID entityID);
 	virtual ~DBTaskAccountOnline();
 	virtual bool db_thread_process();
@@ -426,7 +426,7 @@ protected:
 class DBTaskEntityOffline : public EntityDBTask
 {
 public:
-	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
+	DBTaskEntityOffline(const Network::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid);
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -441,7 +441,7 @@ protected:
 class DBTaskAccountLogin : public DBTask
 {
 public:
-	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
+	DBTaskAccountLogin(const Network::Address& addr, std::string& loginName, 
 		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas);
 
 	virtual ~DBTaskAccountLogin();
@@ -466,7 +466,7 @@ protected:
 class DBTaskQueryEntity : public EntityDBTask
 {
 public:
-	DBTaskQueryEntity(const Mercury::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
+	DBTaskQueryEntity(const Network::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	virtual ~DBTaskQueryEntity();

@@ -55,7 +55,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 
 class Channel;
@@ -68,8 +68,8 @@ class ServerApp :
 	public SignalHandler, 
 	public TimerHandler, 
 	public ShutdownHandler,
-	public Mercury::ChannelTimeOutHandler,
-	public Mercury::ChannelDeregisterHandler,
+	public Network::ChannelTimeOutHandler,
+	public Network::ChannelDeregisterHandler,
 	public Components::ComponentsNotificationHandler
 {
 public:
@@ -78,8 +78,8 @@ public:
 		TIMEOUT_SERVERAPP_MAX
 	};
 public:
-	ServerApp(Mercury::EventDispatcher& dispatcher, 
-			Mercury::NetworkInterface& ninterface, 
+	ServerApp(Network::EventDispatcher& dispatcher, 
+			Network::NetworkInterface& ninterface, 
 			COMPONENT_TYPE componentType,
 			COMPONENT_ID componentID);
 
@@ -110,15 +110,15 @@ public:
 
 	thread::ThreadPool& threadPool(){ return threadPool_; }
 
-	Mercury::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & networkInterface()			{ return networkInterface_; }
+	Network::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
 		
 	virtual void onSignalled(int sigNum);
-	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
-	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+	virtual void onChannelTimeOut(Network::Channel * pChannel);
+	virtual void onChannelDeregister(Network::Channel * pChannel);
 	virtual void onAddComponent(const Components::ComponentInfos* pInfos);
 	virtual void onRemoveComponent(const Components::ComponentInfos* pInfos);
 
@@ -129,7 +129,7 @@ public:
 	/** 网络接口
 		请求查看watcher
 	*/
-	void queryWatcher(Mercury::Channel* pChannel, MemoryStream& s);
+	void queryWatcher(Network::Channel* pChannel, MemoryStream& s);
 
 	void shutDown(float shutdowntime = -FLT_MAX);
 
@@ -140,7 +140,7 @@ public:
 		注册一个新激活的baseapp或者cellapp或者dbmgr
 		通常是一个新的app被启动了， 它需要向某些组件注册自己。
 	*/
-	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
+	virtual void onRegisterNewApp(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
@@ -149,60 +149,60 @@ public:
 	/** 网络接口
 		某个app向本app告知处于活动状态。
 	*/
-	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	void onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	
 	/** 网络接口
 		请求断开服务器的连接
 	*/
-	virtual void reqClose(Mercury::Channel* pChannel);
+	virtual void reqClose(Network::Channel* pChannel);
 
 	/** 网络接口
 		某个app请求查看该app
 	*/
-	virtual void lookApp(Mercury::Channel* pChannel);
+	virtual void lookApp(Network::Channel* pChannel);
 
 	/** 网络接口
 		请求关闭服务器
 	*/
-	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void reqCloseServer(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		某个app请求查看该app负载状态， 通常是console请求查看
 	*/
-	virtual void queryLoad(Mercury::Channel* pChannel);
+	virtual void queryLoad(Network::Channel* pChannel);
 
 	/** 网络接口
 		请求关闭服务器
 	*/
-	void reqKillServer(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqKillServer(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		客户端与服务端第一次建立交互, 客户端发送自己的版本号与通讯密钥等信息
 		给服务端， 服务端返回是否握手成功
 	*/
-	virtual void hello(Mercury::Channel* pChannel, MemoryStream& s);
-	virtual void onHello(Mercury::Channel* pChannel, 
+	virtual void hello(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
 	// 引擎版本不匹配
-	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+	virtual void onVersionNotMatch(Network::Channel* pChannel);
 
 	// 引擎脚本层版本不匹配
-	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
+	virtual void onScriptVersionNotMatch(Network::Channel* pChannel);
 
 	/** 网络接口
 		console请求开始profile
 	*/
-	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
+	void startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
 
-	Mercury::EventDispatcher& 								mainDispatcher_;	
-	Mercury::NetworkInterface&								networkInterface_;
+	Network::EventDispatcher& 								mainDispatcher_;	
+	Network::NetworkInterface&								networkInterface_;
 	
 	Timers													timers_;
 

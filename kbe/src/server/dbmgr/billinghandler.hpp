@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-namespace Mercury{
+namespace Network{
 	class EndPoint;
 }
 
@@ -49,28 +49,28 @@ public:
 	
 	virtual bool initialize() = 0;
 
-	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey) = 0;
+	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey) = 0;
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
+	virtual bool createAccount(Network::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas, ACCOUNT_TYPE uatype) = 0;
 
 
-	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
+	virtual bool loginAccount(Network::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas) = 0;
 
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s) = 0;
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s) = 0;
 
-	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) = 0;
+	virtual void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s) = 0;
 	virtual void onChargeCB(KBEngine::MemoryStream& s) = 0;
 
-	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode) = 0;
-	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName) = 0;
-	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode) = 0;
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email) = 0;
-	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode) = 0;
-	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword) = 0;
+	virtual void accountActivate(Network::Channel* pChannel, std::string& scode) = 0;
+	virtual void accountReqResetPassword(Network::Channel* pChannel, std::string& accountName) = 0;
+	virtual void accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode) = 0;
+	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email) = 0;
+	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode) = 0;
+	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword) = 0;
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -84,28 +84,28 @@ public:
 	
 	virtual bool initialize(){ return true; }
 
-	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
+	virtual bool createAccount(Network::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas, ACCOUNT_TYPE uatype);
 
-	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
+	virtual bool loginAccount(Network::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);
 
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
 
-	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	virtual void onChargeCB(KBEngine::MemoryStream& s);
 
-	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
-	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
-	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
-	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
-	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
+	virtual void accountActivate(Network::Channel* pChannel, std::string& scode);
+	virtual void accountReqResetPassword(Network::Channel* pChannel, std::string& accountName);
+	virtual void accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
+	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode);
+	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
 protected:
 };
 
@@ -117,34 +117,34 @@ public:
 	
 	virtual bool initialize();
 
-	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
+	virtual bool createAccount(Network::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas, ACCOUNT_TYPE uatype);
 
-	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
+	virtual bool loginAccount(Network::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);
 
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
 
-	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	virtual void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	virtual void onChargeCB(KBEngine::MemoryStream& s);
 
-	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
-	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
-	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
-	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
-	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
+	virtual void accountActivate(Network::Channel* pChannel, std::string& scode);
+	virtual void accountReqResetPassword(Network::Channel* pChannel, std::string& accountName);
+	virtual void accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
+	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode);
+	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
 
 	bool reconnect();
 
 	virtual bool process();
 protected:
-	Mercury::Channel* pBillingChannel_;
+	Network::Channel* pBillingChannel_;
 };
 
 class BillingHandlerFactory

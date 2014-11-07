@@ -22,12 +22,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_NETWORK_INTERFACES_HPP
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class Channel;
 class MessageHandler;
 
-/** 此类接口用于接收普通的Mercury输入消息
+/** 此类接口用于接收普通的Network输入消息
 */
 class InputNotificationHandler
 {
@@ -36,7 +36,7 @@ public:
 	virtual int handleInputNotification(int fd) = 0;
 };
 
-/** 此类接口用于接收普通的Mercury输出消息
+/** 此类接口用于接收普通的Network输出消息
 */
 class OutputNotificationHandler
 {
@@ -61,9 +61,9 @@ public:
 	virtual void onChannelDeregister(Channel * pChannel) = 0;
 };
 
-/** 此类接口用于监听MercuryStats事件
+/** 此类接口用于监听NetworkStats事件
 */
-class MercuryStatsHandler
+class NetworkStatsHandler
 {
 public:
 	virtual void onSendMessage(const MessageHandler& msgHandler, int size) = 0;

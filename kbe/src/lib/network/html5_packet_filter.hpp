@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_filter.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class TCPPacket;
 

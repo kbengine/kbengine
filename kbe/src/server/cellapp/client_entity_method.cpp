@@ -121,8 +121,8 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 		methodDescription->addToStream(mstream, args);
 
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
 
 		srcEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
 				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
@@ -130,15 +130,15 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		if(mstream->wpos() > 0)
 			(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
-		if(Mercury::g_trace_packet > 0)
+		if(Network::g_trace_packet > 0)
 		{
-			if(Mercury::g_trace_packet_use_logfile)
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
 			DEBUG_MSG(fmt::format("ClientEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n",
 				srcEntity->scriptName(), methodDescription->getName()));
 																								
-			switch(Mercury::g_trace_packet)							
+			switch(Network::g_trace_packet)							
 			{																								
 			case 1:																							
 				mstream->hexlike();																			
@@ -151,11 +151,11 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				break;																						
 			};																								
 
-			if(Mercury::g_trace_packet_use_logfile)	
+			if(Network::g_trace_packet_use_logfile)	
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(srcEntity->id(), (*pSendBundle), (*pForwardBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(srcEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
@@ -166,7 +166,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			"::");
 
 		MemoryStream::ObjPool().reclaimObject(mstream);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 
 	S_Return;

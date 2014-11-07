@@ -44,7 +44,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BILLINGSYSTEM)
 #define BILLINGSYSTEM_MESSAGE_HANDLER_STREAM(NAME)								\
-	void NAME##BillingSystemMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler_stream::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::BillingSystem::getSingleton().NAME(pChannel, s);			\
@@ -52,7 +52,7 @@ namespace KBEngine{
 
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_STREAM(NAME)								\
-	void NAME##BillingSystemMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler_stream::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -60,10 +60,10 @@ namespace KBEngine{
 #endif
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_STREAM(NAME)								\
-	class NAME##BillingSystemMessagehandler_stream : public Mercury::MessageHandler		\
+	class NAME##BillingSystemMessagehandler_stream : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -85,7 +85,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BILLINGSYSTEM)
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS0(NAME)								\
-	void NAME##BillingSystemMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::BillingSystem::getSingleton().NAME(pChannel);				\
@@ -93,7 +93,7 @@ namespace KBEngine{
 
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS0(NAME)								\
-	void NAME##BillingSystemMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -101,10 +101,10 @@ namespace KBEngine{
 #endif
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS0(NAME)								\
-	class NAME##BillingSystemMessagehandler0 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler0 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -127,7 +127,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BILLINGSYSTEM)
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##BillingSystemMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -137,7 +137,7 @@ namespace KBEngine{
 
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##BillingSystemMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -145,10 +145,10 @@ namespace KBEngine{
 #endif
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	class NAME##BillingSystemMessagehandler1 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler1 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -171,7 +171,7 @@ namespace KBEngine{
 #if defined(BILLINGSYSTEM)
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BillingSystemMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -185,7 +185,7 @@ namespace KBEngine{
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BillingSystemMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -194,10 +194,10 @@ namespace KBEngine{
 #else
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##BillingSystemMessagehandler2 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler2 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -224,7 +224,7 @@ namespace KBEngine{
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##BillingSystemMessagehandler3::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -242,7 +242,7 @@ namespace KBEngine{
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##BillingSystemMessagehandler3::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -252,10 +252,10 @@ namespace KBEngine{
 #define BILLINGSYSTEM_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	class NAME##BillingSystemMessagehandler3 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler3 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -286,7 +286,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BillingSystemMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -307,7 +307,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BillingSystemMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -318,10 +318,10 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##BillingSystemMessagehandler4 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler4 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -355,7 +355,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BillingSystemMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -379,7 +379,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BillingSystemMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -391,10 +391,10 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##BillingSystemMessagehandler5 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler5 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -433,7 +433,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BillingSystemMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -460,7 +460,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BillingSystemMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -473,10 +473,10 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##BillingSystemMessagehandler6 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler6 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -519,7 +519,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BillingSystemMessagehandler8::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler8::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -553,7 +553,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BillingSystemMessagehandler8::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler8::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -568,10 +568,10 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##BillingSystemMessagehandler8 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler8 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -622,7 +622,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##BillingSystemMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -659,7 +659,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##BillingSystemMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##BillingSystemMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -675,10 +675,10 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	class NAME##BillingSystemMessagehandler9 : public Mercury::MessageHandler	\
+	class NAME##BillingSystemMessagehandler9 : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -733,7 +733,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##BillingSystemMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##BillingSystemMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -774,7 +774,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##BillingSystemMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##BillingSystemMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -791,10 +791,10 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	class NAME##BillingSystemMessagehandler10 : public Mercury::MessageHandler		\
+	class NAME##BillingSystemMessagehandler10 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -853,7 +853,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##BillingSystemMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##BillingSystemMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -897,7 +897,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##BillingSystemMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##BillingSystemMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -915,10 +915,10 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	class NAME##BillingSystemMessagehandler11 : public Mercury::MessageHandler		\
+	class NAME##BillingSystemMessagehandler11 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

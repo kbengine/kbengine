@@ -28,7 +28,7 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 class EndPoint;
 class Address;

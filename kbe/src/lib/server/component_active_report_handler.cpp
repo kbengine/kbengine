@@ -83,15 +83,15 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 				Components::COMPONENTS::iterator iter = components.begin();
 				for(; iter != components.end(); iter++)
 				{
-					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-					COMMON_MERCURY_MESSAGE(componentType, (*pBundle), onAppActiveTick);
+					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					COMMON_NETWORK_MESSAGE(componentType, (*pBundle), onAppActiveTick);
 					
 					(*pBundle) << g_componentType;
 					(*pBundle) << g_componentID;
 					if((*iter).pChannel != NULL)
 						(*pBundle).send(pApp_->networkInterface(), (*iter).pChannel);
 
-					Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+					Network::Bundle::ObjPool().reclaimObject(pBundle);
 				}
 
 				ifind++;

@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 class Bundle;
 }
@@ -49,8 +49,8 @@ public:
 	GhostManager();
 	~GhostManager();
 
-	void pushMessage(COMPONENT_ID componentID, Mercury::Bundle* pBundle);
-	void pushRouteMessage(ENTITY_ID entityID, COMPONENT_ID componentID, Mercury::Bundle* pBundle);
+	void pushMessage(COMPONENT_ID componentID, Network::Bundle* pBundle);
+	void pushRouteMessage(ENTITY_ID entityID, COMPONENT_ID componentID, Network::Bundle* pBundle);
 
 	COMPONENT_ID getRoute(ENTITY_ID entityID);
 	void addRoute(ENTITY_ID entityID, COMPONENT_ID componentID);
@@ -90,7 +90,7 @@ private:
 	std::map<ENTITY_ID, ROUTE_INFO> ghost_route_;
 
 	// 所有需要广播的事件消息
-	std::map<COMPONENT_ID, std::vector< Mercury::Bundle* > > messages_;
+	std::map<COMPONENT_ID, std::vector< Network::Bundle* > > messages_;
 
 	TimerHandle* pTimerHandle_;
 

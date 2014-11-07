@@ -85,7 +85,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
-		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
+		Network::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
 	}
 
 	rootNode = xml->getRootNode("trace_packet");
@@ -93,14 +93,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "debug_type");
 		if(childnode)
-			Mercury::g_trace_packet = xml->getValInt(childnode);
+			Network::g_trace_packet = xml->getValInt(childnode);
 
-		if(Mercury::g_trace_packet > 3)
-			Mercury::g_trace_packet = 0;
+		if(Network::g_trace_packet > 3)
+			Network::g_trace_packet = 0;
 
 		childnode = xml->enterNode(rootNode, "use_logfile");
 		if(childnode)
-			Mercury::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
+			Network::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
 
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
@@ -113,7 +113,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 					c = strutil::kbe_trim(c);
 					if(c.size() > 0)
 					{
-						Mercury::g_trace_packet_disables.push_back(c);
+						Network::g_trace_packet_disables.push_back(c);
 					}
 				}
 			}while((childnode = childnode->NextSibling()));												
@@ -200,14 +200,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(childnode1)
 			{
 				channelCommon_.channelInternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelInternalTimeout = channelCommon_.channelInternalTimeout;
+				Network::g_channelInternalTimeout = channelCommon_.channelInternalTimeout;
 			}
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode)
 			{
 				channelCommon_.channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
+				Network::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
 			}
 		}
 
@@ -220,13 +220,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 
@@ -236,13 +236,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 		}
@@ -279,15 +279,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
 				if(childnode2)
-					Mercury::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
 				childnode2 = xml->enterNode(childnode1, "external");
 				if(childnode2)
-					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
 				childnode2 = xml->enterNode(childnode1, "critical");
 				if(childnode2)
-					Mercury::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+					Network::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
 			}
 
 			childnode1 = xml->enterNode(childnode, "bytes");
@@ -295,18 +295,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
 				if(childnode2)
-					Mercury::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					Network::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				
 				childnode2 = xml->enterNode(childnode1, "external");
 				if(childnode2)
-					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 			}
 		};
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
-			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
 		}
 	}
 
@@ -347,7 +347,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(ip.size() == 0)
 				ip = "localhost";
 
-			Mercury::Address addr(ip, ntohs(billingSystemAddr_.port));
+			Network::Address addr(ip, ntohs(billingSystemAddr_.port));
 			billingSystemAddr_ = addr;
 		}
 
@@ -360,7 +360,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(port <= 0)
 				port = KBE_BILLING_TCP_PORT;
 
-			Mercury::Address addr(inet_ntoa((struct in_addr&)billingSystemAddr_.ip), port);
+			Network::Address addr(inet_ntoa((struct in_addr&)billingSystemAddr_.ip), port);
 			billingSystemAddr_ = addr;
 		}
 
@@ -462,10 +462,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_cellAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
 			}
 
-			childnode = xml->enterNode(node, "mercuryprofile");
+			childnode = xml->enterNode(node, "networkprofile");
 			if(childnode)
 			{
-				_cellAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+				_cellAppInfo.profiles.open_networkprofile = (xml->getValStr(childnode) == "true");
 			}
 		}
 
@@ -657,10 +657,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_baseAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
 			}
 
-			childnode = xml->enterNode(node, "mercuryprofile");
+			childnode = xml->enterNode(node, "networkprofile");
 			if(childnode)
 			{
-				_baseAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+				_baseAppInfo.profiles.open_networkprofile = (xml->getValStr(childnode) == "true");
 			}
 		}
 
@@ -1241,7 +1241,7 @@ void ServerConfig::updateExternalAddress(char* buf)
 
 //-------------------------------------------------------------------------------------	
 void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
+							   const Network::Address& internalAddr, const Network::Address& externalAddr)
 {
 	std::string infostr = "";
 
@@ -1279,8 +1279,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == BASEAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getBaseApp();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 
 		if(isPrint)
@@ -1317,8 +1317,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == BASEAPPMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getBaseAppMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 
 		if(isPrint)
@@ -1336,8 +1336,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == CELLAPPMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getCellAppMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 
 		if(isPrint)
@@ -1355,8 +1355,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == DBMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getDBMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 
 		if(isPrint)
@@ -1374,8 +1374,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == LOGINAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getLoginApp();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 
 		if(isPrint)
@@ -1407,8 +1407,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	else if (componentType == MACHINE_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getKBMachine();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 		if(isPrint)
 		{

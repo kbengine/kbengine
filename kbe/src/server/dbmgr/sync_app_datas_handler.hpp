@@ -43,14 +43,14 @@ public:
 		int32 startGlobalOrder;
 	};
 
-	SyncAppDatasHandler(Mercury::NetworkInterface & networkInterface);
+	SyncAppDatasHandler(Network::NetworkInterface & networkInterface);
 	~SyncAppDatasHandler();
 	
 	bool process();
 
 	void pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32 startGlobalOrder);
 private:
-	Mercury::NetworkInterface &		networkInterface_;
+	Network::NetworkInterface &		networkInterface_;
 	uint64							lastRegAppTime_;
 	std::vector<ComponentInitInfo>	apps_;
 

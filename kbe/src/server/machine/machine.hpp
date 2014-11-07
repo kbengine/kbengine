@@ -51,8 +51,8 @@ public:
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
-	Machine(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Machine(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -65,7 +65,7 @@ public:
 	/** 网络接口
 		某个app广播了自己的地址
 	*/
-	void onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+	void onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username, 
 							int8 componentType, uint64 componentID, uint64 componentIDEx, 
 							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
@@ -76,13 +76,13 @@ public:
 	/** 网络接口
 		某个app寻找另一个app的地址
 	*/
-	void onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+	void onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, 
 		int8 componentType, uint64 componentID, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
 
 	/** 网络接口
 		查询所有接口信息
 	*/
-	void onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+	void onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
 		uint16 finderRecvPort);
 
 	void handleTimeout(TimerHandle handle, void * arg);
@@ -99,13 +99,13 @@ public:
 		@uid: 提供启动的uid参数
 		@components: 启动哪些组件(可能采取分布式启动方案)
 	*/
-	void startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		关闭服务器
 		@uid: 提供启动的uid参数
 	*/
-	void stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		对本机运行的组件进行检查是否可用
@@ -114,14 +114,14 @@ public:
 protected:
 	// udp广播地址
 	u_int32_t broadcastAddr_;
-	Mercury::EndPoint ep_;
-	Mercury::EndPoint epBroadcast_;
+	Network::EndPoint ep_;
+	Network::EndPoint epBroadcast_;
 
-	Mercury::EndPoint epLocal_;
+	Network::EndPoint epLocal_;
 
-	Mercury::UDPPacketReceiver* pEPPacketReceiver_;
-	Mercury::UDPPacketReceiver* pEBPacketReceiver_;
-	Mercury::UDPPacketReceiver* pEPLocalPacketReceiver_;
+	Network::UDPPacketReceiver* pEPPacketReceiver_;
+	Network::UDPPacketReceiver* pEBPacketReceiver_;
+	Network::UDPPacketReceiver* pEPLocalPacketReceiver_;
 
 	// 本机使用的uid
 	std::vector<int32>			localuids_;

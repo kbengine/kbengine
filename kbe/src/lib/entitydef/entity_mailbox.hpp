@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 }
@@ -56,9 +56,9 @@ class EntityMailbox : public EntityMailboxAbstract
 public:
 	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* md, EntityMailbox* pMailbox)> MailboxCallHookFunc;
 	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
-	typedef std::tr1::function<Mercury::Channel* (EntityMailbox&)> FindChannelFunc;
+	typedef std::tr1::function<Network::Channel* (EntityMailbox&)> FindChannelFunc;
 
-	EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
+	EntityMailbox(ScriptDefModule* scriptModule, const Network::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
 
 	~EntityMailbox();
@@ -114,7 +114,7 @@ public:
 
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
 
-	virtual Mercury::Channel* getChannel(void);
+	virtual Network::Channel* getChannel(void);
 
 	void reload();
 

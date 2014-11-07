@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 // KBE_INTERFACE_DEFS_HPP
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 
 #ifdef NETWORK_INTERFACE_DECLARE_BEGIN
@@ -125,13 +125,13 @@ namespace Mercury
 #define NETWORK_INTERFACE_DECLARE_BEGIN(INAME) 						\
 	namespace INAME													\
 {																	\
-		extern Mercury::MessageHandlers messageHandlers;			\
+		extern Network::MessageHandlers messageHandlers;			\
 			
 #else
 #define NETWORK_INTERFACE_DECLARE_BEGIN(INAME) 						\
 	namespace INAME													\
 {																	\
-		Mercury::MessageHandlers messageHandlers;					\
+		Network::MessageHandlers messageHandlers;					\
 			
 #endif
 
@@ -144,15 +144,15 @@ namespace Mercury
 #define MESSAGE_STREAM(NAME)
 #else
 #define MESSAGE_STREAM(NAME)										\
-	class NAME##Args_stream : public Mercury::MessageArgs			\
+	class NAME##Args_stream : public Network::MessageArgs			\
 	{																\
 	public:															\
-		NAME##Args_stream():Mercury::MessageArgs(){}				\
+		NAME##Args_stream():Network::MessageArgs(){}				\
 		~NAME##Args_stream(){}										\
 																	\
 		virtual int32 dataSize(void)								\
 		{															\
-			return MERCURY_VARIABLE_MESSAGE;						\
+			return NETWORK_VARIABLE_MESSAGE;						\
 		}															\
 		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)			\
 		{															\
@@ -181,13 +181,13 @@ namespace Mercury
 #define MESSAGE_ARGS0(NAME)
 #else
 #define MESSAGE_ARGS0(NAME)											\
-	class NAME##Args0 : public Mercury::MessageArgs					\
+	class NAME##Args0 : public Network::MessageArgs					\
 	{																\
 	public:															\
-		NAME##Args0():Mercury::MessageArgs(){}						\
+		NAME##Args0():Network::MessageArgs(){}						\
 		~NAME##Args0(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s)			\
+		static void staticAddToBundle(Network::Bundle& s)			\
 		{															\
 		}															\
 		static void staticAddToStream(MemoryStream& s)				\
@@ -219,20 +219,20 @@ namespace Mercury
 #define MESSAGE_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)
 #else
 #define MESSAGE_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	class NAME##Args1 : public Mercury::MessageArgs					\
+	class NAME##Args1 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
 	public:															\
-		NAME##Args1():Mercury::MessageArgs(){						\
+		NAME##Args1():Network::MessageArgs(){						\
 		strArgsTypes.push_back(#ARG_TYPE1);}						\
 		NAME##Args1(ARG_TYPE1 init_##ARG_NAME1):					\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1)									\
 		{strArgsTypes.push_back(#ARG_TYPE1);}						\
 		~NAME##Args1(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1)			\
 		{															\
 			s << init_##ARG_NAME1;									\
@@ -274,20 +274,20 @@ namespace Mercury
 #else
 #define MESSAGE_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 					\
 							ARG_TYPE2, ARG_NAME2)					\
-	class NAME##Args2 : public Mercury::MessageArgs					\
+	class NAME##Args2 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
 		ARG_TYPE2 ARG_NAME2;										\
 	public:															\
-		NAME##Args2():Mercury::MessageArgs()						\
+		NAME##Args2():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
 		}															\
 		NAME##Args2(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2)									\
 		{															\
@@ -296,7 +296,7 @@ namespace Mercury
 		}															\
 		~NAME##Args2(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2)			\
 		{															\
@@ -349,14 +349,14 @@ namespace Mercury
 #define MESSAGE_ARGS3(NAME, ARG_TYPE1, ARG_NAME1, 					\
 							ARG_TYPE2, ARG_NAME2,					\
 							ARG_TYPE3, ARG_NAME3)					\
-	class NAME##Args3 : public Mercury::MessageArgs					\
+	class NAME##Args3 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
 		ARG_TYPE2 ARG_NAME2;										\
 		ARG_TYPE3 ARG_NAME3;										\
 	public:															\
-		NAME##Args3():Mercury::MessageArgs()						\
+		NAME##Args3():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -365,7 +365,7 @@ namespace Mercury
 		NAME##Args3(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3)									\
@@ -376,7 +376,7 @@ namespace Mercury
 		}															\
 		~NAME##Args3(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3)			\
@@ -441,7 +441,7 @@ namespace Mercury
 							ARG_TYPE2, ARG_NAME2,					\
 							ARG_TYPE3, ARG_NAME3,					\
 							ARG_TYPE4, ARG_NAME4)					\
-	class NAME##Args4 : public Mercury::MessageArgs					\
+	class NAME##Args4 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -449,7 +449,7 @@ namespace Mercury
 		ARG_TYPE3 ARG_NAME3;										\
 		ARG_TYPE4 ARG_NAME4;										\
 	public:															\
-		NAME##Args4():Mercury::MessageArgs()						\
+		NAME##Args4():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -460,7 +460,7 @@ namespace Mercury
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
 		ARG_TYPE4 init_##ARG_NAME4):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -473,7 +473,7 @@ namespace Mercury
 		}															\
 		~NAME##Args4(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -549,7 +549,7 @@ namespace Mercury
 							ARG_TYPE3, ARG_NAME3,					\
 							ARG_TYPE4, ARG_NAME4,					\
 							ARG_TYPE5, ARG_NAME5)					\
-	class NAME##Args5 : public Mercury::MessageArgs					\
+	class NAME##Args5 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -558,7 +558,7 @@ namespace Mercury
 		ARG_TYPE4 ARG_NAME4;										\
 		ARG_TYPE5 ARG_NAME5;										\
 	public:															\
-		NAME##Args5():Mercury::MessageArgs()						\
+		NAME##Args5():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -571,7 +571,7 @@ namespace Mercury
 		ARG_TYPE3 init_##ARG_NAME3,									\
 		ARG_TYPE4 init_##ARG_NAME4,									\
 		ARG_TYPE5 init_##ARG_NAME5):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -586,7 +586,7 @@ namespace Mercury
 		}															\
 		~NAME##Args5(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -672,7 +672,7 @@ namespace Mercury
 							ARG_TYPE4, ARG_NAME4,					\
 							ARG_TYPE5, ARG_NAME5,					\
 							ARG_TYPE6, ARG_NAME6)					\
-	class NAME##Args6 : public Mercury::MessageArgs					\
+	class NAME##Args6 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -682,7 +682,7 @@ namespace Mercury
 		ARG_TYPE5 ARG_NAME5;										\
 		ARG_TYPE6 ARG_NAME6;										\
 	public:															\
-		NAME##Args6():Mercury::MessageArgs()						\
+		NAME##Args6():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -697,7 +697,7 @@ namespace Mercury
 		ARG_TYPE4 init_##ARG_NAME4,									\
 		ARG_TYPE5 init_##ARG_NAME5,									\
 		ARG_TYPE6 init_##ARG_NAME6):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -714,7 +714,7 @@ namespace Mercury
 		}															\
 		~NAME##Args6(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -811,7 +811,7 @@ namespace Mercury
 							ARG_TYPE5, ARG_NAME5,					\
 							ARG_TYPE6, ARG_NAME6,					\
 							ARG_TYPE7, ARG_NAME7)					\
-	class NAME##Args7 : public Mercury::MessageArgs					\
+	class NAME##Args7 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -822,7 +822,7 @@ namespace Mercury
 		ARG_TYPE6 ARG_NAME6;										\
 		ARG_TYPE7 ARG_NAME7;										\
 	public:															\
-		NAME##Args7():Mercury::MessageArgs()						\
+		NAME##Args7():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -839,7 +839,7 @@ namespace Mercury
 		ARG_TYPE5 init_##ARG_NAME5,									\
 		ARG_TYPE6 init_##ARG_NAME6,									\
 		ARG_TYPE7 init_##ARG_NAME7):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -858,7 +858,7 @@ namespace Mercury
 		}															\
 		~NAME##Args7(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -966,7 +966,7 @@ namespace Mercury
 							ARG_TYPE6, ARG_NAME6,					\
 							ARG_TYPE7, ARG_NAME7,					\
 							ARG_TYPE8, ARG_NAME8)					\
-	class NAME##Args8 : public Mercury::MessageArgs					\
+	class NAME##Args8 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -978,7 +978,7 @@ namespace Mercury
 		ARG_TYPE7 ARG_NAME7;										\
 		ARG_TYPE8 ARG_NAME8;										\
 	public:															\
-		NAME##Args8():Mercury::MessageArgs()						\
+		NAME##Args8():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -997,7 +997,7 @@ namespace Mercury
 		ARG_TYPE6 init_##ARG_NAME6,									\
 		ARG_TYPE7 init_##ARG_NAME7,									\
 		ARG_TYPE8 init_##ARG_NAME8):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -1018,7 +1018,7 @@ namespace Mercury
 		}															\
 		~NAME##Args8(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -1138,7 +1138,7 @@ namespace Mercury
 							ARG_TYPE7, ARG_NAME7,					\
 							ARG_TYPE8, ARG_NAME8,					\
 							ARG_TYPE9, ARG_NAME9)					\
-	class NAME##Args9 : public Mercury::MessageArgs					\
+	class NAME##Args9 : public Network::MessageArgs					\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -1151,7 +1151,7 @@ namespace Mercury
 		ARG_TYPE8 ARG_NAME8;										\
 		ARG_TYPE9 ARG_NAME9;										\
 	public:															\
-		NAME##Args9():Mercury::MessageArgs()						\
+		NAME##Args9():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -1172,7 +1172,7 @@ namespace Mercury
 		ARG_TYPE7 init_##ARG_NAME7,									\
 		ARG_TYPE8 init_##ARG_NAME8,									\
 		ARG_TYPE9 init_##ARG_NAME9):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -1195,7 +1195,7 @@ namespace Mercury
 		}															\
 		~NAME##Args9(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -1326,7 +1326,7 @@ namespace Mercury
 							ARG_TYPE8, ARG_NAME8,					\
 							ARG_TYPE9, ARG_NAME9,					\
 							ARG_TYPE10, ARG_NAME10)					\
-	class NAME##Args10 : public Mercury::MessageArgs				\
+	class NAME##Args10 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -1340,7 +1340,7 @@ namespace Mercury
 		ARG_TYPE9 ARG_NAME9;										\
 		ARG_TYPE10 ARG_NAME10;										\
 	public:															\
-		NAME##Args10():Mercury::MessageArgs()						\
+		NAME##Args10():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -1363,7 +1363,7 @@ namespace Mercury
 		ARG_TYPE8 init_##ARG_NAME8,									\
 		ARG_TYPE9 init_##ARG_NAME9,									\
 		ARG_TYPE10 init_##ARG_NAME10):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -1388,7 +1388,7 @@ namespace Mercury
 		}															\
 		~NAME##Args10(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -1532,7 +1532,7 @@ namespace Mercury
 							ARG_TYPE9, ARG_NAME9,					\
 							ARG_TYPE10, ARG_NAME10,					\
 							ARG_TYPE11, ARG_NAME11)					\
-	class NAME##Args11 : public Mercury::MessageArgs				\
+	class NAME##Args11 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -1547,7 +1547,7 @@ namespace Mercury
 		ARG_TYPE10 ARG_NAME10;										\
 		ARG_TYPE11 ARG_NAME11;										\
 	public:															\
-		NAME##Args11():Mercury::MessageArgs()						\
+		NAME##Args11():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -1572,7 +1572,7 @@ namespace Mercury
 		ARG_TYPE9 init_##ARG_NAME9,									\
 		ARG_TYPE10 init_##ARG_NAME10,								\
 		ARG_TYPE11 init_##ARG_NAME11):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -1599,7 +1599,7 @@ namespace Mercury
 		}															\
 		~NAME##Args11(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -1754,7 +1754,7 @@ namespace Mercury
 							ARG_TYPE10, ARG_NAME10,					\
 							ARG_TYPE11, ARG_NAME11,					\
 							ARG_TYPE12, ARG_NAME12)					\
-	class NAME##Args12 : public Mercury::MessageArgs				\
+	class NAME##Args12 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -1770,7 +1770,7 @@ namespace Mercury
 		ARG_TYPE11 ARG_NAME11;										\
 		ARG_TYPE12 ARG_NAME12;										\
 	public:															\
-		NAME##Args12():Mercury::MessageArgs()						\
+		NAME##Args12():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -1797,7 +1797,7 @@ namespace Mercury
 		ARG_TYPE10 init_##ARG_NAME10,								\
 		ARG_TYPE11 init_##ARG_NAME11,								\
 		ARG_TYPE12 init_##ARG_NAME12):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -1826,7 +1826,7 @@ namespace Mercury
 		}															\
 		~NAME##Args12(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -1993,7 +1993,7 @@ namespace Mercury
 							ARG_TYPE13, ARG_NAME13,					\
 							ARG_TYPE14, ARG_NAME14,					\
 							ARG_TYPE15, ARG_NAME15)					\
-	class NAME##Args13 : public Mercury::MessageArgs				\
+	class NAME##Args13 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -2010,7 +2010,7 @@ namespace Mercury
 		ARG_TYPE12 ARG_NAME12;										\
 		ARG_TYPE13 ARG_NAME13;										\
 	public:															\
-		NAME##Args13():Mercury::MessageArgs()						\
+		NAME##Args13():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -2039,7 +2039,7 @@ namespace Mercury
 		ARG_TYPE11 init_##ARG_NAME11,								\
 		ARG_TYPE12 init_##ARG_NAME12,								\
 		ARG_TYPE13 init_##ARG_NAME13):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -2070,7 +2070,7 @@ namespace Mercury
 		}															\
 		~NAME##Args13(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -2246,7 +2246,7 @@ namespace Mercury
 							ARG_TYPE12, ARG_NAME12,					\
 							ARG_TYPE13, ARG_NAME13,					\
 							ARG_TYPE14, ARG_NAME14)					\
-	class NAME##Args14 : public Mercury::MessageArgs				\
+	class NAME##Args14 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -2264,7 +2264,7 @@ namespace Mercury
 		ARG_TYPE13 ARG_NAME13;										\
 		ARG_TYPE14 ARG_NAME14;										\
 	public:															\
-		NAME##Args14():Mercury::MessageArgs()						\
+		NAME##Args14():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -2295,7 +2295,7 @@ namespace Mercury
 		ARG_TYPE12 init_##ARG_NAME12,								\
 		ARG_TYPE13 init_##ARG_NAME13,								\
 		ARG_TYPE14 init_##ARG_NAME14):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -2328,7 +2328,7 @@ namespace Mercury
 		}															\
 		~NAME##Args14(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -2514,7 +2514,7 @@ namespace Mercury
 							ARG_TYPE13, ARG_NAME13,					\
 							ARG_TYPE14, ARG_NAME14,					\
 							ARG_TYPE15, ARG_NAME15)					\
-	class NAME##Args15 : public Mercury::MessageArgs				\
+	class NAME##Args15 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -2533,7 +2533,7 @@ namespace Mercury
 		ARG_TYPE14 ARG_NAME14;										\
 		ARG_TYPE15 ARG_NAME15;										\
 	public:															\
-		NAME##Args15():Mercury::MessageArgs()						\
+		NAME##Args15():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -2566,7 +2566,7 @@ namespace Mercury
 		ARG_TYPE13 init_##ARG_NAME13,								\
 		ARG_TYPE14 init_##ARG_NAME14,								\
 		ARG_TYPE15 init_##ARG_NAME15):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -2601,7 +2601,7 @@ namespace Mercury
 		}															\
 		~NAME##Args15(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -2799,7 +2799,7 @@ namespace Mercury
 							ARG_TYPE14, ARG_NAME14,					\
 							ARG_TYPE15, ARG_NAME15,					\
 							ARG_TYPE16, ARG_NAME16)					\
-	class NAME##Args16 : public Mercury::MessageArgs				\
+	class NAME##Args16 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -2819,7 +2819,7 @@ namespace Mercury
 		ARG_TYPE15 ARG_NAME15;										\
 		ARG_TYPE16 ARG_NAME16;										\
 	public:															\
-		NAME##Args16():Mercury::MessageArgs()						\
+		NAME##Args16():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -2854,7 +2854,7 @@ namespace Mercury
 		ARG_TYPE14 init_##ARG_NAME14,								\
 		ARG_TYPE15 init_##ARG_NAME15,								\
 		ARG_TYPE16 init_##ARG_NAME16):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -2891,7 +2891,7 @@ namespace Mercury
 		}															\
 		~NAME##Args16(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -3100,7 +3100,7 @@ namespace Mercury
 							ARG_TYPE15, ARG_NAME15,					\
 							ARG_TYPE16, ARG_NAME16,					\
 							ARG_TYPE17, ARG_NAME17)					\
-	class NAME##Args17 : public Mercury::MessageArgs				\
+	class NAME##Args17 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -3121,7 +3121,7 @@ namespace Mercury
 		ARG_TYPE16 ARG_NAME16;										\
 		ARG_TYPE17 ARG_NAME17;										\
 	public:															\
-		NAME##Args17():Mercury::MessageArgs()						\
+		NAME##Args17():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -3158,7 +3158,7 @@ namespace Mercury
 		ARG_TYPE15 init_##ARG_NAME15,								\
 		ARG_TYPE16 init_##ARG_NAME16,								\
 		ARG_TYPE17 init_##ARG_NAME17):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -3197,7 +3197,7 @@ namespace Mercury
 		}															\
 		~NAME##Args17(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -3417,7 +3417,7 @@ namespace Mercury
 							ARG_TYPE16, ARG_NAME16,					\
 							ARG_TYPE17, ARG_NAME17,					\
 							ARG_TYPE18, ARG_NAME18)					\
-	class NAME##Args18 : public Mercury::MessageArgs				\
+	class NAME##Args18 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -3439,7 +3439,7 @@ namespace Mercury
 		ARG_TYPE17 ARG_NAME17;										\
 		ARG_TYPE18 ARG_NAME18;										\
 	public:															\
-		NAME##Args18():Mercury::MessageArgs()						\
+		NAME##Args18():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -3478,7 +3478,7 @@ namespace Mercury
 		ARG_TYPE16 init_##ARG_NAME16,								\
 		ARG_TYPE17 init_##ARG_NAME17,								\
 		ARG_TYPE18 init_##ARG_NAME18):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -3519,7 +3519,7 @@ namespace Mercury
 		}															\
 		~NAME##Args18(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -3750,7 +3750,7 @@ namespace Mercury
 							ARG_TYPE17, ARG_NAME17,					\
 							ARG_TYPE18, ARG_NAME18,					\
 							ARG_TYPE19, ARG_NAME19)					\
-	class NAME##Args19 : public Mercury::MessageArgs				\
+	class NAME##Args19 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -3773,7 +3773,7 @@ namespace Mercury
 		ARG_TYPE18 ARG_NAME18;										\
 		ARG_TYPE19 ARG_NAME19;										\
 	public:															\
-		NAME##Args19():Mercury::MessageArgs()						\
+		NAME##Args19():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -3814,7 +3814,7 @@ namespace Mercury
 		ARG_TYPE17 init_##ARG_NAME17,								\
 		ARG_TYPE18 init_##ARG_NAME18,								\
 		ARG_TYPE19 init_##ARG_NAME19):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -3857,7 +3857,7 @@ namespace Mercury
 		}															\
 		~NAME##Args19(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -4099,7 +4099,7 @@ namespace Mercury
 							ARG_TYPE18, ARG_NAME18,					\
 							ARG_TYPE19, ARG_NAME19,					\
 							ARG_TYPE20, ARG_NAME20)					\
-	class NAME##Args20 : public Mercury::MessageArgs				\
+	class NAME##Args20 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -4123,7 +4123,7 @@ namespace Mercury
 		ARG_TYPE19 ARG_NAME19;										\
 		ARG_TYPE20 ARG_NAME20;										\
 	public:															\
-		NAME##Args20():Mercury::MessageArgs()						\
+		NAME##Args20():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -4166,7 +4166,7 @@ namespace Mercury
 		ARG_TYPE18 init_##ARG_NAME18,								\
 		ARG_TYPE19 init_##ARG_NAME19,								\
 		ARG_TYPE20 init_##ARG_NAME20):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -4211,7 +4211,7 @@ namespace Mercury
 		}															\
 		~NAME##Args20(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -4465,7 +4465,7 @@ namespace Mercury
 							ARG_TYPE19, ARG_NAME19,					\
 							ARG_TYPE20, ARG_NAME20,					\
 							ARG_TYPE21, ARG_NAME21)					\
-	class NAME##Args21 : public Mercury::MessageArgs				\
+	class NAME##Args21 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -4490,7 +4490,7 @@ namespace Mercury
 		ARG_TYPE20 ARG_NAME20;										\
 		ARG_TYPE21 ARG_NAME21;										\
 	public:															\
-		NAME##Args21():Mercury::MessageArgs()						\
+		NAME##Args21():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -4535,7 +4535,7 @@ namespace Mercury
 		ARG_TYPE19 init_##ARG_NAME19,								\
 		ARG_TYPE20 init_##ARG_NAME20,								\
 		ARG_TYPE21 init_##ARG_NAME21):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -4582,7 +4582,7 @@ namespace Mercury
 		}															\
 		~NAME##Args21(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\
@@ -4847,7 +4847,7 @@ namespace Mercury
 							ARG_TYPE20, ARG_NAME20,					\
 							ARG_TYPE21, ARG_NAME21,					\
 							ARG_TYPE22, ARG_NAME22)					\
-	class NAME##Args22 : public Mercury::MessageArgs				\
+	class NAME##Args22 : public Network::MessageArgs				\
 	{																\
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
@@ -4873,7 +4873,7 @@ namespace Mercury
 		ARG_TYPE21 ARG_NAME21;										\
 		ARG_TYPE22 ARG_NAME22;										\
 	public:															\
-		NAME##Args22():Mercury::MessageArgs()						\
+		NAME##Args22():Network::MessageArgs()						\
 		{															\
 			strArgsTypes.push_back(#ARG_TYPE1);						\
 			strArgsTypes.push_back(#ARG_TYPE2);						\
@@ -4920,7 +4920,7 @@ namespace Mercury
 		ARG_TYPE20 init_##ARG_NAME20,								\
 		ARG_TYPE21 init_##ARG_NAME21,								\
 		ARG_TYPE22 init_##ARG_NAME22):								\
-		Mercury::MessageArgs(),										\
+		Network::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
@@ -4969,7 +4969,7 @@ namespace Mercury
 		}															\
 		~NAME##Args22(){}											\
 																	\
-		static void staticAddToBundle(Mercury::Bundle& s,			\
+		static void staticAddToBundle(Network::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
 								ARG_TYPE2 init_##ARG_NAME2,			\
 								ARG_TYPE3 init_##ARG_NAME3,			\

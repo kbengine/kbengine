@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 class TCPPacketReceiver;
@@ -50,8 +50,8 @@ class ClientApp :
 	public Singleton<ClientApp>,
 	public ClientObjectBase,
 	public TimerHandler, 
-	public Mercury::ChannelTimeOutHandler,
-	public Mercury::ChannelDeregisterHandler
+	public Network::ChannelTimeOutHandler,
+	public Network::ChannelDeregisterHandler
 {
 public:
 	enum TimeOutType
@@ -69,8 +69,8 @@ public:
 		C_STATE_PLAY = 5,
 	};
 public:
-	ClientApp(Mercury::EventDispatcher& dispatcher, 
-			Mercury::NetworkInterface& ninterface, 
+	ClientApp(Network::EventDispatcher& dispatcher, 
+			Network::NetworkInterface& ninterface, 
 			COMPONENT_TYPE componentType,
 			COMPONENT_ID componentID);
 
@@ -112,8 +112,8 @@ public:
 	GAME_TIME time() const { return g_kbetime; }
 	double gameTimeInSeconds() const;
 
-	Mercury::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & networkInterface()			{ return networkInterface_; }
+	Network::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
@@ -132,51 +132,51 @@ public:
 	*/
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
-	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
-	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+	virtual void onChannelTimeOut(Network::Channel * pChannel);
+	virtual void onChannelDeregister(Network::Channel * pChannel);
 
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 
 		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		和服务端的版本不匹配
 	*/
-	virtual void onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onVersionNotMatch(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		和服务端的脚本层版本不匹配
 	*/
-	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onScriptVersionNotMatch(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口
 	*/
-	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	   @failedcode: 失败返回码 NETWORK_ERR_SRV_NO_READY:服务器没有准备好, 
+									NETWORK_ERR_SRV_OVERLOAD:服务器负载过重, 
+									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginFailed(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	   @failedcode: 失败返回码 NETWORK_ERR_SRV_NO_READY:服务器没有准备好, 
+									NETWORK_ERR_ILLEGAL_LOGIN:非法登录, 
+									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	virtual void onTargetChanged();
 
@@ -225,11 +225,11 @@ protected:
 	// 本组件的ID
 	COMPONENT_ID											componentID_;									
 
-	Mercury::EventDispatcher& 								mainDispatcher_;
-	Mercury::NetworkInterface&								networkInterface_;
+	Network::EventDispatcher& 								mainDispatcher_;
+	Network::NetworkInterface&								networkInterface_;
 	
-	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
-	Mercury::BlowfishFilter*								pBlowfishFilter_;
+	Network::TCPPacketReceiver*								pTCPPacketReceiver_;
+	Network::BlowfishFilter*								pBlowfishFilter_;
 
 	// 线程池
 	thread::ThreadPool										threadPool_;

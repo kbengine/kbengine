@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-TelnetServer::TelnetServer(Mercury::EventDispatcher* pDispatcher, Mercury::NetworkInterface* networkInterface):
+TelnetServer::TelnetServer(Network::EventDispatcher* pDispatcher, Network::NetworkInterface* networkInterface):
 handlers_(),
 listener_(),
 pDispatcher_(pDispatcher),
@@ -164,7 +164,7 @@ int	TelnetServer::handleInputNotification(int fd)
 
 	while(tickcount ++ < 1024)
 	{
-		Mercury::EndPoint* pNewEndPoint = listener_.accept();
+		Network::EndPoint* pNewEndPoint = listener_.accept();
 		if(pNewEndPoint == NULL){
 
 			if(tickcount == 1)

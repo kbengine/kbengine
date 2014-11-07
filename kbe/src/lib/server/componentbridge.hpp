@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class Address;
 class NetworkInterface;
@@ -48,7 +48,7 @@ class Componentbridge : public Task,
 						public Singleton<Componentbridge>
 {
 public:
-	Componentbridge(Mercury::NetworkInterface & networkInterface, 
+	Componentbridge(Network::NetworkInterface & networkInterface, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	~Componentbridge();
 
@@ -59,14 +59,14 @@ public:
 	void componentType(COMPONENT_TYPE t){ componentType_ = t; }
 	COMPONENT_TYPE componentType()const { return componentType_; }
 
-	Mercury::EventDispatcher & dispatcher();
+	Network::EventDispatcher & dispatcher();
 
-	void onChannelDeregister(Mercury::Channel * pChannel);
+	void onChannelDeregister(Network::Channel * pChannel);
 private:
 	virtual bool process();
 	bool findInterfaces();
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE componentType_;
 	COMPONENT_ID componentID_;									// 本组件的ID
 	uint8 state_;

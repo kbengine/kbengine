@@ -41,7 +41,7 @@ class RestoreEntityHandler : public Task
 	};
 
 public:
-	RestoreEntityHandler(COMPONENT_ID cellappID, Mercury::NetworkInterface & networkInterface);
+	RestoreEntityHandler(COMPONENT_ID cellappID, Network::NetworkInterface & networkInterface);
 	~RestoreEntityHandler();
 	
 	bool process();
@@ -62,7 +62,7 @@ public:
 
 	COMPONENT_ID cellappID()const{ return cellappID_; }
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 	std::vector<RestoreData> entities_;
 	bool inProcess_;
 

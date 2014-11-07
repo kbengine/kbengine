@@ -61,8 +61,8 @@ public:
 		TIMEOUT_CHECK_STATUS
 	};
 	
-	Dbmgr(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Dbmgr(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -92,13 +92,13 @@ public:
 	/** 网络接口
 		请求分配一个ENTITY_ID段
 	*/
-	void onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, COMPONENT_ID componentID);
+	void onReqAllocEntityID(Network::Channel* pChannel, int8 componentType, COMPONENT_ID componentID);
 
 	/* 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr
 		通常是一个新的app被启动了， 它需要向某些组件注册自己。
 	*/
-	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
+	virtual void onRegisterNewApp(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
@@ -108,115 +108,115 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
-	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onGlobalDataClientLogon(Network::Channel* pChannel, COMPONENT_TYPE componentType);
+	void onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		请求创建账号
 	*/
-	void reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	void onCreateAccountCBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateAccountCBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求擦除客户端请求任务
 	*/
-	void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+	void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
-	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	void onLoginAccountCBBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onLoginAccountCBBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseapp请求查询account信息
 	*/
-	void queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password, 
+	void queryAccount(Network::Channel* pChannel, std::string& accountName, std::string& password, 
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port);
 
 	/** 网络接口
 		账号从baseapp上线了
 	*/
-	void onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, 
+	void onAccountOnline(Network::Channel* pChannel, std::string& accountName, 
 		COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
+	void onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
 
 	/** 网络接口
 		执行数据库查询
 	*/
-	void executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void executeRawDatabaseCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		某个entity存档
 	*/
-	void writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void writeEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		删除某个entity的存档数据
 	*/
-	void removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void removeEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		通过dbid从数据库中删除一个实体的回调
 	*/
-	void deleteBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		通过dbid查询一个实体是否从数据库检出
 	*/
-	void lookUpBaseByDBID(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void lookUpBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
+	void queryEntity(Network::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
 		同步entity流模板
 	*/
-	void syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	virtual bool initializeWatcher();
 
 	/** 网络接口
 		请求充值
 	*/
-	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		充值回调
 	*/
-	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
 		激活回调
 	*/
-	void accountActivate(Mercury::Channel* pChannel, std::string& scode);
+	void accountActivate(Network::Channel* pChannel, std::string& scode);
 
 	/** 网络接口
 		账号重置密码
 	*/
-	void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
-	void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, 
+	void accountReqResetPassword(Network::Channel* pChannel, std::string& accountName);
+	void accountResetPassword(Network::Channel* pChannel, std::string& accountName, 
 		std::string& newpassword, std::string& code);
 
 	/** 网络接口
 		账号绑定邮箱
 	*/
-	void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+	void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& email);
-	void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
+	void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode);
 
 	/** 网络接口
 		账号修改密码
 	*/
-	void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+	void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& newpassword);
 	
 	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }

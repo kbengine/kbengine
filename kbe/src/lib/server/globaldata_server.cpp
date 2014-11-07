@@ -38,7 +38,7 @@ GlobalDataServer::~GlobalDataServer()
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
+bool GlobalDataServer::write(Network::Channel* pChannel, COMPONENT_TYPE componentType, 
 	const std::string& key, const std::string& value)
 {
 	// 广播所做的改变
@@ -55,7 +55,7 @@ bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componen
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
+bool GlobalDataServer::del(Network::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
 {
 	if(!dict_.erase(key)){
 		ERROR_MSG(fmt::format("GlobalDataServer::del: not found the key:[{}]\n", key.c_str()));
@@ -67,7 +67,7 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
+void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
 	INFO_MSG(fmt::format("GlobalDataServer::broadcastDataChanged: writer({0}, addr={4}), key_size={1}, val_size={2}, isdelete={3}\n",
@@ -82,7 +82,7 @@ void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONEN
 		
 		for(; iter1 != channels.end(); iter1++)
 		{
-			Mercury::Channel* lpChannel = iter1->pChannel;
+			Network::Channel* lpChannel = iter1->pChannel;
 			KBE_ASSERT(lpChannel != NULL);
 
 			if(pChannel == lpChannel)
@@ -94,7 +94,7 @@ void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONEN
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
 				continue;
 
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 			switch(dataType_)
 			{
@@ -137,20 +137,20 @@ void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONEN
 			}
 
 			(*pBundle).send(lpChannel->networkInterface(), lpChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONENT_TYPE componentType)
+void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONENT_TYPE componentType)
 {
 	bool isDelete = false;
 
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); iter++)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		
 		switch(dataType_)
 		{
@@ -171,7 +171,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		case BASEAPP_DATA:
 			if(componentType != BASEAPP_TYPE)
 			{
-				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 				continue;
 			}
 
@@ -180,7 +180,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		case CELLAPP_DATA:
 			if(componentType != CELLAPP_TYPE)
 			{
-				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 				continue;
 			}
 
@@ -202,7 +202,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		(*pBundle).assign(iter->second.data(), slen);
 
 		(*pBundle).send(client->networkInterface(), client);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

@@ -49,7 +49,7 @@ SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 EntityMailbox::EntityMailbox(ScriptDefModule* scriptModule, 
-							 const Mercury::Address* pAddr, 
+							 const Network::Address* pAddr, 
 							 COMPONENT_ID componentID, 
 ENTITY_ID eid, ENTITY_MAILBOX_TYPE type):
 EntityMailboxAbstract(getScriptType(),
@@ -212,7 +212,7 @@ void EntityMailbox::c_str(char* s, size_t size)
 		(type_ == MAILBOX_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
 		(type_ == MAILBOX_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
 	
-	Mercury::Channel* pChannel = getChannel();
+	Network::Channel* pChannel = getChannel();
 
 	kbe_snprintf(s, size, "%s id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", 
 		mailboxName, id_,  utype_,
@@ -285,7 +285,7 @@ void EntityMailbox::onInstallScript(PyObject* mod)
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* EntityMailbox::getChannel(void)
+Network::Channel* EntityMailbox::getChannel(void)
 {
 	return __findChannelFunc(*this);
 }

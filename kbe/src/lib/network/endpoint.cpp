@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 #ifdef unix
 #else	// not unix
@@ -91,7 +91,7 @@ void EndPoint::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-bool EndPoint::getClosedPort(Mercury::Address & closedPort)
+bool EndPoint::getClosedPort(Network::Address & closedPort)
 {
 	bool isResultSet = false;
 
@@ -460,9 +460,9 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Address EndPoint::getLocalAddress() const
+Network::Address EndPoint::getLocalAddress() const
 {
-	Mercury::Address addr(0, 0);
+	Network::Address addr(0, 0);
 
 	if (this->getlocaladdress((u_int16_t*)&addr.port,
 				(u_int32_t*)&addr.ip) == -1)
@@ -474,9 +474,9 @@ Mercury::Address EndPoint::getLocalAddress() const
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Address EndPoint::getRemoteAddress() const
+Network::Address EndPoint::getRemoteAddress() const
 {
-	Mercury::Address addr(0, 0);
+	Network::Address addr(0, 0);
 
 	if (this->getremoteaddress((u_int16_t*)&addr.port,
 				(u_int32_t*)&addr.ip) == -1)

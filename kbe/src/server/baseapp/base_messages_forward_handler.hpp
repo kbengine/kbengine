@@ -35,7 +35,7 @@ public:
 	
 	bool process();
 
-	void pushMessages(Mercury::Bundle* pBundle);
+	void pushMessages(Network::Bundle* pBundle);
 
 	void startForward();
 	void stopForward(){ startForward_ = false; }
@@ -44,7 +44,7 @@ public:
 private:
 	Base* pBase_;
 	bool completed_;
-	std::vector<Mercury::Bundle*> bufferedSendToCellappMessages_;
+	std::vector<Network::Bundle*> bufferedSendToCellappMessages_;
 	bool startForward_;
 };
 

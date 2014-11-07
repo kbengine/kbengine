@@ -41,12 +41,12 @@ INLINE void Proxy::setClientType(COMPONENT_CLIENT_TYPE ctype)
 	clientComponentType_ = ctype;
 }
 
-INLINE void Proxy::addr(const Mercury::Address& address)
+INLINE void Proxy::addr(const Network::Address& address)
 { 
 	addr_ = address; 
 }
 
-INLINE const Mercury::Address& Proxy::addr()const
+INLINE const Network::Address& Proxy::addr()const
 { 
 	return addr_; 
 }

@@ -45,17 +45,17 @@ COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = 1;
 COMPONENT_ORDER g_componentGroupOrder = 1;
 GAME_TIME g_kbetime = 0;
-Mercury::Address lastAddr = Mercury::Address::NONE;
+Network::Address lastAddr = Network::Address::NONE;
 
 KBE_SINGLETON_INIT(ClientApp);
 //-------------------------------------------------------------------------------------
-ClientApp::ClientApp(Mercury::EventDispatcher& dispatcher, 
-					 Mercury::NetworkInterface& ninterface, 
+ClientApp::ClientApp(Network::EventDispatcher& dispatcher, 
+					 Network::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
 ClientObjectBase(ninterface, getScriptType()),
 TimerHandler(),
-Mercury::ChannelTimeOutHandler(),
+Network::ChannelTimeOutHandler(),
 scriptBaseTypes_(),
 gameTimer_(),
 componentType_(componentType),
@@ -76,7 +76,7 @@ state_(C_STATE_INIT)
 	EntityMailbox::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByMailbox, this, 
 		std::tr1::placeholders::_1));
 
-	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
 
 	Components::getSingleton().pNetworkInterface(&ninterface);
 }
@@ -319,7 +319,7 @@ void ClientApp::handleGameTick()
 		lastAddr.ip = 0;
 	}
 
-	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
 	tickSend();
 
 	switch(state_)
@@ -360,7 +360,7 @@ void ClientApp::handleGameTick()
 					if(!exist)
 					{
 						networkInterface().registerChannel(pServerChannel_);
-						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
+						pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 					}
 					else
 					{
@@ -370,14 +370,14 @@ void ClientApp::handleGameTick()
 					networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 					
 					// 先握手然后等helloCB之后再进行登录
-					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString();
 					(*pBundle) << KBEVersion::scriptVersionString();
 
-					if(Mercury::g_channelExternalEncryptType == 1)
+					if(Network::g_channelExternalEncryptType == 1)
 					{
-						pBlowfishFilter_ = new Mercury::BlowfishFilter();
+						pBlowfishFilter_ = new Network::BlowfishFilter();
 						(*pBundle).appendBlob(pBlowfishFilter_->key());
 						pServerChannel_->pFilter(NULL);
 					}
@@ -542,12 +542,12 @@ void ClientApp::shutDown()
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onChannelDeregister(Mercury::Channel * pChannel)
+void ClientApp::onChannelDeregister(Network::Channel * pChannel)
 {
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
+void ClientApp::onChannelTimeOut(Network::Channel * pChannel)
 {
 	INFO_MSG(fmt::format("ClientApp::onChannelTimeOut: "
 		"Channel {} timed out.\n", pChannel->c_str()));
@@ -580,7 +580,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 		if(!exist)
 		{
 			networkInterface().registerChannel(pServerChannel_);
-			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
+			pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
 		}
 		else
 		{
@@ -590,14 +590,14 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 		networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
 		// 先握手然后等helloCB之后再进行登录
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(LoginappInterface::hello);
 		(*pBundle) << KBEVersion::versionString();
 		(*pBundle) << KBEVersion::scriptVersionString();
 
-		if(Mercury::g_channelExternalEncryptType == 1)
+		if(Network::g_channelExternalEncryptType == 1)
 		{
-			pBlowfishFilter_ = new Mercury::BlowfishFilter();
+			pBlowfishFilter_ = new Network::BlowfishFilter();
 			(*pBundle).appendBlob(pBlowfishFilter_->key());
 		}
 		else
@@ -614,11 +614,11 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+void ClientApp::onHelloCB_(Network::Channel* pChannel, const std::string& verInfo, 
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
-	if(Mercury::g_channelExternalEncryptType == 1)
+	if(Network::g_channelExternalEncryptType == 1)
 	{
 		pServerChannel_->pFilter(pBlowfishFilter_);
 		pBlowfishFilter_ = NULL;
@@ -635,19 +635,19 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onVersionNotMatch(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onVersionNotMatch(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onScriptVersionNotMatch(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onScriptVersionNotMatch(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onScriptVersionNotMatch(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
 	Config::getSingleton().writeAccountName(name_.c_str());
@@ -656,28 +656,28 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginFailed(pChannel, s);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	ClientObjectBase::onReLoginGatewayFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel, s);
 }

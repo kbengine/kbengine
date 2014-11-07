@@ -47,7 +47,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPPMGR)
 #define CELLAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##CellappmgrMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##CellappmgrMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			KBEngine::Cellappmgr::getSingleton().NAME(pChannel, s);				\
@@ -55,7 +55,7 @@ namespace KBEngine{
 
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##CellappmgrMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##CellappmgrMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
@@ -63,10 +63,10 @@ namespace KBEngine{
 #endif
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	class NAME##CellappmgrMessagehandler_stream : public Mercury::MessageHandler\
+	class NAME##CellappmgrMessagehandler_stream : public Network::MessageHandler\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -88,7 +88,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPPMGR)
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##CellappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::Cellappmgr::getSingleton().NAME(pChannel);				\
@@ -96,7 +96,7 @@ namespace KBEngine{
 
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##CellappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -104,10 +104,10 @@ namespace KBEngine{
 #endif
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	class NAME##CellappmgrMessagehandler0 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler0 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -130,7 +130,7 @@ namespace KBEngine{
 #if defined(CELLAPPMGR)
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##CellappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -144,7 +144,7 @@ namespace KBEngine{
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##CellappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -153,10 +153,10 @@ namespace KBEngine{
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##CellappmgrMessagehandler2 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler2 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -181,7 +181,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPPMGR)
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##CellappmgrMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -191,7 +191,7 @@ namespace KBEngine{
 
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##CellappmgrMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -199,10 +199,10 @@ namespace KBEngine{
 #endif
 #else
 #define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	class NAME##CellappmgrMessagehandler1 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler1 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -227,7 +227,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##CellappmgrMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -248,7 +248,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##CellappmgrMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -259,10 +259,10 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##CellappmgrMessagehandler4 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler4 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -296,7 +296,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##CellappmgrMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -320,7 +320,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##CellappmgrMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -332,10 +332,10 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##CellappmgrMessagehandler5 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler5 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -374,7 +374,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##CellappmgrMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -401,7 +401,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##CellappmgrMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -414,10 +414,10 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##CellappmgrMessagehandler6 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler6 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -460,7 +460,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##CellappmgrMessagehandler8::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappmgrMessagehandler8::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -494,7 +494,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##CellappmgrMessagehandler8::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler8::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -509,10 +509,10 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##CellappmgrMessagehandler8 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler8 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -563,7 +563,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##CellappmgrMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -600,7 +600,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##CellappmgrMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##CellappmgrMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -616,10 +616,10 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	class NAME##CellappmgrMessagehandler9 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler9 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -674,7 +674,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##CellappmgrMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappmgrMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -715,7 +715,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##CellappmgrMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappmgrMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -732,10 +732,10 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	class NAME##CellappmgrMessagehandler10 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler10 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -794,7 +794,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##CellappmgrMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappmgrMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -838,7 +838,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##CellappmgrMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappmgrMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -856,10 +856,10 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	class NAME##CellappmgrMessagehandler11 : public Mercury::MessageHandler		\
+	class NAME##CellappmgrMessagehandler11 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

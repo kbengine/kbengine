@@ -73,7 +73,7 @@
 
 namespace KBEngine{
 namespace ConsoleInterface{
-	Mercury::MessageHandlers messageHandlers;
+	Network::MessageHandlers messageHandlers;
 }
 }
 
@@ -82,7 +82,7 @@ BOOL g_sendData = FALSE;
 class ConsoleExecCommandCBMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandler
 {
 public:
-	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		std::string strarg;	
@@ -94,7 +94,7 @@ public:
 class ConsoleLogMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleLogMessageHandler
 {
 public:
-	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		std::string str;
@@ -106,7 +106,7 @@ public:
 class ConsoleWatcherCBMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleWatcherCBMessageHandler
 {
 public:
-	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		dlg->onReceiveWatcherData(s);
@@ -116,7 +116,7 @@ public:
 class ConsoleProfileHandlerEx : public KBEngine::ConsoleInterface::ConsoleProfileHandler
 {
 public:
-	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		dlg->onReceiveProfileData(s);
@@ -174,7 +174,7 @@ public:
 			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
 			uint16 nport = KBE_PORT_START + (rand() % 1000);
-			Mercury::BundleBroadcast bhandler(dlg->networkInterface(), nport);
+			Network::BundleBroadcast bhandler(dlg->networkInterface(), nport);
 
 			if(!bhandler.good())
 			{
@@ -452,16 +452,16 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	autoWndSize();
 	updateTree();
 
-	KBEngine::ConsoleInterface::messageHandlers.add("Console::onExecScriptCommandCB", new KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1, MERCURY_VARIABLE_MESSAGE, 
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onExecScriptCommandCB", new KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleExecCommandCBMessageHandlerEx);
 
-	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveRemoteLog", new KBEngine::ConsoleInterface::ConsoleLogMessageHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveRemoteLog", new KBEngine::ConsoleInterface::ConsoleLogMessageHandlerArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleLogMessageHandlerEx);
 
-	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveWatcherData", new KBEngine::ConsoleInterface::ConsoleWatcherCBHandlerMessageArgsStream, MERCURY_VARIABLE_MESSAGE, 
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveWatcherData", new KBEngine::ConsoleInterface::ConsoleWatcherCBHandlerMessageArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleWatcherCBMessageHandlerEx);
 	
-	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleProfileHandlerEx);
 
 	threadPool_.createThreadPool(1, 1, 16);
@@ -583,10 +583,10 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	strutil::wchar2utf8(incmd, outcmd);
 
 	
-	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
+	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle bundle;
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::onExecScriptCommand);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
@@ -835,16 +835,16 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 3:
 		{
-			const Mercury::NetworkInterface::ChannelMap& channels = _networkInterface.channels();
-			Mercury::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
+			const Network::NetworkInterface::ChannelMap& channels = _networkInterface.channels();
+			Network::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
 			for(; iter != channels.end(); iter++)
 			{
-				Mercury::Channel* pChannel = const_cast<KBEngine::Mercury::Channel*>(iter->second);
-				Mercury::Bundle bundle;
+				Network::Channel* pChannel = const_cast<KBEngine::Network::Channel*>(iter->second);
+				Network::Bundle bundle;
 
 				if(pChannel->proxyID() != BOTS_TYPE)
 				{
-					COMMON_MERCURY_MESSAGE((KBEngine::COMPONENT_TYPE)pChannel->proxyID(), bundle, onAppActiveTick);
+					COMMON_NETWORK_MESSAGE((KBEngine::COMPONENT_TYPE)pChannel->proxyID(), bundle, onAppActiveTick);
 				}
 				else
 				{
@@ -864,7 +864,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 	};	
 }
 
-void CguiconsoleDlg::onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command)
+void CguiconsoleDlg::onExecScriptCommandCB(Network::Channel* pChannel, std::string& command)
 {
 	DEBUG_MSG(fmt::format("CguiconsoleDlg::onExecScriptCommandCB: {}\n", command.c_str()));
 
@@ -1151,13 +1151,13 @@ void CguiconsoleDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 {
 	COMPONENT_TYPE debugComponentType = getTreeItemComponent(m_tree.GetSelectedItem());
-	Mercury::Address addr = getTreeItemAddr(m_tree.GetSelectedItem());
+	Network::Address addr = getTreeItemAddr(m_tree.GetSelectedItem());
 
-	Mercury::Channel* pChannel = _networkInterface.findChannel(addr);
+	Network::Channel* pChannel = _networkInterface.findChannel(addr);
 
 	if(pChannel)
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle bundle;
 
 		if(debugComponentType == BOTS_TYPE)
 		{
@@ -1165,7 +1165,7 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 		}
 		else
 		{
-			COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+			COMMON_NETWORK_MESSAGE(debugComponentType, bundle, queryWatcher);
 		}
 
 		bundle << paths;
@@ -1240,10 +1240,10 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	return UNKNOWN_COMPONENT_TYPE;
 }
 
-Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
+Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 {
 	if(hItem == NULL)
-		return Mercury::Address::NONE;
+		return Network::Address::NONE;
 
 	CString s = m_tree.GetItemText(hItem);
 	int fi_cellappmgr = s.Find(L"cellappmgr", 0);
@@ -1268,7 +1268,7 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_dbmgr < 0 &&
 		fi_bots < 0)
 	{
-		return Mercury::Address::NONE;
+		return Network::Address::NONE;
 	}
 
 	char* buf = KBEngine::strutil::wchar2char(s.GetBuffer(0));
@@ -1283,10 +1283,10 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	sport = sbuf.substr(k + 1, sbuf.find("]"));
 	strutil::kbe_replace(sport, "]", "");
 
-	Mercury::EndPoint endpoint;
+	Network::EndPoint endpoint;
 	u_int32_t address;
 	endpoint.convertAddress(sip.c_str(), address);
-	KBEngine::Mercury::Address addr(address, htons(atoi(sport.c_str())));
+	KBEngine::Network::Address addr(address, htons(atoi(sport.c_str())));
 	return addr;
 }
 
@@ -1294,14 +1294,14 @@ void CguiconsoleDlg::connectTo()
 {
 	// TODO: Add your command handler code here
 	HTREEITEM hItem = m_tree.GetSelectedItem(); 
-	KBEngine::Mercury::Address addr = getTreeItemAddr(hItem);
+	KBEngine::Network::Address addr = getTreeItemAddr(hItem);
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"no select!");
 		return;
 	}
 	
-	Mercury::EndPoint* endpoint = new Mercury::EndPoint();
+	Network::EndPoint* endpoint = new Network::EndPoint();
 	endpoint->socket(SOCK_STREAM);
 	if (!endpoint->good())
 	{
@@ -1320,14 +1320,14 @@ void CguiconsoleDlg::connectTo()
 	}
 
 	endpoint->setnonblocking(true);
-	Mercury::Channel* pChannel = _networkInterface.findChannel(endpoint->addr());
+	Network::Channel* pChannel = _networkInterface.findChannel(endpoint->addr());
 	if(pChannel)
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
 	}
 
-	pChannel = new Mercury::Channel(_networkInterface, endpoint, Mercury::Channel::INTERNAL);
+	pChannel = new Network::Channel(_networkInterface, endpoint, Network::Channel::INTERNAL);
 	pChannel->proxyID(getTreeItemComponent(m_tree.GetSelectedItem()));
 	if(!_networkInterface.registerChannel(pChannel))
 	{
@@ -1342,14 +1342,14 @@ void CguiconsoleDlg::connectTo()
 void CguiconsoleDlg::closeCurrTreeSelChannel()
 {
 	HTREEITEM hItem = m_tree.GetSelectedItem(); 
-	KBEngine::Mercury::Address addr = getTreeItemAddr(hItem);
+	KBEngine::Network::Address addr = getTreeItemAddr(hItem);
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"no select!");
 		return;
 	}
 
-	Mercury::Channel* pChannel = _networkInterface.findChannel(addr);
+	Network::Channel* pChannel = _networkInterface.findChannel(addr);
 	if(pChannel)
 	{
 		_networkInterface.deregisterChannel(pChannel);
@@ -1494,7 +1494,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 		m_debugWnd.displaybufferWnd()->SetWindowTextW(s);
 	}
 
-	Mercury::Address currAddr = this->getTreeItemAddr(hItem);
+	Network::Address currAddr = this->getTreeItemAddr(hItem);
 	if(currAddr.ip == 0)
 		return;
 
@@ -1539,7 +1539,7 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 	{
 		srand(KBEngine::getSystemTime());
 		uint16 nport = KBE_PORT_START + (rand() % 1000);
-		Mercury::BundleBroadcast bhandler(_networkInterface, nport);
+		Network::BundleBroadcast bhandler(_networkInterface, nport);
 
 		if(!bhandler.good())
 		{
@@ -1605,7 +1605,7 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 	{
 		srand(KBEngine::getSystemTime());
 		uint16 nport = KBE_PORT_START + (rand() % 1000);
-		Mercury::BundleBroadcast bhandler(_networkInterface, nport);
+		Network::BundleBroadcast bhandler(_networkInterface, nport);
 
 		if(!bhandler.good())
 		{
@@ -1675,10 +1675,10 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 		}
 	}
 
-	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
+	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle bundle;
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)

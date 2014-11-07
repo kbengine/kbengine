@@ -39,7 +39,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 class Address;
@@ -74,14 +74,14 @@ public:
 			logTime = timestamp();
 		}
 
-		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr;	// 内部和外部地址
+		KBEShared_ptr<Network::Address > pIntAddr, pExtAddr;	// 内部和外部地址
 		char externalAddressEx[MAX_NAME + 1];					// 强制暴露给外部的公网地址, 详见配置中的externalAddressEx
 
 		int32 uid;
 		COMPONENT_ID cid;
 		COMPONENT_ORDER groupOrderid, globalOrderid;
 		char username[MAX_NAME + 1];
-		Mercury::Channel* pChannel;
+		Network::Channel* pChannel;
 		COMPONENT_TYPE componentType;
 		uint32 flags;
 		int8 shutdownState;
@@ -107,13 +107,13 @@ public:
 	Components();
 	~Components();
 
-	INLINE void pNetworkInterface(Mercury::NetworkInterface * networkInterface)
+	INLINE void pNetworkInterface(Network::NetworkInterface * networkInterface)
 	{ 
 		KBE_ASSERT(networkInterface != NULL); 
 		_pNetworkInterface = networkInterface; 
 	}
 
-	INLINE Mercury::NetworkInterface* pNetworkInterface()
+	INLINE Network::NetworkInterface* pNetworkInterface()
 	{ 
 		return _pNetworkInterface;
 	}
@@ -123,12 +123,12 @@ public:
 		uint32 intaddr, uint16 intport, 
 		uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 		float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
-		Mercury::Channel* pChannel = NULL);
+		Network::Channel* pChannel = NULL);
 
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
 		COMPONENT_ID componentID, bool ignoreComponentID = false, bool shouldShowLog = true);
 
-	void removeComponentFromChannel(Mercury::Channel * pChannel);
+	void removeComponentFromChannel(Network::Channel * pChannel);
 
 	void clear(int32 uid = -1, bool shouldShowLog = true);
 
@@ -137,7 +137,7 @@ public:
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_ID componentID);
-	Components::ComponentInfos* findComponent(Mercury::Channel * pChannel);
+	Components::ComponentInfos* findComponent(Network::Channel * pChannel);
 
 	/** 
 		通过进程id寻找本地组件
@@ -180,11 +180,15 @@ public:
 	Components::ComponentInfos* getMessagelog();
 	Components::ComponentInfos* getBillings();
 
-	Mercury::Channel* getBaseappmgrChannel();
-	Mercury::Channel* getCellappmgrChannel();
-	Mercury::Channel* getDbmgrChannel();
-	Mercury::Channel* getMessagelogChannel();
+	Network::Channel* getBaseappmgrChannel();
+	Network::Channel* getCellappmgrChannel();
+	Network::Channel* getDbmgrChannel();
+	Network::Channel* getMessagelogChannel();
 
+	/** 
+		获取游戏服务端必要组件的注册数量。
+	*/
+	size_t getGameSrvComponentsSize();
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;
@@ -198,7 +202,7 @@ private:
 	COMPONENTS								_bots;
 	COMPONENTS								_consoles;
 
-	Mercury::NetworkInterface*				_pNetworkInterface;
+	Network::NetworkInterface*				_pNetworkInterface;
 	
 	// 组件的全局启动次序log和组(相同的组件为一组， 如：所有baseapp为一个组)启动次序log
 	// 注意:中途有死掉的app组件这里log并不去做减操作, 从使用意图来看也没有必要做这个匹配。

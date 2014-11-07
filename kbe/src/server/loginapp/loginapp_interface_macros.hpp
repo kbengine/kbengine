@@ -53,7 +53,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(LOGINAPP)
 #define LOGINAPP_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##LoginappMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##LoginappMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			KBEngine::Loginapp::getSingleton().NAME(pChannel, s);				\
@@ -61,7 +61,7 @@ namespace KBEngine{
 
 #else
 #define LOGINAPP_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##LoginappMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##LoginappMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
@@ -69,10 +69,10 @@ namespace KBEngine{
 #endif
 #else
 #define LOGINAPP_MESSAGE_HANDLER_STREAM(NAME)									\
-	class NAME##LoginappMessagehandler_stream : public Mercury::MessageHandler	\
+	class NAME##LoginappMessagehandler_stream : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -94,7 +94,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(LOGINAPP)
 #define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##LoginappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler0::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::Loginapp::getSingleton().NAME(pChannel);					\
@@ -102,7 +102,7 @@ namespace KBEngine{
 
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##LoginappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler0::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -110,10 +110,10 @@ namespace KBEngine{
 #endif
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
-	class NAME##LoginappMessagehandler0 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler0 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -135,7 +135,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(LOGINAPP)
 #define LOGINAPP_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##LoginappMessagehandler1::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler1::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -145,7 +145,7 @@ namespace KBEngine{
 
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##LoginappMessagehandler1::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler1::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -153,10 +153,10 @@ namespace KBEngine{
 #endif
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	class NAME##LoginappMessagehandler1 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler1 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -179,7 +179,7 @@ namespace KBEngine{
 #if defined(LOGINAPP)
 #define LOGINAPP_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##LoginappMessagehandler2::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler2::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -193,7 +193,7 @@ namespace KBEngine{
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##LoginappMessagehandler2::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler2::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -202,10 +202,10 @@ namespace KBEngine{
 #else
 #define LOGINAPP_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##LoginappMessagehandler2 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler2 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -231,7 +231,7 @@ namespace KBEngine{
 #define LOGINAPP_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##LoginappMessagehandler3::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler3::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -249,7 +249,7 @@ namespace KBEngine{
 #define LOGINAPP_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##LoginappMessagehandler3::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler3::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -259,10 +259,10 @@ namespace KBEngine{
 #define LOGINAPP_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	class NAME##LoginappMessagehandler3 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler3 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -293,7 +293,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##LoginappMessagehandler4::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler4::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -314,7 +314,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##LoginappMessagehandler4::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler4::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -325,10 +325,10 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##LoginappMessagehandler4 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler4 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -362,7 +362,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##LoginappMessagehandler5::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler5::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -386,7 +386,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##LoginappMessagehandler5::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler5::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -398,10 +398,10 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##LoginappMessagehandler5 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler5 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -440,7 +440,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##LoginappMessagehandler6::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler6::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -467,7 +467,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##LoginappMessagehandler6::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler6::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -480,10 +480,10 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##LoginappMessagehandler6 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler6 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -526,7 +526,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##LoginappMessagehandler8::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler8::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -560,7 +560,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##LoginappMessagehandler8::handle(Mercury::Channel* pChannel,		\
+	void NAME##LoginappMessagehandler8::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -575,10 +575,10 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##LoginappMessagehandler8 : public Mercury::MessageHandler		\
+	class NAME##LoginappMessagehandler8 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

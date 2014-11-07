@@ -31,7 +31,7 @@ namespace KBEngine {
 #define OP_TIME_OUT_MAX 120 * stampsPerSecondD()
 
 //-------------------------------------------------------------------------------------
-PendingLoginMgr::PendingLoginMgr(Mercury::NetworkInterface & networkInterface) :
+PendingLoginMgr::PendingLoginMgr(Network::NetworkInterface & networkInterface) :
 	Task(),
 	networkInterface_(networkInterface),
 	start_(false)
@@ -54,7 +54,7 @@ PendingLoginMgr::~PendingLoginMgr()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & PendingLoginMgr::dispatcher()
+Network::EventDispatcher & PendingLoginMgr::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }

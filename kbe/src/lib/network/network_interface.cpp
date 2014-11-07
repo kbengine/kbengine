@@ -35,13 +35,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 const int NetworkInterface::RECV_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB
 const char * NetworkInterface::USE_KBEMACHINED = "kbemachine";
 
 //-------------------------------------------------------------------------------------
-NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
+NetworkInterface::NetworkInterface(Network::EventDispatcher * pMainDispatcher,
 		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
 		uint32 extrbuffer, uint32 extwbuffer,
 		int32 intlisteningPort, const char * intlisteningInterface,
@@ -290,7 +290,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		}
 	}
 
-	int backlog = Mercury::g_SOMAXCONN;
+	int backlog = Network::g_SOMAXCONN;
 	if(backlog < 5)
 		backlog = 5;
 
@@ -693,12 +693,12 @@ void NetworkInterface::onPacketOut(const Packet & packet)
 }
 
 //-------------------------------------------------------------------------------------
-void NetworkInterface::processAllChannelPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+void NetworkInterface::processAllChannelPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 {
 	ChannelMap::iterator iter = channelMap_.begin();
 	for(; iter != channelMap_.end(); )
 	{
-		Mercury::Channel* pChannel = iter->second;
+		Network::Channel* pChannel = iter->second;
 
 		if(pChannel->isDestroyed() || pChannel->isCondemn())
 		{

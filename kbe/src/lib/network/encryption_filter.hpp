@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 class EncryptionFilter : public PacketFilter
@@ -59,7 +59,7 @@ public:
 	void decrypt(Packet * pInPacket, Packet * pOutPacket);
 private:
 	Packet * pPacket_;
-	Mercury::PacketLength packetLen_;
+	Network::PacketLength packetLen_;
 	uint8 padSize_;
 };
 

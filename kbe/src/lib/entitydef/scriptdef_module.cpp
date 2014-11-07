@@ -297,7 +297,7 @@ void ScriptDefModule::addSmartUTypeToStream(MemoryStream* pStream)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptDefModule::addSmartUTypeToBundle(Mercury::Bundle* pBundle)
+void ScriptDefModule::addSmartUTypeToBundle(Network::Bundle* pBundle)
 {
 	if(EntityDef::scriptModuleAliasID())
 		(*pBundle) << getAliasID();

@@ -49,7 +49,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 class Address;
 }
@@ -60,14 +60,14 @@ struct Profiles_Config
 		open_pyprofile(false),
 		open_cprofile(false),
 		open_eventprofile(false),
-		open_mercuryprofile(false)
+		open_networkprofile(false)
 	{
 	}
 
 	bool open_pyprofile;
 	bool open_cprofile;
 	bool open_eventprofile;
-	bool open_mercuryprofile;
+	bool open_networkprofile;
 };
 
 struct ChannelCommon
@@ -129,8 +129,8 @@ typedef struct EngineComponentInfo
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
 	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
 	uint16 witness_timeout;									// 观察者默认超时时间(秒)
-	const Mercury::Address* externalAddr;					// 外部地址
-	const Mercury::Address* internalAddr;					// 内部地址
+	const Network::Address* externalAddr;					// 外部地址
+	const Network::Address* internalAddr;					// 内部地址
 	COMPONENT_ID componentID;
 
 	float ghostDistance;									// ghost区域距离
@@ -234,12 +234,12 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getConfig();
 
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
- 				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
+ 				const Network::Address& internalAddr, const Network::Address& externalAddr);
  	
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void)const;
-	INLINE Mercury::Address billingSystemAddr(void)const;
+	INLINE Network::Address billingSystemAddr(void)const;
 	
 	INLINE const char* billingSystemAccountType()const;
 	INLINE const char* billingSystemChargeType()const;
@@ -285,7 +285,7 @@ public:
 	// 每个客户端每秒占用的最大带宽
 	uint32 bitsPerSecondToClient_;		
 
-	Mercury::Address billingSystemAddr_;
+	Network::Address billingSystemAddr_;
 	std::string billingSystem_accountType_;							// 计费系统类别
 	std::string billingSystem_chargeType_;							// 计费系统类别
 	std::string billingSystem_thirdpartyAccountServiceAddr_;		// 第三方运营账号服务地址(当type是thirdparty时有效)

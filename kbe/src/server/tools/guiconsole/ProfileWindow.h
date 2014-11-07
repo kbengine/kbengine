@@ -24,7 +24,7 @@ public:
 	void onReceivePyProfileData(KBEngine::MemoryStream& s);
 	void onReceiveCProfileData(KBEngine::MemoryStream& s);
 	void onReceiveEventProfileData(KBEngine::MemoryStream& s);
-	void onReceiveMercuryProfileData(KBEngine::MemoryStream& s);
+	void onReceiveNetworkProfileData(KBEngine::MemoryStream& s);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -39,5 +39,5 @@ public:
 	afx_msg void OnBnClickedButton3();
 	CEdit m_results;
 	afx_msg void OnBnClickedButton4();
-	CButton m_mercuryprofile;
+	CButton m_networkprofile;
 };

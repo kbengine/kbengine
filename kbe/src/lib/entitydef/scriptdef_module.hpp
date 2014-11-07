@@ -65,7 +65,7 @@ public:
 	void onLoaded(void);
 
 	void addSmartUTypeToStream(MemoryStream* pStream);
-	void addSmartUTypeToBundle(Mercury::Bundle* pBundle);
+	void addSmartUTypeToBundle(Network::Bundle* pBundle);
 
 	INLINE ENTITY_SCRIPT_UID getUType(void);
 	INLINE ENTITY_DEF_ALIASID getAliasID(void);

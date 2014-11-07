@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 INLINE TimerHandle EventDispatcher::addTimer(int64 microseconds,
 	TimerHandler * handler, void * arg)
@@ -61,6 +61,6 @@ INLINE void EventDispatcher::maxWait(double seconds)
 	maxWait_ = seconds;
 }
 
-} // namespace Mercury
+} // namespace Network
 }
 // event_dispatcher.ipp

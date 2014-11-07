@@ -49,7 +49,7 @@ public:
 	void entityID(ENTITY_ID entityID){ entityID_ = entityID; }
 	ENTITY_ID entityID(){ return entityID_; }
 
-	bool send(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
+	bool send(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
 
 	void id(int16 i){ id_ = i; }
 	int16 id()const{ return id_; }

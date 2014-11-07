@@ -24,17 +24,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 
 namespace KBEngine{
-namespace Mercury{
+namespace Network{
 class EndPoint;
 }
 
-class HTTPCBHandler : public Mercury::InputNotificationHandler
+class HTTPCBHandler : public Network::InputNotificationHandler
 {
 public:
 	HTTPCBHandler();
 	virtual ~HTTPCBHandler();
 
-	Mercury::EndPoint* pEndPoint(){ return pEndPoint_; }
+	Network::EndPoint* pEndPoint(){ return pEndPoint_; }
 
 	void onAccountActivated(std::string& code, bool success);
 	void onAccountBindedEmail(std::string& code, bool success);
@@ -44,14 +44,14 @@ protected:
 	
 	struct CLIENT
 	{
-		KBEShared_ptr< Mercury::EndPoint > endpoint;
+		KBEShared_ptr< Network::EndPoint > endpoint;
 		uint8 state;
 		std::string code;
 	};
 
 	virtual int handleInputNotification( int fd );
 
-	Mercury::EndPoint* pEndPoint_;
+	Network::EndPoint* pEndPoint_;
 
 	std::map< int, CLIENT > clients_;
 };

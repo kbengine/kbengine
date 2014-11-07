@@ -76,7 +76,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	// 如果是调用客户端方法， 我们记录事件并且记录带宽
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		mailbox->newMail((*pBundle));
 
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
@@ -85,15 +85,15 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), mstream->wpos());
 
-		if(Mercury::g_trace_packet > 0)
+		if(Network::g_trace_packet > 0)
 		{
-			if(Mercury::g_trace_packet_use_logfile)
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
 			DEBUG_MSG(fmt::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n",
 				pEntity->scriptName(), methodDescription->getName()));
 																								
-			switch(Mercury::g_trace_packet)																	
+			switch(Network::g_trace_packet)																	
 			{																								
 			case 1:																							
 				mstream->hexlike();																			
@@ -106,14 +106,14 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 				break;																						
 			};																								
 
-			if(Mercury::g_trace_packet_use_logfile)	
+			if(Network::g_trace_packet_use_logfile)	
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
 		//mailbox->postMail((*pBundle));
 		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 
 		// 记录这个事件产生的数据量大小

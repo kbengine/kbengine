@@ -32,19 +32,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 namespace ConsoleInterface{
 	
-	class ConsoleExecCommandCBMessageHandlerArgs1 : public Mercury::MessageArgs	
+	class ConsoleExecCommandCBMessageHandlerArgs1 : public Network::MessageArgs	
 	{	
 	public:
 		std::string strarg;
 	public:
-		ConsoleExecCommandCBMessageHandlerArgs1():Mercury::MessageArgs(){}	
+		ConsoleExecCommandCBMessageHandlerArgs1():Network::MessageArgs(){}	
 		ConsoleExecCommandCBMessageHandlerArgs1(std::string init_strarg):				
-		Mercury::MessageArgs(),
+		Network::MessageArgs(),
 		strarg(init_strarg)				
 		{}
 		~ConsoleExecCommandCBMessageHandlerArgs1(){}	
 		
-		static void staticAddToBundle(Mercury::Bundle& s,			
+		static void staticAddToBundle(Network::Bundle& s,			
 			std::string init_strarg)			
 		{
 			s.appendBlob(init_strarg);		
@@ -56,7 +56,7 @@ namespace ConsoleInterface{
 		}
 		virtual int32 dataSize(void)				
 		{
-			return MERCURY_VARIABLE_MESSAGE;			
+			return NETWORK_VARIABLE_MESSAGE;			
 		}
 		virtual void addToStream(MemoryStream& s)
 		{
@@ -68,7 +68,7 @@ namespace ConsoleInterface{
 		}
 	};	
 				
-	class ConsoleExecCommandCBMessageHandler : public Mercury::MessageHandler
+	class ConsoleExecCommandCBMessageHandler : public Network::MessageHandler
 	{
 	public:
 		ConsoleExecCommandCBMessageHandler()
@@ -80,30 +80,30 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_COMMANDCB_MSGID;
-			msgLen = MERCURY_VARIABLE_MESSAGE;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
 			name = "console::execPythonCommand";
 		}
 
 		virtual int32 msglenMax()
 		{ 
-			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+			return NETWORK_MESSAGE_MAX_SIZE * 1000; 
 		}
 
-		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 		{
 		};
 	};
 
 
-	class ConsoleLogMessageHandlerArgsStream : public Mercury::MessageArgs	
+	class ConsoleLogMessageHandlerArgsStream : public Network::MessageArgs	
 	{				
 	public:
-		ConsoleLogMessageHandlerArgsStream():Mercury::MessageArgs(){}				
+		ConsoleLogMessageHandlerArgsStream():Network::MessageArgs(){}				
 		~ConsoleLogMessageHandlerArgsStream(){}	
 	
 		virtual int32 dataSize(void)				
 		{
-			return MERCURY_VARIABLE_MESSAGE;			
+			return NETWORK_VARIABLE_MESSAGE;			
 		}		
 
 		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
@@ -113,7 +113,7 @@ namespace ConsoleInterface{
 
 		virtual int32 msglenMax()
 		{ 
-			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+			return NETWORK_MESSAGE_MAX_SIZE * 1000; 
 		}
 
 		virtual void addToStream(MemoryStream& s)
@@ -125,7 +125,7 @@ namespace ConsoleInterface{
 		}	
 	};	
 				
-	class ConsoleLogMessageHandler : public Mercury::MessageHandler
+	class ConsoleLogMessageHandler : public Network::MessageHandler
 	{
 	public:
 		ConsoleLogMessageHandler()
@@ -137,24 +137,24 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_LOG_MSGID;
-			msgLen = MERCURY_VARIABLE_MESSAGE;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
 			name = "console::querylogs";
 		}
 
-		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 		{
 		};
 	};
 	
-	class ConsoleWatcherCBHandlerMessageArgsStream : public Mercury::MessageArgs	
+	class ConsoleWatcherCBHandlerMessageArgsStream : public Network::MessageArgs	
 	{				
 	public:
-		ConsoleWatcherCBHandlerMessageArgsStream():Mercury::MessageArgs(){}				
+		ConsoleWatcherCBHandlerMessageArgsStream():Network::MessageArgs(){}				
 		~ConsoleWatcherCBHandlerMessageArgsStream(){}	
 	
 		virtual int32 dataSize(void)				
 		{
-			return MERCURY_VARIABLE_MESSAGE;			
+			return NETWORK_VARIABLE_MESSAGE;			
 		}		
 
 		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
@@ -164,7 +164,7 @@ namespace ConsoleInterface{
 
 		virtual int32 msglenMax()
 		{ 
-			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+			return NETWORK_MESSAGE_MAX_SIZE * 1000; 
 		}
 
 		virtual void addToStream(MemoryStream& s)
@@ -176,7 +176,7 @@ namespace ConsoleInterface{
 		}	
 	};	
 				
-	class ConsoleWatcherCBMessageHandler : public Mercury::MessageHandler
+	class ConsoleWatcherCBMessageHandler : public Network::MessageHandler
 	{
 	public:
 		ConsoleWatcherCBMessageHandler()
@@ -188,24 +188,24 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_WATCHERCB_MSGID;
-			msgLen = MERCURY_VARIABLE_MESSAGE;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
 			name = "console::queryWatcher";
 		}
 
-		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 		{
 		};
 	};
 
-	class ConsoleProfileHandlerArgsStream : public Mercury::MessageArgs	
+	class ConsoleProfileHandlerArgsStream : public Network::MessageArgs	
 	{				
 	public:
-		ConsoleProfileHandlerArgsStream():Mercury::MessageArgs(){}				
+		ConsoleProfileHandlerArgsStream():Network::MessageArgs(){}				
 		~ConsoleProfileHandlerArgsStream(){}	
 	
 		virtual int32 dataSize(void)				
 		{
-			return MERCURY_VARIABLE_MESSAGE;			
+			return NETWORK_VARIABLE_MESSAGE;			
 		}		
 
 		virtual MessageArgs::MESSAGE_ARGS_TYPE type(void)		
@@ -215,7 +215,7 @@ namespace ConsoleInterface{
 
 		virtual int32 msglenMax()
 		{ 
-			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+			return NETWORK_MESSAGE_MAX_SIZE * 1000; 
 		}
 
 		virtual void addToStream(MemoryStream& s)
@@ -227,7 +227,7 @@ namespace ConsoleInterface{
 		}	
 	};	
 				
-	class ConsoleProfileHandler : public Mercury::MessageHandler
+	class ConsoleProfileHandler : public Network::MessageHandler
 	{
 	public:
 		ConsoleProfileHandler()
@@ -239,11 +239,11 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_PROFILECB_MSGID;
-			msgLen = MERCURY_VARIABLE_MESSAGE;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
 			name = "console::profile";
 		}
 
-		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
 		{
 		};
 	};

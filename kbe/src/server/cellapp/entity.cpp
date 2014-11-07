@@ -190,7 +190,7 @@ void Entity::onDestroy(bool callScript)
 		{
 			this->backupCellData();
 
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(BaseappInterface::onLoseCell);
 			(*pBundle) << id_;
 			baseMailbox_->postMail(pBundle);
@@ -403,7 +403,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 只有在cell边界一定范围内的entity才拥有ghost实体, 或者在跳转space时也会短暂的置为ghost状态
 	if((flags & ENTITY_BROADCAST_CELL_FLAGS) > 0 && hasGhost())
 	{
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 		(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
 		(*pForwardBundle) << id();
 		(*pForwardBundle) << propertyDescription->getUType();
@@ -422,7 +422,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		}
 		else
 		{
-			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 		}
 	}
 	
@@ -442,7 +442,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(clientMailbox == NULL)
 				continue;
 
-			Mercury::Channel* pChannel = clientMailbox->getChannel();
+			Network::Channel* pChannel = clientMailbox->getChannel();
 			if(pChannel == NULL)
 				continue;
 
@@ -454,7 +454,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
-				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+				Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id());
@@ -471,11 +471,11 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 					propertyDescription->getName(), 
 					pForwardBundle->currMsgLength());
 
-				Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+				Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
-				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+				Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 			}
 		}
 	}
@@ -538,7 +538,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
 	{
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pForwardBundle) << id();
 
@@ -557,18 +557,18 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				pForwardBundle->currMsgLength());
 		}
 
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
+void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
@@ -587,7 +587,7 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStream& s)
+void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
@@ -741,7 +741,7 @@ void Entity::backupCellData()
 	if(baseMailbox_ != NULL)
 	{
 		// 将当前的cell部分数据打包 一起发送给base部分备份
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
 
@@ -773,7 +773,7 @@ void Entity::writeToDB(void* data)
 	onWriteToDB();
 	backupCellData();
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
@@ -1111,8 +1111,8 @@ int Entity::pySetPosition(PyObject *value)
 	if(posuid == 0)
 	{
 		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
-		Mercury::FixedMessages::MSGInfo* msgInfo =
-					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+		Network::FixedMessages::MSGInfo* msgInfo =
+					Network::FixedMessages::getSingleton().isFixed("Property::position");
 
 		if(msgInfo != NULL)
 			posuid = msgInfo->msgid;
@@ -1134,19 +1134,19 @@ PyObject* Entity::pyGetPosition()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z)
+void Entity::setPosition_XZ_int(Network::Channel* pChannel, int32 x, int32 z)
 {
 	setPosition_XZ_float(pChannel, float(x), float(z));
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, int32 z)
+void Entity::setPosition_XYZ_int(Network::Channel* pChannel, int32 x, int32 y, int32 z)
 {
 	setPosition_XYZ_float(pChannel, float(x), float(y), float(z));
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z)
+void Entity::setPosition_XZ_float(Network::Channel* pChannel, float x, float z)
 {
 	Position3D& pos = position();
 	if(almostEqual(x, pos.x) && almostEqual(z, pos.z))
@@ -1158,7 +1158,7 @@ void Entity::setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z)
+void Entity::setPosition_XYZ_float(Network::Channel* pChannel, float x, float y, float z)
 {
 	Position3D& pos = position();
 	if(almostEqual(x, pos.x) && almostEqual(y, pos.y) && almostEqual(z, pos.z))
@@ -1240,7 +1240,7 @@ int Entity::pySetDirection(PyObject *value)
 	if(diruid == 0)
 	{
 		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
-		Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
 		if(msgInfo != NULL)	
 			diruid = msgInfo->msgid;
 	}
@@ -1281,8 +1281,8 @@ void Entity::onPyPositionChanged()
 	if(posuid == 0)
 	{
 		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
-		Mercury::FixedMessages::MSGInfo* msgInfo =
-					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+		Network::FixedMessages::MSGInfo* msgInfo =
+					Network::FixedMessages::getSingleton().isFixed("Property::position");
 
 		if(msgInfo != NULL)
 			posuid = msgInfo->msgid;
@@ -1330,7 +1330,7 @@ void Entity::onPyDirectionChanged()
 	if(diruid == 0)
 	{
 		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
-		Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
 		if(msgInfo != NULL)	
 			diruid = msgInfo->msgid;
 	}
@@ -1360,7 +1360,7 @@ void Entity::setWitness(Witness* pWitness)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onGetWitnessFromBase(Mercury::Channel* pChannel)
+void Entity::onGetWitnessFromBase(Network::Channel* pChannel)
 {
 	onGetWitness(true);
 }
@@ -1415,14 +1415,14 @@ void Entity::onGetWitness(bool fromBase)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLoseWitness(Mercury::Channel* pChannel)
+void Entity::onLoseWitness(Network::Channel* pChannel)
 {
 	//INFO_MSG(fmt::format("{}::onLoseWitness: {}.\n", 
 	//	this->scriptName(), this->id()));
 
 	KBE_ASSERT(this->clientMailbox() != NULL && this->hasWitness());
 
-	clientMailbox()->addr(Mercury::Address::NONE);
+	clientMailbox()->addr(Network::Address::NONE);
 	Py_DECREF(clientMailbox());
 	clientMailbox(NULL);
 
@@ -1540,18 +1540,18 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		// this->position(currpos);
 
 		// 通知重置
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << id();
 		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
 		(*pForwardBundle) << direction().yaw() << direction().pitch() << direction().roll();
 
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		// Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		// Network::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }
 
@@ -2223,17 +2223,17 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
 		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
 		(*pBundle).send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
+void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
 {
 	DEBUG_MSG(fmt::format("{}::teleportFromBaseapp: {}, targetEntityID={}, cell={}, sourceBaseAppID={}.\n", 
 		this->scriptName(), this->id(), targetEntityID, cellAppID, sourceBaseAppID));
@@ -2456,18 +2456,18 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 		// 如果有base部分, 我们还需要调用一下备份功能。
 		this->backupCellData();
 		
-		Mercury::Channel* pBaseChannel = baseMailbox()->getChannel();
+		Network::Channel* pBaseChannel = baseMailbox()->getChannel();
 		if(pBaseChannel)
 		{
 			// 同时需要通知base暂存发往cellapp的消息，因为后面如果跳转成功需要切换cellMailbox映射关系到新的cellapp
 			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
 			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
 			(*pBundle).send(Cellapp::getSingleton().networkInterface(), pBaseChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		else
 		{
@@ -2485,7 +2485,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
 	// 我们需要将entity打包发往目的cellapp
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellApp);
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();

@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 class EndPoint : public PoolObject
@@ -104,13 +104,13 @@ public:
 	int getlocaladdress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
 	int getremoteaddress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
 	
-	Mercury::Address getLocalAddress() const;
-	Mercury::Address getRemoteAddress() const;
+	Network::Address getLocalAddress() const;
+	Network::Address getRemoteAddress() const;
 
 	const char * c_str() const;
 	int getremotehostname(std::string * name)const;
 
-	bool getClosedPort(Mercury::Address & closedPort);
+	bool getClosedPort(Network::Address & closedPort);
 	
 	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);

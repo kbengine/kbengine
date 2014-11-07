@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class Address;
 class Bundle;
@@ -114,7 +114,7 @@ public:
 	/* 
 		处理所有消息包  
 	*/
-	void processAllChannelPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+	void processAllChannelPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
 	/* 
 		获取一次send或者sendto操作产生错误的原因 

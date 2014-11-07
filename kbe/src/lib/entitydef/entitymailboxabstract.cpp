@@ -49,14 +49,14 @@ SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, 
-											const Mercury::Address* pAddr, 
+											const Network::Address* pAddr, 
 											COMPONENT_ID componentID, 
 											ENTITY_ID eid, 
 											uint16 utype, 
 											ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),
-addr_((pAddr == NULL) ? Mercury::Address::NONE : *pAddr),
+addr_((pAddr == NULL) ? Network::Address::NONE : *pAddr),
 type_(type),
 id_(eid),
 utype_(utype)
@@ -69,7 +69,7 @@ EntityMailboxAbstract::~EntityMailboxAbstract()
 }
 
 //-------------------------------------------------------------------------------------
-void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
+void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 {
 	// 如果是server端的mailbox
 	if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
@@ -128,10 +128,10 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::postMail(Mercury::Bundle* pBundle)
+bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 {
 	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
-	Mercury::Channel* pChannel = getChannel();
+	Network::Channel* pChannel = getChannel();
 
 	if(pChannel && !pChannel->isDead())
 	{
@@ -144,7 +144,7 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle* pBundle)
 			addr_.c_str()));
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 

@@ -36,12 +36,12 @@ namespace KBEngine{
 class InitProgressHandler : public Task
 {
 public:
-	InitProgressHandler(Mercury::NetworkInterface & networkInterface);
+	InitProgressHandler(Network::NetworkInterface & networkInterface);
 	~InitProgressHandler();
 	
 	bool process();
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 
 };
 

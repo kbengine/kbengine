@@ -33,30 +33,30 @@ namespace KBEngine {
 //-------------------------------------------------------------------------------------
 int32 watchBundlePool_size()
 {
-	return (int)Mercury::Bundle::ObjPool().objects().size();
+	return (int)Network::Bundle::ObjPool().objects().size();
 }
 
 int32 watchBundlePool_max()
 {
-	return (int)Mercury::Bundle::ObjPool().max();
+	return (int)Network::Bundle::ObjPool().max();
 }
 
 int32 watchBundlePool_totalAlloc()
 {
-	return (int)Mercury::Bundle::ObjPool().totalAlloc();
+	return (int)Network::Bundle::ObjPool().totalAlloc();
 }
 
 bool watchBundlePool_isDestroyed()
 {
-	return Mercury::Bundle::ObjPool().isDestroyed();
+	return Network::Bundle::ObjPool().isDestroyed();
 }
 
 uint32 watchBundlePool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::Bundle>::OBJECTS::const_iterator iter = Mercury::Bundle::ObjPool().objects().begin();
-	for(; iter != Mercury::Bundle::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::Bundle>::OBJECTS::const_iterator iter = Network::Bundle::ObjPool().objects().begin();
+	for(; iter != Network::Bundle::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -67,30 +67,30 @@ uint32 watchBundlePool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchAddressPool_size()
 {
-	return (int)Mercury::Address::ObjPool().objects().size();
+	return (int)Network::Address::ObjPool().objects().size();
 }
 
 int32 watchAddressPool_max()
 {
-	return (int)Mercury::Address::ObjPool().max();
+	return (int)Network::Address::ObjPool().max();
 }
 
 int32 watchAddressPool_totalAlloc()
 {
-	return (int)Mercury::Address::ObjPool().totalAlloc();
+	return (int)Network::Address::ObjPool().totalAlloc();
 }
 
 bool watchAddressPool_isDestroyed()
 {
-	return Mercury::Address::ObjPool().isDestroyed();
+	return Network::Address::ObjPool().isDestroyed();
 }
 
 uint32 watchAddressPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::Address>::OBJECTS::const_iterator iter = Mercury::Address::ObjPool().objects().begin();
-	for(; iter != Mercury::Address::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::Address>::OBJECTS::const_iterator iter = Network::Address::ObjPool().objects().begin();
+	for(; iter != Network::Address::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -135,30 +135,30 @@ uint32 watchMemoryStreamPool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchTCPPacketPool_size()
 {
-	return (int)Mercury::TCPPacket::ObjPool().objects().size();
+	return (int)Network::TCPPacket::ObjPool().objects().size();
 }
 
 int32 watchTCPPacketPool_max()
 {
-	return (int)Mercury::TCPPacket::ObjPool().max();
+	return (int)Network::TCPPacket::ObjPool().max();
 }
 
 int32 watchTCPPacketPool_totalAlloc()
 {
-	return (int)Mercury::TCPPacket::ObjPool().totalAlloc();
+	return (int)Network::TCPPacket::ObjPool().totalAlloc();
 }
 
 bool watchTCPPacketPool_isDestroyed()
 {
-	return Mercury::TCPPacket::ObjPool().isDestroyed();
+	return Network::TCPPacket::ObjPool().isDestroyed();
 }
 
 uint32 watchTCPPacketPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::TCPPacket>::OBJECTS::const_iterator iter = Mercury::TCPPacket::ObjPool().objects().begin();
-	for(; iter != Mercury::TCPPacket::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::TCPPacket>::OBJECTS::const_iterator iter = Network::TCPPacket::ObjPool().objects().begin();
+	for(; iter != Network::TCPPacket::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -169,30 +169,30 @@ uint32 watchTCPPacketPool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchTCPPacketReceiverPool_size()
 {
-	return (int)Mercury::TCPPacketReceiver::ObjPool().objects().size();
+	return (int)Network::TCPPacketReceiver::ObjPool().objects().size();
 }
 
 int32 watchTCPPacketReceiverPool_max()
 {
-	return (int)Mercury::TCPPacketReceiver::ObjPool().max();
+	return (int)Network::TCPPacketReceiver::ObjPool().max();
 }
 
 int32 watchTCPPacketReceiverPool_totalAlloc()
 {
-	return (int)Mercury::TCPPacketReceiver::ObjPool().totalAlloc();
+	return (int)Network::TCPPacketReceiver::ObjPool().totalAlloc();
 }
 
 bool watchTCPPacketReceiverPool_isDestroyed()
 {
-	return Mercury::TCPPacketReceiver::ObjPool().isDestroyed();
+	return Network::TCPPacketReceiver::ObjPool().isDestroyed();
 }
 
 uint32 watchTCPPacketReceiverPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::TCPPacketReceiver>::OBJECTS::const_iterator iter = Mercury::TCPPacketReceiver::ObjPool().objects().begin();
-	for(; iter != Mercury::TCPPacketReceiver::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::TCPPacketReceiver>::OBJECTS::const_iterator iter = Network::TCPPacketReceiver::ObjPool().objects().begin();
+	for(; iter != Network::TCPPacketReceiver::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -203,30 +203,30 @@ uint32 watchTCPPacketReceiverPool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchUDPPacketPool_size()
 {
-	return (int)Mercury::UDPPacket::ObjPool().objects().size();
+	return (int)Network::UDPPacket::ObjPool().objects().size();
 }
 
 int32 watchUDPPacketPool_max()
 {
-	return (int)Mercury::UDPPacket::ObjPool().max();
+	return (int)Network::UDPPacket::ObjPool().max();
 }
 
 int32 watchUDPPacketPool_totalAlloc()
 {
-	return (int)Mercury::UDPPacket::ObjPool().totalAlloc();
+	return (int)Network::UDPPacket::ObjPool().totalAlloc();
 }
 
 bool watchUDPPacketPool_isDestroyed()
 {
-	return Mercury::UDPPacket::ObjPool().isDestroyed();
+	return Network::UDPPacket::ObjPool().isDestroyed();
 }
 
 uint32 watchUDPPacketPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::UDPPacket>::OBJECTS::const_iterator iter = Mercury::UDPPacket::ObjPool().objects().begin();
-	for(; iter != Mercury::UDPPacket::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::UDPPacket>::OBJECTS::const_iterator iter = Network::UDPPacket::ObjPool().objects().begin();
+	for(; iter != Network::UDPPacket::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -237,30 +237,30 @@ uint32 watchUDPPacketPool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchUDPPacketReceiverPool_size()
 {
-	return (int)Mercury::UDPPacketReceiver::ObjPool().objects().size();
+	return (int)Network::UDPPacketReceiver::ObjPool().objects().size();
 }
 
 int32 watchUDPPacketReceiverPool_max()
 {
-	return (int)Mercury::UDPPacketReceiver::ObjPool().max();
+	return (int)Network::UDPPacketReceiver::ObjPool().max();
 }
 
 int32 watchUDPPacketReceiverPool_totalAlloc()
 {
-	return (int)Mercury::UDPPacketReceiver::ObjPool().totalAlloc();
+	return (int)Network::UDPPacketReceiver::ObjPool().totalAlloc();
 }
 
 bool watchUDPPacketReceiverPool_isDestroyed()
 {
-	return Mercury::UDPPacketReceiver::ObjPool().isDestroyed();
+	return Network::UDPPacketReceiver::ObjPool().isDestroyed();
 }
 
 uint32 watchUDPPacketReceiverPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::UDPPacketReceiver>::OBJECTS::const_iterator iter = Mercury::UDPPacketReceiver::ObjPool().objects().begin();
-	for(; iter != Mercury::UDPPacketReceiver::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::UDPPacketReceiver>::OBJECTS::const_iterator iter = Network::UDPPacketReceiver::ObjPool().objects().begin();
+	for(; iter != Network::UDPPacketReceiver::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -271,30 +271,30 @@ uint32 watchUDPPacketReceiverPool_bytes()
 //-------------------------------------------------------------------------------------
 int32 watchEndPointPool_size()
 {
-	return (int)Mercury::EndPoint::ObjPool().objects().size();
+	return (int)Network::EndPoint::ObjPool().objects().size();
 }
 
 int32 watchEndPointPool_max()
 {
-	return (int)Mercury::EndPoint::ObjPool().max();
+	return (int)Network::EndPoint::ObjPool().max();
 }
 
 int32 watchEndPointPool_totalAlloc()
 {
-	return (int)Mercury::EndPoint::ObjPool().totalAlloc();
+	return (int)Network::EndPoint::ObjPool().totalAlloc();
 }
 
 bool watchEndPointPool_isDestroyed()
 {
-	return Mercury::EndPoint::ObjPool().isDestroyed();
+	return Network::EndPoint::ObjPool().isDestroyed();
 }
 
 uint32 watchEndPointPool_bytes()
 {
 	size_t bytes = 0;
 
-	ObjectPool<Mercury::EndPoint>::OBJECTS::const_iterator iter = Mercury::EndPoint::ObjPool().objects().begin();
-	for(; iter != Mercury::EndPoint::ObjPool().objects().end(); iter++)
+	ObjectPool<Network::EndPoint>::OBJECTS::const_iterator iter = Network::EndPoint::ObjPool().objects().begin();
+	for(; iter != Network::EndPoint::ObjPool().objects().end(); iter++)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}

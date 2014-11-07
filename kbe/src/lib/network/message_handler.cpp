@@ -30,12 +30,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"	
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
-Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
+Network::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
 std::vector<MessageHandlers*>* g_pMessageHandlers;
 
-static Mercury::FixedMessages* g_fm;
+static Network::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
@@ -43,11 +43,11 @@ msgHandlers_(),
 msgID_(1),
 exposedMessages_()
 {
-	g_fm = Mercury::FixedMessages::getSingletonPtr();
+	g_fm = Network::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
-		g_fm = new Mercury::FixedMessages;
+		g_fm = new Network::FixedMessages;
 
-	Mercury::FixedMessages::getSingleton().loadConfig("server/fixed_mercury_messages.xml");
+	Network::FixedMessages::getSingleton().loadConfig("server/messages_fixed.xml");
 	messageHandlers().push_back(this);
 }
 
@@ -176,7 +176,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->onInstall();
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
-	if(msgLen == MERCURY_VARIABLE_MESSAGE)
+	if(msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		//printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Variable.\n", 
 		//	(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
@@ -187,7 +187,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		{
 			msgHandler->msgLen = args->dataSize();
 
-			if(msgHandler->type() == MERCURY_MESSAGE_TYPE_ENTITY)
+			if(msgHandler->type() == NETWORK_MESSAGE_TYPE_ENTITY)
 			{
 				msgHandler->msgLen += sizeof(ENTITY_ID);
 			}

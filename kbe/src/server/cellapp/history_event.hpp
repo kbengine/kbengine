@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 namespace KBEngine{
-namespace Mercury{
+namespace Network{
 	class MessageHandler;
 }
 
@@ -38,7 +38,7 @@ typedef uint32 HistoryEventID;
 class HistoryEvent
 {
 public:
-	HistoryEvent(HistoryEventID id, const Mercury::MessageHandler& msgHandler, uint32 msglen);
+	HistoryEvent(HistoryEventID id, const Network::MessageHandler& msgHandler, uint32 msglen);
 	virtual ~HistoryEvent();
 
 	HistoryEventID id()const{ return id_; }
@@ -48,7 +48,7 @@ public:
 protected:
 	HistoryEventID id_;
 	uint32 msglen_;
-	const Mercury::MessageHandler& msgHandler_;
+	const Network::MessageHandler& msgHandler_;
 };
 
 /**

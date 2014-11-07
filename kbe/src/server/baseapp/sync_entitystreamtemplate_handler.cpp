@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-SyncEntityStreamTemplateHandler::SyncEntityStreamTemplateHandler(Mercury::NetworkInterface & networkInterface):
+SyncEntityStreamTemplateHandler::SyncEntityStreamTemplateHandler(Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface)
 {
@@ -74,7 +74,7 @@ SyncEntityStreamTemplateHandler::~SyncEntityStreamTemplateHandler()
 bool SyncEntityStreamTemplateHandler::process()
 {
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Mercury::Channel* pChannel = NULL;
+	Network::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)
 	{
@@ -115,7 +115,7 @@ bool SyncEntityStreamTemplateHandler::process()
 		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
 
 	(*bundleptr)->newMessage(DbmgrInterface::syncEntityStreamTemplate);
 	(*bundleptr)->append(accountDefMemoryStream);

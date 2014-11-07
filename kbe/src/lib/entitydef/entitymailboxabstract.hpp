@@ -46,7 +46,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 class Bundle;
@@ -58,7 +58,7 @@ class EntityMailboxAbstract : public script::ScriptObject
 	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
 public:
 	EntityMailboxAbstract(PyTypeObject* scriptType, 
-		const Mercury::Address* pAddr, 
+		const Network::Address* pAddr, 
 		COMPONENT_ID componentID, 
 		ENTITY_ID eid, 
 		uint16 utype, 
@@ -100,14 +100,14 @@ public:
 	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
-	virtual Mercury::Channel* getChannel(void) = 0;
+	virtual Network::Channel* getChannel(void) = 0;
 
-	virtual bool postMail(Mercury::Bundle* pBundle);
+	virtual bool postMail(Network::Bundle* pBundle);
 
-	virtual void newMail(Mercury::Bundle& bundle);
+	virtual void newMail(Network::Bundle& bundle);
 	
-	const Mercury::Address& addr()const{ return addr_; }
-	void addr(const Mercury::Address& saddr){ addr_ = saddr; }
+	const Network::Address& addr()const{ return addr_; }
+	void addr(const Network::Address& saddr){ addr_ = saddr; }
 
 	INLINE bool isClient()const;
 	INLINE bool isCell()const;
@@ -118,7 +118,7 @@ public:
 	INLINE bool isBaseViaCell()const;
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
-	Mercury::Address						addr_;					// 频道地址
+	Network::Address						addr_;					// 频道地址
 	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
 	ENTITY_ID								id_;					// entityID
 	ENTITY_SCRIPT_UID						utype_;					// entity的utype  按照entities.xml中的定义顺序

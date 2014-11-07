@@ -47,15 +47,15 @@ class Messagelog:	public ServerApp,
 				public Singleton<Messagelog>
 {
 public:
-	typedef std::map<Mercury::Address, LogWatcher> LOG_WATCHERS;
+	typedef std::map<Network::Address, LogWatcher> LOG_WATCHERS;
 public:
 	enum TimeOutType
 	{
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
-	Messagelog(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Messagelog(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -72,15 +72,17 @@ public:
 	bool initializeEnd();
 	void finalise();
 
+	virtual bool canShutdown();
+
 	/** 网络接口
 		写日志
 	*/
-	void writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		注册log监听者
 	*/
-	void registerLogWatcher(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
 protected:

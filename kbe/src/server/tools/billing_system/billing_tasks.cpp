@@ -102,7 +102,7 @@ bool CreateAccountTask::process()
 		return false;
 	}
 
-	Mercury::EndPoint endpoint;
+	Network::EndPoint endpoint;
 	endpoint.socket(SOCK_STREAM);
 
 	if (!endpoint.good())
@@ -118,7 +118,7 @@ bool CreateAccountTask::process()
 	}
 
 	u_int32_t addr;
-	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
+	KBEngine::Network::EndPoint::convertAddress(serviceAddr(), addr);
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
@@ -132,11 +132,11 @@ bool CreateAccountTask::process()
 	endpoint.setnonblocking(true);
 	endpoint.setnodelay(true);
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(postDatas.data(), postDatas.size());
 	(*(*bundle)).send(endpoint);
 
-	Mercury::TCPPacket packet;
+	Network::TCPPacket packet;
 	packet.resize(1024);
 
 	fd_set	frds;
@@ -266,7 +266,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
@@ -274,7 +274,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
+	Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
@@ -318,7 +318,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 	
 	if(retcode == SERVER_ERR_OP_FAILED)
 	{
@@ -332,7 +332,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
+	Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
@@ -394,7 +394,7 @@ bool ChargeTask::process()
 		return false;
 	}
 
-	Mercury::EndPoint endpoint;
+	Network::EndPoint endpoint;
 	endpoint.socket(SOCK_STREAM);
 
 	if (!endpoint.good())
@@ -414,7 +414,7 @@ bool ChargeTask::process()
 	}
 
 	u_int32_t addr;
-	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
+	KBEngine::Network::EndPoint::convertAddress(serviceAddr(), addr);
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
@@ -429,11 +429,11 @@ bool ChargeTask::process()
 	endpoint.setnonblocking(true);
 	endpoint.setnodelay(true);
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(pOrders->postDatas.data(), pOrders->postDatas.size());
 	(*(*bundle)).send(endpoint);
 
-	Mercury::TCPPacket packet;
+	Network::TCPPacket packet;
 	packet.resize(1024);
 
 	fd_set	frds;
@@ -492,7 +492,7 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 			return thread::TPTask::TPTASK_STATE_COMPLETED;
 		}
 	
-		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+		Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
 		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
@@ -500,7 +500,7 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		(*(*bundle)) << orders.cbid;
 		(*(*bundle)) << retcode;
 
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
+		Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{

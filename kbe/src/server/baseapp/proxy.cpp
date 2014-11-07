@@ -59,7 +59,7 @@ BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
 Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
 Base(id, scriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
-addr_(Mercury::Address::NONE),
+addr_(Network::Address::NONE),
 dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
@@ -78,14 +78,14 @@ Proxy::~Proxy()
 	Baseapp::getSingleton().decProxicesCount();
 
 	// 如果被销毁频道仍然存活则将其关闭
-	Mercury::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
+	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDead())
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		this->sendToClient(ClientInterface::onKicked, pBundle);
 		this->sendToClient();
 		pChannel->condemn();
@@ -105,13 +105,13 @@ void Proxy::initClientBasePropertys()
 	
 	if(s1->wpos() > 0)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pBundle) << this->id();
 		(*pBundle).append(*s1);
 		sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 		//clientMailbox()->postMail((*pBundle));
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(s1);
@@ -123,14 +123,14 @@ void Proxy::initClientCellPropertys()
 	if(clientMailbox() == NULL)
 		return;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << this->id();
 
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
-	Mercury::FixedMessages::MSGInfo* msgInfo = 
-		Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+	Network::FixedMessages::MSGInfo* msgInfo = 
+		Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
 
 	if(msgInfo != NULL)
 	{
@@ -154,7 +154,7 @@ void Proxy::initClientCellPropertys()
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
 	//clientMailbox()->postMail((*pBundle));
-	//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
 
@@ -209,14 +209,14 @@ void Proxy::onClientDeath(void)
 
 	Py_DECREF(clientMailbox());
 	clientMailbox(NULL);
-	addr(Mercury::Address::NONE);
+	addr(Network::Address::NONE);
 
 	entitiesEnabled_ = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onClientGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
+void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 {
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
@@ -286,7 +286,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		return;
 	}
 
-	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
+	Network::Channel* lpChannel = clientMailbox_->getChannel();
 
 	if(proxy)
 	{
@@ -333,35 +333,35 @@ void Proxy::giveClientTo(Proxy* proxy)
 			// 当前这个entity如果有cell，说明已经绑定了witness， 那么既然我们将控制权
 			// 交换给了另一个entity， 这个entity需要解绑定witness。
 			// 通知cell丢失witness
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(CellappInterface::onLoseWitness);
 			(*pBundle) << this->id();
 			sendToCellapp(pBundle);
 		}
 
 		entitiesEnabled_ = false;
-		clientMailbox()->addr(Mercury::Address::NONE);
+		clientMailbox()->addr(Network::Address::NONE);
 		Py_DECREF(clientMailbox());
 		proxy->setClientType(this->getClientType());
 		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
 		clientMailbox(NULL);
 		proxy->onGiveClientTo(lpChannel);
-		addr(Mercury::Address::NONE);
+		addr(Network::Address::NONE);
 		
 		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
 		if(proxy->clientMailbox() != NULL)
 		{
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 			(*pBundle) << this->id();
 			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
-			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
+void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 {
 	clientMailbox(new EntityMailbox(this->scriptModule_, 
 		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
@@ -380,7 +380,7 @@ void Proxy::onGetWitness()
 	if(cellMailbox())
 	{
 		// 通知cell获得客户端
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::onGetWitnessFromBase);
 		(*pBundle) << this->id();
 		sendToCellapp(pBundle);
@@ -401,7 +401,7 @@ void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription,
 
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << id();
 
@@ -518,7 +518,7 @@ PyObject* Proxy::pyClientAddr()
 	}
 	else
 	{
-		const Mercury::Address& addr = clientMailbox()->getChannel()->endpoint()->addr();
+		const Network::Address& addr = clientMailbox()->getChannel()->endpoint()->addr();
 		PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
 	}
@@ -741,7 +741,7 @@ Proxy::Bundles* Proxy::pBundles()
 	if(!clientMailbox())
 		return NULL;
 
-	Mercury::Channel* pChannel = clientMailbox()->getChannel();
+	Network::Channel* pChannel = clientMailbox()->getChannel();
 	if(!pChannel)
 		return NULL;
 
@@ -749,13 +749,13 @@ Proxy::Bundles* Proxy::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
-bool Proxy::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
+bool Proxy::sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle)
 {
 	return sendToClient(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-bool Proxy::sendToClient(Mercury::Bundle* pBundle)
+bool Proxy::sendToClient(Network::Bundle* pBundle)
 {
 	Bundles* lpBundles = pBundles();
 
@@ -766,7 +766,7 @@ bool Proxy::sendToClient(Mercury::Bundle* pBundle)
 	}
 
 	ERROR_MSG(fmt::format("Proxy::sendToClient: {} pBundles is NULL, not found channel.\n", id()));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 
@@ -776,7 +776,7 @@ bool Proxy::sendToClient(bool expectData)
 	if(!clientMailbox())
 		return false;
 
-	Mercury::Channel* pChannel = clientMailbox()->getChannel();
+	Network::Channel* pChannel = clientMailbox()->getChannel();
 	if(!pChannel)
 		return false;
 

@@ -96,11 +96,11 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Mercury::EndPoint* endpoint = new KBEngine::Mercury::EndPoint();
+	KBEngine::Network::EndPoint* endpoint = new KBEngine::Network::EndPoint();
 
 	KBEngine::u_int32_t address;
 	endpoint->convertAddress(strip, address);
-	KBEngine::Mercury::Address addr(address, htons(port));
+	KBEngine::Network::Address addr(address, htons(port));
 
 	if(addr.ip == 0)
 	{
@@ -141,7 +141,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 			break;
 		}
 
-		KBEngine::Mercury::Bundle bhandler;
+		KBEngine::Network::Bundle bhandler;
 		bhandler.newMessage(KBEngine::MachineInterface::onFindInterfaceAddr);
 
 		KBEngine::MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
@@ -149,7 +149,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		bhandler.send(*endpoint);
 
-		KBEngine::Mercury::TCPPacket packet;
+		KBEngine::Network::TCPPacket packet;
 		packet.resize(65535);
 
 		endpoint->setnonblocking(true);

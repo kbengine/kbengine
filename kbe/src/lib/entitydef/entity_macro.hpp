@@ -152,8 +152,8 @@ namespace KBEngine{
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;					\
 																											\
-		Mercury::FixedMessages::MSGInfo* msgInfo =															\
-					Mercury::FixedMessages::getSingleton().isFixed("Property::position");					\
+		Network::FixedMessages::MSGInfo* msgInfo =															\
+					Network::FixedMessages::getSingleton().isFixed("Property::position");					\
 																											\
 		if(msgInfo != NULL)																					\
 		{																									\
@@ -161,7 +161,7 @@ namespace KBEngine{
 			msgInfo = NULL;																					\
 		}																									\
 																											\
-		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");					\
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");					\
 		if(msgInfo != NULL)																					\
 		{																									\
 			diruid = msgInfo->msgid;																		\
@@ -784,8 +784,8 @@ public:																										\
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;					\
 																											\
-		Mercury::FixedMessages::MSGInfo* msgInfo =															\
-					Mercury::FixedMessages::getSingleton().isFixed("Property::position");					\
+		Network::FixedMessages::MSGInfo* msgInfo =															\
+					Network::FixedMessages::getSingleton().isFixed("Property::position");					\
 																											\
 		if(msgInfo != NULL)																					\
 		{																									\
@@ -793,7 +793,7 @@ public:																										\
 			msgInfo = NULL;																					\
 		}																									\
 																											\
-		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");					\
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");					\
 		if(msgInfo != NULL)																					\
 		{																									\
 			diruid = msgInfo->msgid;																		\

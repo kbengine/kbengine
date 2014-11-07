@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 const uint32 BROADCAST = 0xFFFFFFFF;
 const uint32 LOCALHOST = 0x0100007F;
@@ -61,7 +61,7 @@ extern uint32 g_SOMAXCONN;
 // 不做通道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
 {																					\
-	Mercury::g_channelExternalTimeout = Mercury::g_channelInternalTimeout = -1.0f;	\
+	Network::g_channelExternalTimeout = Network::g_channelInternalTimeout = -1.0f;	\
 }																					\
 
 	
@@ -81,13 +81,13 @@ namespace tcp{
 typedef uint16								PacketLength; // 最大65535
 #define PACKET_LENGTH_SIZE					sizeof(PacketLength)
 
-#define MERCURY_MESSAGE_ID_SIZE				sizeof(Mercury::MessageID)
-#define MERCURY_MESSAGE_LENGTH_SIZE			sizeof(Mercury::MessageLength)
-#define MERCURY_MESSAGE_MAX_SIZE			65535
+#define NETWORK_MESSAGE_ID_SIZE				sizeof(Network::MessageID)
+#define NETWORK_MESSAGE_LENGTH_SIZE			sizeof(Network::MessageLength)
+#define NETWORK_MESSAGE_MAX_SIZE			65535
 
 // 游戏内容可用包大小
-#define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - MERCURY_MESSAGE_ID_SIZE - \
-											MERCURY_MESSAGE_LENGTH_SIZE - ENCRYPTTION_WASTAGE_SIZE
+#define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - NETWORK_MESSAGE_ID_SIZE - \
+											NETWORK_MESSAGE_LENGTH_SIZE - ENCRYPTTION_WASTAGE_SIZE
 
 /** kbe machine端口 */
 #define KBE_PORT_START						20000
@@ -101,19 +101,19 @@ typedef uint16								PacketLength; // 最大65535
 	网络消息类型， 定长或者变长。
 	如果需要自定义长度则在NETWORK_INTERFACE_DECLARE_BEGIN中声明时填入长度即可。
 */
-#ifndef MERCURY_FIXED_MESSAGE
-#define MERCURY_FIXED_MESSAGE 0
+#ifndef NETWORK_FIXED_MESSAGE
+#define NETWORK_FIXED_MESSAGE 0
 #endif
 
-#ifndef MERCURY_VARIABLE_MESSAGE
-#define MERCURY_VARIABLE_MESSAGE -1
+#ifndef NETWORK_VARIABLE_MESSAGE
+#define NETWORK_VARIABLE_MESSAGE -1
 #endif
 
 // 网络消息类别
-enum MERCURY_MESSAGE_TYPE
+enum NETWORK_MESSAGE_TYPE
 {
-	MERCURY_MESSAGE_TYPE_COMPONENT = 0,	// 组件消息
-	MERCURY_MESSAGE_TYPE_ENTITY = 1,	// entity消息
+	NETWORK_MESSAGE_TYPE_COMPONENT = 0,	// 组件消息
+	NETWORK_MESSAGE_TYPE_ENTITY = 1,	// entity消息
 };
 
 enum ProtocolType
@@ -174,10 +174,10 @@ const char * reasonToString(Reason reason)
 }
 
 
-#define MERCURY_SEND_TO_ENDPOINT(ep, op, pPacket)														\
+#define NETWORK_SEND_TO_ENDPOINT(ep, op, pPacket)														\
 {																										\
 	int retries = 0;																					\
-	Mercury::Reason reason;																				\
+	Network::Reason reason;																				\
 																										\
 	while(true)																							\
 	{																									\
@@ -186,9 +186,9 @@ const char * reasonToString(Reason reason)
 																										\
 		if(slen != (int)pPacket->totalSize())															\
 		{																								\
-			reason = Mercury::NetworkInterface::getSendErrorReason(ep, slen, pPacket->totalSize());		\
+			reason = Network::NetworkInterface::getSendErrorReason(ep, slen, pPacket->totalSize());		\
 			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
-			if (reason == Mercury::REASON_NO_SUCH_PORT && retries <= 3)									\
+			if (reason == Network::REASON_NO_SUCH_PORT && retries <= 3)									\
 			{																							\
 				continue;																				\
 			}																							\
@@ -205,9 +205,9 @@ const char * reasonToString(Reason reason)
 				continue;																				\
 			}																							\
 																										\
-			if(retries > 3 && reason != Mercury::REASON_SUCCESS)										\
+			if(retries > 3 && reason != Network::REASON_SUCCESS)										\
 			{																							\
-				ERROR_MSG(fmt::format("MERCURY_SEND::send: packet discarded(reason={}).\n",				\
+				ERROR_MSG(fmt::format("NETWORK_SEND::send: packet discarded(reason={}).\n",				\
 															(reasonToString(reason))));					\
 				break;																					\
 			}																							\
@@ -223,7 +223,7 @@ const char * reasonToString(Reason reason)
 
 void destroyObjPool();
 
-// mercury stats
+// network stats
 extern uint64						g_numPacketsSent;
 extern uint64						g_numPacketsReceived;
 extern uint64						g_numBytesSent;

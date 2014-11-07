@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class DispatcherCoupling;
 class ErrorReporter;

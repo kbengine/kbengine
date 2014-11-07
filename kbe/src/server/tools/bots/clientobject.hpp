@@ -32,7 +32,7 @@ namespace KBEngine{
 /*
 */
 
-class ClientObject : public ClientObjectBase, Mercury::TCPPacketReceiver
+class ClientObject : public ClientObjectBase, Network::TCPPacketReceiver
 {
 	/** 
 		子类化 将一些py操作填充进派生类 
@@ -58,7 +58,7 @@ public:
 		C_STATE_PLAY = 5,
 	};
 
-	ClientObject(std::string name, Mercury::NetworkInterface& ninterface);
+	ClientObject(std::string name, Network::NetworkInterface& ninterface);
 	virtual ~ClientObject();
 
 	bool processSocket(bool expectingPacket);
@@ -72,40 +72,40 @@ public:
 
 	ClientObject::C_ERROR lasterror(){ return error_; }
 
-	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo,
+	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 
 		const std::string& entityDefMD5, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		创建账号成功和失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
-									MERCURY_SUCCESS:账号创建成功
+	   @failedcode: 失败返回码 NETWORK_ERR_SRV_NO_READY:服务器没有准备好, 
+									NETWORK_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
+									NETWORK_SUCCESS:账号创建成功
 
 									SERVER_ERROR_CODE failedcode;
 		@二进制附带数据:二进制额外数据: uint32长度 + bytearray
 	*/
-	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onCreateAccountResult(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	   @failedcode: 失败返回码 NETWORK_ERR_SRV_NO_READY:服务器没有准备好, 
+									NETWORK_ERR_SRV_OVERLOAD:服务器负载过重, 
+									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginFailed(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口
 	*/
-	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 protected:
 	C_ERROR error_;
 	C_STATE state_;
-	Mercury::BlowfishFilter* pBlowfishFilter_;
+	Network::BlowfishFilter* pBlowfishFilter_;
 };
 
 

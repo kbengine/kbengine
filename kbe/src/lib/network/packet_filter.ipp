@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 } 

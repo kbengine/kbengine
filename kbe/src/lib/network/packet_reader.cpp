@@ -21,10 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "packet_reader.hpp"
 #include "network/channel.hpp"
 #include "network/message_handler.hpp"
-#include "network/mercurystats.hpp"
+#include "network/network_stats.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 
@@ -63,7 +63,7 @@ void PacketReader::reset()
 }
 
 //-------------------------------------------------------------------------------------
-void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket)
+void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket)
 {
 	while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
 	{
@@ -71,9 +71,9 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 		{
 			if(currMsgID_ == 0)
 			{
-				if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
+				if(NETWORK_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < NETWORK_MESSAGE_ID_SIZE)
 				{
-					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, MERCURY_MESSAGE_ID_SIZE);
+					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, NETWORK_MESSAGE_ID_SIZE);
 					break;
 				}
 
@@ -81,7 +81,7 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				pPacket->messageID(currMsgID_);
 			}
 
-			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+			Network::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
 
 			if(pMsgHandler == NULL)
 			{
@@ -109,26 +109,26 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 			
 			if(currMsgLen_ == 0)
 			{
-				if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+				if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 				{
 					// 如果长度信息不完整， 则等待下一个包处理
-					if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
+					if(pPacket->opsize() < NETWORK_MESSAGE_LENGTH_SIZE)
 					{
-						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
+						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, NETWORK_MESSAGE_LENGTH_SIZE);
 						break;
 					}
 					else
 					{
 						(*pPacket) >> currMsgLen_;
-						MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-							currMsgLen_ + MERCURY_MESSAGE_ID_SIZE + MERCURY_MESSAGE_LENGTH_SIZE);
+						NetworkStats::getSingleton().trackMessage(NetworkStats::RECV, *pMsgHandler, 
+							currMsgLen_ + NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE);
 					}
 				}
 				else
 				{
 					currMsgLen_ = pMsgHandler->msgLen;
-					MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-						currMsgLen_ + MERCURY_MESSAGE_LENGTH_SIZE);
+					NetworkStats::getSingleton().trackMessage(NetworkStats::RECV, *pMsgHandler, 
+						currMsgLen_ + NETWORK_MESSAGE_LENGTH_SIZE);
 				}
 			}
 			
@@ -239,11 +239,11 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 		switch(fragmentDatasFlag_)
 		{
 		case FRAGMENT_DATA_MESSAGE_ID:			// 消息ID信息不全
-			memcpy(&currMsgID_, pFragmentDatas_, MERCURY_MESSAGE_ID_SIZE);
+			memcpy(&currMsgID_, pFragmentDatas_, NETWORK_MESSAGE_ID_SIZE);
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
-			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_LENGTH_SIZE);
+			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH_SIZE);
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全

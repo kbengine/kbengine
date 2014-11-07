@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_FIXED_MERCURY_MESSAGES_HPP
-#define KBE_FIXED_MERCURY_MESSAGES_HPP
+#ifndef KBE_FIXED_NETWORK_MESSAGES_HPP
+#define KBE_FIXED_NETWORK_MESSAGES_HPP
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 /*
 	用来对中间协议(前端与后端之间)进行强制约定。
@@ -57,4 +57,4 @@ private:
 
 }
 }
-#endif // KBE_FIXED_MERCURY_MESSAGES_HPP
+#endif // KBE_FIXED_NETWORK_MESSAGES_HPP

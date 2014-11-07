@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-SyncAppDatasHandler::SyncAppDatasHandler(Mercury::NetworkInterface & networkInterface):
+SyncAppDatasHandler::SyncAppDatasHandler(Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
 lastRegAppTime_(0),
@@ -131,7 +131,7 @@ bool SyncAppDatasHandler::process()
 			tcomponentType == CELLAPP_TYPE || 
 			tcomponentType == LOGINAPP_TYPE)
 		{
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			
 			switch(tcomponentType)
 			{
@@ -166,7 +166,7 @@ bool SyncAppDatasHandler::process()
 			}
 
 			(*pBundle).send(networkInterface_, cinfos->pChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 

@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-InitProgressHandler::InitProgressHandler(Mercury::NetworkInterface & networkInterface):
+InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface)
 {
@@ -50,7 +50,7 @@ InitProgressHandler::~InitProgressHandler()
 bool InitProgressHandler::process()
 {
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	Mercury::Channel* pChannel = NULL;
+	Network::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)
 	{
@@ -114,7 +114,7 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
 
 	(*bundleptr)->newMessage(BaseappmgrInterface::onBaseappInitProgress);
 	(*(*bundleptr)) << g_componentID << v;

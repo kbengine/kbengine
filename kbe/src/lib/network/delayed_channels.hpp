@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 class Channel;
 class Address;

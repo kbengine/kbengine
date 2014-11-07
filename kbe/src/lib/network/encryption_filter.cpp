@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_receiver.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pOutPacket));
 
 		/*
-		if(Mercury::g_trace_packet > 0)
+		if(Network::g_trace_packet > 0)
 		{
 			DEBUG_MSG(fmt::format("BlowfishFilter::send: packetLen={}, padSize={}\n",
 				packetLen, (int)padSize));
@@ -222,7 +222,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		pPacket->wpos(pPacket->wpos() - padSize_);
 
 		/*
-		if(Mercury::g_trace_packet > 0)
+		if(Network::g_trace_packet > 0)
 		{
 			DEBUG_MSG(fmt::format("BlowfishFilter::recv: packetLen={}, padSize={}\n",
 				(packetLen_ + 1), (int)padSize_));

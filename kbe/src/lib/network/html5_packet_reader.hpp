@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_reader.hpp"
 
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 
 class HTML5PacketReader : public PacketReader
@@ -34,7 +34,7 @@ public:
 	virtual ~HTML5PacketReader();
 
 	virtual void reset();
-	virtual void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
+	virtual void processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 protected:
 };
 

@@ -384,7 +384,7 @@
 			<cprofile> false </cprofile>
 			<pyprofile> false </pyprofile>
 			<eventprofile> false </eventprofile>
-			<mercuryprofile> false </mercuryprofile>
+			<networkprofile> false </networkprofile>
 		</profiles>
 		
 		<ghostDistance> 500.0 </ghostDistance>
@@ -534,7 +534,7 @@
 			<cprofile> false </cprofile>
 			<pyprofile> false </pyprofile>
 			<eventprofile> false </eventprofile>
-			<mercuryprofile> false </mercuryprofile>
+			<networkprofile> false </networkprofile>
 		</profiles>
 		
 		<!-- listen监听队列最大值

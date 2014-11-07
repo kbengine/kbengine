@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-namespace Mercury
+namespace Network
 {
 class NetworkInterface;
 class EventDispatcher;
@@ -55,7 +55,7 @@ public:
 			lastProcessTime = 0;
 		}
 
-		Mercury::Address addr;
+		Network::Address addr;
 		COMPONENT_CLIENT_TYPE ctype;
 		std::string accountName;
 		std::string password;
@@ -69,10 +69,10 @@ public:
 
 	typedef KBEUnordered_map<std::string, PLInfos*> PTINFO_MAP;
 public:
-	PendingLoginMgr(Mercury::NetworkInterface & networkInterface);
+	PendingLoginMgr(Network::NetworkInterface & networkInterface);
 	~PendingLoginMgr();
 
-	Mercury::EventDispatcher & dispatcher();
+	Network::EventDispatcher & dispatcher();
 
 	bool add(PLInfos* infos);
 	
@@ -81,7 +81,7 @@ public:
 	PendingLoginMgr::PLInfos* remove(std::string& accountName);
 	PendingLoginMgr::PLInfos* find(std::string& accountName);
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 
 	bool start_;
 	

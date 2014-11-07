@@ -252,24 +252,24 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 //-------------------------------------------------------------------------------------
 void DebugHelper::clearBufferedLog(bool destroy)
 {
-	int8 v = Mercury::g_trace_packet;
-	Mercury::g_trace_packet = 0;
+	int8 v = Network::g_trace_packet;
+	Network::g_trace_packet = 0;
 
 	if(destroy)
 	{
 		while(!bufferedLogPackets_.empty())
 		{
-			Mercury::Bundle* pBundle = bufferedLogPackets_.front();
+			Network::Bundle* pBundle = bufferedLogPackets_.front();
 			bufferedLogPackets_.pop();
 			delete pBundle;
 		}
 	}
 	else
 	{
-		Mercury::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
+		Network::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
 	}
 
-	Mercury::g_trace_packet = v;
+	Network::g_trace_packet = v;
 
 	hasBufferedLogPackets_ = 0;
 	noSyncLog_ = true;
@@ -289,7 +289,7 @@ void DebugHelper::sync()
 		return;
 	}
 
-	if(Mercury::Address::NONE == messagelogAddr_)
+	if(Network::Address::NONE == messagelogAddr_)
 	{
 		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
@@ -301,7 +301,7 @@ void DebugHelper::sync()
 		return;
 	}
 	
-	Mercury::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
+	Network::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
 	if(pMessagelogChannel == NULL)
 	{
 		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
@@ -322,8 +322,8 @@ void DebugHelper::sync()
 		alertmsg = true;
 	}
 
-	int8 v = Mercury::g_trace_packet;
-	Mercury::g_trace_packet = 0;
+	int8 v = Network::g_trace_packet;
+	Network::g_trace_packet = 0;
 
 	uint32 i = 0;
 	size_t totalLen = 0;
@@ -333,7 +333,7 @@ void DebugHelper::sync()
 		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
 			break;
 		
-		Mercury::Bundle* pBundle = bufferedLogPackets_.front();
+		Network::Bundle* pBundle = bufferedLogPackets_.front();
 		bufferedLogPackets_.pop();
 
 		totalLen += pBundle->currMsgLength();
@@ -342,20 +342,20 @@ void DebugHelper::sync()
 		--hasBufferedLogPackets_;
 	}
 
-	Mercury::g_trace_packet = v;
+	Network::g_trace_packet = v;
 	canLogFile_ = false;
 	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::pDispatcher(Mercury::EventDispatcher* dispatcher)
+void DebugHelper::pDispatcher(Network::EventDispatcher* dispatcher)
 { 
 	pDispatcher_ = dispatcher; 
 	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::pNetworkInterface(Mercury::NetworkInterface* networkInterface)
+void DebugHelper::pNetworkInterface(Network::NetworkInterface* networkInterface)
 { 
 	pNetworkInterface_ = networkInterface; 
 }
@@ -398,24 +398,24 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
-		int8 v = Mercury::g_trace_packet;
-		Mercury::g_trace_packet = 0;
+		int8 v = Network::g_trace_packet;
+		Network::g_trace_packet = 0;
 
 #ifdef NO_USE_LOG4CXX
 #else
 		LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
 #endif
 
-		Mercury::g_trace_packet = v;
+		Network::g_trace_packet = v;
 
 		clearBufferedLog();
 		return;
 	}
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	int8 v = Mercury::g_trace_packet;
-	Mercury::g_trace_packet = 0;
+	int8 v = Network::g_trace_packet;
+	Network::g_trace_packet = 0;
 	pBundle->newMessage(MessagelogInterface::writeLog);
 
 	(*pBundle) << logType;
@@ -431,20 +431,20 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	++hasBufferedLogPackets_;
 	bufferedLogPackets_.push(pBundle);
 
-	Mercury::g_trace_packet = v;
+	Network::g_trace_packet = v;
 	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
+void DebugHelper::registerMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = *pAddr;
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
+void DebugHelper::unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
-	messagelogAddr_ = Mercury::Address::NONE;
+	messagelogAddr_ = Network::Address::NONE;
 }
 
 //-------------------------------------------------------------------------------------

@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 	
 class InputNotificationHandler;

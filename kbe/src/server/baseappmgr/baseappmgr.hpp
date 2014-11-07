@@ -42,8 +42,8 @@ public:
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
-	Baseappmgr(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Baseappmgr(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -51,7 +51,7 @@ public:
 	
 	bool run();
 	
-	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+	virtual void onChannelDeregister(Network::Channel * pChannel);
 	virtual void onAddComponent(const Components::ComponentInfos* pInfos);
 
 	void handleTimeout(TimerHandle handle, void * arg);
@@ -73,23 +73,23 @@ public:
 													  需要使用pickle.loads解包.
 										componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		收到baseapp::createBaseAnywhereFromDBID请求在某个空闲的baseapp上创建一个baseEntity
 	*/
-	void reqCreateBaseAnywhereFromDBID(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		消息转发， 由某个app想通过本app将消息转发给某个app。
 	*/
-	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);
+	void forwardMessage(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给baseapp
 		使其允许在此baseapp上登录。
 	*/
-	void registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
+	void registerPendingAccountToBaseapp(Network::Channel* pChannel, 
 								std::string& loginName, std::string& accountName, 
 								std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,
 								COMPONENT_TYPE componentType);
@@ -98,7 +98,7 @@ public:
 		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
 		使其允许在此baseapp上登录。
 	*/
-	void registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+	void registerPendingAccountToBaseappAddr(Network::Channel* pChannel, COMPONENT_ID componentID,
 								std::string& loginName, std::string& accountName, std::string& password, 
 								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
 								COMPONENT_TYPE componentType);
@@ -106,14 +106,14 @@ public:
 	/** 网络接口
 		baseapp将自己的地址发送给loginapp并转发给客户端。
 	*/
-	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
+	void onPendingAccountGetBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
 								  std::string& addr, uint16 port);
 
 	/** 网络接口
 		更新baseapp情况。
 	*/
-	void updateBaseapp(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+	void updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
 								ENTITY_ID numBases, ENTITY_ID numProxices, float load);
 
 	/** 网络接口
@@ -121,12 +121,12 @@ public:
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
-	void onBaseappInitProgress(Mercury::Channel* pChannel, COMPONENT_ID cid, float progress);
+	void onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress);
 
 	/** 
 		将分配的baseapp地址发送给loginapp并转发给客户端。
 	*/
-	void sendAllocatedBaseappAddr(Mercury::Channel* pChannel, 
+	void sendAllocatedBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
 								  const std::string& addr, uint16 port);
 protected:

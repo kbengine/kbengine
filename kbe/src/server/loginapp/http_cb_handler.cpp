@@ -37,7 +37,7 @@ HTTPCBHandler::HTTPCBHandler():
 pEndPoint_(NULL),
 clients_()
 {
-	pEndPoint_ = new Mercury::EndPoint();
+	pEndPoint_ = new Network::EndPoint();
 
 	pEndPoint_->socket(SOCK_STREAM);
 
@@ -91,7 +91,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		u_int16_t port;
 		u_int32_t addr;
 
-		Mercury::EndPoint* newclient = pEndPoint_->accept(&port, &addr);
+		Network::EndPoint* newclient = pEndPoint_->accept(&port, &addr);
 
 		if(newclient == NULL)
 		{
@@ -104,7 +104,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		
 		newclient->setnonblocking(true);
 		CLIENT& client = clients_[*newclient];
-		client.endpoint = KBEShared_ptr< Mercury::EndPoint >(newclient);
+		client.endpoint = KBEShared_ptr< Network::EndPoint >(newclient);
 		client.state = 0;
 		Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*newclient, this);
 	}
@@ -119,7 +119,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		}
 
 		CLIENT& client = iter->second;
-		Mercury::EndPoint* newclient = iter->second.endpoint.get();
+		Network::EndPoint* newclient = iter->second.endpoint.get();
 
 		char buffer[1024];
 		int len = newclient->recv(&buffer, 1024);
@@ -231,7 +231,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(type == 1)
 			{
 				// 向dbmgr激活账号
-				Mercury::Bundle bundle;
+				Network::Bundle bundle;
 				bundle.newMessage(DbmgrInterface::accountActivate);
 				bundle << code;
 				bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
@@ -278,7 +278,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					password = HttpUtility::URLDecode(password);
 
 					// 向dbmgr重置账号
-					Mercury::Bundle bundle;
+					Network::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountResetPassword);
 					bundle << KBEngine::strutil::kbe_trim(username);
 					bundle << KBEngine::strutil::kbe_trim(password);
@@ -309,7 +309,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					username = HttpUtility::URLDecode(username);
 
 					// 向dbmgr重置账号
-					Mercury::Bundle bundle;
+					Network::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountBindMail);
 					bundle << KBEngine::strutil::kbe_trim(username);
 					bundle << code;

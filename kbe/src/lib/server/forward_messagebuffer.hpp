@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class Bundle;
 class NetworkInterface;
@@ -55,7 +55,7 @@ public:
 
 struct ForwardItem
 {
-	Mercury::Bundle* pBundle;
+	Network::Bundle* pBundle;
 	ForwardMessageOverHandler* pHandler;
 };
 
@@ -66,16 +66,16 @@ class ForwardComponent_MessageBuffer : public Task,
 						public Singleton<ForwardComponent_MessageBuffer>
 {
 public:
-	ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface);
+	ForwardComponent_MessageBuffer(Network::NetworkInterface & networkInterface);
 	virtual ~ForwardComponent_MessageBuffer();
 
-	Mercury::EventDispatcher & dispatcher();
+	Network::EventDispatcher & dispatcher();
 
 	void push(COMPONENT_ID componentID, ForwardItem* pHandler);
 	
 	bool process();
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 	bool start_;
 	
 	typedef std::vector<ForwardItem*> MSGMAP_ITEM;
@@ -91,16 +91,16 @@ class ForwardAnywhere_MessageBuffer : public Task,
 						public Singleton<ForwardAnywhere_MessageBuffer>
 {
 public:
-	ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
+	ForwardAnywhere_MessageBuffer(Network::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
 	virtual ~ForwardAnywhere_MessageBuffer();
 
-	Mercury::EventDispatcher & dispatcher();
+	Network::EventDispatcher & dispatcher();
 
 	void push(ForwardItem* pHandler);
 	
 	bool process();
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE forwardComponentType_;
 	bool start_;
 	

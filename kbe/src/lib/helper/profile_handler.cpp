@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/address.hpp"
-#include "network/mercurystats.hpp"
+#include "network/network_stats.hpp"
 #include "network/bundle.hpp"
 #include "network/message_handler.hpp"
 #include "cstdkbe/memorystream.hpp"
@@ -35,8 +35,8 @@ namespace KBEngine {
 KBEUnordered_map<std::string, KBEShared_ptr< ProfileHandler > > ProfileHandler::profiles;
 
 //-------------------------------------------------------------------------------------
-ProfileHandler::ProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Mercury::Address& addr) :
+ProfileHandler::ProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Network::Address& addr) :
 	networkInterface_(networkInterface),
 	reportLimitTimerHandle_(),
 	name_(name),
@@ -65,8 +65,8 @@ void ProfileHandler::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-CProfileHandler::CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Mercury::Address& addr) :
+CProfileHandler::CProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr)
 {
 	networkInterface_.dispatcher().addFrequentTask(this);
@@ -144,7 +144,7 @@ void CProfileHandler::timeout()
 //-------------------------------------------------------------------------------------
 void CProfileHandler::sendStream(MemoryStream* s)
 {
-	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	Network::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
 		WARNING_MSG(fmt::format("CProfileHandler::sendStream: not found {} addr({})\n",
@@ -152,7 +152,7 @@ void CProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*(*bundle)).newMessage(msgHandler);
@@ -208,8 +208,8 @@ bool CProfileHandler::process()
 //-------------------------------------------------------------------------------------
 std::vector<EventProfileHandler*> EventProfileHandler::eventProfileHandlers_;
 	
-EventProfileHandler::EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Mercury::Address& addr) :
+EventProfileHandler::EventProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr),
 profileMaps_(),
 removeHandle_(-1)
@@ -265,7 +265,7 @@ void EventProfileHandler::timeout()
 //-------------------------------------------------------------------------------------
 void EventProfileHandler::sendStream(MemoryStream* s)
 {
-	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	Network::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
 		WARNING_MSG(fmt::format("EventProfileHandler::sendStream: not found {} addr({})\n",
@@ -273,7 +273,7 @@ void EventProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*(*bundle)).newMessage(msgHandler);
@@ -329,22 +329,22 @@ void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, co
 }
 
 //-------------------------------------------------------------------------------------
-MercuryProfileHandler::MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Mercury::Address& addr) :
+NetworkProfileHandler::NetworkProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr),
 profileVals_()
 {
-	Mercury::MercuryStats::getSingleton().addHandler(this);
+	Network::NetworkStats::getSingleton().addHandler(this);
 }
 
 //-------------------------------------------------------------------------------------
-MercuryProfileHandler::~MercuryProfileHandler()
+NetworkProfileHandler::~NetworkProfileHandler()
 {
-	Mercury::MercuryStats::getSingleton().removeHandler(this);
+	Network::NetworkStats::getSingleton().removeHandler(this);
 }
 
 //-------------------------------------------------------------------------------------
-void MercuryProfileHandler::timeout()
+void NetworkProfileHandler::timeout()
 {
 	MemoryStream s;
 
@@ -353,10 +353,10 @@ void MercuryProfileHandler::timeout()
 	ArraySize size = profileVals_.size();
 	s << size;
 
-	MercuryProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
+	NetworkProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
 	for(; iter != profileVals_.end(); iter++)
 	{
-		MercuryProfileHandler::ProfileVal& profileVal = iter->second;
+		NetworkProfileHandler::ProfileVal& profileVal = iter->second;
 
 		s << profileVal.name;
 
@@ -371,17 +371,17 @@ void MercuryProfileHandler::timeout()
 }
 
 //-------------------------------------------------------------------------------------
-void MercuryProfileHandler::sendStream(MemoryStream* s)
+void NetworkProfileHandler::sendStream(MemoryStream* s)
 {
-	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	Network::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(fmt::format("MercuryProfileHandler::sendStream: not found {} addr({})\n",
+		WARNING_MSG(fmt::format("NetworkProfileHandler::sendStream: not found {} addr({})\n",
 			name_, addr_.c_str()));
 		return;
 	}
 
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*(*bundle)).newMessage(msgHandler);
@@ -393,14 +393,14 @@ void MercuryProfileHandler::sendStream(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-void MercuryProfileHandler::onSendMessage(const Mercury::MessageHandler& msgHandler, int size)
+void NetworkProfileHandler::onSendMessage(const Network::MessageHandler& msgHandler, int size)
 {
-	MercuryProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
+	NetworkProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
 	
-	MercuryProfileHandler::ProfileVal* pProfileVal = NULL;
+	NetworkProfileHandler::ProfileVal* pProfileVal = NULL;
 	if(iter1 == profileVals_.end())
 	{
-		MercuryProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
+		NetworkProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
 		pProfileVal = &profileVal;
 		profileVal.name = msgHandler.name;
 	}
@@ -418,14 +418,14 @@ void MercuryProfileHandler::onSendMessage(const Mercury::MessageHandler& msgHand
 }
 
 //-------------------------------------------------------------------------------------
-void MercuryProfileHandler::onRecvMessage(const Mercury::MessageHandler& msgHandler, int size)
+void NetworkProfileHandler::onRecvMessage(const Network::MessageHandler& msgHandler, int size)
 {
-	MercuryProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
+	NetworkProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
 	
-	MercuryProfileHandler::ProfileVal* pProfileVal = NULL;
+	NetworkProfileHandler::ProfileVal* pProfileVal = NULL;
 	if(iter1 == profileVals_.end())
 	{
-		MercuryProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
+		NetworkProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
 		pProfileVal = &profileVal;
 		profileVal.name = msgHandler.name;
 	}

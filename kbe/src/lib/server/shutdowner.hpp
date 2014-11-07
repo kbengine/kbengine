@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/shutdown_handler.hpp"
 
 namespace KBEngine { 
-namespace Mercury{
+namespace Network{
 	class EventDispatcher;
 }
 
@@ -44,14 +44,14 @@ public:
 	Shutdowner(ShutdownHandler* pShutdownHandler);
 	virtual ~Shutdowner();
 	
-	void shutdown(float period, float tickPeriod, Mercury::EventDispatcher& dispatcher);
+	void shutdown(float period, float tickPeriod, Network::EventDispatcher& dispatcher);
 	void cancel();
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	ShutdownHandler* pShutdownHandler_;
 	TimerHandle pTimerHandle_;
-	Mercury::EventDispatcher* pDispatcher_;
+	Network::EventDispatcher* pDispatcher_;
 	float tickPeriod_;
 
 };

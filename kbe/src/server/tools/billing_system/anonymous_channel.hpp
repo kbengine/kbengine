@@ -42,7 +42,7 @@ public:
 	
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
-	Mercury::EndPoint listen;
+	Network::EndPoint listen;
 
 	struct BACK_ORDERS_DATA
 	{

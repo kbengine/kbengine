@@ -44,7 +44,7 @@ public:
 	bool loadFromStream(MemoryStream * s);
 	
 	void reset();
-	void addr(const Mercury::Address& address) { addr_ = address; }
+	void addr(const Network::Address& address) { addr_ = address; }
 	
 	void onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER componentOrder, 
 		int64 tm, GAME_TIME kbetime, const std::string& str, const std::stringstream& sstr);
@@ -52,7 +52,7 @@ protected:
 	uint32 logtypes_;
 	uint8 componentBitmap_[COMPONENT_END_TYPE];
 	COMPONENT_ORDER appOrder_;
-	Mercury::Address addr_;
+	Network::Address addr_;
 };
 
 }

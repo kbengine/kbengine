@@ -123,10 +123,10 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 
 	for(; iter1 != channels.end(); iter1++)
 	{
-		Mercury::Channel* lpChannel = iter1->pChannel;
+		Network::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
 		
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		
 		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChanged);
 		
@@ -147,7 +147,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 		(*pBundle) << g_componentType;
 
 		(*pBundle).send(lpChannel->networkInterface(), lpChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

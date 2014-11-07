@@ -84,12 +84,12 @@ void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONE
 		return;
 
 
-	Mercury::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);
+	Network::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pChannel == NULL)
 		return;
 
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	bundle << sstr.str().c_str();

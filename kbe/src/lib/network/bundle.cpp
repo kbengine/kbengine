@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "bundle.hpp"
-#include "network/mercurystats.hpp"
+#include "network/network_stats.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet.hpp"
 #include "network/channel.hpp"
@@ -95,7 +95,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
@@ -248,7 +248,7 @@ void Bundle::finish(bool issend)
 	if(pCurrMsgHandler_){
 		if(issend || numMessages_ > 1)
 		{
-			MercuryStats::getSingleton().trackMessage(MercuryStats::SEND, 
+			NetworkStats::getSingleton().trackMessage(NetworkStats::SEND, 
 				*pCurrMsgHandler_, currMsgLength_);
 		}
 	}
@@ -260,14 +260,14 @@ void Bundle::finish(bool issend)
 		if(currMsgPacketCount_ > 0)
 			pPacket = packets_[packets_.size() - currMsgPacketCount_];
 
-		currMsgLength_ -= MERCURY_MESSAGE_ID_SIZE;
-		currMsgLength_ -= MERCURY_MESSAGE_LENGTH_SIZE;
+		currMsgLength_ -= NETWORK_MESSAGE_ID_SIZE;
+		currMsgLength_ -= NETWORK_MESSAGE_LENGTH_SIZE;
 
 		MessageLength msgLen = currMsgLength_;
 		KBEngine::EndianConvert(msgLen);
 
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
-			(uint8*)&msgLen, MERCURY_MESSAGE_LENGTH_SIZE);
+			(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);
 	}
 
 	if(issend)
@@ -340,7 +340,7 @@ void Bundle::resend(NetworkInterface & networkInterface, Channel * pChannel)
 	if(!reuse_)
 	{
 		MessageID msgid = currMsgID_;
-		const Mercury::MessageHandler* pCurrMsgHandler = pCurrMsgHandler_;
+		const Network::MessageHandler* pCurrMsgHandler = pCurrMsgHandler_;
 		finish();
 		currMsgID_ = msgid;
 		pCurrMsgHandler_ = pCurrMsgHandler;
@@ -407,7 +407,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrPacket_->messageID(msgHandler.msgID);
 
 	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen == MERCURY_VARIABLE_MESSAGE)
+	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		MessageLength msglen = 0;
 		currMsgLengthPos_ = pCurrPacket_->wpos();

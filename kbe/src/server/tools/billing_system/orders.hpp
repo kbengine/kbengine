@@ -44,7 +44,7 @@ public:
 	Orders();
 	virtual ~Orders();
 	
-	Mercury::Address address;
+	Network::Address address;
 	std::string ordersID;
 	CALLBACK_ID cbid;
 	DBID dbid;

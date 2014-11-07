@@ -46,8 +46,8 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Machine);
 
 //-------------------------------------------------------------------------------------
-Machine::Machine(Mercury::EventDispatcher& dispatcher, 
-				 Mercury::NetworkInterface& ninterface, 
+Machine::Machine(Network::EventDispatcher& dispatcher, 
+				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
@@ -77,7 +77,7 @@ Machine::~Machine()
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username,
+void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username,
 								   int8 componentType, uint64 componentID, uint64 componentIDEx, 
 								   int8 globalorderid, int8 grouporderid,
 									uint32 intaddr, uint16 intport,
@@ -128,7 +128,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, int8 componentType, uint64 componentID,
+void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, int8 componentType, uint64 componentID,
 								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
 	KBEngine::COMPONENT_TYPE tfindComponentType = (KBEngine::COMPONENT_TYPE)findComponentType;
@@ -150,7 +150,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		inet_ntoa((struct in_addr&)finderAddr), ntohs(finderRecvPort),
 		componentID));
 
-	Mercury::EndPoint ep;
+	Network::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
 
 	if (!ep.good())
@@ -163,7 +163,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 	Components::COMPONENTS::iterator iter = components.begin();
 
 	bool found = false;
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 
 	for(; iter != components.end(); )
 	{
@@ -238,7 +238,7 @@ bool Machine::checkComponentUsable(const Components::ComponentInfos* info)
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
+void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
 {
 	// uid不等于当前服务器的uid则不理会。
 	if(uid > 0)
@@ -253,7 +253,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 		pChannel->c_str(), uid, username.c_str(),
 		ntohs(finderRecvPort)));
 
-	Mercury::EndPoint ep;
+	Network::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
 
 	if (!ep.good())
@@ -263,7 +263,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 	}
 
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle bundle;
 		
 		uint64 cidex = 0;
 		float cpu = SystemInfo::getSingleton().getCPUPer();
@@ -287,7 +287,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 
 	while(ALL_SERVER_COMPONENT_TYPES[i] != UNKNOWN_COMPONENT_TYPE)
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle bundle;
 
 		COMPONENT_TYPE tfindComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
 		int8 findComponentType = (int8)tfindComponentType;
@@ -313,7 +313,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			{
 				if(islocal)
 				{
-					Mercury::Bundle bundle;
+					Network::Bundle bundle;
 					
 					MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
@@ -351,7 +351,7 @@ bool Machine::findBroadcastInterface()
 {
 
 	std::map<u_int32_t, std::string> interfaces;
-	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+	Network::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 	if (!bhandler.epListen().getInterfaces(interfaces))
 	{
@@ -413,7 +413,7 @@ bool Machine::initNetwork()
 	ep_.socket(SOCK_DGRAM);
 	epLocal_.socket(SOCK_DGRAM); 
 
-	Mercury::Address address;
+	Network::Address address;
 	address.ip = 0;
 	address.port = 0;
 
@@ -442,7 +442,7 @@ bool Machine::initNetwork()
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
-	pEPPacketReceiver_ = new Mercury::UDPPacketReceiver(ep_, this->networkInterface());
+	pEPPacketReceiver_ = new Network::UDPPacketReceiver(ep_, this->networkInterface());
 
 	if(!this->mainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
 	{
@@ -453,7 +453,7 @@ bool Machine::initNetwork()
 #if KBE_PLATFORM == PLATFORM_WIN32
 	u_int32_t baddr = htonl(INADDR_ANY);
 #else
-	u_int32_t baddr = Mercury::BROADCAST;
+	u_int32_t baddr = Network::BROADCAST;
 #endif
 
 	if (!epBroadcast_.good() ||
@@ -474,7 +474,7 @@ bool Machine::initNetwork()
 		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
-		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->networkInterface());
+		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
 	
 		if(!this->mainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
@@ -485,7 +485,7 @@ bool Machine::initNetwork()
 	}
 
 	if (!epLocal_.good() ||
-		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::LOCALHOST) == -1)
+		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Network::LOCALHOST) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to (lo). {}.\n",
 							kbe_strerror()));
@@ -493,11 +493,11 @@ bool Machine::initNetwork()
 		return false;
 	}
 
-	address.ip = Mercury::LOCALHOST;
+	address.ip = Network::LOCALHOST;
 	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
-	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->networkInterface());
+	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
 
 	if(!this->mainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
@@ -560,12 +560,12 @@ void Machine::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
 
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -626,7 +626,7 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if(finderRecvPort != 0)
 	{
-		Mercury::EndPoint ep;
+		Network::EndPoint ep;
 		ep.socket(SOCK_DGRAM);
 
 		if (!ep.good())
@@ -644,11 +644,11 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -705,17 +705,17 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 		(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
 
-		Mercury::Bundle closebundle;
+		Network::Bundle closebundle;
 		if(componentType != BOTS_TYPE)
 		{
-			COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
+			COMMON_NETWORK_MESSAGE(componentType, closebundle, reqCloseServer);
 		}
 		else
 		{
 			closebundle.newMessage(BotsInterface::reqCloseServer);
 		}
 
-		Mercury::EndPoint ep1;
+		Network::EndPoint ep1;
 		ep1.socket(SOCK_STREAM);
 
 		if (!ep1.good())
@@ -734,7 +734,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 		ep1.setnonblocking(false);
 		closebundle.send(ep1);
-		Mercury::TCPPacket recvpacket;
+		Network::TCPPacket recvpacket;
 		recvpacket.resize(255);
 		int len = ep1.recv(recvpacket.data(), 1);
 		if(len != 1)
@@ -751,7 +751,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if(finderRecvPort != 0)
 	{
-		Mercury::EndPoint ep;
+		Network::EndPoint ep;
 		ep.socket(SOCK_DGRAM);
 
 		if (!ep.good())

@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class NetworkInterface;
 class Address;
@@ -41,8 +41,8 @@ class MemoryStream;
 class ProfileHandler : public TimerHandler
 {
 public:
-	ProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
+	ProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr);
 	virtual ~ProfileHandler();
 	
 	virtual void timeout() = 0;
@@ -52,13 +52,13 @@ public:
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
-	Mercury::NetworkInterface& networkInterface_;
+	Network::NetworkInterface& networkInterface_;
 
 	TimerHandle reportLimitTimerHandle_;
 	
 	std::string name_;
 	
-	Mercury::Address addr_;
+	Network::Address addr_;
 
 	uint32 timinglen_;
 };
@@ -67,8 +67,8 @@ class CProfileHandler : public Task,
 						public ProfileHandler
 {
 public:
-	CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
+	CProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr);
 	virtual ~CProfileHandler();
 	
 	void timeout();
@@ -109,8 +109,8 @@ private:
 class EventProfileHandler : public ProfileHandler
 {
 public:
-	EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
+	EventProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr);
 	virtual ~EventProfileHandler();
 	
 	void timeout();
@@ -148,18 +148,18 @@ private:
 	int removeHandle_;
 };
 
-class MercuryProfileHandler : public ProfileHandler, public Mercury::MercuryStatsHandler
+class NetworkProfileHandler : public ProfileHandler, public Network::NetworkStatsHandler
 {
 public:
-	MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
-	virtual ~MercuryProfileHandler();
+	NetworkProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr);
+	virtual ~NetworkProfileHandler();
 	
 	void timeout();
 	void sendStream(MemoryStream* s);
 
-	virtual void onSendMessage(const Mercury::MessageHandler& msgHandler, int size);
-	virtual void onRecvMessage(const Mercury::MessageHandler& msgHandler, int size);
+	virtual void onSendMessage(const Network::MessageHandler& msgHandler, int size);
+	virtual void onRecvMessage(const Network::MessageHandler& msgHandler, int size);
 private:
 	struct ProfileVal
 	{

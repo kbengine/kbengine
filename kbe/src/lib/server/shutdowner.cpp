@@ -47,7 +47,7 @@ void Shutdowner::cancel()
 }
 
 //-------------------------------------------------------------------------------------
-void Shutdowner::shutdown(float period, float tickPeriod, Mercury::EventDispatcher& dispatcher)
+void Shutdowner::shutdown(float period, float tickPeriod, Network::EventDispatcher& dispatcher)
 {
 	pTimerHandle_.cancel();
 	INFO_MSG(fmt::format("Shutdowner::onShutdownBegin: shutting down(period={}, tickPeriod={})\n", 
@@ -98,8 +98,8 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 			pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_END);
 			if(!pShutdownHandler_->canShutdown())
 			{
-				INFO_MSG(fmt::format("Shutdowner::onShutdownEnd: waiting for {} to complete!\n",
-					pShutdownHandler_->lastShutdownFailReason()));
+				//INFO_MSG(fmt::format("Shutdowner::onShutdownEnd: waiting for {} to complete!\n",
+				//	pShutdownHandler_->lastShutdownFailReason()));
 				
 				pShutdownHandler_->onShutdown(false);
 				break;

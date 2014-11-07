@@ -53,8 +53,8 @@ public:
 		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 
-	BillingSystem(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	BillingSystem(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -81,22 +81,22 @@ public:
 	/** 网络接口
 		请求创建账号
 	*/
-	void reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
-	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求擦除客户端请求任务
 	*/
-	void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+	void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
 	/** 网络接口
 		请求充值
 	*/
-	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	BillingSystem::ORDERS& orders(){ return orders_; }

@@ -62,7 +62,7 @@ public:
 	COMPONENT_ID dbmgrID;
 	SERVER_ERROR_CODE retcode;
 
-	Mercury::Address address;
+	Network::Address address;
 
 	bool enable;
 };

@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class NetworkInterface;
 
@@ -49,7 +49,7 @@ public:
 	bool broadcast(uint16 port = 0);
 	bool receive(MessageArgs* recvArgs, sockaddr_in* psin = NULL, int32 timeout = 100000, bool showerr = true);
 
-	Mercury::EndPoint& epListen() { return epListen_; }
+	Network::EndPoint& epListen() { return epListen_; }
 
 	void close();
 
@@ -57,7 +57,7 @@ public:
 
 	void itry(int8 i){ itry_ = i; }
 protected:
-	Mercury::EndPoint epListen_, epBroadcast_;
+	Network::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;
 	uint32 recvWindowSize_;
 	bool good_;

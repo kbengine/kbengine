@@ -26,7 +26,7 @@ namespace KBEngine {
 
 ProfileVal g_idleProfile("Idle");
 
-namespace Mercury
+namespace Network
 {
 	
 #ifndef _WIN32

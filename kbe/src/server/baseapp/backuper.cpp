@@ -61,7 +61,7 @@ void Backuper::tick()
 		this->createBackupTable();
 	}
 
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	while((numToBackUp > 0) && !backupEntityIDs_.empty())
 	{
 		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());

@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 class Channel;
 class MessageHandlers;
@@ -39,13 +39,13 @@ public:
 
 	virtual void reset();
 	
-	virtual void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
+	virtual void processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 	
-	Mercury::MessageID	currMsgID()const{return currMsgID_;}
-	Mercury::MessageLength	currMsgLen()const{return currMsgLen_;}
+	Network::MessageID	currMsgID()const{return currMsgID_;}
+	Network::MessageLength	currMsgLen()const{return currMsgLen_;}
 	
-	void currMsgID(Mercury::MessageID id){currMsgID_ = id;}
-	void currMsgLen(Mercury::MessageLength len){currMsgLen_ = len;}
+	void currMsgID(Network::MessageID id){currMsgID_ = id;}
+	void currMsgLen(Network::MessageLength len){currMsgLen_ = len;}
 protected:
 	enum FragmentDataTypes
 	{
@@ -63,8 +63,8 @@ protected:
 	uint32						pFragmentDatasRemain_;
 	FragmentDataTypes			fragmentDatasFlag_;
 	MemoryStream*				pFragmentStream_;
-	Mercury::MessageID			currMsgID_;
-	Mercury::MessageLength		currMsgLen_;
+	Network::MessageID			currMsgID_;
+	Network::MessageLength		currMsgLen_;
 	
 	Channel*					pChannel_;
 };

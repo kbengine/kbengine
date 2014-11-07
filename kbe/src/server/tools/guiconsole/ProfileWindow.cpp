@@ -34,7 +34,7 @@ void CProfileWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON3, m_eventprofile);
 	DDX_Control(pDX, IDC_LIST1, m_profileShowList);
 	DDX_Control(pDX, IDC_RESULT, m_results);
-	DDX_Control(pDX, IDC_BUTTON4, m_mercuryprofile);
+	DDX_Control(pDX, IDC_BUTTON4, m_networkprofile);
 }
 
 BOOL CProfileWindow::OnInitDialog()
@@ -69,7 +69,7 @@ void CProfileWindow::autoWndSize()
 	m_pyprofile.MoveWindow(2, int(rect.bottom * 0.95), rect.right / 4, int(rect.bottom * 0.05), TRUE);
 	m_cprofile.MoveWindow(int(rect.right * 0.25) + 3, int(rect.bottom * 0.95), rect.right / 4, int(rect.bottom * 0.05), TRUE);
 	m_eventprofile.MoveWindow(int(rect.right * 0.50) + 3, int(rect.bottom * 0.95), rect.right / 4, int(rect.bottom * 0.05), TRUE);
-	m_mercuryprofile.MoveWindow(int(rect.right * 0.75) + 3, int(rect.bottom * 0.95), rect.right / 4, int(rect.bottom * 0.05), TRUE);
+	m_networkprofile.MoveWindow(int(rect.right * 0.75) + 3, int(rect.bottom * 0.95), rect.right / 4, int(rect.bottom * 0.05), TRUE);
 
 	m_profileShowList.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
 	m_results.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
@@ -91,7 +91,7 @@ void CProfileWindow::OnBnClickedButton1()
 	m_pyprofile.EnableWindow(FALSE);
 	m_cprofile.EnableWindow(FALSE);
 	m_eventprofile.EnableWindow(FALSE);
-	m_mercuryprofile.EnableWindow(FALSE);
+	m_networkprofile.EnableWindow(FALSE);
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
@@ -112,7 +112,7 @@ void CProfileWindow::OnBnClickedButton1()
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
-	m_mercuryprofile.EnableWindow(TRUE);
+	m_networkprofile.EnableWindow(TRUE);
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
@@ -121,7 +121,7 @@ void CProfileWindow::OnBnClickedButton2()
 	m_pyprofile.EnableWindow(FALSE);
 	m_cprofile.EnableWindow(FALSE);
 	m_eventprofile.EnableWindow(FALSE);
-	m_mercuryprofile.EnableWindow(FALSE);
+	m_networkprofile.EnableWindow(FALSE);
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
@@ -142,7 +142,7 @@ void CProfileWindow::OnBnClickedButton2()
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
-	m_mercuryprofile.EnableWindow(TRUE);
+	m_networkprofile.EnableWindow(TRUE);
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
@@ -151,7 +151,7 @@ void CProfileWindow::OnBnClickedButton3()
 	m_pyprofile.EnableWindow(FALSE);
 	m_cprofile.EnableWindow(FALSE);
 	m_eventprofile.EnableWindow(FALSE);
-	m_mercuryprofile.EnableWindow(FALSE);
+	m_networkprofile.EnableWindow(FALSE);
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
@@ -172,7 +172,7 @@ void CProfileWindow::OnBnClickedButton3()
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
-	m_mercuryprofile.EnableWindow(TRUE);
+	m_networkprofile.EnableWindow(TRUE);
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
@@ -181,7 +181,7 @@ void CProfileWindow::OnBnClickedButton4()
 	m_pyprofile.EnableWindow(FALSE);
 	m_cprofile.EnableWindow(FALSE);
 	m_eventprofile.EnableWindow(FALSE);
-	m_mercuryprofile.EnableWindow(FALSE);
+	m_networkprofile.EnableWindow(FALSE);
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
@@ -202,7 +202,7 @@ void CProfileWindow::OnBnClickedButton4()
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
-	m_mercuryprofile.EnableWindow(TRUE);
+	m_networkprofile.EnableWindow(TRUE);
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
@@ -211,7 +211,7 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
-	m_mercuryprofile.EnableWindow(TRUE);
+	m_networkprofile.EnableWindow(TRUE);
 
 	switch(type)
 	{
@@ -230,10 +230,10 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 		m_results.ShowWindow(TRUE);
 		onReceiveEventProfileData(s);
 		break;
-	case 3:	// mercuryprofile
+	case 3:	// networkprofile
 		m_profileShowList.ShowWindow(TRUE);
 		m_results.ShowWindow(FALSE);
-		onReceiveMercuryProfileData(s);
+		onReceiveNetworkProfileData(s);
 		break;
 	default:
 		ERROR_MSG(fmt::format("CProfileWindow::onReceiveData: type({}) not support!\n", 
@@ -381,7 +381,7 @@ void CProfileWindow::onReceiveEventProfileData(KBEngine::MemoryStream& s)
 	m_results.SetWindowText(outstr);
 }
 
-void CProfileWindow::onReceiveMercuryProfileData(KBEngine::MemoryStream& s)
+void CProfileWindow::onReceiveNetworkProfileData(KBEngine::MemoryStream& s)
 {
 	m_profileShowList.DeleteAllItems();
 

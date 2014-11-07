@@ -31,12 +31,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 //-------------------------------------------------------------------------------------
 BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface, 
 								   uint16 bindPort, uint32 recvWindowSize):
-	Bundle(NULL, Mercury::PROTOCOL_UDP),
+	Bundle(NULL, Network::PROTOCOL_UDP),
 	epListen_(),
 	networkInterface_(networkInterface),
 	recvWindowSize_(recvWindowSize),
@@ -115,7 +115,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 	if(port == 0)
 		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
 
-	epBroadcast_.addr(port, Mercury::BROADCAST);
+	epBroadcast_.addr(port, Network::BROADCAST);
 
 	if(epBroadcast_.setbroadcast(true) != 0)
 	{
@@ -126,7 +126,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 		return false;
 	}
 
-	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);
+	this->sendto(epBroadcast_, htons(port), Network::BROADCAST);
 	return true;
 }
 

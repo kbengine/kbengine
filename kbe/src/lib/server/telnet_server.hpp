@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 
 namespace KBEngine{
-namespace Mercury{
+namespace Network{
 }
 
 namespace script{
@@ -37,10 +37,10 @@ namespace script{
 
 class TelnetHandler;
 
-class TelnetServer : public Mercury::InputNotificationHandler
+class TelnetServer : public Network::InputNotificationHandler
 {
 public:
-    TelnetServer(Mercury::EventDispatcher* pDispatcher, Mercury::NetworkInterface* networkInterface);
+    TelnetServer(Network::EventDispatcher* pDispatcher, Network::NetworkInterface* networkInterface);
 	virtual ~TelnetServer(void);
 	
 	typedef std::map<int, KBEShared_ptr< TelnetHandler > >	TelnetHandlers;
@@ -56,7 +56,7 @@ public:
 	INLINE std::string passwd();
 	INLINE int deflayer();
 
-	INLINE Mercury::NetworkInterface* pNetworkInterface()const;
+	INLINE Network::NetworkInterface* pNetworkInterface()const;
 
 	void closeHandler(int fd, TelnetHandler* pTelnetHandler);
 
@@ -66,15 +66,15 @@ private:
 
 	TelnetHandlers handlers_;
 
-	Mercury::EndPoint			listener_;
-	Mercury::EventDispatcher*	pDispatcher_;
+	Network::EndPoint			listener_;
+	Network::EventDispatcher*	pDispatcher_;
 
 	script::Script* pScript_;
 
 	std::string passwd_;
 	int deflayer_;
 
-	Mercury::NetworkInterface* pNetworkInterface_;
+	Network::NetworkInterface* pNetworkInterface_;
 
 	uint32 port_;
 };

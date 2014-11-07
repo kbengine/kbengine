@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-namespace Mercury{
+namespace Network{
 	class Channel;
 	class Bundle;
 	class EventDispatcher;
@@ -123,11 +123,11 @@ public:
 	void lockthread();
 	void unlockthread();
     
-	void pNetworkInterface(Mercury::NetworkInterface* networkInterface);
-	void pDispatcher(Mercury::EventDispatcher* dispatcher);
+	void pNetworkInterface(Network::NetworkInterface* networkInterface);
+	void pDispatcher(Network::EventDispatcher* dispatcher);
 	
-	Mercury::EventDispatcher* pDispatcher()const{ return pDispatcher_; }
-	Mercury::NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
+	Network::EventDispatcher* pDispatcher()const{ return pDispatcher_; }
+	Network::NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
 
 	void print_msg(const std::string& s);
 	void debug_msg(const std::string& s);
@@ -140,8 +140,8 @@ public:
 
 	void onMessage(uint32 logType, const char * str, uint32 length);
 
-	void registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
-	void unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
+	void registerMessagelog(Network::MessageID msgID, Network::Address* pAddr);
+	void unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr);
 
 	void changeLogger(std::string name);
 
@@ -160,14 +160,14 @@ private:
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
 
-	Mercury::Address messagelogAddr_;
+	Network::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 
-	std::queue< Mercury::Bundle* > bufferedLogPackets_;
+	std::queue< Network::Bundle* > bufferedLogPackets_;
 	size_t hasBufferedLogPackets_;
 
-	Mercury::NetworkInterface* pNetworkInterface_;
-	Mercury::EventDispatcher* pDispatcher_;
+	Network::NetworkInterface* pNetworkInterface_;
+	Network::EventDispatcher* pDispatcher_;
 
 	int scriptMsgType_;
 

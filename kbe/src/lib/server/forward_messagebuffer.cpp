@@ -29,7 +29,7 @@ namespace KBEngine {
 KBE_SINGLETON_INIT(ForwardComponent_MessageBuffer);
 KBE_SINGLETON_INIT(ForwardAnywhere_MessageBuffer);
 //-------------------------------------------------------------------------------------
-ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface) :
+ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Network::NetworkInterface & networkInterface) :
 	Task(),
 	networkInterface_(networkInterface),
 	start_(false)
@@ -44,7 +44,7 @@ ForwardComponent_MessageBuffer::~ForwardComponent_MessageBuffer()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & ForwardComponent_MessageBuffer::dispatcher()
+Network::EventDispatcher & ForwardComponent_MessageBuffer::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
@@ -88,7 +88,7 @@ bool ForwardComponent_MessageBuffer::process()
 			for(; itervec != iter->second.end(); itervec++)
 			{
 				(*itervec)->pBundle->send(networkInterface_, cinfos->pChannel);
-				Mercury::Bundle::ObjPool().reclaimObject((*itervec)->pBundle);
+				Network::Bundle::ObjPool().reclaimObject((*itervec)->pBundle);
 				(*itervec)->pBundle = NULL;
 
 				if((*itervec)->pHandler != NULL)
@@ -111,7 +111,7 @@ bool ForwardComponent_MessageBuffer::process()
 
 
 //-------------------------------------------------------------------------------------
-ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType) :
+ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Network::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType) :
 	Task(),
 	networkInterface_(networkInterface),
 	forwardComponentType_(forwardComponentType),
@@ -127,7 +127,7 @@ ForwardAnywhere_MessageBuffer::~ForwardAnywhere_MessageBuffer()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & ForwardAnywhere_MessageBuffer::dispatcher()
+Network::EventDispatcher & ForwardAnywhere_MessageBuffer::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
@@ -170,7 +170,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 		for(; iter != pBundles_.end(); iter++)
 		{
 			(*iter)->pBundle->send(networkInterface_, cts[idx].pChannel);
-			Mercury::Bundle::ObjPool().reclaimObject((*iter)->pBundle);
+			Network::Bundle::ObjPool().reclaimObject((*iter)->pBundle);
 			(*iter)->pBundle = NULL;
 
 			idx++;

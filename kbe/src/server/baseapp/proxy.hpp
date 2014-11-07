@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 }
@@ -59,10 +59,10 @@ public:
 	Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule);
 	~Proxy();
 	
-	INLINE void addr(const Mercury::Address& address);
-	INLINE const Mercury::Address& addr()const;
+	INLINE void addr(const Network::Address& address);
+	INLINE const Network::Address& addr()const;
 
-	typedef std::vector<Mercury::Bundle*> Bundles;
+	typedef std::vector<Network::Bundle*> Bundles;
 	Bundles* pBundles();
 
 	/** 
@@ -74,8 +74,8 @@ public:
 	/**
 		向witness客户端推送一条消息
 	*/
-	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
-	bool sendToClient(Mercury::Bundle* pBundle);
+	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
+	bool sendToClient(Network::Bundle* pBundle);
 	bool sendToClient(bool expectData = true);
 
 	/** 
@@ -136,7 +136,7 @@ public:
 	/** 网络接口
 		当客户端所关联的这个entity的cell被创建时，被调用 
 	*/
-	void onClientGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
+	void onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID);
 
 	/**
 		获取前端类别
@@ -155,7 +155,7 @@ public:
 		将其自身所关联的客户端转给另一个proxy去关联 
 	*/
 	void giveClientTo(Proxy* proxy);
-	void onGiveClientTo(Mercury::Channel* lpChannel);
+	void onGiveClientTo(Network::Channel* lpChannel);
 	void onGiveClientToFailure();
 	DECLARE_PY_MOTHOD_ARG1(pyGiveClientTo, PyObject_ptr);
 
@@ -180,7 +180,7 @@ public:
 
 protected:
 	uint64 rndUUID_;
-	Mercury::Address addr_;
+	Network::Address addr_;
 	DataDownloads dataDownloads_;
 
 	bool entitiesEnabled_;

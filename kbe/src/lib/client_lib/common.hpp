@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define CLIENT_COMMON_MERCURY_MESSAGE_MACRO()													\
+#define CLIENT_COMMON_NETWORK_MESSAGE_MACRO()													\
 	NULL																						\
 
 }

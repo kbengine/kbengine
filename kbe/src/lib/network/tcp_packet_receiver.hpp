@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_receiver.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class EndPoint;
 class Channel;

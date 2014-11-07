@@ -71,8 +71,8 @@ public:
 		TIMEOUT_ENTITYAPP_MAX
 	};
 public:
-	EntityApp(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	EntityApp(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -103,7 +103,7 @@ public:
 	/**
 		由mailbox来尝试获取一个channel的实例
 	*/
-	Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+	Network::Channel* findChannelByMailbox(EntityMailbox& mailbox);
 
 	KBEngine::script::Script& getScript(){ return script_; }
 	PyObjectPtr getEntryScript(){ return entryScript_; }
@@ -143,7 +143,7 @@ public:
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
 	*/
-	void onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
+	void onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -152,24 +152,24 @@ public:
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
-	void onDbmgrInitCompleted(Mercury::Channel* pChannel, 
+	void onDbmgrInitCompleted(Network::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
 		请求执行一段python指令
 	*/
-	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 
 		console请求开始profile
 	*/
-	virtual void startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
+	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
 	/**
 		获取apps发布状态, 可在脚本中获取该值
@@ -238,8 +238,8 @@ protected:
 
 
 template<class E>
-EntityApp<E>::EntityApp(Mercury::EventDispatcher& dispatcher, 
-					 Mercury::NetworkInterface& ninterface, 
+EntityApp<E>::EntityApp(Network::EventDispatcher& dispatcher, 
+					 Network::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
 ServerApp(dispatcher, ninterface, componentType, componentID),
@@ -652,7 +652,7 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 }
 
 template<class E>
-Mercury::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	// 如果组件ID大于0则查找组件
 	if(mailbox.componentID() > 0)
@@ -695,7 +695,7 @@ void EntityApp<E>::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processAllChannelPackets(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
 }
 
 template<class E>
@@ -720,7 +720,7 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 }
 
 template<class E>
-void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
+void EntityApp<E>::onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
@@ -1158,7 +1158,7 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 }
 
 template<class E>
-void EntityApp<E>::startProfile_(Mercury::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
 	switch(profileType)
 	{
@@ -1173,7 +1173,7 @@ void EntityApp<E>::startProfile_(Mercury::Channel* pChannel, std::string profile
 }
 
 template<class E>
-void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
+void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel, 
 						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
 	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
@@ -1197,7 +1197,7 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 template<class E>
-void EntityApp<E>::onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string key, value;
 	bool isDelete;
@@ -1254,7 +1254,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Mercury::Channel* pChannel, KBEn
 }
 
 template<class E>
-void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string cmd;
 	s.readBlob(cmd);
@@ -1279,7 +1279,7 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 	}
 
 	// 将结果返回给客户端
-	Mercury::Bundle bundle;
+	Network::Bundle bundle;
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);

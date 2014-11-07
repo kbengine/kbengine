@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 	// 其他组件向app广播自己的接口地址
-	MACHINE_MESSAGE_DECLARE_ARGS22(onBroadcastInterface,			MERCURY_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS22(onBroadcastInterface,			NETWORK_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -72,7 +72,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									uint64,							extradata3)
 	
 	// 其他组件向app请求获取某个组件类别的地址
-	MACHINE_MESSAGE_DECLARE_ARGS7(onFindInterfaceAddr,				MERCURY_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS7(onFindInterfaceAddr,				NETWORK_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -82,25 +82,25 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									uint16,							finderRecvPort)
 						
 	// 查询所有接口信息
-	MACHINE_MESSAGE_DECLARE_ARGS3(onQueryAllInterfaceInfos,			MERCURY_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS3(onQueryAllInterfaceInfos,			NETWORK_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									uint16,							finderRecvPort)
 						
 	// 某app主动请求look。
-	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
+	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							NETWORK_FIXED_MESSAGE)
 
 	// 某个app请求查看该app负载状态。
-	MACHINE_MESSAGE_DECLARE_ARGS0(queryLoad,						MERCURY_FIXED_MESSAGE)
+	MACHINE_MESSAGE_DECLARE_ARGS0(queryLoad,						NETWORK_FIXED_MESSAGE)
 
 	// 启动服务器
-	MACHINE_MESSAGE_DECLARE_STREAM(startserver,						MERCURY_VARIABLE_MESSAGE)
+	MACHINE_MESSAGE_DECLARE_STREAM(startserver,						NETWORK_VARIABLE_MESSAGE)
 
 	// 关闭服务器
-	MACHINE_MESSAGE_DECLARE_STREAM(stopserver,						MERCURY_VARIABLE_MESSAGE)
+	MACHINE_MESSAGE_DECLARE_STREAM(stopserver,						NETWORK_VARIABLE_MESSAGE)
 
 	// 请求强制杀死当前app
-	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					MERCURY_VARIABLE_MESSAGE)
+	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					NETWORK_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

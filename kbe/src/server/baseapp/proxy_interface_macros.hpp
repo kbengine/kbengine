@@ -47,7 +47,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
 #define PROXY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##ProxyMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##ProxyMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			ENTITY_ID eid;														\
@@ -69,7 +69,7 @@ namespace KBEngine{
 
 #else
 #define PROXY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##ProxyMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##ProxyMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
@@ -77,10 +77,10 @@ namespace KBEngine{
 #endif
 #else
 #define PROXY_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##ProxyMessagehandler_stream : public Mercury::MessageHandler		\
+	class NAME##ProxyMessagehandler_stream : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -102,7 +102,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
 #define PROXY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##ProxyMessagehandler0::handle(Mercury::Channel* pChannel,			\
+	void NAME##ProxyMessagehandler0::handle(Network::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -124,7 +124,7 @@ namespace KBEngine{
 
 #else
 #define PROXY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##ProxyMessagehandler0::handle(Mercury::Channel* pChannel,			\
+	void NAME##ProxyMessagehandler0::handle(Network::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
@@ -132,10 +132,10 @@ namespace KBEngine{
 #endif
 #else
 #define PROXY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	class NAME##ProxyMessagehandler0 : public Mercury::MessageHandler			\
+	class NAME##ProxyMessagehandler0 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -157,7 +157,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
 #define PROXY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##ProxyMessagehandler1::handle(Mercury::Channel* pChannel,			\
+	void NAME##ProxyMessagehandler1::handle(Network::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -181,7 +181,7 @@ namespace KBEngine{
 
 #else
 #define PROXY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##ProxyMessagehandler1::handle(Mercury::Channel* pChannel,			\
+	void NAME##ProxyMessagehandler1::handle(Network::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
@@ -189,10 +189,10 @@ namespace KBEngine{
 #endif
 #else
 #define PROXY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	class NAME##ProxyMessagehandler1 : public Mercury::MessageHandler			\
+	class NAME##ProxyMessagehandler1 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

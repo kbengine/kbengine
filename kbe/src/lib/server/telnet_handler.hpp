@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 
 namespace KBEngine{
-namespace Mercury{
+namespace Network{
 	class EndPoint;
 	class NetworkInterface;
 }
@@ -52,7 +52,7 @@ protected:
 };
 
 class TelnetServer;
-class TelnetHandler : public Mercury::InputNotificationHandler
+class TelnetHandler : public Network::InputNotificationHandler
 {
 public:
 	enum TELNET_STATE
@@ -64,12 +64,12 @@ public:
 		TELNET_STATE_QUIT
 	};
 
-    TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Mercury::NetworkInterface* pNetworkInterface,
+    TelnetHandler(Network::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Network::NetworkInterface* pNetworkInterface,
 		TELNET_STATE defstate = TELNET_STATE_ROOT);
 
 	virtual ~TelnetHandler(void);
 	
-	INLINE Mercury::EndPoint* pEndPoint()const;
+	INLINE Network::EndPoint* pEndPoint()const;
 	
 	void setReadWrite();
 	void readonly();
@@ -103,7 +103,7 @@ private:
 	int8 historyCommandIndex_;
 
 	std::string command_;
-	Mercury::EndPoint* pEndPoint_;
+	Network::EndPoint* pEndPoint_;
 	TelnetServer* pTelnetServer_;
 
 	uint8 state_;
@@ -112,7 +112,7 @@ private:
 
 	TelnetProfileHandler* pProfileHandler_;
 
-	Mercury::NetworkInterface* pNetworkInterface_;
+	Network::NetworkInterface* pNetworkInterface_;
 
 	bool getingHistroyCmd_;
 };
@@ -121,8 +121,8 @@ private:
 class TelnetPyProfileHandler : public TelnetProfileHandler, public PyProfileHandler
 {
 public:
-	TelnetPyProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr):
+	TelnetPyProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr):
 	TelnetProfileHandler(pTelnetHandler),
 	PyProfileHandler(networkInterface, timinglen, name, addr)
 	{
@@ -136,8 +136,8 @@ public:
 class TelnetCProfileHandler : public TelnetProfileHandler, public CProfileHandler
 {
 public:
-	TelnetCProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr):
+	TelnetCProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr):
 	TelnetProfileHandler(pTelnetHandler),
 	CProfileHandler(networkInterface, timinglen, name, addr)
 	{
@@ -151,8 +151,8 @@ public:
 class TelnetEventProfileHandler : public TelnetProfileHandler, public EventProfileHandler
 {
 public:
-	TelnetEventProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr):
+	TelnetEventProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr):
 	TelnetProfileHandler(pTelnetHandler),
 	EventProfileHandler(networkInterface, timinglen, name, addr)
 	{
@@ -163,17 +163,17 @@ public:
 	void sendStream(MemoryStream* s);
 };
 
-class TelnetMercuryProfileHandler : public TelnetProfileHandler, public MercuryProfileHandler
+class TelnetNetworkProfileHandler : public TelnetProfileHandler, public NetworkProfileHandler
 {
 public:
-	TelnetMercuryProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr):
+	TelnetNetworkProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr):
 	TelnetProfileHandler(pTelnetHandler),
-	MercuryProfileHandler(networkInterface, timinglen, name, addr)
+	NetworkProfileHandler(networkInterface, timinglen, name, addr)
 	{
 	}
 
-	virtual ~TelnetMercuryProfileHandler(){}
+	virtual ~TelnetNetworkProfileHandler(){}
 
 	void sendStream(MemoryStream* s);
 };

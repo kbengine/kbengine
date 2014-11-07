@@ -33,7 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interface_defs.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class NetworkInterface;
 class Channel;
@@ -53,19 +53,19 @@ class Channel;
 
 
 #define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length, addr)									\
-	if(Mercury::g_trace_packet > 0)																			\
+	if(Network::g_trace_packet > 0)																			\
 	{																										\
-		if(Mercury::g_trace_packet_use_logfile)																\
+		if(Network::g_trace_packet_use_logfile)																\
 			DebugHelper::getSingleton().changeLogger("packetlogs");											\
 																											\
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
 		{																									\
-			std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	\
-														Mercury::g_trace_packet_disables.end(),				\
+			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	\
+														Network::g_trace_packet_disables.end(),				\
 															pCurrMsgHandler->name);							\
 																											\
-			if(iter != Mercury::g_trace_packet_disables.end())												\
+			if(iter != Network::g_trace_packet_disables.end())												\
 			{																								\
 				isprint = false;																			\
 			}																								\
@@ -82,7 +82,7 @@ class Channel;
 																											\
 		if(isprint)																							\
 		{																									\
-			switch(Mercury::g_trace_packet)																	\
+			switch(Network::g_trace_packet)																	\
 			{																								\
 			case 1:																							\
 				bundle->hexlike();																			\
@@ -96,14 +96,14 @@ class Channel;
 			};																								\
 		}																									\
 																											\
-		if(Mercury::g_trace_packet_use_logfile)																\
+		if(Network::g_trace_packet_use_logfile)																\
 			DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));					\
 	}																										\
 
 
 // 从对象池中创建与回收
-#define NEW_BUNDLE() Mercury::Bundle::ObjPool().createObject()
-#define DELETE_BUNDLE(obj) { Mercury::Bundle::ObjPool().reclaimObject(obj); obj = NULL; }
+#define NEW_BUNDLE() Network::Bundle::ObjPool().createObject()
+#define DELETE_BUNDLE(obj) { Network::Bundle::ObjPool().reclaimObject(obj); obj = NULL; }
 
 class Bundle : public PoolObject
 {
@@ -134,7 +134,7 @@ public:
 
 	MessageLength currMsgLength()const { return currMsgLength_; }
 	
-	void pCurrMsgHandler(const Mercury::MessageHandler* pMsgHandler){ pCurrMsgHandler_ = pMsgHandler; }
+	void pCurrMsgHandler(const Network::MessageHandler* pMsgHandler){ pCurrMsgHandler_ = pMsgHandler; }
 
 	/**
 		计算所有包包括当前还未写完的包的总长度
@@ -447,7 +447,7 @@ private:
 	
 	bool isTCPPacket_;
 
-	const Mercury::MessageHandler* pCurrMsgHandler_;
+	const Network::MessageHandler* pCurrMsgHandler_;
 
 	bool reuse_;
 

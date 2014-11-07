@@ -16,8 +16,8 @@ SRCS =				\
 	html5_packet_filter	\
 	interface_defs		\
 	message_handler		\
-	mercurystats		\
 	listener_receiver	\
+	network_stats		\
 	network_interface	\
 	packet_filter		\
 	packet_reader		\

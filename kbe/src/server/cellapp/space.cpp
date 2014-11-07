@@ -450,7 +450,7 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 		if(pEntity == NULL || pEntity->isDestroyed() || !pEntity->hasWitness())
 			continue;
 
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 		if(!isdel)
 		{
@@ -466,15 +466,15 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 			(*pForwardBundle) << key;
 		}
 
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 		if(!isdel)
 			pEntity->pWitness()->sendToClient(ClientInterface::setSpaceData, pSendBundle);
 		else
 			pEntity->pWitness()->sendToClient(ClientInterface::delSpaceData, pSendBundle);
 
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }
 
@@ -499,7 +499,7 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 		return;
 	}
 
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 	pForwardBundle->newMessage(ClientInterface::initSpaceData);
 	(*pForwardBundle) << this->id();
@@ -511,11 +511,11 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 		(*pForwardBundle) << iter->second;
 	}
 
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 	pEntity->pWitness()->sendToClient(ClientInterface::initSpaceData, pSendBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------

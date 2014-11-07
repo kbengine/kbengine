@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 //-------------------------------------------------------------------------------------
 static ObjectPool<TCPPacket> _g_objPool("TCPPacket");

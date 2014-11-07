@@ -19,8 +19,8 @@ using namespace KBEngine;
 
 // CguiconsoleDlg dialog
 class CguiconsoleDlg : public CDialog
-					//	public Mercury::ChannelTimeOutHandler,
-					//	public Mercury::ChannelDeregisterHandler
+					//	public Network::ChannelTimeOutHandler,
+					//	public Network::ChannelDeregisterHandler
 {
 // Construction
 public:
@@ -36,15 +36,15 @@ public:
 // Implementation
 public:
 	/** 服务器执行指令完毕回显 */
-	void onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command);
+	void onExecScriptCommandCB(Network::Channel* pChannel, std::string& command);
 
 	BOOL PreTranslateMessage(MSG* pMsg);
 
 	void historyCommandCheck();
 	CString getHistoryCommand(bool isNextCommand);
 	void commitPythonCommand(CString strCommand);
-	Mercury::EventDispatcher & mainDispatcher()				{ return _dispatcher; }
-	Mercury::NetworkInterface & networkInterface()			{ return _networkInterface; }
+	Network::EventDispatcher & mainDispatcher()				{ return _dispatcher; }
+	Network::NetworkInterface & networkInterface()			{ return _networkInterface; }
 	HTREEITEM hasCheckApp(COMPONENT_TYPE type);
 
 	void autoWndSize();
@@ -57,7 +57,7 @@ public:
 
 	void autoShowWindow();
 	void closeCurrTreeSelChannel();
-	Mercury::Address getTreeItemAddr(HTREEITEM hItem);
+	Network::Address getTreeItemAddr(HTREEITEM hItem);
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
 	
 	bool hasTreeComponent(Components::ComponentInfos& cinfos);
@@ -106,8 +106,8 @@ public:
 private:
 	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
-	Mercury::EventDispatcher _dispatcher;
-	Mercury::NetworkInterface _networkInterface;
+	Network::EventDispatcher _dispatcher;
+	Network::NetworkInterface _networkInterface;
 	CDebugWindow m_debugWnd;
 	CLogWindow m_logWnd;
 	StatusWindow m_statusWnd;

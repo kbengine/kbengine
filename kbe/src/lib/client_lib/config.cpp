@@ -71,7 +71,7 @@ bool Config::loadConfig(std::string fileName)
 	
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
-		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
+		Network::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
 	}
 
 	rootNode = xml->getRootNode("trace_packet");
@@ -79,14 +79,14 @@ bool Config::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "debug_type");
 		if(childnode)
-			Mercury::g_trace_packet = xml->getValInt(childnode);
+			Network::g_trace_packet = xml->getValInt(childnode);
 
-		if(Mercury::g_trace_packet > 3)
-			Mercury::g_trace_packet = 0;
+		if(Network::g_trace_packet > 3)
+			Network::g_trace_packet = 0;
 
 		childnode = xml->enterNode(rootNode, "use_logfile");
 		if(childnode)
-			Mercury::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
+			Network::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
 
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
@@ -99,7 +99,7 @@ bool Config::loadConfig(std::string fileName)
 					c = strutil::kbe_trim(c);
 					if(c.size() > 0)
 					{
-						Mercury::g_trace_packet_disables.push_back(c);
+						Network::g_trace_packet_disables.push_back(c);
 					}
 				}
 			}while((childnode = childnode->NextSibling()));
@@ -138,14 +138,14 @@ bool Config::loadConfig(std::string fileName)
 			if(childnode1)
 			{
 				channelInternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelInternalTimeout = channelInternalTimeout_;
+				Network::g_channelInternalTimeout = channelInternalTimeout_;
 			}
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode)
 			{
 				channelExternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelExternalTimeout = channelExternalTimeout_;
+				Network::g_channelExternalTimeout = channelExternalTimeout_;
 			}
 		}
 
@@ -158,13 +158,13 @@ bool Config::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 
@@ -174,13 +174,13 @@ bool Config::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 		}
@@ -193,11 +193,11 @@ bool Config::loadConfig(std::string fileName)
 			{
 				childnode1 = xml->enterNode(childnode, "internal");
 				if(childnode1)
-					Mercury::g_intReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+					Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 
 				childnode1 = xml->enterNode(childnode, "external");
 				if(childnode1)
-					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+					Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 			}
 
 			childnode1 = xml->enterNode(childnode, "bytes");
@@ -205,18 +205,18 @@ bool Config::loadConfig(std::string fileName)
 			{
 				childnode1 = xml->enterNode(childnode, "internal");
 				if(childnode1)
-					Mercury::g_intReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+					Network::g_intReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 
 				childnode1 = xml->enterNode(childnode, "external");
 				if(childnode1)
-					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+					Network::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 			}
 		};
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
-			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
 		}
 	}
 

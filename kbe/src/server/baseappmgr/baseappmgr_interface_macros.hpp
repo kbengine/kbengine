@@ -47,7 +47,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPPMGR)
 #define BASEAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##BaseappmgrMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##BaseappmgrMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			KBEngine::Baseappmgr::getSingleton().NAME(pChannel, s);				\
@@ -55,7 +55,7 @@ namespace KBEngine{
 
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##BaseappmgrMessagehandler_stream::handle(Mercury::Channel* pChannel,\
+	void NAME##BaseappmgrMessagehandler_stream::handle(Network::Channel* pChannel,\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
@@ -63,10 +63,10 @@ namespace KBEngine{
 #endif
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_STREAM(NAME)									\
-	class NAME##BaseappmgrMessagehandler_stream : public Mercury::MessageHandler\
+	class NAME##BaseappmgrMessagehandler_stream : public Network::MessageHandler\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -88,7 +88,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPPMGR)
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##BaseappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::Baseappmgr::getSingleton().NAME(pChannel);				\
@@ -96,7 +96,7 @@ namespace KBEngine{
 
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##BaseappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler0::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -104,10 +104,10 @@ namespace KBEngine{
 #endif
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
-	class NAME##BaseappmgrMessagehandler0 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler0 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -129,7 +129,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPPMGR)
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##BaseappmgrMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -139,7 +139,7 @@ namespace KBEngine{
 
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##BaseappmgrMessagehandler1::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -147,10 +147,10 @@ namespace KBEngine{
 #endif
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	class NAME##BaseappmgrMessagehandler1 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler1 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -173,7 +173,7 @@ namespace KBEngine{
 #if defined(BASEAPPMGR)
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BaseappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -187,7 +187,7 @@ namespace KBEngine{
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##BaseappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler2::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -196,10 +196,10 @@ namespace KBEngine{
 #else
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##BaseappmgrMessagehandler2 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler2 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -226,7 +226,7 @@ namespace KBEngine{
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##BaseappmgrMessagehandler3::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -244,7 +244,7 @@ namespace KBEngine{
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##BaseappmgrMessagehandler3::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -254,10 +254,10 @@ namespace KBEngine{
 #define BASEAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	class NAME##BaseappmgrMessagehandler3 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler3 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 												KBEngine::MemoryStream& s);		\
 	};																			\
 
@@ -287,7 +287,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BaseappmgrMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -308,7 +308,7 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##BaseappmgrMessagehandler4::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler4::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -319,10 +319,10 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##BaseappmgrMessagehandler4 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler4 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -356,7 +356,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BaseappmgrMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -380,7 +380,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##BaseappmgrMessagehandler5::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler5::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -392,10 +392,10 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##BaseappmgrMessagehandler5 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler5 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -434,7 +434,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BaseappmgrMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -461,7 +461,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##BaseappmgrMessagehandler6::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler6::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -474,10 +474,10 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##BaseappmgrMessagehandler6 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler6 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -520,7 +520,7 @@ namespace KBEngine{
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7)				\
-	void NAME##BaseappmgrMessagehandler7::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler7::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -550,7 +550,7 @@ namespace KBEngine{
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7)				\
-	void NAME##BaseappmgrMessagehandler7::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler7::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -564,10 +564,10 @@ namespace KBEngine{
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7)				\
-	class NAME##BaseappmgrMessagehandler7 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler7 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -615,7 +615,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BaseappmgrMessagehandler8::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler8::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -649,7 +649,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##BaseappmgrMessagehandler8::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler8::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -664,10 +664,10 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##BaseappmgrMessagehandler8 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler8 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -717,7 +717,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##BaseappmgrMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -754,7 +754,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##BaseappmgrMessagehandler9::handle(Mercury::Channel* pChannel,	\
+	void NAME##BaseappmgrMessagehandler9::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -770,10 +770,10 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	class NAME##BaseappmgrMessagehandler9 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler9 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -827,7 +827,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##BaseappmgrMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##BaseappmgrMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -868,7 +868,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##BaseappmgrMessagehandler10::handle(Mercury::Channel* pChannel,		\
+	void NAME##BaseappmgrMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -885,10 +885,10 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	class NAME##BaseappmgrMessagehandler10 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler10 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 
@@ -947,7 +947,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##BaseappmgrMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##BaseappmgrMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -991,7 +991,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##BaseappmgrMessagehandler11::handle(Mercury::Channel* pChannel,		\
+	void NAME##BaseappmgrMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -1009,10 +1009,10 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	class NAME##BaseappmgrMessagehandler11 : public Mercury::MessageHandler		\
+	class NAME##BaseappmgrMessagehandler11 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
 	};																			\
 

@@ -111,7 +111,7 @@ void Components::addComponent(int32 uid, const char* username,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
-			Mercury::Channel* pChannel)
+			Network::Channel* pChannel)
 {
 	COMPONENTS& components = getComponents(componentType);
 
@@ -129,8 +129,8 @@ void Components::addComponent(int32 uid, const char* username,
 	
 	ComponentInfos componentInfos;
 
-	componentInfos.pIntAddr.reset(new Mercury::Address(intaddr, intport));
-	componentInfos.pExtAddr.reset(new Mercury::Address(extaddr, extport));
+	componentInfos.pIntAddr.reset(new Network::Address(intaddr, intport));
+	componentInfos.pExtAddr.reset(new Network::Address(extaddr, extport));
 
 	if(extaddrEx.size() > 0)
 		strncpy(componentInfos.externalAddressEx, extaddrEx.c_str(), MAX_NAME);
@@ -240,7 +240,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
+void Components::removeComponentFromChannel(Network::Channel * pChannel)
 {
 	int ifind = 0;
 	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -287,7 +287,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
 	KBE_ASSERT(pComponentInfos != NULL);
 
-	Mercury::EndPoint * pEndpoint = new Mercury::EndPoint;
+	Network::EndPoint * pEndpoint = new Network::EndPoint;
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
@@ -301,7 +301,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		pComponentInfos->pChannel = new Mercury::Channel(*_pNetworkInterface, pEndpoint, Mercury::Channel::INTERNAL);
+		pComponentInfos->pChannel = new Network::Channel(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
@@ -318,7 +318,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			if(componentType == BASEAPPMGR_TYPE)
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
@@ -385,7 +385,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			}
 
 			(*pBundle).send(*_pNetworkInterface, pComponentInfos->pChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 	else
@@ -496,7 +496,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_ID componentID)
 }
 
 //-------------------------------------------------------------------------------------		
-Components::ComponentInfos* Components::findComponent(Mercury::Channel * pChannel)
+Components::ComponentInfos* Components::findComponent(Network::Channel * pChannel)
 {
 	int ifind = 0;
 	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -584,7 +584,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 		return true;
 	}
 
-	Mercury::EndPoint epListen;
+	Network::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
 	{
@@ -620,12 +620,12 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 	
 	epListen.setnodelay(true);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	// 由于COMMON_MERCURY_MESSAGE不包含client， 如果是bots， 我们需要单独处理
+	// 由于COMMON_NETWORK_MESSAGE不包含client， 如果是bots， 我们需要单独处理
 	if(info->componentType != BOTS_TYPE)
 	{
-		COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
+		COMMON_NETWORK_MESSAGE(info->componentType, (*pBundle), lookApp);
 	}
 	else
 	{
@@ -633,7 +633,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 	}
 
 	epListen.send(pBundle->pCurrPacket()->data(), pBundle->pCurrPacket()->wpos());
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	fd_set	fds;
 	struct timeval tv = { 0, 300000 }; // 100ms
@@ -660,7 +660,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 		int32 clientsSize = 0, proxicesSize = 0;
 		uint32 telnet_port = 0;
 
-		Mercury::TCPPacket packet;
+		Network::TCPPacket packet;
 		packet.resize(255);
 		int recvsize = sizeof(ctype) + sizeof(cid) + sizeof(istate);
 
@@ -764,7 +764,7 @@ Components::ComponentInfos* Components::getBillings()
 }
 
 //-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getBaseappmgrChannel()
+Network::Channel* Components::getBaseappmgrChannel()
 {
 	Components::ComponentInfos* cinfo = getBaseappmgr();
 	if(cinfo == NULL)
@@ -774,7 +774,7 @@ Mercury::Channel* Components::getBaseappmgrChannel()
 }
 
 //-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getCellappmgrChannel()
+Network::Channel* Components::getCellappmgrChannel()
 {
 	Components::ComponentInfos* cinfo = getCellappmgr();
 	if(cinfo == NULL)
@@ -784,7 +784,7 @@ Mercury::Channel* Components::getCellappmgrChannel()
 }
 
 //-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getDbmgrChannel()
+Network::Channel* Components::getDbmgrChannel()
 {
 	Components::ComponentInfos* cinfo = getDbmgr();
 	if(cinfo == NULL)
@@ -794,13 +794,27 @@ Mercury::Channel* Components::getDbmgrChannel()
 }
 
 //-------------------------------------------------------------------------------------		
-Mercury::Channel* Components::getMessagelogChannel()
+Network::Channel* Components::getMessagelogChannel()
 {
 	Components::ComponentInfos* cinfo = getMessagelog();
 	if(cinfo == NULL)
 		 return NULL;
 
 	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------	
+size_t Components::getGameSrvComponentsSize()
+{
+	COMPONENTS								_baseapps;
+	COMPONENTS								_cellapps;
+	COMPONENTS								_dbmgrs;
+	COMPONENTS								_loginapps;
+	COMPONENTS								_cellappmgrs;
+	COMPONENTS								_baseappmgrs;
+
+	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
+		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
 }
 
 //-------------------------------------------------------------------------------------		

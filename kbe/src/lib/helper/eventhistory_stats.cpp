@@ -43,15 +43,15 @@ void EventHistoryStats::trackEvent(const std::string& type, const std::string& n
 	
 	if(size >= PACKET_MAX_SIZE_TCP)
 	{
-		if(size < MERCURY_MESSAGE_MAX_SIZE)
+		if(size < NETWORK_MESSAGE_MAX_SIZE)
 		{
 			WARNING_MSG(fmt::format("EventHistoryStats::trackEvent[{}]: message size({}) >= PACKET_MAX_SIZE_TCP({}).\n",
 				fullname, size, PACKET_MAX_SIZE_TCP));
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EventHistoryStats::trackEvent[{}]: message size({}) > MERCURY_MESSAGE_MAX_SIZE({}).\n",
-				fullname, size, MERCURY_MESSAGE_MAX_SIZE));
+			ERROR_MSG(fmt::format("EventHistoryStats::trackEvent[{}]: message size({}) > NETWORK_MESSAGE_MAX_SIZE({}).\n",
+				fullname, size, NETWORK_MESSAGE_MAX_SIZE));
 		}
 	}
 

@@ -28,8 +28,8 @@ namespace KBEngine {
 class PyProfileHandler : public ProfileHandler
 {
 public:
-	PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
-		std::string name, const Mercury::Address& addr);
+	PyProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Network::Address& addr);
 	virtual ~PyProfileHandler();
 	
 	void timeout();

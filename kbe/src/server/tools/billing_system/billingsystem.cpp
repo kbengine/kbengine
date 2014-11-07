@@ -45,8 +45,8 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(BillingSystem);
 
 //-------------------------------------------------------------------------------------
-BillingSystem::BillingSystem(Mercury::EventDispatcher& dispatcher, 
-			 Mercury::NetworkInterface& ninterface, 
+BillingSystem::BillingSystem(Network::EventDispatcher& dispatcher, 
+			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
@@ -208,7 +208,7 @@ void BillingSystem::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void BillingSystem::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string registerName, accountName, password, datas;
 	COMPONENT_ID cid;
@@ -249,7 +249,7 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) 
+void BillingSystem::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
 	std::string loginName, accountName, password, datas;
 	COMPONENT_ID cid;
@@ -285,7 +285,7 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void BillingSystem::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	OrdersCharge* pOrdersCharge = new OrdersCharge();
 
@@ -324,7 +324,7 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
+void BillingSystem::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
 	lockthread();
 

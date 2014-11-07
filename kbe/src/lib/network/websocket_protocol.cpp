@@ -80,7 +80,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
+bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 {
 	KBE_ASSERT(s != NULL);
 
@@ -182,7 +182,7 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 	ackHandshake += "/WebManagerSocket\r\n";
 	ackHandshake += "WebSocket-Protocol:WebManagerSocket\r\n\r\n";
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle) << ackHandshake;
 	(*pBundle).pCurrPacket()->wpos((*pBundle).pCurrPacket()->wpos() - 1);
 	pChannel->send(pBundle);

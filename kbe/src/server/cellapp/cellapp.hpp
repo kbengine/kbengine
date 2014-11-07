@@ -44,8 +44,8 @@ public:
 		TIMEOUT_LOADING_TICK = TIMEOUT_ENTITYAPP_MAX + 1
 	};
 	
-	Cellapp(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Cellapp(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -79,7 +79,7 @@ public:
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
 	*/
-	virtual void onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, 
+	virtual void onGetEntityAppFromDbmgr(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
@@ -95,7 +95,7 @@ public:
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
 	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid);
-	void onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -104,85 +104,85 @@ public:
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
-	void onDbmgrInitCompleted(Mercury::Channel* pChannel, GAME_TIME gametime, 
+	void onDbmgrInitCompleted(Network::Channel* pChannel, GAME_TIME gametime, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastCellAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
 	*/
-	void onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
 	*/
-	void onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		其他APP请求在此灾难恢复
 	*/
-	void requestRestore(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void requestRestore(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseapp请求在这个cellapp上创建一个entity
 	*/
-	void onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateCellEntityFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	void _onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, 
 		MemoryStream* pCellData, bool hasClient, bool inRescore, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	/** 网络接口
 		销毁某个cellEntity
 	*/
-	void onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid);
+	void onDestroyCellEntityFromBaseapp(Network::Channel* pChannel, ENTITY_ID eid);
 
 	/** 网络接口
 		entity收到一封mail, 由某个app上的mailbox发起
 	*/
-	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		client访问entity的cell方法由baseapp转发
 	*/
-	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		client更新数据
 	*/
-	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		real请求更新属性到ghost
 	*/
-	void onUpdateGhostPropertys(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateGhostPropertys(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		ghost请求调用def方法real
 	*/
-	void onRemoteRealMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRemoteRealMethodCall(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		real请求更新属性到ghost
 	*/
-	void onUpdateGhostVolatileData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateGhostVolatileData(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		base请求获取celldata
 	*/
-	void reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void reqBackupEntityCellData(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		base请求获取WriteToDB
 	*/
-	void reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		客户端直接发送消息给cell实体
 	*/
-	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	void forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
 		获取游戏时间
@@ -208,7 +208,7 @@ public:
 	/** 网络接口
 		某个app请求查看该app
 	*/
-	virtual void lookApp(Mercury::Channel* pChannel);
+	virtual void lookApp(Network::Channel* pChannel);
 
 	/**
 		重新导入所有的脚本
@@ -233,8 +233,8 @@ public:
 		网络接口
 		另一个cellapp的entity要teleport到本cellapp上的space中
 	*/
-	void reqTeleportToTheCellApp(Mercury::Channel* pChannel, MemoryStream& s);
-	void reqTeleportToTheCellAppCB(Mercury::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToTheCellAppCB(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
 		获取和设置ghost管理器

@@ -143,9 +143,9 @@ void Witness::onAttach(Entity* pEntity)
 	lastBasePos.z = -FLT_MAX;
 
 	// 通知客户端enterworld
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
 	
 	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
@@ -153,7 +153,7 @@ void Witness::onAttach(Entity* pEntity)
 	pEntity_->addPositionAndDirectionToStream(*s1, true);
 	(*pForwardPosDirBundle).append(*s1);
 	MemoryStream::ObjPool().reclaimObject(s1);
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
@@ -162,11 +162,11 @@ void Witness::onAttach(Entity* pEntity)
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -178,21 +178,21 @@ void Witness::detach(Entity* pEntity)
 	EntityMailbox* pClientMB = pEntity_->clientMailbox();
 	if(pClientMB)
 	{
-		Mercury::Channel* pChannel = pClientMB->getChannel();
+		Network::Channel* pChannel = pClientMB->getChannel();
 		if(pChannel)
 		{
 			pChannel->send();
 
 			// 通知客户端leaveworld
-			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 			(*pForwardBundle) << pEntity->id();
 
-			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 			pClientMB->postMail(pSendBundle);
-			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 		}
 	}
 
@@ -363,9 +363,9 @@ void Witness::resetAOIEntities()
 //-------------------------------------------------------------------------------------
 void Witness::onEnterSpace(Space* pSpace)
 {
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
 	
 	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
@@ -373,7 +373,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	pEntity_->addPositionAndDirectionToStream(*s1, true);
 	(*pForwardPosDirBundle).append(*s1);
 	MemoryStream::ObjPool().reclaimObject(s1);
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
@@ -381,11 +381,11 @@ void Witness::onEnterSpace(Space* pSpace)
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 
 	if(pAOITrigger_)
 	{
@@ -399,17 +399,17 @@ void Witness::onLeaveSpace(Space* pSpace)
 	if(pAOITrigger_)
 		pAOITrigger_->uninstall();
 
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 
 	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
 
 	(*pForwardBundle) << pEntity_->id();
 
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 
 	lastBasePos.z = -FLT_MAX;
 
@@ -437,7 +437,7 @@ Witness::Bundles* Witness::pBundles()
 	if(!clientMB)
 		return NULL;
 
-	Mercury::Channel* pChannel = clientMB->getChannel();
+	Network::Channel* pChannel = clientMB->getChannel();
 	if(!pChannel)
 		return NULL;
 
@@ -445,7 +445,7 @@ Witness::Bundles* Witness::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Mercury::Bundle* pBundle, ENTITY_ID entityID)
+void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -503,7 +503,7 @@ void Witness::_addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRe
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entityRef)
+void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -530,8 +530,8 @@ void Witness::_addAOIEntityIDToBundle(Mercury::Bundle* pBundle, EntityRef* entit
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addSmartAOIEntityMessageToBundle(Mercury::Bundle* pBundle, const Mercury::MessageHandler& normalMsgHandler, 
-											   const Mercury::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
+void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
+											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -596,7 +596,7 @@ bool Witness::update()
 	if(pEntity_ == NULL || !pEntity_->clientMailbox())
 		return true;
 
-	Mercury::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
+	Network::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
 	if(!pChannel)
 		return true;
 	
@@ -607,9 +607,9 @@ bool Witness::update()
 	{
 		if(aoiEntities_.size() > 0)
 		{
-			Mercury::Bundle* pSendBundle = NEW_BUNDLE();
+			Network::Bundle* pSendBundle = NEW_BUNDLE();
 
-			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
 
 			EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
@@ -633,8 +633,8 @@ bool Witness::update()
 					
 					(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-					Mercury::Bundle* pForwardBundle1 = Mercury::Bundle::ObjPool().createObject();
-					Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
+					Network::Bundle* pForwardBundle1 = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pForwardBundle2 = Network::Bundle::ObjPool().createObject();
 
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					otherEntity->addPositionAndDirectionToStream(*s1, true);			
@@ -651,14 +651,14 @@ bool Witness::update()
 					if(!otherEntity->isOnGround())
 						(*pForwardBundle2) << otherEntity->isOnGround();
 
-					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
-					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
+					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
+					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
 					
 					remainPacketSize -= pForwardBundle1->packetsLength();
 					remainPacketSize -= pForwardBundle2->packetsLength();
 
-					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle1);
-					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
+					Network::Bundle::ObjPool().reclaimObject(pForwardBundle1);
+					Network::Bundle::ObjPool().reclaimObject(pForwardBundle2);
 
 					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
 					
@@ -672,13 +672,13 @@ bool Witness::update()
 
 					if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 					{
-						Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+						Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
 						_addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
 
-						MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-						Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+						Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 
 						--clientAOISize_;
 					}
@@ -699,7 +699,7 @@ bool Witness::update()
 					
 					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
 
-					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+					Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					
 					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), (*iter));
@@ -709,17 +709,17 @@ bool Witness::update()
 					
 					if(pForwardBundle->packetsLength() > 0)
 					{
-						MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 					}
 
-					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+					Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 				}
 
 				++iter;
 			}
 			
 			int32 packetsLength = pSendBundle->packetsLength();
-			if(packetsLength > 8/*MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
+			if(packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
 			{
 				if(packetsLength > PACKET_MAX_SIZE_TCP)
 				{
@@ -731,7 +731,7 @@ bool Witness::update()
 			}
 			else
 			{
-				Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+				Network::Bundle::ObjPool().reclaimObject(pSendBundle);
 			}
 		}
 	}
@@ -740,7 +740,7 @@ bool Witness::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
+void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
 	const VolatileInfo& volatileInfo = pEntity_->scriptModule()->getVolatileInfo();
 	if((volatileInfo.position() <= 0.0004f))
@@ -752,7 +752,7 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 
 	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
@@ -767,15 +767,15 @@ void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
 	}
 
 	(*pForwardBundle).append(*s1);
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	MemoryStream::ObjPool().reclaimObject(s1);
 
 	lastBasePos = bpos;
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
+void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
 {
 	switch(flags)
 	{
@@ -1009,7 +1009,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 }
 
 //-------------------------------------------------------------------------------------
-bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
+bool Witness::sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle)
 {
 	Bundles* lpBundles = pBundles();
 
@@ -1020,7 +1020,7 @@ bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::B
 	}
 
 	ERROR_MSG(fmt::format("Witness::sendToClient: {} pBundles is NULL, not found channel.\n", pEntity_->id()));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 

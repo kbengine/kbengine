@@ -24,7 +24,7 @@ namespace KBEngine{
 
 class MemoryStream;
 
-namespace Mercury
+namespace Network
 {
 	class Channel;
 }
@@ -43,7 +43,7 @@ public:
 	/**
 		websocket–≠“ÈŒ’ ÷
 	*/
-	static bool handshake(Mercury::Channel* pChannel, MemoryStream* s);
+	static bool handshake(Network::Channel* pChannel, MemoryStream* s);
 };
 
 }

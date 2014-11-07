@@ -59,7 +59,7 @@ DataDownload::~DataDownload()
 }
 
 //-------------------------------------------------------------------------------------
-bool DataDownload::send(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
+bool DataDownload::send(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle)
 {
 	Proxy* proxy = static_cast<Proxy*>(Baseapp::getSingleton().findEntity(entityID_));
 	
@@ -67,7 +67,7 @@ bool DataDownload::send(const Mercury::MessageHandler& msgHandler, Mercury::Bund
 		proxy->sendToClient(msgHandler, pBundle);
 	}
 	else{
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return false;
 	}
 
@@ -89,7 +89,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if(remainSent_ > 0 && currSent_ < remainSent_)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 		if(!sentStart_)
 		{
@@ -158,7 +158,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 		pDataDownloads_->onDownloadCompleted(this);
 
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 
 		pBundle->newMessage(ClientInterface::onStreamDataCompleted);

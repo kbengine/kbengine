@@ -48,7 +48,7 @@ namespace KBEngine{
 class EntityMailbox;
 class BaseMessagesForwardHandler;
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 }
@@ -156,7 +156,7 @@ public:
 	/** 网络接口
 		entity第一次写数据库由dbmgr返回的dbid
 	*/
-	void onGetDBID(Mercury::Channel* pChannel, DBID dbid);
+	void onGetDBID(Network::Channel* pChannel, DBID dbid);
 
 	/** 
 		创建cell失败回调 
@@ -166,12 +166,12 @@ public:
 	/** 
 		创建cell成功回调 
 	*/
-	void onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
+	void onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID);
 
 	/** 
 		丢失cell了的通知 
 	*/
-	void onLoseCell(Mercury::Channel* pChannel, MemoryStream& s);
+	void onLoseCell(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 
 		当cellapp意外终止后， baseapp如果能找到合适的cellapp则将其恢复后
@@ -182,7 +182,7 @@ public:
 	/** 
 		备份cell数据
 	*/
-	void onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s);
+	void onBackupCellData(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 
 		客户端丢失 
@@ -192,7 +192,7 @@ public:
 	/** 网络接口
 		远程呼叫本entity的方法 
 	*/
-	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 
 		销毁这个entity 
@@ -223,13 +223,13 @@ public:
 	/** 网络接口
 		客户端直接发送消息给cell实体
 	*/
-	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	void forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, MemoryStream& s);
 	
 	/**
 		发送消息到cellapp上
 	*/
-	void sendToCellapp(Mercury::Bundle* pBundle);
-	void sendToCellapp(Mercury::Channel* pChannel, Mercury::Bundle* pBundle);
+	void sendToCellapp(Network::Bundle* pBundle);
+	void sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle);
 
 	/** 
 		传送
@@ -239,21 +239,21 @@ public:
 	/**
 		传送回调
 	*/
-	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
+	void onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport);  
 	void onTeleportFailure();  
 	void onTeleportSuccess(SPACE_ID spaceID);
 
 	/** 网络接口
 		某个entity请求teleport到这个entity的space上。
 	*/
-	void reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
+	void reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
 
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
-	void onMigrationCellappStart(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
-	void onMigrationCellappEnd(Mercury::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID);
 
 	/**
 		设置获取是否自动存档

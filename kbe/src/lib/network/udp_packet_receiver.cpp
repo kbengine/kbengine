@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/error_reporter.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
@@ -179,7 +179,7 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 
 		return RECV_STATE_CONTINUE;
 #else
-		Mercury::Address offender;
+		Network::Address offender;
 
 		if (pEndpoint_->getClosedPort(offender))
 		{

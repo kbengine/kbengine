@@ -42,7 +42,7 @@ namespace KBEngine {
 KBE_SINGLETON_INIT(Componentbridge);
 
 //-------------------------------------------------------------------------------------
-Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface, 
+Componentbridge::Componentbridge(Network::NetworkInterface & networkInterface, 
 									   COMPONENT_TYPE componentType, COMPONENT_ID componentID) :
 	Task(),
 	networkInterface_(networkInterface),
@@ -109,7 +109,7 @@ Componentbridge::~Componentbridge()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & Componentbridge::dispatcher()
+Network::EventDispatcher & Componentbridge::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
@@ -121,7 +121,7 @@ Components& Componentbridge::getComponents()
 }
 
 //-------------------------------------------------------------------------------------
-void Componentbridge::onChannelDeregister(Mercury::Channel * pChannel)
+void Componentbridge::onChannelDeregister(Network::Channel * pChannel)
 {
 	getComponents().removeComponentFromChannel(pChannel);
 }
@@ -145,7 +145,7 @@ bool Componentbridge::findInterfaces()
 			INFO_MSG(fmt::format("Componentbridge::process: finding {}({})...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			
-			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
+			Network::BundleBroadcast bhandler(networkInterface_, nport);
 			if(!bhandler.good())
 			{
 				return false;
@@ -334,7 +334,7 @@ bool Componentbridge::process()
 		while(cidex++ < 3)
 		{
 			// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-			Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+			Network::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
 			MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bhandler, getUserUID(), getUsername(), 

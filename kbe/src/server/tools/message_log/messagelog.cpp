@@ -36,8 +36,8 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Messagelog);
 
 //-------------------------------------------------------------------------------------
-Messagelog::Messagelog(Mercury::EventDispatcher& dispatcher, 
-				 Mercury::NetworkInterface& ninterface, 
+Messagelog::Messagelog(Network::EventDispatcher& dispatcher, 
+				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID)
@@ -88,7 +88,7 @@ bool Messagelog::inInitialize()
 bool Messagelog::initializeEnd()
 {
 	// 由于messagelog接收其他app的log，如果跟踪包输出将会非常卡。
-	Mercury::g_trace_packet = 0;
+	Network::g_trace_packet = 0;
 	return true;
 }
 
@@ -98,8 +98,22 @@ void Messagelog::finalise()
 	ServerApp::finalise();
 }
 
+//-------------------------------------------------------------------------------------	
+bool Messagelog::canShutdown()
+{
+	if(Componentbridge::getComponents().getGameSrvComponentsSize() > 0)
+	{
+		INFO_MSG(fmt::format("Messagelog::canShutdown(): Waiting for components({}) destruction!\n", 
+			Componentbridge::getComponents().getGameSrvComponentsSize()));
+
+		return false;
+	}
+
+	return true;
+}
+
 //-------------------------------------------------------------------------------------
-void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	uint32 logtype;
 	COMPONENT_TYPE componentType = UNKNOWN_COMPONENT_TYPE;
@@ -158,7 +172,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->loadFromStream(&s))

@@ -25,7 +25,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-HistoryEvent::HistoryEvent(HistoryEventID id, const Mercury::MessageHandler& msgHandler, uint32 msglen):
+HistoryEvent::HistoryEvent(HistoryEventID id, const Network::MessageHandler& msgHandler, uint32 msglen):
 id_(id),
 msglen_(msglen),
 msgHandler_(msgHandler)

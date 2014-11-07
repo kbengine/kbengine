@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-namespace Mercury{
+namespace Network{
 	class Channel;
 }
 
@@ -60,8 +60,8 @@ public:
 		TIMEOUT_MAX
 	};
 	
-	Baseapp(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, 
+	Baseapp(Network::EventDispatcher& dispatcher, 
+		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
@@ -105,18 +105,18 @@ public:
 	static int quantumPassedPercent(uint64 curr = timestamp());
 	static PyObject* __py_quantumPassedPercent(PyObject* self, PyObject* args);
 
-	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+	virtual void onChannelDeregister(Network::Channel * pChannel);
 
 	/**
 		一个cellapp死亡
 	*/
-	void onCellAppDeath(Mercury::Channel * pChannel);
+	void onCellAppDeath(Network::Channel * pChannel);
 
 	/** 网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
 	*/
-	virtual void onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, 
+	virtual void onGetEntityAppFromDbmgr(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
@@ -125,7 +125,7 @@ public:
 	/** 网络接口
 		某个client向本app告知处于活动状态。
 	*/
-	void onClientActiveTick(Mercury::Channel* pChannel);
+	void onClientActiveTick(Network::Channel* pChannel);
 
 	/** 
 		创建了一个entity回调
@@ -160,7 +160,7 @@ public:
 		@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
 		@param componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s);
+	void onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 
 		从db获取信息创建一个entity
@@ -170,7 +170,7 @@ public:
 	/** 网络接口
 		createBaseFromDBID的回调。
 	*/
-	void onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 
 		从db获取信息创建一个entity
@@ -181,19 +181,19 @@ public:
 		createBaseFromDBID的回调。
 	*/
 	// 从数据库来的回调
-	void onCreateBaseAnywhereFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	// 请求在这个进程上创建这个entity
-	void createBaseAnywhereFromDBIDOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	// 创建完毕后的回调
-	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Mercury::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
 
 	/** 
 		baseapp 的createBaseAnywhere的回调 
 	*/
-	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
+	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID, 
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 
@@ -204,12 +204,12 @@ public:
 	/** 网络接口
 		createCellEntity失败的回调。
 	*/
-	void onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID);
+	void onCreateCellFailure(Network::Channel* pChannel, ENTITY_ID entityID);
 
 	/** 网络接口
 		createCellEntity的cell实体创建成功回调。
 	*/
-	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID);
+	void onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	/** 
 		通知客户端创建一个proxy对应的实体 
@@ -221,7 +221,7 @@ public:
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
 	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid);
-	void onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -230,50 +230,50 @@ public:
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
-	void onDbmgrInitCompleted(Mercury::Channel* pChannel, 
+	void onDbmgrInitCompleted(Network::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastBaseAppDataChanged(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		注册将要登录的账号, 注册后则允许登录到此网关
 	*/
-	void registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
+	void registerPendingLogin(Network::Channel* pChannel, std::string& loginName, std::string& accountName, 
 		std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline, COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		新用户请求登录到网关上
 	*/
-	void loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void loginGateway(Network::Channel* pChannel, std::string& accountName, std::string& password);
 
 	/**
 		踢出一个Channel
 	*/
-	void kickChannel(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode);
+	void kickChannel(Network::Channel* pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 		之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 	*/
-	void reLoginGateway(Mercury::Channel* pChannel, std::string& accountName, 
+	void reLoginGateway(Network::Channel* pChannel, std::string& accountName, 
 		std::string& password, uint64 key, ENTITY_ID entityID);
 
 	/**
 	   登录失败
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	   @failedcode: 失败返回码 NETWORK_ERR_SRV_NO_READY:服务器没有准备好, 
+									NETWORK_ERR_ILLEGAL_LOGIN:非法登录, 
+									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, 
+	void loginGatewayFailed(Network::Channel* pChannel, std::string& accountName, 
 		SERVER_ERROR_CODE failedcode, bool relogin = false);
 
 	/** 网络接口
 		从dbmgr获取到账号Entity信息
 	*/
-	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/**
 		客户端自身进入世界了
@@ -284,38 +284,38 @@ public:
 		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走
 		onRemoteCellMethodCallFromClient)
 	*/
-	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		client访问entity的cell方法
 	*/
-	void onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		client更新数据
 	*/
-	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
 		cellapp备份entity的cell数据
 	*/
-	void onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onBackupEntityCellData(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		cellapp writeToDB完成
 	*/
-	void onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		cellapp转发entity消息给client
 	*/
-	void forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void forwardMessageToClientFromCellapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		cellapp转发entity消息给某个baseEntity的cellEntity
 	*/
-	void forwardMessageToCellappFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void forwardMessageToCellappFromCellapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/**
 		获取游戏时间
@@ -325,7 +325,7 @@ public:
 	/** 网络接口
 		写entity到db回调
 	*/
-	void onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, CALLBACK_ID callbackID, bool success);
+	void onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, CALLBACK_ID callbackID, bool success);
 
 	/**
 		增加proxices计数
@@ -352,28 +352,28 @@ public:
 	*/
 	static PyObject* __py_charge(PyObject* self, PyObject* args);
 	void charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback);
-	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		hook mailboxcall
 	*/
 	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
 
-	virtual void onHello(Mercury::Channel* pChannel, 
+	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& scriptVerInfo, 
 		const std::string& encryptedKey);
 
 	// 引擎版本不匹配
-	virtual void onVersionNotMatch(Mercury::Channel* pChannel);
+	virtual void onVersionNotMatch(Network::Channel* pChannel);
 
 	// 引擎脚本层版本不匹配
-	virtual void onScriptVersionNotMatch(Mercury::Channel* pChannel);
+	virtual void onScriptVersionNotMatch(Network::Channel* pChannel);
 
 	/** 网络接口
 		请求在其他APP灾难恢复返回结果
 	*/
-	void onRequestRestoreCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRequestRestoreCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		一个cell的entity都恢复完毕
@@ -383,22 +383,22 @@ public:
 	/** 网络接口
 		某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	*/
-	void onRestoreSpaceCellFromOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRestoreSpaceCellFromOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		某个app请求查看该app
 	*/
-	virtual void lookApp(Mercury::Channel* pChannel);
+	virtual void lookApp(Network::Channel* pChannel);
 
 	/** 网络接口
 		客户端协议导出
 	*/
-	void importClientMessages(Mercury::Channel* pChannel);
+	void importClientMessages(Network::Channel* pChannel);
 
 	/** 网络接口
 		客户端entitydef导出
 	*/
-	void importClientEntityDef(Mercury::Channel* pChannel);
+	void importClientEntityDef(Network::Channel* pChannel);
 
 	/**
 		重新导入所有的脚本
@@ -427,7 +427,7 @@ public:
 	/** 网络接口
 		通过dbid从数据库中删除一个实体的回调
 	*/
-	void deleteBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		通过dbid查询一个实体是否从数据库检出
@@ -439,22 +439,22 @@ public:
 	/** 网络接口
 		如果实体在线回调返回basemailbox，如果实体不在线则回调返回true，其他任何原因都返回false.
 	*/
-	void lookUpBaseByDBIDCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求绑定email
 	*/
-	void reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
+	void reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
 
-	void onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	void onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
 
 	/** 网络接口
 		请求绑定email
 	*/
-	void reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& oldpassworld, std::string& newpassword);
+	void reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& oldpassworld, std::string& newpassword);
 
-	void onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
+	void onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 		SERVER_ERROR_CODE failedcode);
 protected:
 	TimerHandle												loopCheckTimerHandle_;

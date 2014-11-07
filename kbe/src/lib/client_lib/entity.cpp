@@ -126,7 +126,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
+void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	
@@ -196,17 +196,17 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 	if(!scriptModule_->usePropertyDescrAlias())
 	{
-		Mercury::FixedMessages::MSGInfo* msgInfo =
-					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+		Network::FixedMessages::MSGInfo* msgInfo =
+					Network::FixedMessages::getSingleton().isFixed("Property::position");
 
 		if(msgInfo != NULL)
 			posuid = msgInfo->msgid;
 
-		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
 		if(msgInfo != NULL)
 			diruid = msgInfo->msgid;
 
-		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
 		if(msgInfo != NULL)
 			spaceuid = msgInfo->msgid;
 	}

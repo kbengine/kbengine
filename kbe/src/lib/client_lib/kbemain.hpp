@@ -49,7 +49,7 @@ inline void START_MSG(const char * name, uint64 appuid)
 			"UID: {}. "
 			"PID: {} ----\n",
 		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
-		Mercury::MessageHandlers::getDigestStr(),
+		Network::MessageHandlers::getDigestStr(),
 		KBE_CONFIG, __TIME__, __DATE__,
 		appuid, getUserUID(), getProcessPID()));
 
@@ -280,8 +280,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
-	Mercury::EventDispatcher dispatcher;
-	Mercury::NetworkInterface networkInterface(&dispatcher, 
+	Network::EventDispatcher dispatcher;
+	Network::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
 	

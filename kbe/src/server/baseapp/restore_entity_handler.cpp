@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-RestoreEntityHandler::RestoreEntityHandler(COMPONENT_ID cellappID, Mercury::NetworkInterface & networkInterface):
+RestoreEntityHandler::RestoreEntityHandler(COMPONENT_ID cellappID, Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
 entities_(),
@@ -108,7 +108,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 bool RestoreEntityHandler::process()
 {
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	Mercury::Channel* pChannel = NULL;
+	Network::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)
 	{
@@ -132,11 +132,11 @@ bool RestoreEntityHandler::process()
 	{
 		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
 		{
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(CellappInterface::requestRestore);
 			(*pBundle) << cellappID();
 			(*pBundle).send(Baseapp::getSingleton().networkInterface(), pChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 
 		return true;
@@ -230,7 +230,7 @@ bool RestoreEntityHandler::process()
 
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
 
-				Mercury::Channel* pChannel = NULL;
+				Network::Channel* pChannel = NULL;
 				Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
 				Components::COMPONENTS::iterator comsiter = cts.begin();
 				for(; comsiter != cts.end(); comsiter++)
@@ -242,11 +242,11 @@ bool RestoreEntityHandler::process()
 						INFO_MSG(fmt::format("RestoreEntityHandler::process({4}): broadcast baseapp[{0}, {1}], spaceID[{2}], utype[{3}]...\n", 
 							(*comsiter).cid, pChannel->c_str(), spaceID, utype, cellappID_));
 
-						Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+						Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
 						(*pBundle) << baseappID << cellappID << spaceID << spaceEntityID << utype << destroyed;
 						pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
-						Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+						Network::Bundle::ObjPool().reclaimObject(pBundle);
 					}
 				}
 			}

@@ -63,9 +63,6 @@
     <ClCompile Include="listener_receiver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mercurystats.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="message_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="websocket_protocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="network_stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -155,9 +155,6 @@
     <ClInclude Include="listener_receiver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mercurystats.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="message_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -195,6 +192,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="websocket_protocol.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="network_stats.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

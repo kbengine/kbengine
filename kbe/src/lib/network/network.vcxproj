@@ -107,7 +107,7 @@
     <ClCompile Include="html5_packet_reader.cpp" />
     <ClCompile Include="interface_defs.cpp" />
     <ClCompile Include="listener_receiver.cpp" />
-    <ClCompile Include="mercurystats.cpp" />
+    <ClCompile Include="network_stats.cpp" />
     <ClCompile Include="message_handler.cpp" />
     <ClCompile Include="network_interface.cpp" />
     <ClCompile Include="packet_filter.cpp" />
@@ -139,7 +139,7 @@
     <ClInclude Include="interface_defs.hpp" />
     <ClInclude Include="interfaces.hpp" />
     <ClInclude Include="listener_receiver.hpp" />
-    <ClInclude Include="mercurystats.hpp" />
+    <ClInclude Include="network_stats.hpp" />
     <ClInclude Include="message_handler.hpp" />
     <ClInclude Include="network_interface.hpp" />
     <ClInclude Include="nub_exception.hpp" />

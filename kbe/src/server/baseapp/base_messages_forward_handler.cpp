@@ -44,17 +44,17 @@ BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelFrequentTask(this);
 
-	std::vector<Mercury::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
+	std::vector<Network::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
 	for(; iter != bufferedSendToCellappMessages_.end(); iter++)
 	{
-		Mercury::Bundle::ObjPool().reclaimObject((*iter));
+		Network::Bundle::ObjPool().reclaimObject((*iter));
 	}
 
 	bufferedSendToCellappMessages_.clear();
 }
 
 //-------------------------------------------------------------------------------------
-void BaseMessagesForwardHandler::pushMessages(Mercury::Bundle* pBundle)
+void BaseMessagesForwardHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToCellappMessages_.push_back(pBundle);
 }
@@ -84,10 +84,10 @@ bool BaseMessagesForwardHandler::process()
 
 	int remainPacketSize = PACKET_MAX_SIZE_TCP * 10;
 
-	std::vector<Mercury::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
+	std::vector<Network::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
 	for(; iter != bufferedSendToCellappMessages_.end(); )
 	{
-		Mercury::Bundle* pBundle = (*iter); 
+		Network::Bundle* pBundle = (*iter); 
 		remainPacketSize -= pBundle->packetsLength();
 		iter = bufferedSendToCellappMessages_.erase(iter);
 		pBase_->sendToCellapp(pBundle);

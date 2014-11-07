@@ -36,12 +36,12 @@ namespace KBEngine{
 class SyncEntityStreamTemplateHandler : public Task
 {
 public:
-	SyncEntityStreamTemplateHandler(Mercury::NetworkInterface & networkInterface);
+	SyncEntityStreamTemplateHandler(Network::NetworkInterface & networkInterface);
 	~SyncEntityStreamTemplateHandler();
 	
 	bool process();
 private:
-	Mercury::NetworkInterface & networkInterface_;
+	Network::NetworkInterface & networkInterface_;
 
 };
 

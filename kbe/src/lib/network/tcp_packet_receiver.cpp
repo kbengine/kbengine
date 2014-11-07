@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/error_reporter.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------

@@ -23,9 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-KBE_SINGLETON_INIT(Mercury::FixedMessages);
+KBE_SINGLETON_INIT(Network::FixedMessages);
 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------

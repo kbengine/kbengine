@@ -58,7 +58,7 @@ class Controller;
 class Controllers;
 class Space;
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 class Bundle;
@@ -118,8 +118,8 @@ public:
 	/** 
 		该entity通信通道
 	*/
-	INLINE void pChannel(Mercury::Channel* pchannel);
-	INLINE Mercury::Channel* pChannel(void)const ;
+	INLINE void pChannel(Network::Channel* pchannel);
+	INLINE Network::Channel* pChannel(void)const ;
 public:
 	/** 
 		mailbox section
@@ -187,22 +187,22 @@ public:
 	/** 网络接口
 		客户端设置新位置
 	*/
-	void setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z);
+	void setPosition_XZ_int(Network::Channel* pChannel, int32 x, int32 z);
 
 	/** 网络接口
 		客户端设置新位置
 	*/
-	void setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, int32 z);
+	void setPosition_XYZ_int(Network::Channel* pChannel, int32 x, int32 y, int32 z);
 
 	/** 网络接口
 		客户端设置位置
 	*/
-	void setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z);
+	void setPosition_XZ_float(Network::Channel* pChannel, float x, float z);
 
 	/** 网络接口
 		客户端设置位置
 	*/
-	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
+	void setPosition_XYZ_float(Network::Channel* pChannel, float x, float y, float z);
 
 	/** 网络接口
 		entity传送
@@ -210,7 +210,7 @@ public:
 		@targetEntityID：要传送到这个entity的space中
 		@sourceBaseAppID: 有可能是由某个baseapp上的base请求teleport的， 如果为0则为cellEntity发起
 	*/
-	void teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
+	void teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
 
 	/**
 		cell上的传送方法
@@ -228,7 +228,7 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
-	void onReqTeleportOtherAck(Mercury::Channel* pChannel, ENTITY_ID nearbyMBRefID, 
+	void onReqTeleportOtherAck(Network::Channel* pChannel, ENTITY_ID nearbyMBRefID, 
 		SPACE_ID destSpaceID, COMPONENT_ID componentID);
 
 	/**
@@ -354,8 +354,8 @@ public:
 	/** 网络接口
 		远程呼叫本entity的方法 
 	*/
-	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
-	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
+	void onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStream& s);
 	void onRemoteMethodCall_(MethodDescription* md, MemoryStream& s);
 
 	/**
@@ -395,14 +395,14 @@ public:
 
 	*/
 	void setWitness(Witness* pWitness);
-	void onGetWitnessFromBase(Mercury::Channel* pChannel);
+	void onGetWitnessFromBase(Network::Channel* pChannel);
 	void onGetWitness(bool fromBase = false);
 
 	/** 网络接口
 		entity丢失了一个观察者(客户端)
 
 	*/
-	void onLoseWitness(Mercury::Channel* pChannel);
+	void onLoseWitness(Network::Channel* pChannel);
 
 	/** 
 		client更新数据

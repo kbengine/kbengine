@@ -30,7 +30,7 @@ namespace KBEngine{
 
 class KBE_MD5;
 
-namespace Mercury
+namespace Network
 {
 class Channel;
 
@@ -57,7 +57,7 @@ public:
 struct ExposedMessageInfo
 {
 	std::string name;
-	Mercury::MessageID id;
+	Network::MessageID id;
 	int16 msgLen; // 对外消息不会超过1500
 	int8 argsType;
 	std::vector<uint8> argsTypes;
@@ -92,12 +92,12 @@ public:
 	/**
 		默认返回类别为组件消息
 	*/
-	virtual MERCURY_MESSAGE_TYPE type()const
+	virtual NETWORK_MESSAGE_TYPE type()const
 	{ 
-		return MERCURY_MESSAGE_TYPE_COMPONENT; 
+		return NETWORK_MESSAGE_TYPE_COMPONENT; 
 	}
 
-	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE; }
+	virtual int32 msglenMax(){ return NETWORK_MESSAGE_MAX_SIZE; }
 
 	const char* c_str();
 
@@ -117,7 +117,7 @@ public:
 class MessageHandlers
 {
 public:
-	static Mercury::MessageHandlers* pMainMessageHandlers;
+	static Network::MessageHandlers* pMainMessageHandlers;
 	typedef std::map<MessageID, MessageHandler*> MessageHandlerMap;
 	MessageHandlers();
 	~MessageHandlers();

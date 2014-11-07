@@ -113,7 +113,7 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componen
 INLINE int16 ServerConfig::gameUpdateHertz(void)const { return gameUpdateHertz_;}
 
 //-------------------------------------------------------------------------------------	
-INLINE Mercury::Address ServerConfig::billingSystemAddr(void)const { return billingSystemAddr_;}
+INLINE Network::Address ServerConfig::billingSystemAddr(void)const { return billingSystemAddr_;}
 
 INLINE const char* ServerConfig::billingSystemAccountType()const { return billingSystem_accountType_.c_str(); }
 INLINE const char* ServerConfig::billingSystemChargeType()const { return billingSystem_chargeType_.c_str(); }

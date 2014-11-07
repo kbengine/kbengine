@@ -69,7 +69,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		mailbox->newMail((*pBundle));
 
 		MemoryStream mstream;

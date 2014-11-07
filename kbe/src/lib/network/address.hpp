@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 class Address  : public PoolObject
 {

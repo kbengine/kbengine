@@ -47,7 +47,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##EntityMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			ENTITY_ID eid;														\
@@ -65,31 +65,31 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
+	void NAME##EntityMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##EntityMessagehandler_stream : public Mercury::MessageHandler	\
+	class NAME##EntityMessagehandler_stream : public Network::MessageHandler	\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -110,7 +110,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler1::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler1::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -130,31 +130,31 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler1::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler1::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	class NAME##EntityMessagehandler1 : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler1 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -176,7 +176,7 @@ namespace KBEngine{
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##EntityMessagehandler2::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler2::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -198,33 +198,33 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##EntityMessagehandler2::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler2::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##EntityMessagehandler2 : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler2 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -249,7 +249,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##EntityMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler0::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -267,31 +267,31 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##EntityMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler0::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
-	class NAME##EntityMessagehandler0 : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler0 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -315,7 +315,7 @@ namespace KBEngine{
 #define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##EntityMessagehandler3::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler3::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -339,22 +339,22 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	void NAME##EntityMessagehandler3::handle(Mercury::Channel* pChannel,		\
+	void NAME##EntityMessagehandler3::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
 	{																			\
-		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
@@ -362,12 +362,12 @@ namespace KBEngine{
 #define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	class NAME##EntityMessagehandler3 : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler3 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
-		virtual void handle(Mercury::Channel* pChannel,							\
+		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
