@@ -3000,11 +3000,10 @@ void Entity::addTimersToStream(KBEngine::MemoryStream& s)
 
 		uint32 time;
 		uint32 interval;
-		int32 userData = 0;
-		int* pUserData = &userData;
+		void* pUser;
 
-		Cellapp::getSingleton().timers().getTimerInfo(iter->second, time, interval, (void *&)pUserData);
-
+		Cellapp::getSingleton().timers().getTimerInfo(iter->second, time, interval, pUser);
+		int32 userData = int32(uintptr(pUser));
 		s << time << interval << userData;
 		++iter;
 	}
