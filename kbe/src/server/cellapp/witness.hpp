@@ -103,6 +103,7 @@ public:
 		return bytes;
 	}
 
+	INLINE void pEntity(Entity* pEntity);
 	INLINE Entity* pEntity();
 
 	void attach(Entity* pEntity);

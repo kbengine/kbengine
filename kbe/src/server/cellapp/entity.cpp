@@ -2845,6 +2845,10 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
 		topSpeedY_ >> layer_ >> baseMailboxComponentID;
 
+	// 此时强制设置为不在地面，无法判定其是否在地面，角色需要客户端上报是否在地面
+	// 而服务端的NPC则与移动后是否在地面来判定。
+	isOnGround_ = false;
+
 	this->scriptModule_ = EntityDef::findScriptModule(scriptUType);
 
 	// 设置entity的baseMailbox
@@ -2950,7 +2954,10 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 		EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
 		clientMailbox(client);
 
-		setWitness(Witness::ObjPool().createObject());
+		// 不要使用setWitness，因为此时不需要走onAttach流程，客户端不需要重新enterworld。
+		// setWitness(Witness::ObjPool().createObject());
+		pWitness_ = Witness::ObjPool().createObject();
+		pWitness_->pEntity(this);
 		pWitness_->createFromStream(s);
 	}
 }

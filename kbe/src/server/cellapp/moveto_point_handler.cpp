@@ -73,7 +73,7 @@ void MoveToPointHandler::addToStream(KBEngine::MemoryStream& s)
 {
 	uint8 utype = type();
 
-	s << utype << destPos_.x << destPos_.y << destPos_.z << velocity_ << faceMovement_ << moveVertically_ <<
+	s << /*utype <<*/ destPos_.x << destPos_.y << destPos_.z << velocity_ << faceMovement_ << moveVertically_ <<
 		range_ << layer_;
 
 	s.appendBlob(script::Pickler::pickle(pyuserarg_));

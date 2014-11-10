@@ -113,6 +113,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 	}
 
 	lastBasePos.z = -FLT_MAX;
+	Cellapp::getSingleton().addUpdatable(this);
 }
 
 //-------------------------------------------------------------------------------------

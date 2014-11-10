@@ -28,6 +28,12 @@ INLINE Entity* Witness::pEntity()
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Witness::pEntity(Entity* pEntity)
+{
+	pEntity_ = pEntity;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE float Witness::aoiRadius()const
 { 
 	return aoiRadius_; 
