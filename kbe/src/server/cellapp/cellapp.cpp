@@ -84,7 +84,9 @@ bool Cellapp::canShutdown()
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 	for(; iter != entities.end(); iter++)
 	{
-		if(static_cast<Entity*>(iter->second.get())->baseMailbox() != NULL)
+		Entity* pEntity = static_cast<Entity*>(iter->second.get());
+		if(pEntity->baseMailbox() != NULL && 
+				pEntity->scriptModule()->isPersistent())
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return false;
@@ -102,20 +104,44 @@ void Cellapp::onShutdown(bool first)
 	int count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
+	std::vector<Entity*> vecs;
+
 	while(count > 0)
 	{
 		bool done = false;
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); iter++)
 		{
-			if(static_cast<Entity*>(iter->second.get())->baseMailbox() != NULL && 
-				static_cast<Entity*>(iter->second.get())->scriptModule()->isPersistent())
+			Entity* pEntity = static_cast<Entity*>(iter->second.get());
+			if(pEntity->baseMailbox() != NULL && 
+				pEntity->scriptModule()->isPersistent())
 			{
+				Space* space = Spaces::findSpace(pEntity->spaceID());
+				if(space && space->creatorID() == pEntity->id())
+				{
+					vecs.push_back(pEntity);
+					continue;
+				}
+
 				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
 				count--;
 				done = true;
 				break;
+			}
+		}
+
+		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
+		// 剩下的应该都是space，可以开始销毁了
+		if(g_serverConfig.getCellApp().perSecsDestroyEntitySize == count && vecs.size() > 0)
+		{
+			std::vector<Entity*>::iterator iter1 = vecs.begin();
+			for(; iter1 != vecs.end(); iter1++)
+			{
+				this->destroyEntity(static_cast<Entity*>(*iter1)->id(), true);
+
+				count--;
+				done = true;
 			}
 		}
 
