@@ -432,7 +432,7 @@ def _checkKBEEnvironment(is_get_error):
 		
 		if not found:
 			if is_get_error:
-				ERROR_MSG("KBE_RES_PATH: is error! The directory or file not found:\n%" % (tmp)) 
+				ERROR_MSG("KBE_RES_PATH: is error! The directory or file not found:\n%s" % (tmp)) 
 			return False
 	
 	return True
