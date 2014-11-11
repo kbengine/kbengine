@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/telnet_server.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
 #include "navigation/navigation.hpp"
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -1533,7 +1534,7 @@ PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& s)
+void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 {
 	size_t rpos = s.rpos();
 
@@ -1556,14 +1557,14 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 		s.rpos(rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
 		pBundle->send(this->networkInterface(), pChannel);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToTheCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n", 
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n", 
 			nearbyMBRefID, spaceID, teleportEntityID));
 
 		s.opfini();
@@ -1576,14 +1577,14 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 		s.rpos(rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
 		pBundle->send(this->networkInterface(), pChannel);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToTheCellApp: not found space({}),  reqTeleportEntity({})!\n", spaceID, teleportEntityID));
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found space({}),  reqTeleportEntity({})!\n", spaceID, teleportEntityID));
 		s.opfini();
 		return;
 	}
@@ -1595,14 +1596,14 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 		s.rpos(rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
 		pBundle->send(this->networkInterface(), pChannel);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToTheCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
 		s.opfini();
 		return;
 	}
@@ -1620,6 +1621,16 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
 	
+	// 进入新space之前必须通知客户端leaveSpace
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
+	(*pForwardBundle) << e->id();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(e->id(), (*pSendBundle), (*pForwardBundle));
+	e->clientMailbox()->postMail(pSendBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+	// 进入新的space中
 	space->addEntityAndEnterWorld(e);
 
 	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
@@ -1629,7 +1640,7 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 	
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellAppCB);
+		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
@@ -1639,7 +1650,7 @@ void Cellapp::reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::reqTeleportToTheCellAppCB(Network::Channel* pChannel, MemoryStream& s)
+void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	bool success;
@@ -1653,7 +1664,7 @@ void Cellapp::reqTeleportToTheCellAppCB(Network::Channel* pChannel, MemoryStream
 	{
 		if(!success)
 		{
-			ERROR_MSG(fmt::format("Cellapp::reqTeleportToTheCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
+			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
 				teleportEntityID));
 
 			s.opfini();

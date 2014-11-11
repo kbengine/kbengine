@@ -2486,7 +2486,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 {
 	// 我们需要将entity打包发往目的cellapp
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(CellappInterface::reqTeleportToTheCellApp);
+	(*pBundle).newMessage(CellappInterface::reqTeleportToCellApp);
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();
 	(*pBundle) << spaceID();

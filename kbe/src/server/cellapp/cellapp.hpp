@@ -233,8 +233,8 @@ public:
 		网络接口
 		另一个cellapp的entity要teleport到本cellapp上的space中
 	*/
-	void reqTeleportToTheCellApp(Network::Channel* pChannel, MemoryStream& s);
-	void reqTeleportToTheCellAppCB(Network::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
 		获取和设置ghost管理器

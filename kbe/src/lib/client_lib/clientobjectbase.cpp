@@ -860,6 +860,7 @@ void ClientObjectBase::onEntityLeaveWorldOptimized(Network::Channel * pChannel, 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID eid)
 {
+	bufferedCreateEntityMessage_.erase(eid);
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
@@ -1764,6 +1765,7 @@ void ClientObjectBase::clearSpace(bool isAll)
 
 	pEntityIDAliasIDList_.clear();
 	spacedatas_.clear();
+	bufferedCreateEntityMessage_.clear();
 
 	isLoadedGeometry_ = false;
 	spaceID_ = 0;

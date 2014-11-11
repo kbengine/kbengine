@@ -403,9 +403,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
 	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
-
 	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
-
 	(*pForwardBundle) << pEntity_->id();
 
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
