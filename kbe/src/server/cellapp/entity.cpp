@@ -910,7 +910,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	// 在space中投放一个陷阱
-	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID());
+	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg);
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
 	return p->id();
@@ -1777,7 +1777,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL);
 	
 	new NavigateHandler(p, destination, velocity, 
 		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
@@ -1841,7 +1841,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL);
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
 		0.0f, faceMovement, moveVertically, userData);
@@ -1904,7 +1904,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL, pControllers_->freeID());
+	MoveController* p = new MoveController(this, NULL);
 
 	new MoveToEntityHandler(p, targetID, velocity, range,
 		faceMovement, moveVertically, userData);
