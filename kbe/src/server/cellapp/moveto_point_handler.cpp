@@ -71,7 +71,7 @@ MoveToPointHandler::~MoveToPointHandler()
 //-------------------------------------------------------------------------------------
 void MoveToPointHandler::addToStream(KBEngine::MemoryStream& s)
 {
-	uint8 utype = type();
+	// uint8 utype = type();
 
 	s << /*utype <<*/ destPos_.x << destPos_.y << destPos_.z << velocity_ << faceMovement_ << moveVertically_ <<
 		range_ << layer_;
