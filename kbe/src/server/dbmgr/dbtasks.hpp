@@ -481,7 +481,11 @@ protected:
 	bool success_;
 	MemoryStream s_;
 	ENTITY_ID entityID_;
+
+	// 如果实体已经激活，则这个属性指向实体所在app
 	bool wasActive_;
+	COMPONENT_ID wasActiveCID_;
+	ENTITY_ID wasActiveEntityID_;
 };
 
 }

@@ -1579,7 +1579,9 @@ callbackID_(callbackID),
 success_(false),
 s_(),
 entityID_(entityID),
-wasActive_(false)
+wasActive_(false),
+wasActiveCID_(0),
+wasActiveEntityID_(0)
 {
 }
 
@@ -1619,7 +1621,29 @@ bool DBTaskQueryEntity::db_thread_process()
 		}
 
 		if(!success_)
+		{
+			KBEEntityLogTable::EntityLog entitylog;
+
+			try
+			{
+				pELTable->queryEntity(pdbi_, dbid_, entitylog, pModule->getUType());
+			}
+			catch (std::exception & e)
+			{
+				DBException& dbe = static_cast<DBException&>(e);
+				if(dbe.isLostConnection())
+				{
+					static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+					return true;
+				}
+				else
+					success_ = false;
+			}
+
+			wasActiveCID_ = entitylog.componentID;
+			wasActiveEntityID_ = entitylog.entityID;
 			wasActive_ = true;
+		}
 	}
 
 	return false;
@@ -1644,6 +1668,12 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	(*pBundle) << success_;
 	(*pBundle) << entityID_;
 	(*pBundle) << wasActive_;
+
+	if(wasActive_)
+	{
+		(*pBundle) << wasActiveCID_;
+		(*pBundle) << wasActiveEntityID_;
+	}
 
 	if(success_)
 	{

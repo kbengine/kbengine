@@ -995,6 +995,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 	bool success = false;
 	bool wasActive = false;
 	ENTITY_ID entityID;
+	COMPONENT_ID wasActiveCID;
+	ENTITY_ID wasActiveEntityID;
 
 	s >> entityType;
 	s >> dbid;
@@ -1003,23 +1005,49 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 	s >> entityID;
 	s >> wasActive;
 
+	if(wasActive)
+	{
+		s >> wasActiveCID;
+		s >> wasActiveEntityID;
+	}
+
 	if(!success)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed.\n",
-			entityType.c_str(), dbid));
-
 		if(callbackID > 0)
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			Py_INCREF(Py_None);
+			PyObject* baseRef = NULL;
+
+			if(wasActive && wasActiveCID > 0 && wasActiveEntityID > 0)
+			{
+				Base* pBase = this->findEntity(wasActiveEntityID);
+				if(pBase)
+				{
+					baseRef = static_cast<PyObject*>(pBase);
+					Py_INCREF(baseRef);
+				}
+				else
+				{
+					baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+				}
+			}
+			else
+			{
+				baseRef = Py_None;
+				Py_INCREF(baseRef);
+
+				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed.\n",
+					entityType.c_str(), dbid));
+			}
+
 			// baseRef, dbid, wasActive
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 			if(pyfunc != NULL)
 			{
 				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 													const_cast<char*>("OKi"), 
-													Py_None, dbid, wasActive);
+													baseRef, dbid, wasActive);
 
 				if(pyResult != NULL)
 					Py_DECREF(pyResult);
@@ -1031,6 +1059,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: can't found callback:{}.\n",
 					callbackID));
 			}
+
+			Py_DECREF(baseRef);
 		}
 		
 		s.opfini();
@@ -1207,6 +1237,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	bool success = false;
 	bool wasActive = false;
 	ENTITY_ID entityID;
+	COMPONENT_ID wasActiveCID;
+	ENTITY_ID wasActiveEntityID;
 
 	s >> entityType;
 	s >> dbid;
@@ -1215,23 +1247,49 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	s >> entityID;
 	s >> wasActive;
 
+	if(wasActive)
+	{
+		s >> wasActiveCID;
+		s >> wasActiveEntityID;
+	}
+
 	if(!success)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed.\n", 
-			entityType.c_str(), dbid));
-
 		if(callbackID > 0)
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			Py_INCREF(Py_None);
+			PyObject* baseRef = NULL;
+
+			if(wasActive && wasActiveCID > 0 && wasActiveEntityID > 0)
+			{
+				Base* pBase = this->findEntity(wasActiveEntityID);
+				if(pBase)
+				{
+					baseRef = static_cast<PyObject*>(pBase);
+					Py_INCREF(baseRef);
+				}
+				else
+				{
+					baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed.\n", 
+					entityType.c_str(), dbid));
+
+				baseRef = Py_None;
+				Py_INCREF(baseRef);
+			}
+
 			// baseRef, dbid, wasActive
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 			if(pyfunc != NULL)
 			{
 				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 													const_cast<char*>("OKi"), 
-													Py_None, dbid, wasActive);
+													baseRef, dbid, wasActive);
 
 				if(pyResult != NULL)
 					Py_DECREF(pyResult);
@@ -1243,6 +1301,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 				ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: can't found callback:{}.\n",
 					callbackID));
 			}
+
+			Py_DECREF(baseRef);
 		}
 		
 		s.opfini();
