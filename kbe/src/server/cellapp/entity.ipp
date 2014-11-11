@@ -206,6 +206,12 @@ INLINE void Entity::pWitness(Witness* w)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE Controllers*	Entity::pControllers()const
+{
+	return pControllers_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
 {
 	return pEntityCoordinateNode_;

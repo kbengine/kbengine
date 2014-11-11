@@ -539,6 +539,11 @@ public:
 
 	void addMoveHandlerToStream(KBEngine::MemoryStream& s);
 	void createMoveHandlerFromStream(KBEngine::MemoryStream& s);
+
+	/** 
+		获得实体控制器管理器
+	*/
+	INLINE Controllers*	pControllers()const;
 private:
 	/** 
 		发送teleport结果到base端
