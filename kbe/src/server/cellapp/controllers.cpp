@@ -56,7 +56,15 @@ bool Controllers::add(Controller* pController)
 {
 	uint32 id = pController->id();
 	if(id == 0)
+	{
 		id = freeID();
+	}
+	else
+	{
+		// Ë¢ÐÂid¼ÆÊýÆ÷
+		if(lastid_ <= id)
+			lastid_ = id + 1;
+	}
 
 	objects_[id].reset(pController);
 	pController->id(id);
@@ -86,8 +94,7 @@ bool Controllers::remove(uint32 id)
 //-------------------------------------------------------------------------------------
 void Controllers::addToStream(KBEngine::MemoryStream& s)
 {
-	uint32 size = 0;
-	size = objects_.size();
+	uint32 size = objects_.size();
 	s << lastid_ << size;
 
 	CONTROLLERS_MAP::iterator iter = objects_.begin();
@@ -129,7 +136,9 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 		};
 		
 		pController->type(type);
-		objects_[pController->id()].reset(pController);
+		pController->createFromStream(s);
+
+		add(pController);
 	}
 }
 

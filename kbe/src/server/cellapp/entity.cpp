@@ -2987,8 +2987,8 @@ void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
 		stopMove();
 
 		pMoveController_ = new MoveController(this);
-		pControllers_->objects()[pMoveController_->id()].reset(pMoveController_);
 		pMoveController_->createFromStream(s);
+		pControllers_->add(pMoveController_);
 	}
 }
 

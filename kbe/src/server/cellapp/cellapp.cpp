@@ -1622,13 +1622,16 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	e->setPositionAndDirection(pos, dir);
 	
 	// 进入新space之前必须通知客户端leaveSpace
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
-	(*pForwardBundle) << e->id();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(e->id(), (*pSendBundle), (*pForwardBundle));
-	e->clientMailbox()->postMail(pSendBundle);
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	if(e->clientMailbox())
+	{
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
+		(*pForwardBundle) << e->id();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(e->id(), (*pSendBundle), (*pForwardBundle));
+		e->clientMailbox()->postMail(pSendBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
 
 	// 进入新的space中
 	space->addEntityAndEnterWorld(e);

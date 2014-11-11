@@ -42,6 +42,7 @@ y_(y)
 //-------------------------------------------------------------------------------------
 ProximityController::ProximityController(Entity* pEntity):
 Controller(pEntity),
+pTrapTrigger_(NULL),
 xz_(0.f),
 y_(0.f)
 {
@@ -71,6 +72,14 @@ void ProximityController::createFromStream(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 bool ProximityController::reinstall(CoordinateNode* pCoordinateNode)
 {
+	// 跨cellapp场景跳转时可能出现这种情况
+	// 因为使用ProximityController::ProximityController(Entity* pEntity)构造
+	if(pTrapTrigger_ == NULL)
+	{
+		pTrapTrigger_ = new TrapTrigger(static_cast<EntityCoordinateNode*>(pCoordinateNode), 
+								this, xz_, y_);
+	}
+
 	return pTrapTrigger_->reinstall(pCoordinateNode);
 }
 
