@@ -101,7 +101,7 @@ void Cellapp::onShutdown(bool first)
 {
 	EntityApp<Entity>::onShutdown(first);
 
-	int count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
+	uint32 count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
 	std::vector<Entity*> vecs;
@@ -142,6 +142,7 @@ void Cellapp::onShutdown(bool first)
 
 				count--;
 				done = true;
+				break;
 			}
 		}
 
