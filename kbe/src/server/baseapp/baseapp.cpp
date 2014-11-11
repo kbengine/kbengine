@@ -1036,6 +1036,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 			{
 				baseRef = Py_None;
 				Py_INCREF(baseRef);
+				wasActive = false;
 
 				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed.\n",
 					entityType.c_str(), dbid));
@@ -1279,6 +1280,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 				ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed.\n", 
 					entityType.c_str(), dbid));
 
+				wasActive = false;
 				baseRef = Py_None;
 				Py_INCREF(baseRef);
 			}
