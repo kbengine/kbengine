@@ -21,6 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "vector2.hpp"
 #include "vector3.hpp"
+#include "pyscript/py_gc.hpp"
+
 namespace KBEngine{ namespace script{
 
 const int ScriptVector2::VECTOR_SIZE = sizeof(Vector2) / sizeof(float);
@@ -123,6 +125,7 @@ ScriptObject(getScriptType(), false),
 val_(v),
 isCopy_(true)
 {
+	script::PyGC::incTracing("Vector2");
 }
 
 
@@ -132,6 +135,7 @@ ScriptObject(getScriptType(), false),
 isCopy_(false)
 {
 	val_ = new Vector2(v);
+	script::PyGC::incTracing("Vector2");
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,7 +144,7 @@ ScriptObject(getScriptType(), false),
 isCopy_(false)
 {
 	val_ = new Vector2(x, y);
-
+	script::PyGC::incTracing("Vector2");
 }
 
 //-------------------------------------------------------------------------------------
@@ -148,6 +152,8 @@ ScriptVector2::~ScriptVector2()
 {
 	if(!isCopy_)
 		delete val_;
+
+	script::PyGC::decTracing("Vector2");
 }
 
 //-------------------------------------------------------------------------------------

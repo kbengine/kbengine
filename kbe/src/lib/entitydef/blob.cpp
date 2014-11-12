@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "blob.hpp"
 #include "datatypes.hpp"
+#include "pyscript/py_gc.hpp"
 
 namespace KBEngine{ 
 
@@ -39,6 +40,7 @@ Blob::Blob(std::string& strDictInitData, bool readonly):
 PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(strDictInitData);
+	script::PyGC::incTracing("Blob");
 }
 
 //-------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ Blob::Blob(PyObject* pyDictInitData, bool readonly):
 PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(pyDictInitData);
+	script::PyGC::incTracing("Blob");
 }
 
 //-------------------------------------------------------------------------------------
@@ -53,6 +56,7 @@ Blob::Blob(MemoryStream* streamInitData, bool readonly):
 PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(streamInitData);
+	script::PyGC::incTracing("Blob");
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,11 +64,13 @@ Blob::Blob(bool readonly):
 PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize("");
+	script::PyGC::incTracing("Blob");
 }
 
 //-------------------------------------------------------------------------------------
 Blob::~Blob()
 {
+	script::PyGC::decTracing("Blob");
 }
 
 //-------------------------------------------------------------------------------------

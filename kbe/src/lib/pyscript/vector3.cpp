@@ -21,6 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "vector3.hpp"
 #include "vector2.hpp"
+#include "pyscript/py_gc.hpp"
+
 namespace KBEngine{ namespace script{
 
 const int ScriptVector3::VECTOR_SIZE = sizeof(Vector3) / sizeof(float);
@@ -127,6 +129,7 @@ val_(v),
 isRef_(true),
 _pyVector3ChangedCallback(pyVector3ChangedCallback)
 {
+	script::PyGC::incTracing("Vector3");
 }
 
 
@@ -137,6 +140,7 @@ isRef_(false),
 _pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(v);
+	script::PyGC::incTracing("Vector3");
 }
 
 //-------------------------------------------------------------------------------------
@@ -146,6 +150,7 @@ isRef_(false),
 _pyVector3ChangedCallback(NULL)
 {
 	val_ = new Vector3(x, y, z);
+	script::PyGC::incTracing("Vector3");
 }
 
 //-------------------------------------------------------------------------------------
@@ -155,6 +160,7 @@ ScriptVector3::~ScriptVector3()
 		delete val_;
 
 	_pyVector3ChangedCallback = NULL;
+	script::PyGC::decTracing("Vector3");
 }
 
 //-------------------------------------------------------------------------------------
