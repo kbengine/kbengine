@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "fixedarray.hpp"
 #include "datatypes.hpp"
+#include "pyscript/py_gc.hpp"
 
 namespace KBEngine{ 
 
@@ -51,6 +51,8 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strInitData);
 
+	script::PyGC::incTracing("FixedArray");
+
 //	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
@@ -61,6 +63,8 @@ Sequence(getScriptType(), false)
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize(pyInitData);
+
+	script::PyGC::incTracing("FixedArray");
 
 //	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
@@ -73,6 +77,8 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
+	script::PyGC::incTracing("FixedArray");
+
 //	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
 }
 
@@ -80,6 +86,8 @@ Sequence(getScriptType(), false)
 FixedArray::~FixedArray()
 {
 	_dataType->decRef();
+
+	script::PyGC::decTracing("FixedArray");
 
 //	DEBUG_MSG(fmt::format("FixedArray::~FixedArray(): {:p}\n", this));
 }

@@ -88,7 +88,7 @@ inline PyObject * PyTuple_FromIntVector<uint64>(const std::vector< uint64 > & v)
 	return t;
 }
 
-class Script
+class Script: public Singleton<Script>
 {						
 public:	
 	Script();

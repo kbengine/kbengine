@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "fixeddict.hpp"
 #include "datatypes.hpp"
+#include "pyscript/py_gc.hpp"
 
 namespace KBEngine{ 
 
@@ -71,6 +72,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(strDictInitData);
 
+	script::PyGC::incTracing("FixedDict");
+
 //	DEBUG_MSG(fmt::format("FixedDict::FixedDict(1): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
@@ -82,6 +85,8 @@ Map(getScriptType(), false)
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
 	initialize(pyDictInitData);
+
+	script::PyGC::incTracing("FixedDict");
 
 //	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
@@ -95,6 +100,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize(streamInitData, isPersistentsStream);
 	
+	script::PyGC::incTracing("FixedDict");
+
 //	DEBUG_MSG(fmt::format("FixedDict::FixedDict(3): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
@@ -107,6 +114,8 @@ Map(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 
+	script::PyGC::incTracing("FixedDict");
+
 //	DEBUG_MSG(fmt::format("FixedDict::FixedDict(4): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
@@ -116,6 +125,7 @@ Map(getScriptType(), false)
 FixedDict::~FixedDict()
 {
 	_dataType->decRef();
+	script::PyGC::decTracing("FixedDict");
 
 //	DEBUG_MSG(fmt::format("FixedDict::~FixedDict(): {:p}\n", (void*)this);
 }

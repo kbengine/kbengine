@@ -197,7 +197,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 		// 设置一个调用者ID提供给脚本判断来源是否正确
 		KBE_ASSERT(currCallerID_ > 0);
-		PyTuple_SET_ITEM(&*pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
+		PyTuple_SET_ITEM(pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
 	}
 	else
 		pyArgsTuple = PyTuple_New(argSize);
@@ -212,7 +212,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 				this->getName(), index, argTypes_[index]->getName()));
 		}
 
-		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, pyitem);
+		PyTuple_SET_ITEM(pyArgsTuple, index + offset, pyitem);
 	}
 	
 	return pyArgsTuple;

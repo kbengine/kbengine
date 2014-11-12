@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "network/channel.hpp"	
 #include "pyscript/pickler.hpp"
+#include "pyscript/py_gc.hpp"
 #include "entitydef/method.hpp"
 #include "remote_entity_method.hpp"
 #include "entitydef/entitydef.hpp"
@@ -63,6 +64,8 @@ atIdx_(MAILBOXS::size_type(-1))
 {
 	atIdx_ = EntityMailbox::mailboxs.size();
 	EntityMailbox::mailboxs.push_back(this);
+
+	script::PyGC::incTracing("EntityMailbox");
 }
 
 //-------------------------------------------------------------------------------------
@@ -82,6 +85,8 @@ EntityMailbox::~EntityMailbox()
 	EntityMailbox::mailboxs[atIdx_] = pBack;
 	atIdx_ = MAILBOXS::size_type(-1);
 	EntityMailbox::mailboxs.pop_back();
+
+	script::PyGC::decTracing("EntityMailbox");
 }
 
 //-------------------------------------------------------------------------------------

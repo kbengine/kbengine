@@ -18,14 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "script.hpp"
 #include "py_gc.hpp"
+#include "scriptstdouterr.hpp"
+#include "pyattr_macro.hpp"
 #include "helper/profile.hpp"
 
 namespace KBEngine{ namespace script {
 
 PyObject* PyGC::collectMethod_ = NULL;
 PyObject* PyGC::set_debugMethod_ = NULL;
+KBEUnordered_map<std::string, int> PyGC::tracingCountMap_;
 
 uint32 PyGC::DEBUG_STATS = 0;
 uint32 PyGC::DEBUG_COLLECTABLE = 0;
@@ -127,6 +130,8 @@ bool PyGC::initialize(void)
 			flag = NULL;
 		}
 
+		APPEND_SCRIPT_MODULE_METHOD(gcModule, debugTracing,	__py_debugTracing,	METH_VARARGS, 0);
+
 		Py_DECREF(gcModule);
 	}
 	else
@@ -185,6 +190,59 @@ void PyGC::set_debug(uint32 flsgs)
 	{
 		S_RELEASE(pyRet);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void PyGC::incTracing(std::string name)
+{
+	KBEUnordered_map<std::string, int>::iterator iter = tracingCountMap_.find(name);
+	if(iter == tracingCountMap_.end())
+	{
+		tracingCountMap_[name] = 0;
+		iter = tracingCountMap_.find(name);
+	}
+
+	iter->second = iter->second + 1;
+}
+
+//-------------------------------------------------------------------------------------
+void PyGC::decTracing(std::string name)
+{
+	KBEUnordered_map<std::string, int>::iterator iter = tracingCountMap_.find(name);
+	if(iter == tracingCountMap_.end())
+	{
+		return;
+	}
+
+	iter->second = iter->second - 1;
+	KBE_ASSERT(iter->second >= 0);
+}
+
+//-------------------------------------------------------------------------------------
+void PyGC::debugTracing(bool shuttingdown)
+{
+	KBEUnordered_map<std::string, int>::iterator iter = tracingCountMap_.begin();
+	for(; iter != tracingCountMap_.end(); iter++)
+	{
+		if(shuttingdown)
+		{
+			if(iter->second == 0)
+				continue;
+
+			ERROR_MSG(fmt::format("PyGC::debugTracing(): {} : leaked({})", iter->first, iter->second));
+		}
+		else
+		{
+			Script::getSingleton().pyStdouterr()->pyPrint(fmt::format("PyGC::debugTracing(): {} : {}", iter->first, iter->second));
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyGC::__py_debugTracing(PyObject* self, PyObject* args)
+{
+	debugTracing(false);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

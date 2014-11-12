@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "moveto_point_handler.hpp"	
 #include "moveto_entity_handler.hpp"	
 #include "navigate_handler.hpp"	
+#include "pyscript/py_gc.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -132,6 +133,8 @@ layer_(0)
 	{
 		pEntityCoordinateNode_ = new EntityCoordinateNode(this);
 	}
+
+	script::PyGC::incTracing("Entity");
 }
 
 //-------------------------------------------------------------------------------------
@@ -157,6 +160,8 @@ Entity::~Entity()
 
 	if(Cellapp::getSingleton().pEntities())
 		Cellapp::getSingleton().pEntities()->pGetbages()->erase(id());
+
+	script::PyGC::decTracing("Entity");
 }	
 
 //-------------------------------------------------------------------------------------

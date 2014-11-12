@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{ 
+
+KBE_SINGLETON_INIT(script::Script);
 namespace script{
 
 #ifndef KBE_SINGLE_THREADED
@@ -43,11 +45,13 @@ static PyThreadState * s_pMainThreadState;
 static PyThreadState* s_defaultContext;
 #endif
 
+//-------------------------------------------------------------------------------------
 static PyObject* __py_genUUID64(PyObject *self, void *closure)	
 {
 	return PyLong_FromUnsignedLongLong(genUUID64());
 }
 
+//-------------------------------------------------------------------------------------
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 {
 	int sz = v.size();

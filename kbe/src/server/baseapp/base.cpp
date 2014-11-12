@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.hpp"
 #include "profile.hpp"
 #include "base_messages_forward_handler.hpp"
+#include "pyscript/py_gc.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/fixed_messages.hpp"
@@ -75,6 +76,7 @@ createdSpace_(false),
 inRestore_(false),
 pBufferedSendToCellappMessages_(NULL)
 {
+	script::PyGC::incTracing("Base");
 	ENTITY_INIT_PROPERTYS(Base);
 
 	// 创建并初始化cellData
@@ -92,6 +94,8 @@ Base::~Base()
 
 	if(Baseapp::getSingleton().pEntities())
 		Baseapp::getSingleton().pEntities()->pGetbages()->erase(id());
+
+	script::PyGC::decTracing("Base");
 }	
 
 //-------------------------------------------------------------------------------------

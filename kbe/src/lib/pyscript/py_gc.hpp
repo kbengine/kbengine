@@ -51,11 +51,32 @@ public:
 	*/
 	static void set_debug(uint32 flsgs);
 	
-private:
-	static PyObject* collectMethod_;						// cPicket.dumps方法指针
-	static PyObject* set_debugMethod_;						// cPicket.loads方法指针
+	/**
+		增加计数
+	*/
+	static void incTracing(std::string name);
 
-	static bool	isInit;										// 是否已经被初始化
+	/**
+		减少计数
+	*/
+	static void decTracing(std::string name);
+
+	/**
+		debug追踪kbe封装的py对象计数
+	*/
+	static void debugTracing(bool shuttingdown = true);
+
+	/**
+		脚本调用
+	*/
+	static PyObject* __py_debugTracing(PyObject* self, PyObject* args);
+private:
+	static PyObject* collectMethod_;							// cPicket.dumps方法指针
+	static PyObject* set_debugMethod_;							// cPicket.loads方法指针
+
+	static bool	isInit;											// 是否已经被初始化
+
+	static KBEUnordered_map<std::string, int> tracingCountMap_;	// 追踪特定的对象计数器
 } ;
 
 }
