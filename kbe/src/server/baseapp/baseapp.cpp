@@ -181,7 +181,7 @@ bool Baseapp::canShutdown()
 	Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
 	for(; iter != entities.end(); iter++)
 	{
-		if(static_cast<Base*>(iter->second.get())->hasDB())
+		//if(static_cast<Base*>(iter->second.get())->hasDB())
 		{
 			count++;
 		}
@@ -234,8 +234,8 @@ void Baseapp::onShutdown(bool first)
 			Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
 			for(; iter != entities.end(); iter++)
 			{
-				if(static_cast<Base*>(iter->second.get())->hasDB() && 
-					static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
+				//if(static_cast<Base*>(iter->second.get())->hasDB() && 
+				//	static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
 				{
 					this->destroyEntity(static_cast<Base*>(iter->second.get())->id(), true);
 

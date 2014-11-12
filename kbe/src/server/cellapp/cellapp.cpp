@@ -86,8 +86,8 @@ bool Cellapp::canShutdown()
 	for(; iter != entities.end(); iter++)
 	{
 		Entity* pEntity = static_cast<Entity*>(iter->second.get());
-		if(pEntity->baseMailbox() != NULL && 
-				pEntity->scriptModule()->isPersistent())
+		//if(pEntity->baseMailbox() != NULL && 
+		//		pEntity->scriptModule()->isPersistent())
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return false;
@@ -105,17 +105,17 @@ void Cellapp::onShutdown(bool first)
 	uint32 count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-	std::vector<Entity*> vecs;
-
 	while(count > 0)
 	{
+		std::vector<Entity*> vecs;
+
 		bool done = false;
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); iter++)
 		{
 			Entity* pEntity = static_cast<Entity*>(iter->second.get());
-			if(pEntity->baseMailbox() != NULL && 
-				pEntity->scriptModule()->isPersistent())
+			//if(pEntity->baseMailbox() != NULL && 
+			//	pEntity->scriptModule()->isPersistent())
 			{
 				Space* space = Spaces::findSpace(pEntity->spaceID());
 				if(space && space->creatorID() == pEntity->id())
