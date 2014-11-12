@@ -229,7 +229,7 @@ void PyGC::debugTracing(bool shuttingdown)
 			if(iter->second == 0)
 				continue;
 
-			ERROR_MSG(fmt::format("PyGC::debugTracing(): {} : leaked({})", iter->first, iter->second));
+			ERROR_MSG(fmt::format("PyGC::debugTracing(): {} : leaked({})\n", iter->first, iter->second));
 		}
 		else
 		{

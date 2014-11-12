@@ -119,12 +119,14 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 
 inline bool uninstallPyScript(KBEngine::script::Script& script)
 {
-	script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
-	script::PyGC::collect();
+	// script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
+	// script::PyGC::collect();
 	client::Entity::uninstallScript();
 	Entities<client::Entity>::uninstallScript();
 	EntityGarbages<client::Entity>::uninstallScript();
 	EntityDef::uninstallScript();
+
+	script::PyGC::debugTracing();
 	return script.uninstall();
 }
 
