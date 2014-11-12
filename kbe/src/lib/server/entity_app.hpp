@@ -534,8 +534,8 @@ bool EntityApp<E>::installPyModules()
 template<class E>
 bool EntityApp<E>::uninstallPyModules()
 {
-	script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
-	script::PyGC::collect();
+	// script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
+	// script::PyGC::collect();
 	unregisterPyObjectToScript("globalData");
 	S_RELEASE(pGlobalData_); 
 
