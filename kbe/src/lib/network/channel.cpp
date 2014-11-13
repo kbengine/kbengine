@@ -219,7 +219,7 @@ void Channel::destroy()
 {
 	if(isDestroyed_)
 	{
-		CRITICAL_MSG("is channel has Destroyed!");
+		CRITICAL_MSG("is channel has Destroyed!\n");
 		return;
 	}
 
