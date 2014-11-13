@@ -73,6 +73,13 @@ size_t UDPPacket::maxBufferSize()
 }
 
 //-------------------------------------------------------------------------------------
+void UDPPacket::onReclaimObject()
+{
+	Packet::onReclaimObject();
+	data_resize(maxBufferSize());
+}
+
+//-------------------------------------------------------------------------------------
 int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	KBE_ASSERT(maxBufferSize() > wpos());

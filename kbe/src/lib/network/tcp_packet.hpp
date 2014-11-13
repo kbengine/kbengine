@@ -50,6 +50,8 @@ public:
 	virtual ~TCPPacket(void);
 	
 	int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL);
+
+	virtual void onReclaimObject();
 };
 
 typedef SmartPointer<TCPPacket> TCPPacketPtr;

@@ -69,7 +69,14 @@ TCPPacket::~TCPPacket(void)
 //-------------------------------------------------------------------------------------
 size_t TCPPacket::maxBufferSize()
 {
-	return PACKET_MAX_SIZE_TCP * 4;
+	return PACKET_MAX_SIZE_TCP;
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacket::onReclaimObject()
+{
+	Packet::onReclaimObject();
+	data_resize(maxBufferSize());
 }
 
 //-------------------------------------------------------------------------------------
