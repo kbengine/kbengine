@@ -393,7 +393,9 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		return;
 
 	if(g_componentType == MACHINE_TYPE || 
-		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
+		g_componentType == CONSOLE_TYPE || 
+		g_componentType == MESSAGELOG_TYPE || 
+		g_componentType == CLIENT_TYPE)
 		return;
 
 	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
