@@ -60,7 +60,10 @@ class CallbackMgr
 public:
 	typedef std::map< CALLBACK_ID, std::pair< T, uint64 > > CALLBACKS;
 
-	CallbackMgr()
+	CallbackMgr():
+	cbMap_(),
+	idAlloc_(),
+	lastTimestamp_(0)
 	{
 	}
 
