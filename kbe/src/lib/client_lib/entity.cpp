@@ -80,8 +80,27 @@ Entity::~Entity()
 {
 	enterword_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
+	S_RELEASE(cellMailbox_);
+	S_RELEASE(baseMailbox_);
+
 	script::PyGC::decTracing("Entity");
+	
+	if(pClientApp_->pEntities())
+		pClientApp_->pEntities()->pGetbages()->erase(id());
+
+	Py_DECREF(pClientApp_);
 }	
+
+//-------------------------------------------------------------------------------------
+void Entity::pClientApp(ClientObjectBase* p)
+{ 
+	if(p)
+		Py_INCREF(p);
+	else
+		Py_DECREF(pClientApp_);
+
+	pClientApp_ = p; 
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()

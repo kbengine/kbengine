@@ -111,7 +111,7 @@ public:
 		pClientApp section
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
-	INLINE void pClientApp(ClientObjectBase* p);
+	void pClientApp(ClientObjectBase* p);
 	INLINE ClientObjectBase* pClientApp()const;
 	
 	const EntityAspect* getAspect()const{ return &aspect_; }

@@ -88,13 +88,6 @@ class Avatar(KBEngine.Entity,
 class PlayerAvatar(Avatar, EventHandler):
 	def __init__(self): # 这里引擎不会自动调用
 		EventHandler.__init__(self)
-		self.registerEvents()
-	
-	def registerEvents(self):
-		"""
-		注册事件监听
-		"""
-		kbesystem.eventMgr.registerEventHandler("TargetMgr.onTargetChanged", self.onTargetChanged)
 
 	def onTargetChanged(self, _preTargetID, _currTargetID):
 		"""
