@@ -927,7 +927,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
 	}
 
-	Network::Address address(addr, port);
+	Network::Address address(addr, ntohs(port));
 
 	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
 		loginName, address.c_str()));
