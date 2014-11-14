@@ -91,6 +91,11 @@ INLINE void PropertyDescription::aliasID(int16 v)
 	aliasID_ = v; 
 }
 
+INLINE const char* PropertyDescription::indexType(void)const
+{
+	return indexType_.c_str();
+}
+
 INLINE bool PropertyDescription::hasCell(void)const
 { 
 	return (flags_ & ENTITY_CELL_DATA_FLAGS) > 0; 

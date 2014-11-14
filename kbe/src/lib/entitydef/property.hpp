@@ -53,6 +53,7 @@ public:
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
+		std::string indexType,
 		uint32 databaseLength, 
 		std::string defaultStr, 
 		DETAIL_TYPE detailLevel);
@@ -100,6 +101,11 @@ public:
 	INLINE ENTITY_PROPERTY_UID getUType(void)const;
 	
 	/** 
+		获取属性索引类别
+	*/
+	INLINE const char* indexType(void)const;
+
+	/** 
 		别名id， 当暴露的方法或者广播的属性总个数小于255时
 		我们不使用utype而使用1字节的aliasID来传输
 	*/
@@ -138,6 +144,7 @@ public:
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
+		std::string indexType,
 		uint32 databaseLength,
 		std::string& defaultStr, 
 		DETAIL_TYPE detailLevel);
@@ -170,6 +177,7 @@ protected:
 	std::string					defaultValStr_;									// 这个属性的默认值
 	DETAIL_TYPE					detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
 	int16						aliasID_;										// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
+	std::string					indexType_;										// 属性的索引类别，UNIQUE, INDEX，分别对应无设置、唯一索引、普通索引
 };
 
 class FixedDictDescription : public PropertyDescription
@@ -182,6 +190,7 @@ public:
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
+		std::string indexType,
 		uint32 databaseLength, 
 		std::string defaultStr, 
 		DETAIL_TYPE detailLevel);
@@ -211,6 +220,7 @@ public:
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier,
+		std::string indexType,
 		uint32 databaseLength, 
 		std::string defaultStr, 
 		DETAIL_TYPE detailLevel);
@@ -237,6 +247,7 @@ public:
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
+		std::string indexType,
 		uint32 databaseLength, 
 		std::string defaultStr, 
 		DETAIL_TYPE detailLevel, 

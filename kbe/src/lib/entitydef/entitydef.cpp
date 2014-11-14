@@ -209,6 +209,30 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 			return false;
 		}
 		
+		// 检查索引的合法性
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP tpmaps;
+		tpmaps.insert(scriptModule->getBasePropertyDescriptions().begin(), scriptModule->getBasePropertyDescriptions().end());
+		tpmaps.insert(scriptModule->getCellPropertyDescriptions().begin(), scriptModule->getCellPropertyDescriptions().end());
+		tpmaps.insert(scriptModule->getClientPropertyDescriptions().begin(), scriptModule->getClientPropertyDescriptions().end());
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator pmiter = tpmaps.begin();
+		std::string hasUnique = "";
+		for(; pmiter != tpmaps.end(); pmiter++)
+		{
+			if(strcmp(pmiter->second->indexType(), "unique") == 0)
+			{
+				if(hasUnique.size() != 0)
+				{
+					ERROR_MSG(fmt::format("EntityDef::initialize({}):can be only one \'unique index\'({}, {})!\n", 
+						moduleName.c_str(), pmiter->second->getName(), hasUnique));
+
+					return false;
+				}
+
+				hasUnique = pmiter->second->getName();
+			}
+		}
+
 		scriptModule->onLoaded();
 	}
 	XML_FOR_END(node);
@@ -554,6 +578,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			bool						isPersistent = false;
 			bool						isIdentifier = false;													// 是否是一个索引键
 			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
+			std::string					indexType;
 			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
 			std::string					detailLevelStr = "";
 			std::string					strType;
@@ -630,6 +655,16 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					dataType = DataTypes::getDataType(strType);
 			}
 
+			TiXmlNode* indexTypeNode = xml->enterNode(defPropertyNode->FirstChild(), "Index");
+			if(indexTypeNode)
+			{
+				indexType = xml->getValStr(indexTypeNode);
+
+				std::transform(indexType.begin(), indexType.end(), 
+					indexType.begin(), tolower);				// 转换为小写
+			}
+			
+
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
 			{
@@ -698,7 +733,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			// 产生一个属性描述实例
 			PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, strType, 
 															name, flags, isPersistent, 
-															dataType, isIdentifier, 
+															dataType, isIdentifier, indexType,
 															databaseLength, defaultStr, 
 															detailLevel);
 
@@ -716,7 +751,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			if(hasClientFlags > 0)
 				ret = scriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CLIENT_TYPE);
-			
+
 			if(!ret)
 			{
 				ERROR_MSG(fmt::format("EntityDef::addPropertyDescription({}): {}.\n", 
