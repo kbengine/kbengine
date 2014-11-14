@@ -75,12 +75,6 @@ INLINE Position3D& Entity::serverPosition()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::pClientApp(ClientObjectBase* p)
-{ 
-	pClientApp_ = p; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE ClientObjectBase* Entity::pClientApp()const
 {
 	return pClientApp_;
