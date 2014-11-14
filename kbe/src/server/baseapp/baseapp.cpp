@@ -1029,7 +1029,21 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 				}
 				else
 				{
-					baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+					// 如果createBaseFromDBID类接口返回实体已经检出且在当前进程上，但是当前进程上无法找到实体时应该给出错误
+					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
+					if(wasActiveCID != g_componentID)
+					{
+						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+					}
+					else
+					{
+						ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed! A local reference, But it has been destroyed!\n",
+							entityType.c_str(), dbid));
+
+						baseRef = Py_None;
+						Py_INCREF(baseRef);
+						wasActive = false;
+					}
 				}
 			}
 			else
@@ -1038,7 +1052,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 				Py_INCREF(baseRef);
 				wasActive = false;
 
-				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed.\n",
+				ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed!\n",
 					entityType.c_str(), dbid));
 			}
 
@@ -1272,7 +1286,21 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 				}
 				else
 				{
-					baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+					// 如果createBaseFromDBID类接口返回实体已经检出且在当前进程上，但是当前进程上无法找到实体时应该给出错误
+					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
+					if(wasActiveCID != g_componentID)
+					{
+						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+					}
+					else
+					{
+						ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed! A local reference, But it has been destroyed!\n",
+							entityType.c_str(), dbid));
+
+						baseRef = Py_None;
+						Py_INCREF(baseRef);
+						wasActive = false;
+					}
 				}
 			}
 			else
