@@ -30,7 +30,7 @@ namespace KBEngine{
 #define COORDINATE_NODE_FLAG_ENTITY					0x00000001		// 一个Entity节点
 #define COORDINATE_NODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define COORDINATE_NODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
-#define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除节点
+#define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除中的节点
 #define COORDINATE_NODE_FLAG_REMOVED				0x00000010		// 删除节点
 #define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
 
