@@ -141,6 +141,7 @@ void initializeWatcher()
 	WATCH_OBJECT("db_querys/grant", &KBEngine::watcher_grant);
 }
 
+size_t DBInterfaceMysql::sql_max_allowed_packet_ = 0;
 //-------------------------------------------------------------------------------------
 DBInterfaceMysql::DBInterfaceMysql(std::string characterSet, std::string collation) :
 DBInterface(),
@@ -238,7 +239,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::checkEnvironment()
 {
-	std::string querycmd = "SHOW VARIABLES LIKE \"%lower_case_table_names%\"";
+	std::string querycmd = "SHOW VARIABLES";
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
 		ERROR_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: {}, query is error!\n", querycmd));
@@ -266,8 +267,12 @@ bool DBInterfaceMysql::checkEnvironment()
 					CRITICAL_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 0, curr={}!\n", v));
 				}
 			}
-			
-			break;
+			else if(s == "max_allowed_packet")
+			{
+				uint64 size;
+				KBEngine::StringConv::str2value(size, v.c_str());
+				sql_max_allowed_packet_ = (size_t)size;
+			}
 		}
 
 		mysql_free_result(pResult);

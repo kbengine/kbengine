@@ -169,6 +169,11 @@ public:
 		处理异常
 	*/
 	bool processException(std::exception & e);
+
+	/**
+		SQL命令最长大小
+	*/
+	static size_t sql_max_allowed_packet(){ return sql_max_allowed_packet_; }
 protected:
 	MYSQL* pMysql_;
 
@@ -180,6 +185,8 @@ protected:
 
 	std::string characterSet_;
 	std::string collation_;
+
+	static size_t sql_max_allowed_packet_;
 };
 
 
