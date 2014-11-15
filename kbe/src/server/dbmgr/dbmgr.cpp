@@ -209,7 +209,7 @@ bool Dbmgr::initializeEnd()
 	loopCheckTimerHandle_ = this->mainDispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
-	mainProcessTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	mainProcessTimer_ = this->mainDispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	// ÃÌº”globalData, baseAppData, cellAppData÷ß≥÷

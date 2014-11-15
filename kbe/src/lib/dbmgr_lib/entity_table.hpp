@@ -102,7 +102,8 @@ public:
 		pPropertyDescription_(NULL),
 		itemDBType_(itemDBType),
 		datalength_(datalength),
-		flags_(flags)
+		flags_(flags),
+		indexType_()
 	{
 	};
 
@@ -114,6 +115,11 @@ public:
 
 	void itemName(std::string name){ itemName_ = name; }
 	const char* itemName(){ return itemName_.c_str(); }
+
+	void indexType(std::string index){ indexType_ = index; }
+	const char* indexType(){ return indexType_.c_str(); }
+	
+	const char* itemDBType(){ return itemDBType_.c_str(); }
 
 	void utype(int32/*ENTITY_PROPERTY_UID*/ utype){ utype_ = utype; }
 	int32 utype(){ return utype_; }
@@ -128,6 +134,10 @@ public:
 	EntityTableItem* pParentTableItem(){ return pParentTableItem_; }
 
 	const DataType* pDataType(){ return pDataType_; }
+
+	uint32 datalength()const{ return datalength_; }
+
+	const PropertyDescription* pPropertyDescription()const{ return pPropertyDescription_; }
 
 	/**
 		初始化
@@ -167,6 +177,8 @@ protected:
 	std::string itemDBType_;
 	uint32 datalength_;
 	uint32 flags_;
+
+	std::string indexType_;
 };
 
 /*
@@ -200,6 +212,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi) = 0;
+
+	/**
+		同步entity表索引到数据库中
+	*/
+	virtual bool syncIndexToDB(DBInterface* dbi) = 0;
 
 	/** 
 		创建一个表item
@@ -243,7 +260,7 @@ protected:
 	// 所有的字段
 	TABLEITEM_MAP tableItems_;
 
-	// 和ScriptDefModule中保持一致持续的item引用
+	// 和ScriptDefModule中保持一致秩序的item引用
 	std::vector<EntityTableItem*> tableFixedOrderItems_; 
 
 	// 是否为子表

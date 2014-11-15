@@ -43,7 +43,8 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
-	
+	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
+
 	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
 						COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType);
 
@@ -64,7 +65,8 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
-	
+	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
+
 	bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
 	bool queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
 	bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
@@ -85,6 +87,7 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
 
 	virtual bool queryAccount(DBInterface * dbi, int8 type, const std::string& name, ACCOUNT_INFOS& info);
 	virtual bool logAccount(DBInterface * dbi, int8 type, const std::string& name, const std::string& datas, const std::string& code);

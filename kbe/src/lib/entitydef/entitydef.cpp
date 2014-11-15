@@ -208,30 +208,6 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 
 			return false;
 		}
-		
-		// 检查索引的合法性
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP tpmaps;
-		tpmaps.insert(scriptModule->getBasePropertyDescriptions().begin(), scriptModule->getBasePropertyDescriptions().end());
-		tpmaps.insert(scriptModule->getCellPropertyDescriptions().begin(), scriptModule->getCellPropertyDescriptions().end());
-		tpmaps.insert(scriptModule->getClientPropertyDescriptions().begin(), scriptModule->getClientPropertyDescriptions().end());
-
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator pmiter = tpmaps.begin();
-		std::string hasUnique = "";
-		for(; pmiter != tpmaps.end(); pmiter++)
-		{
-			if(strcmp(pmiter->second->indexType(), "unique") == 0)
-			{
-				if(hasUnique.size() != 0)
-				{
-					ERROR_MSG(fmt::format("EntityDef::initialize({}):can be only one \'unique index\'({}, {})!\n", 
-						moduleName.c_str(), pmiter->second->getName(), hasUnique));
-
-					return false;
-				}
-
-				hasUnique = pmiter->second->getName();
-			}
-		}
 
 		scriptModule->onLoaded();
 	}
@@ -661,7 +637,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				indexType = xml->getValStr(indexTypeNode);
 
 				std::transform(indexType.begin(), indexType.end(), 
-					indexType.begin(), tolower);				// 转换为小写
+					indexType.begin(), toupper);					// 转换为大写
 			}
 			
 
@@ -676,10 +652,10 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					isIdentifier = true;
 			}
 
-			//TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
-			if(identifierNode)
+			TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "DatabaseLength");
+			if(databaseLengthNode)
 			{
-				databaseLength = xml->getValInt(identifierNode);
+				databaseLength = xml->getValInt(databaseLengthNode);
 			}
 
 			TiXmlNode* defaultValNode = 

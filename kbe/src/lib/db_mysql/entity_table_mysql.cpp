@@ -114,6 +114,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 	// 找到所有存储属性并且创建出所有的字段
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = sm->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
+	std::string hasUnique = "";
 
 	for(; iter != pdescrsMap.end(); iter++)
 	{
@@ -200,6 +201,132 @@ void EntityTableMysql::init_db_item_name()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
+{
+	std::vector<EntityTableItem*> indexs;
+
+	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+	for(; iter != tableItems_.end(); iter++)
+	{
+		if(strlen(iter->second->indexType()) == 0)
+			continue;
+
+		indexs.push_back(iter->second.get());
+	}
+	
+	// 没有索引需要创建
+	if(indexs.size() == 0)
+		return true;
+
+	char sql_str[MAX_BUF];
+
+	kbe_snprintf(sql_str, MAX_BUF, "show index from "ENTITY_TABLE_PERFIX"_%s", 
+		tableName());
+
+	try
+	{
+		bool ret = dbi->query(sql_str, strlen(sql_str), false);
+		if(!ret)
+		{
+			return false;
+		}
+	}
+	catch(...)
+	{
+		return false;
+	}
+
+	KBEUnordered_map<std::string, std::string> getkeys;
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			std::string keytype = "UNIQUE";
+
+			if(std::string("1") == arow[1])
+				keytype = "INDEX";
+
+			std::string keyname = arow[2];
+			std::string colname = arow[4];
+
+			if(keyname == "PRIMARY" || colname != keyname)
+				continue;
+
+			getkeys[colname] = keytype;
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	bool done = false;
+	std::string sql = fmt::format("ALTER TABLE "ENTITY_TABLE_PERFIX"_{} ", tableName());
+	std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
+	for(; iiter != indexs.end(); )
+	{
+		std::string itemname = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
+		KBEUnordered_map<std::string, std::string>::iterator fiter = getkeys.find(itemname);
+		if(fiter != getkeys.end())
+		{
+			if(fiter->second != (*iiter)->indexType())
+			{
+				sql += fmt::format("DROP INDEX `{}`,", itemname);
+				done = true;
+			}
+			else
+			{
+				iiter = indexs.erase(iiter);
+				continue;
+			}
+		}
+
+		std::string lengthinfos = "";
+		if((*iiter)->type() == TABLE_ITEM_TYPE_BLOB || 
+			(*iiter)->type() == TABLE_ITEM_TYPE_STRING ||
+			 (*iiter)->type() == TABLE_ITEM_TYPE_UNICODE ||
+			 (*iiter)->type() == TABLE_ITEM_TYPE_PYTHON)
+		{
+			if((*iiter)->pPropertyDescription()->getDatabaseLength() == 0)
+			{
+				ERROR_MSG(fmt::format("EntityTableMysql::syncIndexToDB(): INDEX({}) without a key length, *.def-><{}>-><DatabaseLength> ? </DatabaseLength>", 
+					(*iiter)->itemName(), (*iiter)->itemName()));
+			}
+			else
+			{
+				lengthinfos = fmt::format("({})", (*iiter)->pPropertyDescription()->getDatabaseLength());
+			}
+		}
+
+		sql += fmt::format("ADD {} {}({}{}),", (*iiter)->indexType(), itemname, itemname, lengthinfos);
+		iiter++;
+		done = true;
+	}
+
+	sql.erase(sql.end() - 1);
+
+	// 没有需要修改或者添加的
+	if(!done)
+		return true;
+
+	try
+	{
+		bool ret = dbi->query(sql.c_str(), sql.size(), true);
+		if(!ret)
+		{
+			return false;
+		}
+	}
+	catch(...)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableMysql::syncToDB(DBInterface* dbi)
 {
 	if(hasSync())
@@ -277,6 +404,10 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 				return false;
 		}
 	}
+
+	// 同步表索引
+	if(!syncIndexToDB(dbi))
+		return false;
 
 	sync_ = true;
 	return true;
@@ -1123,6 +1254,7 @@ bool EntityTableItemMysqlBase::initialize(const PropertyDescription* pPropertyDe
 
 	pDataType_ = pDataType;
 	pPropertyDescription_ = pPropertyDescription;
+	indexType_ = pPropertyDescription->indexType();
 	return true;
 }
 

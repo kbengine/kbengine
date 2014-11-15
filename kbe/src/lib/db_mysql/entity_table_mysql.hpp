@@ -508,6 +508,11 @@ public:
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
 
+	/**
+		同步表索引
+	*/
+	virtual bool syncIndexToDB(DBInterface* dbi);
+
 	/** 
 		创建一个表item
 	*/
