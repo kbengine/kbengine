@@ -178,7 +178,7 @@ public:
 				t_parentTableDBIDs.push_back(item_dbid);
 
 				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
-				const int8 const_fields = 2; // id, parentID
+				const uint32 const_fields = 2; // id, parentID
 				if(nfields > const_fields)
 				{
 					KBE_ASSERT(nfields == context.items.size() + const_fields);
