@@ -50,7 +50,7 @@ public:
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DBInterface* dbi, DBRW_Context& context)
+	static bool queryDB(DBInterface* dbi, DBContext& context)
 	{
 		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
 			context.parentTableDBID, 
@@ -90,7 +90,7 @@ public:
 					KBE_ASSERT(nfields == context.items.size() + 1);
 					for (uint32 i = 1; i < nfields; i++)
 					{
-						KBEShared_ptr<DBRW_Context::DB_ITEM_DATA> pSotvs = context.items[i - 1];
+						KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = context.items[i - 1];
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
@@ -111,10 +111,10 @@ public:
 		std::vector<DBID>::iterator dbidIter = dbids.begin();
 		for(; dbidIter != dbids.end(); dbidIter++)
 		{
-			DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); iter1++)
 			{
-				DBRW_Context& wbox = *iter1->second.get();
+				DBContext& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = (*dbidIter);

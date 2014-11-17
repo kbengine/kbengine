@@ -103,7 +103,7 @@
     <ClInclude Include="common.hpp" />
     <ClInclude Include="db_exception.hpp" />
     <ClInclude Include="db_interface_mysql.hpp" />
-    <ClInclude Include="db_rw_context.hpp" />
+    <ClInclude Include="db_context.hpp" />
     <ClInclude Include="db_transaction.hpp" />
     <ClInclude Include="entity_sqlstatement_mapping.hpp" />
     <ClInclude Include="entity_table_mysql.hpp" />

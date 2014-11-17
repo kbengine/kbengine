@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_SQL_COMMON_HPP
 #define KBE_DB_SQL_COMMON_HPP
 
-#include "db_rw_context.hpp"
+#include "db_context.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"

@@ -48,7 +48,7 @@ public:
 
 	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
 		std::string tableName, DBID parentDBID, 
-		DBID dbid, DBRW_Context::DB_ITEM_DATAS& tableVal)
+		DBID dbid, DBContext::DB_ITEM_DATAS& tableVal)
 	{
 		SqlStatement* pSqlcmd = NULL;
 
@@ -75,7 +75,7 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DBRW_Context& context)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DBContext& context)
 	{
 		bool ret = true;
 
@@ -93,10 +93,10 @@ public:
 		if(optype == TABLE_OP_INSERT)
 		{
 			// 开始更新所有的子表
-			DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); iter1++)
 			{
-				DBRW_Context& wbox = *iter1->second.get();
+				DBContext& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = context.dbid;
@@ -115,10 +115,10 @@ public:
 
 			if(context.dbid > 0)
 			{
-				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DBRW_Context& wbox = *iter1->second.get();
+					DBContext& wbox = *iter1->second.get();
 
 					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(context.tableName);
@@ -214,10 +214,10 @@ public:
 			if(!context.isEmpty)
 			{
 				// 开始更新所有的子表
-				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DBRW_Context& wbox = *iter1->second.get();
+					DBContext& wbox = *iter1->second.get();
 					
 					if(wbox.isEmpty)
 						continue;
@@ -275,10 +275,10 @@ public:
 				bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 				KBE_ASSERT(ret);
 
-				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DBRW_Context& wbox = *iter1->second.get();
+					DBContext& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();

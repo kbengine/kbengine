@@ -29,7 +29,8 @@ namespace KBEngine {
 
 
 /**
-	描述一个实体某张表的数据，读和写都会使用到
+	读写删操作时会用到，包含取到或待写入的各种信息。
+
 	dbid：如果是主表就是实体的dbid，子表就是当前查询的dbid
 
 	dbids：主表上dbids中只有一个dbid，就是实体的id，如果实体数据存在数组类则会有子表出现，当这个数据结构描述的是一个子表的时候
@@ -51,7 +52,7 @@ namespace KBEngine {
 
 	tableName：当前表的名称
  */
-class DBRW_Context
+class DBContext
 {
 public:
 	/**
@@ -64,14 +65,14 @@ public:
 		std::string extraDatas;
 	};
 
-	typedef std::vector< std::pair< std::string/*tableName*/, KBEShared_ptr< DBRW_Context > > > DB_RW_CONTEXTS;
+	typedef std::vector< std::pair< std::string/*tableName*/, KBEShared_ptr< DBContext > > > DB_RW_CONTEXTS;
 	typedef std::vector< KBEShared_ptr<DB_ITEM_DATA>  > DB_ITEM_DATAS;
 
-	DBRW_Context()
+	DBContext()
 	{
 	}
 
-	~DBRW_Context()
+	~DBContext()
 	{
 	}
 	

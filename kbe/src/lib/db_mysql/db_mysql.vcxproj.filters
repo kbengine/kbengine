@@ -59,19 +59,19 @@
     <ClInclude Include="kbe_table_mysql.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="read_entity_helper.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="remove_entity_helper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sqlstatement.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="read_entity_helper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="write_entity_helper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="db_rw_context.hpp">
+    <ClInclude Include="db_context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
