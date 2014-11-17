@@ -219,34 +219,50 @@ protected:
 class SqlStatementQuery : public SqlStatement
 {
 public:
-	SqlStatementQuery(DBInterface* dbi, std::string tableName, DBID parentDBID, 
+	SqlStatementQuery(DBInterface* dbi, std::string tableName, const std::vector<DBID>& parentTableDBIDs, 
 		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
-	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas),
+	  SqlStatement(dbi, tableName, 0, dbid, tableItemDatas),
 	  sqlstr1_()
 	{
 
 		// select id,xxx from tbl_SpawnPoint where id=123;
-		sqlstr_ = "select ";
+		sqlstr_ = "select id,";
+		// 无论哪种情况都查询出ID字段
 		sqlstr1_ += " from "ENTITY_TABLE_PERFIX"_";
 		sqlstr1_ += tableName;
 		
 		char strdbid[MAX_BUF];
 
-		if(parentDBID <= 0)
+		if(parentTableDBIDs.size() == 0)
 		{
 			sqlstr1_ += " where id=";
 			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
+			sqlstr1_ += strdbid;
 		}
 		else
 		{
-			sqlstr1_ += " where "TABLE_PARENTID_CONST_STR"=";
-			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
-		}
-		
-		// 无论哪种情况都查询出ID字段
-		sqlstr_ += "id,";
+			sqlstr_ += TABLE_PARENTID_CONST_STR",";
 
-		sqlstr1_ += strdbid;
+			if(parentTableDBIDs.size() > 1)
+			{
+				sqlstr1_ += " where "TABLE_PARENTID_CONST_STR" in(";
+				std::vector<DBID>::const_iterator iter = parentTableDBIDs.begin();
+				for(; iter != parentTableDBIDs.end(); iter++)
+				{
+					kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID",", (*iter));
+					sqlstr1_ += strdbid;
+				}
+
+				sqlstr1_.erase(sqlstr1_.end() - 1);
+				sqlstr1_ += ")";
+			}
+			else
+			{
+				sqlstr1_ += " where "TABLE_PARENTID_CONST_STR"=";
+				kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentTableDBIDs[0]);
+				sqlstr1_ += strdbid;
+			}
+		}
 
 		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)

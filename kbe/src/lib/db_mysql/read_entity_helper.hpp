@@ -54,7 +54,7 @@ public:
 	{
 		// 根据某个dbid获得一张表上的相关数据
 		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
-			context.parentTableDBID, 
+			context.dbids[context.dbid], 
 			context.dbid, context.items);
 
 		bool ret = pSqlcmd->query();
@@ -86,8 +86,7 @@ public:
 				sval >> item_dbid;
 
 				// 将dbid记录到列表中，如果当前表还存在子表引用则会去子表查每一条与此dbid相关的记录
-				context.dbids[context.parentTableDBID > 0 ? 
-							context.parentTableDBID : context.dbid].push_back(item_dbid);
+				context.dbids[context.dbid].push_back(item_dbid);
 
 				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
 				if(nfields > 1)
@@ -107,34 +106,114 @@ public:
 			mysql_free_result(pResult);
 		}
 		
-		std::vector<DBID>& dbids = context.dbids[context.parentTableDBID > 0 ? 
-							context.parentTableDBID : context.dbid];
+		std::vector<DBID>& dbids = context.dbids[context.dbid];
 
 		// 如果没有数据则查询完毕了
 		if(dbids.size() == 0)
 			return true;
 
 		// 如果当前表存在子表引用则需要继续查询子表
-		// 每一个dbid都需要查一次
-		std::vector<DBID>::iterator dbidIter = dbids.begin();
-		for(; dbidIter != dbids.end(); dbidIter++)
-		{
-			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
-			for(; iter1 != context.optable.end(); iter1++)
-			{
-				DBContext& wbox = *iter1->second.get();
-				
-				// 绑定表关系
-				wbox.parentTableDBID = (*dbidIter);
+		// 每一个dbid都需要获得子表上的数据
+		// 在这里我们让子表一次查询出所有的dbids数据然后填充到结果集
 
-				if(!queryDB(dbi, wbox))
-					return false;
-			}
+		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		for(; iter1 != context.optable.end(); iter1++)
+		{
+			DBContext& wbox = *iter1->second.get();
+			if(!queryChildDB(dbi, wbox, dbids))
+				return false;
 		}
 
 		return ret;
 	}
 
+
+	/**
+		从子表中查询数据
+	*/
+	static bool queryChildDB(DBInterface* dbi, DBContext& context, std::vector<DBID>& parentTableDBIDs)
+	{
+		// 根据某个dbid获得一张表上的相关数据
+		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
+			parentTableDBIDs, 
+			context.dbid, context.items);
+
+		bool ret = pSqlcmd->query();
+		context.dbid = pSqlcmd->dbid();
+		delete pSqlcmd;
+		
+		if(!ret)
+			return ret;
+
+		std::vector<DBID> t_parentTableDBIDs;
+
+		// 将查询到的结果写入上下文
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+
+		if(pResult)
+		{
+			MYSQL_ROW arow;
+
+			while((arow = mysql_fetch_row(pResult)) != NULL)
+			{
+				uint32 nfields = (uint32)mysql_num_fields(pResult);
+				if(nfields <= 0)
+					continue;
+
+				unsigned long *lengths = mysql_fetch_lengths(pResult);
+
+				// 查询命令保证了查询到的每条记录都会有dbid
+				std::stringstream sval;
+				sval << arow[0];
+				DBID item_dbid;
+				sval >> item_dbid;
+
+				sval.clear();
+				sval << arow[1];
+				DBID parentID;
+				sval >> parentID;
+
+				// 将dbid记录到列表中，如果当前表还存在子表引用则会去子表查每一条与此dbid相关的记录
+				context.dbids[parentID].push_back(item_dbid);
+				t_parentTableDBIDs.push_back(item_dbid);
+
+				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
+				const int8 const_fields = 2; // id, parentID
+				if(nfields > const_fields)
+				{
+					KBE_ASSERT(nfields == context.items.size() + const_fields);
+					for (uint32 i = const_fields; i < nfields; i++)
+					{
+						KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = context.items[i - const_fields];
+						std::string data;
+						data.assign(arow[i], lengths[i]);
+
+						context.results.push_back(data);
+					}
+				}
+			}
+
+			mysql_free_result(pResult);
+		}
+
+		// 如果没有数据则查询完毕了
+		if(t_parentTableDBIDs.size() == 0)
+			return true;
+
+		// 如果当前表存在子表引用则需要继续查询子表
+		// 每一个dbid都需要获得子表上的数据
+		// 在这里我们让子表一次查询出所有的dbids数据然后填充到结果集
+		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		for(; iter1 != context.optable.end(); iter1++)
+		{
+			DBContext& wbox = *iter1->second.get();
+
+			if(!queryChildDB(dbi, wbox, t_parentTableDBIDs))
+				return false;
+		}
+
+		return ret;
+	}
 protected:
 };
 
