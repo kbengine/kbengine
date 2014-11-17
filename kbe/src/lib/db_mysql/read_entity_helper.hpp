@@ -52,6 +52,7 @@ public:
 	*/
 	static bool queryDB(DBInterface* dbi, DBContext& context)
 	{
+		// 根据某个dbid获得一张表上的相关数据
 		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
 			context.parentTableDBID, 
 			context.dbid, context.items);
@@ -63,6 +64,7 @@ public:
 		if(!ret)
 			return ret;
 
+		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 
 		if(pResult)
@@ -77,14 +79,17 @@ public:
 
 				unsigned long *lengths = mysql_fetch_lengths(pResult);
 
+				// 查询命令保证了查询到的每条记录都会有dbid
 				std::stringstream sval;
 				sval << arow[0];
 				DBID item_dbid;
-				
 				sval >> item_dbid;
+
+				// 将dbid记录到列表中，如果当前表还存在子表引用则会去子表查每一条与此dbid相关的记录
 				context.dbids[context.parentTableDBID > 0 ? 
 							context.parentTableDBID : context.dbid].push_back(item_dbid);
 
+				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
 				if(nfields > 1)
 				{
 					KBE_ASSERT(nfields == context.items.size() + 1);
@@ -105,9 +110,12 @@ public:
 		std::vector<DBID>& dbids = context.dbids[context.parentTableDBID > 0 ? 
 							context.parentTableDBID : context.dbid];
 
+		// 如果没有数据则查询完毕了
 		if(dbids.size() == 0)
 			return true;
 
+		// 如果当前表存在子表引用则需要继续查询子表
+		// 每一个dbid都需要查一次
 		std::vector<DBID>::iterator dbidIter = dbids.begin();
 		for(; dbidIter != dbids.end(); dbidIter++)
 		{
