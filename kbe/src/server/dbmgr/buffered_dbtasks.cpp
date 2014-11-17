@@ -109,7 +109,7 @@ EntityDBTask* Buffered_DBTasks::tryGetNextTask(EntityDBTask* pTask)
 
 	if(g_kbeSrvConfig.getDBMgr().debugDBMgr)
 	{
-		DEBUG_MSG(fmt::format("Buffered_DBTasks::tryGetNextTask(): finiTask(dbid={}, entityID={}\ndbidlist={}\nentityidlist={}\n", 
+		DEBUG_MSG(fmt::format("Buffered_DBTasks::tryGetNextTask(): finiTask(dbid={}, entityID={}\ndbidlist={}\nentityidlist={})\n", 
 			pTask->EntityDBTask_entityDBID(), pTask->EntityDBTask_entityID(), printBuffered_dbid_(), printBuffered_entityID_())); 
 	}
 
