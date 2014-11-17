@@ -46,19 +46,19 @@ public:
 	{
 	}
 
-	static bool removeDB(DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool removeDB(DBInterface* dbi, DBRW_Context& context)
 	{
-		bool ret = _removeDB(dbi, opTableItemDataBox);
+		bool ret = _removeDB(dbi, context);
 
 		if(!ret)
 			return false;
 
 		std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
-		sqlstr += opTableItemDataBox.tableName;
+		sqlstr += context.tableName;
 		sqlstr += " where "TABLE_ID_CONST_STR"=";
 
 		char sqlstr1[MAX_BUF];
-		kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, opTableItemDataBox.dbid);
+		kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, context.dbid);
 		sqlstr += sqlstr1;
 		
 		ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
@@ -67,19 +67,19 @@ public:
 		return ret;
 	}
 
-	static bool _removeDB(DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool _removeDB(DBInterface* dbi, DBRW_Context& context)
 	{
 		bool ret = true;
 
 		KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
-		DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-		for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+		DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		for(; iter1 != context.optable.end(); iter1++)
 		{
-			DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+			DBRW_Context& wbox = *iter1->second.get();
 
 			KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
-				childTableDBIDs.find(opTableItemDataBox.tableName);
+				childTableDBIDs.find(context.tableName);
 
 			if(iter == childTableDBIDs.end())
 			{
@@ -97,13 +97,13 @@ public:
 				char sqlstr[MAX_BUF * 10];
 				kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
 					tabiter->first.c_str(),
-					opTableItemDataBox.dbid);
+					context.dbid);
 				
 				sqlstr_getids += sqlstr;
 
 				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 					tabiter->first.c_str(),
-					opTableItemDataBox.dbid);
+					context.dbid);
 
 				sqlstr_getids += sqlstr;
 				if(++tabiter != childTableDBIDs.end())
@@ -147,7 +147,7 @@ public:
 				char sqlstr[MAX_BUF * 10];
 				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 					tabiter->first.c_str(),
-					opTableItemDataBox.dbid);
+					context.dbid);
 
 				if(dbi->query(sqlstr, strlen(sqlstr), false))
 				{
@@ -195,10 +195,10 @@ public:
 			bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 			KBE_ASSERT(ret);
 
-			DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-			for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+			DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			for(; iter1 != context.optable.end(); iter1++)
 			{
-				DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+				DBRW_Context& wbox = *iter1->second.get();
 				if(wbox.tableName == tabiter->first)
 				{
 					std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -206,7 +206,7 @@ public:
 					{
 						DBID dbid = (*iter);
 						
-						wbox.parentTableDBID = opTableItemDataBox.dbid;
+						wbox.parentTableDBID = context.dbid;
 						wbox.dbid = dbid;
 						wbox.isEmpty = true;
 

@@ -50,14 +50,14 @@ public:
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool queryDB(DBInterface* dbi, DBRW_Context& context)
 	{
-		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, opTableItemDataBox.tableName, 
-			opTableItemDataBox.parentTableDBID, 
-			opTableItemDataBox.dbid, opTableItemDataBox.items);
+		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
+			context.parentTableDBID, 
+			context.dbid, context.items);
 
 		bool ret = pSqlcmd->query();
-		opTableItemDataBox.dbid = pSqlcmd->dbid();
+		context.dbid = pSqlcmd->dbid();
 		delete pSqlcmd;
 		
 		if(!ret)
@@ -82,19 +82,19 @@ public:
 				DBID item_dbid;
 				
 				sval >> item_dbid;
-				opTableItemDataBox.dbids[opTableItemDataBox.parentTableDBID > 0 ? 
-							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid].push_back(item_dbid);
+				context.dbids[context.parentTableDBID > 0 ? 
+							context.parentTableDBID : context.dbid].push_back(item_dbid);
 
 				if(nfields > 1)
 				{
-					KBE_ASSERT(nfields == opTableItemDataBox.items.size() + 1);
+					KBE_ASSERT(nfields == context.items.size() + 1);
 					for (uint32 i = 1; i < nfields; i++)
 					{
-						KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = opTableItemDataBox.items[i - 1];
+						KBEShared_ptr<DBRW_Context::DB_ITEM_DATA> pSotvs = context.items[i - 1];
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
-						opTableItemDataBox.results.push_back(data);
+						context.results.push_back(data);
 					}
 				}
 			}
@@ -102,8 +102,8 @@ public:
 			mysql_free_result(pResult);
 		}
 		
-		std::vector<DBID>& dbids = opTableItemDataBox.dbids[opTableItemDataBox.parentTableDBID > 0 ? 
-							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid];
+		std::vector<DBID>& dbids = context.dbids[context.parentTableDBID > 0 ? 
+							context.parentTableDBID : context.dbid];
 
 		if(dbids.size() == 0)
 			return true;
@@ -111,10 +111,10 @@ public:
 		std::vector<DBID>::iterator dbidIter = dbids.begin();
 		for(; dbidIter != dbids.end(); dbidIter++)
 		{
-			DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-			for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+			DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			for(; iter1 != context.optable.end(); iter1++)
 			{
-				DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+				DBRW_Context& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = (*dbidIter);

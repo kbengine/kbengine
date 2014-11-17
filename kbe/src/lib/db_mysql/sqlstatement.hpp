@@ -38,7 +38,7 @@ class SqlStatement
 {
 public:
 	SqlStatement(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, 
-		DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBRW_Context::DB_ITEM_DATAS& tableItemDatas):
 	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
@@ -75,7 +75,7 @@ public:
 
 	DBID dbid()const{ return dbid_; }
 protected:
-	DB_OP_TABLE_ITEM_DATAS& tableItemDatas_;
+	DBRW_Context::DB_ITEM_DATAS& tableItemDatas_;
 	std::string sqlstr_;
 	std::string tableName_;
 	DBID dbid_;
@@ -87,7 +87,7 @@ class SqlStatementInsert : public SqlStatement
 {
 public:
 	SqlStatementInsert(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBID dbid, DBRW_Context::DB_ITEM_DATAS& tableItemDatas):
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
@@ -107,10 +107,10 @@ public:
 			sqlstr1_ += ",";
 		}
 
-		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DBRW_Context::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DBRW_Context::DB_ITEM_DATA> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -170,7 +170,7 @@ class SqlStatementUpdate : public SqlStatement
 {
 public:
 	SqlStatementUpdate(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBID dbid, DBRW_Context::DB_ITEM_DATAS& tableItemDatas):
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		if(tableItemDatas.size() == 0)
@@ -184,10 +184,10 @@ public:
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
-		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DBRW_Context::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DBRW_Context::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -220,7 +220,7 @@ class SqlStatementQuery : public SqlStatement
 {
 public:
 	SqlStatementQuery(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBID dbid, DBRW_Context::DB_ITEM_DATAS& tableItemDatas):
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas),
 	  sqlstr1_()
 	{
@@ -248,10 +248,10 @@ public:
 
 		sqlstr1_ += strdbid;
 
-		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DBRW_Context::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DBRW_Context::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += ",";

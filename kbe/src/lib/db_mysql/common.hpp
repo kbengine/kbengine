@@ -21,73 +21,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_SQL_COMMON_HPP
 #define KBE_DB_SQL_COMMON_HPP
 
-// common include	
-// #define NDEBUG
+#include "db_rw_context.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine{ 
 
-/**
-	db操作数据结构
-*/
-struct DB_OP_TABLE_ITEM_DATA;
-
-/**
-	存储所有要操作的表item结构
-*/
-typedef std::vector< KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>  > DB_OP_TABLE_ITEM_DATAS;
-
-/**
-	存储要操作的表的所有内容
-*/
-struct DB_OP_TABLE_ITEM_DATA_BOX;
-
-/**
-	所有要操作的表数据结构
-*/
-typedef std::vector< std::pair< std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > > > DB_OP_TABLE_DATAS;
-
-struct DB_OP_TABLE_ITEM_DATA
-{
-	char sqlval[MAX_BUF];
-	const char* sqlkey;
-	std::string extraDatas;
-};
-
-/**
-	描述一个实体某张表的数据，读和写都会使用到
-	dbid：如果是主表就是实体的dbid，子表就是当前查询的dbid
-
-	dbids：主表上dbids中只有一个dbid，就是实体的id，如果实体数据存在数组类则会有子表出现，当这个数据结构描述的是一个子表的时候
-		dbids是这个数组的子表索引, 每个dbid都表示这个子表上对应的值并且按照排列顺序同时也表示在数组中对应位置的值。
-
-	items：中有这个表的字段信息，如果是写库则字段中也有对应的要写值。
-
-	optable：子表结构
-
-	results：读操作时查询到的数据, 数据的排列对应items中的strkey的数量乘以dbids的数量。
-	readresultIdx：因为results中的数量是dbids * items，所以当在某些递归读的时候填充数据会根据这个readresultIdx计算填充的位置。
-
-	parentTableDBID：父表的dbid
-	parentTableName：父表的名称
-
-	tableName：当前表的名称
-*/
-struct DB_OP_TABLE_ITEM_DATA_BOX
-{
-	DB_OP_TABLE_ITEM_DATAS items;
-	std::string tableName;
-	std::string parentTableName;
-	DBID parentTableDBID;
-	DBID dbid;
-	DB_OP_TABLE_DATAS optable;
-	bool isEmpty;
-	std::map<DBID, std::vector<DBID> > dbids;
-	std::vector< std::string >results;
-	std::vector< std::string >::size_type readresultIdx;
-};
 
 }
 #endif // KBE_DB_SQL_COMMON_HPP

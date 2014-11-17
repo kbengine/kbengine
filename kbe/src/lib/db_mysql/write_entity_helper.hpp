@@ -48,7 +48,7 @@ public:
 
 	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
 		std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableVal)
+		DBID dbid, DBRW_Context::DB_ITEM_DATAS& tableVal)
 	{
 		SqlStatement* pSqlcmd = NULL;
 
@@ -75,31 +75,31 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DBRW_Context& context)
 	{
 		bool ret = true;
 
-		if(!opTableItemDataBox.isEmpty)
+		if(!context.isEmpty)
 		{
-			SqlStatement* pSqlcmd = createSql(dbi, optype, opTableItemDataBox.tableName, 
-				opTableItemDataBox.parentTableDBID, 
-				opTableItemDataBox.dbid, opTableItemDataBox.items);
+			SqlStatement* pSqlcmd = createSql(dbi, optype, context.tableName, 
+				context.parentTableDBID, 
+				context.dbid, context.items);
 
 			ret = pSqlcmd->query();
-			opTableItemDataBox.dbid = pSqlcmd->dbid();
+			context.dbid = pSqlcmd->dbid();
 			delete pSqlcmd;
 		}
 
 		if(optype == TABLE_OP_INSERT)
 		{
 			// 开始更新所有的子表
-			DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-			for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+			DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			for(; iter1 != context.optable.end(); iter1++)
 			{
-				DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+				DBRW_Context& wbox = *iter1->second.get();
 				
 				// 绑定表关系
-				wbox.parentTableDBID = opTableItemDataBox.dbid;
+				wbox.parentTableDBID = context.dbid;
 
 				// 更新子表
 				writeDB(optype, dbi, wbox);
@@ -113,15 +113,15 @@ public:
 			// select id from tbl_SpawnPoint_xxx_values where parentID = 7;
 			KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
-			if(opTableItemDataBox.dbid > 0)
+			if(context.dbid > 0)
 			{
-				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DBRW_Context& wbox = *iter1->second.get();
 
 					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
-						childTableDBIDs.find(opTableItemDataBox.tableName);
+						childTableDBIDs.find(context.tableName);
 
 					if(iter == childTableDBIDs.end())
 					{
@@ -139,13 +139,13 @@ public:
 						char sqlstr[MAX_BUF * 10];
 						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
 							tabiter->first.c_str(),
-							opTableItemDataBox.dbid);
+							context.dbid);
 						
 						sqlstr_getids += sqlstr;
 
 						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 							tabiter->first.c_str(),
-							opTableItemDataBox.dbid);
+							context.dbid);
 
 						sqlstr_getids += sqlstr;
 						if(++tabiter != childTableDBIDs.end())
@@ -189,7 +189,7 @@ public:
 						char sqlstr[MAX_BUF * 10];
 						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 							tabiter->first.c_str(),
-							opTableItemDataBox.dbid);
+							context.dbid);
 
 						if(dbi->query(sqlstr, strlen(sqlstr), false))
 						{
@@ -211,19 +211,19 @@ public:
 			}
 
 			// 如果是要清空此表， 则循环N次已经找到的dbid， 使其子表中的子表也能有效删除
-			if(!opTableItemDataBox.isEmpty)
+			if(!context.isEmpty)
 			{
 				// 开始更新所有的子表
-				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DBRW_Context& wbox = *iter1->second.get();
 					
 					if(wbox.isEmpty)
 						continue;
 
 					// 绑定表关系
-					wbox.parentTableDBID = opTableItemDataBox.dbid;
+					wbox.parentTableDBID = context.dbid;
 
 					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(wbox.tableName);
@@ -275,10 +275,10 @@ public:
 				bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 				KBE_ASSERT(ret);
 
-				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
-				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+				DBRW_Context::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				for(; iter1 != context.optable.end(); iter1++)
 				{
-					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DBRW_Context& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -286,7 +286,7 @@ public:
 						{
 							DBID dbid = (*iter);
 							
-							wbox.parentTableDBID = opTableItemDataBox.dbid;
+							wbox.parentTableDBID = context.dbid;
 							wbox.dbid = dbid;
 							wbox.isEmpty = true;
 
