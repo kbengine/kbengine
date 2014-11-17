@@ -80,7 +80,6 @@ public:
 	std::string tableName;
 	std::string parentTableName;
 	DBID parentTableDBID;
-	std::vector<DBID> parentTableDBIDs;
 	DBID dbid;
 	DB_RW_CONTEXTS optable;
 	bool isEmpty;
