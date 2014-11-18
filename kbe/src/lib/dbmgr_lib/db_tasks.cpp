@@ -41,7 +41,7 @@ bool DBTaskBase::process()
 	}
 
 	duration = timestamp() - startTime;
-	if (duration > stampsPerSecond())
+	if (duration > stampsPerSecond() * 0.2f)
 	{
 		WARNING_MSG(fmt::format("DBTask::process(): took {:.2f} seconds\nsql:({})\n", 
 			(double(duration)/stampsPerSecondD()), pdbi_->lastquery()));
