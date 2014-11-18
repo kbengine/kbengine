@@ -106,7 +106,7 @@ void DBTransaction::commit()
 	uint64 startTime = timestamp();
 	dbi_->query(SQL_COMMIT, false);
 
-	uint64 duration = startTime - startTime;
+	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)
 	{
 		WARNING_MSG(fmt::format("DBTransaction::commit(): took {:.2f} seconds\n", 
