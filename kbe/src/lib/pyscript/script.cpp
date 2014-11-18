@@ -88,6 +88,7 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 
 	if(retBufferPtr != NULL)
 	{
+		DebugHelper::getSingleton().resetScriptMsgType();
 		if(!pyStdouterrHook_->install()){												
 			ERROR_MSG("Script::Run_SimpleString: pyStdouterrHook_->install() is failed!\n");
 			SCRIPT_ERROR_CHECK();

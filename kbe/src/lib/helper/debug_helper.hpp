@@ -148,6 +148,7 @@ public:
 	void clearBufferedLog(bool destroy = false);
 
 	void setScriptMsgType(int msgtype);
+	void resetScriptMsgType();
 
 	void shouldWriteToSyslog(bool v = true);
 

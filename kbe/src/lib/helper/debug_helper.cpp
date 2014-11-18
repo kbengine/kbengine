@@ -540,6 +540,12 @@ void DebugHelper::setScriptMsgType(int msgtype)
 }
 
 //-------------------------------------------------------------------------------------
+void DebugHelper::resetScriptMsgType()
+{
+	setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_INFO);
+}
+
+//-------------------------------------------------------------------------------------
 void DebugHelper::debug_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
