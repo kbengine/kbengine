@@ -210,8 +210,8 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 		}
 
-		// 关闭自动提交
-		mysql_autocommit(mysql(), 0);
+		// 不需要关闭自动提交，底层会START TRANSACTION之后再COMMIT
+		// mysql_autocommit(mysql(), 0);
 
 		char characterset_sql[MAX_BUF];
 		kbe_snprintf(characterset_sql, MAX_BUF, "ALTER DATABASE CHARACTER SET %s COLLATE %s", 
