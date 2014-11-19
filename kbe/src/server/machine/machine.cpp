@@ -89,8 +89,14 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 	if(ep_.addr().ip == intaddr || this->networkInterface().intaddr().ip == intaddr ||
 				this->networkInterface().extaddr().ip == intaddr)
 	{
-		if(Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
+		const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
+		if(pinfos && checkComponentUsable(pinfos))
+		{
+			WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
+
 			return;
+		}
 
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
