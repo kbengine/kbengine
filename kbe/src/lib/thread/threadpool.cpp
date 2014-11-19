@@ -315,7 +315,7 @@ void ThreadPool::addFiniTask(TPTask* tptask)
 bool ThreadPool::createThreadPool(uint32 inewThreadCount, 
 	uint32 inormalMaxThreadCount, uint32 imaxThreadCount)
 {
-	assert(!isInitialize_ && "ThreadPool is exist!");
+	assert(!isInitialize_);
 	INFO_MSG("ThreadPool::createThreadPool: creating  threadpool...\n");
 	
 	extraNewAddThreadCount_ = inewThreadCount;
@@ -328,13 +328,14 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 		
 		if(!tptd)
 		{
-			ERROR_MSG("ThreadPool::createThreadPool: create thread is error! \n");
+			ERROR_MSG("ThreadPool::createThreadPool: create is error! \n");
+			return false;
 		}
 
 		currentFreeThreadCount_++;	
 		currentThreadCount_++;
 		freeThreadList_.push_back(tptd);										// 闲置的线程列表
-		allThreadList_.push_back(tptd);										// 所有的线程列表
+		allThreadList_.push_back(tptd);											// 所有的线程列表
 	}
 	
 	INFO_MSG(fmt::format("ThreadPool::createThreadPool: successfully({0}), "
@@ -343,18 +344,22 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 
 	isInitialize_ = true;
 	KBEngine::sleep(100);
-
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void ThreadPool::onMainThreadTick()
 {
+	std::vector<TPTask*> finitasks;
+
 	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
+	std::copy(finiTaskList_.begin(), finiTaskList_.end(), std::back_inserter(finitasks));   
+	finiTaskList_.clear();
+	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 
-	std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
+	std::vector<TPTask*>::iterator finiiter  = finitasks.begin();
 
-	for(; finiiter != finiTaskList_.end(); )
+	for(; finiiter != finitasks.end(); )
 	{
 		thread::TPTask::TPTaskState state = (*finiiter)->presentMainThread();
 
@@ -362,15 +367,18 @@ void ThreadPool::onMainThreadTick()
 		{
 		case thread::TPTask::TPTASK_STATE_COMPLETED:
 			delete (*finiiter);
-			finiTaskList_.erase(finiiter++);
+			finiiter = finitasks.erase(finiiter);
 			--finiTaskList_count_;
 			break;
 		case thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD:
 			this->addTask((*finiiter));
-			finiTaskList_.erase(finiiter++);
+			finiiter = finitasks.erase(finiiter);
 			--finiTaskList_count_;
 			break;
 		case thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD:
+			THREAD_MUTEX_LOCK(finiTaskList_mutex_);
+			finiTaskList_.push_back((*finiiter));
+			THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 			++finiiter;
 			break;
 		default:
@@ -378,8 +386,6 @@ void ThreadPool::onMainThreadTick()
 			break;
 		};
 	}
-
-	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 }
 
 //-------------------------------------------------------------------------------------
