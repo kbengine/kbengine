@@ -353,6 +353,13 @@ void ThreadPool::onMainThreadTick()
 	std::vector<TPTask*> finitasks;
 
 	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
+
+	if(finiTaskList_.size() == 0)
+	{
+		THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
+		return;
+	}
+
 	std::copy(finiTaskList_.begin(), finiTaskList_.end(), std::back_inserter(finitasks));   
 	finiTaskList_.clear();
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
