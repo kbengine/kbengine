@@ -313,7 +313,8 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 	}
 	else if(pInfos->componentType == DBMGR_TYPE)
 	{
-		this->shutDown(0.f);
+		if(g_componentType != MACHINE_TYPE)
+			this->shutDown(0.f);
 	}
 }
 
