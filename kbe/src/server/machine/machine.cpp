@@ -90,12 +90,17 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				this->networkInterface().extaddr().ip == intaddr)
 	{
 		const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
-		if(pinfos && checkComponentUsable(pinfos))
+		if(pinfos)
 		{
-			WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
-				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
+			if(checkComponentUsable(pinfos))
+			{
+				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
+					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
 
-			return;
+				return;
+			}
+
+			Components::getSingleton().delComponent(uid, (COMPONENT_TYPE)componentType, componentID);
 		}
 
 		// 一台硬件上只能存在一个machine
