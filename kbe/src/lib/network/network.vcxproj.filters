@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{38d92805-7031-4d39-bca9-62d0c8044de2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="address.cpp">
@@ -199,22 +202,54 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="broadcast_handler.ipp" />
-    <None Include="bundle.ipp" />
-    <None Include="bundle_broadcast.ipp" />
-    <None Include="channel.ipp" />
-    <None Include="endpoint.ipp" />
-    <None Include="error_reporter.ipp" />
-    <None Include="event_dispatcher.ipp" />
-    <None Include="listener_receiver.ipp" />
-    <None Include="network_interface.ipp" />
-    <None Include="packet_filter.ipp" />
-    <None Include="packet_receiver.ipp" />
-    <None Include="packet_sender.ipp" />
     <None Include="ReadMe.txt" />
-    <None Include="tcp_packet.ipp" />
-    <None Include="tcp_packet_receiver.ipp" />
-    <None Include="udp_packet.ipp" />
-    <None Include="udp_packet_receiver.ipp" />
+    <None Include="broadcast_handler.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="packet_sender.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="bundle.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="bundle_broadcast.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="channel.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="endpoint.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="error_reporter.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="event_dispatcher.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="listener_receiver.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="network_interface.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="packet_filter.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="packet_receiver.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="udp_packet_receiver.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet_receiver.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="udp_packet.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

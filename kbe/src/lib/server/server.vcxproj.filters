@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{505216b9-56fe-43c1-bc30-f6eb80e2d574}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.cpp">
@@ -140,8 +143,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="serverconfig.ipp" />
-    <None Include="telnet_handler.ipp" />
-    <None Include="telnet_server.ipp" />
+    <None Include="serverconfig.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="telnet_handler.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="telnet_server.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

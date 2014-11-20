@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{aa7ccc62-13d2-4b8e-97b2-f53fdded3d4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="blob.cpp">
@@ -118,12 +121,24 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="datatype.ipp" />
-    <None Include="entitydef.ipp" />
-    <None Include="entitymailboxabstract.ipp" />
-    <None Include="method.ipp" />
-    <None Include="property.ipp" />
     <None Include="ReadMe.txt" />
-    <None Include="scriptdef_module.ipp" />
+    <None Include="datatype.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entitydef.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entitymailboxabstract.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="method.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="property.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptdef_module.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

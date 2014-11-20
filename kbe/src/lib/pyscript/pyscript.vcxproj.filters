@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{72fe3476-497e-4516-a7c3-f3228cab1277}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="copy.cpp">
@@ -145,14 +148,30 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="map.ipp" />
-    <None Include="py_memorystream.ipp" />
-    <None Include="pywatcher.ipp" />
     <None Include="ReadMe.txt" />
-    <None Include="script.ipp" />
-    <None Include="scriptobject.ipp" />
-    <None Include="scriptstdouterr.ipp" />
-    <None Include="scriptstdouterrhook.ipp" />
-    <None Include="sequence.ipp" />
+    <None Include="map.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="py_memorystream.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="pywatcher.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="script.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptobject.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptstdouterr.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptstdouterrhook.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="sequence.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

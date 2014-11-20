@@ -13,6 +13,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{2a6ae82d-abe8-4d88-84b8-7c9be9be8cf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="archiver.cpp">
@@ -136,8 +139,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="base.ipp" />
-    <None Include="proxy.ipp" />
     <None Include="ReadMe.txt" />
+    <None Include="base.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="proxy.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

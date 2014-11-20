@@ -13,6 +13,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{16d8bce0-0c76-4408-b4f1-6945aac2312a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="all_clients.cpp">
@@ -259,14 +262,30 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="aoi_trigger.ipp" />
-    <None Include="coordinate_node.ipp" />
-    <None Include="coordinate_system.ipp" />
-    <None Include="entity.ipp" />
-    <None Include="range_trigger.ipp" />
-    <None Include="range_trigger_node.ipp" />
     <None Include="ReadMe.txt" />
-    <None Include="trap_trigger.ipp" />
-    <None Include="witness.ipp" />
+    <None Include="aoi_trigger.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="range_trigger_node.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="coordinate_node.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="coordinate_system.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entity.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="range_trigger.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="trap_trigger.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="witness.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

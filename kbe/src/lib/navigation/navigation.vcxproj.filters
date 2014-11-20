@@ -9,6 +9,9 @@
       <UniqueIdentifier>{94f20712-cda3-4bb2-8f14-2f2c9bd55e08}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{7b994aff-b075-43bc-9b13-48bdce9a3d79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DetourAlloc.cpp">

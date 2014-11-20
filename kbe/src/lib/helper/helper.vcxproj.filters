@@ -16,6 +16,9 @@
     <Filter Include="sigar">
       <UniqueIdentifier>{b512776c-356f-4bab-8822-c8bc9934c2ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{c506e687-b13a-4332-bbed-e565a3e4b788}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="crashhandler.cpp">
@@ -163,9 +166,15 @@
     <None Include="..\dependencies\sigar\win32\sigar_version.c.in">
       <Filter>sigar</Filter>
     </None>
-    <None Include="profile.ipp" />
-    <None Include="profiler.ipp" />
     <None Include="ReadMe.txt" />
-    <None Include="sys_info.ipp" />
+    <None Include="profile.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="profiler.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="sys_info.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
