@@ -97,19 +97,19 @@ public:
 
 	/**
 		获得引擎系统级资源目录
-		kbe/res/*
+		kbe\\res\\*
 	*/
 	std::string getPySysResPath();
 
 	/**
 		获得用户级资源目录
-		demo/res/*
+		demo\\res\\*
 	*/
 	std::string getPyUserResPath();
 
 	/**
 		获得用户级脚本目录
-		demo/scripts/*
+		dem\\scripts\\*
 	*/
 	std::string getPyUserScriptsPath();
 
