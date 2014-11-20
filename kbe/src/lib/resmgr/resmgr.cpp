@@ -502,9 +502,17 @@ std::string Resmgr::getPyUserScriptsPath()
 
 	if(path == "")
 	{
-		path = matchRes("entities.xml");
+		std::string entitiesxml = "entities.xml";
+		path = matchRes(entitiesxml);
+
+		if(path == entitiesxml)
+		{
+			entitiesxml = "scripts/" + entitiesxml;
+			path = matchRes(entitiesxml);
+		}
+
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(path, "entities.xml");
+		tmpvec = KBEngine::strutil::kbe_splits(path, entitiesxml);
 		if(tmpvec.size() > 1)
 		{
 			path = tmpvec[0];
