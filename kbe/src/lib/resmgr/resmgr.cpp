@@ -509,7 +509,9 @@ std::string Resmgr::getPyUserScriptsPath()
 		{
 			entitiesxml = "scripts/" + entitiesxml;
 			path = matchRes(entitiesxml);
+			entitiesxml = "entities.xml";
 		}
+
 
 		std::vector<std::string> tmpvec;
 		tmpvec = KBEngine::strutil::kbe_splits(path, entitiesxml);
