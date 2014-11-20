@@ -174,7 +174,7 @@ bool ClientApp::installEntityDef()
 		return false;
 
 	// 初始化所有扩展模块
-	// demo/res/scripts/
+	// demo/scripts/
 	if(!EntityDef::initialize(scriptBaseTypes_, g_componentType)){
 		return false;
 	}

@@ -328,7 +328,7 @@ bool EntityApp<E>::installEntityDef()
 		return false;
 
 	// 初始化所有扩展模块
-	// demo/res/scripts/
+	// demo/scripts/
 	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
 		return false;
 	}
@@ -363,17 +363,18 @@ bool EntityApp<E>::installPyScript()
 {
 	if(Resmgr::getSingleton().respaths().size() <= 0 || 
 		Resmgr::getSingleton().getPyUserResPath().size() == 0 || 
-		Resmgr::getSingleton().getPySysResPath().size() == 0)
+		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
+		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
 		KBE_ASSERT(false && "EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
-	std::wstring user_res_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserResPath().c_str()));
+	std::wstring user_scripts_path = L"";
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPyUserScriptsPath().c_str()));
 	if(tbuf != NULL)
 	{
-		user_res_path += tbuf;
+		user_scripts_path += tbuf;
 		free(tbuf);
 	}
 	else
@@ -382,26 +383,26 @@ bool EntityApp<E>::installPyScript()
 		return false;
 	}
 
-	std::wstring pyPaths = user_res_path + L"scripts/common;";
-	pyPaths += user_res_path + L"scripts/data;";
-	pyPaths += user_res_path + L"scripts/user_type;";
+	std::wstring pyPaths = user_scripts_path + L"common;";
+	pyPaths += user_scripts_path + L"data;";
+	pyPaths += user_scripts_path + L"user_type;";
 
 	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
-		pyPaths += user_res_path + L"scripts/server_common;";
-		pyPaths += user_res_path + L"scripts/base;";
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"base;";
 		break;
 	case CELLAPP_TYPE:
-		pyPaths += user_res_path + L"scripts/server_common;";
-		pyPaths += user_res_path + L"scripts/cell;";
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"cell;";
 		break;
 	case DBMGR_TYPE:
-		pyPaths += user_res_path + L"scripts/server_common;";
-		pyPaths += user_res_path + L"scripts/db;";
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"db;";
 		break;
 	default:
-		pyPaths += user_res_path + L"scripts/client;";
+		pyPaths += user_scripts_path + L"client;";
 		break;
 	};
 	

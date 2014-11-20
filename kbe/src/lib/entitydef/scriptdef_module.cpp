@@ -335,7 +335,8 @@ void ScriptDefModule::autoMatchCompOwn()
 			entities.xml， <Spaces hasCell="true" hasClient="false", hasBase="true"></Spaces>
 	*/
 
-	std::string entitiesFile = Resmgr::getSingleton().matchRes("scripts/entities.xml");
+	std::string entitiesFile = Resmgr::getSingleton().getPyUserScriptsPath() + "entities.xml";
+
 	// 打开这个entities.xml文件
 	SmartPointer<XmlPlus> xml(new XmlPlus());
 	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)

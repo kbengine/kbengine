@@ -1,0 +1,94 @@
+<root>
+	<OBJECT_ID>			INT32		</OBJECT_ID>
+	<BOOL>				UINT8		</BOOL>
+	<CONTROLLER_ID>		INT32		</CONTROLLER_ID>
+	<EXPERIENCE>		INT32		</EXPERIENCE>
+	<ITEM_ID>			INT32		</ITEM_ID>
+	<SKILLID>			INT32		</SKILLID>
+	<QUESTID>			INT32		</QUESTID>
+	<DBID>				UINT64		</DBID>
+	<UID>				INT64		</UID>
+	<UID1>				PYTHON		</UID1>	
+	<ENTITY_ID>			INT32		</ENTITY_ID>
+	<ENTITY_NO>			UINT32		</ENTITY_NO>
+	<SPACE_ID>			UINT32		</SPACE_ID>
+	<POSITION3D>		VECTOR3		</POSITION3D>
+	<DIRECTION3D>		VECTOR3		</DIRECTION3D>
+	<ENTITY_UTYPE>		UINT32		</ENTITY_UTYPE>
+	
+	<DAMAGE_TYPE>		INT32		</DAMAGE_TYPE>
+	<ENMITY>			DAMAGE_TYPE	 </ENMITY>
+	<HP>				INT32		</HP>
+	<MP>				INT32		</MP>
+	
+	<ENTITY_STATE> INT8		</ENTITY_STATE>
+	<ENTITY_SUBSTATE> UINT8	</ENTITY_SUBSTATE>
+	<ENTITY_FORBIDS> INT32	</ENTITY_FORBIDS>
+	<ENTITY_FORBID_COUNTER> ARRAY <of> INT8 </of>	</ENTITY_FORBID_COUNTER>
+	
+	<ENTITYID_LIST> ARRAY <of> ENTITY_ID </of>	</ENTITYID_LIST>
+	
+	<AVATAR_DATA>	FIXED_DICT
+		<implementedBy>AVATAR_DATA.inst</implementedBy>
+		<Properties>
+			<param1>
+				<Type>	INT8	</Type>
+			</param1>
+			<param2>
+				<Type>	BLOB	</Type>
+			</param2>
+		</Properties>
+	</AVATAR_DATA>	
+	
+	<AVATAR_INFOS>	FIXED_DICT
+		<implementedBy>AVATAR_INFOS.avatar_info_inst</implementedBy>
+		<Properties>
+			<dbid>
+				<Type>	DBID	</Type>
+			</dbid>
+			<name>
+				<Type>	UNICODE	</Type>
+			</name>
+			<roleType>
+				<Type>	UINT8	</Type>
+			</roleType>
+			<level>
+				<Type>	UINT16	</Type>
+			</level>
+			<data>
+				<Type>	AVATAR_DATA	</Type>
+			</data>
+		</Properties>
+	</AVATAR_INFOS>	
+	
+	<AVATAR_INFOS_LIST>	FIXED_DICT
+		<implementedBy>AVATAR_INFOS.avatar_info_list_inst</implementedBy>
+		<Properties>
+			<values>
+				<Type>	ARRAY <of> AVATAR_INFOS </of>	</Type>
+			</values>
+		</Properties>
+	</AVATAR_INFOS_LIST>	
+	
+	<BAG>	FIXED_DICT
+		<Properties>
+			<values22>
+				<Type>	ARRAY <of> ARRAY <of>INT64 </of></of>	</Type>
+			</values22>
+		</Properties>
+	</BAG>	
+	
+	<EXAMPLES>	FIXED_DICT
+		<Properties>
+			<k1>
+				<Persistent>	false	</Persistent>
+				<Type>	INT64	</Type>
+			</k1>
+			
+			<k2>
+				<Type>	INT64	</Type>
+			</k2>
+		</Properties>
+	</EXAMPLES>	
+	
+</root>

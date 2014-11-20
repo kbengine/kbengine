@@ -144,7 +144,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	__loadComponentType = loadComponentType;
 	__scriptBaseTypes = scriptBaseTypes;
 
-	__entitiesPath = Resmgr::getSingleton().getPyUserResPath() + "scripts/";
+	__entitiesPath = Resmgr::getSingleton().getPyUserScriptsPath();
 
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
@@ -160,7 +160,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 初始化数据类别
-	// demo/res/scripts/entity_defs/alias.xml
+	// demo/scripts/entity_defs/alias.xml
 	if(!DataTypes::initialize(defFilePath + "alias.xml"))
 		return false;
 
