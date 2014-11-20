@@ -65,43 +65,13 @@ MSG_FILE := make$(MAKELEVEL)_$(shell echo $$RANDOM).tmp
 
 ifdef BIN
 MAKE_LIBS=1
-ifndef INSTALL_DIR
-ifeq ($(IS_COMMAND),1)
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)/commands
-else
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)
-endif # IS_COMMAND == 1
-else # INSTALL_DIR
-
-# INSTALL_ALL_CONFIGS has been put in to be used by unit_tests so the Debug
-# and Hybrid binaries are both placed in KBE_ROOT/tests/KBE_CONFIG not just
-# the Hybrid builds.
-ifdef INSTALL_ALL_CONFIGS
-	OUTPUTDIR = $(INSTALL_DIR)/$(KBE_CONFIG)
-else
-# For the tools, the Hybrid configuration is automatically made into the install
-# directory. Other configurations are made locally.
-ifeq ($(KBE_CONFIG), Hybrid) 
-	OUTPUTDIR = $(INSTALL_DIR)
-else # KBE_CONFIG == Hybrid
-
-ifeq ($(KBE_CONFIG), Hybrid64) 
-	OUTPUTDIR = $(INSTALL_DIR)
-else # KBE_CONFIG == Hybrid64
-	OUTPUTDIR = $(KBE_CONFIG)
-endif # KBE_CONFIG == Hybrid64
-
-endif # KBE_CONFIG == Hybrid
-endif # INSTALL_DIR
-endif # INSTALL_ALL_CONFIGS
-
-	OUTPUTFILE = $(OUTPUTDIR)/$(BIN)
+OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server
 endif # BIN
 
 ifdef SO
 MAKE_LIBS=1
 ifndef OUTPUTDIR
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)/$(COMPONENT)-extensions
+	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/$(COMPONENT)-extensions
 endif # OUTPUTDIR
 	OUTPUTFILE = $(OUTPUTDIR)/$(SO).so
 endif # SO

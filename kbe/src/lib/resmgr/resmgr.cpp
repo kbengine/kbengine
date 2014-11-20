@@ -60,7 +60,7 @@ bool Resmgr::initializeWatcher()
 {
 	WATCH_OBJECT("syspaths/KBE_ROOT", kb_env_.root);
 	WATCH_OBJECT("syspaths/KBE_RES_PATH", kb_env_.res_path);
-	WATCH_OBJECT("syspaths/KBE_HYBRID_PATH", kb_env_.hybrid_path);
+	WATCH_OBJECT("syspaths/KBE_BIN_PATH", kb_env_.bin_path);
 	return true;
 }
 
@@ -102,14 +102,14 @@ void Resmgr::updatePaths()
 		strutil::kbe_replace(kb_env_.root, "//", "/");
 	}
 
-	if(kb_env_.hybrid_path.size() > 0)
+	if(kb_env_.bin_path.size() > 0)
 	{
-		ch =  kb_env_.hybrid_path.at(kb_env_.hybrid_path.size() - 1);
+		ch =  kb_env_.bin_path.at(kb_env_.bin_path.size() - 1);
 		if(ch != '/' && ch != '\\')
-			kb_env_.hybrid_path += "/";
+			kb_env_.bin_path += "/";
 
-		strutil::kbe_replace(kb_env_.hybrid_path, "\\", "/");
-		strutil::kbe_replace(kb_env_.hybrid_path, "//", "/");
+		strutil::kbe_replace(kb_env_.bin_path, "\\", "/");
+		strutil::kbe_replace(kb_env_.bin_path, "//", "/");
 	}
 
 	respaths_.clear();
@@ -157,11 +157,11 @@ bool Resmgr::initialize()
 	// 获取引擎环境配置
 	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
-	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
+	kb_env_.bin_path		= getenv("KBE_BIN_PATH") == NULL ? "" : getenv("KBE_BIN_PATH"); 
 
 	//kb_env_.root				= "/home/kbengine/";
 	//kb_env_.res_path			= "/home/kbengine/kbe/res/;/home/kbengine/demo/;/home/kbengine/demo/res/"; 
-	//kb_env_.hybrid_path		= "/home/kbengine/kbe/bin/Hybrid/"; 
+	//kb_env_.bin_path		= "/home/kbengine/kbe/bin/Hybrid/"; 
 	updatePaths();
 
 	if(kb_env_.root == "" || kb_env_.res_path == "")
@@ -170,9 +170,9 @@ bool Resmgr::initialize()
 	updatePaths();
 	if(getPySysResPath() == "" || getPyUserResPath() == "")
 	{
-		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n");
+		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n");
 #if KBE_PLATFORM == PLATFORM_WIN32
-		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_HYBRID_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
 #endif
 	}
 
@@ -187,7 +187,7 @@ void Resmgr::print(void)
 {
 	INFO_MSG(fmt::format("Resmgr::initialize: KBE_ROOT={0}\n", kb_env_.root));
 	INFO_MSG(fmt::format("Resmgr::initialize: KBE_RES_PATH={0}\n", kb_env_.res_path));
-	INFO_MSG(fmt::format("Resmgr::initialize: KBE_HYBRID_PATH={0}\n", kb_env_.hybrid_path));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_BIN_PATH={0}\n", kb_env_.bin_path));
 }
 
 //-------------------------------------------------------------------------------------

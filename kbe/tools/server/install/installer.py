@@ -61,7 +61,7 @@ mysql_sercive_name = ""
 # 根据root决定安装位置
 KBE_ROOT = ''
 KBE_RES_PATH = ''
-KBE_HYBRID_PATH = ''
+KBE_BIN_PATH = ''
 KBE_UID = ''
 kbe_res_path = ""
 
@@ -148,17 +148,17 @@ def getInput(s):
 def echoKBEEnvironment():
 	global KBE_ROOT
 	global KBE_RES_PATH
-	global KBE_HYBRID_PATH
+	global KBE_BIN_PATH
 	global KBE_UID
 	
 	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
 	KBE_RES_PATH = getEnvironment('user', 'KBE_RES_PATH')
-	KBE_HYBRID_PATH = getEnvironment('user', 'KBE_HYBRID_PATH')
+	KBE_BIN_PATH = getEnvironment('user', 'KBE_BIN_PATH')
 	_checkKBEEnvironment(False)
 	
 	OUT_MSG("KBE_ROOT=" + KBE_ROOT)
 	OUT_MSG("KBE_RES_PATH=" + KBE_RES_PATH)
-	OUT_MSG("KBE_HYBRID_PATH=" + KBE_HYBRID_PATH)
+	OUT_MSG("KBE_BIN_PATH=" + KBE_BIN_PATH)
 	OUT_MSG("kbe_core_res_path=%s" % kbe_res_path)
 
 def findKBEngine(dir):
@@ -199,19 +199,19 @@ def find_file_by_pattern(pattern = '.*', base = ".", circle = True):
 def resetKBEEnvironment():
 	global KBE_ROOT
 	global KBE_RES_PATH
-	global KBE_HYBRID_PATH
+	global KBE_BIN_PATH
 	global KBE_UID
 	
 	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
 	KBE_RES_PATH = getEnvironment('user', 'KBE_RES_PATH')
-	KBE_HYBRID_PATH = getEnvironment('user', 'KBE_HYBRID_PATH')
+	KBE_BIN_PATH = getEnvironment('user', 'KBE_BIN_PATH')
 	KBE_UID = getEnvironment('user', 'UID')
 	
 	# 如果没有找到root环境配置， 则尝试从当前目录识别是否在kbengine目录中， 如果在
 	# 则我们自动设置环境
 	x_KBE_ROOT = KBE_ROOT
 	x_KBE_RES_PATH = KBE_RES_PATH
-	x_KBE_HYBRID_PATH = KBE_HYBRID_PATH
+	x_KBE_BIN_PATH = KBE_BIN_PATH
 	x_KBE_UID = KBE_UID
 	
 	if len(KBE_ROOT) == 0:
@@ -236,15 +236,15 @@ def resetKBEEnvironment():
 			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/res/"
 			
 	if platform.architecture()[0] == '32bit':
-		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid/"
+		x_KBE_BIN_PATH = "%KBE_ROOT%/kbe/bin/server/"
 	else:
-		x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid64/"
-		if not os.path.isdir(x_KBE_HYBRID_PATH):
-			x_KBE_HYBRID_PATH = "%KBE_ROOT%/kbe/bin/Hybrid/"
+		x_KBE_BIN_PATH = "%KBE_ROOT%/kbe/bin/server/"
+		if not os.path.isdir(x_KBE_BIN_PATH):
+			x_KBE_BIN_PATH = "%KBE_ROOT%/kbe/bin/server/"
 	
 	if platform.system() != 'Windows':
-		x_KBE_HYBRID_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
-		x_KBE_HYBRID_PATH.replace("\\", "/").replace("//", "/")
+		x_KBE_BIN_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
+		x_KBE_BIN_PATH.replace("\\", "/").replace("//", "/")
 		
 	if len(KBE_UID) == 0:
 		x_KBE_UID = str(random.randint(1, 65535))
@@ -266,13 +266,13 @@ def resetKBEEnvironment():
 			else:
 				KBE_RES_PATH = x_KBE_RES_PATH
 		
-		INFO_MSG("\nKBE_HYBRID_PATH current: %s" % (x_KBE_HYBRID_PATH))
-		KBE_HYBRID_PATH = getInput('reset KBE_HYBRID_PATH(No input is [%s]):' % (x_KBE_HYBRID_PATH)).strip()
-		if len(KBE_HYBRID_PATH) == 0:
-			if len(x_KBE_HYBRID_PATH) == 0:
-				INFO_MSG('KBE_HYBRID_PATH: no change!')
+		INFO_MSG("\nKBE_BIN_PATH current: %s" % (x_KBE_BIN_PATH))
+		KBE_BIN_PATH = getInput('reset KBE_BIN_PATH(No input is [%s]):' % (x_KBE_BIN_PATH)).strip()
+		if len(KBE_BIN_PATH) == 0:
+			if len(x_KBE_BIN_PATH) == 0:
+				INFO_MSG('KBE_BIN_PATH: no change!')
 			else:
-				KBE_HYBRID_PATH = x_KBE_HYBRID_PATH
+				KBE_BIN_PATH = x_KBE_BIN_PATH
 
 		INFO_MSG("\nKBE_UID current: %s" % (x_KBE_UID))
 		username = ""
@@ -303,8 +303,8 @@ def resetKBEEnvironment():
 		if len(KBE_RES_PATH) > 0:
 			setEnvironment('user', 'KBE_RES_PATH', KBE_RES_PATH)
 
-		if len(KBE_HYBRID_PATH) > 0:
-			setEnvironment('user', 'KBE_HYBRID_PATH', KBE_HYBRID_PATH)
+		if len(KBE_BIN_PATH) > 0:
+			setEnvironment('user', 'KBE_BIN_PATH', KBE_BIN_PATH)
 
 		if len(KBE_UID) > 0:
 			if platform.system() == 'Windows':
@@ -343,12 +343,12 @@ def get_linux_ugid(username):
 def _checkKBEEnvironment(is_get_error):
 	global KBE_ROOT
 	global KBE_RES_PATH
-	global KBE_HYBRID_PATH
+	global KBE_BIN_PATH
 	global kbe_res_path
 	
 	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
 	KBE_RES_PATH = getEnvironment('user', 'KBE_RES_PATH')
-	KBE_HYBRID_PATH = getEnvironment('user', 'KBE_HYBRID_PATH')
+	KBE_BIN_PATH = getEnvironment('user', 'KBE_BIN_PATH')
 	
 	kbe_path = KBE_ROOT + "/kbe"
 	kbe_path = kbe_path.replace("\\", "/").replace("//", "/")
@@ -388,10 +388,10 @@ def _checkKBEEnvironment(is_get_error):
 				ERROR_MSG("KBE_RES_PATH: is error! The directory or file not found:\n%s" % (path)) 
 			return False
 	
-	KBE_HYBRID_PATH = os.path.expanduser(KBE_HYBRID_PATH.replace("%KBE_ROOT%", KBE_ROOT).replace("$KBE_ROOT", KBE_ROOT))
-	if not os.path.isdir(KBE_HYBRID_PATH):
+	KBE_BIN_PATH = os.path.expanduser(KBE_BIN_PATH.replace("%KBE_ROOT%", KBE_ROOT).replace("$KBE_ROOT", KBE_ROOT))
+	if not os.path.isdir(KBE_BIN_PATH):
 		if is_get_error:
-			WARING_MSG("KBE_HYBRID_PATH: is error! The directory or file not found:\n%s" % (KBE_HYBRID_PATH)) 
+			WARING_MSG("KBE_BIN_PATH: is error! The directory or file not found:\n%s" % (KBE_BIN_PATH)) 
 	
 	kbe_res_path = ""
 	for res in checkKBERes:
@@ -553,19 +553,19 @@ def removeKBEEnvironment():
 	
 	global KBE_ROOT
 	global KBE_RES_PATH
-	global KBE_HYBRID_PATH
+	global KBE_BIN_PATH
 	global KBE_UID
 	global INSTALLER_EVN_NAME
 	
 	remmoveEnvironment("user", "KBE_ROOT")
 	remmoveEnvironment("user", "KBE_RES_PATH")
-	remmoveEnvironment("user", "KBE_HYBRID_PATH")
+	remmoveEnvironment("user", "KBE_BIN_PATH")
 	remmoveEnvironment("user", "KBE_UID")
 	remmoveEnvironment("user", INSTALLER_EVN_NAME)
 	
 	KBE_ROOT = ""
 	KBE_RES_PATH = ""
-	KBE_HYBRID_PATH = ""
+	KBE_BIN_PATH = ""
 	KBE_UID = ""
 	INSTALLER_EVN_NAME = ""
 	
@@ -1240,7 +1240,7 @@ def copy_new_to_kbengine_dir(checksources = True):
 	global _install_path
 	global KBE_ROOT
 	global KBE_RES_PATH
-	global KBE_HYBRID_PATH
+	global KBE_BIN_PATH
 	global KBE_UID
 	global kbe_res_path
 	global _zip_kbengine_path
@@ -1253,23 +1253,23 @@ def copy_new_to_kbengine_dir(checksources = True):
 		if platform.system() == 'Windows':
 			KBE_RES_PATH = "%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/res/"
 			if platform.architecture()[0] == '32bit':
-				KBE_HYBRID_PATH = "%KBE_ROOT%kbe/bin/Hybrid/"
+				KBE_BIN_PATH = "%KBE_ROOT%kbe/bin/server/"
 			else:
-				KBE_HYBRID_PATH = "%KBE_ROOT%kbe/bin/Hybrid64/"
+				KBE_BIN_PATH = "%KBE_ROOT%kbe/bin/server/"
 		else:
 			KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/res/"
 			if platform.architecture()[0] == '32bit':
-				KBE_HYBRID_PATH = "$KBE_ROOT/kbe/bin/Hybrid/"
+				KBE_BIN_PATH = "$KBE_ROOT/kbe/bin/server/"
 			else:
-				KBE_HYBRID_PATH = "$KBE_ROOT/kbe/bin/Hybrid64/"
+				KBE_BIN_PATH = "$KBE_ROOT/kbe/bin/server/"
 		
 		setEnvironment('user', 'KBE_ROOT', KBE_ROOT)
 		setEnvironment('user', 'KBE_RES_PATH', KBE_RES_PATH)
-		setEnvironment('user', 'KBE_HYBRID_PATH', KBE_HYBRID_PATH)
+		setEnvironment('user', 'KBE_BIN_PATH', KBE_BIN_PATH)
 		
 		INFO_MSG("KBE_ROOT = %s" % KBE_ROOT)
 		INFO_MSG("KBE_RES_PATH = %s" % KBE_RES_PATH)
-		INFO_MSG("KBE_HYBRID_PATH = %s" % KBE_HYBRID_PATH)
+		INFO_MSG("KBE_BIN_PATH = %s" % KBE_BIN_PATH)
 		
 		INFO_MSG("\n\nInstalling KBEngine...")
 		INFO_MSG("moving %s to %s..." % (currkbedir, _install_path))
@@ -1282,7 +1282,7 @@ def copy_new_to_kbengine_dir(checksources = True):
 	
 	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
 	KBE_RES_PATH = getEnvironment('user', 'KBE_RES_PATH')
-	KBE_HYBRID_PATH = getEnvironment('user', 'KBE_HYBRID_PATH')
+	KBE_BIN_PATH = getEnvironment('user', 'KBE_BIN_PATH')
 	
 	currkbedir = currkbedir.replace("\\", "/").replace("//", "/")
 	KBE_ROOT = KBE_ROOT.replace("\\", "/").replace("//", "/")

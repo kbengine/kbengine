@@ -47,7 +47,7 @@ public:
 	{
 		std::string root;
 		std::string res_path;
-		std::string hybrid_path;
+		std::string bin_path;
 	};
 
 	static uint64 respool_timeout;
