@@ -321,10 +321,10 @@ class WatcherMethod : public WatcherObject
 public:
 	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)();
 
-	WatcherMethod(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()):
+	WatcherMethod(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)()):
 	WatcherObject(path),
 	func_(func),
-	This_(This)
+	obj_(obj)
 	{
 	}
 	
@@ -332,19 +332,19 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (This_->*func_)();
+		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (obj_->*func_)();
 	};
 
 	void addToStream(MemoryStream* s)
 	{
-		(*s) << id_ << (This_->*func_)();
+		(*s) << id_ << (obj_->*func_)();
 	};
 
-	RETURN_TYPE getValue(){ return (This_->*func_)(); }
+	RETURN_TYPE getValue(){ return (obj_->*func_)(); }
 	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
 protected:
 	FUNC func_;
-	OBJ_TYPE* This_;
+	OBJ_TYPE* obj_;
 };
 
 template <class RETURN_TYPE, class OBJ_TYPE>
@@ -353,10 +353,10 @@ class WatcherMethodConst : public WatcherObject
 public:
 	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)()const;
 
-	WatcherMethodConst(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const):
+	WatcherMethodConst(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)()const):
 	WatcherObject(path),
 	func_(func),
-	This_(This)
+	obj_(obj)
 	{
 	}
 	
@@ -364,20 +364,20 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		RETURN_TYPE v = (This_->*func_)();
+		RETURN_TYPE v = (obj_->*func_)();
 		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << v;
 	};
 
 	void addToStream(MemoryStream* s)
 	{
-		(*s) << id_ << (This_->*func_)();
+		(*s) << id_ << (obj_->*func_)();
 	};
 
-	RETURN_TYPE getValue(){ return (This_->*func_)(); }
+	RETURN_TYPE getValue(){ return (obj_->*func_)(); }
 	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
 protected:
 	FUNC func_;
-	OBJ_TYPE* This_;
+	OBJ_TYPE* obj_;
 };
 
 /*
@@ -492,19 +492,19 @@ inline WatcherObject* addWatcher(std::string path, RETURN_TYPE (*func)())
 	addWatcher("func", &a, &AAA::func);
 */
 template <class RETURN_TYPE, class OBJ_TYPE> 
-inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
+inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)())
 {
 	path = std::string("root/") + path;
-	WatcherMethod<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(path, This, func);
+	WatcherMethod<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(path, obj, func);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
 };
 
 template <class RETURN_TYPE, class OBJ_TYPE> 
-inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const)
+inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)()const)
 {
 	path = std::string("root/") + path;
-	WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(path, This, func);
+	WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(path, obj, func);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
 };
