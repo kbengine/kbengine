@@ -178,7 +178,6 @@ void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, int32 startGloba
 		pHttpCBHandler = new HTTPCBHandler();
 }
 
-
 //-------------------------------------------------------------------------------------
 void Loginapp::onClientActiveTick(Network::Channel* pChannel)
 {
