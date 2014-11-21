@@ -305,6 +305,15 @@ void ServerApp::onAddComponent(const Components::ComponentInfos* pInfos)
 }
 
 //-------------------------------------------------------------------------------------
+void ServerApp::onIdentityillegal(COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 pid, const char* pAddr)
+{
+	ERROR_MSG(fmt::format("ServerApp::onIdentityillegal: the program will exit! componentType={}, componentID={}, pid={}, addr={}\n",
+		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pid, pAddr));
+
+	this->shutDown(1.f);
+}
+
+//-------------------------------------------------------------------------------------
 void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 {
 	if(pInfos->componentType == MESSAGELOG_TYPE)

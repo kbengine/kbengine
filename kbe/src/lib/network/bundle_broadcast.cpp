@@ -62,15 +62,14 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
 			{
 				good_ = false;
-
-				WARNING_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port {}, {}\n",
-					bindPort, kbe_strerror()));
-				
-				KBEngine::sleep(100);
+				KBEngine::sleep(10);
 				count++;
 
-				if(count > 3)
+				if(count > 30)
 				{
+					WARNING_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port {}, {}\n",
+						bindPort, kbe_strerror()));
+
 					break;
 				}
 			}
@@ -165,8 +164,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			}
 			else
 			{
-				DEBUG_MSG(fmt::format("BundleBroadcast::receive: retries({}), bind_addr({}) ...\n", 
-					icount, epListen_.addr()));
+				//DEBUG_MSG(fmt::format("BundleBroadcast::receive: retries({}), bind_addr({}) ...\n", 
+				//	icount, epListen_.addr()));
 			}
 
 			icount++;

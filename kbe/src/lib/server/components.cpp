@@ -921,7 +921,7 @@ bool Components::findInterfaces()
 			int8 findComponentType = findComponentTypes_[findIdx_];
 			static int count = 0;
 
-			INFO_MSG(fmt::format("Components::process: finding {}({})...\n",
+			INFO_MSG(fmt::format("Components::findInterfaces: finding {}({})...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
@@ -942,13 +942,13 @@ bool Components::findInterfaces()
 
 			if(!bhandler.broadcast())
 			{
-				ERROR_MSG("Components::process: broadcast error!\n");
+				ERROR_MSG("Components::findInterfaces: broadcast error!\n");
 				return false;
 			}
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs22 args;
+			MachineInterface::onBroadcastInterfaceArgs24 args;
 
 RESTART_RECV:
 
@@ -973,7 +973,7 @@ RESTART_RECV:
 					
 					if(args.componentIDEx != componentID_)
 					{
-						WARNING_MSG(fmt::format("Components::process: msg.componentID {} != {}.\n", 
+						WARNING_MSG(fmt::format("Components::findInterfaces: msg.componentID {} != {}.\n", 
 							args.componentIDEx, componentID_));
 						
 						args.componentIDEx = 0;
@@ -987,7 +987,7 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(fmt::format("Components::process: found {}, addr:{}:{}\n",
+					INFO_MSG(fmt::format("Components::findInterfaces: found {}, addr:{}:{}\n",
 						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
 						inet_ntoa((struct in_addr&)args.intaddr),
 						ntohs(args.intport)));
@@ -1009,7 +1009,7 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(fmt::format("Components::register self to {} is error!\n",
+							ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
@@ -1036,7 +1036,7 @@ RESTART_RECV:
 				{
 					if(showerr)
 					{
-						ERROR_MSG("Components::process: receive error!\n");
+						ERROR_MSG("Components::findInterfaces: receive error!\n");
 					}
 
 					// 如果是这些辅助组件没找到则跳过
@@ -1051,7 +1051,7 @@ RESTART_RECV:
 						}
 						else if(findComponentType == helperComponentType)
 						{
-							WARNING_MSG(fmt::format("Components::process: not found {}!\n",
+							WARNING_MSG(fmt::format("Components::findInterfaces: not found {}!\n",
 								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 							findComponentTypes_[findIdx_] = -1; // 跳过标志
@@ -1087,12 +1087,12 @@ RESTART_RECV:
 				return false;
 			}
 
-			INFO_MSG(fmt::format("Components::process: register self to {}...\n",
+			INFO_MSG(fmt::format("Components::findInterfaces: register self to {}...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(fmt::format("Components::register self to {} is error!\n",
+				ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;
@@ -1112,22 +1112,79 @@ bool Components::process()
 	{
 		uint64 cidex = 0;
 
-		while(cidex++ < 3)
+		DEBUG_MSG("Components::process(): Request for the process of identity...\n");
+
+		while(cidex++ < 2)
 		{
+			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
+				return false;
+
+			srand(KBEngine::getSystemTime());
+			uint16 nport = KBE_PORT_START + (rand() % 1000);
+
 			// 向局域网内广播UDP包，提交自己的身份
-			Network::BundleBroadcast bhandler(*pNetworkInterface(), KBE_PORT_BROADCAST_DISCOVERY);
+			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+
+			if(!bhandler.good())
+			{
+				continue;
+			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
-			MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 				pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
 				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
-				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
+				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 			
 			bhandler.broadcast();
-			bhandler.close();
 
-			sleep(10);
+			// 等待返回信息，如果存在返回说明身份已经被使用，该进程不合法，程序接下来会退出
+			// 如果没有返回说明没有machine对此进程有意见，可以成功启动
+			int32 timeout = 500000;
+			MachineInterface::onBroadcastInterfaceArgs24 args;
+
+			if(bhandler.receive(&args, 0, timeout, false))
+			{
+				bool hasContinue = false;
+
+				do
+				{
+					if(hasContinue)
+					{
+						try
+						{
+							args.createFromStream(*bhandler.pCurrPacket());
+						}catch(MemoryStreamException &)
+						{
+							break;
+						}
+					}
+
+					hasContinue = true;
+
+					// 如果是未知类型则继续一次
+					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+						continue;
+
+					if(args.componentID != componentID_)
+						continue;
+
+					ERROR_MSG(fmt::format("Components::process: found {}, addr:{}:{}\n",
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+						inet_ntoa((struct in_addr&)args.intaddr),
+						ntohs(args.intport)));
+
+					// 存在相同身份， 程序该退出了
+					if(_pHandler)
+						_pHandler->onIdentityillegal((COMPONENT_TYPE)args.componentType, args.componentID, args.pid, inet_ntoa((struct in_addr&)args.intaddr));
+
+					return false;
+
+				}while(bhandler.pCurrPacket()->opsize() > 0);
+			}
+
+			bhandler.close();
 		}
 
 		state_ = 1;

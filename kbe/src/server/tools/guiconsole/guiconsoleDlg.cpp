@@ -200,7 +200,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs22 args;
+			MachineInterface::onBroadcastInterfaceArgs24 args;
 			int32 timeout = 100000;
 
 RESTART_RECV:

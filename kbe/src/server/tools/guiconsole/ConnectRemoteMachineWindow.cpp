@@ -158,7 +158,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		while(packet.opsize() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs22 args;
+			MachineInterface::onBroadcastInterfaceArgs24 args;
 			
 			try
 			{

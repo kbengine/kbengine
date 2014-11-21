@@ -57,8 +57,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
-									uint16,											extport,
-									std::string,									extaddrEx)
+									uint16,									extport,
+									std::string,							extaddrEx)
 
 	// Ä³appÖ÷¶¯ÇëÇólook¡£
 	BASEAPPMGR_MESSAGE_DECLARE_ARGS0(lookApp,								NETWORK_FIXED_MESSAGE)

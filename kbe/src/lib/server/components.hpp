@@ -103,6 +103,7 @@ public:
 		virtual ~ComponentsNotificationHandler() {};
 		virtual void onAddComponent(const Components::ComponentInfos*) = 0;
 		virtual void onRemoveComponent(const Components::ComponentInfos*) = 0;
+		virtual void onIdentityillegal(COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 pid, const char* pAddr) = 0;
 	};
 public:
 	Components();

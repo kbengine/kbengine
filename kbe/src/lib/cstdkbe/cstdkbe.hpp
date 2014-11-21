@@ -201,6 +201,22 @@ const COMPONENT_TYPE ALL_HELPER_COMPONENT_TYPE[] = {MESSAGELOG_TYPE, UNKNOWN_COM
 // 返回是否是一个有效的组件
 #define VALID_COMPONENT(C_TYPE) ((C_TYPE) > 0 && (C_TYPE) < COMPONENT_END_TYPE)
 
+/** 检查是否为一个游戏服务端组件类别 */
+inline bool isGameServerComponentType(COMPONENT_TYPE componentType)
+{
+	int i = 0;
+	while(true)
+	{
+		COMPONENT_TYPE t = ALL_GAME_SERVER_COMPONENT_TYPES[i++];
+		if(t == UNKNOWN_COMPONENT_TYPE)
+			break;
+
+		if(t == componentType)
+			return true;
+	}
+
+	return false;
+}
 
 // 前端应用的类别, All client type
 enum COMPONENT_CLIENT_TYPE

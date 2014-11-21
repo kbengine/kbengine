@@ -26,13 +26,11 @@ CELLAPP_TYPE			= 5
 BASEAPP_TYPE			= 6
 CLIENT_TYPE				= 7
 MACHINE_TYPE			= 8
-CENTER_TYPE				= 9
-CONSOLE_TYPE			= 10
-MESSAGELOG_TYPE			= 11
-RESOURCEMGR_TYPE		= 12
-BOTS_TYPE				= 13
-WATCHER_TYPE			= 14
-BILLING_TYPE			= 15
+CONSOLE_TYPE			= 9
+MESSAGELOG_TYPE			= 10
+BOTS_TYPE				= 11
+WATCHER_TYPE			= 12
+BILLING_TYPE			= 13
 COMPONENT_END_TYPE		= 16
 
 # ת
@@ -46,10 +44,8 @@ COMPONENT_NAME2TYPE = {
 	"baseapp" 		: BASEAPP_TYPE,
 	"client" 		: CLIENT_TYPE,
 	"kbmachine"		: MACHINE_TYPE,
-	"kbcenter" 		: CENTER_TYPE,
 	"console" 		: CONSOLE_TYPE,
 	"messagelog" 	: MESSAGELOG_TYPE,
-	"resourcemgr"	: RESOURCEMGR_TYPE,
 	"bots" 			: BOTS_TYPE,
 	"watcher" 		: WATCHER_TYPE,
 	"billing" 		: BILLING_TYPE,
@@ -245,6 +241,12 @@ class ClusterControllerHandler:
 
 			extradata3 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
 			ii += 8
+			
+			backaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			backport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
+			ii += 2
 			
 			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
 			#	uid, componentID, globalorderid, grouporderid, username))

@@ -83,13 +83,50 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
-									uint64 extradata1, uint64 extradata2, uint64 extradata3)
+									uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort)
 {
+	// 先查询一下是否存在相同身份，如果是相同身份且不是一个进程我们需要告知对方启动非法
+	const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent(componentID);
+	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && componentID == pinfos->cid)
+	{
+		if(pinfos->pid != pid || ep_.addr().ip != intaddr || this->networkInterface().intaddr().ip != intaddr ||
+				this->networkInterface().extaddr().ip != intaddr)
+		{
+			Network::Bundle bundle;
+
+			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bundle, pinfos->uid,
+				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, 
+				pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+				pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
+				pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
+
+			if(backRecvAddr != 0 && backRecvPort != 0)
+			{
+				Network::EndPoint ep;
+				ep.socket(SOCK_DGRAM);
+
+				if (!ep.good())
+				{
+					ERROR_MSG("Machine::onBroadcastInterface: Failed to create socket.\n");
+					return;
+				}
+
+				bundle.sendto(ep, backRecvPort, backRecvAddr);
+			}
+			else
+			{
+				bundle.send(this->networkInterface(), pChannel);
+			}
+
+			return;
+		}
+	}
+
 	// 只记录本机启动的进程
 	if(ep_.addr().ip == intaddr || this->networkInterface().intaddr().ip == intaddr ||
 				this->networkInterface().extaddr().ip == intaddr)
 	{
-		const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
+		pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
 		if(pinfos)
 		{
 			if(checkComponentUsable(pinfos))
@@ -197,11 +234,12 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 				this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
-				MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, pinfos->uid, 
+
+				MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bundle, pinfos->uid, 
 					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
+					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
 			}
 
 			++iter;
@@ -232,8 +270,8 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType),
 			COMPONENT_NAME_EX(tfindComponentType)));
 
-		MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bundle, KBEngine::getUserUID(), 
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
@@ -281,12 +319,12 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 		uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-		MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 
-			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0);
+			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0, 0, 0);
 
 		if(finderRecvPort != 0)
 			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
@@ -326,12 +364,12 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 				{
 					Network::Bundle bundle;
 					
-					MachineInterface::onBroadcastInterfaceArgs22::staticAddToBundle(bundle, pinfos->uid, 
+					MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bundle, pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, 
 						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
+						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
 
 					if(finderRecvPort != 0)
 						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);

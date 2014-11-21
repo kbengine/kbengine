@@ -69,6 +69,8 @@ namespace Network
 	#undef NETWORK_MESSAGE_DECLARE_ARGS20
 	#undef NETWORK_MESSAGE_DECLARE_ARGS21
 	#undef NETWORK_MESSAGE_DECLARE_ARGS22
+	#undef NETWORK_MESSAGE_DECLARE_ARGS23
+	#undef NETWORK_MESSAGE_DECLARE_ARGS24
 
 	#undef NETWORK_MESSAGE_HANDLER
 	#undef NETWORK_MESSAGE_EXPOSED
@@ -98,6 +100,8 @@ namespace Network
 	#undef MESSAGE_ARGS20
 	#undef MESSAGE_ARGS21
 	#undef MESSAGE_ARGS22
+	#undef MESSAGE_ARGS23
+	#undef MESSAGE_ARGS24
 	#undef SET_MESSAGE_FUNC
 #endif
 
@@ -5190,6 +5194,846 @@ namespace Network
 							ARG_TYPE20, ARG_NAME20,					\
 							ARG_TYPE21, ARG_NAME21,					\
 							ARG_TYPE22, ARG_NAME22)					\
+
+
+
+/**---------------------------------------------------------------------
+/		二十三个参数的消息
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_ARGS23(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23)					\
+	
+#else
+#define MESSAGE_ARGS23(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23)					\
+	class NAME##Args23 : public Network::MessageArgs				\
+	{																\
+	public:															\
+		ARG_TYPE1 ARG_NAME1;										\
+		ARG_TYPE2 ARG_NAME2;										\
+		ARG_TYPE3 ARG_NAME3;										\
+		ARG_TYPE4 ARG_NAME4;										\
+		ARG_TYPE5 ARG_NAME5;										\
+		ARG_TYPE6 ARG_NAME6;										\
+		ARG_TYPE7 ARG_NAME7;										\
+		ARG_TYPE8 ARG_NAME8;										\
+		ARG_TYPE9 ARG_NAME9;										\
+		ARG_TYPE10 ARG_NAME10;										\
+		ARG_TYPE11 ARG_NAME11;										\
+		ARG_TYPE12 ARG_NAME12;										\
+		ARG_TYPE13 ARG_NAME13;										\
+		ARG_TYPE14 ARG_NAME14;										\
+		ARG_TYPE15 ARG_NAME15;										\
+		ARG_TYPE16 ARG_NAME16;										\
+		ARG_TYPE17 ARG_NAME17;										\
+		ARG_TYPE18 ARG_NAME18;										\
+		ARG_TYPE19 ARG_NAME19;										\
+		ARG_TYPE20 ARG_NAME20;										\
+		ARG_TYPE21 ARG_NAME21;										\
+		ARG_TYPE22 ARG_NAME22;										\
+		ARG_TYPE23 ARG_NAME23;										\
+	public:															\
+		NAME##Args23():Network::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+			strArgsTypes.push_back(#ARG_TYPE22);					\
+			strArgsTypes.push_back(#ARG_TYPE23);					\
+		}															\
+		NAME##Args23(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4,									\
+		ARG_TYPE5 init_##ARG_NAME5,									\
+		ARG_TYPE6 init_##ARG_NAME6,									\
+		ARG_TYPE7 init_##ARG_NAME7,									\
+		ARG_TYPE8 init_##ARG_NAME8,									\
+		ARG_TYPE9 init_##ARG_NAME9,									\
+		ARG_TYPE10 init_##ARG_NAME10,								\
+		ARG_TYPE11 init_##ARG_NAME11,								\
+		ARG_TYPE12 init_##ARG_NAME12,								\
+		ARG_TYPE13 init_##ARG_NAME13,								\
+		ARG_TYPE14 init_##ARG_NAME14,								\
+		ARG_TYPE15 init_##ARG_NAME15,								\
+		ARG_TYPE16 init_##ARG_NAME16,								\
+		ARG_TYPE17 init_##ARG_NAME17,								\
+		ARG_TYPE18 init_##ARG_NAME18,								\
+		ARG_TYPE19 init_##ARG_NAME19,								\
+		ARG_TYPE20 init_##ARG_NAME20,								\
+		ARG_TYPE21 init_##ARG_NAME21,								\
+		ARG_TYPE22 init_##ARG_NAME22,								\
+		ARG_TYPE23 init_##ARG_NAME23):								\
+		Network::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4),								\
+		ARG_NAME5(init_##ARG_NAME5),								\
+		ARG_NAME6(init_##ARG_NAME6),								\
+		ARG_NAME7(init_##ARG_NAME7),								\
+		ARG_NAME8(init_##ARG_NAME8),								\
+		ARG_NAME9(init_##ARG_NAME9),								\
+		ARG_NAME10(init_##ARG_NAME10),								\
+		ARG_NAME11(init_##ARG_NAME11),								\
+		ARG_NAME12(init_##ARG_NAME12),								\
+		ARG_NAME13(init_##ARG_NAME13),								\
+		ARG_NAME14(init_##ARG_NAME14),								\
+		ARG_NAME15(init_##ARG_NAME15),								\
+		ARG_NAME16(init_##ARG_NAME16),								\
+		ARG_NAME17(init_##ARG_NAME17),								\
+		ARG_NAME18(init_##ARG_NAME18),								\
+		ARG_NAME19(init_##ARG_NAME19),								\
+		ARG_NAME20(init_##ARG_NAME20),								\
+		ARG_NAME21(init_##ARG_NAME21),								\
+		ARG_NAME22(init_##ARG_NAME22),								\
+		ARG_NAME23(init_##ARG_NAME23)								\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+			strArgsTypes.push_back(#ARG_TYPE22);					\
+			strArgsTypes.push_back(#ARG_TYPE23);					\
+		}															\
+		~NAME##Args23(){}											\
+																	\
+		static void staticAddToBundle(Network::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12,		\
+								ARG_TYPE13 init_##ARG_NAME13,		\
+								ARG_TYPE14 init_##ARG_NAME14,		\
+								ARG_TYPE15 init_##ARG_NAME15,		\
+								ARG_TYPE16 init_##ARG_NAME16,		\
+								ARG_TYPE17 init_##ARG_NAME17,		\
+								ARG_TYPE18 init_##ARG_NAME18,		\
+								ARG_TYPE19 init_##ARG_NAME19,		\
+								ARG_TYPE20 init_##ARG_NAME20,		\
+								ARG_TYPE21 init_##ARG_NAME21,		\
+								ARG_TYPE22 init_##ARG_NAME22,		\
+								ARG_TYPE23 init_##ARG_NAME23)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+			s << init_##ARG_NAME13;									\
+			s << init_##ARG_NAME14;									\
+			s << init_##ARG_NAME15;									\
+			s << init_##ARG_NAME16;									\
+			s << init_##ARG_NAME17;									\
+			s << init_##ARG_NAME18;									\
+			s << init_##ARG_NAME19;									\
+			s << init_##ARG_NAME20;									\
+			s << init_##ARG_NAME21;									\
+			s << init_##ARG_NAME22;									\
+			s << init_##ARG_NAME23;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12,		\
+								ARG_TYPE13 init_##ARG_NAME13,		\
+								ARG_TYPE14 init_##ARG_NAME14,		\
+								ARG_TYPE15 init_##ARG_NAME15,		\
+								ARG_TYPE16 init_##ARG_NAME16,		\
+								ARG_TYPE17 init_##ARG_NAME17,		\
+								ARG_TYPE18 init_##ARG_NAME18,		\
+								ARG_TYPE19 init_##ARG_NAME19,		\
+								ARG_TYPE20 init_##ARG_NAME20,		\
+								ARG_TYPE21 init_##ARG_NAME21,		\
+								ARG_TYPE22 init_##ARG_NAME22,		\
+								ARG_TYPE23 init_##ARG_NAME23)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+			s << init_##ARG_NAME13;									\
+			s << init_##ARG_NAME14;									\
+			s << init_##ARG_NAME15;									\
+			s << init_##ARG_NAME16;									\
+			s << init_##ARG_NAME17;									\
+			s << init_##ARG_NAME18;									\
+			s << init_##ARG_NAME19;									\
+			s << init_##ARG_NAME20;									\
+			s << init_##ARG_NAME21;									\
+			s << init_##ARG_NAME22;									\
+			s << init_##ARG_NAME23;									\
+		}															\
+		virtual int32 dataSize(void)								\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9) +								\
+					sizeof(ARG_TYPE10) +							\
+					sizeof(ARG_TYPE11) +							\
+					sizeof(ARG_TYPE12) +							\
+					sizeof(ARG_TYPE13) +							\
+					sizeof(ARG_TYPE14) +							\
+					sizeof(ARG_TYPE15) +							\
+					sizeof(ARG_TYPE16) +							\
+					sizeof(ARG_TYPE17) +							\
+					sizeof(ARG_TYPE18) +							\
+					sizeof(ARG_TYPE19) +							\
+					sizeof(ARG_TYPE20) +							\
+					sizeof(ARG_TYPE21) +							\
+					sizeof(ARG_TYPE22) +							\
+					sizeof(ARG_TYPE23);								\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+			s << ARG_NAME5;											\
+			s << ARG_NAME6;											\
+			s << ARG_NAME7;											\
+			s << ARG_NAME8;											\
+			s << ARG_NAME9;											\
+			s << ARG_NAME10;										\
+			s << ARG_NAME11;										\
+			s << ARG_NAME12;										\
+			s << ARG_NAME13;										\
+			s << ARG_NAME14;										\
+			s << ARG_NAME15;										\
+			s << ARG_NAME16;										\
+			s << ARG_NAME17;										\
+			s << ARG_NAME18;										\
+			s << ARG_NAME19;										\
+			s << ARG_NAME20;										\
+			s << ARG_NAME21;										\
+			s << ARG_NAME22;										\
+			s << ARG_NAME23;										\
+		}															\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+			s >> ARG_NAME1;											\
+			s >> ARG_NAME2;											\
+			s >> ARG_NAME3;											\
+			s >> ARG_NAME4;											\
+			s >> ARG_NAME5;											\
+			s >> ARG_NAME6;											\
+			s >> ARG_NAME7;											\
+			s >> ARG_NAME8;											\
+			s >> ARG_NAME9;											\
+			s >> ARG_NAME10;										\
+			s >> ARG_NAME11;										\
+			s >> ARG_NAME12;										\
+			s >> ARG_NAME13;										\
+			s >> ARG_NAME14;										\
+			s >> ARG_NAME15;										\
+			s >> ARG_NAME16;										\
+			s >> ARG_NAME17;										\
+			s >> ARG_NAME18;										\
+			s >> ARG_NAME19;										\
+			s >> ARG_NAME20;										\
+			s >> ARG_NAME21;										\
+			s >> ARG_NAME22;										\
+			s >> ARG_NAME23;										\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_ARGS23(DOMAIN, NAME, MSGHANDLER,	\
+											MSG_LENGTH,				\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23)					\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME,MSGHANDLER, MSG_LENGTH, 23)\
+	MESSAGE_ARGS23(NAME, 											\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23)					\
+
+
+/**---------------------------------------------------------------------
+/		二十四个参数的消息
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_ARGS24(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23,					\
+							ARG_TYPE24, ARG_NAME24)					\
+	
+#else
+#define MESSAGE_ARGS24(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23,					\
+							ARG_TYPE24, ARG_NAME24)					\
+	class NAME##Args24 : public Network::MessageArgs				\
+	{																\
+	public:															\
+		ARG_TYPE1 ARG_NAME1;										\
+		ARG_TYPE2 ARG_NAME2;										\
+		ARG_TYPE3 ARG_NAME3;										\
+		ARG_TYPE4 ARG_NAME4;										\
+		ARG_TYPE5 ARG_NAME5;										\
+		ARG_TYPE6 ARG_NAME6;										\
+		ARG_TYPE7 ARG_NAME7;										\
+		ARG_TYPE8 ARG_NAME8;										\
+		ARG_TYPE9 ARG_NAME9;										\
+		ARG_TYPE10 ARG_NAME10;										\
+		ARG_TYPE11 ARG_NAME11;										\
+		ARG_TYPE12 ARG_NAME12;										\
+		ARG_TYPE13 ARG_NAME13;										\
+		ARG_TYPE14 ARG_NAME14;										\
+		ARG_TYPE15 ARG_NAME15;										\
+		ARG_TYPE16 ARG_NAME16;										\
+		ARG_TYPE17 ARG_NAME17;										\
+		ARG_TYPE18 ARG_NAME18;										\
+		ARG_TYPE19 ARG_NAME19;										\
+		ARG_TYPE20 ARG_NAME20;										\
+		ARG_TYPE21 ARG_NAME21;										\
+		ARG_TYPE22 ARG_NAME22;										\
+		ARG_TYPE23 ARG_NAME23;										\
+		ARG_TYPE24 ARG_NAME24;										\
+	public:															\
+		NAME##Args24():Network::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+			strArgsTypes.push_back(#ARG_TYPE22);					\
+			strArgsTypes.push_back(#ARG_TYPE23);					\
+			strArgsTypes.push_back(#ARG_TYPE24);					\
+		}															\
+		NAME##Args24(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4,									\
+		ARG_TYPE5 init_##ARG_NAME5,									\
+		ARG_TYPE6 init_##ARG_NAME6,									\
+		ARG_TYPE7 init_##ARG_NAME7,									\
+		ARG_TYPE8 init_##ARG_NAME8,									\
+		ARG_TYPE9 init_##ARG_NAME9,									\
+		ARG_TYPE10 init_##ARG_NAME10,								\
+		ARG_TYPE11 init_##ARG_NAME11,								\
+		ARG_TYPE12 init_##ARG_NAME12,								\
+		ARG_TYPE13 init_##ARG_NAME13,								\
+		ARG_TYPE14 init_##ARG_NAME14,								\
+		ARG_TYPE15 init_##ARG_NAME15,								\
+		ARG_TYPE16 init_##ARG_NAME16,								\
+		ARG_TYPE17 init_##ARG_NAME17,								\
+		ARG_TYPE18 init_##ARG_NAME18,								\
+		ARG_TYPE19 init_##ARG_NAME19,								\
+		ARG_TYPE20 init_##ARG_NAME20,								\
+		ARG_TYPE21 init_##ARG_NAME21,								\
+		ARG_TYPE22 init_##ARG_NAME22,								\
+		ARG_TYPE23 init_##ARG_NAME23,								\
+		ARG_TYPE24 init_##ARG_NAME24):								\
+		Network::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4),								\
+		ARG_NAME5(init_##ARG_NAME5),								\
+		ARG_NAME6(init_##ARG_NAME6),								\
+		ARG_NAME7(init_##ARG_NAME7),								\
+		ARG_NAME8(init_##ARG_NAME8),								\
+		ARG_NAME9(init_##ARG_NAME9),								\
+		ARG_NAME10(init_##ARG_NAME10),								\
+		ARG_NAME11(init_##ARG_NAME11),								\
+		ARG_NAME12(init_##ARG_NAME12),								\
+		ARG_NAME13(init_##ARG_NAME13),								\
+		ARG_NAME14(init_##ARG_NAME14),								\
+		ARG_NAME15(init_##ARG_NAME15),								\
+		ARG_NAME16(init_##ARG_NAME16),								\
+		ARG_NAME17(init_##ARG_NAME17),								\
+		ARG_NAME18(init_##ARG_NAME18),								\
+		ARG_NAME19(init_##ARG_NAME19),								\
+		ARG_NAME20(init_##ARG_NAME20),								\
+		ARG_NAME21(init_##ARG_NAME21),								\
+		ARG_NAME22(init_##ARG_NAME22),								\
+		ARG_NAME23(init_##ARG_NAME23),								\
+		ARG_NAME24(init_##ARG_NAME24)								\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+			strArgsTypes.push_back(#ARG_TYPE22);					\
+			strArgsTypes.push_back(#ARG_TYPE23);					\
+			strArgsTypes.push_back(#ARG_TYPE24);					\
+		}															\
+		~NAME##Args24(){}											\
+																	\
+		static void staticAddToBundle(Network::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12,		\
+								ARG_TYPE13 init_##ARG_NAME13,		\
+								ARG_TYPE14 init_##ARG_NAME14,		\
+								ARG_TYPE15 init_##ARG_NAME15,		\
+								ARG_TYPE16 init_##ARG_NAME16,		\
+								ARG_TYPE17 init_##ARG_NAME17,		\
+								ARG_TYPE18 init_##ARG_NAME18,		\
+								ARG_TYPE19 init_##ARG_NAME19,		\
+								ARG_TYPE20 init_##ARG_NAME20,		\
+								ARG_TYPE21 init_##ARG_NAME21,		\
+								ARG_TYPE22 init_##ARG_NAME22,		\
+								ARG_TYPE23 init_##ARG_NAME23,		\
+								ARG_TYPE24 init_##ARG_NAME24)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+			s << init_##ARG_NAME13;									\
+			s << init_##ARG_NAME14;									\
+			s << init_##ARG_NAME15;									\
+			s << init_##ARG_NAME16;									\
+			s << init_##ARG_NAME17;									\
+			s << init_##ARG_NAME18;									\
+			s << init_##ARG_NAME19;									\
+			s << init_##ARG_NAME20;									\
+			s << init_##ARG_NAME21;									\
+			s << init_##ARG_NAME22;									\
+			s << init_##ARG_NAME23;									\
+			s << init_##ARG_NAME24;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12,		\
+								ARG_TYPE13 init_##ARG_NAME13,		\
+								ARG_TYPE14 init_##ARG_NAME14,		\
+								ARG_TYPE15 init_##ARG_NAME15,		\
+								ARG_TYPE16 init_##ARG_NAME16,		\
+								ARG_TYPE17 init_##ARG_NAME17,		\
+								ARG_TYPE18 init_##ARG_NAME18,		\
+								ARG_TYPE19 init_##ARG_NAME19,		\
+								ARG_TYPE20 init_##ARG_NAME20,		\
+								ARG_TYPE21 init_##ARG_NAME21,		\
+								ARG_TYPE22 init_##ARG_NAME22,		\
+								ARG_TYPE23 init_##ARG_NAME23,		\
+								ARG_TYPE24 init_##ARG_NAME24)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+			s << init_##ARG_NAME13;									\
+			s << init_##ARG_NAME14;									\
+			s << init_##ARG_NAME15;									\
+			s << init_##ARG_NAME16;									\
+			s << init_##ARG_NAME17;									\
+			s << init_##ARG_NAME18;									\
+			s << init_##ARG_NAME19;									\
+			s << init_##ARG_NAME20;									\
+			s << init_##ARG_NAME21;									\
+			s << init_##ARG_NAME22;									\
+			s << init_##ARG_NAME23;									\
+			s << init_##ARG_NAME24;									\
+		}															\
+		virtual int32 dataSize(void)								\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9) +								\
+					sizeof(ARG_TYPE10) +							\
+					sizeof(ARG_TYPE11) +							\
+					sizeof(ARG_TYPE12) +							\
+					sizeof(ARG_TYPE13) +							\
+					sizeof(ARG_TYPE14) +							\
+					sizeof(ARG_TYPE15) +							\
+					sizeof(ARG_TYPE16) +							\
+					sizeof(ARG_TYPE17) +							\
+					sizeof(ARG_TYPE18) +							\
+					sizeof(ARG_TYPE19) +							\
+					sizeof(ARG_TYPE20) +							\
+					sizeof(ARG_TYPE21) +							\
+					sizeof(ARG_TYPE22) +							\
+					sizeof(ARG_TYPE23) +							\
+					sizeof(ARG_TYPE24);								\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+			s << ARG_NAME5;											\
+			s << ARG_NAME6;											\
+			s << ARG_NAME7;											\
+			s << ARG_NAME8;											\
+			s << ARG_NAME9;											\
+			s << ARG_NAME10;										\
+			s << ARG_NAME11;										\
+			s << ARG_NAME12;										\
+			s << ARG_NAME13;										\
+			s << ARG_NAME14;										\
+			s << ARG_NAME15;										\
+			s << ARG_NAME16;										\
+			s << ARG_NAME17;										\
+			s << ARG_NAME18;										\
+			s << ARG_NAME19;										\
+			s << ARG_NAME20;										\
+			s << ARG_NAME21;										\
+			s << ARG_NAME22;										\
+			s << ARG_NAME23;										\
+			s << ARG_NAME24;										\
+		}															\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+			s >> ARG_NAME1;											\
+			s >> ARG_NAME2;											\
+			s >> ARG_NAME3;											\
+			s >> ARG_NAME4;											\
+			s >> ARG_NAME5;											\
+			s >> ARG_NAME6;											\
+			s >> ARG_NAME7;											\
+			s >> ARG_NAME8;											\
+			s >> ARG_NAME9;											\
+			s >> ARG_NAME10;										\
+			s >> ARG_NAME11;										\
+			s >> ARG_NAME12;										\
+			s >> ARG_NAME13;										\
+			s >> ARG_NAME14;										\
+			s >> ARG_NAME15;										\
+			s >> ARG_NAME16;										\
+			s >> ARG_NAME17;										\
+			s >> ARG_NAME18;										\
+			s >> ARG_NAME19;										\
+			s >> ARG_NAME20;										\
+			s >> ARG_NAME21;										\
+			s >> ARG_NAME22;										\
+			s >> ARG_NAME23;										\
+			s >> ARG_NAME24;										\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_ARGS24(DOMAIN, NAME, MSGHANDLER,	\
+											MSG_LENGTH,				\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23,					\
+							ARG_TYPE24, ARG_NAME24)					\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME,MSGHANDLER, MSG_LENGTH, 24)\
+	MESSAGE_ARGS24(NAME, 											\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12,					\
+							ARG_TYPE13, ARG_NAME13,					\
+							ARG_TYPE14, ARG_NAME14,					\
+							ARG_TYPE15, ARG_NAME15,					\
+							ARG_TYPE16, ARG_NAME16,					\
+							ARG_TYPE17, ARG_NAME17,					\
+							ARG_TYPE18, ARG_NAME18,					\
+							ARG_TYPE19, ARG_NAME19,					\
+							ARG_TYPE20, ARG_NAME20,					\
+							ARG_TYPE21, ARG_NAME21,					\
+							ARG_TYPE22, ARG_NAME22,					\
+							ARG_TYPE23, ARG_NAME23,					\
+							ARG_TYPE24, ARG_NAME24)					\
+
 
 
 }
