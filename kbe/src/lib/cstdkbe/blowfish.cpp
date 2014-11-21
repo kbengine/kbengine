@@ -58,7 +58,8 @@ KBEBlowfish::KBEBlowfish(int keySize):
 //-------------------------------------------------------------------------------------
 KBEBlowfish::~KBEBlowfish()
 {
-	SAFE_RELEASE(pBlowFishKey_);
+	delete pBlowFishKey();
+	pBlowFishKey_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
