@@ -919,8 +919,8 @@ bool Components::findInterfaces()
 				return false;
 
 			int8 findComponentType = findComponentTypes_[findIdx_];
-
 			static int count = 0;
+
 			INFO_MSG(fmt::format("Components::process: finding {}({})...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			
@@ -1041,6 +1041,7 @@ RESTART_RECV:
 
 					// 如果是这些辅助组件没找到则跳过
 					int helperComponentIdx = 0;
+
 					while(1)
 					{
 						COMPONENT_TYPE helperComponentType = ALL_HELPER_COMPONENT_TYPE[helperComponentIdx++];
@@ -1110,9 +1111,10 @@ bool Components::process()
 	if(state_ == 0)
 	{
 		uint64 cidex = 0;
+
 		while(cidex++ < 3)
 		{
-			// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
+			// 向局域网内广播UDP包，提交自己的身份
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), KBE_PORT_BROADCAST_DISCOVERY);
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
@@ -1123,13 +1125,13 @@ bool Components::process()
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
 			
 			bhandler.broadcast();
-
 			bhandler.close();
 
-			sleep(50);
+			sleep(10);
 		}
 
 		state_ = 1;
+
 		return true;
 	}
 	else
@@ -1144,6 +1146,7 @@ bool Components::process()
 				{
 					if(state_ != 2)
 						lastTime = timestamp();
+
 					return true;
 				}
 			}
