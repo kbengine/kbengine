@@ -29,12 +29,12 @@ KBEBlowfish::KBEBlowfish(const Key & key):
 key_(key),
 keySize_(key.size()),
 isGood_(false),
-pBFKey_(0)
+pBlowFishKey_(NULL)
 {
-	if (initKey())
+	if (init())
 	{
 		//DEBUG_MSG(fmt::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: {}\n", 
-		//	this->readableKey()));
+		//	this->strBlowFishKey()));
 	}
 }
 
@@ -43,38 +43,37 @@ KBEBlowfish::KBEBlowfish(int keySize):
 	key_(keySize, 0),
 	keySize_(keySize),
 	isGood_(false),
-	pBFKey_(0)
+	pBlowFishKey_(NULL)
 {
 	RAND_bytes((unsigned char*)const_cast<char *>(key_.c_str()), 
 		key_.size());
 
-	if (this->initKey())
+	if (this->init())
 	{
 		DEBUG_MSG(fmt::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: {}\n", 
-			this->readableKey()));
+			this->strBlowFishKey()));
 	}
 }
 
 //-------------------------------------------------------------------------------------
 KBEBlowfish::~KBEBlowfish()
 {
-	delete this->pBFKey();
-	pBFKey_ = NULL;
+	SAFE_RELEASE(pBlowFishKey_);
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEBlowfish::initKey()
+bool KBEBlowfish::init()
 {
-	pBFKey_ = new BF_KEY;
+	pBlowFishKey_ = new BF_KEY;
 
 	if ((MIN_KEY_SIZE <= keySize_) && (keySize_ <= MAX_KEY_SIZE))
 	{
-		BF_set_key(this->pBFKey(), key_.size(), (unsigned char*)key_.c_str() );
+		BF_set_key(this->pBlowFishKey(), key_.size(), (unsigned char*)key_.c_str() );
 		isGood_ = true;
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("KBEBlowfish::initKey: "
+		ERROR_MSG(fmt::format("KBEBlowfish::init: "
 			"invalid length {}\n",
 			keySize_));
 
@@ -85,7 +84,7 @@ bool KBEBlowfish::initKey()
 }
 
 //-------------------------------------------------------------------------------------
-const char * KBEBlowfish::readableKey() const
+const char * KBEBlowfish::strBlowFishKey() const
 {
 	static char buf[1024];
 	char *c = buf;
@@ -123,7 +122,7 @@ int KBEBlowfish::encrypt( const unsigned char * src, unsigned char * dest,
 			*(uint64*)(dest + i) = *(uint64*)(src + i);
 		}
 
-		BF_ecb_encrypt(dest + i, dest + i, this->pBFKey(), BF_ENCRYPT);
+		BF_ecb_encrypt(dest + i, dest + i, this->pBlowFishKey(), BF_ENCRYPT);
 		pPrevBlock = (uint64*)(src + i);
 	}
 
@@ -146,7 +145,7 @@ int KBEBlowfish::decrypt( const unsigned char * src, unsigned char * dest,
 	uint64 * pPrevBlock = NULL;
 	for (int i=0; i < length; i += BLOCK_SIZE)
 	{
-		BF_ecb_encrypt(src + i, dest + i, this->pBFKey(), BF_DECRYPT);
+		BF_ecb_encrypt(src + i, dest + i, this->pBlowFishKey(), BF_DECRYPT);
 
 		if (pPrevBlock)
 		{
