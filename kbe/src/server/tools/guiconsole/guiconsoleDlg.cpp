@@ -162,7 +162,7 @@ public:
 
 		while(true)
 		{
-			if(ifind >= findComponentTypes.size() || g_isDestroyed)
+			if(ifind >= (int)findComponentTypes.size() || g_isDestroyed)
 			{
 				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 				//	COMPONENT_NAME_EX(findComponentType));

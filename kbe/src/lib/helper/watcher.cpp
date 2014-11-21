@@ -31,7 +31,6 @@ WatcherObject::WatcherObject(std::string path):
   name_(),
   strval_(),
   id_(0),
-  s_(),
   numWitness_(0)
 {
 	std::string::size_type fi = path.find_first_of('/');

@@ -80,8 +80,6 @@ public:
 	void updateStream(MemoryStream* s){
 		T v;
 		(*s) >> v;
-		s_.clear(false);
-		s_ << v;
 		strval_ = StringConv::val2str(v);
 	}
 
@@ -98,7 +96,6 @@ public:
 protected:
 	std::string path_, name_, strval_;
 	WATCHER_ID id_;
-	MemoryStream s_;
 	int32 numWitness_;
 };
 
@@ -207,19 +204,15 @@ inline WATCHER_VALUE_TYPE WatcherObject::type<COMPONENT_TYPE>()const
 template <>
 inline void WatcherObject::updateStream<COMPONENT_TYPE>(MemoryStream* s)
 {
-	s_.clear(false);
 	COMPONENT_TYPE v;
 	(*s) >> v;
-	s_ << v;
 	strval_ = COMPONENT_NAME_EX(v);
 }
 
 template <>
 inline void WatcherObject::updateStream<std::string>(MemoryStream* s)
 {
-	s_.clear(false);
 	(*s) >> strval_;
-	s_ << strval_;
 }
 
 template <>
