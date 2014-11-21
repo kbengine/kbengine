@@ -1631,7 +1631,12 @@ void Baseapp::onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s)
 	Py_XDECREF(params);
 
 	if(base == NULL)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhere: create is error! entityType={}, componentID={}, callbackID={}\n", 
+			entityType, componentID, callbackID));
+
 		return;
+	}
 
 	// 如果不是在发起创建entity的baseapp上创建则需要转发回调到发起方
 	if(componentID != componentID_)
@@ -1696,7 +1701,13 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 	std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID)
 {
 	if(callbackID == 0)
+	{
+		// 没有设定回调
+		//ERROR_MSG(fmt::format("Baseapp::_onCreateBaseAnywhereCallback: is error(callbackID == 0)! entityType={}, componentID={}\n", 
+		//	entityType, componentID));
+
 		return;
+	}
 
 	PyObjectPtr pyCallback = callbackMgr().take(callbackID);
 	PyObject* pyargs = PyTuple_New(1);
