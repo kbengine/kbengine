@@ -109,7 +109,7 @@ public:
 
 	/**
 		获得用户级脚本目录
-		dem\\scripts\\*
+		demo\\scripts\\*
 	*/
 	std::string getPyUserScriptsPath();
 
