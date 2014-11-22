@@ -83,6 +83,12 @@ bool Bots::initialize()
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeBegin()
 {
+	Network::g_extReceiveWindowBytesOverflow = 0;
+	Network::g_intReceiveWindowBytesOverflow = 0;
+	Network::g_intReceiveWindowMessagesOverflow = 0;
+	Network::g_extReceiveWindowMessagesOverflow = 0;
+	Network::g_receiveWindowMessagesOverflowCritical = 0;
+
 	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 

@@ -113,6 +113,12 @@ bool ClientApp::initializeBegin()
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
+
+	Network::g_extReceiveWindowBytesOverflow = 0;
+	Network::g_intReceiveWindowBytesOverflow = 0;
+	Network::g_intReceiveWindowMessagesOverflow = 0;
+	Network::g_extReceiveWindowMessagesOverflow = 0;
+	Network::g_receiveWindowMessagesOverflowCritical = 0;
 	return true;
 }
 
