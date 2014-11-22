@@ -2076,6 +2076,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
+	s.opfini();
+
 	DEBUG_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
 		nrows, nfields, err.c_str()));
 
