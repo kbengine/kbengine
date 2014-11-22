@@ -248,9 +248,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
 			pFragmentStream_ = MemoryStream::ObjPool().createObject();
-			pFragmentStream_->data_resize(currMsgLen_);
-			pFragmentStream_->wpos(currMsgLen_);
-			memcpy(pFragmentStream_->data(), pFragmentDatas_, currMsgLen_);
+			pFragmentStream_->append(pFragmentDatas_, currMsgLen_);
 			break;
 
 		default:

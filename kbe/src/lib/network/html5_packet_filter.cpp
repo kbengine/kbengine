@@ -298,8 +298,8 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 			{
 				if(pPacket->totalSize() >= payloadSize_)
 				{
-					memcpy(pTCPPacket_->data() + pTCPPacket_->wpos(), pPacket->data() + pPacket->rpos(), (size_t)payloadSize_);
-					pTCPPacket_->wpos((int)pTCPPacket_->wpos() + (int)payloadSize_);
+					pTCPPacket_->append(pPacket->data() + pPacket->rpos(), (size_t)payloadSize_);
+
 					web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
 					web_pFragmentDatasRemain_ = 2;
 					pPacket->read_skip((size_t)payloadSize_);
@@ -333,10 +333,10 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 				}
 				else
 				{
-					memcpy(pTCPPacket_->data() + pTCPPacket_->wpos(), pPacket->data() + pPacket->rpos(), pPacket->totalSize());
+					pTCPPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->totalSize());
+
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
 					payloadSize_ -= pPacket->totalSize();
-					pTCPPacket_->wpos(pTCPPacket_->wpos() + pPacket->totalSize());
 					pPacket->opfini();
 					pRetTCPPacket = pTCPPacket_;
 					

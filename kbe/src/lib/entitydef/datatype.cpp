@@ -1501,8 +1501,8 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 		{
 			if(mstream->opsize() == 0)
 			{
-				ERROR_MSG(fmt::format("FixedArrayType::createFromStream: invalid(size={}), stream no space!\n",
-					size));
+				ERROR_MSG(fmt::format("FixedArrayType::createFromStream: {} invalid(size={}), stream no space!\n",
+					aliasName(), size));
 
 				break;
 			}
@@ -1522,7 +1522,9 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 			}
 			else
 			{
-				ERROR_MSG("FixedArrayType::createFromStream: pyVal is NULL, create is error!\n");
+				ERROR_MSG(fmt::format("FixedArrayType::createFromStream: {}, pyVal is NULL! size={}\n", 
+					aliasName(), size));
+
 				break;
 			}
 		}
