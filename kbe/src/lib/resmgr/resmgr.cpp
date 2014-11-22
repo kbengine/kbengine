@@ -161,7 +161,7 @@ bool Resmgr::initialize()
 
 	//kb_env_.root			= "/home/kbengine/";
 	//kb_env_.res_path		= "/home/kbengine/kbe/res/;/home/kbengine/demo/;/home/kbengine/demo/scripts/;/home/kbengine/demo/res/"; 
-	//kb_env_.bin_path		= "/home/kbengine/kbe/bin/Hybrid/"; 
+	//kb_env_.bin_path		= "/home/kbengine/kbe/bin/server/"; 
 	updatePaths();
 
 	if(kb_env_.root == "" || kb_env_.res_path == "")
