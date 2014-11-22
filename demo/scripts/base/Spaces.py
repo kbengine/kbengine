@@ -1,11 +1,82 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import Functor
-from KBEDebug import *
-from interfaces.GameObject import GameObject
-from SpaceAlloc import *
 import d_spaces
 import wtimer
+import Watcher
+from Bootstrap import Bootstrap, BootObject
+from KBEDebug import *
+from SpaceAlloc import *
+from interfaces.GameObject import GameObject
+
+class BootSpaces(BootObject):
+	"""
+	引导对象：开发者可以扩展出不同的引导对象添加到引导程序进行引导
+	"""
+	def __init__(self):
+		BootObject.__init__(self)
+
+	def name(self):
+		"""
+		virtual method.
+		"""
+		return "Spaces"
+		
+	def priority(self):
+		"""
+		virtual method.
+		获得执行优先级
+		返回值越高优先级越高
+		"""
+		return 999
+		
+	def onBootStart(self, bootstrapIdx):
+		"""
+		virtual method.
+		被引导时触发
+		"""
+		if bootstrapIdx == 1:
+			# 创建spacemanager
+			KBEngine.createBaseLocally( "Spaces", {} )
+
+	def onKillBoot(self, bootstrapIdx):
+		"""
+		virtual method.
+		卸载时触发
+		"""
+		pass
+
+	def readyForLogin(self, bootstrapIdx):
+		"""
+		virtual method.
+		是否引导完毕。
+		1.0代表100%完成，loginapp允许登录
+		"""
+		if bootstrapIdx != 1:
+			return 1.0
+
+		spacesEntity = KBEngine.globalData["SpaceMgr"]
+		
+		tmpDatas = list(d_spaces.datas.keys())
+		count = 0
+		total = len(tmpDatas)
+		
+		for utype in tmpDatas:
+			spaceAlloc = spacesEntity.getSpaceAllocs()[utype]
+			if spaceAlloc.__class__.__name__ != "SpaceAllocDuplicate":
+				if len(spaceAlloc.getSpaces()) > 0:
+					count += 1
+			else:
+				count += 1
+		
+		if count < total:
+			v = float(count) / total
+			# INFO_MSG('initProgress: %f' % v)
+			return v;
+
+		return 1.0
+		
+Bootstrap.add(BootSpaces())
 
 class Spaces(KBEngine.Base, GameObject):
 	def __init__(self):

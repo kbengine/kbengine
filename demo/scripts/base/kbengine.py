@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-import d_spaces
 from KBEDebug import *
+from Bootstrap import Bootstrap
 
-def countPlayers():
-	"""
-	"""
-	i = 0
-	for e in KBEngine.entities.values():
-		if e.__class__.__name__ == "Avatar":
-			i += 1
-			
-	return i
-	
+
 def onBaseAppReady(bootstrapIdx):
 	"""
 	KBEngine method.
@@ -21,12 +12,8 @@ def onBaseAppReady(bootstrapIdx):
 	@type bootstrapIdx: INT32
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
-	KBEngine.addWatcher("players", "UINT32", countPlayers)
+	Bootstrap.start(bootstrapIdx)
 	
-	if bootstrapIdx == 1:
-		# 创建spacemanager
-		KBEngine.createBaseLocally( "Spaces", {} )
-
 def onBaseAppShutDown(state):
 	"""
 	KBEngine method.
@@ -37,7 +24,8 @@ def onBaseAppShutDown(state):
 	@type state: int					 
 	"""
 	INFO_MSG('onBaseAppShutDown: state=%i' % state)
-
+	Bootstrap.end(state)
+	
 def onReadyForLogin(bootstrapIdx):
 	"""
 	KBEngine method.
@@ -46,28 +34,9 @@ def onReadyForLogin(bootstrapIdx):
 	@param bootstrapIdx: 当前baseapp的启动顺序
 	@type bootstrapIdx: INT32
 	"""
-	if bootstrapIdx != 1:
-		INFO_MSG('initProgress: completed!')
-		return 1.0
-		
-	spacesEntity = KBEngine.globalData["SpaceMgr"]
-	
-	tmpDatas = list(d_spaces.datas.keys())
-	count = 0
-	total = len(tmpDatas)
-	
-	for utype in tmpDatas:
-		spaceAlloc = spacesEntity.getSpaceAllocs()[utype]
-		if spaceAlloc.__class__.__name__ != "SpaceAllocDuplicate":
-			if len(spaceAlloc.getSpaces()) > 0:
-				count += 1
-		else:
-			count += 1
-	
-	if count < total:
-		v = float(count) / total
-		# INFO_MSG('initProgress: %f' % v)
-		return v;
+	ret = Bootstrap.readyForLogin(bootstrapIdx)
+	if ret < 1.0:
+		return ret
 	
 	INFO_MSG('initProgress: completed!')
 	return 1.0
