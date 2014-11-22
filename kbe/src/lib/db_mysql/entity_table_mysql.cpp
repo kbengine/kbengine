@@ -1419,7 +1419,6 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream*
 
 	pSotvs->sqlkey = db_item_name();
 	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
-	
 }
 
 //-------------------------------------------------------------------------------------

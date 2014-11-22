@@ -355,7 +355,6 @@ protected:
 	std::string code_; 
 	std::string accountName_;
 	bool success_;
-	
 };
 
 /**

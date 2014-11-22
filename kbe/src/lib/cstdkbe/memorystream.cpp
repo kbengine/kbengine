@@ -51,6 +51,15 @@ size_t MemoryStream::getPoolObjectBytes()
 }
 
 //-------------------------------------------------------------------------------------
+void MemoryStream::onReclaimObject()
+{
+	if(data_.capacity() > DEFAULT_SIZE * 2)
+		data_.reserve(DEFAULT_SIZE);
+
+	clear(false);
+}
+
+//-------------------------------------------------------------------------------------
 } 
 
 

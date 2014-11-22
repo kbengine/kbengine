@@ -96,9 +96,12 @@ public:
 
 	typedef KBEShared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
-	virtual size_t getPoolObjectBytes();
 
-    const static size_t DEFAULT_SIZE = 0x1000;
+	virtual size_t getPoolObjectBytes();
+	virtual void onReclaimObject();
+
+    const static size_t DEFAULT_SIZE = 0x100;
+
     MemoryStream(): rpos_(0), wpos_(0)
     {
         data_.reserve(DEFAULT_SIZE);
@@ -108,6 +111,7 @@ public:
     {
 		if(res <= 0)
 			res = DEFAULT_SIZE;
+
         data_.reserve(res);
     }
 
@@ -118,15 +122,11 @@ public:
 		clear(true);
 	}
 	
-	void onReclaimObject()
-	{
-		clear(false);
-	}
-
     void clear(bool clearData)
     {
     	if(clearData)
       	  data_.clear();
+
         rpos_ = wpos_ = 0;
     }
 
@@ -386,6 +386,7 @@ public:
     {
         if(skip > opsize())
             throw MemoryStreamException(false, rpos_, skip, opsize());
+
         rpos_ += skip;
     }
 
@@ -400,6 +401,7 @@ public:
     {
         if(sizeof(T) > opsize())
             throw MemoryStreamException(false, pos, sizeof(T), opsize());
+
         T val = *((T const*)&data_[pos]);
         EndianConvert(val);
         return val;
@@ -409,6 +411,7 @@ public:
     {
         if(len > opsize())
            throw MemoryStreamException(false, rpos_, len, opsize());
+
         memcpy(dest, &data_[rpos_], len);
         rpos_ += len;
     }
@@ -548,6 +551,7 @@ public:
     void appendBlob(const char *src, ArraySize cnt)
     {
         (*this) << cnt;
+
 		if(cnt > 0)
 			append(src, cnt);
     }
@@ -556,6 +560,7 @@ public:
     {
 		ArraySize len = datas.size();
 		(*this) << len;
+
 		if(len > 0)
 			append(datas.data(), len);
     }
@@ -584,6 +589,7 @@ public:
 
         if (data_.size() < wpos_ + cnt)
             data_.resize(wpos_ + cnt);
+
         memcpy(&data_[wpos_], src, cnt);
         wpos_ += cnt;
     }
