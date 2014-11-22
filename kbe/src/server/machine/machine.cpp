@@ -87,10 +87,10 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 {
 	// 先查询一下是否存在相同身份，如果是相同身份且不是一个进程我们需要告知对方启动非法
 	const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent(componentID);
-	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && componentID == pinfos->cid)
+	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, true))
 	{
 		if(pinfos->pid != pid || ep_.addr().ip != intaddr || this->networkInterface().intaddr().ip != intaddr ||
-				this->networkInterface().extaddr().ip != intaddr && checkComponentUsable(pinfos, true))
+				this->networkInterface().extaddr().ip != intaddr)
 		{
 			Network::Bundle bundle;
 
