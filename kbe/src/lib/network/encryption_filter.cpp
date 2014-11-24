@@ -266,7 +266,7 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 		padSize = BLOCK_SIZE - (pInPacket->totalSize() % BLOCK_SIZE);
 
 		// 向pPacket中填充这么多
-		pInPacket->reserve(pInPacket->size() + padSize);
+		pInPacket->data_resize(pInPacket->size() + padSize);
 
 		// 填充0
 		memset(pInPacket->data() + pInPacket->wpos(), 0, padSize);
@@ -276,7 +276,7 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 	
 	if(pInPacket != pOutPacket)
 	{
-		pOutPacket->reserve(pInPacket->size() + pOutPacket->wpos());
+		pOutPacket->data_resize(pInPacket->size() + pOutPacket->wpos());
 
 		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(),  pInPacket->wpos());
 		pOutPacket->wpos(size + pOutPacket->wpos());
@@ -288,7 +288,7 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 		else
 			pOutPacket = UDPPacket::ObjPool().createObject();
 
-		pOutPacket->reserve(pInPacket->size() + 1);
+		pOutPacket->data_resize(pInPacket->size() + 1);
 
 		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(),  pInPacket->wpos());
 		pOutPacket->wpos(size);
@@ -309,7 +309,7 @@ void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 {
 	if(pInPacket != pOutPacket)
 	{
-		pOutPacket->reserve(pInPacket->size());
+		pOutPacket->data_resize(pInPacket->size());
 
 		int size = KBEBlowfish::decrypt(pInPacket->data() + pInPacket->rpos(), 
 			pOutPacket->data() + pOutPacket->rpos(),  

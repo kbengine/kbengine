@@ -69,7 +69,7 @@ UDPPacket::~UDPPacket(void)
 //-------------------------------------------------------------------------------------
 size_t UDPPacket::maxBufferSize()
 {
-	return PACKET_MAX_SIZE_UDP;
+	return PACKET_MAX_SIZE_UDP * 2;
 }
 
 //-------------------------------------------------------------------------------------

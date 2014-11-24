@@ -257,8 +257,10 @@ void Bundle::finish(bool issend)
 	if(currMsgHandlerLength_ < 0 || g_packetAlwaysContainLength)
 	{
 		Packet* pPacket = pCurrPacket_;
-		if(currMsgPacketCount_ > 0)
-			pPacket = packets_[packets_.size() - currMsgPacketCount_];
+		size_t lastPacketIndex = packets_.size() - currMsgPacketCount_;
+
+		if(lastPacketIndex > 0)
+			pPacket = packets_[lastPacketIndex];
 
 		currMsgLength_ -= NETWORK_MESSAGE_ID_SIZE;
 		currMsgLength_ -= NETWORK_MESSAGE_LENGTH_SIZE;
