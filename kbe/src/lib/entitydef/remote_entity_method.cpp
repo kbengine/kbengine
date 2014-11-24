@@ -75,9 +75,6 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
 
-		// 当包超过限制时将产生错误
-		KBE_ASSERT(mstream.wpos() <= NETWORK_MESSAGE_MAX_SIZE);
-
 		if(mstream.wpos() > 0)
 			(*pBundle).append(mstream.data(), mstream.wpos());
 

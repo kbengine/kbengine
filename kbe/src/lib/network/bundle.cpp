@@ -263,7 +263,10 @@ void Bundle::finish(bool issend)
 		currMsgLength_ -= NETWORK_MESSAGE_ID_SIZE;
 		currMsgLength_ -= NETWORK_MESSAGE_LENGTH_SIZE;
 
-		MessageLength msgLen = currMsgLength_;
+		// 按照设计一个包最大也不可能超过NETWORK_MESSAGE_MAX_SIZE
+		KBE_ASSERT(currMsgLength_ <= NETWORK_MESSAGE_MAX_SIZE);
+
+		MessageLength msgLen = (MessageLength)currMsgLength_;
 		KBEngine::EndianConvert(msgLen);
 
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
