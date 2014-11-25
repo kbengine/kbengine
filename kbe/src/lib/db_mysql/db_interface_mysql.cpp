@@ -186,6 +186,10 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		}
 		
 		DEBUG_MSG(fmt::format("DBInterfaceMysql::attach: connect: {}:{} starting...\n", db_ip_, db_port_));
+
+		int ntry = 0;
+
+__RECONNECT:
 		if(mysql_real_connect(mysql(), db_ip_, db_username_, 
     		db_password_, db_name_, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
 		{
@@ -199,10 +203,36 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("DBInterfaceMysql::attach: mysql_errno={}, mysql_error={}\n",
-				mysql_errno(pMysql_), mysql_error(pMysql_)));
+			if (mysql_errno(pMysql_) == 1049 && ntry++ == 0)
+			{
+				pMysql_ = mysql_init(0);
+				if (pMysql_ == NULL)
+				{
+					ERROR_MSG("DBInterfaceMysql::attach: mysql_init is error!\n");
+					return false;
+				}
 
-			return false;
+				if (mysql_real_connect(mysql(), db_ip_, db_username_,
+					db_password_, NULL, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
+				{
+					this->createDatabaseIfNotExist();
+					if (mysql_select_db(mysql(), db_name_) != 0)
+					{
+						goto __RECONNECT;
+					}
+				}
+				else
+				{
+					goto __RECONNECT;
+				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("DBInterfaceMysql::attach: mysql_errno={}, mysql_error={}\n",
+					mysql_errno(pMysql_), mysql_error(pMysql_)));
+
+				return false;
+			}
 		}
 
 		if (mysql_set_character_set(mysql(), "utf8") != 0)
@@ -279,6 +309,14 @@ bool DBInterfaceMysql::checkEnvironment()
 	}
 	
 	return lower_case_table_names;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::createDatabaseIfNotExist()
+{
+	std::string querycmd = fmt::format("create database {}", DBUtil::dbname());
+	query(querycmd.c_str(), querycmd.size(), false);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

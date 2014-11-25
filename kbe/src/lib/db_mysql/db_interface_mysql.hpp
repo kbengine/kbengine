@@ -150,6 +150,11 @@ public:
 	virtual int getlasterror();
 
 	/**
+		如果数据库不存在则创建一个数据库
+	*/
+	virtual bool createDatabaseIfNotExist();
+	
+	/**
 		创建一个entity存储表
 	*/
 	virtual EntityTable* createEntityTable();
