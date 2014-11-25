@@ -13,7 +13,7 @@ class Account(KBEngine.Entity):
 		
 	def onReqAvatarList(self, infos):
 		"""
-		define method.
+		defined method.
 		"""
 		DEBUG_MSG("Account:onReqAvatarList::%s" % (infos))
 		
@@ -35,7 +35,7 @@ class Account(KBEngine.Entity):
 			
 	def onCreateAvatarResult(self, retcode, info):
 		"""
-		define method.
+		defined method.
 		"""
 		DEBUG_MSG("Account:onCreateAvatarResult::%s, retcode=%i" % (info, retcode))
 		
@@ -48,7 +48,7 @@ class Account(KBEngine.Entity):
 	
 	def onRemoveAvatar(self, dbid):
 		"""
-		define method.
+		defined method.
 		"""
 		DEBUG_MSG("Account:onRemoveAvatar:: dbid=%i" % (dbid))
 		del self.avatars[dbid]

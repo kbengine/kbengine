@@ -75,20 +75,30 @@ class BootSpaces(BootObject):
 			return v;
 
 		return 1.0
-		
+
+# 添加到引导程序，以便在服务端启动后能够创建这个实体
 Bootstrap.add(BootSpaces())
 
 class Spaces(KBEngine.Base, GameObject):
+	"""
+	这是一个脚本层封装的空间管理器
+	KBEngine的space是一个抽象空间的概念，一个空间可以被脚本层视为游戏场景、游戏房间、甚至是一个宇宙。
+	"""
 	def __init__(self):
 		KBEngine.Base.__init__(self)
 		GameObject.__init__(self)
 		
-		self._spaceAllocs = {}
-		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
+		# 初始化空间分配器
 		self.initAlloc()
+		
+		# 向全局共享数据中注册这个管理器的mailbox以便在所有逻辑进程中可以方便的访问
 		KBEngine.globalData["Spaces"] = self
 	
 	def initAlloc(self):
+		# 注册一个定时器，在这个定时器中我们每个周期都创建出一些NPC，直到创建完所有
+		self._spaceAllocs = {}
+		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
+		
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
 			spaceData = d_spaces.datas.get(utype)
@@ -114,14 +124,14 @@ class Spaces(KBEngine.Base, GameObject):
 			
 	def loginToSpace(self, avatarEntity, spaceUType, context):
 		"""
-		define method.
+		defined method.
 		某个玩家请求登陆到某个space中
 		"""
 		self._spaceAllocs[spaceUType].loginToSpace(avatarEntity, context)
 	
 	def logoutSpace(self, avatarID, spaceID):
 		"""
-		define method.
+		defined method.
 		某个玩家请求登出这个space
 		"""
 		for spaceAlloc in self._spaceAllocs.values():
@@ -131,21 +141,21 @@ class Spaces(KBEngine.Base, GameObject):
 				
 	def teleportSpace(self, entityMailbox, spaceUType, position, direction, context):
 		"""
-		define method.
+		defined method.
 		请求进入某个space中
 		"""
 		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, context)
 
 	def onSpaceLoseCell(self, spaceUType, spaceKey):
 		"""
-		define method.
+		defined method.
 		space的cell创建好了
 		"""
 		self._spaceAllocs[spaceUType].onSpaceLoseCell(spaceKey)
 		
 	def onSpaceGetCell(self, spaceUType, spaceMailbox, spaceKey):
 		"""
-		define method.
+		defined method.
 		space的cell创建好了
 		"""
 		self._spaceAllocs[spaceUType].onSpaceGetCell(spaceMailbox, spaceKey)

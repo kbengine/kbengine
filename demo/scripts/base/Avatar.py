@@ -71,7 +71,7 @@ class Avatar(KBEngine.Proxy,
 		
 	def createCell(self, space):
 		"""
-		define method.
+		defined method.
 		创建cell实体
 		"""
 		self.createCellEntity(space)

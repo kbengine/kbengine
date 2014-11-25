@@ -92,7 +92,7 @@ class Space(KBEngine.Base, GameObject):
 				
 	def loginToSpace(self, avatarMailbox, context):
 		"""
-		define method.
+		defined method.
 		某个玩家请求登陆到这个space中
 		"""
 		avatarMailbox.createCell(self.cell)
@@ -100,14 +100,14 @@ class Space(KBEngine.Base, GameObject):
 		
 	def logoutSpace(self, entityID):
 		"""
-		define method.
+		defined method.
 		某个玩家请求登出这个space
 		"""
 		self.onLeave(entityID)
 		
 	def teleportSpace(self, entityMailbox, position, direction, context):
 		"""
-		define method.
+		defined method.
 		请求进入某个space中
 		"""
 		entityMailbox.cell.onTeleportSpaceCB(self.cell, self.spaceUTypeB, position, direction)

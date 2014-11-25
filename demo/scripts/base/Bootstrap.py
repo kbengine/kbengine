@@ -48,6 +48,7 @@ class BootObject:
 class Bootstrap:
 	"""
 	引导程序：服务端进程起来后开始引导
+	可以向这个模块中添加一些引导任务，通过这个机制初始化整个游戏
 	"""
 	bootstrapIdx = 0
 	bootObjects = {}
@@ -94,7 +95,7 @@ class Bootstrap:
 			for bo in Bootstrap.bootObjects[pri]:
 				ret += bo.readyForLogin(bootstrapIdx)
 				count += 1
-				
+		
 		return (ret / count) + 0.001
 		
 	@staticmethod
