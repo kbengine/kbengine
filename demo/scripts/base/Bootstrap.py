@@ -81,13 +81,21 @@ class Bootstrap:
 		是否引导完毕，loginapp允许登录
 		"""
 		pris = list(Bootstrap.bootObjects.keys())
-		sorted(pris, reverse = True)
+		
+		if len(pris) == 0:
+			return 1.0
 
+		sorted(pris, reverse = True)
+		
+		ret = 0.0
+		count = 0
+		
 		for pri in pris:
 			for bo in Bootstrap.bootObjects[pri]:
-				bo.readyForLogin(bootstrapIdx)
+				ret += bo.readyForLogin(bootstrapIdx)
+				count += 1
 				
-		return True
+		return (ret / count) + 0.001
 		
 	@staticmethod
 	def end(state):
