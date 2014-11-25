@@ -12,6 +12,9 @@ from interfaces.Teleport import Teleport
 class Avatar(KBEngine.Proxy,
 			GameObject,
 			Teleport):
+	"""
+	角色实体
+	"""
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		GameObject.__init__(self)
