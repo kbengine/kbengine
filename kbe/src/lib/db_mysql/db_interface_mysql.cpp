@@ -198,6 +198,7 @@ __RECONNECT:
 				ERROR_MSG(fmt::format("DBInterfaceMysql::attach: Could not set active db[{}]\n",
 					db_name_));
 
+				detach();
 				return false;
 			}
 		}
@@ -205,6 +206,12 @@ __RECONNECT:
 		{
 			if (mysql_errno(pMysql_) == 1049 && ntry++ == 0)
 			{
+				if (mysql())
+				{
+					::mysql_close(mysql());
+					pMysql_ = NULL;
+				}
+
 				pMysql_ = mysql_init(0);
 				if (pMysql_ == NULL)
 				{
@@ -231,6 +238,7 @@ __RECONNECT:
 				ERROR_MSG(fmt::format("DBInterfaceMysql::attach: mysql_errno={}, mysql_error={}\n",
 					mysql_errno(pMysql_), mysql_error(pMysql_)));
 
+				detach();
 				return false;
 			}
 		}
@@ -253,6 +261,7 @@ __RECONNECT:
 	{
 		ERROR_MSG(fmt::format("DBInterfaceMysql::attach: {}\n", e.what()));
 		hasLostConnection_ = true;
+		detach();
 		return false;
 	}
 
