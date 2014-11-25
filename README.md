@@ -20,7 +20,7 @@ http://www.kbengine.org
 	API			: https://github.com/kbengine/kbengine/tree/master/docs
 	
 ##Support
-	Email		: kbengine_maillist@googlegroups.com
+	Email		: kbesrv?gmail.com
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
 ## QQ交流群
