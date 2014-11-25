@@ -55,7 +55,7 @@ class BootSpaces(BootObject):
 		if bootstrapIdx != 1:
 			return 1.0
 
-		spacesEntity = KBEngine.globalData["SpaceMgr"]
+		spacesEntity = KBEngine.globalData["Spaces"]
 		
 		tmpDatas = list(d_spaces.datas.keys())
 		count = 0
@@ -86,7 +86,7 @@ class Spaces(KBEngine.Base, GameObject):
 		self._spaceAllocs = {}
 		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
 		self.initAlloc()
-		KBEngine.globalData["SpaceMgr"] = self
+		KBEngine.globalData["Spaces"] = self
 	
 	def initAlloc(self):
 		self._tmpDatas = list(d_spaces.datas.keys())

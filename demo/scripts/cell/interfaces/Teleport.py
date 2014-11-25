@@ -19,7 +19,7 @@ class Teleport:
 		传送到某场景
 		"""
 		assert self.base != None
-		self.getSpaceMgr().teleportSpace(self.base, spaceUType, position, direction, SpaceContext.createContext(self, spaceUType))
+		self.getSpaces().teleportSpace(self.base, spaceUType, position, direction, SpaceContext.createContext(self, spaceUType))
 
 	def onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction):
 		"""

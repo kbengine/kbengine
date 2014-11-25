@@ -66,11 +66,11 @@ class GameObject:
 		spaceBase = self.getCurrSpaceBase()
 		return KBEngine.entities.get(spaceBase.id, None)
 		
-	def getSpaceMgr(self):
+	def getSpaces(self):
 		"""
 		获取场景管理器
 		"""
-		return KBEngine.globalData["SpaceMgr"]
+		return KBEngine.globalData["Spaces"]
 	
 	def startDestroyTimer(self):
 		"""

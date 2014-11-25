@@ -60,7 +60,7 @@ class Avatar(KBEngine.Proxy,
 			
 			self.spaceUTypeB = self.cellData["spaceUType"]
 		
-		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB, {})
+		KBEngine.globalData["Spaces"].loginToSpace(self, self.spaceUTypeB, {})
 		
 	def onGetCell(self):
 		"""
