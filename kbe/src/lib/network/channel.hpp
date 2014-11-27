@@ -139,6 +139,10 @@ public:
 
 	void reset(const EndPoint* endpoint, bool warnOnDiscard = true);
 
+
+	INLINE PacketReader* pPacketReader()const;
+	INLINE PacketReceiver* pPacketReceiver()const;
+
 	Traits traits() const { return traits_; }
 	bool isExternal() const { return traits_ == EXTERNAL; }
 	bool isInternal() const { return traits_ == INTERNAL; }

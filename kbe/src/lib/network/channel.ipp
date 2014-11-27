@@ -38,5 +38,15 @@ INLINE int Channel::windowSize() const
 	return windowSize_;
 }
 
+INLINE PacketReader* Channel::pPacketReader()const
+{
+	return pPacketReader_;
+}
+
+INLINE PacketReceiver* Channel::pPacketReceiver()const
+{
+	return pPacketReceiver_;
+}
+
 }
 }
