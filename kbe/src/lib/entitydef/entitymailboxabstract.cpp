@@ -74,11 +74,12 @@ void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 	// 如果是server端的mailbox
 	if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 	{
-		if(componentID_ == 0)	// 客户端
+		// 如果ID为0，则这是一个客户端组件，否则为服务端。
+		if(componentID_ == 0)
 		{
 			bundle.newMessage(ClientInterface::onRemoteMethodCall);
 		}
-		else					// 服务器组件
+		else
 		{
 			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
 
