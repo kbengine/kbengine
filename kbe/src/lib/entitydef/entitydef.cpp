@@ -131,7 +131,7 @@ void EntityDef::reload(bool fullReload)
 	}
 	else
 	{
-		loadAllScriptModule(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes);
+		loadAllScriptModules(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes);
 	}
 
 	EntityDef::_isInit = true;
@@ -217,7 +217,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllScriptModule(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return loadAllScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 							TiXmlNode* defNode, 
 							ScriptDefModule* scriptModule)
 {
-	if(!loadAllDefDescription(moduleName, defxml, defNode, scriptModule))
+	if(!loadAllDefDescriptions(moduleName, defxml, defNode, scriptModule))
 	{
 		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to loadAllDefDescription(), entity:{}\n",
 			moduleName.c_str()));
@@ -431,7 +431,7 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 			return false;
 
 		TiXmlNode* interfaceRootNode = interfaceXml.get()->getRootNode();
-		if(!loadAllDefDescription(moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
+		if(!loadAllDefDescriptions(moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
 		{
 			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
 				interfaceName.c_str()));
@@ -496,7 +496,7 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadAllDefDescription(const std::string& moduleName, 
+bool EntityDef::loadAllDefDescriptions(const std::string& moduleName, 
 									  XmlPlus* defxml, 
 									  TiXmlNode* defNode, 
 									  ScriptDefModule* scriptModule)
@@ -1122,7 +1122,7 @@ void EntityDef::setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadAllScriptModule(std::string entitiesPath, 
+bool EntityDef::loadAllScriptModules(std::string entitiesPath, 
 									std::vector<PyTypeObject*>& scriptBaseTypes)
 {
 	std::string entitiesFile = entitiesPath + "entities.xml";

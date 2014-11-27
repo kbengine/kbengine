@@ -69,10 +69,10 @@ public:
 	/** 
 		º”‘ÿœ‡πÿ√Ë ˆ
 	*/
-	static bool loadAllScriptModule(std::string entitiesPath, 
+	static bool loadAllScriptModules(std::string entitiesPath, 
 		std::vector<PyTypeObject*>& scriptBaseTypes);
 
-	static bool loadAllDefDescription(const std::string& moduleName, 
+	static bool loadAllDefDescriptions(const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
