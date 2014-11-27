@@ -3,7 +3,7 @@ import random
 import math
 import time
 import KBEngine
-import wtimer
+import SCDefine
 from KBEDebug import *
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell

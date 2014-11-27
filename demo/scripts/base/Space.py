@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
-import wtimer
+import SCDefine
 import copy
 import math
 from KBEDebug import *
@@ -66,7 +66,7 @@ class Space(KBEngine.Base, GameObject):
 		entity的cell部分实体被创建成功
 		"""
 		DEBUG_MSG("Space::onGetCell: %i" % self.id)
-		self.addTimer(0.1, 0.1, wtimer.TIMER_TYPE_SPACE_SPAWN_TICK)
+		self.addTimer(0.1, 0.1, SCDefine.TIMER_TYPE_SPACE_SPAWN_TICK)
 		KBEngine.globalData["Spaces"].onSpaceGetCell(self.spaceUTypeB, self, self.spaceKey)
 		GameObject.onGetCell(self)
 		
@@ -135,4 +135,4 @@ class Space(KBEngine.Base, GameObject):
 		
 Space._timermap = {}
 Space._timermap.update(GameObject._timermap)
-Space._timermap[wtimer.TIMER_TYPE_SPACE_SPAWN_TICK] = Space.spawnOnTimer
+Space._timermap[SCDefine.TIMER_TYPE_SPACE_SPAWN_TICK] = Space.spawnOnTimer

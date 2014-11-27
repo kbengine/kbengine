@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-import wtimer
+import SCDefine
 import time
 import random
 import GlobalDefine
@@ -60,7 +60,7 @@ class AI:
 		激活entity
 		"""
 		self.heartBeatTimerID = \
-		self.addTimer(random.randint(0, 1), 1, wtimer.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
+		self.addTimer(random.randint(0, 1), 1, SCDefine.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
 		
 	def disable(self):
 		"""
@@ -284,4 +284,4 @@ class AI:
 			self.choiceTarget()
 		
 AI._timermap = {}
-AI._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = AI.onHeardTimer
+AI._timermap[SCDefine.TIMER_TYPE_HEARDBEAT] = AI.onHeardTimer

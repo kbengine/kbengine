@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
-import wtimer
+import SCDefine
 import time
 import d_spaces
 import d_avatar_inittab
@@ -110,7 +110,7 @@ class Avatar(KBEngine.Proxy,
 		DEBUG_MSG("Avatar[%i].onClientDeath:" % self.id)
 		# 防止正在请求创建cell的同时客户端断开了， 我们延时一段时间来执行销毁cell直到销毁base
 		# 这段时间内客户端短连接登录则会激活entity
-		self._destroyTimer = self.addTimer(1, 0, wtimer.TIMER_TYPE_DESTROY)
+		self._destroyTimer = self.addTimer(1, 0, SCDefine.TIMER_TYPE_DESTROY)
 			
 	def onClientGetCell(self):
 		"""
@@ -126,5 +126,5 @@ class Avatar(KBEngine.Proxy,
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Teleport._timermap)
-Avatar._timermap[wtimer.TIMER_TYPE_DESTROY] = Avatar.onDestroyTimer
+Avatar._timermap[SCDefine.TIMER_TYPE_DESTROY] = Avatar.onDestroyTimer
 

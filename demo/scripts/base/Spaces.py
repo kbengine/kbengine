@@ -2,7 +2,7 @@
 import KBEngine
 import Functor
 import d_spaces
-import wtimer
+import SCDefine
 import Watcher
 from Bootstrap import Bootstrap, BootObject
 from KBEDebug import *
@@ -97,7 +97,7 @@ class Spaces(KBEngine.Base, GameObject):
 	def initAlloc(self):
 		# 注册一个定时器，在这个定时器中我们每个周期都创建出一些NPC，直到创建完所有
 		self._spaceAllocs = {}
-		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
+		self.addTimer(3, 1, SCDefine.TIMER_TYPE_CREATE_SPACES)
 		
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
@@ -162,4 +162,4 @@ class Spaces(KBEngine.Base, GameObject):
 
 Spaces._timermap = {}
 Spaces._timermap.update(GameObject._timermap)
-Spaces._timermap[wtimer.TIMER_TYPE_CREATE_SPACES] = Spaces.createSpaceOnTimer
+Spaces._timermap[SCDefine.TIMER_TYPE_CREATE_SPACES] = Spaces.createSpaceOnTimer

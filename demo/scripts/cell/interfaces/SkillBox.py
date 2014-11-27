@@ -2,7 +2,7 @@
 import KBEngine
 import skills
 import GlobalConst
-import wtimer
+import SCDefine
 from KBEDebug import * 
 
 class SkillBox:

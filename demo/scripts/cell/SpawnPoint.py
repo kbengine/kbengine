@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-import wtimer
+import SCDefine
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
@@ -8,7 +8,7 @@ import d_entities
 class SpawnPoint(KBEngine.Entity, GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
-		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
+		self.addTimer(1, 0, SCDefine.TIMER_TYPE_SPAWN)
 
 	def onRestore(self):
 		"""
@@ -16,7 +16,7 @@ class SpawnPoint(KBEngine.Entity, GameObject):
 		entity的cell部分实体被恢复成功
 		"""
 		GameObject.onRestore(self)
-		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
+		self.addTimer(1, 0, SCDefine.TIMER_TYPE_SPAWN)
 		
 	def onDestroy(self):
 		"""
@@ -31,7 +31,7 @@ class SpawnPoint(KBEngine.Entity, GameObject):
 		defined.
 		出生的entity销毁了 需要重建?
 		"""
-		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
+		self.addTimer(1, 0, SCDefine.TIMER_TYPE_SPAWN)
 		
 	def spawnTimer(self, tid, tno):
 		datas = d_entities.datas.get(self.spawnEntityNO)
@@ -56,4 +56,4 @@ class SpawnPoint(KBEngine.Entity, GameObject):
 		
 SpawnPoint._timermap = {}
 SpawnPoint._timermap.update(GameObject._timermap)
-SpawnPoint._timermap[wtimer.TIMER_TYPE_SPAWN] = SpawnPoint.spawnTimer
+SpawnPoint._timermap[SCDefine.TIMER_TYPE_SPAWN] = SpawnPoint.spawnTimer

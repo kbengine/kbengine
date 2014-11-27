@@ -2,13 +2,13 @@
 import KBEngine
 import skills
 import GlobalConst
-import wtimer
+import SCDefine
 from KBEDebug import * 
 import skillbases.SCObject as SCObject
 
 class Spell:
 	def __init__(self):
-		#self.addTimer(1,1,wtimer.TIMER_TYPE_BUFF_TICK)
+		#self.addTimer(1,1,SCDefine.TIMER_TYPE_BUFF_TICK)
 		pass
 		
 	def addDBuff(self, buffData):
@@ -66,4 +66,4 @@ class Spell:
 		pass
 		
 Spell._timermap = {}
-Spell._timermap[wtimer.TIMER_TYPE_BUFF_TICK] = Spell.onBuffTick
+Spell._timermap[SCDefine.TIMER_TYPE_BUFF_TICK] = Spell.onBuffTick

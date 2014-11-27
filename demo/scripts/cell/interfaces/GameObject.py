@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import d_spaces
-import wtimer
+import SCDefine
 import GlobalDefine
 from KBEDebug import * 
 
@@ -82,7 +82,7 @@ class GameObject:
 		启动销毁entitytimer
 		"""
 		if self.isState(GlobalDefine.ENTITY_STATE_DEAD):
-			self.addTimer(5, 0, wtimer.TIMER_TYPE_DESTROY)
+			self.addTimer(5, 0, SCDefine.TIMER_TYPE_DESTROY)
 			DEBUG_MSG("%s::startDestroyTimer: %i running." % (self.getScriptName(), self.id))
 			
 	def onStateChanged_(self, oldstate, newstate):
@@ -134,4 +134,4 @@ class GameObject:
 		self.destroy()
 		
 GameObject._timermap = {}
-GameObject._timermap[wtimer.TIMER_TYPE_DESTROY] = GameObject.onDestroyEntityTimer
+GameObject._timermap[SCDefine.TIMER_TYPE_DESTROY] = GameObject.onDestroyEntityTimer

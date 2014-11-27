@@ -3,6 +3,8 @@ import KBEngine
 import GlobalConst
 from KBEDebug import * 
 
+
+# 服务端timer定义
 TIMER_TYPE_BUFF_TICK								= 1 # buff的tick
 TIMER_TYPE_SPACE_SPAWN_TICK							= 2 # space出生怪
 TIMER_TYPE_CREATE_SPACES							= 3 # 创建space

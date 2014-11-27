@@ -2,7 +2,7 @@
 import random
 import math
 import time
-import wtimer
+import SCDefine
 import d_spaces
 import KBEngine
 from KBEDebug import *
@@ -13,7 +13,7 @@ class Gate(KBEngine.Entity, GameObject):
 		KBEngine.Entity.__init__(self)
 		GameObject.__init__(self) 
 		
-		self.addTimer(1, 0, wtimer.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
+		self.addTimer(1, 0, SCDefine.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
 
 	# ----------------------------------------------------------------
 	# callback
@@ -61,4 +61,4 @@ class Gate(KBEngine.Entity, GameObject):
 				
 Gate._timermap = {}
 Gate._timermap.update(GameObject._timermap)
-Gate._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = Gate.onHeardTimer
+Gate._timermap[SCDefine.TIMER_TYPE_HEARDBEAT] = Gate.onHeardTimer
