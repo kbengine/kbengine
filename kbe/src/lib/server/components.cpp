@@ -882,12 +882,12 @@ Network::Channel* Components::getMessagelogChannel()
 //-------------------------------------------------------------------------------------	
 size_t Components::getGameSrvComponentsSize()
 {
-	COMPONENTS								_baseapps;
-	COMPONENTS								_cellapps;
-	COMPONENTS								_dbmgrs;
-	COMPONENTS								_loginapps;
-	COMPONENTS								_cellappmgrs;
-	COMPONENTS								_baseappmgrs;
+	COMPONENTS	_baseapps;
+	COMPONENTS	_cellapps;
+	COMPONENTS	_dbmgrs;
+	COMPONENTS	_loginapps;
+	COMPONENTS	_cellappmgrs;
+	COMPONENTS	_baseappmgrs;
 
 	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
 		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
@@ -1108,6 +1108,9 @@ RESTART_RECV:
 //-------------------------------------------------------------------------------------
 bool Components::process()
 {
+	if(componentType_ == MACHINE_TYPE)
+		return false;
+
 	if(state_ == 0)
 	{
 		uint64 cidex = 0;
@@ -1193,23 +1196,20 @@ bool Components::process()
 	}
 	else
 	{
-		if(componentType_ != MACHINE_TYPE)
-		{
-			static uint64 lastTime = timestamp();
+		static uint64 lastTime = timestamp();
 			
-			if(timestamp() - lastTime > uint64(stampsPerSecond()))
+		if(timestamp() - lastTime > uint64(stampsPerSecond()))
+		{
+			if(!findInterfaces())
 			{
-				if(!findInterfaces())
-				{
-					if(state_ != 2)
-						lastTime = timestamp();
+				if(state_ != 2)
+					lastTime = timestamp();
 
-					return true;
-				}
-			}
-			else
 				return true;
+			}
 		}
+		else
+			return true;
 	}
 
 	return false;

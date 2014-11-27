@@ -83,6 +83,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			}
 		}
 	}
+
+	pCurrPacket()->data_resize(recvWindowSize_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -187,6 +189,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			
 			if(psin == NULL)
 				psin = &sin;
+
+			pCurrPacket()->data_resize(recvWindowSize_);
 
 			int len = epListen_.recvfrom(pCurrPacket()->data(), recvWindowSize_, *psin);
 			if (len == -1)
