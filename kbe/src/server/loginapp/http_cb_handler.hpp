@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_HTTP_CB_HANDLER_HPP
 #define KBE_HTTP_CB_HANDLER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 namespace KBEngine{
 namespace Network{

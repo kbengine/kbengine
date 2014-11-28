@@ -18,32 +18,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_KEY_HPP
-#define KBENGINE_KEY_HPP
+#ifndef KBE_TASKS_HPP
+#define KBE_TASKS_HPP
 
-#include "rsa.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/task.hpp"
+#include "common/common.hpp"
 
 namespace KBEngine
 {
 
-
 /**
- *	引擎的key管理
+ *	任务容器
  */
-class KBEKey : public KBE_RSA, public Singleton<KBEKey>
+class Tasks
 {
 public:
-	KBEKey(const std::string& pubkeyname, 
-		const std::string& prikeyname);
+	Tasks();
+	~Tasks();
 
-	KBEKey();
-	virtual ~KBEKey();
-
-	virtual bool isGood()const;
+	void add(Task * pTask);
+	bool cancel(Task * pTask);
+	void process();
+private:
+	
+	typedef std::vector<KBEngine::Task *> Container;
+	Container container_;
 };
-
 
 }
 
-#endif // KBENGINE_KEY_HPP
+#endif // KBE_TASKS_HPP

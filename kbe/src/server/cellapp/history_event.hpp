@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_HISTORY_EVENT_HPP
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"	
+#include "common/common.hpp"	
 
 
 namespace KBEngine{

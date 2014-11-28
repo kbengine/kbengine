@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_interface.hpp"
 #include "db_threadpool.hpp"
 #include "entity_table.hpp"
-#include "cstdkbe/kbekey.hpp"
+#include "common/kbekey.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "server/serverconfig.hpp"

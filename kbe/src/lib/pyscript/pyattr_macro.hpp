@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PYATTR_MACRO_H
 #define _PYATTR_MACRO_H
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine{ namespace script{

@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "event.hpp"
 #include "script_callbacks.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/script_loglevel.hpp"
 #include "pyscript/scriptobject.hpp"

@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common.hpp"
 #include "blob.hpp"
 #include "resmgr/resmgr.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
 
 #ifndef CODE_INLINE

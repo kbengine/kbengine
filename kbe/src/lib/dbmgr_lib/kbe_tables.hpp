@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_KBE_TABLES_HPP
 
 #include "entity_table.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine { 

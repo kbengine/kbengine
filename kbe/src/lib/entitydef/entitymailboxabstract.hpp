@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_ENTITY_MAILBOX_BASE_HPP
 	
 // common include	
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 //#include "network/channel.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/common.hpp"

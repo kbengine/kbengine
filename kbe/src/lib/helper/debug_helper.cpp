@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "debug_helper.hpp"
 #include "profile.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"

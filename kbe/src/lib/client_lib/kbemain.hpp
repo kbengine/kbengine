@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBEMAIN_CLIENT_HPP
 #include "clientapp.hpp"
 #include "entity.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"

@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "forward_message_over_handler.hpp"
 #include "entitydef/entities.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "entity.hpp"
 #include "space.hpp"
 #include "spaces.hpp"

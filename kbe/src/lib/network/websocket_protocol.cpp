@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "websocket_protocol.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "network/channel.hpp"
-#include "cstdkbe/base64.hpp"
-#include "cstdkbe/sha1.hpp"
+#include "common/base64.hpp"
+#include "common/sha1.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG

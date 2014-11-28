@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_RESOURCE_OBJECT_HPP
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"	
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"	
 
 namespace KBEngine{
 

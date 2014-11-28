@@ -34,7 +34,7 @@ all install clean full:
 	cd dependencies/log4cxx && $(MAKE) $@
 	cd python && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
-	cd cstdkbe && $(MAKE) $@
+	cd common && $(MAKE) $@
 	cd db_mysql && $(MAKE) $@
 	cd dbmgr_lib && $(MAKE) $@
 	cd entitydef && $(MAKE) $@

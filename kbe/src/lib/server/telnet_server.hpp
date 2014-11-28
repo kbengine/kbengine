@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_TELNET_SERVER_HPP
 #define KBE_TELNET_SERVER_HPP
 	
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/endpoint.hpp"

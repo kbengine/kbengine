@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
-#include "cstdkbe/blowfish.hpp"
+#include "common/blowfish.hpp"
 
 
 #define BUNDLE_SEND_OP(op)																					\

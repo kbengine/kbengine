@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_VOLATILEINFO_HPP
 #define KBE_VOLATILEINFO_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "pyscript/scriptobject.hpp"	
 

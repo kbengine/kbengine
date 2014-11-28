@@ -12,10 +12,10 @@ same license as the rest of the engine.
 #define KBE_SOCKETPACKET_HPP
 	
 // common include
-#include "cstdkbe/memorystream.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/objectpool.hpp"
-#include "cstdkbe/smartpointer.hpp"	
+#include "common/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/objectpool.hpp"
+#include "common/smartpointer.hpp"	
 #include "network/common.hpp"
 
 //#define NDEBUG

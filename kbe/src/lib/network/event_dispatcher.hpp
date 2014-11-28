@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_EVENT_DISPATCHER_HPP
 
 #include <map>
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/tasks.hpp"
+#include "common/timer.hpp"
 #include "network/interfaces.hpp"
 #include "network/common.hpp"
 

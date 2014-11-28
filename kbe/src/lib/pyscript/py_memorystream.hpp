@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "scriptobject.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
 
 namespace KBEngine{ namespace script{
 

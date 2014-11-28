@@ -33,7 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/globaldata_client.hpp"
 #include "server/globaldata_server.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/timer.hpp"
 #include "network/endpoint.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadpool.hpp"

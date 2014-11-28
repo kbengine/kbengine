@@ -21,10 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PENDING_LOGIN_MGR_HPP
 #define KBE_PENDING_LOGIN_MGR_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
+#include "common/timer.hpp"
+#include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/components.hpp"
 #include "network/address.hpp"

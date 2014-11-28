@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_APP_PROFILE_HPP
 #define KBE_APP_PROFILE_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/profile.hpp"
 #include "helper/eventhistory_stats.hpp"

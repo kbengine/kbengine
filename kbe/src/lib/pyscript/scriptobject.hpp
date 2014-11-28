@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyattr_macro.hpp" 
 #include "pyobject_call_template.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include <structmember.h>
 #include <assert.h>
 

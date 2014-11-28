@@ -28,7 +28,7 @@
 #ifndef __TMX_MAPTILE_H__
 #define __TMX_MAPTILE_H__
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 namespace Tmx 
 {

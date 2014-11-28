@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_NETWORK_STATS_HPP
 
 #include "network/interfaces.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
 
 namespace KBEngine { 
 namespace Network

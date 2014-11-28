@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include "datatype.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "pyscript/map.hpp"
 #include "pyscript/pickler.hpp"
 

@@ -24,7 +24,7 @@
     <ClCompile Include="blowfish.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cstdkbe.cpp">
+    <ClCompile Include="common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="kbekey.cpp">
@@ -68,7 +68,7 @@
     <ClInclude Include="blowfish.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cstdkbe.hpp">
+    <ClInclude Include="common.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="deadline.hpp">

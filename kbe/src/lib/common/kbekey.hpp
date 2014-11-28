@@ -18,24 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBEVERSION_HPP
-#define KBEVERSION_HPP
+#ifndef KBENGINE_KEY_HPP
+#define KBENGINE_KEY_HPP
 
-#include "cstdkbe/platform.hpp"
+#include "rsa.hpp"
+#include "common/singleton.hpp"
 
-namespace KBEngine{
-	
-#define KBE_VERSION_MAJOR 0
-#define KBE_VERSION_MINOR 2
-#define KBE_VERSION_PATCH 0
-
-
-namespace KBEVersion
+namespace KBEngine
 {
-	const std::string & versionString();
-	void setScriptVersion(const std::string& ver);
-	const std::string & scriptVersionString();
-}
+
+
+/**
+ *	引擎的key管理
+ */
+class KBEKey : public KBE_RSA, public Singleton<KBEKey>
+{
+public:
+	KBEKey(const std::string& pubkeyname, 
+		const std::string& prikeyname);
+
+	KBEKey();
+	virtual ~KBEKey();
+
+	virtual bool isGood()const;
+};
+
 
 }
-#endif // KBEVERSION_HPP
+
+#endif // KBENGINE_KEY_HPP

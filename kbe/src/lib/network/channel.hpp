@@ -21,12 +21,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_NETWORKCHANCEL_HPP
 #define KBE_NETWORKCHANCEL_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/timestamp.hpp"
-#include "cstdkbe/refcountable.hpp"
-#include "cstdkbe/objectpool.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
+#include "common/smartpointer.hpp"
+#include "common/timestamp.hpp"
+#include "common/refcountable.hpp"
+#include "common/objectpool.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"

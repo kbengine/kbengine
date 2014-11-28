@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #define __LIB_DLLAPI__	
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
@@ -37,7 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <iostream>	
 #include <stdarg.h> 
-#include "cstdkbe/singleton.hpp"
+#include "common/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "thread/threadguard.hpp"
 #include "xmlplus/xmlplus.hpp"	

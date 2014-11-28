@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "coordinate_system.hpp"
 #include "cell.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "navigation/navigation_handle.hpp"
 

@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_SERVER_APP_HPP
 
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
@@ -40,9 +40,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/signal_handler.hpp"
 #include "server/shutdown_handler.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/smartpointer.hpp"
+#include "common/timer.hpp"
+#include "common/singleton.hpp"
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"

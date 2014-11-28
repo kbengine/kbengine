@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SENDMAIL_THREADTASKS_HPP
 #define KBE_SENDMAIL_THREADTASKS_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"

@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ADDRESS_HPP
 #define KBE_ADDRESS_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/objectpool.hpp"
+#include "common/common.hpp"
+#include "common/objectpool.hpp"
 #include "network/common.hpp"
 
 namespace KBEngine { 

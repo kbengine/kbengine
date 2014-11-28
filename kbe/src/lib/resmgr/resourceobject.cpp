@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "resmgr.hpp"
 #include "resourceobject.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/timer.hpp"
 
 namespace KBEngine{	
 

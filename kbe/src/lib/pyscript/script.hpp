@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBENGINE_SCRIPT_HPP
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
 #include "scriptobject.hpp"
 #include "scriptstdouterr.hpp"
 #include "scriptstdouterrhook.hpp"

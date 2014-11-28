@@ -41,7 +41,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __THREADMUTEX_H__
 	
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 //#define NDEBUG
 #include <assert.h>
 

@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_HPP
 	
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "entitydef/entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"
 

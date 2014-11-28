@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_FORWARD_MESSAGEBUFFER_HPP
 #define KBE_FORWARD_MESSAGEBUFFER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
+#include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/components.hpp"
 #include "network/bundle.hpp"

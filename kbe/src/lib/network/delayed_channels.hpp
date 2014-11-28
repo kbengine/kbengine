@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef DELAYED_CHANNELS_HPP
 #define DELAYED_CHANNELS_HPP
 
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/tasks.hpp"
+#include "common/smartpointer.hpp"
+#include "common/singleton.hpp"
 
 namespace KBEngine{
 namespace Network

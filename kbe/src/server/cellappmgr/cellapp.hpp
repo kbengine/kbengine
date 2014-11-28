@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CELLAPPMGR_CELLAPP_HPP
 
 #include "spaces.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/watcher.hpp"
 

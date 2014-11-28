@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENTITYDEF_HPP
 #define KBE_ENTITYDEF_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/md5.hpp"
+#include "common/common.hpp"
+#include "common/md5.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "math/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "xmlplus/xmlplus.hpp"	
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

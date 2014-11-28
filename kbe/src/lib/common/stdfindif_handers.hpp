@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_STDFINDIF_HANDERS_HPP
 #define KBE_STDFINDIF_HANDERS_HPP
 
-#include "cstdkbe/platform.hpp"
+#include "common/platform.hpp"
 
 namespace KBEngine{
 

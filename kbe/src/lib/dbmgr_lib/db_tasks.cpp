@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_interface.hpp"
 #include "entity_table.hpp"
 #include "thread/threadpool.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 
 namespace KBEngine{
 

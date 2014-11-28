@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"	
 #include "entity.hpp"	
 #include "helper/profile.hpp"	
-#include "cstdkbe/memorystream.hpp"	
+#include "common/memorystream.hpp"	
 
 #include "proximity_controller.hpp"	
 #include "moveto_point_handler.hpp"	

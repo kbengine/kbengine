@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.hpp"
 #include "pyprofile.hpp"
 #include "pyobject_pointer.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 
 namespace KBEngine{ 
 namespace script{

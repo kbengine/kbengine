@@ -2,7 +2,7 @@
 #include "afxwin.h"
 #include "ColorListBox.h"
 #include "MultiLineListBox.h"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 // CLogWindow dialog
 

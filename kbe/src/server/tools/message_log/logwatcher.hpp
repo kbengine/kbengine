@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 
 //#define NDEBUG
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "network/address.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

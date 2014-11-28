@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "rsa.hpp"
-#include "cstdkbe.hpp"
+#include "common.hpp"
 #include "helper/debug_helper.hpp"
 
 #include <iostream>

@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 //#define NDEBUG
 // windows include	
 #ifdef WIN32
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include <windows.h>
 #include <tchar.h>
 #include <dbghelp.h>

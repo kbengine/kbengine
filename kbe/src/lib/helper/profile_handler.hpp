@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PROFILE_HANDLER_HPP
 #define KBE_PROFILE_HANDLER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
+#include "common/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/eventhistory_stats.hpp"
 #include "network/interfaces.hpp"

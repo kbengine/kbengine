@@ -23,8 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_PACKET_FILTER_HPP
 
 #include "network/common.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/refcountable.hpp"
+#include "common/smartpointer.hpp"
+#include "common/refcountable.hpp"
 
 namespace KBEngine { 
 namespace Network

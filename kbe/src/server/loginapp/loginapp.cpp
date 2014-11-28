@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "cstdkbe/kbeversion.hpp"
+#include "common/kbeversion.hpp"
 #include "server/components.hpp"
 #include "server/sendmail_threadtasks.hpp"
 #include "client_lib/client_interface.hpp"

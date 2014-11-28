@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_NETWORKLISTENER_RECEIVER_HPP
 #define KBE_NETWORKLISTENER_RECEIVER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"

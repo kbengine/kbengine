@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "logwatcher.hpp"
 #include "messagelog.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "helper/console_helper.hpp"
 
 namespace KBEngine{

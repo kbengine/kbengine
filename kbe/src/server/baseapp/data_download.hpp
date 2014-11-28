@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_DATA_DOWNLOAD_HPP
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
 #include "thread/threadtask.hpp"
 #include "network/message_handler.hpp"
 

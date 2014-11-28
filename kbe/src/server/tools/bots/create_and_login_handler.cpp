@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/address.hpp"
 #include "network/bundle.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "server/serverconfig.hpp"
 
 namespace KBEngine { 

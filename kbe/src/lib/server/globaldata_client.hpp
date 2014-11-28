@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_GLOBAL_DATA_CLIENT_HPP
 
 #include "globaldata_server.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "pyscript/map.hpp"
 

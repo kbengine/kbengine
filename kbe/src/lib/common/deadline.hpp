@@ -18,25 +18,50 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_TASK_HPP
-#define KBE_TASK_HPP
-
-#include "cstdkbe/cstdkbe.hpp"
+#ifndef KBE_DEADLINE_FORMAT_HPP
+#define KBE_DEADLINE_FORMAT_HPP
+#include "common/common.hpp"
+#include <math.h>
 
 namespace KBEngine
 {
 
 /**
- *	抽象一个任务
+ *	期限
  */
-class Task
+class Deadline
 {
 public:
-	virtual ~Task() {}
-	virtual bool process() = 0;
+	Deadline(uint32 secs):
+	days(0),
+	hours(0),
+	minutes(0),
+	seconds(0),
+	secs_(secs)
+	{
+		if(secs > 0)
+		{
+            days = secs / (3600 * 24);
+            int m = secs % (3600 * 24);
+            hours = m / 3600;
+            m = m % 3600;
+            minutes = m / 60;
+            seconds = m % 60;
+		}
+	}
+	
+	virtual ~Deadline() {}
+
+	std::string print()
+	{
+		return fmt::format("{}days/{}:{}:{}", days, hours, minutes, seconds);
+	}
+	
+	uint32 days, hours, minutes, seconds;
+	uint32 secs_;
 };
 
 
 }
 
-#endif // KBE_TASK_HPP
+#endif // KBE_DEADLINE_FORMAT_HPP

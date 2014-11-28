@@ -21,10 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_NAVIGATEHANDLE_HPP
 #define KBE_NAVIGATEHANDLE_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/smartpointer.hpp"
+#include "common/singleton.hpp"
 #include "math/math.hpp"
 
 namespace KBEngine{

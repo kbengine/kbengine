@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_MESSAGE_HANDLER_HPP
 #define KBE_MESSAGE_HANDLER_HPP
 
-#include "cstdkbe/memorystream.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/memorystream.hpp"
+#include "common/smartpointer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 

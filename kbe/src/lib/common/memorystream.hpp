@@ -26,10 +26,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <list>
 #include <map>
 #include <assert.h>
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/objectpool.hpp"
+#include "common/common.hpp"
+#include "common/objectpool.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/memorystream_converter.hpp"
+#include "common/memorystream_converter.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>

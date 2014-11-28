@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBENGINE_DEF_PROPERTY_HPP
 #define KBENGINE_DEF_PROPERTY_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
@@ -31,8 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "fixedarray.hpp"
 #include "fixeddict.hpp"
 #include "datatype.hpp"
-#include "cstdkbe/refcountable.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/refcountable.hpp"
+#include "common/memorystream.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_KBE_TABLE_MYSQL_HPP
 
 #include "common.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "dbmgr_lib/entity_table.hpp"
 #include "dbmgr_lib/kbe_tables.hpp"

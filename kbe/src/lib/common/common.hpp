@@ -17,14 +17,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBE_CSTDKBE_HPP
-#define KBE_CSTDKBE_HPP
-#include "cstdkbe/platform.hpp"
-#include "cstdkbe/singleton.hpp"
-#include "cstdkbe/kbeversion.hpp"
-#include "cstdkbe/kbemalloc.hpp"
-#include "cstdkbe/stringconv.hpp"
-#include "cstdkbe/format.hpp"
+#ifndef KBE_COMMON_HPP
+#define KBE_COMMON_HPP
+#include "common/platform.hpp"
+#include "common/singleton.hpp"
+#include "common/kbeversion.hpp"
+#include "common/kbemalloc.hpp"
+#include "common/stringconv.hpp"
+#include "common/format.hpp"
 
 namespace KBEngine{
 /** 安全的释放一个指针内存 */
@@ -357,4 +357,4 @@ inline bool email_isvalid(const char *address)
 }
 
 }
-#endif // KBE_CSTDKBE_HPP
+#endif // KBE_COMMON_HPP

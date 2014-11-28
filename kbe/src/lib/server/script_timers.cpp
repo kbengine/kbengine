@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pickler.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyobject_pointer.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 
 namespace KBEngine
 {

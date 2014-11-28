@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SCRIPTSTDOUTERRHOOK_HPP
 #define KBE_SCRIPTSTDOUTERRHOOK_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "scriptobject.hpp"
 #include "scriptstdouterr.hpp"
 

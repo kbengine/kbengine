@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>cstdkbe</ProjectName>
+    <ProjectName>common</ProjectName>
     <ProjectGuid>{A04109A7-46C9-42F9-AB29-8E3D84450172}</ProjectGuid>
-    <RootNamespace>cstdkbe</RootNamespace>
+    <RootNamespace>common</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -93,7 +93,7 @@
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="blowfish.cpp" />
-    <ClCompile Include="cstdkbe.cpp" />
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="format.cpp" />
     <ClCompile Include="kbekey.cpp" />
     <ClCompile Include="kbeversion.cpp" />
@@ -109,7 +109,7 @@
   <ItemGroup>
     <ClInclude Include="base64.hpp" />
     <ClInclude Include="blowfish.hpp" />
-    <ClInclude Include="cstdkbe.hpp" />
+    <ClInclude Include="common.hpp" />
     <ClInclude Include="deadline.hpp" />
     <ClInclude Include="format.hpp" />
     <ClInclude Include="kbekey.hpp" />

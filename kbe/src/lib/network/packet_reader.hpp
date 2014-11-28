@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PACKET_READER_HPP
 #define KBE_PACKET_READER_HPP
 
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 

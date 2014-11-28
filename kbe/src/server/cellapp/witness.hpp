@@ -25,8 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "updatable.hpp"
 #include "entityref.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/objectpool.hpp"
+#include "common/common.hpp"
+#include "common/objectpool.hpp"
 #include "math/math.hpp"
 
 // #define NDEBUG

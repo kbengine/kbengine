@@ -23,15 +23,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_DATA_TYPE_HPP
 
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
 #pragma warning (disable : 4661)
 #endif
 #include "entitydef/common.hpp"	
-#include "cstdkbe/refcountable.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/refcountable.hpp"
+#include "common/memorystream.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pickler.hpp"
 #include "xmlplus/xmlplus.hpp"	

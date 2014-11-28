@@ -23,13 +23,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CLIENT_APP_HPP
 
 #include "clientobjectbase.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/script_loglevel.hpp"
 #include "xmlplus/xmlplus.hpp"	
-#include "cstdkbe/singleton.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/singleton.hpp"
+#include "common/smartpointer.hpp"
+#include "common/timer.hpp"
 #include "network/interfaces.hpp"
 #include "network/encryption_filter.hpp"
 #include "network/event_dispatcher.hpp"

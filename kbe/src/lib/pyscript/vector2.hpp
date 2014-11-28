@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _SCRIPT_VECTOR2_H
 #define _SCRIPT_VECTOR2_H
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "math/math.hpp"
 #include "scriptobject.hpp"
 #include "pickler.hpp"

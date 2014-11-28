@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/kbemain.hpp"
 #include "server/serverapp.hpp"
 #include "server/serverconfig.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/timer.hpp"
 #include "network/endpoint.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/threadpool.hpp"

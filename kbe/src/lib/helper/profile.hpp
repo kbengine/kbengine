@@ -22,9 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBENGINE_PROFILE_HPP
 
 #include "debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/timestamp.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
+#include "common/timestamp.hpp"
 
 namespace KBEngine
 {

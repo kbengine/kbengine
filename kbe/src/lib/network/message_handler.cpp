@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "message_handler.hpp"
-#include "cstdkbe/md5.hpp"
+#include "common/md5.hpp"
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"

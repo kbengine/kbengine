@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENTITY_TABLE_HPP
 #define KBE_ENTITY_TABLE_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/common.hpp"
 #include "thread/threadmutex.hpp"

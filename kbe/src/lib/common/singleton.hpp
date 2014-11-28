@@ -35,7 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif // _MSC_VER > 1000
 
 // common include
-#include "cstdkbe/platform.hpp"
+#include "common/platform.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>	

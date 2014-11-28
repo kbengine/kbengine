@@ -22,9 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_SIGNAL_HANDLER_HPP
 
 // common include
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
+#include "common/singleton.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else

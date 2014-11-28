@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/entitydef.hpp"
 #include "client_lib/client_interface.hpp"
-#include "cstdkbe/kbeversion.hpp"
+#include "common/kbeversion.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"

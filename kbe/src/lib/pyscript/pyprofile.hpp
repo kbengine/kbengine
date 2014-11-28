@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SCRIPT_PY_PROFILE_HPP
 #define KBE_SCRIPT_PY_PROFILE_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "scriptobject.hpp"
 
 namespace KBEngine{ 

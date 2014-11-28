@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBENGINE_PROFILE_HPP
 #define KBENGINE_PROFILE_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 namespace KBEngine
 {

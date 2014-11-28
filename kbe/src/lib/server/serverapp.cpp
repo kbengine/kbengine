@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/bundle.hpp"
 #include "network/common.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "helper/console_helper.hpp"
 #include "helper/sys_info.hpp"
 #include "helper/watch_pools.hpp"

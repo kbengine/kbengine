@@ -23,9 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include	
 // #define NDEBUG
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "cstdkbe/timestamp.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
+#include "common/timestamp.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"

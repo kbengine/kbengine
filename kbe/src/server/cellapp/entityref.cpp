@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entityref.hpp"
 #include "entity.hpp"
 #include "cellapp.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 
 namespace KBEngine{	
 

@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_CREATE_AND_LOGIN_HANDLER_HPP
 #define KBE_CREATE_AND_LOGIN_HANDLER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
+#include "common/timer.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine { 

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef KBE_STRING_CONV_HPP
 #define KBE_STRING_CONV_HPP
-#include "cstdkbe/platform.hpp"
+#include "common/platform.hpp"
 
 namespace KBEngine{
 namespace StringConv

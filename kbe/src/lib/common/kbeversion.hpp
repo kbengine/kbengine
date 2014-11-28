@@ -18,33 +18,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_TASKS_HPP
-#define KBE_TASKS_HPP
+#ifndef KBEVERSION_HPP
+#define KBEVERSION_HPP
 
-#include "cstdkbe/task.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/platform.hpp"
 
-namespace KBEngine
-{
-
-/**
- *	ÈÎÎñÈÝÆ÷
- */
-class Tasks
-{
-public:
-	Tasks();
-	~Tasks();
-
-	void add(Task * pTask);
-	bool cancel(Task * pTask);
-	void process();
-private:
+namespace KBEngine{
 	
-	typedef std::vector<KBEngine::Task *> Container;
-	Container container_;
-};
+#define KBE_VERSION_MAJOR 0
+#define KBE_VERSION_MINOR 2
+#define KBE_VERSION_PATCH 0
 
+
+namespace KBEVersion
+{
+	const std::string & versionString();
+	void setScriptVersion(const std::string& ver);
+	const std::string & scriptVersionString();
 }
 
-#endif // KBE_TASKS_HPP
+}
+#endif // KBEVERSION_HPP

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "server/kbemain.hpp"
 #include "machine.hpp"
 

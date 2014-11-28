@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_SERVER_COMMON_HPP
 
 // common include
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/timer.hpp"
+#include "common/common.hpp"
 #include "server/server_errors.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

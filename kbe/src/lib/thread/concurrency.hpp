@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_CONCURENCY_HPP
 #define KBE_CONCURENCY_HPP
 
-#include "cstdkbe/platform.hpp"
+#include "common/platform.hpp"
 #include "helper/debug_helper.hpp"
 namespace KBEngine{
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "afxcmn.h"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "helper/watcher.hpp"
 
 // CWatcherWindow dialog

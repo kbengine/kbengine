@@ -128,7 +128,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math cstdkbe helper resmgr
+MY_LIBS += math common helper resmgr
 endif
 endif
 
@@ -179,7 +179,7 @@ endif
 
 LDFLAGS += -export-dynamic
 
-# The OpenSSL redist is used for all builds as cstdkbe/md5.[ch]pp depends
+# The OpenSSL redist is used for all builds as common/md5.[ch]pp depends
 # on the OpenSSL MD5 implementation.
 
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/log4cxx/src/main/include

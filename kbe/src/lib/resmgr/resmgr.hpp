@@ -25,11 +25,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_RESMGR_HPP
 
 #include "resourceobject.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
+#include "common/timer.hpp"
 #include "xmlplus/xmlplus.hpp"	
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 	
 namespace KBEngine{
 

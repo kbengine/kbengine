@@ -47,7 +47,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_REFCOUNTABLE_HPP
 	
 // common include
-#include "cstdkbe.hpp"
+#include "common.hpp"
 //#define NDEBUG
 #include <assert.h>
 // windows include	

@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_MACHINE_INFOS_HPP
 #define KBE_MACHINE_INFOS_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 namespace KBEngine{
 class MachineInfos : public Singleton<MachineInfos>
 {

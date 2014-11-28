@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
 #include "server/pendingLoginmgr.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/timer.hpp"
 #include "network/endpoint.hpp"
 	
 namespace KBEngine{

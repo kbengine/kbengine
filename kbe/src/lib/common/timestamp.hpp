@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_TIMESTAMP_HPP
 #define KBE_TIMESTAMP_HPP
 
-#include "cstdkbe/platform.hpp"
+#include "common/platform.hpp"
 #include "helper/debug_helper.hpp"
 namespace KBEngine{
 

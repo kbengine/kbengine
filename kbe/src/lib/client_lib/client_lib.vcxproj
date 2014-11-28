@@ -120,7 +120,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\cstdkbe\cstdkbe.vcxproj">
+    <ProjectReference Include="..\common\common.vcxproj">
       <Project>{a04109a7-46c9-42f9-ab29-8e3d84450172}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

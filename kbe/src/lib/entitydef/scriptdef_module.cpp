@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef.hpp"
 #include "datatypes.hpp"
 #include "common.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "resmgr/resmgr.hpp"
 #include "pyscript/script.hpp"

@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_BUNDLE_BROADCAST_HPP
 #define KBE_BUNDLE_BROADCAST_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"

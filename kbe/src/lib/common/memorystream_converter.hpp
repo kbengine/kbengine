@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_MEMORYSTREAMCONVERTER_HPP
 #define KBE_MEMORYSTREAMCONVERTER_HPP
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include <algorithm>
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

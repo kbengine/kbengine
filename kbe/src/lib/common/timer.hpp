@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_TIMER_HPP
 #define KBE_TIMER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timestamp.hpp"
+#include "common/common.hpp"
+#include "common/timestamp.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine

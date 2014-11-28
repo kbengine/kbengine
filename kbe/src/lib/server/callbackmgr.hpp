@@ -39,9 +39,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "idallocate.hpp"
 #include "serverconfig.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
+#include "common/timer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "pyscript/pickler.hpp"
 

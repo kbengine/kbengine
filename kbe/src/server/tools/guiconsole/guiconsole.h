@@ -9,7 +9,7 @@
 #endif
 
 #include "resource.h"		// main symbols
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "network/endpoint.hpp"
 #include "network/common.hpp"
 #include "network/channel.hpp"
@@ -19,7 +19,7 @@
 #include "network/network_interface.hpp"
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 
 // CguiconsoleApp:
 // See guiconsole.cpp for the implementation of this class

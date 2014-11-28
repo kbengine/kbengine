@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "entitydef/entitydef.hpp"
 #include "server/serverconfig.hpp"
-#include "cstdkbe/kbeversion.hpp"
+#include "common/kbeversion.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);

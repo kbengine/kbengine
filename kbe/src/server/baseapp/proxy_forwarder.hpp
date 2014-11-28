@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_PROXY_FORWARDER_HPP
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 namespace KBEngine{
 

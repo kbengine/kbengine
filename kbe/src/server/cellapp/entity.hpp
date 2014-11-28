@@ -24,9 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 //#include "entitymovecontroller.hpp"
 #include "profile.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/timer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "pyscript/math.hpp"

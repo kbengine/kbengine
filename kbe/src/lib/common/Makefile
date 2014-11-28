@@ -1,8 +1,8 @@
-LIB =	cstdkbe
+LIB =	common
 
 SRCS =				\
 	blowfish		\
-	cstdkbe			\
+	common			\
 	format			\
 	tasks			\
 	timer			\

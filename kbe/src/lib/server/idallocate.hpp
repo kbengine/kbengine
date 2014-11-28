@@ -60,7 +60,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include	
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 //#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>

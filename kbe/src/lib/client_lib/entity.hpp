@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "entity_aspect.hpp"
 #include "client_lib/profile.hpp"
-#include "cstdkbe/timer.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/timer.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "pyscript/math.hpp"

@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PY_FILE_DESCRIPTOR_HPP
 #define KBE_PY_FILE_DESCRIPTOR_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "pyscript/scriptobject.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/smartpointer.hpp"
 
 namespace KBEngine{
 typedef SmartPointer<PyObject> PyObjectPtr;

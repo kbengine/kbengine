@@ -23,8 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 	

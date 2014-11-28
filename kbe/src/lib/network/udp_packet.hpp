@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 #include "network/packet.hpp"
-#include "cstdkbe/objectpool.hpp"
+#include "common/objectpool.hpp"
 //#define NDEBUG
 #include <assert.h>
 // windows include	

@@ -69,8 +69,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <string>
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "dependencies/tinyxml/tinyxml.h"
 
 // windows include	

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "md5.hpp"
-#include "cstdkbe.hpp"
+#include "common.hpp"
 
 namespace KBEngine
 {

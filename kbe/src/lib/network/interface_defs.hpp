@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_INTERFACE_DEFS_HPP
 	
 // common include
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "common/common.hpp"
+#include "common/smartpointer.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "network/bundle.hpp"

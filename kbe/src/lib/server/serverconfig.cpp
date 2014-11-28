@@ -23,8 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/address.hpp"
 #include "resmgr/resmgr.hpp"
-#include "cstdkbe/kbekey.hpp"
-#include "cstdkbe/kbeversion.hpp"
+#include "common/kbekey.hpp"
+#include "common/kbeversion.hpp"
 
 #ifndef CODE_INLINE
 #include "serverconfig.ipp"

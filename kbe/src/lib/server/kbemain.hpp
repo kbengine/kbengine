@@ -24,9 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/memory_helper.hpp"
 
 #include "serverapp.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/kbekey.hpp"
-#include "cstdkbe/stringconv.hpp"
+#include "common/common.hpp"
+#include "common/kbekey.hpp"
+#include "common/stringconv.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/message_handler.hpp"

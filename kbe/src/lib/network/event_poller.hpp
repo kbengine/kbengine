@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_EVENT_POLLER_HPP
 #define KBE_EVENT_POLLER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timestamp.hpp"
+#include "common/common.hpp"
+#include "common/timestamp.hpp"
 #include "network/interfaces.hpp"
 #include "thread/concurrency.hpp"
 #include "network/common.hpp"

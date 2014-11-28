@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/profile_handler.hpp"
 #include "pyscript/pyprofile_handler.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/interfaces.hpp"
 

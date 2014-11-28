@@ -23,8 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include	
 // #define NDEBUG
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
 #include "thread/threadtask.hpp"
 
 namespace KBEngine{ 

@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CLIENT_EVENT_HPP
 
 #include "client_lib/entity_aspect.hpp"
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "Python.h"
 
 namespace KBEngine{

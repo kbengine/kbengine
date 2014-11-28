@@ -21,10 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_NETWORK_INTERFACE_HPP
 #define KBE_NETWORK_INTERFACE_HPP
 
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "network/common.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/timer.hpp"
+#include "common/common.hpp"
+#include "common/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/endpoint.hpp"
 

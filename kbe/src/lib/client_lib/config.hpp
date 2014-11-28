@@ -22,12 +22,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_CLIENT_CONFIG_HPP
 #define KBE_CLIENT_CONFIG_HPP
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
 
-#include "cstdkbe/singleton.hpp"
+#include "common/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "thread/threadguard.hpp"
 #include "xmlplus/xmlplus.hpp"	

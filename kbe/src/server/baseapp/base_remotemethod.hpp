@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"	
+#include "common/common.hpp"	
 #include "entitydef/remote_entity_method.hpp"
 
 namespace KBEngine{

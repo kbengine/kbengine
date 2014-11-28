@@ -1,7 +1,7 @@
 #pragma once
 #include "afxwin.h"
 #include "afxcmn.h"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 
 // CProfileWindow dialog
 

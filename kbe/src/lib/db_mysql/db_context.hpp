@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_RW_CONTEXT_HPP
 #define KBE_DB_RW_CONTEXT_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/common.hpp"
+#include "common/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine { 

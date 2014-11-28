@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SMARTPOINTER_HPP
 #define KBE_SMARTPOINTER_HPP
 
-#include "cstdkbe/refcountable.hpp"
+#include "common/refcountable.hpp"
 
 namespace KBEngine { 
 

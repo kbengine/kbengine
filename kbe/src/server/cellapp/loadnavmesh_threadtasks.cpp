@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "spaces.hpp"	
 #include "loadnavmesh_threadtasks.hpp"
 #include "server/serverconfig.hpp"
-#include "cstdkbe/deadline.hpp"
+#include "common/deadline.hpp"
 #include "navigation/navigation.hpp"
 
 namespace KBEngine{

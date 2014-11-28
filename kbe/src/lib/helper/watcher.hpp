@@ -20,11 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_HELPER_WATCHER_HPP
 #define KBE_HELPER_WATCHER_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "helper/debug_helper.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/singleton.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/smartpointer.hpp"
+#include "common/singleton.hpp"
+#include "common/memorystream.hpp"
 
 namespace KBEngine
 {

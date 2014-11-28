@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <assert.h>
 #include <string>
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

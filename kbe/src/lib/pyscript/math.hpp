@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SCRIPT_MATH_HPP
 #define KBE_SCRIPT_MATH_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
+#include "common/common.hpp"
 #include "scriptobject.hpp"
 #include "vector2.hpp"
 #include "vector3.hpp"	

@@ -31,8 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <list>
 #include <queue>
 #include <algorithm>
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/tasks.hpp"
+#include "common/common.hpp"
+#include "common/tasks.hpp"
 #include "helper/debug_helper.hpp"
 #include "thread/threadtask.hpp"
 // windows include	

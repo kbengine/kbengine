@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/message_handler.hpp"
 #include "pyscript/pyprofile.hpp"
-#include "cstdkbe/memorystream.hpp"
+#include "common/memorystream.hpp"
 #include "helper/console_helper.hpp"
 #include "helper/profile.hpp"
 #include "server/serverconfig.hpp"

@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_FIXED_NETWORK_MESSAGES_HPP
 #define KBE_FIXED_NETWORK_MESSAGES_HPP
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/singleton.hpp"
+#include "common/common.hpp"
+#include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 

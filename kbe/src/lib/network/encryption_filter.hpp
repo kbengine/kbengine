@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_filter.hpp"
 
 #ifdef USE_OPENSSL
-#include "cstdkbe/blowfish.hpp"
+#include "common/blowfish.hpp"
 #endif
 
 namespace KBEngine { 
