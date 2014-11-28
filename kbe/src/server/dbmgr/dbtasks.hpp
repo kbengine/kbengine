@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
-#include "dbmgr_lib/db_tasks.hpp"
+#include "db_interface/db_tasks.hpp"
 #include "server/server_errors.hpp"
 
 namespace KBEngine{ 

@@ -1,4 +1,4 @@
-LIB =	dbmgr_lib
+LIB =	db_interface
 
 SRCS =				\
 	db_interface		\

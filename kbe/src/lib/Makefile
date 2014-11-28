@@ -36,7 +36,7 @@ all install clean full:
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
 	cd db_mysql && $(MAKE) $@
-	cd dbmgr_lib && $(MAKE) $@
+	cd db_interface && $(MAKE) $@
 	cd entitydef && $(MAKE) $@
 	cd math && $(MAKE) $@
 	cd resmgr && $(MAKE) $@

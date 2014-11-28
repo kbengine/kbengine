@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/common.hpp"
 #include "common/singleton.hpp"
 #include "helper/debug_helper.hpp"
-#include "dbmgr_lib/entity_table.hpp"
+#include "db_interface/entity_table.hpp"
 
 namespace KBEngine { 
 

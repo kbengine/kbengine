@@ -45,7 +45,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "guiconsole", "server\tools\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "resmgr", "lib\resmgr\resmgr.vcxproj", "{3F8B2057-492F-4332-99DE-3E12F20ED489}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dbmgr_lib", "lib\dbmgr_lib\dbmgr_lib.vcxproj", "{6C92BA78-CFAA-4524-A636-F044B0280AB0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_interface", "lib\db_interface\db_interface.vcxproj", "{6C92BA78-CFAA-4524-A636-F044B0280AB0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_mysql", "lib\db_mysql\db_mysql.vcxproj", "{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}"
 EndProject

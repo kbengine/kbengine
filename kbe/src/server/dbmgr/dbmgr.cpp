@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "server/components.hpp"
-#include "dbmgr_lib/db_interface.hpp"
+#include "db_interface/db_interface.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
 

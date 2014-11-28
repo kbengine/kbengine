@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_DBMGR_HPP
 	
 // common include	
-#include "dbmgr_lib/db_threadpool.hpp"
+#include "db_interface/db_threadpool.hpp"
 #include "buffered_dbtasks.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"

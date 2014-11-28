@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "buffered_dbtasks.hpp"
 #include "thread/threadpool.hpp"
 #include "thread/threadguard.hpp"
-#include "dbmgr_lib/db_interface.hpp"
+#include "db_interface/db_interface.hpp"
 #include "server/serverconfig.hpp"
 
 namespace KBEngine{

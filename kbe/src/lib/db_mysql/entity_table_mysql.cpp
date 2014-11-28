@@ -25,8 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "remove_entity_helper.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
-#include "dbmgr_lib/db_interface.hpp"
-#include "dbmgr_lib/entity_table.hpp"
+#include "db_interface/db_interface.hpp"
+#include "db_interface/entity_table.hpp"
 #include "network/fixed_messages.hpp"
 
 #ifndef CODE_INLINE

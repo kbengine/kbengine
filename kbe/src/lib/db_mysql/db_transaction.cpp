@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_interface_mysql.hpp"
 #include "db_transaction.hpp"
 #include "db_exception.hpp"
-#include "dbmgr_lib/db_interface.hpp"
+#include "db_interface/db_interface.hpp"
 #include "helper/debug_helper.hpp"
 #include "common/timestamp.hpp"
 #include <mysql/mysqld_error.h>

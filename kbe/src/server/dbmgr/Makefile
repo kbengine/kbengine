@@ -16,7 +16,7 @@ MY_LIBS =		\
 	pyscript	\
 	network		\
 	thread		\
-	dbmgr_lib	\
+	db_interface	\
 	db_mysql
 
 BUILD_TIME_FILE = main

@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/singleton.hpp"
 #include "common/memorystream.hpp"
 #include "helper/debug_helper.hpp"
-#include "dbmgr_lib/db_interface.hpp"
+#include "db_interface/db_interface.hpp"
 
 #include "mysql/mysql.h"
 #if KBE_PLATFORM == PLATFORM_WIN32

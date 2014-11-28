@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.hpp"
 #include "billinghandler.hpp"
 #include "buffered_dbtasks.hpp"
-#include "dbmgr_lib/db_threadpool.hpp"
+#include "db_interface/db_threadpool.hpp"
 #include "thread/threadpool.hpp"
 #include "thread/threadguard.hpp"
 #include "server/serverconfig.hpp"
