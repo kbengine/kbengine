@@ -43,6 +43,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <functional>
 #include <cctype>
+#include <iterator>
 #include "common/strutil.hpp"
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
