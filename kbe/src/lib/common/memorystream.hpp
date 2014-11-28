@@ -494,40 +494,22 @@ public:
 		y = yPackData.fv;
 	}
 
-    bool readPackGUID(uint64& guid)
-    {
-        if(opsize() == 0)
-            return false;
-
-        guid = 0;
-
-        uint8 guidmark = 0;
-        (*this) >> guidmark;
-
-        for(int i = 0; i < 8; ++i)
-        {
-            if(guidmark & (uint8(1) << i))
-            {
-                if(opsize() == 0)
-                    return false;
-
-                uint8 bit;
-                (*this) >> bit;
-                guid |= (uint64(bit) << (i * 8));
-            }
-        }
-
-        return true;
-    }
-
     uint8 *data() { return &data_[0]; }
 	const uint8 *data()const { return &data_[0]; }
-		
+	
+	// vector的大小
     virtual size_t size() const { return data_.size(); }
+
+	// vector是否为空
     virtual bool empty() const { return data_.empty(); }
+
+	// 读索引到与写索引之间的长度
 	size_t opsize()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
+
+	// 剩余可填充的大小
 	virtual size_t fillfree() const { return size() - wpos(); }
 
+	// 将读索引强制设置到写索引，表示操作结束
 	void opfini(){ read_skip(opsize()); }
 
     void resize(size_t newsize)
@@ -712,25 +694,6 @@ public:
 
 		(*this) << data;
 	}
-
-    void appendPackGUID(uint64 guid)
-    {
-        if (data_.size() < wpos_ + sizeof(guid) + 1)
-            data_.resize(wpos_ + sizeof(guid) + 1);
-
-        size_t mask_position = wpos();
-        *this << uint8(0);
-        for(uint8 i = 0; i < 8; ++i)
-        {
-            if(guid & 0xFF)
-            {
-                data_[mask_position] |= uint8(1 << i);
-                *this << uint8(guid & 0xFF);
-            }
-
-            guid >>= 8;
-        }
-    }
 
     void put(size_t pos, const uint8 *src, size_t cnt)
     {
