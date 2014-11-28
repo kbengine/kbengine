@@ -606,14 +606,20 @@ Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket
 	{
 		ERROR_MSG(fmt::format("NetworkInterface::basicSendSingleTry: channel({}) send error, reason={}.\n", pChannel->c_str(), 
 			reasonToString(REASON_CHANNEL_CONDEMN)));
+
 		return REASON_CHANNEL_CONDEMN;
 	}
 
 	EndPoint * endpoint = pChannel->endpoint();
 	KBE_ASSERT(pPacket->rpos() == 0);
+
 	int len = endpoint->send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize);
+
 	if(len > 0)
+	{
 		pPacket->sentSize += len;
+		// DEBUG_MSG(fmt::format("NetworkInterface::basicSendSingleTry: sent={}, sentTotalSize={}.\n", len, pPacket->sentSize));
+	}
 
 	if (pPacket->sentSize == pPacket->totalSize())
 	{

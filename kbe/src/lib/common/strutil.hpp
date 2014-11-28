@@ -63,6 +63,8 @@ namespace KBEngine{
 
 #endif // unix
 
+class MemoryStream;
+
 // declaration
 namespace strutil {
 
@@ -193,6 +195,7 @@ namespace strutil {
 namespace strutil {
 	
 	char* wchar2char(const wchar_t* ts, size_t* outlen = NULL);
+	void wchar2char(const wchar_t* ts, MemoryStream* pStream);
 	wchar_t* char2wchar(const char* cs, size_t* outlen = NULL);
 
 	/*

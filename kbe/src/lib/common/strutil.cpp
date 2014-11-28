@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <cctype>
 #include "utf8cpp/utf8.h"
+#include "memorystream.hpp"
 
 namespace KBEngine{ 
 namespace strutil {
@@ -173,23 +174,37 @@ namespace strutil {
 
 	char* wchar2char(const wchar_t* ts, size_t* outlen)
 	{
-		int len = (wcslen(ts) + 1) * 4;
+		int len = (wcslen(ts) + 1) * 2;
 		char* ccattr =(char *)malloc(len);
 		memset(ccattr, 0, len);
+
 		size_t slen = wcstombs(ccattr, ts, len);
+
 		if(outlen)
 			*outlen = slen;
+
 		return ccattr;
+	};
+
+	void wchar2char(const wchar_t* ts, MemoryStream* pStream)
+	{
+		int len = (wcslen(ts) + 1) * 2;
+		pStream->data_resize(pStream->wpos() + len);
+		size_t slen = wcstombs((char*)&pStream->data()[pStream->wpos()], ts, len);
+		pStream->wpos(pStream->wpos() + slen + 1);
 	};
 
 	wchar_t* char2wchar(const char* cs, size_t* outlen)
 	{
-		int len = (strlen(cs) + 1) * 4;
+		int len = (strlen(cs) + 1) * 2;
 		wchar_t* ccattr =(wchar_t *)malloc(len);
 		memset(ccattr, 0, len);
+
 		size_t slen = mbstowcs(ccattr, cs, len);
+
 		if(outlen)
 			*outlen = slen;
+
 		return ccattr;
 	};
 

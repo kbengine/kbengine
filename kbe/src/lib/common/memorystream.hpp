@@ -695,10 +695,18 @@ public:
 		(*this) << data;
 	}
 
+	void insert(size_t pos, const uint8 *src, size_t cnt)
+	{
+		data_.insert(data_.begin() + pos, cnt, 0);
+		memcpy(&data_[pos], src, cnt);
+		wpos_ += cnt;
+	}
+
     void put(size_t pos, const uint8 *src, size_t cnt)
     {
         if(pos + cnt > size())
            throw MemoryStreamException(true, pos, cnt, size());
+
         memcpy(&data_[pos], src, cnt);
     }
 
