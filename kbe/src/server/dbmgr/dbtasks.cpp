@@ -212,13 +212,6 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	int32 packetsLength = execret_.opsize();
 	const Network::MessageHandler& msgHandler = CellappInterface::onExecuteRawDatabaseCommandCB;
 
-	if(packetsLength > const_cast<Network::MessageHandler*>(&msgHandler)->msglenMax())
-	{
-		error_ = (fmt::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: msglen exceeds the limit! msglen=({}) > maxlen({}).",
-			packetsLength, const_cast<Network::MessageHandler*>(&msgHandler)->msglenMax()));
-
-		ERROR_MSG(error_);
-	}
 
 	(*pBundle) << callbackID_;
 	(*pBundle) << error_;
@@ -231,16 +224,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	if(cinfos && cinfos->pChannel)
 	{
 		packetsLength = (*pBundle).packetsLength(true);
-
-		if(packetsLength > const_cast<Network::MessageHandler*>(&msgHandler)->msglenMax())
-		{
-			ERROR_MSG(fmt::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: msglen exceeds the limit! msglen=({}) > maxlen({}).",
-				packetsLength, const_cast<Network::MessageHandler*>(&msgHandler)->msglenMax()));
-		}
-		else
-		{
-			(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
-		}
+		(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 	}
 	else
 	{

@@ -69,6 +69,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 	{
 		if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
 		{
+			// 如果没有ID信息，先获取ID
 			if(currMsgID_ == 0)
 			{
 				if(NETWORK_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < NETWORK_MESSAGE_ID_SIZE)
@@ -104,14 +105,17 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			}
 
 			// 如果没有可操作的数据了则退出等待下一个包处理。
-			//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
+			// 可能是一个无参数数据包
+			//if(pPacket->opsize() == 0)	
 			//	break;
 			
+			// 如果长度信息没有获得，则等待获取长度信息
 			if(currMsgLen_ == 0)
 			{
+				// 如果长度信息是可变的或者配置了永远包含长度信息选项时，从流中分析长度数据
 				if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 				{
-					// 如果长度信息不完整， 则等待下一个包处理
+					// 如果长度信息不完整，则等待下一个包处理
 					if(pPacket->opsize() < NETWORK_MESSAGE_LENGTH_SIZE)
 					{
 						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, NETWORK_MESSAGE_LENGTH_SIZE);
@@ -119,20 +123,47 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 					}
 					else
 					{
-						(*pPacket) >> currMsgLen_;
+						// 此处获得了长度信息
+						Network::MessageLength currlen;
+						(*pPacket) >> currlen;
+						currMsgLen_ = currlen;
+
 						NetworkStats::getSingleton().trackMessage(NetworkStats::RECV, *pMsgHandler, 
 							currMsgLen_ + NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE);
+
+						// 如果长度占满说明使用了扩展长度，我们还需要等待扩展长度信息
+						if(currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE)
+						{
+							if(pPacket->opsize() < NETWORK_MESSAGE_LENGTH1_SIZE)
+							{
+								// 如果长度信息不完整，则等待下一个包处理
+								writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH1, pPacket, NETWORK_MESSAGE_LENGTH1_SIZE);
+								break;
+							}
+							else
+							{
+								// 此处获得了扩展长度信息
+								(*pPacket) >> currMsgLen_;
+
+								NetworkStats::getSingleton().trackMessage(NetworkStats::RECV, *pMsgHandler, 
+									currMsgLen_ + NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH1_SIZE);
+							}
+						}
 					}
 				}
 				else
 				{
 					currMsgLen_ = pMsgHandler->msgLen;
+
 					NetworkStats::getSingleton().trackMessage(NetworkStats::RECV, *pMsgHandler, 
 						currMsgLen_ + NETWORK_MESSAGE_LENGTH_SIZE);
 				}
 			}
-			
-			if(currMsgLen_ > pMsgHandler->msglenMax())
+
+			if(this->pChannel_->isExternal() && 
+				g_componentType != BOTS_TYPE && 
+				g_componentType != CLIENT_TYPE && 
+				currMsgLen_ > NETWORK_MESSAGE_MAX_SIZE)
 			{
 				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
 				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
@@ -144,7 +175,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				pPacket1->rpos(rpos);
 
 				WARNING_MSG(fmt::format("PacketReader::processMessages({0}): msglen exceeds the limit! msgID={1}, msglen=({2}:{3}), maxlen={5}, from {4}.\n", 
-					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->opsize(), pChannel_->c_str(), pMsgHandler->msglenMax()));
+					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->opsize(), pChannel_->c_str(), NETWORK_MESSAGE_MAX_SIZE));
 
 				currMsgLen_ = 0;
 				pChannel_->condemn();
@@ -231,9 +262,9 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 
 	if(pPacket->opsize() >= pFragmentDatasRemain_)
 	{
+		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data() + pPacket->rpos(), pFragmentDatasRemain_);
 		pPacket->rpos(pPacket->rpos() + pFragmentDatasRemain_);
-		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), pFragmentDatasRemain_);
-		
+
 		KBE_ASSERT(pFragmentStream_ == NULL);
 
 		switch(fragmentDatasFlag_)
@@ -244,6 +275,10 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 
 		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH_SIZE);
+			break;
+
+		case FRAGMENT_DATA_MESSAGE_LENGTH1:		// 消息长度信息不全
+			memcpy(&currMsgLen_, pFragmentDatas_, NETWORK_MESSAGE_LENGTH1_SIZE);
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全

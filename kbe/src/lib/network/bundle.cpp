@@ -264,13 +264,35 @@ void Bundle::finish(bool issend)
 		currMsgLength_ -= NETWORK_MESSAGE_LENGTH_SIZE;
 
 		// 按照设计一个包最大也不可能超过NETWORK_MESSAGE_MAX_SIZE
-		KBE_ASSERT(currMsgLength_ <= NETWORK_MESSAGE_MAX_SIZE);
+		if(g_componentType == BOTS_TYPE || g_componentType == CLIENT_TYPE)
+		{
+			KBE_ASSERT(currMsgLength_ <= NETWORK_MESSAGE_MAX_SIZE);
+		}
 
-		MessageLength msgLen = (MessageLength)currMsgLength_;
-		KBEngine::EndianConvert(msgLen);
+		// 如果消息长度大于等于NETWORK_MESSAGE_MAX_SIZE
+		// 使用扩展消息长度机制，向消息长度后面再填充4字节
+		// 用于描述更大的长度
+		if(currMsgLength_ >= NETWORK_MESSAGE_MAX_SIZE)
+		{
+			MessageLength1 ex_msg_length = currMsgLength_;
+			KBEngine::EndianConvert(ex_msg_length);
 
-		memcpy(&pPacket->data()[currMsgLengthPos_], 
-			(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);
+			MessageLength msgLen = NETWORK_MESSAGE_MAX_SIZE;
+			KBEngine::EndianConvert(msgLen);
+
+			memcpy(&pPacket->data()[currMsgLengthPos_], 
+				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);
+
+			pPacket->insert(currMsgLengthPos_ + NETWORK_MESSAGE_LENGTH_SIZE, (uint8*)&ex_msg_length, NETWORK_MESSAGE_LENGTH1_SIZE);
+		}
+		else
+		{
+			MessageLength msgLen = (MessageLength)currMsgLength_;
+			KBEngine::EndianConvert(msgLen);
+
+			memcpy(&pPacket->data()[currMsgLengthPos_], 
+				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);
+		}
 	}
 
 	if(issend)

@@ -52,6 +52,7 @@ protected:
 		FRAGMENT_DATA_UNKNOW,
 		FRAGMENT_DATA_MESSAGE_ID,
 		FRAGMENT_DATA_MESSAGE_LENGTH,
+		FRAGMENT_DATA_MESSAGE_LENGTH1,
 		FRAGMENT_DATA_MESSAGE_BODY
 	};
 	
@@ -63,8 +64,9 @@ protected:
 	uint32						pFragmentDatasRemain_;
 	FragmentDataTypes			fragmentDatasFlag_;
 	MemoryStream*				pFragmentStream_;
+
 	Network::MessageID			currMsgID_;
-	Network::MessageLength		currMsgLen_;
+	Network::MessageLength1		currMsgLen_;
 	
 	Channel*					pChannel_;
 };

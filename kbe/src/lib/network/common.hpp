@@ -36,8 +36,13 @@ namespace Network
 const uint32 BROADCAST = 0xFFFFFFFF;
 const uint32 LOCALHOST = 0x0100007F;
 
+// 消息的ID
 typedef uint16	MessageID;
-typedef uint16	MessageLength; // 最大65535
+
+// 消息长度，目前长度有2种，默认消息长度最大MessageLength
+// 当超过这个数时需要扩展长度，底层使用MessageLength1
+typedef uint16	MessageLength;		// 最大65535
+typedef uint32	MessageLength1;		// 最大4294967295
 
 typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
@@ -75,15 +80,19 @@ namespace tcp{
 #define ENCRYPTTION_WASTAGE_SIZE			(1 + 7)
 
 #define PACKET_MAX_SIZE						1500
+#ifndef PACKET_MAX_SIZE_TCP
 #define PACKET_MAX_SIZE_TCP					1460
+#endif
 #define PACKET_MAX_SIZE_UDP					1472
 
-typedef uint16								PacketLength; // 最大65535
+typedef uint16								PacketLength;				// 最大65535
 #define PACKET_LENGTH_SIZE					sizeof(PacketLength)
 
 #define NETWORK_MESSAGE_ID_SIZE				sizeof(Network::MessageID)
 #define NETWORK_MESSAGE_LENGTH_SIZE			sizeof(Network::MessageLength)
-#define NETWORK_MESSAGE_MAX_SIZE			65535
+#define NETWORK_MESSAGE_LENGTH1_SIZE		sizeof(Network::MessageLength1)
+#define NETWORK_MESSAGE_MAX_SIZE			UINT16_MAX					// 65535
+#define NETWORK_MESSAGE_MAX_SIZE1			UINT32_MAX					// 4294967295
 
 // 游戏内容可用包大小
 #define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - NETWORK_MESSAGE_ID_SIZE - \
@@ -91,7 +100,7 @@ typedef uint16								PacketLength; // 最大65535
 
 /** kbe machine端口 */
 #define KBE_PORT_START						20000
-#define KBE_MACHINE_BRAODCAST_SEND_PORT		KBE_PORT_START + 86	// machine接收广播的端口
+#define KBE_MACHINE_BRAODCAST_SEND_PORT		KBE_PORT_START + 86			// machine接收广播的端口
 #define KBE_PORT_BROADCAST_DISCOVERY		KBE_PORT_START + 87
 #define KBE_MACHINE_TCP_PORT				KBE_PORT_START + 88
 

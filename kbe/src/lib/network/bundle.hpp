@@ -438,8 +438,8 @@ private:
 	
 	Packet* pCurrPacket_;
 	MessageID currMsgID_;
-	uint8 currMsgPacketCount_;
-	uint32 currMsgLength_;	
+	uint32 currMsgPacketCount_;
+	MessageLength1 currMsgLength_;	
 	int32 currMsgHandlerLength_;
 	size_t currMsgLengthPos_;
 
