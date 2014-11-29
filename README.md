@@ -27,15 +27,15 @@ http://www.kbengine.org
 	16535321
 
 ##What is KBEngine?
-An open source MMOG server engine, Through a simple protocol, Clients and server communications will be very simple,
+An open source MMOG server engine, Through a simple protocol, clients and server communications will be very simple.
 To use the KBEngine-plugins quick combine with (Unity3D, OGRE, Cocos2d-x, HTML5, etc.) to form a complete client.
 
-Engine framework written using C++, Game logic layer using Python(Support the hotfix), 
+Engine framework written using C++, game logic layer using Python(Support the hotfix), 
 developers do not need to re-implement some common server-side technology,
-Allows developers to concentrate on the game logic development, quickly create a variety of games.
+allows developers to concentrate on the game logic development, quickly create a variety of games.
 
-(Frequently asked load-limit, kbengine is designed to be multi-process distributed dynamic load balancing scheme, 
-In theory only need to expand hardware can increase load-limit, The single machine load-limit 
+(Frequently asked load-limit, KBEngine is designed to be multi-process distributed dynamic load balancing scheme, 
+in theory only need to expand hardware can increase load-limit, the single machine load-limit 
 depends on complexity of logic of the game itself.)
 
 ##什么是KBEngine?
