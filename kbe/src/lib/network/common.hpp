@@ -91,8 +91,8 @@ typedef uint16								PacketLength;				// 最大65535
 #define NETWORK_MESSAGE_ID_SIZE				sizeof(Network::MessageID)
 #define NETWORK_MESSAGE_LENGTH_SIZE			sizeof(Network::MessageLength)
 #define NETWORK_MESSAGE_LENGTH1_SIZE		sizeof(Network::MessageLength1)
-#define NETWORK_MESSAGE_MAX_SIZE			UINT16_MAX					// 65535
-#define NETWORK_MESSAGE_MAX_SIZE1			UINT32_MAX					// 4294967295
+#define NETWORK_MESSAGE_MAX_SIZE			65535
+#define NETWORK_MESSAGE_MAX_SIZE1			4294967295
 
 // 游戏内容可用包大小
 #define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - NETWORK_MESSAGE_ID_SIZE - \
