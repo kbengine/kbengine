@@ -27,7 +27,7 @@ http://www.kbengine.org
 	16535321
 
 ##What is KBEngine?
-An open source MMOG server engine, Using a simple protocol will be able to make the client and server interaction,
+An open source MMOG server engine, Clients and the Server communicates throught a simple protocol,
 To use the KBEngine-plugins quick combine with (Unity3D, OGRE, Cocos2d-x, HTML5, etc.) to form a complete client.
 
 Engine framework written using C++, Game logic layer using Python(Support the hotfix), 
