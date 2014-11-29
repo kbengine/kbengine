@@ -209,10 +209,6 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 		KBE_ASSERT(false && "no support!\n");
 	}
 
-	int32 packetsLength = execret_.opsize();
-	const Network::MessageHandler& msgHandler = CellappInterface::onExecuteRawDatabaseCommandCB;
-
-
 	(*pBundle) << callbackID_;
 	(*pBundle) << error_;
 
@@ -223,7 +219,6 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	if(cinfos && cinfos->pChannel)
 	{
-		packetsLength = (*pBundle).packetsLength(true);
 		(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
 	}
 	else
