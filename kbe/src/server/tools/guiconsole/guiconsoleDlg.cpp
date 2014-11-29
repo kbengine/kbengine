@@ -190,7 +190,7 @@ public:
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				dlg->componentType(), dlg->componentID(), findComponentType, dlg->networkInterface().intaddr().ip, 
+				dlg->componentType(), dlg->componentID(), (COMPONENT_TYPE)findComponentType, dlg->networkInterface().intaddr().ip, 
 				bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())

@@ -134,8 +134,8 @@ public:
 
 	void shutDown(float shutdowntime = -FLT_MAX);
 
-	int32 globalOrder()const{ return startGlobalOrder_; }
-	int32 groupOrder()const{ return startGroupOrder_; }
+	COMPONENT_ORDER globalOrder()const{ return startGlobalOrder_; }
+	COMPONENT_ORDER groupOrder()const{ return startGroupOrder_; }
 
 	/** 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr
@@ -144,7 +144,7 @@ public:
 	virtual void onRegisterNewApp(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
-							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
+							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 	/** 网络接口
@@ -209,8 +209,8 @@ protected:
 
 	// app启动顺序， global为全局(如dbmgr，cellapp的顺序)启动顺序， 
 	// group为组启动顺序(如:所有baseapp为一组)
-	int32													startGlobalOrder_;
-	int32													startGroupOrder_;
+	COMPONENT_ORDER											startGlobalOrder_;
+	COMPONENT_ORDER											startGroupOrder_;
 
 	Shutdowner*												pShutdowner_;
 	ComponentActiveReportHandler*							pActiveTimerHandle_;

@@ -145,7 +145,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		bhandler.newMessage(KBEngine::MachineInterface::onFindInterfaceAddr);
 
 		KBEngine::MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
-			CONSOLE_TYPE, g_componentID, findComponentType, 0, 0);
+			CONSOLE_TYPE, g_componentID, (COMPONENT_TYPE)findComponentType, 0, 0);
 
 		bhandler.send(*endpoint);
 

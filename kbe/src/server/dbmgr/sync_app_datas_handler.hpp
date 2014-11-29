@@ -39,8 +39,8 @@ public:
 	struct ComponentInitInfo
 	{
 		COMPONENT_ID cid;
-		int32 startGroupOrder;
-		int32 startGlobalOrder;
+		COMPONENT_ORDER startGroupOrder;
+		COMPONENT_ORDER startGlobalOrder;
 	};
 
 	SyncAppDatasHandler(Network::NetworkInterface & networkInterface);
@@ -48,7 +48,7 @@ public:
 	
 	bool process();
 
-	void pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32 startGlobalOrder);
+	void pushApp(COMPONENT_ID cid, COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER startGlobalOrder);
 private:
 	Network::NetworkInterface &		networkInterface_;
 	uint64							lastRegAppTime_;

@@ -300,7 +300,7 @@ void Cellapp::finalise()
 
 //-------------------------------------------------------------------------------------
 void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
+						COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent((
@@ -673,7 +673,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::Memo
 
 //-------------------------------------------------------------------------------------
 void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
 {
 	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder, digest);
 	

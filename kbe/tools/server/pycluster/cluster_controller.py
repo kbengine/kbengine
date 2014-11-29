@@ -170,17 +170,17 @@ class ClusterControllerHandler:
                                 
 			ii += 1
 
-			componentType = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
-			ii += 1
+			componentType = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
 			
 			componentID = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
 			ii += 16
-			
-			globalorderid = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
-			ii += 1
-		
-			grouporderid = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
-			ii += 1
+
+			globalorderid = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			grouporderid = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
 
 			intaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
 			ii += 4

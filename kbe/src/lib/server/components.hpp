@@ -118,7 +118,7 @@ public:
 	}
 
 	void addComponent(int32 uid, const char* username, 
-		COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
 		uint32 intaddr, uint16 intport, 
 		uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 		float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
@@ -145,7 +145,7 @@ public:
 
 	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 
-	typedef std::map<int32/*uid*/, int32/*lastorder*/> ORDER_LOG;
+	typedef std::map<int32/*uid*/, COMPONENT_ORDER/*lastorder*/> ORDER_LOG;
 	ORDER_LOG& getGlobalOrderLog(){ return _globalOrderLog; }
 	ORDER_LOG& getBaseappGroupOrderLog(){ return _baseappGrouplOrderLog; }
 	ORDER_LOG& getCellappGroupOrderLog(){ return _cellappGrouplOrderLog; }

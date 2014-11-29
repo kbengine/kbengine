@@ -56,7 +56,7 @@ SyncAppDatasHandler::~SyncAppDatasHandler()
 }
 
 //-------------------------------------------------------------------------------------
-void SyncAppDatasHandler::pushApp(COMPONENT_ID cid, int32 startGroupOrder, int32 startGlobalOrder)
+void SyncAppDatasHandler::pushApp(COMPONENT_ID cid, COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER startGlobalOrder)
 {
 	lastRegAppTime_ = timestamp();
 	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();

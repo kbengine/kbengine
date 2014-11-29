@@ -92,7 +92,7 @@ public:
 	/** 网络接口
 		请求分配一个ENTITY_ID段
 	*/
-	void onReqAllocEntityID(Network::Channel* pChannel, int8 componentType, COMPONENT_ID componentID);
+	void onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER componentType, COMPONENT_ID componentID);
 
 	/* 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr
@@ -101,7 +101,7 @@ public:
 	virtual void onRegisterNewApp(Network::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
-							int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
+							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 

@@ -66,8 +66,8 @@ public:
 		某个app广播了自己的地址
 	*/
 	void onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username, 
-							int8 componentType, uint64 componentID, uint64 componentIDEx, 
-							int8 globalorderid, int8 grouporderid,
+							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
+							COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
 							uint32 intaddr, uint16 intport,
 							uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
@@ -77,7 +77,7 @@ public:
 		某个app寻找另一个app的地址
 	*/
 	void onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, 
-		int8 componentType, uint64 componentID, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_TYPE findComponentType, uint32 finderAddr, uint16 finderRecvPort);
 
 	/** 网络接口
 		查询所有接口信息

@@ -94,8 +94,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 某app请求获取一个entityID段的回调
 	LOGINAPP_MESSAGE_DECLARE_ARGS3(onDbmgrInitCompleted,							NETWORK_VARIABLE_MESSAGE,
-									int32,											startGlobalOrder,
-									int32,											startGroupOrder,
+									COMPONENT_ORDER,								startGlobalOrder,
+									COMPONENT_ORDER,								startGroupOrder,
 									std::string,									digest)
 
 	// 某个app向本app告知处于活动状态。

@@ -175,7 +175,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid
 
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
-			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
@@ -918,7 +918,7 @@ bool Components::findInterfaces()
 			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
 				return false;
 
-			int8 findComponentType = findComponentTypes_[findIdx_];
+			COMPONENT_TYPE findComponentType = (COMPONENT_TYPE)findComponentTypes_[findIdx_];
 			static int count = 0;
 
 			INFO_MSG(fmt::format("Components::findInterfaces: finding {}({})...\n",

@@ -54,10 +54,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					NETWORK_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
-									int8,							componentType, 
-									uint64,							componentID, 
-									int8,							globalorderID,
-									int8,							grouporderID,
+									COMPONENT_TYPE,					componentType, 
+									COMPONENT_ID,					componentID, 
+									COMPONENT_ORDER,				globalorderID,
+									COMPONENT_ORDER,				grouporderID,
 									uint32,							intaddr, 
 									uint16,							intport,
 									uint32,							extaddr, 
@@ -72,7 +72,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 
 	// 某app请求获取一个entityID段 
 	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,					NETWORK_FIXED_MESSAGE,
-								int8,								componentType,
+								COMPONENT_TYPE,						componentType,
 								COMPONENT_ID,						componentID)
 
 	// global数据改变

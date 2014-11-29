@@ -162,7 +162,7 @@ void Loginapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
+void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
 {
 	if(pChannel->isExternal())
 		return;

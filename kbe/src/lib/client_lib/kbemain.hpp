@@ -169,7 +169,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			cmd.erase(fi1, findcmd.size());
 			if(cmd.size() > 0)
 			{
-				uint64 cid = 0;
+				COMPONENT_ID cid = 0;
 				try
 				{
 					StringConv::str2value(cid, cmd.c_str());
@@ -191,7 +191,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			cmd.erase(fi1, findcmd.size());
 			if(cmd.size() > 0)
 			{
-				int8 orderid = 0;
+				COMPONENT_ORDER orderid = 0;
 				try
 				{
 					StringConv::str2value(orderid, cmd.c_str());
@@ -213,7 +213,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			cmd.erase(fi1, findcmd.size());
 			if(cmd.size() > 0)
 			{
-				int8 orderid = 0;
+				COMPONENT_ORDER orderid = 0;
 				try
 				{
 					StringConv::str2value(orderid, cmd.c_str());
@@ -238,18 +238,18 @@ inline void setEvns()
 
 	if(g_componentGroupOrder > 0)
 	{
-		int32 icomponentGroupOrder = g_componentGroupOrder;
+		COMPONENT_ORDER icomponentGroupOrder = g_componentGroupOrder;
 		scomponentGroupOrder = KBEngine::StringConv::val2str(icomponentGroupOrder);
 	}
 	
 	if(g_componentGlobalOrder > 0)
 	{
-		int32 icomponentGlobalOrder = g_componentGlobalOrder;
+		COMPONENT_ORDER icomponentGlobalOrder = g_componentGlobalOrder;
 		scomponentGlobalOrder = KBEngine::StringConv::val2str(icomponentGlobalOrder);
 	}
 
 	{
-		uint64 v = g_componentID;
+		COMPONENT_ID v = g_componentID;
 		scomponentID = KBEngine::StringConv::val2str(v);
 	}
 

@@ -302,7 +302,7 @@ void Dbmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, int8 componentType, COMPONENT_ID componentID)
+void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER componentType, COMPONENT_ID componentID)
 {
 	KBEngine::COMPONENT_TYPE ct = static_cast<KBEngine::COMPONENT_TYPE>(componentType);
 
@@ -323,7 +323,7 @@ void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, int8 componentType, C
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
+						COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
 {
 	if(pChannel->isExternal())
@@ -334,8 +334,8 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 	
-	int32 startGroupOrder = 1;
-	int32 startGlobalOrder = Components::getSingleton().getGlobalOrderLog()[getUserUID()];
+	COMPONENT_ORDER startGroupOrder = 1;
+	COMPONENT_ORDER startGlobalOrder = Components::getSingleton().getGlobalOrderLog()[getUserUID()];
 
 	if(grouporderID > 0)
 		startGroupOrder = grouporderID;

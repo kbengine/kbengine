@@ -78,8 +78,8 @@ Machine::~Machine()
 
 //-------------------------------------------------------------------------------------
 void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username,
-								   int8 componentType, uint64 componentID, uint64 componentIDEx, 
-								   int8 globalorderid, int8 grouporderid,
+								   COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
+								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
@@ -174,8 +174,8 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, int8 componentType, uint64 componentID,
-								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
+void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, COMPONENT_TYPE componentType, COMPONENT_ID componentID,
+								  COMPONENT_TYPE findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
 	KBEngine::COMPONENT_TYPE tfindComponentType = (KBEngine::COMPONENT_TYPE)findComponentType;
 	KBEngine::COMPONENT_TYPE tComponentType = (KBEngine::COMPONENT_TYPE)componentType;
@@ -342,9 +342,8 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 	{
 		Network::Bundle bundle;
 
-		COMPONENT_TYPE tfindComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
-		int8 findComponentType = (int8)tfindComponentType;
-		Components::COMPONENTS& components = Components::getSingleton().getComponents(tfindComponentType);
+		COMPONENT_TYPE findComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
+		Components::COMPONENTS& components = Components::getSingleton().getComponents(findComponentType);
 		Components::COMPONENTS::iterator iter = components.begin();
 
 		for(; iter != components.end(); )
