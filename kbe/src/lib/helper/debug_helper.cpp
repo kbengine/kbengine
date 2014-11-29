@@ -63,7 +63,7 @@ DebugHelper dbghelper;
 ProfileVal g_syncLogProfile("syncLog");
 
 #ifndef NO_USE_LOG4CXX
-log4cxx::LoggerPtr g_logger;
+log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
 #endif
 
 #define DBG_PT_SIZE 1024 * 4
