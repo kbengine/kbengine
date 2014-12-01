@@ -67,7 +67,6 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 #endif
 
 #define DBG_PT_SIZE 1024 * 4
-char _g_buf[DBG_PT_SIZE];
 
 bool g_shouldWriteToSyslog = false;
 

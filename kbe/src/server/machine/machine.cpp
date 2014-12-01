@@ -89,8 +89,9 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 	const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent(componentID);
 	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, true))
 	{
-		if(pinfos->pid != pid || ep_.addr().ip != intaddr || this->networkInterface().intaddr().ip != intaddr ||
-				this->networkInterface().extaddr().ip != intaddr)
+		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
+			pinfos->pExtAddr->ip != extaddr || username != pinfos->username || 
+			pinfos->globalOrderid != globalorderid || pinfos->groupOrderid != grouporderid)
 		{
 			Network::Bundle bundle;
 
