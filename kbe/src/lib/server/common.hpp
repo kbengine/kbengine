@@ -49,7 +49,7 @@ namespace KBEngine {
 
 // cellapp转发消息给cellapp
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CELLAPP(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
-	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);															\
+	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);														\
 	SENDBUNDLE << ENTITYID;																												\
 	FORWARDBUNDLE.finish(true);																											\
 	SENDBUNDLE.append(FORWARDBUNDLE);	
