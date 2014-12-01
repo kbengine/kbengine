@@ -110,7 +110,8 @@ public:
 	
 	static bool isInit() { return getSingletonPtr() != 0; }
 
-	static void initHelper(COMPONENT_TYPE componentType);
+	static void initialize(COMPONENT_TYPE componentType);
+	static void finalise();
 
 	void setFile(std::string funcname, std::string file, uint32 line){
 		_currFile = file;

@@ -132,7 +132,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	startLeakDetection(componentType, g_componentID);
 
 	g_componentType = componentType;
-	DebugHelper::initHelper(componentType);
+	DebugHelper::initialize(componentType);
+
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 

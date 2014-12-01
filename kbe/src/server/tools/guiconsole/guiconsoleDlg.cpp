@@ -414,7 +414,6 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	
 
 	// TODO: Add extra initialization here
-	DebugHelper::initHelper(_componentType);
 	_dispatcher.breakProcessing(false);
 
 	::SetTimer(m_hWnd, 1, 100, NULL);

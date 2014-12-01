@@ -280,7 +280,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		return -1;
 	}
 	
-	DebugHelper::initHelper(componentType);
+	DebugHelper::initialize(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	Network::EventDispatcher dispatcher;

@@ -63,7 +63,7 @@ DebugHelper dbghelper;
 ProfileVal g_syncLogProfile("syncLog");
 
 #ifndef NO_USE_LOG4CXX
-log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
+log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 #endif
 
 #define DBG_PT_SIZE 1024 * 4
@@ -172,15 +172,12 @@ scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
 noSyncLog_(false),
 canLogFile_(true)
 {
-	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
 
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
-	clearBufferedLog(true);
-
-	// SAFE_RELEASE(g_pDebugHelperSyncHandler);
+	finalise();
 }	
 
 //-------------------------------------------------------------------------------------
@@ -230,22 +227,37 @@ void DebugHelper::unlockthread()
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::initHelper(COMPONENT_TYPE componentType)
+void DebugHelper::initialize(COMPONENT_TYPE componentType)
 {
-#ifndef NO_USE_LOG4CXX
-	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME_EX(componentType));
-	char helpConfig[256];
+	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 
-	if(componentType == CLIENT_TYPE)
+#ifndef NO_USE_LOG4CXX
+	
+	char helpConfig[MAX_PATH];
+
+	if(componentType == CLIENT_TYPE || componentType == CONSOLE_TYPE)
 	{
-		kbe_snprintf(helpConfig, 256, "log4j.properties");
+		g_logger = log4cxx::Logger::getLogger("default");
+		kbe_snprintf(helpConfig, MAX_PATH, "log4j.properties");
 	}
 	else
 	{
-		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+		g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME_EX(componentType));
+		kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
 	}
 
 	log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::finalise()
+{
+	DebugHelper::getSingleton().clearBufferedLog(true);
+
+	// SAFE_RELEASE(g_pDebugHelperSyncHandler);
+
+#ifndef NO_USE_LOG4CXX
 #endif
 }
 

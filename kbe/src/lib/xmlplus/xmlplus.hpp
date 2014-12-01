@@ -121,8 +121,8 @@ public:
 
 	TiXmlNode* openSection(const char* xmlFile)
 	{
-		char pathbuf[255];
-		kbe_snprintf(pathbuf, 255, "%s", xmlFile);
+		char pathbuf[MAX_PATH];
+		kbe_snprintf(pathbuf, MAX_PATH, "%s", xmlFile);
 
 		txdoc_ = new TiXmlDocument((char*)&pathbuf);
 
