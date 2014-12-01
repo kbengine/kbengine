@@ -539,7 +539,7 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 	context.isEmpty = false;
 	context.readresultIdx = 0;
 
-	while(s->opsize() > 0)
+	while(s->length() > 0)
 	{
 		ENTITY_PROPERTY_UID pid;
 		(*s) >> pid;

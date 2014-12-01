@@ -680,7 +680,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	{
 		std::string clientDigest;
 
-		if(s.opsize() > 0)
+		if(s.length() > 0)
 			s >> clientDigest;
 
 		if(clientDigest != digest_)
@@ -694,7 +694,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		}
 	}
 
-	s.opfini();
+	s.done();
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)

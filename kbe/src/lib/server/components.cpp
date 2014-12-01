@@ -998,7 +998,7 @@ RESTART_RECV:
 						args.usedmem, args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
 					isContinue = true;
-				}while(bhandler.pCurrPacket()->opsize() > 0);
+				}while(bhandler.pCurrPacket()->length() > 0);
 
 				// 防止接收到的数据不是想要的数据
 				if(findComponentType == args.componentType)
@@ -1184,7 +1184,7 @@ bool Components::process()
 
 					return false;
 
-				}while(bhandler.pCurrPacket()->opsize() > 0);
+				}while(bhandler.pCurrPacket()->length() > 0);
 			}
 
 			bhandler.close();

@@ -778,7 +778,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		
 		if(e == NULL)
 		{
-			s.opfini();
+			s.done();
 			return;
 		}
 
@@ -851,7 +851,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		
 		if(e == NULL)
 		{
-			s.opfini();
+			s.done();
 			return;
 		}
 
@@ -1104,7 +1104,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	if(entity == NULL)
 	{
 		ERROR_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
-		s.opfini();
+		s.done();
 		return;
 	}
 	
@@ -1147,7 +1147,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				
 				mailbox->newMail(bundle);
 				bundle.append(s);
-				s.read_skip(s.opsize());
+				s.done();
 				mailbox->postMail(pBundle);
 				reclaim = false;
 			}
@@ -1162,7 +1162,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	if(reclaim)
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-	s.opfini();
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1179,7 +1179,7 @@ void Cellapp::onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine:
 		WARNING_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: can't found entityID:{}, by srcEntityID:{}.\n", 
 			targetID, srcEntityID));
 		
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 
@@ -1192,7 +1192,7 @@ void Cellapp::onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine:
 		ERROR_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: message is error! entityID:{}.\n", 
 			targetID));
 
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 }
@@ -1206,7 +1206,7 @@ void Cellapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	if(srcEntityID <= 0)
 		return;
 	
-	if(s.opsize() <= 0)
+	if(s.length() <= 0)
 		return;
 
 	KBEngine::Entity* e = findEntity(srcEntityID);	
@@ -1215,12 +1215,12 @@ void Cellapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	{
 		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClient: not found entity {}!\n", srcEntityID));
 		
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 
 	e->onUpdateDataFromClient(s);
-	s.read_skip(s.opsize());
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1245,7 +1245,7 @@ void Cellapp::onUpdateGhostPropertys(Network::Channel* pChannel, KBEngine::Memor
 				pForwardBundle->append(s);
 
 				gm->pushRouteMessage(entityID, targetCell, pForwardBundle);
-				s.opfini();
+				s.done();
 				return;
 			}
 		}
@@ -1253,7 +1253,7 @@ void Cellapp::onUpdateGhostPropertys(Network::Channel* pChannel, KBEngine::Memor
 		ERROR_MSG(fmt::format("Cellapp::onUpdateGhostPropertys: not found entity({})\n", 
 			entityID));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1282,7 +1282,7 @@ void Cellapp::onRemoteRealMethodCall(Network::Channel* pChannel, KBEngine::Memor
 				pForwardBundle->append(s);
 
 				gm->pushRouteMessage(entityID, targetCell, pForwardBundle);
-				s.opfini();
+				s.done();
 				return;
 			}
 		}
@@ -1290,7 +1290,7 @@ void Cellapp::onRemoteRealMethodCall(Network::Channel* pChannel, KBEngine::Memor
 		ERROR_MSG(fmt::format("Cellapp::onRemoteRealMethodCall: not found entity({})\n", 
 			entityID));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1319,7 +1319,7 @@ void Cellapp::onUpdateGhostVolatileData(Network::Channel* pChannel, KBEngine::Me
 				pForwardBundle->append(s);
 
 				gm->pushRouteMessage(entityID, targetCell, pForwardBundle);
-				s.opfini();
+				s.done();
 				return;
 			}
 		}
@@ -1327,7 +1327,7 @@ void Cellapp::onUpdateGhostVolatileData(Network::Channel* pChannel, KBEngine::Me
 		ERROR_MSG(fmt::format("Cellapp::onUpdateGhostVolatileData: not found entity({})\n", 
 			entityID));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1348,7 +1348,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		WARNING_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:{}.\n",
 			srcEntityID));
 		
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 
@@ -1357,15 +1357,15 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		ERROR_MSG(fmt::format("{}::forwardEntityMessageToCellappFromClient: {} is destroyed!\n",										
 			e->scriptName(), e->id()));
 
-		s.read_skip(s.opsize());
+		s.done();
 		return;																							
 	}
 
 	// 检查是否是entity消息， 否则不合法.
-	while(s.opsize() > 0 && !e->isDestroyed())
+	while(s.length() > 0 && !e->isDestroyed())
 	{
-		Network::MessageID			currMsgID;
-		Network::MessageLength		currMsgLen;
+		Network::MessageID currMsgID;
+		Network::MessageLength currMsgLen;
 
 		s >> currMsgID;
 
@@ -1376,7 +1376,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID={}, msglen={}, from {}.\n", 
 				currMsgID, s.wpos(), pChannel->c_str()));
 
-			s.read_skip(s.opsize());
+			s.done();
 			return;
 		}
 
@@ -1385,7 +1385,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			WARNING_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID={} not is entitymsg.\n",
 				currMsgID));
 
-			s.read_skip(s.opsize());
+			s.done();
 			return;
 		}
 
@@ -1394,12 +1394,12 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		else
 			currMsgLen = pMsgHandler->msgLen;
 
-		if(s.opsize() < currMsgLen || currMsgLen >  NETWORK_MESSAGE_MAX_SIZE / 2)
+		if(s.length() < currMsgLen || currMsgLen >  NETWORK_MESSAGE_MAX_SIZE / 2)
 		{
 			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID={}, invalide msglen={}, from {}.\n", 
 				currMsgID, s.wpos(), pChannel->c_str()));
 
-			s.read_skip(s.opsize());
+			s.done();
 			return;
 		}
 
@@ -1417,7 +1417,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: message is error! entityID:{}.\n", 
 				srcEntityID));
 
-			s.read_skip(s.opsize());
+			s.done();
 			return;
 		}
 
@@ -1567,7 +1567,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n", 
 			nearbyMBRefID, spaceID, teleportEntityID));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1585,7 +1585,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found space({}),  reqTeleportEntity({})!\n", spaceID, teleportEntityID));
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1604,7 +1604,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
-		s.opfini();
+		s.done();
 		return;
 	}
 	
@@ -1670,11 +1670,11 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
 				teleportEntityID));
 
-			s.opfini();
+			s.done();
 			return;
 		}
 
-		s.opfini();
+		s.done();
 	}
 
 	EntityMailbox* baseMB = entity->baseMailbox();
@@ -1708,7 +1708,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 
-	s.opfini();
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------

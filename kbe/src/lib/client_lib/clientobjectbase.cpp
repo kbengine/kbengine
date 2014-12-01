@@ -766,7 +766,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 		s >> scriptType;
 	}
 
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 		s >> isOnGound;
 
 	if(eid != entityID_ && entityID_ > 0)
@@ -902,7 +902,7 @@ void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStr
 
 	s >> eid;
 
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 		s >> isOnGound;
 
 	client::Entity* entity = pEntities_->find(eid);
@@ -998,7 +998,7 @@ void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		s.opfini();
+		s.done();
 		ERROR_MSG(fmt::format("ClientObjectBase::onRemoteMethodCall: not found entity({}).\n", eid));
 		return;
 	}
@@ -1031,9 +1031,9 @@ void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
 		{
 			MemoryStream* buffered = new MemoryStream();
 			(*buffered) << eid;
-			(*buffered).append(s.data() + s.rpos(), s.opsize());
+			(*buffered).append(s.data() + s.rpos(), s.length());
 			bufferedCreateEntityMessage_[eid].reset(buffered);
-			s.opfini();
+			s.done();
 		}
 		else
 		{
@@ -1152,7 +1152,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemorySt
 	if(entity == NULL)
 	{
 		ERROR_MSG(fmt::format("ClientObjectBase::onSetEntityPosAndDir: not found entity({}).\n", eid));
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1787,7 +1787,7 @@ void ClientObjectBase::initSpaceData(Network::Channel* pChannel, MemoryStream& s
 
 	std::string key, value;
 	
-	while(s.opsize() > 0)
+	while(s.length() > 0)
 	{
 		s >> key >> value;
 		setSpaceData(pChannel, spaceID_, key, value);

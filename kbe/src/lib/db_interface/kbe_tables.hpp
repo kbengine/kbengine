@@ -120,7 +120,7 @@ public:
 	void accountDefMemoryStream(MemoryStream& s)
 	{
 		accountDefMemoryStream_.clear(false);
-		accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); 
+		accountDefMemoryStream_.append(s.data() + s.rpos(), s.length()); 
 	}
 protected:
 	MemoryStream accountDefMemoryStream_;

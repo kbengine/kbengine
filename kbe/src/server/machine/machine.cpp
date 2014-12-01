@@ -625,7 +625,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
@@ -708,7 +708,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 	
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}

@@ -605,7 +605,7 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStre
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! entityID:{1}.\n",
 				md->getName(), this->id(), this->scriptName()));
 
-			s.opfini();
+			s.done();
 			return;
 		}
 	}
@@ -630,7 +630,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 		ERROR_MSG(fmt::format("{}::onRemoteMethodCall: {} is destroyed!\n",
 			scriptName(), id()));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -670,13 +670,13 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 			else
 			{
 				SCRIPT_ERROR_CHECK();
-				s.opfini();
+				s.done();
 			}
 		}
 	}
 	else
 	{
-		s.opfini();
+		s.done();
 	}
 
 	Py_XDECREF(pyFunc);
@@ -1497,7 +1497,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 {
 	if(spaceID_ == 0)
 	{
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1512,7 +1512,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 	if(spaceID_ != currspace)
 	{
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -2706,7 +2706,7 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: not found propertyID({}), entityID({})\n", 
 			scriptName(), utype, id()));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -2719,7 +2719,7 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: entityID={}, create({}) is error!\n", 
 			scriptName(), id(), pPropertyDescription->getName()));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -2741,7 +2741,7 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found propertyID({}), entityID({})\n", 
 			scriptName(), utype, id()));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 

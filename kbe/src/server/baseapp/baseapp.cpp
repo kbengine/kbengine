@@ -1078,7 +1078,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 			Py_DECREF(baseRef);
 		}
 		
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1335,7 +1335,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 			Py_DECREF(baseRef);
 		}
 		
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -1352,7 +1352,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	MemoryStream* stream = MemoryStream::ObjPool().createObject();
 	(*stream) << g_componentID;
 	stream->append(s);
-	s.opfini();
+	s.done();
 
 	// 通知baseappmgr在其他baseapp上创建entity
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -2076,7 +2076,7 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
-	s.opfini();
+	s.done();
 
 	DEBUG_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
 		nrows, nfields, err.c_str()));
@@ -2734,7 +2734,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: PendingLoginMgr not found({})\n",
 			accountName.c_str()));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -2750,7 +2750,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
 			accountName.c_str(), error));
 		
-		s.opfini();
+		s.done();
 		
 		loginGatewayFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
@@ -2816,9 +2816,9 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		if(s.opsize() > 0)
+		if(s.length() > 0)
 		{
-			if(Network::g_trace_packet > 0 && s.opsize() >= sizeof(Network::MessageID))
+			if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 			{
 				Network::MessageID fmsgid = 0;
 				s >> fmsgid;
@@ -2853,16 +2853,16 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			}
 		}
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
 	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->clientMailbox());
 	if(mailbox == NULL)
 	{
-		if(s.opsize() > 0)
+		if(s.length() > 0)
 		{
-			if(Network::g_trace_packet > 0 && s.opsize() >= sizeof(Network::MessageID))
+			if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 			{
 				Network::MessageID fmsgid = 0;
 				s >> fmsgid;
@@ -2904,11 +2904,11 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			}
 		}
 
-		s.opfini();
+		s.done();
 		return;
 	}
 	
-	if(s.opsize() <= 0)
+	if(s.length() <= 0)
 		return;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -2917,7 +2917,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	//mailbox->postMail((*pBundle));
 	//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	
-	if(Network::g_trace_packet > 0 && s.opsize() >= sizeof(Network::MessageID))
+	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
 		Network::MessageID fmsgid = 0;
 		s >> fmsgid;
@@ -2944,7 +2944,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 		}
 	}
 
-	s.read_skip(s.opsize());
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2961,7 +2961,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 	if(base == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: entityID {} not found.\n", eid));
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -2972,18 +2972,18 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 			"is error(not found cellMailbox)! entityID={}.\n", 
 			eid));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 	
-	if(s.opsize() <= 0)
+	if(s.length() <= 0)
 		return;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).append(s);
 	base->sendToCellapp(pBundle);
 	
-	if(Network::g_trace_packet > 0 && s.opsize() >= sizeof(Network::MessageID))
+	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
 		Network::MessageID fmsgid = 0;
 		s >> fmsgid;
@@ -3010,7 +3010,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 		}
 	}
 
-	s.read_skip(s.opsize());
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3036,7 +3036,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	if(base == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
-		s.opfini();
+		s.done();
 		return;
 	}
 	
@@ -3081,7 +3081,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				mailbox->newMail(bundle);
 				bundle.append(s);
 
-				if(Network::g_trace_packet > 0 && s.opsize() >= sizeof(ENTITY_METHOD_UID))
+				if(Network::g_trace_packet > 0 && s.length() >= sizeof(ENTITY_METHOD_UID))
 				{
 					ENTITY_METHOD_UID utype = 0;
 					s >> utype;
@@ -3089,7 +3089,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 						eid, utype));
 				}
 
-				s.read_skip(s.opsize());
+				s.read_skip(s.length());
 				//mailbox->postMail(bundle);
 				static_cast<Proxy*>(base)->sendToClient(pBundle);
 				reclaim = false;
@@ -3105,7 +3105,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	if(reclaim)
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-	s.opfini();
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3118,7 +3118,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 	if(srcEntityID <= 0)
 		return;
 	
-	if(s.opsize() <= 0)
+	if(s.length() <= 0)
 		return;
 
 	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
@@ -3129,7 +3129,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
 			e->scriptName(), srcEntityID));
 		
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 
@@ -3139,7 +3139,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 	(*pBundle).append(s);
 	
 	e->sendToCellapp(pBundle);
-	s.read_skip(s.opsize());
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3148,17 +3148,17 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
-		s.opfini();
+		s.done();
 		return;
 	}
 	
 	static size_t datasize = (sizeof(float) * 6 + sizeof(uint8) + sizeof(uint32));
-	if(s.opsize() <= 0 || s.opsize() != datasize)
+	if(s.length() <= 0 || s.length() != datasize)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: invalid data, size({} != {}), srcEntityID={}.\n",
-			datasize, s.opsize(), srcEntityID));
+			datasize, s.length(), srcEntityID));
 
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -3170,7 +3170,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} has no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
-		s.read_skip(s.opsize());
+		s.done();
 		return;
 	}
 
@@ -3180,7 +3180,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	(*pBundle).append(s);
 	
 	e->sendToCellapp(pBundle);
-	s.read_skip(s.opsize());
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3197,14 +3197,14 @@ void Baseapp::onBackupEntityCellData(Network::Channel* pChannel, KBEngine::Memor
 	if(base)
 	{
 		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), size={}.\n",
-			base->scriptName(), baseID, s.opsize()));
+			base->scriptName(), baseID, s.length()));
 
 		base->onBackupCellData(pChannel, s);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("Baseapp::onBackupEntityCellData: not found entityID={}\n", baseID));
-		s.read_skip(s.opsize());
+		s.done();
 	}
 }
 

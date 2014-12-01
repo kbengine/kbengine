@@ -85,12 +85,12 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 		else
 			pOutPacket = UDPPacket::ObjPool().createObject();
 		
-		PacketLength oldlen = pPacket->opsize();
+		PacketLength oldlen = pPacket->length();
 		pOutPacket->wpos(PACKET_LENGTH_SIZE + 1);
 		encrypt(pPacket, pOutPacket);
 
-		PacketLength packetLen = pPacket->opsize() + 1;
-		uint8 padSize = pPacket->opsize() - oldlen;
+		PacketLength packetLen = pPacket->length() + 1;
+		uint8 padSize = pPacket->length() - oldlen;
 		size_t oldwpos =  pOutPacket->wpos();
 		pOutPacket->wpos(0);
 
@@ -137,7 +137,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		{
 			if(pPacket)
 			{
-				pPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->opsize());
+				pPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->length());
 				
 				if(pPacket->isTCPPacket())
 					TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pPacket));
@@ -151,7 +151,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		if(packetLen_ <= 0)
 		{
 			// 如果满足一个最小包则尝试解包, 否则缓存这个包待与下一个包合并然后解包
-			if(pPacket->opsize() >= (PACKET_LENGTH_SIZE + 1 + BLOCK_SIZE))
+			if(pPacket->length() >= (PACKET_LENGTH_SIZE + 1 + BLOCK_SIZE))
 			{
 				(*pPacket) >> packetLen_;
 				(*pPacket) >> padSize_;
@@ -159,7 +159,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				packetLen_ -= 1;
 
 				// 如果包是完整下面流出会解密， 如果有多余的内容需要将其剪裁出来待与下一个包合并
-				if(pPacket->opsize() > packetLen_)
+				if(pPacket->length() > packetLen_)
 				{
 					if(pPacket->isTCPPacket())
 						pPacket_ = TCPPacket::ObjPool().createObject();
@@ -169,7 +169,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 					pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
 					pPacket->wpos(pPacket->rpos() + packetLen_);
 				}
-				else if(pPacket->opsize() == packetLen_)
+				else if(pPacket->length() == packetLen_)
 				{
 					if(pPacket_ != NULL)
 						pPacket_ = NULL;
@@ -193,7 +193,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		else
 		{
 			// 如果上一次有做过解包行为但包还没有完整则继续处理
-			if(pPacket->opsize() > packetLen_)
+			if(pPacket->length() > packetLen_)
 			{
 				if(pPacket->isTCPPacket())
 					pPacket_ = TCPPacket::ObjPool().createObject();
@@ -203,7 +203,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
 				pPacket->wpos(pPacket->rpos() + packetLen_);
 			}
-			else if(pPacket->opsize() == packetLen_)
+			else if(pPacket->length() == packetLen_)
 			{
 				if(pPacket_ != NULL)
 					pPacket_ = NULL;

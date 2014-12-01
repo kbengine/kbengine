@@ -239,7 +239,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		spaceuid = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
 	}
 
-	while(s.opsize() > 0)
+	while(s.length() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
 		uint8 aliasID = 0;

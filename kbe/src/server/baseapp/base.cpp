@@ -722,7 +722,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(fmt::format("{}::onRemoteMethodCall: {} is destroyed!\n",											
 			scriptName(), id()));
 
-		s.opfini();
+		s.done();
 		return;																							
 	}
 
@@ -735,7 +735,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
 			utype, id_, this->scriptName()));
 		
-		s.opfini();
+		s.done();
 		return;
 	}
 
@@ -748,7 +748,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}.\n",
 				srcEntityID, this->id(), this->scriptName(), md->getName()));
 
-			s.opfini();
+			s.done();
 			return;
 		}
 
@@ -757,7 +757,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}.\n",
 				md->getName(), srcEntityID, this->scriptName()));
 
-			s.opfini();
+			s.done();
 			return;
 		}
 	}

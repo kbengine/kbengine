@@ -253,7 +253,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 			for(; iter != bufferedReceives_[i].end(); iter++)
 			{
 				Packet* pPacket = (*iter);
-				if(pPacket->opsize() > 0)
+				if(pPacket->length() > 0)
 					hasDiscard++;
 
 				if(pPacket->isTCPPacket())

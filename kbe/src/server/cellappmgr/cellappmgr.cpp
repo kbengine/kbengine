@@ -154,9 +154,9 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 	Network::Bundle bundle;
-	bundle.append((char*)s.data() + s.rpos(), s.opsize());
+	bundle.append((char*)s.data() + s.rpos(), s.length());
 	bundle.send(this->networkInterface(), cinfos->pChannel);
-	s.opfini();
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	(*pBundle) << componentID;
 
 	(*pBundle).append(&s);
-	s.opfini();
+	s.done();
 
 	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={0}, entityID={1}, componentID={2}.\n",
 		entityType, id, componentID));
@@ -253,7 +253,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	(*pBundle) << componentID;
 
 	(*pBundle).append(&s);
-	s.opfini();
+	s.done();
 
 	DEBUG_MSG(fmt::format("Cellappmgr::reqRestoreSpaceInCell: entityType={0}, entityID={1}, componentID={2}, spaceID={3}.\n",
 		entityType, id, componentID, spaceID));

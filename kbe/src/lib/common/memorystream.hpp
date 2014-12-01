@@ -313,7 +313,7 @@ public:
     MemoryStream &operator>>(std::string& value)
     {
         value.clear();
-        while (opsize() > 0)
+        while (length() > 0)
         {
             char c = read<char>();
             if (c == 0)
@@ -327,7 +327,7 @@ public:
 
     MemoryStream &operator>>(char *value)
     {
-        while (opsize() > 0)
+        while (length() > 0)
         {
             char c = read<char>();
             if (c == 0)
@@ -384,8 +384,8 @@ public:
 
     void read_skip(size_t skip)
     {
-        if(skip > opsize())
-            throw MemoryStreamException(false, rpos_, skip, opsize());
+        if(skip > length())
+            throw MemoryStreamException(false, rpos_, skip, length());
 
         rpos_ += skip;
     }
@@ -399,8 +399,8 @@ public:
 
     template <typename T> T read(size_t pos) const
     {
-        if(sizeof(T) > opsize())
-            throw MemoryStreamException(false, pos, sizeof(T), opsize());
+        if(sizeof(T) > length())
+            throw MemoryStreamException(false, pos, sizeof(T), length());
 
         T val = *((T const*)&data_[pos]);
         EndianConvert(val);
@@ -409,8 +409,8 @@ public:
 
     void read(uint8 *dest, size_t len)
     {
-        if(len > opsize())
-           throw MemoryStreamException(false, rpos_, len, opsize());
+        if(len > length())
+           throw MemoryStreamException(false, rpos_, len, length());
 
         memcpy(dest, &data_[rpos_], len);
         rpos_ += len;
@@ -418,12 +418,12 @@ public:
 
 	ArraySize readBlob(std::string& datas)
 	{
-		if(opsize() <= 0)
+		if(length() <= 0)
 			return 0;
 
 		ArraySize rsize = 0;
 		(*this) >> rsize;
-		if((size_t)rsize > opsize())
+		if((size_t)rsize > length())
 			return 0;
 
 		if(rsize > 0)
@@ -504,13 +504,13 @@ public:
     virtual bool empty() const { return data_.empty(); }
 
 	// 读索引到与写索引之间的长度
-	size_t opsize()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
+	size_t length()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 
 	// 剩余可填充的大小
-	virtual size_t fillfree() const { return size() - wpos(); }
+	virtual size_t space() const { return size() - wpos(); }
 
 	// 将读索引强制设置到写索引，表示操作结束
-	void opfini(){ read_skip(opsize()); }
+	void done(){ read_skip(length()); }
 
     void resize(size_t newsize)
     {
@@ -585,7 +585,7 @@ public:
     void append(const MemoryStream& buffer)
     {
         if(buffer.wpos()){
-			append(buffer.data() + buffer.rpos(), buffer.opsize());
+			append(buffer.data() + buffer.rpos(), buffer.length());
         }
     }
 

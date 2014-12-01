@@ -580,7 +580,7 @@ void Dbmgr::executeRawDatabaseCommand(Network::Channel* pChannel,
 	else
 		bufferedDBTasks_.addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
 
-	s.opfini();
+	s.done();
 
 	numExecuteRawDatabaseCommand_++;
 }
@@ -596,7 +596,7 @@ void Dbmgr::writeEntity(Network::Channel* pChannel,
 	s >> componentID >> eid >> entityDBID;
 
 	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), componentID, eid, entityDBID, s));
-	s.opfini();
+	s.done();
 
 	numWrittenEntity_++;
 }
@@ -614,7 +614,7 @@ void Dbmgr::removeEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	bufferedDBTasks_.addTask(new DBTaskRemoveEntity(pChannel->addr(), 
 		componentID, eid, entityDBID, s));
 
-	s.opfini();
+	s.done();
 
 	numRemovedEntity_++;
 }
@@ -668,7 +668,7 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 	KBE_ASSERT(pTable);
 
 	pTable->accountDefMemoryStream(s);
-	s.opfini();
+	s.done();
 }
 
 //-------------------------------------------------------------------------------------

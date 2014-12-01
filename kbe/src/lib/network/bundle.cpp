@@ -169,11 +169,11 @@ int32 Bundle::packetsLength(bool calccurr)
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
 	{
-		len += (*iter)->opsize();
+		len += (*iter)->length();
 	}
 
 	if(calccurr && pCurrPacket_)
-		len += pCurrPacket_->opsize();
+		len += pCurrPacket_->length();
 
 	return len;
 }
@@ -439,7 +439,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 		(*this) << msglen;
 	}
 
-	numMessages_++;
+	++numMessages_;
 	currMsgID_ = msgHandler.msgID;
 	currMsgPacketCount_ = 0;
 	currMsgHandlerLength_ = msgHandler.msgLen;

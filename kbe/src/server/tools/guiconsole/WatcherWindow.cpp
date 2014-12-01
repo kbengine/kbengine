@@ -501,7 +501,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 	{
 		KBEngine::WatcherPaths watcherPaths;
 
-		while(s.opsize() > 0)
+		while(s.length() > 0)
 		{
 			std::string path;
 			s >> path;
@@ -527,7 +527,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 		if(rootpath == "/")
 			rootpath = "";
 
-		while(s.opsize() > 0)
+		while(s.length() > 0)
 		{
 			std::string path;
 			s >> path;

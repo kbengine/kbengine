@@ -385,7 +385,7 @@ public:																										\
 																											\
 		size_t count = 0;																					\
 																											\
-		while(mstream->opsize() > 0 && count < propertyDescrs.size())										\
+		while(mstream->length() > 0 && count < propertyDescrs.size())										\
 		{																									\
 			(*mstream) >> uid;																				\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\

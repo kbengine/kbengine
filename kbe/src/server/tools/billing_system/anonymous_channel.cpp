@@ -143,7 +143,7 @@ bool AnonymousChannel::process()
 		packet.wpos(len);
 
 		std::string getDatas;
-		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.length());
 		
 		std::string::size_type fi1 = getDatas.find("&chargeID=");
 		std::string::size_type fi2 = getDatas.find("&=");

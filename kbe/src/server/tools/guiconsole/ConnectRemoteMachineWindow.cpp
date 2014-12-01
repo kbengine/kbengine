@@ -156,7 +156,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		KBEngine::sleep(300);
 		packet.wpos(endpoint->recv(packet.data(), 65535));
 
-		while(packet.opsize() > 0)
+		while(packet.length() > 0)
 		{
 			MachineInterface::onBroadcastInterfaceArgs24 args;
 			

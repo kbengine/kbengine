@@ -1496,7 +1496,7 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 		std::vector<PyObject*>& vals = arr->getValues();
 		for(ArraySize i=0; i<size; i++)
 		{
-			if(mstream->opsize() == 0)
+			if(mstream->length() == 0)
 			{
 				ERROR_MSG(fmt::format("FixedArrayType::createFromStream: {} invalid(size={}), stream no space!\n",
 					aliasName(), size));

@@ -72,7 +72,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			// 如果没有ID信息，先获取ID
 			if(currMsgID_ == 0)
 			{
-				if(NETWORK_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < NETWORK_MESSAGE_ID_SIZE)
+				if(NETWORK_MESSAGE_ID_SIZE > 1 && pPacket->length() < NETWORK_MESSAGE_ID_SIZE)
 				{
 					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, NETWORK_MESSAGE_ID_SIZE);
 					break;
@@ -87,16 +87,16 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			if(pMsgHandler == NULL)
 			{
 				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				
 				// 用作调试时比对
 				uint32 rpos = pPacket1->rpos();
 				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
 				WARNING_MSG(fmt::format("PacketReader::processMessages: invalide msgID={}, msglen={}, from {}.\n",
-					currMsgID_, pPacket1->opsize(), pChannel_->c_str()));
+					currMsgID_, pPacket1->length(), pChannel_->c_str()));
 
 				currMsgID_ = 0;
 				currMsgLen_ = 0;
@@ -116,7 +116,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 				{
 					// 如果长度信息不完整，则等待下一个包处理
-					if(pPacket->opsize() < NETWORK_MESSAGE_LENGTH_SIZE)
+					if(pPacket->length() < NETWORK_MESSAGE_LENGTH_SIZE)
 					{
 						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, NETWORK_MESSAGE_LENGTH_SIZE);
 						break;
@@ -134,7 +134,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 						// 如果长度占满说明使用了扩展长度，我们还需要等待扩展长度信息
 						if(currMsgLen_ == NETWORK_MESSAGE_MAX_SIZE)
 						{
-							if(pPacket->opsize() < NETWORK_MESSAGE_LENGTH1_SIZE)
+							if(pPacket->length() < NETWORK_MESSAGE_LENGTH1_SIZE)
 							{
 								// 如果长度信息不完整，则等待下一个包处理
 								writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH1, pPacket, NETWORK_MESSAGE_LENGTH1_SIZE);
@@ -166,16 +166,16 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				currMsgLen_ > NETWORK_MESSAGE_MAX_SIZE)
 			{
 				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 
 				// 用作调试时比对
 				uint32 rpos = pPacket1->rpos();
 				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), pChannel_->c_str());
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
 				WARNING_MSG(fmt::format("PacketReader::processMessages({0}): msglen exceeds the limit! msgID={1}, msglen=({2}:{3}), maxlen={5}, from {4}.\n", 
-					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->opsize(), pChannel_->c_str(), NETWORK_MESSAGE_MAX_SIZE));
+					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->length(), pChannel_->c_str(), NETWORK_MESSAGE_MAX_SIZE));
 
 				currMsgLen_ = 0;
 				pChannel_->condemn();
@@ -191,7 +191,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			}
 			else
 			{
-				if(pPacket->opsize() < currMsgLen_)
+				if(pPacket->length() < currMsgLen_)
 				{
 					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_BODY, pPacket, currMsgLen_);
 					break;
@@ -236,17 +236,17 @@ void PacketReader::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Pac
 {
 	KBE_ASSERT(pFragmentDatas_ == NULL);
 
-	size_t opsize = pPacket->opsize();
+	size_t opsize = pPacket->length();
 	pFragmentDatasRemain_ = datasize - opsize;
 	pFragmentDatas_ = new uint8[opsize + pFragmentDatasRemain_ + 1];
 
 	fragmentDatasFlag_ = fragmentDatasFlag;
 	pFragmentDatasWpos_ = opsize;
 
-	if(pPacket->opsize() > 0)
+	if(pPacket->length() > 0)
 	{
 		memcpy(pFragmentDatas_, pPacket->data() + pPacket->rpos(), opsize);
-		pPacket->opfini();
+		pPacket->done();
 	}
 
 	//DEBUG_MSG(fmt::format("PacketReader::writeFragmentMessage({}): channel[{:p}], fragmentDatasFlag={}, remainsize={}, currMsgID={}, currMsgLen={}.\n", 
@@ -256,11 +256,11 @@ void PacketReader::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Pac
 //-------------------------------------------------------------------------------------
 void PacketReader::mergeFragmentMessage(Packet* pPacket)
 {
-	size_t opsize = pPacket->opsize();
+	size_t opsize = pPacket->length();
 	if(opsize == 0)
 		return;
 
-	if(pPacket->opsize() >= pFragmentDatasRemain_)
+	if(pPacket->length() >= pFragmentDatasRemain_)
 	{
 		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data() + pPacket->rpos(), pFragmentDatasRemain_);
 		pPacket->rpos(pPacket->rpos() + pFragmentDatasRemain_);

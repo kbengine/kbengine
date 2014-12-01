@@ -248,7 +248,7 @@ void Bots::addBots(Network::Channel * pChannel, MemoryStream& s)
 
 	reqCreateAndLoginTotalCount_ += reqCreateAndLoginTotalCount;
 
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 	{
 		s >> reqCreateAndLoginTickCount >> reqCreateAndLoginTickTime;
 

@@ -53,7 +53,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 //-------------------------------------------------------------------------------------
 DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	while(s->opsize() > 0)
+	while(s->length() > 0)
 	{
 		ENTITY_PROPERTY_UID pid;
 		(*s) >> pid;

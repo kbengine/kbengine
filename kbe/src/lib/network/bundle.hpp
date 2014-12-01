@@ -46,7 +46,7 @@ class Channel;
 		return *this;																						\
 																											\
     (*packets_[0]) >> v;																					\
-	if(packets_[0]->opsize() == 0)																			\
+	if(packets_[0]->length() == 0)																			\
 		packets_.erase(packets_.begin());																	\
 																											\
 	return *this;																							\
@@ -315,8 +315,8 @@ public:
 
 	Bundle &append(MemoryStream& s)
 	{
-		if(s.opsize() > 0)
-			return append(s.data() + s.rpos(), s.opsize());
+		if(s.length() > 0)
+			return append(s.data() + s.rpos(), s.length());
 
 		return *this;
 	}

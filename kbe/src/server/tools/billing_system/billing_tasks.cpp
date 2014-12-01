@@ -164,7 +164,7 @@ bool CreateAccountTask::process()
 
 	packet.wpos(len);
 
-	getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+	getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.length());
 
 	try
 	{
@@ -175,7 +175,7 @@ bool CreateAccountTask::process()
 			MemoryStream s;
 			s.append(getDatas.data() + fi, getDatas.size() - fi);
 
-			while(s.opsize() > 0)
+			while(s.length() > 0)
 			{
 				int32 type, len;
 				s >> type >> len;
@@ -196,7 +196,7 @@ bool CreateAccountTask::process()
 						endpoint.close();
 						
 						std::string err;
-						if(s.opsize() >= (sizeof(int32) * 2))
+						if(s.length() >= (sizeof(int32) * 2))
 						{
 							s >> type >> len;
 							
@@ -462,7 +462,7 @@ bool ChargeTask::process()
 
 	packet.wpos(len);
 
-	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.length());
 	orders.getDatas = pOrders->getDatas;
 
 	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
