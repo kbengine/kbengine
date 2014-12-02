@@ -90,7 +90,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, true))
 	{
 		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
-			pinfos->pExtAddr->ip != extaddr || username != pinfos->username || 
+			pinfos->pExtAddr->ip != extaddr || username != pinfos->username || uid != pinfos->uid ||
 			pinfos->globalOrderid != globalorderid || pinfos->groupOrderid != grouporderid)
 		{
 			Network::Bundle bundle;

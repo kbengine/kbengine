@@ -174,7 +174,7 @@ namespace strutil {
 
 	char* wchar2char(const wchar_t* ts, size_t* outlen)
 	{
-		int len = (wcslen(ts) + 1) * 2;
+		int len = (wcslen(ts) + 1) * 4/* LinuxÏÂsizeof(wchar_t) == 4 */;
 		char* ccattr =(char *)malloc(len);
 		memset(ccattr, 0, len);
 
@@ -188,7 +188,7 @@ namespace strutil {
 
 	void wchar2char(const wchar_t* ts, MemoryStream* pStream)
 	{
-		int len = (wcslen(ts) + 1) * 2;
+		int len = (wcslen(ts) + 1) * 4/* LinuxÏÂsizeof(wchar_t) == 4 */;
 		pStream->data_resize(pStream->wpos() + len);
 		size_t slen = wcstombs((char*)&pStream->data()[pStream->wpos()], ts, len);
 		pStream->wpos(pStream->wpos() + slen + 1);
@@ -196,7 +196,7 @@ namespace strutil {
 
 	wchar_t* char2wchar(const char* cs, size_t* outlen)
 	{
-		int len = (strlen(cs) + 1) * 2;
+		int len = (strlen(cs) + 1) * 4/* LinuxÏÂsizeof(wchar_t) == 4 */;
 		wchar_t* ccattr =(wchar_t *)malloc(len);
 		memset(ccattr, 0, len);
 

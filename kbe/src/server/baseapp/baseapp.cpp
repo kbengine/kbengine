@@ -3089,7 +3089,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 						eid, utype));
 				}
 
-				s.read_skip(s.length());
+				s.done();
 				//mailbox->postMail(bundle);
 				static_cast<Proxy*>(base)->sendToClient(pBundle);
 				reclaim = false;

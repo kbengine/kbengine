@@ -171,6 +171,7 @@ scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
 noSyncLog_(false),
 canLogFile_(true)
 {
+	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
 
 //-------------------------------------------------------------------------------------
@@ -228,8 +229,6 @@ void DebugHelper::unlockthread()
 //-------------------------------------------------------------------------------------
 void DebugHelper::initialize(COMPONENT_TYPE componentType)
 {
-	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
-
 #ifndef NO_USE_LOG4CXX
 	
 	char helpConfig[MAX_PATH];

@@ -249,7 +249,8 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	s.read_skip(s.length());
+	s.done();
+
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -266,7 +267,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 		(*pBundle).append((char*)s.data() + s.rpos(), s.length());
-		s.read_skip(s.length());
+		s.done();
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
@@ -283,6 +284,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
 	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
 	s.done();
+
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
