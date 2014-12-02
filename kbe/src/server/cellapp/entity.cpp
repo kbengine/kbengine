@@ -809,7 +809,8 @@ PyObject* Entity::pyIsReal()
 //-------------------------------------------------------------------------------------
 void Entity::addWitnessed(Entity* entity)
 {
-	Cellapp::getSingleton().pWitnessedTimeoutHandler()->delWitnessed(this);
+	if(Cellapp::getSingleton().pWitnessedTimeoutHandler())
+		Cellapp::getSingleton().pWitnessedTimeoutHandler()->delWitnessed(this);
 
 	witnesses_.push_back(entity->id());
 	++witnesses_count_;
@@ -850,7 +851,9 @@ void Entity::delWitnessed(Entity* entity)
 
 	// ÑÓÊ±Ö´ĞĞ
 	// onDelWitnessed();
-	Cellapp::getSingleton().pWitnessedTimeoutHandler()->addWitnessed(this);
+
+	if(Cellapp::getSingleton().pWitnessedTimeoutHandler())
+		Cellapp::getSingleton().pWitnessedTimeoutHandler()->addWitnessed(this);
 }
 
 //-------------------------------------------------------------------------------------
