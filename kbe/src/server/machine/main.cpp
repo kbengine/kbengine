@@ -72,7 +72,6 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-
 #if KBE_PLATFORM != PLATFORM_WIN32
 	rlimit rlimitData = { RLIM_INFINITY, RLIM_INFINITY };
 	setrlimit(RLIMIT_CORE, &rlimitData);
