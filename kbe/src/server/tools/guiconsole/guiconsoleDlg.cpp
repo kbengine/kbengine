@@ -126,7 +126,7 @@ public:
 class FindServersTask : public thread::TPTask
 {
 public:
-	std::vector<int8> findComponentTypes;
+	std::vector<COMPONENT_TYPE> findComponentTypes;
 
 	FindServersTask():
 	thread::TPTask(),
@@ -136,7 +136,7 @@ public:
 		dlg->clearTree();
 	}
 
-	FindServersTask(int8 findComponentType):
+	FindServersTask(COMPONENT_TYPE findComponentType):
 	thread::TPTask(),
 	findComponentTypes()
 	{
@@ -152,7 +152,7 @@ public:
 
 	virtual bool process()
 	{
-		//int8 findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+		//COMPONENT_TYPE findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
 		if(g_isDestroyed)
@@ -169,7 +169,7 @@ public:
 				return false;
 			}
 
-			int8 findComponentType = findComponentTypes[ifind];
+			COMPONENT_TYPE findComponentType = findComponentTypes[ifind];
 
 			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
@@ -201,7 +201,7 @@ public:
 			}
 
 			MachineInterface::onBroadcastInterfaceArgs24 args;
-			int32 timeout = 100000;
+			int32 timeout = 1000000;
 
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))
@@ -250,6 +250,7 @@ RESTART_RECV:
 					//ifind++;
 					if(g_isDestroyed)
 						return false;
+
 					dlg->updateTree();
 				}
 				else
