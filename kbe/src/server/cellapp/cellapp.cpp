@@ -1023,6 +1023,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		e->baseMailbox(mailbox);
 		
 		cellData = e->createCellDataFromStream(pCellData);
+		e->createNamespace(cellData);
 
 		if(hasClient)
 		{
@@ -1038,15 +1039,14 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 			e->setWitness(Witness::ObjPool().createObject());
 		}
 
-		space->addEntity(e);
-
 		if(!inRescore)
 		{
-			e->initializeEntity(cellData);
+			space->addEntity(e);
+			e->initializeScript();
 		}
 		else
 		{
-			e->createNamespace(cellData);
+			space->addEntity(e);
 			e->onRestore();
 		}
 
@@ -1054,6 +1054,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		
 		// 这里增加一个引用， 因为可能在进入时被销毁
 		Py_INCREF(e);
+
 		space->addEntityToNode(e);
 		bool isDestroyed = e->isDestroyed();
 		Py_DECREF(e);
