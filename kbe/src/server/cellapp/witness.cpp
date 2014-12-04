@@ -295,7 +295,14 @@ void Witness::onEnterAOI(Entity* pEntity)
 			//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
 			//	pEntity_->id(), pEntity->id()));
 
-			(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+			// 如果flags是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMAL状态那么我们
+			// 只需要撤销离开状态并将其还原到ENTITYREF_FLAG_NORMAL即可
+			// 如果是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING状态那么此时应该将它设置为进入状态 ENTITYREF_FLAG_ENTER_CLIENT_PENDING
+			if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+				(*iter)->flags(ENTITYREF_FLAG_NORMAL);
+			else
+				(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+
 			(*iter)->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
 		}
