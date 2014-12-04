@@ -1494,13 +1494,12 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
 	
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
-	Components::COMPONENTS::iterator iter = components.begin();
-	if(iter != components.end())
+	Components::ComponentInfos* pComponents = Components::getSingleton().getCellappmgr();
+	if(pComponents)
 	{
-		if((*iter).pChannel != NULL)
+		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
 		}
 		else
 		{
@@ -1510,7 +1509,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
-	
+
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
 }
@@ -1535,17 +1534,16 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
 	
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
-	Components::COMPONENTS::iterator iter = components.begin();
-	if(iter != components.end())
+	Components::ComponentInfos* pComponents = Components::getSingleton().getCellappmgr();
+	if(pComponents)
 	{
-		if((*iter).pChannel != NULL)
+		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
 		}
 		else
 		{
-			ERROR_MSG("Baseapp::createInNewSpace: cellappmgr channel is NULL.\n");
+			ERROR_MSG("Baseapp::restoreSpaceInCell: cellappmgr channel is NULL.\n");
 		}
 		
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1553,7 +1551,7 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	}
 	
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
-	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
+	ERROR_MSG("Baseapp::restoreSpaceInCell: not found cellappmgr.\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -1585,17 +1583,16 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 
 	(*pBundle) << callbackID;
 
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	Components::COMPONENTS::iterator iter = components.begin();
-	if(iter != components.end())
+	Components::ComponentInfos* pComponents = Components::getSingleton().getBaseappmgr();
+	if(pComponents)
 	{
-		if((*iter).pChannel != NULL)
+		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), (*iter).pChannel);
+			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
 		}
 		else
 		{
-			ERROR_MSG("Baseapp::createInNewSpace: baseappmgr channel is NULL.\n");
+			ERROR_MSG("Baseapp::createBaseAnywhere: baseappmgr channel is NULL.\n");
 		}
 		
 		Network::Bundle::ObjPool().reclaimObject(pBundle);

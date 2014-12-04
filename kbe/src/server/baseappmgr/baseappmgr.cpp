@@ -201,9 +201,11 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 	COMPONENT_ID cid = 0;
 
 	float minload = 1.f;
+
 	for(; iter != baseapps_.end(); iter++)
 	{
 		if(!iter->second.isDestroyed() &&
+			iter->second.initProgress() > 1.f && 
 			minload > iter->second.load())
 		{
 			cid = iter->first;
