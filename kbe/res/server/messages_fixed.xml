@@ -296,8 +296,14 @@
 	
 	<Client::onHelloCB>
 		<id>521</id>
-		<descr>onHelloCB。</descr>
+		<descr>hello的回调。</descr>
 	</Client::onHelloCB>
+	
+	<Client::onScriptVersionNotMatch>
+		<id>522</id>
+		<descr>版本不匹配。</descr>
+	</Client::onScriptVersionNotMatch>
+	
 	
 	<Property::position>
 		<id>40000</id>
