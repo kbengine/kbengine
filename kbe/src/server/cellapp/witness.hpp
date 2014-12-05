@@ -117,7 +117,7 @@ public:
 	INLINE float aoiHysteresisArea()const;
 
 	typedef std::vector<Network::Bundle*> Bundles;
-	Bundles* pBundles();
+	bool pushBundle(Network::Bundle* pBundle);
 
 	/**
 		基础位置， 如果有坐骑基础位置可能是坐骑等

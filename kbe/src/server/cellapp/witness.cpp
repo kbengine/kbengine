@@ -434,20 +434,21 @@ void Witness::onLeaveSpace(Space* pSpace)
 }
 
 //-------------------------------------------------------------------------------------
-Witness::Bundles* Witness::pBundles()
+bool Witness::pushBundle(Network::Bundle* pBundle)
 {
 	if(pEntity_ == NULL)
-		return NULL;
+		return false;
 
 	EntityMailbox* clientMB = pEntity_->clientMailbox();
 	if(!clientMB)
-		return NULL;
+		return false;
 
 	Network::Channel* pChannel = clientMB->getChannel();
 	if(!pChannel)
-		return NULL;
+		return false;
 
-	return &pChannel->bundles();
+	pChannel->pushBundle(pBundle);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1017,13 +1018,8 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 //-------------------------------------------------------------------------------------
 bool Witness::sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle)
 {
-	Bundles* lpBundles = pBundles();
-
-	if(lpBundles)
-	{
-		lpBundles->push_back(pBundle);
+	if(pushBundle(pBundle))
 		return true;
-	}
 
 	ERROR_MSG(fmt::format("Witness::sendToClient: {} pBundles is NULL, not found channel.\n", pEntity_->id()));
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
