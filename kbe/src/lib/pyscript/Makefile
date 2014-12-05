@@ -14,6 +14,8 @@ SRCS =				\
 	pywatcher		\
 	script			\
 	scriptobject		\
+	scriptstdout		\
+	scriptstderr		\
 	scriptstdouterr		\
 	scriptstdouterrhook	\
 	sequence		\

@@ -75,6 +75,12 @@
     <ClCompile Include="py_gc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scriptstdout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scriptstderr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copy.hpp">
@@ -146,6 +152,12 @@
     <ClInclude Include="py_gc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="scriptstdout.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scriptstderr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -171,6 +183,12 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="sequence.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptstdout.ipp">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="scriptstderr.ipp">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

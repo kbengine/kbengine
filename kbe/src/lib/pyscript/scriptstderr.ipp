@@ -22,29 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine {
 namespace script{
 
-INLINE int Script::run_simpleString(std::string command, std::string* retBufferPtr)
-{
-	return run_simpleString(command.c_str(), retBufferPtr);
-}
-
-INLINE PyObject* Script::getModule(void)const 
+INLINE ScriptStdOutErr* ScriptStdErr::pScriptStdOutErr()const
 { 
-	return module_; 
-}
-
-INLINE PyObject* Script::getExtraModule(void)const 
-{ 
-	return extraModule_; 
-}
-
-INLINE ScriptStdOutErr* Script::pyStdouterr()const
-{
-	return pyStdouterr_;
-}
-
-INLINE void Script::pyPrint(const std::string& str)
-{
-	pyStdouterr_->pyPrint(str);
+	return pScriptStdOutErr_; 
 }
 
 }

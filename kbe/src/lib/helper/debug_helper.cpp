@@ -505,29 +505,9 @@ void DebugHelper::info_msg(const std::string& s)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(const std::string& s)
+void DebugHelper::script_info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-	if(s[0] == 'T')
-	{
-		if(s.size() >= 10)
-		{
-			if(s.size() >= 33 && s[10] == '(' && s[32] == ')')
-			{
-				if(s.substr(0, 33) == "Traceback (most recent call last)")
-					setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
-			}
-			else if(s[9] == ':' && s.substr(0, 10) == "TypeError:")
-			{
-				setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
-			}
-		}
-	}
-	else if(s[0] == 'A' && s.size() >= 15 && s[14] == ':' && s.substr(0, 15) == "AssertionError:")
-	{
-		setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
-	}
 
 #ifdef NO_USE_LOG4CXX
 #else
@@ -538,8 +518,29 @@ void DebugHelper::script_msg(const std::string& s)
 	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
+	// 如果是用户手动设置的也输出为错误信息
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
 		printf("[S_ERROR]: %s", s.c_str());
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::script_error_msg(const std::string& s)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+	setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+
+#ifdef NO_USE_LOG4CXX
+#else
+	if(canLogFile_)
+		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
+#endif
+
+	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[S_ERROR]: %s", s.c_str());
 #endif
 }
 

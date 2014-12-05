@@ -24,21 +24,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "common/common.hpp"
 #include "scriptobject.hpp"
+#include "scriptstdout.hpp"
+#include "scriptstderr.hpp"
 
 namespace KBEngine{ namespace script{
-class ScriptStdOutErr: public ScriptObject
-{
-	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(ScriptStdOutErr, ScriptObject)							
+class ScriptStdOutErr
+{					
 public:	
 	ScriptStdOutErr();
 	virtual ~ScriptStdOutErr();
-
-	/** 
-		python执行写操作 
-	*/
-	static PyObject* __py_write(PyObject* self, PyObject *args);	
-	static PyObject* __py_flush(PyObject* self, PyObject *args);
 
 	/** 
 		安装和卸载这个模块 
@@ -47,16 +41,15 @@ public:
 	bool uninstall(void);
 	bool isInstall(void)const{ return isInstall_; }
 
-	virtual void onPrint(const wchar_t* msg, uint32 msglen);
-
-	INLINE std::wstring& buffer();
+	virtual void error_msg(const wchar_t* msg, uint32 msglen);
+	virtual void info_msg(const wchar_t* msg, uint32 msglen);
 
 	void pyPrint(const std::string& str);
+
+	INLINE std::wstring& buffer();
 protected:
-	bool softspace_;
-	PyObject* sysModule_;
-	PyObject* prevStderr_;
-	PyObject* prevStdout_;
+	ScriptStdErr* pStderr_;
+	ScriptStdOut* pStdout_;
 	PyObject* pyPrint_;
 	bool isInstall_;
 	std::wstring sbuffer_;

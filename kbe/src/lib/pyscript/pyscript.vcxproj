@@ -106,6 +106,8 @@
     <ClCompile Include="pywatcher.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="scriptobject.cpp" />
+    <ClCompile Include="scriptstderr.cpp" />
+    <ClCompile Include="scriptstdout.cpp" />
     <ClCompile Include="scriptstdouterr.cpp" />
     <ClCompile Include="scriptstdouterrhook.cpp" />
     <ClCompile Include="sequence.cpp" />
@@ -131,6 +133,8 @@
     <ClInclude Include="pywatcher.hpp" />
     <ClInclude Include="script.hpp" />
     <ClInclude Include="scriptobject.hpp" />
+    <ClInclude Include="scriptstderr.hpp" />
+    <ClInclude Include="scriptstdout.hpp" />
     <ClInclude Include="scriptstdouterr.hpp" />
     <ClInclude Include="scriptstdouterrhook.hpp" />
     <ClInclude Include="sequence.hpp" />
@@ -145,6 +149,8 @@
     <None Include="ReadMe.txt" />
     <None Include="script.ipp" />
     <None Include="scriptobject.ipp" />
+    <None Include="scriptstderr.ipp" />
+    <None Include="scriptstdout.ipp" />
     <None Include="scriptstdouterr.ipp" />
     <None Include="scriptstdouterrhook.ipp" />
     <None Include="sequence.ipp" />

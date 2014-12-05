@@ -27,17 +27,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ namespace script{
 								
-SCRIPT_METHOD_DECLARE_BEGIN(ScriptStdOutErrHook)	
-SCRIPT_METHOD_DECLARE_END()
-
-
-SCRIPT_MEMBER_DECLARE_BEGIN(ScriptStdOutErrHook)
-SCRIPT_MEMBER_DECLARE_END()
-
-SCRIPT_GETSET_DECLARE_BEGIN(ScriptStdOutErrHook)
-SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(ScriptStdOutErrHook, 0, 0, 0, 0, 0)		
-
 //-------------------------------------------------------------------------------------
 ScriptStdOutErrHook::ScriptStdOutErrHook():
 isPrint_(true)
@@ -50,10 +39,32 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErrHook::onPrint(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErrHook::info_msg(const wchar_t* msg, uint32 msglen)
 {
 	if(isPrint_)
-		ScriptStdOutErr::onPrint(msg, msglen);
+		ScriptStdOutErr::info_msg(msg, msglen);
+
+	std::wstring str;
+	str.assign(msg, msglen);
+	wbuffer_ += str;
+
+	if(msg[0] == L'\n')
+	{
+		if(buffer_)
+		{
+			std::string out;
+			strutil::wchar2utf8(wbuffer_, out);		
+			(*buffer_) += out;
+			wbuffer_ = L"";
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptStdOutErrHook::error_msg(const wchar_t* msg, uint32 msglen)
+{
+	if(isPrint_)
+		ScriptStdOutErr::error_msg(msg, msglen);
 
 	std::wstring str;
 	str.assign(msg, msglen);

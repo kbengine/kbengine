@@ -136,7 +136,8 @@ public:
 	void info_msg(const std::string& s);
 	void warning_msg(const std::string& s);
 	void critical_msg(const std::string& s);
-	void script_msg(const std::string& s);
+	void script_info_msg(const std::string& s);
+	void script_error_msg(const std::string& s);
 	void backtrace_msg();
 
 	void onMessage(uint32 logType, const char * str, uint32 length);
@@ -181,7 +182,9 @@ private:
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
-#define SCRIPT_MSG(m)					DebugHelper::getSingleton().script_msg((m))									// 输出任何信息
+#define SCRIPT_INFO_MSG(m)				DebugHelper::getSingleton().script_info_msg((m))							// 输出info信息
+#define SCRIPT_ERROR_MSG(m)				DebugHelper::getSingleton().script_error_msg((m))							// 输出错误信息
+
 #define PRINT_MSG(m)					DebugHelper::getSingleton().print_msg((m))									// 输出任何信息
 #define ERROR_MSG(m)					DebugHelper::getSingleton().error_msg((m))									// 输出一个错误
 #define DEBUG_MSG(m)					DebugHelper::getSingleton().debug_msg((m))									// 输出一个debug信息

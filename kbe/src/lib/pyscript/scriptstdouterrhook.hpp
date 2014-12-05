@@ -29,13 +29,12 @@ namespace KBEngine{ namespace script{
 
 class ScriptStdOutErrHook : public ScriptStdOutErr
 {
-	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(ScriptStdOutErrHook, ScriptStdOutErr)	
 public:
 	ScriptStdOutErrHook();
 	~ScriptStdOutErrHook();
 
-	void onPrint(const wchar_t* msg, uint32 msglen);
+	virtual void error_msg(const wchar_t* msg, uint32 msglen);
+	virtual void info_msg(const wchar_t* msg, uint32 msglen);
 
 	INLINE void setHookBuffer(std::string* buffer);
 

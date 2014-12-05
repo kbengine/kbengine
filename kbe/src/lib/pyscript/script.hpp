@@ -154,7 +154,6 @@ public:
 	static void releaseLock();
 
 	INLINE ScriptStdOutErr* pyStdouterr()const;
-	INLINE ScriptStdOutErrHook* pyStdouterrHook()const;
 
 	INLINE void pyPrint(const std::string& str);
 protected:
@@ -162,7 +161,6 @@ protected:
 	PyObject*					extraModule_;		// 扩展脚本模块
 
 	ScriptStdOutErr*			pyStdouterr_;
-	ScriptStdOutErrHook*		pyStdouterrHook_;	// 提供telnet 执行脚本回显用
 } ;
 
 }

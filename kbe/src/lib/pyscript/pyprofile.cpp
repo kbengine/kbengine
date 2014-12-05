@@ -171,21 +171,26 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 		return;
 	}
 
-	if(!pScript_->pyStdouterrHook()->install()){												
+	ScriptStdOutErrHook* pScriptStdOutErrHook = new ScriptStdOutErrHook();
+	if(!pScriptStdOutErrHook->install())
+	{												
 		ERROR_MSG("PyProfile::addToStream: pyStdouterrHook_->install() is failed!\n");
+		delete pScriptStdOutErrHook;
 		SCRIPT_ERROR_CHECK();
 		return;
 	}
 
 	std::string retBufferPtr;
-	pScript_->pyStdouterrHook()->setHookBuffer(&retBufferPtr);
-	pScript_->pyStdouterrHook()->setPrint(false);
+	pScriptStdOutErrHook->setHookBuffer(&retBufferPtr);
+	pScriptStdOutErrHook->setPrint(false);
+
 	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), const_cast<char*>("print_stats"),
 		const_cast<char*>("s"), const_cast<char*>("time"));
 	
-	pScript_->pyStdouterrHook()->setPrint(true);
-	pScript_->pyStdouterrHook()->uninstall();
+	pScriptStdOutErrHook->setPrint(true);
+	pScriptStdOutErrHook->uninstall();
 
+	delete pScriptStdOutErrHook;
 	SCRIPT_ERROR_CHECK();
 
 	if(!pyRet)
