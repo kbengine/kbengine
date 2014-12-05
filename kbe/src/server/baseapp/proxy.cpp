@@ -736,16 +736,17 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 }
 
 //-------------------------------------------------------------------------------------
-Proxy::Bundles* Proxy::pBundles()
+bool Proxy::pushBundle(Network::Bundle* pBundle)
 {
 	if(!clientMailbox())
-		return NULL;
+		return false;
 
 	Network::Channel* pChannel = clientMailbox()->getChannel();
 	if(!pChannel)
-		return NULL;
+		return false;
 
-	return &pChannel->bundles();
+	pChannel->pushBundle(pBundle);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -757,13 +758,8 @@ bool Proxy::sendToClient(const Network::MessageHandler& msgHandler, Network::Bun
 //-------------------------------------------------------------------------------------
 bool Proxy::sendToClient(Network::Bundle* pBundle)
 {
-	Bundles* lpBundles = pBundles();
-
-	if(lpBundles)
-	{
-		lpBundles->push_back(pBundle);
+	if(pushBundle(pBundle))
 		return true;
-	}
 
 	ERROR_MSG(fmt::format("Proxy::sendToClient: {} pBundles is NULL, not found channel.\n", id()));
 	Network::Bundle::ObjPool().reclaimObject(pBundle);

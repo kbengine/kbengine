@@ -63,7 +63,7 @@ public:
 	INLINE const Network::Address& addr()const;
 
 	typedef std::vector<Network::Bundle*> Bundles;
-	Bundles* pBundles();
+	bool pushBundle(Network::Bundle* pBundle);
 
 	/** 
 		定义属性数据被改变了 
