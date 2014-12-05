@@ -324,6 +324,12 @@ int32 Channel::bundlesLength()
 void Channel::pushBundle(Bundle* pBundle)
 {
 	bundles_.push_back(pBundle);
+
+	// 如果打开了消息跟踪开关，这里就应该实时的发送出去
+	if(Network::g_trace_packet > 0)
+	{
+		send();
+	}
 }
 
 //-------------------------------------------------------------------------------------

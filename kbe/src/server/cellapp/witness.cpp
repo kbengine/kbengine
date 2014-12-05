@@ -733,7 +733,7 @@ bool Witness::update()
 						pEntity_->id(), packetsLength));
 				}
 
-				pChannel->bundles().push_back(pSendBundle);
+				pChannel->pushBundle(pSendBundle);
 			}
 			else
 			{
