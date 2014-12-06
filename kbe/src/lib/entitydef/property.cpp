@@ -37,9 +37,9 @@ uint32 PropertyDescription::propertyDescriptionCount_ = 0;
 
 //-------------------------------------------------------------------------------------
 PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, 
-										 std::string dataTypeName, 
-										 std::string name, uint32 flags, 
-										 bool isPersistent, 
+										std::string dataTypeName, 
+										std::string name, uint32 flags, 
+										bool isPersistent, 
 										DataType* dataType, 
 										bool isIdentifier, 
 										std::string indexType,

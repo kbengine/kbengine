@@ -58,6 +58,7 @@ public:
 	INLINE void setUType(ENTITY_METHOD_UID muid);
 
 	static uint32 getDescriptionCount(void){ return methodDescriptionCount_; }
+	static void resetDescriptionCount(void){ methodDescriptionCount_ = 0; }
 
 	INLINE bool isExposed(void)const;
 
@@ -92,13 +93,11 @@ public:
 
 	INLINE void currCallerID(ENTITY_ID eid);
 
-	COMPONENT_ID domain()const{ return methodDomain_; }
+	INLINE COMPONENT_ID domain()const;
 
-	bool isClient()const{ return !isCell() && !isBase(); }
-	bool isCell()const{ return methodDomain_ == CELLAPP_TYPE; }
-	bool isBase()const{ return methodDomain_ == BASEAPP_TYPE; }
-
-	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
+	INLINE bool isClient()const;
+	INLINE bool isCell()const;
+	INLINE bool isBase()const;
 
 	/** 
 		别名id， 当暴露的方法或者广播的属性总个数小于255时
@@ -108,6 +107,8 @@ public:
 	INLINE uint8 aliasIDAsUint8()const;
 	INLINE void aliasID(int16 v);
 protected:
+	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
+
 	COMPONENT_ID							methodDomain_;
 
 	std::string								name_;										// 这个方法的名称

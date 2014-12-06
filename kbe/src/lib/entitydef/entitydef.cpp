@@ -71,8 +71,8 @@ EntityDef::~EntityDef()
 //-------------------------------------------------------------------------------------
 bool EntityDef::finalise(bool isReload)
 {
-	PropertyDescription::propertyDescriptionCount_ = 0;
-	MethodDescription::methodDescriptionCount_ = 0;
+	PropertyDescription::resetDescriptionCount();
+	MethodDescription::resetDescriptionCount();
 
 	EntityDef::__md5.clear();
 	g_methodUtypeAuto = 1;
@@ -179,8 +179,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	{
 		std::string moduleName = xml.get()->getKey(node);
 		__scriptTypeMappingUType[moduleName] = utype;
-		ScriptDefModule* scriptModule = new ScriptDefModule(moduleName);
-		scriptModule->setUType(utype++);
+		ScriptDefModule* scriptModule = new ScriptDefModule(moduleName, utype++);
 		EntityDef::__scriptModules.push_back(scriptModule);
 
 		std::string deffile = defFilePath + moduleName + ".def";
@@ -214,6 +213,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	XML_FOR_END(node);
 
 	EntityDef::md5().final();
+
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
@@ -552,8 +552,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			int32						hasClientFlags = 0;
 			DataType*					dataType = NULL;
 			bool						isPersistent = false;
-			bool						isIdentifier = false;													// 是否是一个索引键
-			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
+			bool						isIdentifier = false;		// 是否是一个索引键
+			uint32						databaseLength = 0;			// 这个属性在数据库中的长度
 			std::string					indexType;
 			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
 			std::string					detailLevelStr = "";
@@ -569,7 +569,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			if(flagsNode)
 			{
 				strFlags = xml->getValStr(flagsNode);
-				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);					// 转换为大写
+				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);
 
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
@@ -608,7 +608,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				strisPersistent = xml->getValStr(persistentNode);
 
 				std::transform(strisPersistent.begin(), strisPersistent.end(), 
-					strisPersistent.begin(), tolower);				// 转换为小写
+					strisPersistent.begin(), tolower);
 
 				if(strisPersistent == "true")
 					isPersistent = true;
@@ -637,7 +637,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				indexType = xml->getValStr(indexTypeNode);
 
 				std::transform(indexType.begin(), indexType.end(), 
-					indexType.begin(), toupper);					// 转换为大写
+					indexType.begin(), toupper);
 			}
 			
 
@@ -646,7 +646,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			{
 				strIdentifierNode = xml->getValStr(identifierNode);
 				std::transform(strIdentifierNode.begin(), strIdentifierNode.end(), 
-					strIdentifierNode.begin(), tolower);			// 转换为小写
+					strIdentifierNode.begin(), tolower);
 
 				if(strIdentifierNode == "true")
 					isIdentifier = true;

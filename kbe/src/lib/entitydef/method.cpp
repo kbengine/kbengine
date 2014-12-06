@@ -230,7 +230,7 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	PyObject* pyResult = NULL;
 	if (!PyCallable_Check(func))
 	{
-		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", 
+		PyErr_Format(PyExc_TypeError, "MethodDescription::call: method[%s] call attempted on a error object!", 
 			getName());
 	}
 	else

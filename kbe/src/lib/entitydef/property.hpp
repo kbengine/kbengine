@@ -133,7 +133,8 @@ public:
 		获得属性描述的总数量 
 	*/
 	static uint32 getDescriptionCount(void){ return propertyDescriptionCount_; }
-	
+	static void resetDescriptionCount(void){ propertyDescriptionCount_ = 0; }
+
 	/** 
 		根据类型产生一个描述实例 
 	*/
@@ -160,12 +161,11 @@ public:
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
-	static uint32	propertyDescriptionCount_;									// 所有的属性描述的数量	
-
 	INLINE bool hasCell(void)const;
 	INLINE bool hasBase(void)const;
 	INLINE bool hasClient(void)const;
 protected:	
+	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 	std::string					name_;											// 这个属性的名称
 	std::string					dataTypeName_;									// 这个属性的字符串数据类别名
 	uint32						flags_;											// 这个属性的一些标志  比如 cell_public

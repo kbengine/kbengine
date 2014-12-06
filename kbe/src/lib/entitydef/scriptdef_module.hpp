@@ -58,7 +58,7 @@ public:
 	typedef std::map<ENTITY_DEF_ALIASID, PropertyDescription*> PROPERTYDESCRIPTION_ALIASMAP;
 	typedef std::map<ENTITY_DEF_ALIASID, MethodDescription*> METHODDESCRIPTION_ALIASMAP;
 
-	ScriptDefModule(std::string name);
+	ScriptDefModule(std::string name, ENTITY_SCRIPT_UID utype);
 	~ScriptDefModule();	
 
 	void finalise(void);

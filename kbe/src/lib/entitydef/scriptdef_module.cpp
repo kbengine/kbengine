@@ -39,9 +39,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-ScriptDefModule::ScriptDefModule(std::string name):
+ScriptDefModule::ScriptDefModule(std::string name, ENTITY_SCRIPT_UID utype):
 scriptType_(NULL),
-uType_(0),
+uType_(utype),
 persistentPropertyDescr_(),
 cellPropertyDescr_(),
 basePropertyDescr_(),

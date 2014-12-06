@@ -71,4 +71,24 @@ INLINE void MethodDescription::aliasID(int16 v)
 	aliasID_ = v; 
 }
 
+INLINE COMPONENT_ID MethodDescription::domain()const
+{ 
+	return methodDomain_; 
+}
+
+INLINE bool MethodDescription::isClient()const
+{ 
+	return !isCell() && !isBase(); 
+}
+
+INLINE bool MethodDescription::isCell()const
+{ 
+	return methodDomain_ == CELLAPP_TYPE; 
+}
+
+INLINE bool MethodDescription::isBase()const
+{ 
+	return methodDomain_ == BASEAPP_TYPE; 
+}
+
 }
