@@ -40,7 +40,9 @@ Messagelog::Messagelog(Network::EventDispatcher& dispatcher,
 				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID)
+	ServerApp(dispatcher, ninterface, componentType, componentID),
+logWatchers_(),
+buffered_logs_()
 
 {
 }
@@ -115,23 +117,17 @@ bool Messagelog::canShutdown()
 //-------------------------------------------------------------------------------------
 void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	uint32 logtype;
-	COMPONENT_TYPE componentType = UNKNOWN_COMPONENT_TYPE;
-	COMPONENT_ID componentID = 0;
-	COMPONENT_ORDER componentOrder = 0;
-	int64 t;
-	GAME_TIME kbetime = 0;
+	LOG_ITEM* pLogItem = new LOG_ITEM();
 	std::string str;
-	std::stringstream logstream;
 
-	s >> logtype;
-	s >> componentType;
-	s >> componentID;
-	s >> componentOrder;
-	s >> t >> kbetime;
+	s >> pLogItem->logtype;
+	s >> pLogItem->componentType;
+	s >> pLogItem->componentID;
+	s >> pLogItem->componentOrder;
+	s >> pLogItem->t >> pLogItem->kbetime;
 	s >> str;
 
-	time_t tt = static_cast<time_t>(t);	
+	time_t tt = static_cast<time_t>(pLogItem->t);	
     tm* aTm = localtime(&tt);
     //       YYYY   year
     //       MM     month (2 digits 01-12)
@@ -148,26 +144,45 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	char timebuf[MAX_BUF];
     kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %02d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
-		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
+		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, pLogItem->kbetime);
 
-	logstream << KBELOG_TYPE_NAME_EX(logtype);
-	logstream << " ";
-	logstream << COMPONENT_NAME_EX_1(componentType);
-	logstream << " ";
-	logstream << componentID;
-	logstream << " ";
-	logstream << (int)componentOrder;
-	logstream << timebuf;
-	logstream << "- ";
-	logstream << str;
-	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(componentType));
-	PRINT_MSG(logstream.str());
+	pLogItem->logstream << KBELOG_TYPE_NAME_EX(pLogItem->logtype);
+	pLogItem->logstream << " ";
+	pLogItem->logstream << COMPONENT_NAME_EX_1(pLogItem->componentType);
+	pLogItem->logstream << " ";
+	pLogItem->logstream << pLogItem->componentID;
+	pLogItem->logstream << " ";
+	pLogItem->logstream << (int)pLogItem->componentOrder;
+	pLogItem->logstream << timebuf;
+	pLogItem->logstream << "- ";
+	pLogItem->logstream << str;
+	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(pLogItem->componentType));
+	PRINT_MSG(pLogItem->logstream.str());
 	DebugHelper::getSingleton().changeLogger("default");
 
 	LOG_WATCHERS::iterator iter = logWatchers_.begin();
 	for(; iter != logWatchers_.end(); iter++)
 	{
-		iter->second.onMessage(logtype, componentType, componentID, componentOrder, t, kbetime, str, logstream);
+		iter->second.onMessage(pLogItem);
+	}
+
+	// 缓存一部分log，提供工具查看log时能快速获取初始上下文
+	buffered_logs_.push_back(pLogItem);
+	if(buffered_logs_.size() > 64)
+	{
+		pLogItem = buffered_logs_.front();
+		buffered_logs_.pop_front();
+		delete pLogItem;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Messagelog::sendInitLogs(LogWatcher& logWatcher)
+{
+	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
+	for(; iter != buffered_logs_.end(); iter++)
+	{
+		logWatcher.onMessage((*iter));
 	}
 }
 
@@ -188,6 +203,8 @@ void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::Memory
 
 	INFO_MSG(fmt::format("Messagelog::registerLogWatcher: addr={0} is successfully!\n",
 		pChannel->addr().c_str()));
+
+	sendInitLogs(*pLogwatcher);
 }
 
 //-------------------------------------------------------------------------------------

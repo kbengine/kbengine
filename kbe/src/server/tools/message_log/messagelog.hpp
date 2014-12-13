@@ -43,6 +43,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+struct LOG_ITEM
+{
+	uint32 logtype;
+	COMPONENT_TYPE componentType;
+	COMPONENT_ID componentID;
+	COMPONENT_ORDER componentOrder;
+	int64 t;
+	GAME_TIME kbetime;
+	std::stringstream logstream;
+};
+
 class Messagelog:	public ServerApp, 
 				public Singleton<Messagelog>
 {
@@ -53,7 +64,7 @@ public:
 	{
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
-	
+
 	Messagelog(Network::EventDispatcher& dispatcher, 
 		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
@@ -85,8 +96,11 @@ public:
 	void registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
+
+	void sendInitLogs(LogWatcher& logWatcher);
 protected:
 	LOG_WATCHERS logWatchers_;
+	std::deque<LOG_ITEM*> buffered_logs_;
 };
 
 }

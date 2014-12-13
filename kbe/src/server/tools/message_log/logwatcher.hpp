@@ -32,8 +32,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // linux include
 #endif
 	
-namespace KBEngine{
+namespace KBEngine
+{
 class MemoryStream;
+struct LOG_ITEM;
 
 class LogWatcher
 {
@@ -46,8 +48,7 @@ public:
 	void reset();
 	void addr(const Network::Address& address) { addr_ = address; }
 	
-	void onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER componentOrder, 
-		int64 tm, GAME_TIME kbetime, const std::string& str, const std::stringstream& sstr);
+	void onMessage(LOG_ITEM* pLogItem);
 protected:
 	uint32 logtypes_;
 	uint8 componentBitmap_[COMPONENT_END_TYPE];

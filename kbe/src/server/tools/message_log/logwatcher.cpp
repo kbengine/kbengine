@@ -71,16 +71,15 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 }
 
 //-------------------------------------------------------------------------------------
-void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER componentOrder, 
-	int64 tm, GAME_TIME kbetime, const std::string& str, const std::stringstream& sstr)
+void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 {
-	if(!VALID_COMPONENT(componentType) || componentBitmap_[componentType] == 0)
+	if(!VALID_COMPONENT(pLogItem->componentType) || componentBitmap_[pLogItem->componentType] == 0)
 		return;
 
-	if((logtypes_ & logtype) <= 0)
+	if((logtypes_ & pLogItem->logtype) <= 0)
 		return;
 
-	if(appOrder_ > 0 && appOrder_ != componentOrder)
+	if(appOrder_ > 0 && appOrder_ != pLogItem->componentOrder)
 		return;
 
 
@@ -92,7 +91,7 @@ void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONE
 	Network::Bundle bundle;
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
-	bundle << sstr.str().c_str();
+	bundle << pLogItem->logstream.str().c_str();
 	bundle.send(Messagelog::getSingleton().networkInterface(), pChannel);
 }
 
