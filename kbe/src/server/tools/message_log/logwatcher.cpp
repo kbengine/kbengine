@@ -56,6 +56,7 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 	
 	(*s) >> logtypes_;
 	(*s) >> appOrder_;
+
 	int8 count = 0;
 	(*s) >> count;
 	
@@ -63,6 +64,7 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 	{
 		COMPONENT_TYPE type;
 		(*s) >> type;
+
 		if(VALID_COMPONENT(type))
 			componentBitmap_[type] = 1;
 	}

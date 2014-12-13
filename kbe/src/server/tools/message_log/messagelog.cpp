@@ -196,6 +196,7 @@ void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::Memory
 			pChannel->addr().c_str()));
 
 		logWatchers_.erase(pChannel->addr());
+		s.done();
 		return;
 	}
 
@@ -204,7 +205,20 @@ void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::Memory
 	INFO_MSG(fmt::format("Messagelog::registerLogWatcher: addr={0} is successfully!\n",
 		pChannel->addr().c_str()));
 
-	sendInitLogs(*pLogwatcher);
+	bool first;
+	s >> first;
+
+	if(first)
+		sendInitLogs(*pLogwatcher);
+}
+
+//-------------------------------------------------------------------------------------
+void Messagelog::deregisterLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	logWatchers_.erase(pChannel->addr());
+
+	INFO_MSG(fmt::format("Messagelog::deregisterLogWatcher: addr={0} is successfully!\n",
+		pChannel->addr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------

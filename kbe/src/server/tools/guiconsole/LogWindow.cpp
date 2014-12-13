@@ -65,6 +65,7 @@ BOOL CLogWindow::OnInitDialog()
 		m_msgTypeList.SetCheck(i, 1);
 	}
 
+	pulling = false;
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -140,31 +141,48 @@ void CLogWindow::OnBnClickedButton1()
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(MessagelogInterface::registerLogWatcher);
-
-	bundle << getSelLogTypes();
-	
-	CString apporder;
-	m_appIDEdit.GetWindowTextW(apporder);
-
-	char* cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
-	COMPONENT_ORDER order = atoi(cs);
-	free(cs);
-
-	bundle << order;
-
-	int8 count = 0;
-	std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
-	count = vec.size();
-	bundle << count;
-	std::vector<KBEngine::COMPONENT_TYPE>::iterator iter = vec.begin();
-	for(; iter != vec.end(); iter++)
+	if(!pulling)
 	{
-		bundle << (*iter);
+		Network::Bundle bundle;
+		bundle.newMessage(MessagelogInterface::registerLogWatcher);
+
+		bundle << getSelLogTypes();
+	
+		CString apporder;
+		m_appIDEdit.GetWindowTextW(apporder);
+
+		char* cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
+		COMPONENT_ORDER order = atoi(cs);
+		free(cs);
+
+		bundle << order;
+
+		int8 count = 0;
+		std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
+		count = vec.size();
+		bundle << count;
+		std::vector<KBEngine::COMPONENT_TYPE>::iterator iter = vec.begin();
+		for(; iter != vec.end(); iter++)
+		{
+			bundle << (*iter);
+		}
+
+		bool first = m_loglist.GetCount() <= 0;
+		bundle << first;
+		bundle.send(dlg->networkInterface(), pChannel);
+
+		m_autopull.SetWindowTextW(L"stop");
+	}
+	else
+	{
+		m_autopull.SetWindowTextW(L"pull");
+
+		Network::Bundle bundle;
+		bundle.newMessage(MessagelogInterface::deregisterLogWatcher);
+		bundle.send(dlg->networkInterface(), pChannel);
 	}
 
-	bundle.send(dlg->networkInterface(), pChannel);
+	pulling = !pulling;
 }
 
 std::vector<KBEngine::COMPONENT_TYPE> CLogWindow::getSelComponents()

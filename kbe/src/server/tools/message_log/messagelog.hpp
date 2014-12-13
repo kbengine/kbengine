@@ -95,6 +95,11 @@ public:
 	*/
 	void registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		注销log监听者
+	*/
+	void deregisterLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
 
 	void sendInitLogs(LogWatcher& logWatcher);

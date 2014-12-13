@@ -36,4 +36,6 @@ public:
 	CEdit m_appIDEdit;
 	afx_msg void OnBnClickedButton1();
 	CMultiLineListBox m_loglist;
+
+	bool pulling;
 };
