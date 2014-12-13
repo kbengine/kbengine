@@ -16,6 +16,7 @@ CMultiLineListBox::CMultiLineListBox()
 {
 	m_sArray.clear();
 	m_nMaxWidth   =   0; 
+	m_autoScroll = true;
 }
 
 CMultiLineListBox::~CMultiLineListBox() 
@@ -43,6 +44,7 @@ BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_MOUSEMOVE()
 	ON_MESSAGE(MSG_UPDATEITEM, &CMultiLineListBox::OnUpdateItem)
+	ON_WM_VSCROLL()
 END_MESSAGE_MAP()
 
 int CMultiLineListBox::InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
@@ -57,6 +59,7 @@ int CMultiLineListBox::InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColo
 	pListBox->bgColor = bgColor;
 
 	m_sArray.insert(m_sArray.begin() + nIndex, pListBox);
+	autoScroll();
 
 	return CListBox::InsertString(nIndex, pszText);
 }
@@ -100,6 +103,7 @@ int CMultiLineListBox::AddString(LPCTSTR pszText, COLORREF fgColor, COLORREF bgC
 		myDC.SelectObject(pOldFont);   
 	}
 
+	autoScroll();
 	return ret;
 }
 
@@ -119,6 +123,15 @@ void CMultiLineListBox::AddSubString(int nIndex, LPCTSTR pszText, COLORREF fgCol
 	pSubNode->fgColor = fgColor;
 	pSubNode->bgColor = bgColor;
 	pListBox->subArray.push_back(pSubNode);
+	autoScroll();
+}
+
+void CMultiLineListBox::autoScroll()
+{
+	if(m_autoScroll)
+	{
+		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
+	}
 }
 
 // CMultiLineListBox message handlers
@@ -302,4 +315,34 @@ LRESULT CMultiLineListBox::OnUpdateItem(WPARAM wParam, LPARAM lParam)
 
 	Invalidate(); // Update item
 	return 0;
+}
+
+void CMultiLineListBox::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	bool done = false;
+	switch(nSBCode)
+	{
+	case SB_THUMBPOSITION:	//拖动滑块
+	case SB_LINELEFT:		//点击左边的箭头
+	case SB_LINERIGHT:		//点击右边的箭头
+		done = true;
+		break;
+	} 
+
+	if(done)
+	{/*
+		SCROLLINFO scrollInfo;
+		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
+		memset(&scrollInfo,   0,   sizeof(SCROLLINFO));
+		scrollInfo.cbSize   =   sizeof(SCROLLINFO);
+		scrollInfo.fMask   =   SIF_ALL;
+		GetScrollInfo(SB_VERT,   &scrollInfo,   SIF_ALL); 
+		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
+		SetScrollPos(SB_VERT, nPos, 0);
+		m_autoScroll = (scrollInfo.nTrackPos == nPos);*/
+	}
+	
+	CListBox::OnVScroll(nSBCode, nPos, pScrollBar); 
 }

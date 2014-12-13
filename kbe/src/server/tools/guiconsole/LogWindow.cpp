@@ -99,7 +99,7 @@ void CLogWindow::OnTimer(UINT_PTR nIDEvent)
 		{
 			if(m_edit_height > 5.0f)
 			{
-				m_edit_height -= 7.0f;
+				m_edit_height -= 15.0f;
 				autoWndSize();
 			}
 			else
@@ -172,8 +172,6 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
 	else
 		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
-
-	::SendMessage(m_loglist.m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
 }
 
 void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)

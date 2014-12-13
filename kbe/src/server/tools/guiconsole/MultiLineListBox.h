@@ -72,6 +72,7 @@ protected:
 	static int m_nFocusIndex;
 	vector<LISTBOXINFO*> m_sArray;
 	int   m_nMaxWidth; 
+	bool m_autoScroll;
 public:
 	int InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
 	int AddString(LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
@@ -83,6 +84,7 @@ protected:
 	void UpdateItem(void);
 	void GetItemHeight(int nIndex);
 
+	void autoScroll();
 protected:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -91,6 +93,8 @@ protected:
 	afx_msg LRESULT OnUpdateItem(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 };
 
 
