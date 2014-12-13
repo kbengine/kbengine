@@ -3,6 +3,8 @@
 #include "ColorListBox.h"
 #include "MultiLineListBox.h"
 #include "common/common.hpp"
+#include "network/address.hpp"
+#include "afxcmn.h"
 
 // CLogWindow dialog
 
@@ -23,6 +25,10 @@ public:
 	std::vector<KBEngine::COMPONENT_TYPE> getSelComponents();
 
 	void onReceiveRemoteLog(std::string str);
+
+	void onConnectStatus(bool success, KBEngine::Network::Address addr);
+
+	void pullLogs(KBEngine::Network::Address addr);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -38,4 +44,8 @@ public:
 	CMultiLineListBox m_loglist;
 
 	bool pulling;
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+
+	float m_edit_height;
+	CSpinButtonCtrl m_showOptionWindow;
 };

@@ -30,6 +30,7 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_APPID, m_appIDstatic);
 	DDX_Control(pDX, IDC_APPID_EDIT, m_appIDEdit);
 	DDX_Control(pDX, IDC_LOG_LIST1, m_loglist);
+	DDX_Control(pDX, IDC_SPIN1, m_showOptionWindow);
 }
 
 BOOL CLogWindow::OnInitDialog()
@@ -66,28 +67,84 @@ BOOL CLogWindow::OnInitDialog()
 	}
 
 	pulling = false;
+
+	CRect rect, rect1;
+	GetClientRect(&rect);
+	m_edit_height = int(rect.bottom * 0.3);
+	SetTimer(10, 10, NULL);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CLogWindow::OnBnClickedButton1)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
+
+void CLogWindow::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialog::OnTimer(nIDEvent);
+	
+	CRect rect;
+	GetClientRect(&rect);
+
+	if(this->IsWindowVisible())
+	{
+		CPoint point;
+		GetCursorPos(&point);
+		ScreenToClient(&point); 
+
+		if(rect.bottom - point.y > m_edit_height)
+		{
+			if(m_edit_height > 5.0f)
+			{
+				m_edit_height -= 7.0f;
+				autoWndSize();
+			}
+			else
+			{
+				m_edit_height = 5.0f;
+			}
+		}
+		else
+		{
+			if(m_edit_height < int(rect.bottom * 0.3))
+			{
+				m_edit_height += 20.0f;
+				autoWndSize();
+			}
+			else
+			{
+				m_edit_height = int(rect.bottom * 0.3);
+			}
+		}
+	}
+	else
+	{
+		m_edit_height = int(rect.bottom * 0.3);
+	}
+}
 
 void CLogWindow::autoWndSize()
 {
 	CRect rect, rect1;
 	GetClientRect(&rect);
 
-	m_autopull.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.7), rect.right / 9, int(rect.bottom * 0.05), TRUE);
+	float addHeight = m_edit_height > 5.0f ? 0.0f : -100000.f;
 
-	m_componentlist.MoveWindow(3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3), TRUE);
-	m_msgTypeList.MoveWindow(rect.right / 5 + 3, int(rect.bottom * 0.7), rect.right / 7, int(rect.bottom * 0.3), TRUE);
+	m_autopull.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.7), rect.right / 9, int(rect.bottom * 0.05) + addHeight, TRUE);
 
-	m_optiongroup.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3), TRUE);
-	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03), TRUE);
-	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04), TRUE);
+	m_componentlist.MoveWindow(3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3) + addHeight, TRUE);
+	m_msgTypeList.MoveWindow(rect.right / 5 + 3, int(rect.bottom * 0.7), rect.right / 7, int(rect.bottom * 0.3) + addHeight, TRUE);
 
-	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.3) - 5, TRUE);
+	m_optiongroup.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3) + addHeight, TRUE);
+	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
+	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
+
+	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 5, TRUE);
+
+	m_showOptionWindow.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), rect.bottom - 7,  int(rect.right / 7 * 0.6), 15, TRUE);
 }
 
 // CLogWindow message handlers
@@ -118,7 +175,13 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 
 	::SendMessage(m_loglist.m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
 }
- 
+
+void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)
+{
+	pulling = !success;
+	pullLogs(addr);
+}
+
 void CLogWindow::OnBnClickedButton1()
 {
 	// TODO: Add your control notification handler code here
@@ -132,8 +195,14 @@ void CLogWindow::OnBnClickedButton1()
 		return;
 	}
 
+	dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	Network::Address addr = dlg->getTreeItemAddr(item);
+	pullLogs(addr);
+}
 
+void CLogWindow::pullLogs(KBEngine::Network::Address addr)
+{
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
@@ -268,3 +337,4 @@ KBEngine::uint32 CLogWindow::getSelLogTypes()
 
 	return types;
 }
+

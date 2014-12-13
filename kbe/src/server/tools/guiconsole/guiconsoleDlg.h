@@ -53,7 +53,7 @@ public:
 	void loadHistory();
 	void saveHistory();
 	
-	void connectTo();
+	bool connectTo();
 
 	void autoShowWindow();
 	void closeCurrTreeSelChannel();

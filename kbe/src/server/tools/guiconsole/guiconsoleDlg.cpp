@@ -1290,7 +1290,7 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	return addr;
 }
 
-void CguiconsoleDlg::connectTo()
+bool CguiconsoleDlg::connectTo()
 {
 	// TODO: Add your command handler code here
 	HTREEITEM hItem = m_tree.GetSelectedItem(); 
@@ -1298,7 +1298,7 @@ void CguiconsoleDlg::connectTo()
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"no select!");
-		return;
+		return false;
 	}
 	
 	Network::EndPoint* endpoint = new Network::EndPoint();
@@ -1306,7 +1306,7 @@ void CguiconsoleDlg::connectTo()
 	if (!endpoint->good())
 	{
 		AfxMessageBox(L"couldn't create a socket\n");
-		return;
+		return false;
 	}
 
 	endpoint->addr(addr);
@@ -1316,7 +1316,7 @@ void CguiconsoleDlg::connectTo()
 		CString err;
 		err.Format(L"connect server is error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
-		return;
+		return false;
 	}
 
 	endpoint->setnonblocking(true);
@@ -1335,8 +1335,10 @@ void CguiconsoleDlg::connectTo()
 		err.Format(L"ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",
 			pChannel->c_str());
 		AfxMessageBox(err);
-		return;
+		return false;
 	}
+
+	return true;
 }
 
 void CguiconsoleDlg::closeCurrTreeSelChannel()
@@ -1468,7 +1470,9 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 
 		if(checked)
 		{
-			connectTo();
+			if(!connectTo())
+				return;
+
 			changeToChecked = true;
 		}
 		else
@@ -1506,6 +1510,12 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 
 	m_watcherWnd.clearAllData();
 
+	if(debugComponentType == MESSAGELOG_TYPE && changeToChecked)
+	{
+		HTREEITEM hItem = m_tree.GetSelectedItem(); 
+		KBEngine::Network::Address addr = getTreeItemAddr(hItem);
+		m_logWnd.onConnectStatus(changeToChecked, addr);
+	}
 }
 
 void CguiconsoleDlg::OnConnectRemoteMachine()
