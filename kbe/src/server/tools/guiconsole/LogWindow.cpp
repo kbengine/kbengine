@@ -67,6 +67,7 @@ BOOL CLogWindow::OnInitDialog()
 	}
 
 	pulling = false;
+	m_startShowOptionWnd = false;
 
 	CRect rect, rect1;
 	GetClientRect(&rect);
@@ -78,6 +79,7 @@ BOOL CLogWindow::OnInitDialog()
 BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CLogWindow::OnBnClickedButton1)
 	ON_WM_TIMER()
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1, &CLogWindow::OnDeltaposSpin1)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -95,19 +97,7 @@ void CLogWindow::OnTimer(UINT_PTR nIDEvent)
 		GetCursorPos(&point);
 		ScreenToClient(&point); 
 
-		if(rect.bottom - point.y > m_edit_height)
-		{
-			if(m_edit_height > 5.0f)
-			{
-				m_edit_height -= 15.0f;
-				autoWndSize();
-			}
-			else
-			{
-				m_edit_height = 5.0f;
-			}
-		}
-		else
+		if(m_startShowOptionWnd)
 		{
 			if(m_edit_height < int(rect.bottom * 0.3))
 			{
@@ -117,6 +107,18 @@ void CLogWindow::OnTimer(UINT_PTR nIDEvent)
 			else
 			{
 				m_edit_height = int(rect.bottom * 0.3);
+			}
+		}
+		else
+		{
+			if(m_edit_height > 10.0f)
+			{
+				m_edit_height -= 15.0f;
+				autoWndSize();
+			}
+			else
+			{
+				m_edit_height = 10.0f;
 			}
 		}
 	}
@@ -131,7 +133,7 @@ void CLogWindow::autoWndSize()
 	CRect rect, rect1;
 	GetClientRect(&rect);
 
-	float addHeight = m_edit_height > 5.0f ? 0.0f : -100000.f;
+	float addHeight = m_edit_height > 10.0f ? 0.0f : -100000.f;
 
 	m_autopull.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.7), rect.right / 9, int(rect.bottom * 0.05) + addHeight, TRUE);
 
@@ -142,7 +144,7 @@ void CLogWindow::autoWndSize()
 	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
 	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
 
-	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 5, TRUE);
+	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 10, TRUE);
 
 	m_showOptionWindow.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), rect.bottom - 7,  int(rect.right / 7 * 0.6), 15, TRUE);
 }
@@ -336,3 +338,10 @@ KBEngine::uint32 CLogWindow::getSelLogTypes()
 	return types;
 }
 
+void CLogWindow::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	m_startShowOptionWnd = !m_startShowOptionWnd;
+}

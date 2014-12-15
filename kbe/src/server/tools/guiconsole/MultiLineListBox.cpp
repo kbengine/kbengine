@@ -131,14 +131,6 @@ void CMultiLineListBox::autoScroll()
 	if(m_autoScroll)
 	{
 		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
-
-		SCROLLINFO scrollInfo;
-		memset(&scrollInfo,   0,   sizeof(SCROLLINFO));
-		scrollInfo.cbSize   =   sizeof(SCROLLINFO);
-		scrollInfo.fMask   =   SIF_ALL;
-		GetScrollInfo(SB_VERT,   &scrollInfo,   SIF_ALL); 
-		m_nScrollMax1 = scrollInfo.nPos;
-		m_nScrollMax2 = scrollInfo.nPage;
 	}
 }
 

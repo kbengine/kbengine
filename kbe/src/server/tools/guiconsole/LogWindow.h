@@ -48,4 +48,6 @@ public:
 
 	float m_edit_height;
 	CSpinButtonCtrl m_showOptionWindow;
+	bool m_startShowOptionWnd;
+	afx_msg void OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult);
 };
