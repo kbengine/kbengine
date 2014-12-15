@@ -71,7 +71,8 @@ protected:
 protected:
 	static int m_nFocusIndex;
 	vector<LISTBOXINFO*> m_sArray;
-	int   m_nMaxWidth; 
+	int m_nMaxWidth; 
+	int m_nScrollMax1, m_nScrollMax2; 
 	bool m_autoScroll;
 public:
 	int InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);

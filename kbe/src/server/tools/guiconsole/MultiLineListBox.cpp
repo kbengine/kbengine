@@ -131,6 +131,14 @@ void CMultiLineListBox::autoScroll()
 	if(m_autoScroll)
 	{
 		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
+
+		SCROLLINFO scrollInfo;
+		memset(&scrollInfo,   0,   sizeof(SCROLLINFO));
+		scrollInfo.cbSize   =   sizeof(SCROLLINFO);
+		scrollInfo.fMask   =   SIF_ALL;
+		GetScrollInfo(SB_VERT,   &scrollInfo,   SIF_ALL); 
+		m_nScrollMax1 = scrollInfo.nPos;
+		m_nScrollMax2 = scrollInfo.nPage;
 	}
 }
 
@@ -331,18 +339,12 @@ void CMultiLineListBox::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBa
 		break;
 	} 
 
-	if(done)
-	{/*
-		SCROLLINFO scrollInfo;
-		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
-		memset(&scrollInfo,   0,   sizeof(SCROLLINFO));
-		scrollInfo.cbSize   =   sizeof(SCROLLINFO);
-		scrollInfo.fMask   =   SIF_ALL;
-		GetScrollInfo(SB_VERT,   &scrollInfo,   SIF_ALL); 
-		::SendMessage(m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
-		SetScrollPos(SB_VERT, nPos, 0);
-		m_autoScroll = (scrollInfo.nTrackPos == nPos);*/
-	}
-	
 	CListBox::OnVScroll(nSBCode, nPos, pScrollBar); 
+
+	if(done)
+	{
+		int nMax = GetScrollLimit(SB_VERT);
+		int pos = GetScrollPos(SB_VERT);
+		m_autoScroll = (pos >= nMax);
+	}
 }
