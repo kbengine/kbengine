@@ -540,8 +540,13 @@ std::string CWatcherWindow::getCurrSelPath()
 {
 	HTREEITEM item = m_tree.GetSelectedItem();
 	if(item == NULL)
+	{
+		if(m_tree.GetCount() > 0)
+			return "root";
+
 		return "";
-	
+	}
+
 	CString path;
 
 	do
