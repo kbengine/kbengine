@@ -505,6 +505,30 @@ void DebugHelper::info_msg(const std::string& s)
 }
 
 //-------------------------------------------------------------------------------------
+int KBELOG_TYPE_MAPPING(int type)
+{
+#ifdef NO_USE_LOG4CXX
+	return KBELOG_SCRIPT_INFO;
+#else
+	switch(type)
+	{
+	case log4cxx::ScriptLevel::SCRIPT_INFO:
+		return KBELOG_SCRIPT_INFO;
+	case log4cxx::ScriptLevel::SCRIPT_ERR:
+		return KBELOG_SCRIPT_ERROR;
+	case log4cxx::ScriptLevel::SCRIPT_DBG:
+		return KBELOG_SCRIPT_DEBUG;
+	case log4cxx::ScriptLevel::SCRIPT_WAR:
+		return KBELOG_SCRIPT_WARNING;
+	default:
+		break;
+	}
+
+	return KBELOG_SCRIPT_NORMAL;
+#endif
+}
+
+//-------------------------------------------------------------------------------------
 void DebugHelper::script_info_msg(const std::string& s)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
@@ -515,7 +539,8 @@ void DebugHelper::script_info_msg(const std::string& s)
 		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
-	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
+
+	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), s.size());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	// 如果是用户手动设置的也输出为错误信息
@@ -537,7 +562,7 @@ void DebugHelper::script_error_msg(const std::string& s)
 		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
-	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
+	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), s.size());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	printf("[S_ERROR]: %s", s.c_str());

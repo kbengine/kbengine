@@ -59,7 +59,11 @@ BOOL CLogWindow::OnInitDialog()
 	m_msgTypeList.AddString(L"INFO");
 	m_msgTypeList.AddString(L"WARNING");
 	m_msgTypeList.AddString(L"CRITICAL");
-	m_msgTypeList.AddString(L"SCRIPT");
+	m_msgTypeList.AddString(L"S_ERR");
+	m_msgTypeList.AddString(L"S_DBG");
+	m_msgTypeList.AddString(L"S_WARN");
+	m_msgTypeList.AddString(L"S_INFO");
+	m_msgTypeList.AddString(L"S_NORM");
 
 	for(int i=0; i< m_msgTypeList.GetCount(); i++)
 	{
@@ -164,13 +168,13 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 	s.Replace(L"\n\r", L"");
 	s.Replace(L"\r", L"");
 
-	if(s.Find(L"WARNING") >= 0)
+	if(s.Find(L"WARNING") >= 0 || s.Find(L"S_WARN") >= 0)
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
-	else if(s.Find(L"ERROR") >= 0)
+	else if(s.Find(L"ERROR") >= 0 || s.Find(L"S_ERR") >= 0)
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
 	else if(s.Find(L"CRITICAL") >= 0)
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
-	else if(s.Find(L"SCRIPT") >= 0)
+	else if(s.Find(L"S_DBG") >= 0 || s.Find(L"S_NORM") >= 0 || s.Find(L"S_INFO") >= 0)
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
 	else
 		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
@@ -328,9 +332,25 @@ KBEngine::uint32 CLogWindow::getSelLogTypes()
 			{
 				types |= KBELOG_CRITICAL;
 			}
-			else if(s == "SCRIPT")
+			else if(s == "S_INFO")
 			{
-				types |= KBELOG_SCRIPT;
+				types |= KBELOG_SCRIPT_INFO;
+			}
+			else if(s == "S_ERR")
+			{
+				types |= KBELOG_SCRIPT_ERROR;
+			}
+			else if(s == "S_DBG")
+			{
+				types |= KBELOG_SCRIPT_DEBUG;
+			}
+			else if(s == "S_WARN")
+			{
+				types |= KBELOG_SCRIPT_WARNING;
+			}
+			else if(s == "S_NORM")
+			{
+				types |= KBELOG_SCRIPT_NORMAL;
 			}
 		}
 	}
