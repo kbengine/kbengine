@@ -73,10 +73,11 @@ BOOL CLogWindow::OnInitDialog()
 	pulling = false;
 	m_startShowOptionWnd = false;
 
-	CRect rect, rect1;
+	CRect rect;
 	GetClientRect(&rect);
 	m_edit_height = int(rect.bottom * 0.3);
 	SetTimer(10, 10, NULL);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
