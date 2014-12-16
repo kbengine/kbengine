@@ -167,6 +167,15 @@
     <None Include="res\warn.bmp">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\error1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\info1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\warn1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="guiconsole.rc">

@@ -29,6 +29,8 @@ public:
 	void onConnectStatus(bool success, KBEngine::Network::Address addr);
 
 	void pullLogs(KBEngine::Network::Address addr);
+
+	void updateLogBtnCheckStatus();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -58,4 +60,11 @@ public:
 	int m_errCount;
 	int m_warnCount;
 	int m_infoCount;
+
+	BOOL m_errChecked;
+	BOOL m_warnChecked;
+	BOOL m_infoChecked;
+	afx_msg void OnBnClickedWarning();
+	afx_msg void OnBnClickedError();
+	afx_msg void OnBnClickedInfo();
 };

@@ -81,29 +81,41 @@ BOOL CLogWindow::OnInitDialog()
 	m_edit_height = int(rect.bottom * 0.3);
 	SetTimer(10, 10, NULL);
 
-	HBITMAP   hBitmap;   
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(IDB_INFO));
-	((CButton *)GetDlgItem(IDC_INFO))->SetBitmap(hBitmap);  
-
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(IDB_WARNING));
-	((CButton *)GetDlgItem(IDC_WARNING))->SetBitmap(hBitmap);  
-
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(IDB_ERROR));
-	m_errBtn.SetBitmap(hBitmap);  
-
 	m_errCount = 0;
 	m_warnCount = 0;
 	m_infoCount = 0;
+
+	m_errChecked = TRUE;
+	m_warnChecked = TRUE;
+	m_infoChecked = TRUE;
+
+	updateLogBtnCheckStatus();
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CLogWindow::updateLogBtnCheckStatus()
+{
+	HBITMAP   hBitmap;   
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(m_infoChecked ? IDB_INFO : IDB_INFO1));
+	m_infoBtn.SetBitmap(hBitmap);  
+
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(m_warnChecked ? IDB_WARNING : IDB_WARNING1));
+	m_warnBtn.SetBitmap(hBitmap);  
+
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(m_errChecked ? IDB_ERROR : IDB_ERROR1));
+	m_errBtn.SetBitmap(hBitmap); 
 }
 
 BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CLogWindow::OnBnClickedButton1)
 	ON_WM_TIMER()
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1, &CLogWindow::OnDeltaposSpin1)
+	ON_BN_CLICKED(IDC_WARNING, &CLogWindow::OnBnClickedWarning)
+	ON_BN_CLICKED(IDC_ERROR, &CLogWindow::OnBnClickedError)
+	ON_BN_CLICKED(IDC_INFO, &CLogWindow::OnBnClickedInfo)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -423,4 +435,28 @@ void CLogWindow::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 	m_startShowOptionWnd = !m_startShowOptionWnd;
+}
+
+
+void CLogWindow::OnBnClickedWarning()
+{
+	// TODO: Add your control notification handler code here
+	m_warnChecked = !m_warnChecked;
+	updateLogBtnCheckStatus();
+}
+
+
+void CLogWindow::OnBnClickedError()
+{
+	// TODO: Add your control notification handler code here
+	m_errChecked = !m_errChecked;
+	updateLogBtnCheckStatus();
+}
+
+
+void CLogWindow::OnBnClickedInfo()
+{
+	// TODO: Add your control notification handler code here
+	m_infoChecked = !m_infoChecked;
+	updateLogBtnCheckStatus();
 }

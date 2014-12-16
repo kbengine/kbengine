@@ -96,7 +96,7 @@ BEGIN
     LISTBOX         IDC_LOG_LIST1,7,7,443,81,NOT LBS_NOTIFY | LBS_SORT | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
     CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,167,259,11,14
     PUSHBUTTON      "0",IDC_ERROR,269,217,38,8,BS_FLAT
-    PUSHBUTTON      "0",IDC_WARNING,232,223,38,8,BS_FLAT
+    PUSHBUTTON      "0",IDC_WARNING,232,223,38,8
     PUSHBUTTON      "0",IDC_INFO,307,217,40,8
 END
 
@@ -371,6 +371,9 @@ IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
 IDB_ERROR               BITMAP                  "res\\error.bmp"
 IDB_INFO                BITMAP                  "res\\info.bmp"
 IDB_WARNING             BITMAP                  "res\\warn.bmp"
+IDB_ERROR1              BITMAP                  "res\\error1.bmp"
+IDB_INFO1               BITMAP                  "res\\info1.bmp"
+IDB_WARNING1            BITMAP                  "res\\warn1.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

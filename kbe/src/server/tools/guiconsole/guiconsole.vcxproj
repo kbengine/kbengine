@@ -191,12 +191,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\error.bmp" />
+    <None Include="res\error1.bmp" />
     <None Include="res\guiconsole.ico" />
     <None Include="res\guiconsole.rc2" />
     <None Include="res\info.bmp" />
+    <None Include="res\info1.bmp" />
     <None Include="res\toolbar1.bmp" />
     <None Include="ReadMe.txt" />
     <None Include="res\warn.bmp" />
+    <None Include="res\warn1.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="guiconsole.rc" />
