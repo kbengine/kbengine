@@ -190,10 +190,13 @@
     <ClInclude Include="WatcherWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\error.bmp" />
     <None Include="res\guiconsole.ico" />
     <None Include="res\guiconsole.rc2" />
+    <None Include="res\info.bmp" />
     <None Include="res\toolbar1.bmp" />
     <None Include="ReadMe.txt" />
+    <None Include="res\warn.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="guiconsole.rc" />

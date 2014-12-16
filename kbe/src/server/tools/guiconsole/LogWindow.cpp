@@ -31,6 +31,9 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_APPID_EDIT, m_appIDEdit);
 	DDX_Control(pDX, IDC_LOG_LIST1, m_loglist);
 	DDX_Control(pDX, IDC_SPIN1, m_showOptionWindow);
+	DDX_Control(pDX, IDC_ERROR, m_errBtn);
+	DDX_Control(pDX, IDC_WARNING, m_warnBtn);
+	DDX_Control(pDX, IDC_INFO, m_infoBtn);
 }
 
 BOOL CLogWindow::OnInitDialog()
@@ -78,6 +81,22 @@ BOOL CLogWindow::OnInitDialog()
 	m_edit_height = int(rect.bottom * 0.3);
 	SetTimer(10, 10, NULL);
 
+	HBITMAP   hBitmap;   
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(IDB_INFO));
+	((CButton *)GetDlgItem(IDC_INFO))->SetBitmap(hBitmap);  
+
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(IDB_WARNING));
+	((CButton *)GetDlgItem(IDC_WARNING))->SetBitmap(hBitmap);  
+
+	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+	MAKEINTRESOURCE(IDB_ERROR));
+	m_errBtn.SetBitmap(hBitmap);  
+
+	m_errCount = 0;
+	m_warnCount = 0;
+	m_infoCount = 0;
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -116,14 +135,14 @@ void CLogWindow::OnTimer(UINT_PTR nIDEvent)
 		}
 		else
 		{
-			if(m_edit_height > 10.0f)
+			if(m_edit_height > 4.0f)
 			{
 				m_edit_height -= 15.0f;
 				autoWndSize();
 			}
 			else
 			{
-				m_edit_height = 10.0f;
+				m_edit_height = 4.0f;
 			}
 		}
 	}
@@ -138,7 +157,7 @@ void CLogWindow::autoWndSize()
 	CRect rect, rect1;
 	GetClientRect(&rect);
 
-	float addHeight = m_edit_height > 10.0f ? 0.0f : -100000.f;
+	float addHeight = m_edit_height > 4.0f ? 0.0f : -100000.f;
 
 	m_autopull.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.7), rect.right / 9, int(rect.bottom * 0.05) + addHeight, TRUE);
 
@@ -152,6 +171,10 @@ void CLogWindow::autoWndSize()
 	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 10, TRUE);
 
 	m_showOptionWindow.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), rect.bottom - 7,  int(rect.right / 7 * 0.6), 15, TRUE);
+
+	m_errBtn.MoveWindow(rect.right - 180, rect.bottom - 12,  60, 12, TRUE);
+	m_warnBtn.MoveWindow(rect.right - 120, rect.bottom - 12,  60, 12, TRUE);
+	m_infoBtn.MoveWindow(rect.right - 60, rect.bottom - 12,  60, 12, TRUE);
 }
 
 // CLogWindow message handlers
@@ -170,15 +193,50 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 	s.Replace(L"\r", L"");
 
 	if(s.Find(L"WARNING") >= 0 || s.Find(L"S_WARN") >= 0)
+	{
+		m_warnCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
+
+		CString s;
+		s.Format(L"%d", m_warnCount);
+		m_warnBtn.SetWindowTextW(s);
+	}
 	else if(s.Find(L"ERROR") >= 0 || s.Find(L"S_ERR") >= 0)
+	{
+		m_errCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
+
+		CString s;
+		s.Format(L"%d", m_errCount);
+		m_errBtn.SetWindowTextW(s);
+	}
 	else if(s.Find(L"CRITICAL") >= 0)
+	{
+		m_errCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
+
+		CString s;
+		s.Format(L"%d", m_errCount);
+		m_errBtn.SetWindowTextW(s);
+	}
 	else if(s.Find(L"S_DBG") >= 0 || s.Find(L"S_NORM") >= 0 || s.Find(L"S_INFO") >= 0)
+	{
+		m_infoCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
+
+		CString s;
+		s.Format(L"%d", m_infoCount);
+		m_infoBtn.SetWindowTextW(s);
+	}
 	else
+	{
+		m_infoCount++;
 		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
+
+		CString s;
+		s.Format(L"%d", m_infoCount);
+		m_infoBtn.SetWindowTextW(s);
+	}
 }
 
 void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)

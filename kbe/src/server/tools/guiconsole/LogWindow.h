@@ -50,4 +50,12 @@ public:
 	CSpinButtonCtrl m_showOptionWindow;
 	bool m_startShowOptionWnd;
 	afx_msg void OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult);
+
+	CButton m_errBtn;
+	CButton m_warnBtn;
+	CButton m_infoBtn;
+
+	int m_errCount;
+	int m_warnCount;
+	int m_infoCount;
 };
