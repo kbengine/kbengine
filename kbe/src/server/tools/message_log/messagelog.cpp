@@ -222,5 +222,20 @@ void Messagelog::deregisterLogWatcher(Network::Channel* pChannel, KBEngine::Memo
 }
 
 //-------------------------------------------------------------------------------------
+void Messagelog::updateLogWatcherSetting(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
+	if(!pLogwatcher->updateSetting(&s))
+	{
+		ERROR_MSG(fmt::format("Messagelog::updateLogWatcherSetting: addr={} is failed!\n",
+			pChannel->addr().c_str()));
+
+		logWatchers_.erase(pChannel->addr());
+	}
+
+	s.done();
+}
+
+//-------------------------------------------------------------------------------------
 
 }

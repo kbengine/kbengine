@@ -52,6 +52,12 @@ void LogWatcher::reset()
 //-------------------------------------------------------------------------------------
 bool LogWatcher::loadFromStream(MemoryStream * s)
 {
+	return updateSetting(s);
+}
+
+//-------------------------------------------------------------------------------------
+bool LogWatcher::updateSetting(MemoryStream * s)
+{
 	reset();
 	
 	(*s) >> logtypes_;
@@ -68,7 +74,7 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 		if(VALID_COMPONENT(type))
 			componentBitmap_[type] = 1;
 	}
-	
+
 	return true;
 }
 

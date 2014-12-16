@@ -100,6 +100,11 @@ public:
 	*/
 	void deregisterLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		log监听者更新自己的设置
+	*/
+	void updateLogWatcherSetting(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
 
 	void sendInitLogs(LogWatcher& logWatcher);

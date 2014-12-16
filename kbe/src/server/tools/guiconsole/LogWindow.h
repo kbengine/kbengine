@@ -25,13 +25,14 @@ public:
 	KBEngine::uint32 getSelLogTypes();
 	std::vector<KBEngine::COMPONENT_TYPE> getSelComponents();
 
-	void onReceiveRemoteLog(std::string str);
+	void onReceiveRemoteLog(std::string str, bool fromServer = true);
 
 	void onConnectStatus(bool success, KBEngine::Network::Address addr);
 
 	void pullLogs(KBEngine::Network::Address addr);
 
-	void updateLogBtnStatus();
+	void updateLogBtnStatus(bool updateList = true);
+	void updateSettingToServer();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -65,9 +66,15 @@ public:
 	BOOL m_errChecked;
 	BOOL m_warnChecked;
 	BOOL m_infoChecked;
+
 	afx_msg void OnBnClickedWarning();
 	afx_msg void OnBnClickedError();
 	afx_msg void OnBnClickedInfo();
 	CMFCButton m_clear;
 	afx_msg void OnBnClickedMfcbutton1();
+	afx_msg void OnNMThemeChangedAppList1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLbnSelchangeAppList1();
+	afx_msg void OnLbnSelchangeMsgtypeList2();
+
+	std::list<std::string> m_logs_;
 };

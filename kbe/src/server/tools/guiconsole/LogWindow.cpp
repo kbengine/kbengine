@@ -90,11 +90,11 @@ BOOL CLogWindow::OnInitDialog()
 	m_warnChecked = TRUE;
 	m_infoChecked = TRUE;
 
-	updateLogBtnStatus();
+	updateLogBtnStatus(false);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CLogWindow::updateLogBtnStatus()
+void CLogWindow::updateLogBtnStatus(bool updateList)
 {
 	HBITMAP   hBitmap;   
 	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
@@ -118,6 +118,17 @@ void CLogWindow::updateLogBtnStatus()
 
 	s.Format(L"%d", m_errCount);
 	m_errBtn.SetWindowTextW(s);
+
+	if(updateList)
+	{
+		m_loglist.Clear();
+
+		std::list<std::string>::iterator iter = m_logs_.begin();
+		for(; iter != m_logs_.end(); iter++)
+		{
+			onReceiveRemoteLog((*iter), false);
+		}
+	}
 }
 
 BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
@@ -128,6 +139,9 @@ BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_BN_CLICKED(IDC_ERROR, &CLogWindow::OnBnClickedError)
 	ON_BN_CLICKED(IDC_INFO, &CLogWindow::OnBnClickedInfo)
 	ON_BN_CLICKED(IDC_MFCBUTTON1, &CLogWindow::OnBnClickedMfcbutton1)
+	ON_NOTIFY(NM_THEMECHANGED, IDC_APP_LIST1, &CLogWindow::OnNMThemeChangedAppList1)
+	ON_LBN_SELCHANGE(IDC_APP_LIST1, &CLogWindow::OnLbnSelchangeAppList1)
+	ON_LBN_SELCHANGE(IDC_MSGTYPE_LIST2, &CLogWindow::OnLbnSelchangeMsgtypeList2)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -204,11 +218,14 @@ void CLogWindow::autoWndSize()
 }
 
 // CLogWindow message handlers
-void CLogWindow::onReceiveRemoteLog(std::string str)
+void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 {
 	if(str.size() <= 0)
 		return;
 	
+	if(fromServer)
+		m_logs_.push_back(str);
+
 	CString s;
 	wchar_t* wstr = KBEngine::strutil::char2wchar(str.c_str());
 	s = wstr;
@@ -220,31 +237,46 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 
 	if(s.Find(L"WARNING") >= 0 || s.Find(L"S_WARN") >= 0)
 	{
-		m_warnCount++;
-		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
+		if(fromServer)
+			m_warnCount++;
+
+		if(m_warnChecked)
+			m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
 	}
 	else if(s.Find(L"ERROR") >= 0 || s.Find(L"S_ERR") >= 0)
 	{
-		m_errCount++;
-		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
+		if(fromServer)
+			m_errCount++;
+
+		if(m_errChecked)
+			m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
 	}
 	else if(s.Find(L"CRITICAL") >= 0)
 	{
-		m_errCount++;
-		m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
+		if(fromServer)
+			m_errCount++;
+
+		if(m_errChecked)
+			m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
 	}
 	else if(s.Find(L"S_DBG") >= 0 || s.Find(L"S_NORM") >= 0 || s.Find(L"S_INFO") >= 0)
 	{
-		m_infoCount++;
-		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
+		if(fromServer)
+			m_infoCount++;
+
+		if(m_infoChecked)
+			m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
 	}
 	else
 	{
-		m_infoCount++;
-		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
+		if(fromServer)
+			m_infoCount++;
+
+		if(m_infoChecked)
+			m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
 	}
 
-	updateLogBtnStatus();
+	updateLogBtnStatus(false);
 }
 
 void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)
@@ -433,14 +465,12 @@ void CLogWindow::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 	m_startShowOptionWnd = !m_startShowOptionWnd;
 }
 
-
 void CLogWindow::OnBnClickedWarning()
 {
 	// TODO: Add your control notification handler code here
 	m_warnChecked = !m_warnChecked;
 	updateLogBtnStatus();
 }
-
 
 void CLogWindow::OnBnClickedError()
 {
@@ -449,7 +479,6 @@ void CLogWindow::OnBnClickedError()
 	updateLogBtnStatus();
 }
 
-
 void CLogWindow::OnBnClickedInfo()
 {
 	// TODO: Add your control notification handler code here
@@ -457,14 +486,83 @@ void CLogWindow::OnBnClickedInfo()
 	updateLogBtnStatus();
 }
 
-
 void CLogWindow::OnBnClickedMfcbutton1()
 {
 	// TODO: Add your control notification handler code here
-	m_loglist.ResetContent();
+	m_logs_.clear();
 
 	m_errCount = 0;
 	m_warnCount = 0;
 	m_infoCount = 0;
 	updateLogBtnStatus();
+}
+
+
+void CLogWindow::OnNMThemeChangedAppList1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// This feature requires Windows XP or greater.
+	// The symbol _WIN32_WINNT must be >= 0x0501.
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	updateSettingToServer();
+}
+
+void CLogWindow::updateSettingToServer()
+{
+	Network::Bundle bundle;
+	bundle.newMessage(MessagelogInterface::updateLogWatcherSetting);
+
+	bundle << getSelLogTypes();
+	
+	CString apporder;
+	m_appIDEdit.GetWindowTextW(apporder);
+
+	char* cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
+	COMPONENT_ORDER order = atoi(cs);
+	free(cs);
+
+	bundle << order;
+
+	int8 count = 0;
+	std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
+	count = vec.size();
+	bundle << count;
+	std::vector<KBEngine::COMPONENT_TYPE>::iterator iter = vec.begin();
+	for(; iter != vec.end(); iter++)
+	{
+		bundle << (*iter);
+	}
+
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+	HTREEITEM item = dlg->hasCheckApp(MESSAGELOG_TYPE);
+	if(item == NULL)
+	{
+		::AfxMessageBox(L"messagelog no select!");
+		return;
+	}
+
+	dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+	Network::Address addr = dlg->getTreeItemAddr(item);
+	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
+	if(pChannel == NULL)
+	{
+		::AfxMessageBox(L"messagelog is error!");
+		return;
+	}
+
+	bool first = m_loglist.GetCount() <= 0;
+	bundle << first;
+	bundle.send(dlg->networkInterface(), pChannel);
+}
+
+void CLogWindow::OnLbnSelchangeAppList1()
+{
+	// TODO: Add your control notification handler code here
+	updateSettingToServer();
+}
+
+void CLogWindow::OnLbnSelchangeMsgtypeList2()
+{
+	// TODO: Add your control notification handler code here
+	updateSettingToServer();
 }

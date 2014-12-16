@@ -21,6 +21,21 @@ CMultiLineListBox::CMultiLineListBox()
 
 CMultiLineListBox::~CMultiLineListBox() 
 {
+	Clear();
+}
+
+BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
+	ON_WM_ERASEBKGND()
+	ON_WM_KEYDOWN()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_MESSAGE(MSG_UPDATEITEM, &CMultiLineListBox::OnUpdateItem)
+	ON_WM_VSCROLL()
+END_MESSAGE_MAP()
+
+void CMultiLineListBox::Clear()
+{
+	this->ResetContent();
 	vector<LISTBOXINFO*>::const_iterator iter1 = m_sArray.begin();
 	for(; iter1 != m_sArray.end(); ++iter1)
 	{
@@ -37,15 +52,6 @@ CMultiLineListBox::~CMultiLineListBox()
 	}
 	m_sArray.clear();
 }
-
-BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
-	ON_WM_ERASEBKGND()
-	ON_WM_KEYDOWN()
-	ON_WM_LBUTTONDOWN()
-	ON_WM_MOUSEMOVE()
-	ON_MESSAGE(MSG_UPDATEITEM, &CMultiLineListBox::OnUpdateItem)
-	ON_WM_VSCROLL()
-END_MESSAGE_MAP()
 
 int CMultiLineListBox::InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
 {

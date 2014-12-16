@@ -44,7 +44,8 @@ public:
 	~LogWatcher();
 
 	bool loadFromStream(MemoryStream * s);
-	
+	bool updateSetting(MemoryStream * s);
+
 	void reset();
 	void addr(const Network::Address& address) { addr_ = address; }
 	
