@@ -28,7 +28,6 @@
 #define IDB_INFO                        146
 #define IDB_WARNING                     147
 #define IDB_ERROR1                      148
-#define IDB_BITMAP2                     149
 #define IDB_INFO1                       149
 #define IDB_WARNING1                    150
 #define IDC_TAB1                        1000
@@ -61,6 +60,7 @@
 #define IDC_ERROR                       1031
 #define IDC_WARNING                     1032
 #define IDC_INFO                        1033
+#define IDC_MFCBUTTON1                  1035
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_HELP_ABOUT                   32773
@@ -73,9 +73,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        151
+#define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1036
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

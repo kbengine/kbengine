@@ -5,6 +5,7 @@
 #include "common/common.hpp"
 #include "network/address.hpp"
 #include "afxcmn.h"
+#include "afxbutton.h"
 
 // CLogWindow dialog
 
@@ -30,7 +31,7 @@ public:
 
 	void pullLogs(KBEngine::Network::Address addr);
 
-	void updateLogBtnCheckStatus();
+	void updateLogBtnStatus();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -67,4 +68,6 @@ public:
 	afx_msg void OnBnClickedWarning();
 	afx_msg void OnBnClickedError();
 	afx_msg void OnBnClickedInfo();
+	CMFCButton m_clear;
+	afx_msg void OnBnClickedMfcbutton1();
 };

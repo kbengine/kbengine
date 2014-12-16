@@ -34,6 +34,7 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_ERROR, m_errBtn);
 	DDX_Control(pDX, IDC_WARNING, m_warnBtn);
 	DDX_Control(pDX, IDC_INFO, m_infoBtn);
+	DDX_Control(pDX, IDC_MFCBUTTON1, m_clear);
 }
 
 BOOL CLogWindow::OnInitDialog()
@@ -89,11 +90,11 @@ BOOL CLogWindow::OnInitDialog()
 	m_warnChecked = TRUE;
 	m_infoChecked = TRUE;
 
-	updateLogBtnCheckStatus();
+	updateLogBtnStatus();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CLogWindow::updateLogBtnCheckStatus()
+void CLogWindow::updateLogBtnStatus()
 {
 	HBITMAP   hBitmap;   
 	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
@@ -107,6 +108,16 @@ void CLogWindow::updateLogBtnCheckStatus()
 	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
 	MAKEINTRESOURCE(m_errChecked ? IDB_ERROR : IDB_ERROR1));
 	m_errBtn.SetBitmap(hBitmap); 
+
+	CString s;
+	s.Format(L"%d", m_warnCount);
+	m_warnBtn.SetWindowTextW(s);
+
+	s.Format(L"%d", m_infoCount);
+	m_infoBtn.SetWindowTextW(s);
+
+	s.Format(L"%d", m_errCount);
+	m_errBtn.SetWindowTextW(s);
 }
 
 BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
@@ -116,6 +127,7 @@ BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_BN_CLICKED(IDC_WARNING, &CLogWindow::OnBnClickedWarning)
 	ON_BN_CLICKED(IDC_ERROR, &CLogWindow::OnBnClickedError)
 	ON_BN_CLICKED(IDC_INFO, &CLogWindow::OnBnClickedInfo)
+	ON_BN_CLICKED(IDC_MFCBUTTON1, &CLogWindow::OnBnClickedMfcbutton1)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -187,6 +199,8 @@ void CLogWindow::autoWndSize()
 	m_errBtn.MoveWindow(rect.right - 180, rect.bottom - 12,  60, 12, TRUE);
 	m_warnBtn.MoveWindow(rect.right - 120, rect.bottom - 12,  60, 12, TRUE);
 	m_infoBtn.MoveWindow(rect.right - 60, rect.bottom - 12,  60, 12, TRUE);
+
+	m_clear.MoveWindow(rect.right - 200, rect.bottom - 11,  10, 10, TRUE);
 }
 
 // CLogWindow message handlers
@@ -208,47 +222,29 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 	{
 		m_warnCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
-
-		CString s;
-		s.Format(L"%d", m_warnCount);
-		m_warnBtn.SetWindowTextW(s);
 	}
 	else if(s.Find(L"ERROR") >= 0 || s.Find(L"S_ERR") >= 0)
 	{
 		m_errCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
-
-		CString s;
-		s.Format(L"%d", m_errCount);
-		m_errBtn.SetWindowTextW(s);
 	}
 	else if(s.Find(L"CRITICAL") >= 0)
 	{
 		m_errCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
-
-		CString s;
-		s.Format(L"%d", m_errCount);
-		m_errBtn.SetWindowTextW(s);
 	}
 	else if(s.Find(L"S_DBG") >= 0 || s.Find(L"S_NORM") >= 0 || s.Find(L"S_INFO") >= 0)
 	{
 		m_infoCount++;
 		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
-
-		CString s;
-		s.Format(L"%d", m_infoCount);
-		m_infoBtn.SetWindowTextW(s);
 	}
 	else
 	{
 		m_infoCount++;
 		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
-
-		CString s;
-		s.Format(L"%d", m_infoCount);
-		m_infoBtn.SetWindowTextW(s);
 	}
+
+	updateLogBtnStatus();
 }
 
 void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)
@@ -442,7 +438,7 @@ void CLogWindow::OnBnClickedWarning()
 {
 	// TODO: Add your control notification handler code here
 	m_warnChecked = !m_warnChecked;
-	updateLogBtnCheckStatus();
+	updateLogBtnStatus();
 }
 
 
@@ -450,7 +446,7 @@ void CLogWindow::OnBnClickedError()
 {
 	// TODO: Add your control notification handler code here
 	m_errChecked = !m_errChecked;
-	updateLogBtnCheckStatus();
+	updateLogBtnStatus();
 }
 
 
@@ -458,5 +454,17 @@ void CLogWindow::OnBnClickedInfo()
 {
 	// TODO: Add your control notification handler code here
 	m_infoChecked = !m_infoChecked;
-	updateLogBtnCheckStatus();
+	updateLogBtnStatus();
+}
+
+
+void CLogWindow::OnBnClickedMfcbutton1()
+{
+	// TODO: Add your control notification handler code here
+	m_loglist.ResetContent();
+
+	m_errCount = 0;
+	m_warnCount = 0;
+	m_infoCount = 0;
+	updateLogBtnStatus();
 }
