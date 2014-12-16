@@ -91,24 +91,34 @@ BOOL CLogWindow::OnInitDialog()
 	m_warnChecked = TRUE;
 	m_infoChecked = TRUE;
 
+
+	hInfoBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+			MAKEINTRESOURCE(IDB_INFO));
+
+	hInfoBitmap1 = LoadBitmap(AfxGetInstanceHandle(),   
+			MAKEINTRESOURCE(IDB_INFO1));
+
+	hWarnBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+		MAKEINTRESOURCE(IDB_WARNING));
+
+	hWarnBitmap1 = LoadBitmap(AfxGetInstanceHandle(),   
+		MAKEINTRESOURCE(IDB_WARNING1));
+
+	hErrBitmap = LoadBitmap(AfxGetInstanceHandle(),   
+		MAKEINTRESOURCE(IDB_ERROR));
+
+	hErrBitmap1 = LoadBitmap(AfxGetInstanceHandle(),   
+		MAKEINTRESOURCE(IDB_ERROR1));
+
 	updateLogBtnStatus(false);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 void CLogWindow::updateLogBtnStatus(bool updateList)
 {
-	HBITMAP   hBitmap;   
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(m_infoChecked ? IDB_INFO : IDB_INFO1));
-	m_infoBtn.SetBitmap(hBitmap);  
-
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(m_warnChecked ? IDB_WARNING : IDB_WARNING1));
-	m_warnBtn.SetBitmap(hBitmap);  
-
-	hBitmap = LoadBitmap(AfxGetInstanceHandle(),   
-	MAKEINTRESOURCE(m_errChecked ? IDB_ERROR : IDB_ERROR1));
-	m_errBtn.SetBitmap(hBitmap); 
+	m_infoBtn.SetBitmap(m_infoChecked ? hInfoBitmap : hInfoBitmap1);  
+	m_warnBtn.SetBitmap(m_warnChecked? hWarnBitmap : hWarnBitmap1);  
+	m_errBtn.SetBitmap(m_errChecked ? hErrBitmap : hErrBitmap1); 
 
 	CString s;
 	s.Format(L"%d", m_warnCount);

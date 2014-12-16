@@ -21,7 +21,7 @@ CMultiLineListBox::CMultiLineListBox()
 
 CMultiLineListBox::~CMultiLineListBox() 
 {
-	Clear();
+	Clear(true);
 }
 
 BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
@@ -33,9 +33,11 @@ BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
 	ON_WM_VSCROLL()
 END_MESSAGE_MAP()
 
-void CMultiLineListBox::Clear()
+void CMultiLineListBox::Clear(bool destroy)
 {
-	this->ResetContent();
+	if(!destroy)
+		this->ResetContent();
+
 	vector<LISTBOXINFO*>::const_iterator iter1 = m_sArray.begin();
 	for(; iter1 != m_sArray.end(); ++iter1)
 	{

@@ -67,6 +67,10 @@ public:
 	BOOL m_warnChecked;
 	BOOL m_infoChecked;
 
+	HBITMAP   hErrBitmap, hErrBitmap1;
+	HBITMAP   hWarnBitmap, hWarnBitmap1;
+	HBITMAP   hInfoBitmap, hInfoBitmap1;
+
 	afx_msg void OnBnClickedWarning();
 	afx_msg void OnBnClickedError();
 	afx_msg void OnBnClickedInfo();

@@ -77,7 +77,7 @@ public:
 	int InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
 	int AddString(LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
 	void AddSubString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
-	void Clear();
+	void Clear(bool destroy = false);
 protected:
 	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
