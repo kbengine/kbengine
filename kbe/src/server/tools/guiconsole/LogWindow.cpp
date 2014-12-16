@@ -8,6 +8,7 @@
 #include "../../../server/tools/message_log/messagelog_interface.hpp"
 // CLogWindow dialog
 
+#pragma warning(disable:4244)
 IMPLEMENT_DYNAMIC(CLogWindow, CDialog)
 
 CLogWindow::CLogWindow(CWnd* pParent /*=NULL*/)
