@@ -11,6 +11,19 @@
 #pragma warning(disable:4244)
 IMPLEMENT_DYNAMIC(CLogWindow, CDialog)
 
+CString  state_flags[8] = {
+	L"¨I",
+	L"¡ü",
+	L"¨J",
+	L"¡ú",
+	L"¨K ",
+	L"¡ý",
+	L"¨L",
+	L"¡û",
+};
+
+int state_flags_idx = 0;
+
 CLogWindow::CLogWindow(CWnd* pParent /*=NULL*/)
 	: CDialog(CLogWindow::IDD, pParent)
 {
@@ -29,13 +42,18 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MSGTYPE_LIST2, m_msgTypeList);
 	DDX_Control(pDX, IDC_STATIC_OPTION, m_optiongroup);
 	DDX_Control(pDX, IDC_STATIC_APPID, m_appIDstatic);
+	DDX_Control(pDX, IDC_LOG_DATE_STATIC, m_dateStatic);
+	DDX_Control(pDX, IDC_LOG_FIND, m_findStatic);
 	DDX_Control(pDX, IDC_APPID_EDIT, m_appIDEdit);
+	DDX_Control(pDX, IDC_LOG_DATE, m_dateEdit);
+	DDX_Control(pDX, IDC_LOG_FINDSTR, m_findEdit);
 	DDX_Control(pDX, IDC_LOG_LIST1, m_loglist);
 	DDX_Control(pDX, IDC_SPIN1, m_showOptionWindow);
 	DDX_Control(pDX, IDC_ERROR, m_errBtn);
 	DDX_Control(pDX, IDC_WARNING, m_warnBtn);
 	DDX_Control(pDX, IDC_INFO, m_infoBtn);
 	DDX_Control(pDX, IDC_MFCBUTTON1, m_clear);
+	DDX_Control(pDX, IDC_BUTTON2, m_pullonce);
 }
 
 BOOL CLogWindow::OnInitDialog()
@@ -81,7 +99,9 @@ BOOL CLogWindow::OnInitDialog()
 	CRect rect;
 	GetClientRect(&rect);
 	m_edit_height = int(rect.bottom * 0.3);
-	SetTimer(10, 10, NULL);
+
+	SetTimer(1, 10, NULL);
+	SetTimer(2, 100, NULL);
 
 	m_errCount = 0;
 	m_warnCount = 0;
@@ -153,6 +173,7 @@ BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_NOTIFY(NM_THEMECHANGED, IDC_APP_LIST1, &CLogWindow::OnNMThemeChangedAppList1)
 	ON_LBN_SELCHANGE(IDC_APP_LIST1, &CLogWindow::OnLbnSelchangeAppList1)
 	ON_LBN_SELCHANGE(IDC_MSGTYPE_LIST2, &CLogWindow::OnLbnSelchangeMsgtypeList2)
+	ON_BN_CLICKED(IDC_BUTTON2, &CLogWindow::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -161,43 +182,51 @@ void CLogWindow::OnTimer(UINT_PTR nIDEvent)
 
 	CDialog::OnTimer(nIDEvent);
 	
-	CRect rect;
-	GetClientRect(&rect);
-
-	if(this->IsWindowVisible())
+	if(nIDEvent == 1)
 	{
-		CPoint point;
-		GetCursorPos(&point);
-		ScreenToClient(&point); 
+		CRect rect;
+		GetClientRect(&rect);
 
-		if(m_startShowOptionWnd)
+		if(this->IsWindowVisible())
 		{
-			if(m_edit_height < int(rect.bottom * 0.3))
+			CPoint point;
+			GetCursorPos(&point);
+			ScreenToClient(&point); 
+
+			if(m_startShowOptionWnd)
 			{
-				m_edit_height += 20.0f;
-				autoWndSize();
+				if(m_edit_height < int(rect.bottom * 0.3))
+				{
+					m_edit_height += 20.0f;
+					autoWndSize();
+				}
+				else
+				{
+					m_edit_height = int(rect.bottom * 0.3);
+				}
 			}
 			else
 			{
-				m_edit_height = int(rect.bottom * 0.3);
+				if(m_edit_height > 4.0f)
+				{
+					m_edit_height -= 15.0f;
+					autoWndSize();
+				}
+				else
+				{
+					m_edit_height = 4.0f;
+				}
 			}
 		}
 		else
 		{
-			if(m_edit_height > 4.0f)
-			{
-				m_edit_height -= 15.0f;
-				autoWndSize();
-			}
-			else
-			{
-				m_edit_height = 4.0f;
-			}
+			m_edit_height = int(rect.bottom * 0.3);
 		}
 	}
 	else
 	{
-		m_edit_height = int(rect.bottom * 0.3);
+		if(pulling)
+			m_autopull.SetWindowTextW(state_flags[(state_flags_idx++) % 8]);
 	}
 }
 
@@ -209,13 +238,18 @@ void CLogWindow::autoWndSize()
 	float addHeight = m_edit_height > 4.0f ? 0.0f : -100000.f;
 
 	m_autopull.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.7), rect.right / 9, int(rect.bottom * 0.05) + addHeight, TRUE);
+	m_pullonce.MoveWindow(int(rect.right * 0.85) + 3, int(rect.bottom * 0.75), rect.right / 9, int(rect.bottom * 0.05) + addHeight, TRUE);
 
 	m_componentlist.MoveWindow(3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3) + addHeight, TRUE);
 	m_msgTypeList.MoveWindow(rect.right / 5 + 3, int(rect.bottom * 0.7), rect.right / 7, int(rect.bottom * 0.3) + addHeight, TRUE);
 
-	m_optiongroup.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3, int(rect.bottom * 0.7), rect.right / 5, int(rect.bottom * 0.3) + addHeight, TRUE);
+	m_optiongroup.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3, int(rect.bottom * 0.7), rect.right / 2.9, int(rect.bottom * 0.3) + addHeight, TRUE);
 	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
 	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_dateStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.75) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
+	m_dateEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.75) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_findStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.8) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
+	m_findEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.8) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
 
 	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 10, TRUE);
 
@@ -358,7 +392,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 	}
 	else
 	{
-		m_autopull.SetWindowTextW(L"pull");
+		m_autopull.SetWindowTextW(L"auto");
 
 		Network::Bundle bundle;
 		bundle.newMessage(MessagelogInterface::deregisterLogWatcher);
@@ -515,7 +549,19 @@ void CLogWindow::OnNMThemeChangedAppList1(NMHDR *pNMHDR, LRESULT *pResult)
 	// The symbol _WIN32_WINNT must be >= 0x0501.
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
-	updateSettingToServer();
+	//updateSettingToServer();
+}
+
+void CLogWindow::OnLbnSelchangeAppList1()
+{
+	// TODO: Add your control notification handler code here
+	//updateSettingToServer();
+}
+
+void CLogWindow::OnLbnSelchangeMsgtypeList2()
+{
+	// TODO: Add your control notification handler code here
+	//updateSettingToServer();
 }
 
 void CLogWindow::updateSettingToServer()
@@ -566,14 +612,22 @@ void CLogWindow::updateSettingToServer()
 	bundle.send(dlg->networkInterface(), pChannel);
 }
 
-void CLogWindow::OnLbnSelchangeAppList1()
+void CLogWindow::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
-	updateSettingToServer();
-}
+	OnBnClickedMfcbutton1();
 
-void CLogWindow::OnLbnSelchangeMsgtypeList2()
-{
-	// TODO: Add your control notification handler code here
-	updateSettingToServer();
+	if(pulling == false)
+	{
+		OnBnClickedButton1();
+		OnBnClickedButton1();
+	}
+	else
+	{
+		OnBnClickedButton1();
+		OnBnClickedButton1();
+		OnBnClickedButton1();
+	}
+
+	pulling = false;
 }

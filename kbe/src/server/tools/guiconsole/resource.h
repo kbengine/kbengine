@@ -61,6 +61,10 @@
 #define IDC_WARNING                     1032
 #define IDC_INFO                        1033
 #define IDC_MFCBUTTON1                  1035
+#define IDC_LOG_DATE                    1036
+#define IDC_LOG_FINDSTR                 1037
+#define IDC_LOG_DATE_STATIC             1038
+#define IDC_LOG_FIND                    1039
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_HELP_ABOUT                   32773
@@ -75,7 +79,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1036
+#define _APS_NEXT_CONTROL_VALUE         1040
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

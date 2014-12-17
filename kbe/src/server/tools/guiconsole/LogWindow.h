@@ -42,8 +42,8 @@ public:
 	CCheckListBox m_componentlist;
 	CCheckListBox m_msgTypeList;
 	CStatic m_optiongroup;
-	CStatic m_appIDstatic;
-	CEdit m_appIDEdit;
+	CStatic m_appIDstatic, m_dateStatic, m_findStatic;
+	CEdit m_appIDEdit, m_dateEdit, m_findEdit;
 	afx_msg void OnBnClickedButton1();
 	CMultiLineListBox m_loglist;
 
@@ -81,4 +81,6 @@ public:
 	afx_msg void OnLbnSelchangeMsgtypeList2();
 
 	std::list<std::string> m_logs_;
+	CButton m_pullonce;
+	afx_msg void OnBnClickedButton2();
 };
