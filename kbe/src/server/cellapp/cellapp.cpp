@@ -1115,15 +1115,18 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 
 	switch(mailtype)
 	{
-		case MAILBOX_TYPE_CELL:																		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+		case MAILBOX_TYPE_CELL:	
 			entity->onRemoteMethodCall(pChannel, s);
 			break;
-		case MAILBOX_TYPE_BASE_VIA_CELL: // entity.base.cell.xxx
+
+		// entity.base.cell.xxx
+		case MAILBOX_TYPE_BASE_VIA_CELL: 
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->baseMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG(fmt::format("Cellapp::onEntityMail: occur a error(can't found baseMailbox)! mailboxType={}, entityID={}.\n",
+					WARNING_MSG(fmt::format("Cellapp::onEntityMail: not found baseMailbox! mailboxType={}, entityID={}.\n",
 						mailtype, eid));
 
 					break;
@@ -1135,12 +1138,14 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				reclaim = false;
 			}
 			break;
-		case MAILBOX_TYPE_CLIENT_VIA_CELL: // entity.cell.client
+		
+		// entity.cell.client
+		case MAILBOX_TYPE_CLIENT_VIA_CELL: 
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->clientMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG(fmt::format("Cellapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType={}, entityID={}.\n",
+					WARNING_MSG(fmt::format("Cellapp::onEntityMail: not found clientMailbox! mailboxType={}, entityID={}.\n",
 						mailtype, eid));
 
 					break;
