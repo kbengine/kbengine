@@ -42,17 +42,31 @@ void LogWatcher::reset()
 {
 	for(uint8 i =0; i<COMPONENT_END_TYPE; i++)
 	{
-		componentBitmap_[i] = 0;
+		filterOptions_.componentBitmap[i] = 0;
 	}
 	
-	logtypes_ = 0;
-	appOrder_ = 0;
+	filterOptions_.logtypes = 0;
+	filterOptions_.appOrder = 0;
+	filterOptions_.keyStr = "";
+	filterOptions_.date = "";
+
+	state_ = STATE_AUTO;
 }
 
 //-------------------------------------------------------------------------------------
-bool LogWatcher::loadFromStream(MemoryStream * s)
+bool LogWatcher::createFromStream(MemoryStream * s)
 {
-	return updateSetting(s);
+	bool ret = updateSetting(s);
+
+	bool isfind = false;
+	(*s) >> isfind;
+
+	if(isfind)
+		state_ = STATE_FINDING;
+	else
+		state_ = STATE_AUTO;
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,8 +74,8 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 {
 	reset();
 	
-	(*s) >> logtypes_;
-	(*s) >> appOrder_;
+	(*s) >> filterOptions_.logtypes;
+	(*s) >> filterOptions_.appOrder;
 
 	int8 count = 0;
 	(*s) >> count;
@@ -72,7 +86,7 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 		(*s) >> type;
 
 		if(VALID_COMPONENT(type))
-			componentBitmap_[type] = 1;
+			filterOptions_.componentBitmap[type] = 1;
 	}
 
 	return true;
@@ -81,19 +95,21 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 //-------------------------------------------------------------------------------------
 void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 {
-	if(!VALID_COMPONENT(pLogItem->componentType) || componentBitmap_[pLogItem->componentType] == 0)
+	if(!VALID_COMPONENT(pLogItem->componentType) || filterOptions_.componentBitmap[pLogItem->componentType] == 0)
 		return;
 
-	if((logtypes_ & pLogItem->logtype) <= 0)
+	if((filterOptions_.logtypes & pLogItem->logtype) <= 0)
 		return;
 
-	if(appOrder_ > 0 && appOrder_ != pLogItem->componentOrder)
+	if(filterOptions_.appOrder > 0 && filterOptions_.appOrder != pLogItem->componentOrder)
 		return;
-
 
 	Network::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pChannel == NULL)
+		return;
+
+	if(!validDate_(pLogItem->logstream.str()))
 		return;
 
 	Network::Bundle bundle;
@@ -101,6 +117,24 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	bundle.newMessage(msgHandler);
 	bundle << pLogItem->logstream.str().c_str();
 	bundle.send(Messagelog::getSingleton().networkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+bool LogWatcher::validDate_(const std::string& log)
+{
+	if(filterOptions_.date.size() == 0)
+		return true;
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool LogWatcher::containKeyworlds_(const std::string& log)
+{
+	if(filterOptions_.keyStr.size() == 0)
+		return true;
+
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

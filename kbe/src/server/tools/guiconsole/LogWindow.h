@@ -82,5 +82,6 @@ public:
 
 	std::list<std::string> m_logs_;
 	CButton m_pullonce;
+	bool isfind_;
 	afx_msg void OnBnClickedButton2();
 };

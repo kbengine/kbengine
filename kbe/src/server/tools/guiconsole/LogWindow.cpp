@@ -131,6 +131,8 @@ BOOL CLogWindow::OnInitDialog()
 		MAKEINTRESOURCE(IDB_ERROR1));
 
 	updateLogBtnStatus(false);
+
+	isfind_= false;
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -384,6 +386,8 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 			bundle << (*iter);
 		}
 
+		bundle << isfind_;
+
 		bool first = m_loglist.GetCount() <= 0;
 		bundle << first;
 		bundle.send(dlg->networkInterface(), pChannel);
@@ -549,19 +553,19 @@ void CLogWindow::OnNMThemeChangedAppList1(NMHDR *pNMHDR, LRESULT *pResult)
 	// The symbol _WIN32_WINNT must be >= 0x0501.
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
-	//updateSettingToServer();
+	updateSettingToServer();
 }
 
 void CLogWindow::OnLbnSelchangeAppList1()
 {
 	// TODO: Add your control notification handler code here
-	//updateSettingToServer();
+	updateSettingToServer();
 }
 
 void CLogWindow::OnLbnSelchangeMsgtypeList2()
 {
 	// TODO: Add your control notification handler code here
-	//updateSettingToServer();
+	updateSettingToServer();
 }
 
 void CLogWindow::updateSettingToServer()
@@ -616,6 +620,7 @@ void CLogWindow::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
 	OnBnClickedMfcbutton1();
+	isfind_ = true;
 
 	if(pulling == false)
 	{
@@ -630,4 +635,5 @@ void CLogWindow::OnBnClickedButton2()
 	}
 
 	pulling = false;
+	isfind_ = false;
 }

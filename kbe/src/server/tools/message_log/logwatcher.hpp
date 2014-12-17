@@ -37,24 +37,45 @@ namespace KBEngine
 class MemoryStream;
 struct LOG_ITEM;
 
+struct FilterOptions
+{
+	uint32 logtypes;
+	uint8 componentBitmap[COMPONENT_END_TYPE];
+	COMPONENT_ORDER appOrder;
+	std::string keyStr;
+	std::string date;
+};
+
 class LogWatcher
 {
 public:
+	enum STATES
+	{
+		STATE_AUTO = 0,
+		STATE_FINDING = 1,
+	};
+
 	LogWatcher();
 	~LogWatcher();
 
-	bool loadFromStream(MemoryStream * s);
+	bool createFromStream(MemoryStream * s);
 	bool updateSetting(MemoryStream * s);
 
 	void reset();
 	void addr(const Network::Address& address) { addr_ = address; }
 	
 	void onMessage(LOG_ITEM* pLogItem);
+
+	STATES state()const{ return state_; }
+
 protected:
-	uint32 logtypes_;
-	uint8 componentBitmap_[COMPONENT_END_TYPE];
-	COMPONENT_ORDER appOrder_;
+	bool validDate_(const std::string& log);
+	bool containKeyworlds_(const std::string& log);
+
+protected:
 	Network::Address addr_;
+	FilterOptions filterOptions_;
+	STATES state_;
 };
 
 }

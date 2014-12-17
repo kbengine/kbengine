@@ -190,7 +190,7 @@ void Messagelog::sendInitLogs(LogWatcher& logWatcher)
 void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
-	if(!pLogwatcher->loadFromStream(&s))
+	if(!pLogwatcher->createFromStream(&s))
 	{
 		ERROR_MSG(fmt::format("Messagelog::registerLogWatcher: addr={} is failed!\n",
 			pChannel->addr().c_str()));
