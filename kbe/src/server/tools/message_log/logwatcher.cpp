@@ -116,7 +116,7 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if(pChannel == NULL)
 		return;
 
-	if(!validDate_(pLogItem->logstream.str()))
+	if(!validDate_(pLogItem->logstream.str()) || !containKeyworlds_(pLogItem->logstream.str()))
 		return;
 
 	Network::Bundle bundle;
@@ -139,6 +139,9 @@ bool LogWatcher::validDate_(const std::string& log)
 bool LogWatcher::containKeyworlds_(const std::string& log)
 {
 	if(filterOptions_.keyStr.size() == 0)
+		return true;
+
+	if(log.find(filterOptions_.keyStr.c_str()) != std::string::npos)
 		return true;
 
 	return false;
