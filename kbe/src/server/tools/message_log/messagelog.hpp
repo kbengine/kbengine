@@ -48,7 +48,8 @@ struct LOG_ITEM
 	uint32 logtype;
 	COMPONENT_TYPE componentType;
 	COMPONENT_ID componentID;
-	COMPONENT_ORDER componentOrder;
+	COMPONENT_ORDER componentGlobalOrder;
+	COMPONENT_ORDER componentGroupOrder;
 	int64 t;
 	GAME_TIME kbetime;
 	std::stringstream logstream;

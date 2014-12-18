@@ -41,7 +41,8 @@ struct FilterOptions
 {
 	uint32 logtypes;
 	uint8 componentBitmap[COMPONENT_END_TYPE];
-	COMPONENT_ORDER appOrder;
+	COMPONENT_ORDER globalOrder;
+	COMPONENT_ORDER groupOrder;
 	std::string keyStr;
 	std::string date;
 };

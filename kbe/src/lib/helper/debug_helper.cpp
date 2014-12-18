@@ -434,6 +434,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << g_componentType;
 	(*pBundle) << g_componentID;
 	(*pBundle) << g_componentGlobalOrder;
+	(*pBundle) << g_componentGroupOrder;
 
 	int64 t = time(NULL);
 	(*pBundle) << t;

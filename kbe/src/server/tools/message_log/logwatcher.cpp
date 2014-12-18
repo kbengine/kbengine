@@ -46,7 +46,8 @@ void LogWatcher::reset()
 	}
 	
 	filterOptions_.logtypes = 0;
-	filterOptions_.appOrder = 0;
+	filterOptions_.globalOrder = 0;
+	filterOptions_.groupOrder = 0;
 	filterOptions_.keyStr = "";
 	filterOptions_.date = "";
 
@@ -75,7 +76,8 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 	reset();
 	
 	(*s) >> filterOptions_.logtypes;
-	(*s) >> filterOptions_.appOrder;
+	(*s) >> filterOptions_.globalOrder;
+	(*s) >> filterOptions_.groupOrder;
 	(*s) >> filterOptions_.date;
 	(*s) >> filterOptions_.keyStr;
 
@@ -103,7 +105,10 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if((filterOptions_.logtypes & pLogItem->logtype) <= 0)
 		return;
 
-	if(filterOptions_.appOrder > 0 && filterOptions_.appOrder != pLogItem->componentOrder)
+	if(filterOptions_.globalOrder > 0 && filterOptions_.globalOrder != pLogItem->componentGlobalOrder)
+		return;
+
+	if(filterOptions_.groupOrder > 0 && filterOptions_.groupOrder != pLogItem->componentGroupOrder)
 		return;
 
 	Network::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);

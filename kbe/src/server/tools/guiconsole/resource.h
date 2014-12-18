@@ -65,6 +65,8 @@
 #define IDC_LOG_FINDSTR                 1037
 #define IDC_LOG_DATE_STATIC             1038
 #define IDC_LOG_FIND                    1039
+#define IDC_STATIC_APPID1               1040
+#define IDC_APPID_EDIT1                 1041
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_HELP_ABOUT                   32773
@@ -79,7 +81,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1040
+#define _APS_NEXT_CONTROL_VALUE         1042
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

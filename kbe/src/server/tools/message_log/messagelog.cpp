@@ -123,7 +123,8 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> pLogItem->logtype;
 	s >> pLogItem->componentType;
 	s >> pLogItem->componentID;
-	s >> pLogItem->componentOrder;
+	s >> pLogItem->componentGlobalOrder;
+	s >> pLogItem->componentGroupOrder;
 	s >> pLogItem->t >> pLogItem->kbetime;
 	s >> str;
 
@@ -152,7 +153,8 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	pLogItem->logstream << " ";
 	pLogItem->logstream << pLogItem->componentID;
 	pLogItem->logstream << " ";
-	pLogItem->logstream << (int)pLogItem->componentOrder;
+	pLogItem->logstream << (int)pLogItem->componentGlobalOrder;
+	pLogItem->logstream << (int)pLogItem->componentGroupOrder;
 	pLogItem->logstream << timebuf;
 	pLogItem->logstream << "- ";
 	pLogItem->logstream << str;

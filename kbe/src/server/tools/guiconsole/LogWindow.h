@@ -42,8 +42,8 @@ public:
 	CCheckListBox m_componentlist;
 	CCheckListBox m_msgTypeList;
 	CStatic m_optiongroup;
-	CStatic m_appIDstatic, m_dateStatic, m_findStatic;
-	CEdit m_appIDEdit, m_dateEdit, m_findEdit;
+	CStatic m_appIDstatic, m_appIDstatic1, m_dateStatic, m_findStatic;
+	CEdit m_appIDEdit, m_appIDEdit1, m_dateEdit, m_findEdit;
 	afx_msg void OnBnClickedButton1();
 	CMultiLineListBox m_loglist;
 
@@ -84,4 +84,5 @@ public:
 	CButton m_pullonce;
 	bool isfind_;
 	afx_msg void OnBnClickedButton2();
+	afx_msg void OnStnClickedStaticAppid1();
 };

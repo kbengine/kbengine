@@ -42,9 +42,11 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MSGTYPE_LIST2, m_msgTypeList);
 	DDX_Control(pDX, IDC_STATIC_OPTION, m_optiongroup);
 	DDX_Control(pDX, IDC_STATIC_APPID, m_appIDstatic);
+	DDX_Control(pDX, IDC_STATIC_APPID1, m_appIDstatic1);
 	DDX_Control(pDX, IDC_LOG_DATE_STATIC, m_dateStatic);
 	DDX_Control(pDX, IDC_LOG_FIND, m_findStatic);
 	DDX_Control(pDX, IDC_APPID_EDIT, m_appIDEdit);
+	DDX_Control(pDX, IDC_APPID_EDIT1, m_appIDEdit1);
 	DDX_Control(pDX, IDC_LOG_DATE, m_dateEdit);
 	DDX_Control(pDX, IDC_LOG_FINDSTR, m_findEdit);
 	DDX_Control(pDX, IDC_LOG_LIST1, m_loglist);
@@ -176,6 +178,7 @@ BEGIN_MESSAGE_MAP(CLogWindow, CDialog)
 	ON_LBN_SELCHANGE(IDC_APP_LIST1, &CLogWindow::OnLbnSelchangeAppList1)
 	ON_LBN_SELCHANGE(IDC_MSGTYPE_LIST2, &CLogWindow::OnLbnSelchangeMsgtypeList2)
 	ON_BN_CLICKED(IDC_BUTTON2, &CLogWindow::OnBnClickedButton2)
+	ON_STN_CLICKED(IDC_STATIC_APPID1, &CLogWindow::OnStnClickedStaticAppid1)
 END_MESSAGE_MAP()
 
 void CLogWindow::OnTimer(UINT_PTR nIDEvent)
@@ -246,12 +249,14 @@ void CLogWindow::autoWndSize()
 	m_msgTypeList.MoveWindow(rect.right / 5 + 3, int(rect.bottom * 0.7), rect.right / 7, int(rect.bottom * 0.3) + addHeight, TRUE);
 
 	m_optiongroup.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3, int(rect.bottom * 0.7), rect.right / 2.9, int(rect.bottom * 0.3) + addHeight, TRUE);
-	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
-	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
-	m_dateStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.75) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
-	m_dateEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.75) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
-	m_findStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.8) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
-	m_findEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.8) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.5), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 30 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_appIDstatic1.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.75) + 15,  int(rect.right / 5 * 0.5), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_appIDEdit1.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 30 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.75) + 15 + addHeight,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_dateStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.8) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
+	m_dateEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.8) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
+	m_findStatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.85) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03) + addHeight, TRUE);
+	m_findEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.85) + 15 + addHeight,  int(rect.right / 3 * 0.8), int(rect.bottom * 0.04) + addHeight, TRUE);
 
 	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - m_edit_height - 10, TRUE);
 
@@ -373,6 +378,13 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 
 		char* cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
 		COMPONENT_ORDER order = atoi(cs);
+		free(cs);
+
+		bundle << order;
+
+		m_appIDEdit1.GetWindowTextW(apporder);
+		cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
+		order = atoi(cs);
 		free(cs);
 
 		bundle << order;
@@ -597,6 +609,13 @@ void CLogWindow::updateSettingToServer()
 
 	bundle << order;
 
+	m_appIDEdit1.GetWindowTextW(apporder);
+	cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
+	order = atoi(cs);
+	free(cs);
+
+	bundle << order;
+
 	CString date;
 	m_dateEdit.GetWindowTextW(date);
 	cs = KBEngine::strutil::wchar2char(date.GetBuffer(0));
@@ -661,4 +680,10 @@ void CLogWindow::OnBnClickedButton2()
 
 	pulling = false;
 	isfind_ = false;
+}
+
+
+void CLogWindow::OnStnClickedStaticAppid1()
+{
+	// TODO: Add your control notification handler code here
 }
