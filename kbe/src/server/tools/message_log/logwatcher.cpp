@@ -76,6 +76,8 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 	
 	(*s) >> filterOptions_.logtypes;
 	(*s) >> filterOptions_.appOrder;
+	(*s) >> filterOptions_.date;
+	(*s) >> filterOptions_.keyStr;
 
 	int8 count = 0;
 	(*s) >> count;

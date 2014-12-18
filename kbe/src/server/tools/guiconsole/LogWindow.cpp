@@ -376,6 +376,18 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 
 		bundle << order;
 
+		CString date;
+		m_dateEdit.GetWindowTextW(date);
+		cs = KBEngine::strutil::wchar2char(date.GetBuffer(0));
+		bundle << cs;
+		free(cs);
+
+		CString keystr;
+		m_findEdit.GetWindowTextW(keystr);
+		cs = KBEngine::strutil::wchar2char(keystr.GetBuffer(0));
+		bundle << cs;
+		free(cs);
+
 		int8 count = 0;
 		std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
 		count = vec.size();
@@ -583,6 +595,18 @@ void CLogWindow::updateSettingToServer()
 	free(cs);
 
 	bundle << order;
+
+	CString date;
+	m_dateEdit.GetWindowTextW(date);
+	cs = KBEngine::strutil::wchar2char(date.GetBuffer(0));
+	bundle << cs;
+	free(cs);
+
+	CString keystr;
+	m_findEdit.GetWindowTextW(keystr);
+	cs = KBEngine::strutil::wchar2char(keystr.GetBuffer(0));
+	bundle << cs;
+	free(cs);
 
 	int8 count = 0;
 	std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
