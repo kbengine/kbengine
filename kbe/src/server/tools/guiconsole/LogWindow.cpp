@@ -328,6 +328,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 
 void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)
 {
+	OnBnClickedMfcbutton1();
 	pulling = !success;
 	pullLogs(addr);
 }
