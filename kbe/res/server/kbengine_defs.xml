@@ -112,7 +112,7 @@
 			</internal>
 			<external>
 				<interval> 10 </interval>					<!-- 毫秒 -->
-				<retries> 3 </retries>						<!-- 重试次数, 0无限(0 is unlimited) -->
+				<retries> 10 </retries>						<!-- 重试次数, 0无限(0 is unlimited) -->
 			</external>
 		</resend>
 		
