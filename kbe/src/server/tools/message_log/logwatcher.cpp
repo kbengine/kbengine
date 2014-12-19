@@ -132,6 +132,9 @@ bool LogWatcher::validDate_(const std::string& log)
 	if(filterOptions_.date.size() == 0)
 		return true;
 
+	if(log.find(filterOptions_.date.c_str()) != std::string::npos)
+		return true;
+
 	return false;
 }
 

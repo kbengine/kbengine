@@ -134,20 +134,37 @@ const char COMPONENT_NAME[][255] = {
 };
 
 const char COMPONENT_NAME_1[][255] = {
-	"unknown    ",
-	"dbmgr      ",
-	"loginapp   ",
-	"baseappmgr ",
-	"cellappmgr ",
-	"cellapp    ",
-	"baseapp    ",
-	"client     ",
-	"kbmachine  ",
-	"console    ",
-	"messagelog ",
-	"bots",
-	"watcher",
-	"billing",
+	"unknown   ",
+	"dbmgr     ",
+	"loginapp  ",
+	"baseappmgr",
+	"cellappmgr",
+	"cellapp   ",
+	"baseapp   ",
+	"client    ",
+	"kbmachine ",
+	"console   ",
+	"messagelog",
+	"bots      ",
+	"watcher   ",
+	"billing   ",
+};
+
+const char COMPONENT_NAME_2[][255] = {
+	"   unknown",
+	"     dbmgr",
+	"  loginapp",
+	"baseappmgr",
+	"cellappmgr",
+	"   cellapp",
+	"   baseapp",
+	"    client",
+	" kbmachine",
+	"   console",
+	"messagelog",
+	"      bots",
+	"   watcher",
+	"   billing",
 };
 
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
@@ -168,6 +185,16 @@ inline const char* COMPONENT_NAME_EX_1(COMPONENT_TYPE CTYPE)
 	}
 
 	return COMPONENT_NAME_1[CTYPE];
+}
+
+inline const char* COMPONENT_NAME_EX_2(COMPONENT_TYPE CTYPE)
+{									
+	if(CTYPE < 0 || CTYPE >= COMPONENT_END_TYPE)
+	{
+		return COMPONENT_NAME_2[UNKNOWN_COMPONENT_TYPE];
+	}
+
+	return COMPONENT_NAME_2[CTYPE];
 }
 
 inline COMPONENT_TYPE ComponentName2ComponentType(const char* name)

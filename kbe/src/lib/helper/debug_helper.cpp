@@ -37,6 +37,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <syslog.h>
 #endif
 
+#include <sys/timeb.h>
+
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/net/socketappender.h"
@@ -436,9 +438,13 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << g_componentGlobalOrder;
 	(*pBundle) << g_componentGroupOrder;
 
-	int64 t = time(NULL);
+	struct timeb tp;
+	ftime(&tp);
+
+	int64 t = tp.time;
 	(*pBundle) << t;
-	(*pBundle) << g_kbetime;
+	uint32 millitm = tp.millitm;
+	(*pBundle) << millitm;
 	(*pBundle) << str;
 	
 	++hasBufferedLogPackets_;
