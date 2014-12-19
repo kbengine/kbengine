@@ -1622,7 +1622,11 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 	COMPONENT_ID ghostCell;
 	s >> ghostCell;
-	
+
+	// 对于传送操作来说，实体传送过来就不会有ghost部分了
+	// 当前实体做出的任何改变不需要同步到原有cell，这可能会产生网络消息死循环
+	ghostCell = 0;
+
 	e->ghostCell(ghostCell);
 	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
