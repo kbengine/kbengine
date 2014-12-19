@@ -2866,7 +2866,9 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);
 	Py_XDECREF(cellData);
-	
+
+	initing_ = false;
+
 	createMoveHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
