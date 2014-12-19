@@ -584,8 +584,8 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 			}
 
 			WARNING_MSG(fmt::format("NetworkInterface::basicSendWithRetries: "
-				"Transmit queue full, waiting for space... ({})\n",
-				retries));
+				"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})... ({})\n",
+				(pChannel->isInternal() ? "internal" : "external"), retries));
 			
 			KBEngine::sleep(pChannel->isInternal() ? g_intReSendInterval : g_extReSendInterval);
 			continue;

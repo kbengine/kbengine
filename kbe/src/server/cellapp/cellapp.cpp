@@ -1301,7 +1301,6 @@ void Cellapp::onRemoteRealMethodCall(Network::Channel* pChannel, KBEngine::Memor
 	}
 
 	entity->onRemoteRealMethodCall(s);
-	s.done();
 }
 
 //-------------------------------------------------------------------------------------

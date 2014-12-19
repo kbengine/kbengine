@@ -41,7 +41,6 @@
 
 		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
-			<Arg>		ENTITY_UTYPE	</Arg>
 			<Arg>		POSITION3D	</Arg>
 			<Arg>		DIRECTION3D	</Arg>
 			<Arg>		PYTHON		</Arg>
