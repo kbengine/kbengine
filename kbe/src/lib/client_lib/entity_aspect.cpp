@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "entity_aspect.hpp"
-#include "helper/debug_helper.hpp"
+#include "entity_aspect.h"
+#include "helper/debug_helper.h"
 
 namespace KBEngine{	
 

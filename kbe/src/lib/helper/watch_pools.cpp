@@ -18,15 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "watcher.hpp"
-#include "watch_pools.hpp"
-#include "network/bundle.hpp"
-#include "network/address.hpp"
-#include "network/endpoint.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "network/udp_packet_receiver.hpp"
+#include "watcher.h"
+#include "watch_pools.h"
+#include "network/bundle.h"
+#include "network/address.h"
+#include "network/endpoint.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/udp_packet_receiver.h"
 
 namespace KBEngine { 
 

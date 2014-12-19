@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "idallocate.hpp"
-#include "serverapp.hpp"
-#include "components.hpp"
-#include "helper/debug_helper.hpp"
-#include "server/serverconfig.hpp"
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "idallocate.h"
+#include "serverapp.h"
+#include "components.h"
+#include "helper/debug_helper.h"
+#include "server/serverconfig.h"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{
 

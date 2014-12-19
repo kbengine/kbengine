@@ -19,17 +19,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entitymailboxabstract.hpp"
-#include "pyscript/pickler.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/packet.hpp"
-#include "network/bundle.hpp"
-#include "network/network_interface.hpp"
-#include "server/components.hpp"
-#include "client_lib/client_interface.hpp"
+#include "entitymailboxabstract.h"
+#include "pyscript/pickler.h"
+#include "helper/debug_helper.h"
+#include "network/packet.h"
+#include "network/bundle.h"
+#include "network/network_interface.h"
+#include "server/components.h"
+#include "client_lib/client_interface.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
 
 namespace KBEngine{
 

@@ -44,25 +44,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="billinghandler.hpp">
+    <ClInclude Include="billinghandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="buffered_dbtasks.hpp">
+    <ClInclude Include="buffered_dbtasks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbmgr.hpp">
+    <ClInclude Include="dbmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbmgr_interface.hpp">
+    <ClInclude Include="dbmgr_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbmgr_interface_macros.hpp">
+    <ClInclude Include="dbmgr_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbtasks.hpp">
+    <ClInclude Include="dbtasks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sync_app_datas_handler.hpp">
+    <ClInclude Include="sync_app_datas_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

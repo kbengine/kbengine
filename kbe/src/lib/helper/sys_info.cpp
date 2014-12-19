@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sys_info.hpp"
+#include "sys_info.h"
 
 extern "C"
 {
@@ -27,7 +27,7 @@ extern "C"
 }
 
 #ifndef CODE_INLINE
-#include "sys_info.ipp"
+#include "sys_info.inl"
 #endif
 
 namespace KBEngine

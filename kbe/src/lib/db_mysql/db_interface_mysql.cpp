@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "db_interface_mysql.hpp"
-#include "entity_table_mysql.hpp"
-#include "db_exception.hpp"
-#include "thread/threadguard.hpp"
-#include "helper/watcher.hpp"
-#include "server/serverconfig.hpp"
+#include "db_interface_mysql.h"
+#include "entity_table_mysql.h"
+#include "db_exception.h"
+#include "thread/threadguard.h"
+#include "helper/watcher.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine { 
 

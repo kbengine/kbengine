@@ -113,34 +113,34 @@
     <ClCompile Include="telnet_server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="callbackmgr.hpp" />
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="component_active_report_handler.hpp" />
-    <ClInclude Include="components.hpp" />
-    <ClInclude Include="entity_app.hpp" />
-    <ClInclude Include="forward_messagebuffer.hpp" />
-    <ClInclude Include="globaldata_client.hpp" />
-    <ClInclude Include="globaldata_server.hpp" />
-    <ClInclude Include="idallocate.hpp" />
-    <ClInclude Include="kbemain.hpp" />
-    <ClInclude Include="machine_infos.hpp" />
-    <ClInclude Include="pendingLoginmgr.hpp" />
-    <ClInclude Include="script_timers.hpp" />
-    <ClInclude Include="sendmail_threadtasks.hpp" />
-    <ClInclude Include="server_errors.hpp" />
-    <ClInclude Include="serverapp.hpp" />
-    <ClInclude Include="serverconfig.hpp" />
-    <ClInclude Include="shutdown_handler.hpp" />
-    <ClInclude Include="shutdowner.hpp" />
-    <ClInclude Include="signal_handler.hpp" />
-    <ClInclude Include="telnet_handler.hpp" />
-    <ClInclude Include="telnet_server.hpp" />
+    <ClInclude Include="callbackmgr.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="component_active_report_handler.h" />
+    <ClInclude Include="components.h" />
+    <ClInclude Include="entity_app.h" />
+    <ClInclude Include="forward_messagebuffer.h" />
+    <ClInclude Include="globaldata_client.h" />
+    <ClInclude Include="globaldata_server.h" />
+    <ClInclude Include="idallocate.h" />
+    <ClInclude Include="kbemain.h" />
+    <ClInclude Include="machine_infos.h" />
+    <ClInclude Include="pendingLoginmgr.h" />
+    <ClInclude Include="script_timers.h" />
+    <ClInclude Include="sendmail_threadtasks.h" />
+    <ClInclude Include="server_errors.h" />
+    <ClInclude Include="serverapp.h" />
+    <ClInclude Include="serverconfig.h" />
+    <ClInclude Include="shutdown_handler.h" />
+    <ClInclude Include="shutdowner.h" />
+    <ClInclude Include="signal_handler.h" />
+    <ClInclude Include="telnet_handler.h" />
+    <ClInclude Include="telnet_server.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="serverconfig.ipp" />
-    <None Include="telnet_handler.ipp" />
-    <None Include="telnet_server.ipp" />
+    <None Include="serverconfig.inl" />
+    <None Include="telnet_handler.inl" />
+    <None Include="telnet_server.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dependencies\jwsmtp\jwsmtp.vcxproj">

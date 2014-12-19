@@ -2,7 +2,7 @@
 #include "afxcmn.h"
 #include "afxwin.h"
 #include <string>
-#include "common/common.hpp"
+#include "common/common.h"
 
 // CStartServerWindow dialog
 

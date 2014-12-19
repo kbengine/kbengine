@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "message_handler.hpp"
-#include "common/md5.hpp"
-#include "network/channel.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/fixed_messages.hpp"
-#include "helper/watcher.hpp"
-#include "xmlplus/xmlplus.hpp"
-#include "resmgr/resmgr.hpp"	
+#include "message_handler.h"
+#include "common/md5.h"
+#include "network/channel.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
+#include "network/fixed_messages.h"
+#include "helper/watcher.h"
+#include "xmlplus/xmlplus.h"
+#include "resmgr/resmgr.h"	
 
 namespace KBEngine { 
 namespace Network

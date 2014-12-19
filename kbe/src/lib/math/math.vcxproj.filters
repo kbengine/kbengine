@@ -86,7 +86,7 @@
     <ClInclude Include="..\dependencies\g3dlite\G3D\Line.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="math.hpp">
+    <ClInclude Include="math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\g3dlite\G3D\Matrix3.h">

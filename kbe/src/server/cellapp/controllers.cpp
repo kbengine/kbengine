@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "controllers.hpp"	
-#include "cellapp.hpp"	
-#include "entity.hpp"	
-#include "helper/profile.hpp"	
-#include "common/memorystream.hpp"	
+#include "controllers.h"	
+#include "cellapp.h"	
+#include "entity.h"	
+#include "helper/profile.h"	
+#include "common/memorystream.h"	
 
-#include "proximity_controller.hpp"	
-#include "moveto_point_handler.hpp"	
-#include "moveto_entity_handler.hpp"	
-#include "navigate_handler.hpp"	
+#include "proximity_controller.h"	
+#include "moveto_point_handler.h"	
+#include "moveto_entity_handler.h"	
+#include "navigate_handler.h"	
 
 namespace KBEngine{	
 

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "copy.hpp"
+#include "copy.h"
 namespace KBEngine{ 
 namespace script{
 PyObject* Copy::copyMethod_ = NULL;

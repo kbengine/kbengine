@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "pickler.hpp"
-#include "helper/profile.hpp"
+#include "pickler.h"
+#include "helper/profile.h"
 
 namespace KBEngine{ namespace script {
 

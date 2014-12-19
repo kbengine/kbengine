@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "method.hpp"
-#include "entitydef.hpp"
-#include "network/bundle.hpp"
+#include "method.h"
+#include "entitydef.h"
+#include "network/bundle.h"
 
 #ifndef CODE_INLINE
-#include "method.ipp"
+#include "method.inl"
 #endif
 
 namespace KBEngine{

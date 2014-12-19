@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "crashhandler.hpp"
+#include "crashhandler.h"
 namespace KBEngine{ namespace exception {
 static wchar_t _g_fileName[512] = {0};
 

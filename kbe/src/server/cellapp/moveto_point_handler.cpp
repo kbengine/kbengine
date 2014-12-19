@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "entity.hpp"
-#include "moveto_point_handler.hpp"	
-#include "move_controller.hpp"	
+#include "cellapp.h"
+#include "entity.h"
+#include "moveto_point_handler.h"	
+#include "move_controller.h"	
 
 namespace KBEngine{	
 

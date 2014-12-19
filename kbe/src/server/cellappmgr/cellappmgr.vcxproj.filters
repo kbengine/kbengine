@@ -44,28 +44,28 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cell.hpp">
+    <ClInclude Include="cell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cellapp.hpp">
+    <ClInclude Include="cellapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cellappmgr.hpp">
+    <ClInclude Include="cellappmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cellappmgr_interface.hpp">
+    <ClInclude Include="cellappmgr_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cellappmgr_interface_macros.hpp">
+    <ClInclude Include="cellappmgr_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cells.hpp">
+    <ClInclude Include="cells.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="space.hpp">
+    <ClInclude Include="space.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="spaces.hpp">
+    <ClInclude Include="spaces.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "coordinate_node.hpp"
-#include "coordinate_system.hpp"
+#include "coordinate_node.h"
+#include "coordinate_system.h"
 
 #ifndef CODE_INLINE
-#include "coordinate_node.ipp"
+#include "coordinate_node.inl"
 #endif
 
 namespace KBEngine{	

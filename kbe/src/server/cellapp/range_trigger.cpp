@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "range_trigger.hpp"
-#include "coordinate_system.hpp"
-#include "entity_coordinate_node.hpp"
-#include "range_trigger_node.hpp"
+#include "range_trigger.h"
+#include "coordinate_system.h"
+#include "entity_coordinate_node.h"
+#include "range_trigger_node.h"
 
 #ifndef CODE_INLINE
-#include "range_trigger.ipp"
+#include "range_trigger.inl"
 #endif
 
 namespace KBEngine{	

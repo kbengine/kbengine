@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "script.hpp"
-#include "py_gc.hpp"
-#include "scriptstdouterr.hpp"
-#include "pyattr_macro.hpp"
-#include "helper/profile.hpp"
+#include "script.h"
+#include "py_gc.h"
+#include "scriptstdouterr.h"
+#include "pyattr_macro.h"
+#include "helper/profile.h"
 
 namespace KBEngine{ namespace script {
 

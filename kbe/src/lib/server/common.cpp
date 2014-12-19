@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "common.hpp"
-#include "server/serverconfig.hpp"
+#include "common.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine { 
 

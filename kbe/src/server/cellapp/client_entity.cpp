@@ -18,22 +18,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "witness.hpp"
-#include "entityref.hpp"
-#include "client_entity.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/packet.hpp"
-#include "network/bundle.hpp"
-#include "network/network_interface.hpp"
-#include "server/components.hpp"
-#include "client_lib/client_interface.hpp"
-#include "entitydef/method.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "client_entity_method.hpp"
+#include "cellapp.h"
+#include "witness.h"
+#include "entityref.h"
+#include "client_entity.h"
+#include "helper/debug_helper.h"
+#include "network/packet.h"
+#include "network/bundle.h"
+#include "network/network_interface.h"
+#include "server/components.h"
+#include "client_lib/client_interface.h"
+#include "entitydef/method.h"
+#include "entitydef/scriptdef_module.h"
+#include "client_entity_method.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
 
 namespace KBEngine{
 

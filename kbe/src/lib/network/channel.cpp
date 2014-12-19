@@ -19,23 +19,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "channel.hpp"
+#include "channel.h"
 #ifndef CODE_INLINE
-#include "channel.ipp"
+#include "channel.inl"
 #endif
 
-#include "network/websocket_protocol.hpp"
-#include "network/html5_packet_filter.hpp"
-#include "network/html5_packet_reader.hpp"
-#include "network/bundle.hpp"
-#include "network/packet_reader.hpp"
-#include "network/network_interface.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "network/udp_packet_receiver.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/network_stats.hpp"
+#include "network/websocket_protocol.h"
+#include "network/html5_packet_filter.h"
+#include "network/html5_packet_reader.h"
+#include "network/bundle.h"
+#include "network/packet_reader.h"
+#include "network/network_interface.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/udp_packet_receiver.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/network_stats.h"
 
 namespace KBEngine { 
 namespace Network

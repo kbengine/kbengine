@@ -74,82 +74,82 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="callbackmgr.hpp">
+    <ClInclude Include="callbackmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.hpp">
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="component_active_report_handler.hpp">
+    <ClInclude Include="component_active_report_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="components.hpp">
+    <ClInclude Include="components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_app.hpp">
+    <ClInclude Include="entity_app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="forward_messagebuffer.hpp">
+    <ClInclude Include="forward_messagebuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="globaldata_client.hpp">
+    <ClInclude Include="globaldata_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="globaldata_server.hpp">
+    <ClInclude Include="globaldata_server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="idallocate.hpp">
+    <ClInclude Include="idallocate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kbemain.hpp">
+    <ClInclude Include="kbemain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="machine_infos.hpp">
+    <ClInclude Include="machine_infos.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pendingLoginmgr.hpp">
+    <ClInclude Include="pendingLoginmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="script_timers.hpp">
+    <ClInclude Include="script_timers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sendmail_threadtasks.hpp">
+    <ClInclude Include="sendmail_threadtasks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="server_errors.hpp">
+    <ClInclude Include="server_errors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serverapp.hpp">
+    <ClInclude Include="serverapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serverconfig.hpp">
+    <ClInclude Include="serverconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shutdown_handler.hpp">
+    <ClInclude Include="shutdown_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shutdowner.hpp">
+    <ClInclude Include="shutdowner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="signal_handler.hpp">
+    <ClInclude Include="signal_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="telnet_handler.hpp">
+    <ClInclude Include="telnet_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="telnet_server.hpp">
+    <ClInclude Include="telnet_server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="serverconfig.ipp">
+    <None Include="serverconfig.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="telnet_handler.ipp">
+    <None Include="telnet_handler.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="telnet_server.ipp">
+    <None Include="telnet_server.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

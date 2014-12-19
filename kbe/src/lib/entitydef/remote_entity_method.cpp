@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "method.hpp"
-#include "remote_entity_method.hpp"
-#include "network/bundle.hpp"
-#include "helper/debug_helper.hpp"
+#include "method.h"
+#include "remote_entity_method.h"
+#include "network/bundle.h"
+#include "helper/debug_helper.h"
 
 namespace KBEngine{
 

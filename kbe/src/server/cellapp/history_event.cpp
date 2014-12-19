@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "history_event.hpp"	
-#include "network/message_handler.hpp"
+#include "history_event.h"	
+#include "network/message_handler.h"
 
 namespace KBEngine{	
 

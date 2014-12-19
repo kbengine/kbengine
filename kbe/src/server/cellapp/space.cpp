@@ -18,20 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "space.hpp"	
-#include "entity.hpp"
-#include "witness.hpp"	
-#include "navigation/navigation.hpp"
-#include "loadnavmesh_threadtasks.hpp"
-#include "entitydef/entities.hpp"
-#include "client_lib/client_interface.hpp"
+#include "cellapp.h"
+#include "space.h"	
+#include "entity.h"
+#include "witness.h"	
+#include "navigation/navigation.h"
+#include "loadnavmesh_threadtasks.h"
+#include "entitydef/entities.h"
+#include "client_lib/client_interface.h"
 
-#include "../../server/baseappmgr/baseappmgr_interface.hpp"
-#include "../../server/cellappmgr/cellappmgr_interface.hpp"
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/baseappmgr/baseappmgr_interface.h"
+#include "../../server/cellappmgr/cellappmgr_interface.h"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{	
 

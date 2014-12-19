@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "bundle_broadcast.hpp"
+#include "bundle_broadcast.h"
 #ifndef CODE_INLINE
-#include "bundle_broadcast.ipp"
+#include "bundle_broadcast.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
 
 
 namespace KBEngine { 

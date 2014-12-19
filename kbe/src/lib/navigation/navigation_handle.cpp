@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "navigation_handle.hpp"	
-#include "navigation/navigation.hpp"
-#include "resmgr/resmgr.hpp"
-#include "thread/threadguard.hpp"
-#include "math/math.hpp"
+#include "navigation_handle.h"	
+#include "navigation/navigation.h"
+#include "resmgr/resmgr.h"
+#include "thread/threadguard.h"
+#include "math/math.h"
 
 namespace KBEngine{	
 

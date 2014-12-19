@@ -21,54 +21,54 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // messagelog需要增加吞吐量
 #define PACKET_MAX_SIZE_TCP 65535
 
-#include "common/common.hpp"
-#include "server/kbemain.hpp"
-#include "messagelog.hpp"
+#include "common/common.h"
+#include "server/kbemain.h"
+#include "messagelog.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/bots/bots_interface.hpp"
+#include "tools/bots/bots_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/bots/bots_interface.hpp"
+#include "tools/bots/bots_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 
 using namespace KBEngine;
 

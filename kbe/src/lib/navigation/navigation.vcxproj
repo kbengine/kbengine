@@ -159,10 +159,10 @@
     <ClInclude Include="DetourStatus.h" />
     <ClInclude Include="DetourTileCache.h" />
     <ClInclude Include="DetourTileCacheBuilder.h" />
-    <ClInclude Include="navigation.hpp" />
-    <ClInclude Include="navigation_handle.hpp" />
-    <ClInclude Include="navigation_mesh_handle.hpp" />
-    <ClInclude Include="navigation_tile_handle.hpp" />
+    <ClInclude Include="navigation.h" />
+    <ClInclude Include="navigation_handle.h" />
+    <ClInclude Include="navigation_mesh_handle.h" />
+    <ClInclude Include="navigation_tile_handle.h" />
     <ClInclude Include="Recast.h" />
     <ClInclude Include="RecastAlloc.h" />
     <ClInclude Include="RecastAssert.h" />

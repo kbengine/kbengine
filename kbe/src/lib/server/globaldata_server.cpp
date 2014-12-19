@@ -17,12 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "globaldata_server.hpp"
-#include "components.hpp"
-#include "network/channel.hpp"
+#include "globaldata_server.h"
+#include "components.h"
+#include "network/channel.h"
 
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/baseapp/baseapp_interface.h"
 
 namespace KBEngine{ 
 		

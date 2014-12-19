@@ -17,12 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "globaldata_client.hpp"
-#include "components.hpp"
-#include "serverapp.hpp"
-#include "network/channel.hpp"
+#include "globaldata_client.h"
+#include "components.h"
+#include "serverapp.h"
+#include "network/channel.h"
 
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{ 
 

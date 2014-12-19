@@ -19,13 +19,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "threadpool.hpp"
+#include "threadpool.h"
 
 #ifndef CODE_INLINE
-#include "threadpool.ipp"
+#include "threadpool.inl"
 #endif
 
-#include "helper/watcher.hpp"
+#include "helper/watcher.h"
 
 namespace KBEngine
 { 

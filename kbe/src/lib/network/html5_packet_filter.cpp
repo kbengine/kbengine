@@ -19,13 +19,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "html5_packet_filter.hpp"
+#include "html5_packet_filter.h"
 
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/tcp_packet.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
 
 namespace KBEngine { 
 namespace Network

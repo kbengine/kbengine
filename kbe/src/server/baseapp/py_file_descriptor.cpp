@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "network/event_dispatcher.hpp"
-#include "network/event_poller.hpp"
-#include "py_file_descriptor.hpp"
-#include "baseapp.hpp"
-#include "helper/debug_helper.hpp"
-#include "pyscript/pyobject_pointer.hpp"
+#include "network/event_dispatcher.h"
+#include "network/event_poller.h"
+#include "py_file_descriptor.h"
+#include "baseapp.h"
+#include "helper/debug_helper.h"
+#include "pyscript/pyobject_pointer.h"
 
 namespace KBEngine{
 

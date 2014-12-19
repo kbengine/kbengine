@@ -19,20 +19,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "clientapp.hpp"
-#include "entity.hpp"
-#include "clientobjectbase.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "network/channel.hpp"	
-#include "network/bundle.hpp"	
-#include "network/fixed_messages.hpp"
-#include "pyscript/py_gc.hpp"
+#include "clientapp.h"
+#include "entity.h"
+#include "clientobjectbase.h"
+#include "entitydef/entity_mailbox.h"
+#include "network/channel.h"	
+#include "network/bundle.h"	
+#include "network/fixed_messages.h"
+#include "pyscript/py_gc.h"
 
-#include "../../../server/baseapp/baseapp_interface.hpp"
-#include "../../../server/cellapp/cellapp_interface.hpp"
+#include "../../../server/baseapp/baseapp_interface.h"
+#include "../../../server/cellapp/cellapp_interface.h"
 
 #ifndef CODE_INLINE
-#include "entity.ipp"
+#include "entity.inl"
 #endif
 
 namespace KBEngine{

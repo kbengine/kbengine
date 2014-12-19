@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptstdouterrhook.hpp"
+#include "scriptstdouterrhook.h"
 
 #ifndef CODE_INLINE
-#include "scriptstdouterrhook.ipp"
+#include "scriptstdouterrhook.inl"
 #endif
 
 namespace KBEngine{ namespace script{

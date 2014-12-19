@@ -19,16 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "profile_handler.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/address.hpp"
-#include "network/network_stats.hpp"
-#include "network/bundle.hpp"
-#include "network/message_handler.hpp"
-#include "common/memorystream.hpp"
-#include "helper/console_helper.hpp"
-#include "helper/profile.hpp"
+#include "profile_handler.h"
+#include "network/network_interface.h"
+#include "network/event_dispatcher.h"
+#include "network/address.h"
+#include "network/network_stats.h"
+#include "network/bundle.h"
+#include "network/message_handler.h"
+#include "common/memorystream.h"
+#include "helper/console_helper.h"
+#include "helper/profile.h"
 
 namespace KBEngine { 
 

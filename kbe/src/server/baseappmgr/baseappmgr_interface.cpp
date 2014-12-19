@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "baseappmgr_interface.hpp"
+#include "baseappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
 #define BASEAPPMGR
-#include "baseappmgr_interface.hpp"
+#include "baseappmgr_interface.h"
 
 namespace KBEngine{
 namespace BaseappmgrInterface{

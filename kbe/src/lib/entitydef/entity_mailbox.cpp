@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entity_mailbox.hpp"
-#include "scriptdef_module.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/channel.hpp"	
-#include "pyscript/pickler.hpp"
-#include "pyscript/py_gc.hpp"
-#include "entitydef/method.hpp"
-#include "remote_entity_method.hpp"
-#include "entitydef/entitydef.hpp"
+#include "entity_mailbox.h"
+#include "scriptdef_module.h"
+#include "helper/debug_helper.h"
+#include "network/channel.h"	
+#include "pyscript/pickler.h"
+#include "pyscript/py_gc.h"
+#include "entitydef/method.h"
+#include "remote_entity_method.h"
+#include "entitydef/entitydef.h"
 
 namespace KBEngine
 {

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptstdouterr.hpp"
+#include "scriptstdouterr.h"
 
 #ifndef CODE_INLINE
-#include "scriptstdouterr.ipp"
+#include "scriptstdouterr.inl"
 #endif
 
 namespace KBEngine{ namespace script{

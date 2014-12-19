@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "db_tasks.hpp"
-#include "db_interface.hpp"
-#include "entity_table.hpp"
-#include "thread/threadpool.hpp"
-#include "common/memorystream.hpp"
+#include "db_tasks.h"
+#include "db_interface.h"
+#include "entity_table.h"
+#include "thread/threadpool.h"
+#include "common/memorystream.h"
 
 namespace KBEngine{
 

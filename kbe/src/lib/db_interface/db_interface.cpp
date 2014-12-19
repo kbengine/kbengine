@@ -19,14 +19,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "db_interface.hpp"
-#include "db_threadpool.hpp"
-#include "entity_table.hpp"
-#include "common/kbekey.hpp"
-#include "db_mysql/db_interface_mysql.hpp"
-#include "db_mysql/kbe_table_mysql.hpp"
-#include "server/serverconfig.hpp"
-#include "thread/threadpool.hpp"
+#include "db_interface.h"
+#include "db_threadpool.h"
+#include "entity_table.h"
+#include "common/kbekey.h"
+#include "db_mysql/db_interface_mysql.h"
+#include "db_mysql/kbe_table_mysql.h"
+#include "server/serverconfig.h"
+#include "thread/threadpool.h"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);

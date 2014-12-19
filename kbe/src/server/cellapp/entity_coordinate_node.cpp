@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "entity_coordinate_node.hpp"
-#include "entity.hpp"
+#include "entity_coordinate_node.h"
+#include "entity.h"
 
 namespace KBEngine{	
 

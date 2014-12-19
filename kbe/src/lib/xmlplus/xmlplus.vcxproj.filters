@@ -41,7 +41,7 @@
     <ClInclude Include="..\dependencies\tinyxml\tinyxml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="xmlplus.hpp">
+    <ClInclude Include="xmlplus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -112,9 +112,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="machine.hpp" />
-    <ClInclude Include="machine_interface.hpp" />
-    <ClInclude Include="machine_interface_macros.hpp" />
+    <ClInclude Include="machine.h" />
+    <ClInclude Include="machine_interface.h" />
+    <ClInclude Include="machine_interface_macros.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

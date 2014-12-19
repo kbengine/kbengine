@@ -5,9 +5,9 @@
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
 #include "ConnectRemoteMachineWindow.h"
-#include "machine/machine_interface.hpp"
-#include "server/components.hpp"
-#include "helper/console_helper.hpp"
+#include "machine/machine_interface.h"
+#include "server/components.h"
+#include "helper/console_helper.h"
 
 // CConnectRemoteMachineWindow dialog
 

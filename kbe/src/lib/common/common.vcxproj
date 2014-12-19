@@ -107,35 +107,35 @@
     <ClCompile Include="timestamp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="base64.hpp" />
-    <ClInclude Include="blowfish.hpp" />
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="deadline.hpp" />
-    <ClInclude Include="format.hpp" />
-    <ClInclude Include="kbekey.hpp" />
-    <ClInclude Include="kbemalloc.hpp" />
-    <ClInclude Include="kbeversion.hpp" />
-    <ClInclude Include="md5.hpp" />
-    <ClInclude Include="memorystream.hpp" />
-    <ClInclude Include="memorystream_converter.hpp" />
-    <ClInclude Include="objectpool.hpp" />
-    <ClInclude Include="platform.hpp" />
-    <ClInclude Include="refcountable.hpp" />
-    <ClInclude Include="rsa.hpp" />
-    <ClInclude Include="sha1.hpp" />
-    <ClInclude Include="singleton.hpp" />
-    <ClInclude Include="smartpointer.hpp" />
-    <ClInclude Include="stdfindif_handers.hpp" />
-    <ClInclude Include="stringconv.hpp" />
-    <ClInclude Include="strutil.hpp" />
-    <ClInclude Include="task.hpp" />
-    <ClInclude Include="tasks.hpp" />
-    <ClInclude Include="timer.hpp" />
-    <ClInclude Include="timestamp.hpp" />
+    <ClInclude Include="base64.h" />
+    <ClInclude Include="blowfish.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="deadline.h" />
+    <ClInclude Include="format.h" />
+    <ClInclude Include="kbekey.h" />
+    <ClInclude Include="kbemalloc.h" />
+    <ClInclude Include="kbeversion.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="memorystream.h" />
+    <ClInclude Include="memorystream_converter.h" />
+    <ClInclude Include="objectpool.h" />
+    <ClInclude Include="platform.h" />
+    <ClInclude Include="refcountable.h" />
+    <ClInclude Include="rsa.h" />
+    <ClInclude Include="sha1.h" />
+    <ClInclude Include="singleton.h" />
+    <ClInclude Include="smartpointer.h" />
+    <ClInclude Include="stdfindif_handers.h" />
+    <ClInclude Include="stringconv.h" />
+    <ClInclude Include="strutil.h" />
+    <ClInclude Include="task.h" />
+    <ClInclude Include="tasks.h" />
+    <ClInclude Include="timer.h" />
+    <ClInclude Include="timestamp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="timer.ipp" />
+    <None Include="timer.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dependencies\apr-util\aprutil.vcxproj">

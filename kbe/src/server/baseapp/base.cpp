@@ -18,23 +18,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "base.hpp"
-#include "profile.hpp"
-#include "base_messages_forward_handler.hpp"
-#include "pyscript/py_gc.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "network/channel.hpp"	
-#include "network/fixed_messages.hpp"
-#include "client_lib/client_interface.hpp"
+#include "baseapp.h"
+#include "base.h"
+#include "profile.h"
+#include "base_messages_forward_handler.h"
+#include "pyscript/py_gc.h"
+#include "entitydef/entity_mailbox.h"
+#include "network/channel.h"	
+#include "network/fixed_messages.h"
+#include "client_lib/client_interface.h"
 
 #ifndef CODE_INLINE
-#include "base.ipp"
+#include "base.inl"
 #endif
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{
 

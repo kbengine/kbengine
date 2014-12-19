@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "real_entity_method.hpp"
-#include "entitydef/method.hpp"
-#include "network/bundle.hpp"
-#include "helper/eventhistory_stats.hpp"
+#include "cellapp.h"
+#include "real_entity_method.h"
+#include "entitydef/method.h"
+#include "network/bundle.h"
+#include "helper/eventhistory_stats.h"
 
-#include "cellapp_interface.hpp"
+#include "cellapp_interface.h"
 
 namespace KBEngine{
 

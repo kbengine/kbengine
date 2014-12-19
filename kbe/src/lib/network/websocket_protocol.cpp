@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "websocket_protocol.hpp"
-#include "common/memorystream.hpp"
-#include "network/channel.hpp"
-#include "common/base64.hpp"
-#include "common/sha1.hpp"
+#include "websocket_protocol.h"
+#include "common/memorystream.h"
+#include "network/channel.h"
+#include "common/base64.h"
+#include "common/sha1.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "common.hpp"
+#include "common.h"
 namespace KBEngine{
 
 ENTITYFLAGMAP g_entityFlagMapping;

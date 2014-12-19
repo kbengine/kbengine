@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "signal_handler.hpp"
-#include "helper/debug_helper.hpp"
-#include "server/serverapp.hpp"
+#include "signal_handler.h"
+#include "helper/debug_helper.h"
+#include "server/serverapp.h"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(SignalHandlers);

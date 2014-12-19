@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "event_poller.hpp"
-#include "helper/profile.hpp"
+#include "event_poller.h"
+#include "helper/profile.h"
 
 namespace KBEngine { 
 

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "machine_interface.hpp"
+#include "machine_interface.h"
 #define DEFINE_IN_INTERFACE
 #define MACHINE
-#include "machine_interface.hpp"
+#include "machine_interface.h"
 
 namespace KBEngine{
 namespace MachineInterface{

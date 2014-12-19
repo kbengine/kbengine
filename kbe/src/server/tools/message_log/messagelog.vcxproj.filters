@@ -32,16 +32,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="logwatcher.hpp">
+    <ClInclude Include="logwatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="messagelog.hpp">
+    <ClInclude Include="messagelog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="messagelog_interface.hpp">
+    <ClInclude Include="messagelog_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="messagelog_interface_macros.hpp">
+    <ClInclude Include="messagelog_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

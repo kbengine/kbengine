@@ -96,15 +96,15 @@
     <ClCompile Include="threadpool.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="concurrency.hpp" />
-    <ClInclude Include="threadguard.hpp" />
-    <ClInclude Include="threadmutex.hpp" />
-    <ClInclude Include="threadpool.hpp" />
-    <ClInclude Include="threadtask.hpp" />
+    <ClInclude Include="concurrency.h" />
+    <ClInclude Include="threadguard.h" />
+    <ClInclude Include="threadmutex.h" />
+    <ClInclude Include="threadpool.h" />
+    <ClInclude Include="threadtask.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="threadpool.ipp" />
+    <None Include="threadpool.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

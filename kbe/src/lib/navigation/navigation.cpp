@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "navigation.hpp"
-#include "resmgr/resmgr.hpp"
-#include "thread/threadguard.hpp"
+#include "navigation.h"
+#include "resmgr/resmgr.h"
+#include "thread/threadguard.h"
 
-#include "navigation_tile_handle.hpp"
-#include "navigation_mesh_handle.hpp"
+#include "navigation_tile_handle.h"
+#include "navigation_mesh_handle.h"
 
 namespace KBEngine{
 

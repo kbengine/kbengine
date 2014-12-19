@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "cellapp_interface.hpp"
+#include "cellapp_interface.h"
 #define DEFINE_IN_INTERFACE
 #define CELLAPP
-#include "cellapp_interface.hpp"
+#include "cellapp_interface.h"
 
 namespace KBEngine{
 namespace CellAppInterface{

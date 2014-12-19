@@ -18,19 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "entity_table_mysql.hpp"
-#include "kbe_table_mysql.hpp"
-#include "read_entity_helper.hpp"
-#include "write_entity_helper.hpp"
-#include "remove_entity_helper.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "entitydef/property.hpp"
-#include "db_interface/db_interface.hpp"
-#include "db_interface/entity_table.hpp"
-#include "network/fixed_messages.hpp"
+#include "entity_table_mysql.h"
+#include "kbe_table_mysql.h"
+#include "read_entity_helper.h"
+#include "write_entity_helper.h"
+#include "remove_entity_helper.h"
+#include "entitydef/scriptdef_module.h"
+#include "entitydef/property.h"
+#include "db_interface/db_interface.h"
+#include "db_interface/entity_table.h"
+#include "network/fixed_messages.h"
 
 #ifndef CODE_INLINE
-#include "entity_table_mysql.ipp"
+#include "entity_table_mysql.inl"
 #endif
 
 namespace KBEngine { 

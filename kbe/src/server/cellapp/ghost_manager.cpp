@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "ghost_manager.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
+#include "cellapp.h"
+#include "ghost_manager.h"
+#include "entitydef/scriptdef_module.h"
+#include "network/bundle.h"
+#include "network/channel.h"
 
 namespace KBEngine{	
 

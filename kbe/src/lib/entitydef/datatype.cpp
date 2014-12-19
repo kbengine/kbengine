@@ -18,21 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "blob.hpp"
-#include "datatype.hpp"
-#include "datatypes.hpp"
-#include "entitydef.hpp"
-#include "fixeddict.hpp"
-#include "fixedarray.hpp"
-#include "entity_mailbox.hpp"
-#include "scriptdef_module.hpp"
-#include "pyscript/vector2.hpp"
-#include "pyscript/vector3.hpp"
-#include "pyscript/vector4.hpp"
-#include "pyscript/copy.hpp"
+#include "blob.h"
+#include "datatype.h"
+#include "datatypes.h"
+#include "entitydef.h"
+#include "fixeddict.h"
+#include "fixedarray.h"
+#include "entity_mailbox.h"
+#include "scriptdef_module.h"
+#include "pyscript/vector2.h"
+#include "pyscript/vector3.h"
+#include "pyscript/vector4.h"
+#include "pyscript/copy.h"
 
 #ifndef CODE_INLINE
-#include "datatype.ipp"
+#include "datatype.inl"
 #endif
 
 namespace KBEngine{

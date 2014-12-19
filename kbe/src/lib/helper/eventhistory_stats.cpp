@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "eventhistory_stats.hpp"
-#include "profile_handler.hpp"
+#include "eventhistory_stats.h"
+#include "profile_handler.h"
 
 namespace KBEngine { 
 

@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "profile.hpp"
-#include "helper/watcher.hpp"
+#include "profile.h"
+#include "helper/watcher.h"
 
 #ifndef CODE_INLINE
-#include "profile.ipp"
+#include "profile.inl"
 #endif
 
 

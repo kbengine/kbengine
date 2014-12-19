@@ -19,19 +19,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "script.hpp"
-#include "math.hpp"
-#include "pickler.hpp"
-#include "pyprofile.hpp"
-#include "copy.hpp"
-#include "pystruct.hpp"
-#include "py_gc.hpp"
-#include "install_py_dlls.hpp"
-#include "resmgr/resmgr.hpp"
-#include "thread/concurrency.hpp"
+#include "script.h"
+#include "math.h"
+#include "pickler.h"
+#include "pyprofile.h"
+#include "copy.h"
+#include "pystruct.h"
+#include "py_gc.h"
+#include "install_py_dlls.h"
+#include "resmgr/resmgr.h"
+#include "thread/concurrency.h"
 
 #ifndef CODE_INLINE
-#include "script.ipp"
+#include "script.inl"
 #endif
 
 namespace KBEngine{ 

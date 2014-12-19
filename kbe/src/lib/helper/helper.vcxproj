@@ -115,19 +115,19 @@
     <ClCompile Include="..\dependencies\sigar\win32\wmi.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="console_helper.hpp" />
-    <ClInclude Include="crashhandler.hpp" />
-    <ClInclude Include="debug_helper.hpp" />
-    <ClInclude Include="debug_option.hpp" />
-    <ClInclude Include="eventhistory_stats.hpp" />
-    <ClInclude Include="memory_helper.hpp" />
-    <ClInclude Include="profile.hpp" />
-    <ClInclude Include="profile_handler.hpp" />
-    <ClInclude Include="profiler.hpp" />
-    <ClInclude Include="script_loglevel.hpp" />
-    <ClInclude Include="sys_info.hpp" />
-    <ClInclude Include="watch_pools.hpp" />
-    <ClInclude Include="watcher.hpp" />
+    <ClInclude Include="console_helper.h" />
+    <ClInclude Include="crashhandler.h" />
+    <ClInclude Include="debug_helper.h" />
+    <ClInclude Include="debug_option.h" />
+    <ClInclude Include="eventhistory_stats.h" />
+    <ClInclude Include="memory_helper.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="profile_handler.h" />
+    <ClInclude Include="profiler.h" />
+    <ClInclude Include="script_loglevel.h" />
+    <ClInclude Include="sys_info.h" />
+    <ClInclude Include="watch_pools.h" />
+    <ClInclude Include="watcher.h" />
     <ClInclude Include="..\dependencies\sigar\win32\sigar.h" />
     <ClInclude Include="..\dependencies\sigar\win32\sigar_fileinfo.h" />
     <ClInclude Include="..\dependencies\sigar\win32\sigar_format.h" />
@@ -142,10 +142,10 @@
   <ItemGroup>
     <None Include="..\dependencies\sigar\win32\sigar.rc.in" />
     <None Include="..\dependencies\sigar\win32\sigar_version.c.in" />
-    <None Include="profile.ipp" />
-    <None Include="profiler.ipp" />
+    <None Include="profile.inl" />
+    <None Include="profiler.inl" />
     <None Include="ReadMe.txt" />
-    <None Include="sys_info.ipp" />
+    <None Include="sys_info.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dependencies\apr-util\aprutil.vcxproj">

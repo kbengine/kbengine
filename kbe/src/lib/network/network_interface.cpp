@@ -19,20 +19,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "network_interface.hpp"
+#include "network_interface.h"
 #ifndef CODE_INLINE
-#include "network_interface.ipp"
+#include "network_interface.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/listener_receiver.hpp"
-#include "network/channel.hpp"
-#include "network/packet.hpp"
-#include "network/delayed_channels.hpp"
-#include "network/interfaces.hpp"
-#include "network/message_handler.hpp"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/packet_receiver.h"
+#include "network/listener_receiver.h"
+#include "network/channel.h"
+#include "network/packet.h"
+#include "network/delayed_channels.h"
+#include "network/interfaces.h"
+#include "network/message_handler.h"
 
 namespace KBEngine { 
 namespace Network

@@ -18,15 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bots.hpp"
-#include "clientobject.hpp"
-#include "create_and_login_handler.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "common/memorystream.hpp"
-#include "server/serverconfig.hpp"
+#include "bots.h"
+#include "clientobject.h"
+#include "create_and_login_handler.h"
+#include "network/network_interface.h"
+#include "network/event_dispatcher.h"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "common/memorystream.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine { 
 

@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "base_remotemethod.hpp"
-#include "entitydef/method.hpp"
-#include "helper/profile.hpp"	
-#include "network/bundle.hpp"
-#include "helper/eventhistory_stats.hpp"
+#include "baseapp.h"
+#include "base_remotemethod.h"
+#include "entitydef/method.h"
+#include "helper/profile.h"	
+#include "network/bundle.h"
+#include "helper/eventhistory_stats.h"
 
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 
 namespace KBEngine{	
 

@@ -19,16 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "common.hpp"
-#include "network/channel.hpp"
-#include "network/bundle.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "network/udp_packet_receiver.hpp"
-#include "network/address.hpp"
-#include "helper/watcher.hpp"
+#include "common.h"
+#include "network/channel.h"
+#include "network/bundle.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/udp_packet_receiver.h"
+#include "network/address.h"
+#include "helper/watcher.h"
 
 namespace KBEngine { 
 namespace Network

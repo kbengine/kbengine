@@ -95,8 +95,8 @@
     <ClCompile Include="resourceobject.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resmgr.hpp" />
-    <ClInclude Include="resourceobject.hpp" />
+    <ClInclude Include="resmgr.h" />
+    <ClInclude Include="resourceobject.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

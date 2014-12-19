@@ -19,11 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "forward_messagebuffer.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
+#include "forward_messagebuffer.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(ForwardComponent_MessageBuffer);

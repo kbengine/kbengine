@@ -5,7 +5,7 @@
 #include "guiconsole.h"
 #include "SetLayoutNameWindow.h"
 #include "StartServerLayoutWindow.h"
-#include "server/serverconfig.hpp"
+#include "server/serverconfig.h"
 #include "StartServerWindow.h"
 
 // CStartServerLayoutWindow dialog

@@ -89,43 +89,43 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="console_helper.hpp">
+    <ClInclude Include="console_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="crashhandler.hpp">
+    <ClInclude Include="crashhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debug_helper.hpp">
+    <ClInclude Include="debug_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debug_option.hpp">
+    <ClInclude Include="debug_option.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="eventhistory_stats.hpp">
+    <ClInclude Include="eventhistory_stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memory_helper.hpp">
+    <ClInclude Include="memory_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profile.hpp">
+    <ClInclude Include="profile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profile_handler.hpp">
+    <ClInclude Include="profile_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profiler.hpp">
+    <ClInclude Include="profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="script_loglevel.hpp">
+    <ClInclude Include="script_loglevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sys_info.hpp">
+    <ClInclude Include="sys_info.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="watch_pools.hpp">
+    <ClInclude Include="watch_pools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="watcher.hpp">
+    <ClInclude Include="watcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\sigar\win32\sigar.h">
@@ -167,13 +167,13 @@
       <Filter>sigar</Filter>
     </None>
     <None Include="ReadMe.txt" />
-    <None Include="profile.ipp">
+    <None Include="profile.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="profiler.ipp">
+    <None Include="profiler.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="sys_info.ipp">
+    <None Include="sys_info.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

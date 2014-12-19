@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "xmlplus.hpp"
+#include "xmlplus.h"
 namespace KBEngine{
  
 

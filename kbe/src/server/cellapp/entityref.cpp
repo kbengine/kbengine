@@ -17,10 +17,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "entityref.hpp"
-#include "entity.hpp"
-#include "cellapp.hpp"
-#include "common/memorystream.hpp"
+#include "entityref.h"
+#include "entity.h"
+#include "cellapp.h"
+#include "common/memorystream.h"
 
 namespace KBEngine{	
 

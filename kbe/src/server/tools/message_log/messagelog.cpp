@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "messagelog.hpp"
-#include "messagelog_interface.hpp"
-#include "network/common.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/bundle_broadcast.hpp"
-#include "thread/threadpool.hpp"
-#include "server/components.hpp"
+#include "messagelog.h"
+#include "messagelog_interface.h"
+#include "network/common.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/bundle_broadcast.h"
+#include "thread/threadpool.h"
+#include "server/components.h"
 #include <sstream>
 
 namespace KBEngine{

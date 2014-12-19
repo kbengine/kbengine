@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "logwatcher.hpp"
-#include "messagelog.hpp"
-#include "common/memorystream.hpp"
-#include "helper/console_helper.hpp"
+#include "logwatcher.h"
+#include "messagelog.h"
+#include "common/memorystream.h"
+#include "helper/console_helper.h"
 
 namespace KBEngine{
 	

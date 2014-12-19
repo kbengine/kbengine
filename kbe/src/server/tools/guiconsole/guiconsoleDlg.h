@@ -12,7 +12,7 @@
 #include "SpaceViewWindow.h"
 #include "GraphsWindow.h"
 #include "ConnectRemoteMachineWindow.h"
-#include "thread/threadpool.hpp"
+#include "thread/threadpool.h"
 #include <sstream>
 
 using namespace KBEngine;

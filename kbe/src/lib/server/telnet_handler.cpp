@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "telnet_handler.hpp"
-#include "telnet_server.hpp"
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/network_interface.hpp"
-#include "pyscript/script.hpp"
+#include "telnet_handler.h"
+#include "telnet_server.h"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/network_interface.h"
+#include "pyscript/script.h"
 
 #ifndef CODE_INLINE
-#include "telnet_handler.ipp"
+#include "telnet_handler.inl"
 #endif
 
 namespace KBEngine { 

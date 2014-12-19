@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "entity.hpp"
-#include "moveto_entity_handler.hpp"	
+#include "cellapp.h"
+#include "entity.h"
+#include "moveto_entity_handler.h"	
 
 namespace KBEngine{	
 

@@ -19,19 +19,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "udp_packet_receiver.hpp"
+#include "udp_packet_receiver.h"
 #ifndef CODE_INLINE
-#include "udp_packet_receiver.ipp"
+#include "udp_packet_receiver.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
-#include "network/error_reporter.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
+#include "network/error_reporter.h"
 
 namespace KBEngine { 
 namespace Network

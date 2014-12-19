@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "jwsmtp.h"
-#include "sendmail_threadtasks.hpp"
-#include "server/serverconfig.hpp"
-#include "common/deadline.hpp"
+#include "sendmail_threadtasks.h"
+#include "server/serverconfig.h"
+#include "common/deadline.h"
 
 namespace KBEngine{
 

@@ -19,18 +19,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "listener_receiver.hpp"
+#include "listener_receiver.h"
 #ifndef CODE_INLINE
-#include "listener_receiver.ipp"
+#include "listener_receiver.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/error_reporter.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
+#include "network/error_reporter.h"
 
 namespace KBEngine { 
 namespace Network

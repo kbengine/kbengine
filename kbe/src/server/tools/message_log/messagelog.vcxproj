@@ -115,10 +115,10 @@
     <ClCompile Include="messagelog_interface.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="logwatcher.hpp" />
-    <ClInclude Include="messagelog.hpp" />
-    <ClInclude Include="messagelog_interface.hpp" />
-    <ClInclude Include="messagelog_interface_macros.hpp" />
+    <ClInclude Include="logwatcher.h" />
+    <ClInclude Include="messagelog.h" />
+    <ClInclude Include="messagelog_interface.h" />
+    <ClInclude Include="messagelog_interface_macros.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "baseapp_interface.hpp"
+#include "baseapp_interface.h"
 #define DEFINE_IN_INTERFACE
 #define BASEAPP
-#include "baseapp_interface.hpp"
+#include "baseapp_interface.h"
 
 namespace KBEngine{
 namespace BaseappInterface{

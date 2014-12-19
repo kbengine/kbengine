@@ -19,24 +19,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "clientapp.hpp"
-#include "event.hpp"
-#include "entity.hpp"
-#include "config.hpp"
-#include "common/kbeversion.hpp"
-#include "helper/script_loglevel.hpp"
-#include "network/channel.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "thread/threadpool.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "entitydef/entitydef.hpp"
-#include "server/components.hpp"
-#include "server/serverconfig.hpp"
-#include "helper/profile.hpp"
-#include "client_lib/client_interface.hpp"
+#include "clientapp.h"
+#include "event.h"
+#include "entity.h"
+#include "config.h"
+#include "common/kbeversion.h"
+#include "helper/script_loglevel.h"
+#include "network/channel.h"
+#include "network/tcp_packet_receiver.h"
+#include "thread/threadpool.h"
+#include "entitydef/entity_mailbox.h"
+#include "entitydef/entitydef.h"
+#include "server/components.h"
+#include "server/serverconfig.h"
+#include "helper/profile.h"
+#include "client_lib/client_interface.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/loginapp/loginapp_interface.h"
 
 namespace KBEngine{
 

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "common.hpp"
-#include "strutil.hpp"
+#include "common.h"
+#include "strutil.h"
 #include <algorithm>
 #include <limits>
 #include <algorithm>
@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <cctype>
 #include "utf8cpp/utf8.h"
-#include "memorystream.hpp"
+#include "memorystream.h"
 
 namespace KBEngine{ 
 namespace strutil {

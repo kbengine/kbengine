@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.hpp"
-#include "script_callbacks.hpp"
-#include "server/serverapp.hpp"
-#include "server/serverconfig.hpp"
-#include "pyscript/script.hpp"
-#include "pyscript/pyobject_pointer.hpp"
-#include "common/smartpointer.hpp"
+#include "config.h"
+#include "script_callbacks.h"
+#include "server/serverapp.h"
+#include "server/serverconfig.h"
+#include "pyscript/script.h"
+#include "pyscript/pyobject_pointer.h"
+#include "common/smartpointer.h"
 
 namespace KBEngine
 {

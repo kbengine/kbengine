@@ -19,13 +19,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "telnet_server.hpp"
-#include "telnet_handler.hpp"
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
+#include "telnet_server.h"
+#include "telnet_handler.h"
+#include "network/bundle.h"
+#include "network/endpoint.h"
 
 #ifndef CODE_INLINE
-#include "telnet_server.ipp"
+#include "telnet_server.inl"
 #endif
 
 namespace KBEngine { 

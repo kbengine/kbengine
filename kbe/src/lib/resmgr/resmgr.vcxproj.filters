@@ -26,10 +26,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resmgr.hpp">
+    <ClInclude Include="resmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resourceobject.hpp">
+    <ClInclude Include="resourceobject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

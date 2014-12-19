@@ -31,7 +31,7 @@
 #undef _SCL_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
-#include "format.hpp"
+#include "format.h"
 
 #include <string.h>
 

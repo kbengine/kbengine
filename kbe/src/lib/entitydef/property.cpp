@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "datatypes.hpp"
-#include "entitydef.hpp"
-#include "property.hpp"
-#include "pyscript/vector2.hpp"
-#include "pyscript/vector3.hpp"
-#include "pyscript/vector4.hpp"
-#include "pyscript/copy.hpp"
+#include "datatypes.h"
+#include "entitydef.h"
+#include "property.h"
+#include "pyscript/vector2.h"
+#include "pyscript/vector3.h"
+#include "pyscript/vector4.h"
+#include "pyscript/copy.h"
 
 #ifndef CODE_INLINE
-#include "property.ipp"
+#include "property.inl"
 #endif
 
 

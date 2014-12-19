@@ -18,20 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "witness.hpp"
-#include "entity.hpp"	
-#include "profile.hpp"
-#include "cellapp.hpp"
-#include "aoi_trigger.hpp"
-#include "network/channel.hpp"	
-#include "network/bundle.hpp"
-#include "math/math.hpp"
-#include "client_lib/client_interface.hpp"
+#include "witness.h"
+#include "entity.h"	
+#include "profile.h"
+#include "cellapp.h"
+#include "aoi_trigger.h"
+#include "network/channel.h"	
+#include "network/bundle.h"
+#include "math/math.h"
+#include "client_lib/client_interface.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
 
 #ifndef CODE_INLINE
-#include "witness.ipp"
+#include "witness.inl"
 #endif
 
 #define UPDATE_FLAG_NULL				0x00000000

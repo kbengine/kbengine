@@ -17,9 +17,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "network/bundle.hpp"
-#include "billingsystem.hpp"
-#include "orders.hpp"
+#include "network/bundle.h"
+#include "billingsystem.h"
+#include "orders.h"
 
 
 namespace KBEngine{

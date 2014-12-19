@@ -5,7 +5,7 @@
 #include "guiconsole.h"
 #include "StartServerWindow.h"
 #include "StartServerLayoutWindow.h"
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 
 // CStartServerWindow dialog
 

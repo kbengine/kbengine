@@ -114,10 +114,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="baseapp.hpp" />
-    <ClInclude Include="baseappmgr.hpp" />
-    <ClInclude Include="baseappmgr_interface.hpp" />
-    <ClInclude Include="baseappmgr_interface_macros.hpp" />
+    <ClInclude Include="baseapp.h" />
+    <ClInclude Include="baseappmgr.h" />
+    <ClInclude Include="baseappmgr_interface.h" />
+    <ClInclude Include="baseappmgr_interface_macros.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

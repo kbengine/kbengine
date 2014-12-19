@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "rsa.hpp"
-#include "common.hpp"
-#include "helper/debug_helper.hpp"
+#include "rsa.h"
+#include "common.h"
+#include "helper/debug_helper.h"
 
 #include <iostream>
 #include <fstream>

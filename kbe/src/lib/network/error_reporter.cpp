@@ -19,14 +19,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "error_reporter.hpp"
+#include "error_reporter.h"
 #ifndef CODE_INLINE
-#include "error_reporter.ipp"
+#include "error_reporter.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/endpoint.hpp"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/endpoint.h"
 
 namespace KBEngine { 
 namespace Network

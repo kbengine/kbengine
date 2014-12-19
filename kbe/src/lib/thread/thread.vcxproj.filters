@@ -26,25 +26,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="concurrency.hpp">
+    <ClInclude Include="concurrency.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadguard.hpp">
+    <ClInclude Include="threadguard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadmutex.hpp">
+    <ClInclude Include="threadmutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadpool.hpp">
+    <ClInclude Include="threadpool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadtask.hpp">
+    <ClInclude Include="threadtask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="threadpool.ipp">
+    <None Include="threadpool.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

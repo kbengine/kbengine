@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "client_interface.hpp"
+#include "client_interface.h"
 #define DEFINE_IN_INTERFACE
 #define CLIENT
-#include "client_interface.hpp"
+#include "client_interface.h"
 
 namespace KBEngine{
 namespace ClientInterface{

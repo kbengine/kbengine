@@ -19,11 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "delayed_channels.hpp"
-#include "network/channel.hpp"
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
+#include "delayed_channels.h"
+#include "network/channel.h"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
 
 namespace KBEngine{
 namespace Network

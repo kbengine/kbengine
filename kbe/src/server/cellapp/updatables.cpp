@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "updatables.hpp"	
-#include "helper/profile.hpp"	
+#include "updatables.h"	
+#include "helper/profile.h"	
 
 namespace KBEngine{	
 

@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "script_timers.hpp"
-#include "server/serverapp.hpp"
-#include "pyscript/pickler.hpp"
-#include "pyscript/script.hpp"
-#include "pyscript/pyobject_pointer.hpp"
-#include "common/smartpointer.hpp"
+#include "script_timers.h"
+#include "server/serverapp.h"
+#include "pyscript/pickler.h"
+#include "pyscript/script.h"
+#include "pyscript/pyobject_pointer.h"
+#include "common/smartpointer.h"
 
 namespace KBEngine
 {

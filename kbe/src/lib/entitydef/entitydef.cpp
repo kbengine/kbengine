@@ -19,17 +19,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entitydef.hpp"
-#include "scriptdef_module.hpp"
-#include "datatypes.hpp"
-#include "common.hpp"
-#include "blob.hpp"
-#include "resmgr/resmgr.hpp"
-#include "common/smartpointer.hpp"
-#include "entitydef/entity_mailbox.hpp"
+#include "entitydef.h"
+#include "scriptdef_module.h"
+#include "datatypes.h"
+#include "common.h"
+#include "blob.h"
+#include "resmgr/resmgr.h"
+#include "common/smartpointer.h"
+#include "entitydef/entity_mailbox.h"
 
 #ifndef CODE_INLINE
-#include "entitydef.ipp"
+#include "entitydef.inl"
 #endif
 
 namespace KBEngine{

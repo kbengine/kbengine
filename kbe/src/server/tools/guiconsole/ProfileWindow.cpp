@@ -8,8 +8,8 @@
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
 
-#include "baseapp/baseapp_interface.hpp"
-#include "cellapp/cellapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
+#include "cellapp/cellapp_interface.h"
 // CProfileWindow dialog
 
 IMPLEMENT_DYNAMIC(CProfileWindow, CDialog)

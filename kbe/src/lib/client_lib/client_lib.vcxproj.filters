@@ -47,46 +47,46 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="client_interface.hpp">
+    <ClInclude Include="client_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client_interface_macros.hpp">
+    <ClInclude Include="client_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="clientapp.hpp">
+    <ClInclude Include="clientapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="clientobjectbase.hpp">
+    <ClInclude Include="clientobjectbase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.hpp">
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.hpp">
+    <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity.hpp">
+    <ClInclude Include="entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_aspect.hpp">
+    <ClInclude Include="entity_aspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="event.hpp">
+    <ClInclude Include="event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kbemain.hpp">
+    <ClInclude Include="kbemain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profile.hpp">
+    <ClInclude Include="profile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="script_callbacks.hpp">
+    <ClInclude Include="script_callbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="entity.ipp">
+    <None Include="entity.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

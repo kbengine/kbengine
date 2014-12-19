@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "db_tasks.hpp"
-#include "db_threadpool.hpp"
-#include "entity_table.hpp"
-#include "db_interface.hpp"
-#include "entitydef/entitydef.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "thread/threadguard.hpp"
+#include "db_tasks.h"
+#include "db_threadpool.h"
+#include "entity_table.h"
+#include "db_interface.h"
+#include "entitydef/entitydef.h"
+#include "entitydef/scriptdef_module.h"
+#include "thread/threadguard.h"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(EntityTables);

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "bots_interface.hpp"
+#include "bots_interface.h"
 #define DEFINE_IN_INTERFACE
 #define BOTS
-#include "bots_interface.hpp"
+#include "bots_interface.h"
 
 namespace KBEngine{
 namespace BotsInterface{

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "vector2.hpp"
-#include "vector3.hpp"
-#include "vector4.hpp"
-#include "pyscript/py_gc.hpp"
+#include "vector2.h"
+#include "vector3.h"
+#include "vector4.h"
+#include "pyscript/py_gc.h"
 
 namespace KBEngine{ namespace script{
 

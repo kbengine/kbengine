@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "interface_defs.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/bundle.hpp"
+#include "interface_defs.h"
+#include "helper/debug_helper.h"
+#include "network/bundle.h"
 
 namespace KBEngine { 
 namespace Network

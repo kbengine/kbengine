@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "sequence.hpp"
+#include "sequence.h"
 
 #ifndef CODE_INLINE
-#include "sequence.ipp"
+#include "sequence.inl"
 #endif
 
 namespace KBEngine{ namespace script{

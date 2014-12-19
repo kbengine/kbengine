@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "dbmgr_interface.hpp"
+#include "dbmgr_interface.h"
 #define DEFINE_IN_INTERFACE
 #define DBMGR
-#include "dbmgr_interface.hpp"
+#include "dbmgr_interface.h"
 
 namespace KBEngine{
 namespace DbmgrInterface{

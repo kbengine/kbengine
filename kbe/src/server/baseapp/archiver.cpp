@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "archiver.hpp"
-#include "base.hpp"
+#include "baseapp.h"
+#include "archiver.h"
+#include "base.h"
 
 namespace KBEngine{	
 

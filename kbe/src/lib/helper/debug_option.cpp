@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "debug_option.hpp"
+#include "debug_option.h"
 
 namespace KBEngine { 
 	

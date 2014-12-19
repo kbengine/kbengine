@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "serverconfig.hpp"
-#include "network/common.hpp"
-#include "network/address.hpp"
-#include "resmgr/resmgr.hpp"
-#include "common/kbekey.hpp"
-#include "common/kbeversion.hpp"
+#include "serverconfig.h"
+#include "network/common.h"
+#include "network/address.h"
+#include "resmgr/resmgr.h"
+#include "common/kbekey.h"
+#include "common/kbeversion.h"
 
 #ifndef CODE_INLINE
-#include "serverconfig.ipp"
+#include "serverconfig.inl"
 #endif
 
 namespace KBEngine{

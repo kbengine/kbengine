@@ -115,7 +115,7 @@
     <ClInclude Include="..\dependencies\g3dlite\G3D\g3dmath.h" />
     <ClInclude Include="..\dependencies\g3dlite\G3D\GCamera.h" />
     <ClInclude Include="..\dependencies\g3dlite\G3D\Line.h" />
-    <ClInclude Include="math.hpp" />
+    <ClInclude Include="math.h" />
     <ClInclude Include="..\dependencies\g3dlite\G3D\Matrix3.h" />
     <ClInclude Include="..\dependencies\g3dlite\G3D\Plane.h" />
     <ClInclude Include="..\dependencies\g3dlite\G3D\platform.h" />

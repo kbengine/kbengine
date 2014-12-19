@@ -17,19 +17,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "dbmgr.hpp"
-#include "billinghandler.hpp"
-#include "buffered_dbtasks.hpp"
-#include "db_interface/db_threadpool.hpp"
-#include "thread/threadpool.hpp"
-#include "thread/threadguard.hpp"
-#include "server/serverconfig.hpp"
-#include "network/endpoint.hpp"
-#include "network/channel.hpp"
-#include "network/bundle.hpp"
+#include "dbmgr.h"
+#include "billinghandler.h"
+#include "buffered_dbtasks.h"
+#include "db_interface/db_threadpool.h"
+#include "thread/threadpool.h"
+#include "thread/threadguard.h"
+#include "server/serverconfig.h"
+#include "network/endpoint.h"
+#include "network/channel.h"
+#include "network/bundle.h"
 
-#include "baseapp/baseapp_interface.hpp"
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "baseapp/baseapp_interface.h"
+#include "tools/billing_system/billingsystem_interface.h"
 
 namespace KBEngine{
 

@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "install_py_dlls.hpp"
-#include "common/common.hpp"
-#include "scriptobject.hpp"
+#include "install_py_dlls.h"
+#include "common/common.h"
+#include "scriptobject.h"
 
 namespace KBEngine{ 
 namespace script{

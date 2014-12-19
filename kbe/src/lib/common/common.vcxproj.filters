@@ -62,85 +62,85 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="base64.hpp">
+    <ClInclude Include="base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="blowfish.hpp">
+    <ClInclude Include="blowfish.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.hpp">
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="deadline.hpp">
+    <ClInclude Include="deadline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kbekey.hpp">
+    <ClInclude Include="kbekey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kbemalloc.hpp">
+    <ClInclude Include="kbemalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kbeversion.hpp">
+    <ClInclude Include="kbeversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="md5.hpp">
+    <ClInclude Include="md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memorystream.hpp">
+    <ClInclude Include="memorystream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memorystream_converter.hpp">
+    <ClInclude Include="memorystream_converter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="objectpool.hpp">
+    <ClInclude Include="objectpool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform.hpp">
+    <ClInclude Include="platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="refcountable.hpp">
+    <ClInclude Include="refcountable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rsa.hpp">
+    <ClInclude Include="rsa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sha1.hpp">
+    <ClInclude Include="sha1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="singleton.hpp">
+    <ClInclude Include="singleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="smartpointer.hpp">
+    <ClInclude Include="smartpointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdfindif_handers.hpp">
+    <ClInclude Include="stdfindif_handers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stringconv.hpp">
+    <ClInclude Include="stringconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="strutil.hpp">
+    <ClInclude Include="strutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="task.hpp">
+    <ClInclude Include="task.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tasks.hpp">
+    <ClInclude Include="tasks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="timer.hpp">
+    <ClInclude Include="timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="timestamp.hpp">
+    <ClInclude Include="timestamp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="format.hpp">
+    <ClInclude Include="format.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="timer.ipp">
+    <None Include="timer.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

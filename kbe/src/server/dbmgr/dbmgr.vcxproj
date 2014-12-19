@@ -120,13 +120,13 @@
     <ClCompile Include="sync_app_datas_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="billinghandler.hpp" />
-    <ClInclude Include="buffered_dbtasks.hpp" />
-    <ClInclude Include="dbmgr.hpp" />
-    <ClInclude Include="dbmgr_interface.hpp" />
-    <ClInclude Include="dbmgr_interface_macros.hpp" />
-    <ClInclude Include="dbtasks.hpp" />
-    <ClInclude Include="sync_app_datas_handler.hpp" />
+    <ClInclude Include="billinghandler.h" />
+    <ClInclude Include="buffered_dbtasks.h" />
+    <ClInclude Include="dbmgr.h" />
+    <ClInclude Include="dbmgr_interface.h" />
+    <ClInclude Include="dbmgr_interface_macros.h" />
+    <ClInclude Include="dbtasks.h" />
+    <ClInclude Include="sync_app_datas_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

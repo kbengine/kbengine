@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "script.hpp"
-#include "pyprofile.hpp"
-#include "pyobject_pointer.hpp"
-#include "common/memorystream.hpp"
+#include "script.h"
+#include "pyprofile.h"
+#include "pyobject_pointer.h"
+#include "common/memorystream.h"
 
 namespace KBEngine{ 
 namespace script{

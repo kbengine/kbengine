@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "event_dispatcher.hpp"
-#include "network/event_poller.hpp"
-#include "network/error_reporter.hpp"
+#include "event_dispatcher.h"
+#include "network/event_poller.h"
+#include "network/error_reporter.h"
 
 #ifndef CODE_INLINE
-#include "event_dispatcher.ipp"
+#include "event_dispatcher.inl"
 #endif
 
 namespace KBEngine { 

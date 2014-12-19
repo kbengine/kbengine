@@ -32,16 +32,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="baseapp.hpp">
+    <ClInclude Include="baseapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseappmgr.hpp">
+    <ClInclude Include="baseappmgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseappmgr_interface.hpp">
+    <ClInclude Include="baseappmgr_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseappmgr_interface_macros.hpp">
+    <ClInclude Include="baseappmgr_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,20 +19,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptdef_module.hpp"
-#include "entitydef.hpp"
-#include "datatypes.hpp"
-#include "common.hpp"
-#include "common/smartpointer.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "resmgr/resmgr.hpp"
-#include "pyscript/script.hpp"
-#include "server/serverconfig.hpp"
-#include "client_lib/config.hpp"
-#include "network/bundle.hpp"
+#include "scriptdef_module.h"
+#include "entitydef.h"
+#include "datatypes.h"
+#include "common.h"
+#include "common/smartpointer.h"
+#include "entitydef/entity_mailbox.h"
+#include "resmgr/resmgr.h"
+#include "pyscript/script.h"
+#include "server/serverconfig.h"
+#include "client_lib/config.h"
+#include "network/bundle.h"
 
 #ifndef CODE_INLINE
-#include "scriptdef_module.ipp"
+#include "scriptdef_module.inl"
 #endif
 
 

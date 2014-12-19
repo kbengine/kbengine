@@ -6,66 +6,66 @@
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
 #include "StartServerWindow.h"
-#include "network/bundle_broadcast.hpp"
-#include "network/message_handler.hpp"
-#include "server/components.hpp"
-#include "helper/console_helper.hpp"
-#include "xmlplus/xmlplus.hpp"
+#include "network/bundle_broadcast.h"
+#include "network/message_handler.h"
+#include "server/components.h"
+#include "helper/console_helper.h"
+#include "xmlplus/xmlplus.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.hpp"
+#include "tools/message_log/messagelog_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.hpp"
+#include "tools/message_log/messagelog_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/bots/bots_interface.hpp"
+#include "tools/bots/bots_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/bots/bots_interface.hpp"
+#include "tools/bots/bots_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "network_stats.hpp"
-#include "helper/watcher.hpp"
-#include "network/message_handler.hpp"
+#include "network_stats.h"
+#include "helper/watcher.h"
+#include "network/message_handler.h"
 
 namespace KBEngine { 
 

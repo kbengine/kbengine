@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entity_app.hpp"
+#include "entity_app.h"
 
 namespace KBEngine{
 

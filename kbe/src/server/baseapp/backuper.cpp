@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "backuper.hpp"
-#include "server/serverconfig.hpp"
+#include "baseapp.h"
+#include "backuper.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine{	
 float backupPeriod = 0.0;

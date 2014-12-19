@@ -6,7 +6,7 @@
 #include "WatcherWindow.h"
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
-#include "helper/watcher.hpp"
+#include "helper/watcher.h"
 
 // CWatcherWindow dialog
 

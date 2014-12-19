@@ -65,79 +65,79 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="blob.hpp">
+    <ClInclude Include="blob.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.hpp">
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="datatype.hpp">
+    <ClInclude Include="datatype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="datatypes.hpp">
+    <ClInclude Include="datatypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="detaillevel.hpp">
+    <ClInclude Include="detaillevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entities.hpp">
+    <ClInclude Include="entities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_macro.hpp">
+    <ClInclude Include="entity_macro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_mailbox.hpp">
+    <ClInclude Include="entity_mailbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entitydef.hpp">
+    <ClInclude Include="entitydef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entitymailboxabstract.hpp">
+    <ClInclude Include="entitymailboxabstract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fixedarray.hpp">
+    <ClInclude Include="fixedarray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fixeddict.hpp">
+    <ClInclude Include="fixeddict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="method.hpp">
+    <ClInclude Include="method.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="property.hpp">
+    <ClInclude Include="property.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="remote_entity_method.hpp">
+    <ClInclude Include="remote_entity_method.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scriptdef_module.hpp">
+    <ClInclude Include="scriptdef_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="volatileinfo.hpp">
+    <ClInclude Include="volatileinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_garbages.hpp">
+    <ClInclude Include="entity_garbages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="datatype.ipp">
+    <None Include="datatype.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="entitydef.ipp">
+    <None Include="entitydef.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="entitymailboxabstract.ipp">
+    <None Include="entitymailboxabstract.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="method.ipp">
+    <None Include="method.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="property.ipp">
+    <None Include="property.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="scriptdef_module.ipp">
+    <None Include="scriptdef_module.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "address.hpp"
-#include "endpoint.hpp"
-#include "helper/debug_helper.hpp"
+#include "address.h"
+#include "endpoint.h"
+#include "helper/debug_helper.h"
 
 namespace KBEngine { 
 namespace Network

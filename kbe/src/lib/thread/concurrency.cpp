@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "concurrency.hpp"
+#include "concurrency.h"
 namespace KBEngine{
 static void NoOp() { }
 void (*pMainThreadIdleStartFunc)() = &NoOp;

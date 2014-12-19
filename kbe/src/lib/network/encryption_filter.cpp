@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "helper/profile.hpp"
-#include "encryption_filter.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/channel.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
+#include "helper/profile.h"
+#include "encryption_filter.h"
+#include "helper/debug_helper.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/channel.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
 
 namespace KBEngine { 
 namespace Network

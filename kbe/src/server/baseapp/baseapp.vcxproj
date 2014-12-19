@@ -133,30 +133,30 @@
     <ClCompile Include="sync_entitystreamtemplate_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="archiver.hpp" />
-    <ClInclude Include="backuper.hpp" />
-    <ClInclude Include="base.hpp" />
-    <ClInclude Include="base_interface_macros.hpp" />
-    <ClInclude Include="base_messages_forward_handler.hpp" />
-    <ClInclude Include="base_remotemethod.hpp" />
-    <ClInclude Include="baseapp.hpp" />
-    <ClInclude Include="baseapp_interface.hpp" />
-    <ClInclude Include="baseapp_interface_macros.hpp" />
-    <ClInclude Include="data_download.hpp" />
-    <ClInclude Include="data_downloads.hpp" />
-    <ClInclude Include="forward_message_over_handler.hpp" />
-    <ClInclude Include="initprogress_handler.hpp" />
-    <ClInclude Include="profile.hpp" />
-    <ClInclude Include="proxy.hpp" />
-    <ClInclude Include="proxy_forwarder.hpp" />
-    <ClInclude Include="proxy_interface_macros.hpp" />
-    <ClInclude Include="py_file_descriptor.hpp" />
-    <ClInclude Include="restore_entity_handler.hpp" />
-    <ClInclude Include="sync_entitystreamtemplate_handler.hpp" />
+    <ClInclude Include="archiver.h" />
+    <ClInclude Include="backuper.h" />
+    <ClInclude Include="base.h" />
+    <ClInclude Include="base_interface_macros.h" />
+    <ClInclude Include="base_messages_forward_handler.h" />
+    <ClInclude Include="base_remotemethod.h" />
+    <ClInclude Include="baseapp.h" />
+    <ClInclude Include="baseapp_interface.h" />
+    <ClInclude Include="baseapp_interface_macros.h" />
+    <ClInclude Include="data_download.h" />
+    <ClInclude Include="data_downloads.h" />
+    <ClInclude Include="forward_message_over_handler.h" />
+    <ClInclude Include="initprogress_handler.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="proxy.h" />
+    <ClInclude Include="proxy_forwarder.h" />
+    <ClInclude Include="proxy_interface_macros.h" />
+    <ClInclude Include="py_file_descriptor.h" />
+    <ClInclude Include="restore_entity_handler.h" />
+    <ClInclude Include="sync_entitystreamtemplate_handler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="base.ipp" />
-    <None Include="proxy.ipp" />
+    <None Include="base.inl" />
+    <None Include="proxy.inl" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>

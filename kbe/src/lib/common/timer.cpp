@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "timer.hpp"
-#include "helper/debug_helper.hpp"
-#include "thread/threadguard.hpp"
+#include "timer.h"
+#include "helper/debug_helper.h"
+#include "thread/threadguard.h"
 
 #ifndef CODE_INLINE
-#include "timer.ipp"
+#include "timer.inl"
 #endif
 
 namespace KBEngine

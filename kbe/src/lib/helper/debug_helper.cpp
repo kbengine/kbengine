@@ -19,18 +19,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "debug_helper.hpp"
-#include "profile.hpp"
-#include "common/common.hpp"
-#include "common/timer.hpp"
-#include "thread/threadguard.hpp"
-#include "network/channel.hpp"
-#include "resmgr/resmgr.hpp"
-#include "network/bundle.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/tcp_packet.hpp"
-#include "server/serverconfig.hpp"
+#include "debug_helper.h"
+#include "profile.h"
+#include "common/common.h"
+#include "common/timer.h"
+#include "thread/threadguard.h"
+#include "network/channel.h"
+#include "resmgr/resmgr.h"
+#include "network/bundle.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/tcp_packet.h"
+#include "server/serverconfig.h"
 
 #ifdef unix
 #include <unistd.h>
@@ -48,14 +48,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "log4cxx/patternlayout.h"
 #include "log4cxx/logstring.h"
 #include "log4cxx/basicconfigurator.h"
-#include "helper/script_loglevel.hpp"
+#include "helper/script_loglevel.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment( lib, "odbc32.lib" )
 #endif
 #endif
 
-#include "../../server/tools/message_log/messagelog_interface.hpp"
+#include "../../server/tools/message_log/messagelog_interface.h"
 
 namespace KBEngine{
 	

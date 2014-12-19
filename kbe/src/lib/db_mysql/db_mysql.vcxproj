@@ -100,21 +100,21 @@
     <ClCompile Include="kbe_table_mysql.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="db_exception.hpp" />
-    <ClInclude Include="db_interface_mysql.hpp" />
-    <ClInclude Include="db_context.hpp" />
-    <ClInclude Include="db_transaction.hpp" />
-    <ClInclude Include="entity_sqlstatement_mapping.hpp" />
-    <ClInclude Include="entity_table_mysql.hpp" />
-    <ClInclude Include="kbe_table_mysql.hpp" />
-    <ClInclude Include="read_entity_helper.hpp" />
-    <ClInclude Include="remove_entity_helper.hpp" />
-    <ClInclude Include="sqlstatement.hpp" />
-    <ClInclude Include="write_entity_helper.hpp" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="db_exception.h" />
+    <ClInclude Include="db_interface_mysql.h" />
+    <ClInclude Include="db_context.h" />
+    <ClInclude Include="db_transaction.h" />
+    <ClInclude Include="entity_sqlstatement_mapping.h" />
+    <ClInclude Include="entity_table_mysql.h" />
+    <ClInclude Include="kbe_table_mysql.h" />
+    <ClInclude Include="read_entity_helper.h" />
+    <ClInclude Include="remove_entity_helper.h" />
+    <ClInclude Include="sqlstatement.h" />
+    <ClInclude Include="write_entity_helper.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="entity_table_mysql.ipp" />
+    <None Include="entity_table_mysql.inl" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

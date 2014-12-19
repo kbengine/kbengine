@@ -19,20 +19,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "bundle.hpp"
-#include "network/network_stats.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet.hpp"
-#include "network/channel.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "helper/profile.hpp"
+#include "bundle.h"
+#include "network/network_stats.h"
+#include "network/network_interface.h"
+#include "network/packet.h"
+#include "network/channel.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "helper/profile.h"
 
 #ifndef CODE_INLINE
-#include "bundle.ipp"
+#include "bundle.inl"
 #endif
 
-#include "common/blowfish.hpp"
+#include "common/blowfish.h"
 
 
 #define BUNDLE_SEND_OP(op)																					\

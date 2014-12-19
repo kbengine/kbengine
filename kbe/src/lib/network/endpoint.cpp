@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "endpoint.hpp"
+#include "endpoint.h"
 #ifndef CODE_INLINE
-#include "endpoint.ipp"
+#include "endpoint.inl"
 #endif
 
 namespace KBEngine { 

@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptobject.hpp"
+#include "scriptobject.h"
 
 #ifndef CODE_INLINE
-#include "scriptobject.ipp"
+#include "scriptobject.inl"
 #endif
 
 namespace KBEngine{ namespace script{

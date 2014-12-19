@@ -18,20 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "proxy.hpp"
-#include "proxy_forwarder.hpp"
-#include "profile.hpp"
-#include "data_download.hpp"
-#include "client_lib/client_interface.hpp"
-#include "network/fixed_messages.hpp"
-#include "network/channel.hpp"
+#include "baseapp.h"
+#include "proxy.h"
+#include "proxy_forwarder.h"
+#include "profile.h"
+#include "data_download.h"
+#include "client_lib/client_interface.h"
+#include "network/fixed_messages.h"
+#include "network/channel.h"
 
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 #ifndef CODE_INLINE
-#include "proxy.ipp"
+#include "proxy.inl"
 #endif
 
 namespace KBEngine{

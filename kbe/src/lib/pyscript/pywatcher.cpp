@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "script.hpp"
-#include "pywatcher.hpp"
+#include "script.h"
+#include "pywatcher.h"
 
 namespace KBEngine{ namespace script{
 

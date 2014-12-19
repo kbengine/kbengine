@@ -17,12 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "coordinate_node.hpp"
-#include "coordinate_system.hpp"
-#include "profile.hpp"
+#include "coordinate_node.h"
+#include "coordinate_system.h"
+#include "profile.h"
 
 #ifndef CODE_INLINE
-#include "coordinate_system.ipp"
+#include "coordinate_system.inl"
 #endif
 
 namespace KBEngine{	

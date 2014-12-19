@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "db_exception.hpp"
-#include "db_interface_mysql.hpp"
-#include "db_interface/db_interface.hpp"
+#include "db_exception.h"
+#include "db_interface_mysql.h"
+#include "db_interface/db_interface.h"
 #include <mysql/mysqld_error.h>
 #include <mysql/errmsg.h>
 

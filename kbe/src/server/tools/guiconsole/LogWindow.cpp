@@ -5,7 +5,7 @@
 #include "guiconsole.h"
 #include "LogWindow.h"
 #include "guiconsoleDlg.h"
-#include "../../../server/tools/message_log/messagelog_interface.hpp"
+#include "../../../server/tools/message_log/messagelog_interface.h"
 // CLogWindow dialog
 
 #pragma warning(disable:4244)

@@ -18,59 +18,59 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "client_lib/kbemain.hpp"
-#include "bots.hpp"
+#include "client_lib/kbemain.h"
+#include "bots.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 #define DEFINE_IN_INTERFACE
 #define CLIENT
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseapp/baseapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "loginapp/loginapp_interface.hpp"
+#include "loginapp/loginapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
+#include "cellapp/cellapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "cellappmgr/cellappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.hpp"
+#include "tools/message_log/messagelog_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.hpp"
+#include "tools/message_log/messagelog_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.hpp"
+#include "tools/billing_system/billingsystem_interface.h"
 
 using namespace KBEngine;
 

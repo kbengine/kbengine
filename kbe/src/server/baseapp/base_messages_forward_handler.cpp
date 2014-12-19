@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "base_messages_forward_handler.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
+#include "baseapp.h"
+#include "base_messages_forward_handler.h"
+#include "network/bundle.h"
+#include "network/channel.h"
 
 namespace KBEngine{	
 

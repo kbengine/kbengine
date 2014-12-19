@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "datatypes.hpp"
-#include "resmgr/resmgr.hpp"
+#include "datatypes.h"
+#include "resmgr/resmgr.h"
 
 namespace KBEngine{
 

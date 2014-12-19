@@ -19,14 +19,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "tcp_packet.hpp"
+#include "tcp_packet.h"
 #ifndef CODE_INLINE
-#include "tcp_packet.ipp"
+#include "tcp_packet.inl"
 #endif
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/network_interface.hpp"
-#include "network/message_handler.hpp"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/network_interface.h"
+#include "network/message_handler.h"
 
 namespace KBEngine { 
 namespace Network

@@ -17,12 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "dbmgr.hpp"
-#include "buffered_dbtasks.hpp"
-#include "thread/threadpool.hpp"
-#include "thread/threadguard.hpp"
-#include "db_interface/db_interface.hpp"
-#include "server/serverconfig.hpp"
+#include "dbmgr.h"
+#include "buffered_dbtasks.h"
+#include "thread/threadpool.h"
+#include "thread/threadguard.h"
+#include "db_interface/db_interface.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine{
 

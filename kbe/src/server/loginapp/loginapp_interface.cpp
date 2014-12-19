@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "loginapp_interface.hpp"
+#include "loginapp_interface.h"
 #define DEFINE_IN_INTERFACE
 #define LOGINAPP
-#include "loginapp_interface.hpp"
+#include "loginapp_interface.h"
 
 namespace KBEngine{
 namespace LoginappInterface{

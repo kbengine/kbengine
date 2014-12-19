@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "md5.hpp"
-#include "common.hpp"
+#include "md5.h"
+#include "common.h"
 
 namespace KBEngine
 {

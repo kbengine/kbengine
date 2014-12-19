@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "entity.hpp"
-#include "navigate_handler.hpp"	
-#include "navigation/navigation.hpp"
+#include "cellapp.h"
+#include "entity.h"
+#include "navigate_handler.h"	
+#include "navigation/navigation.h"
 
 namespace KBEngine{	
 

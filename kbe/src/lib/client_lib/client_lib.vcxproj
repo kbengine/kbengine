@@ -102,21 +102,21 @@
     <ClCompile Include="script_callbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="client_interface.hpp" />
-    <ClInclude Include="client_interface_macros.hpp" />
-    <ClInclude Include="clientapp.hpp" />
-    <ClInclude Include="clientobjectbase.hpp" />
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="config.hpp" />
-    <ClInclude Include="entity.hpp" />
-    <ClInclude Include="entity_aspect.hpp" />
-    <ClInclude Include="event.hpp" />
-    <ClInclude Include="kbemain.hpp" />
-    <ClInclude Include="profile.hpp" />
-    <ClInclude Include="script_callbacks.hpp" />
+    <ClInclude Include="client_interface.h" />
+    <ClInclude Include="client_interface_macros.h" />
+    <ClInclude Include="clientapp.h" />
+    <ClInclude Include="clientobjectbase.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="entity.h" />
+    <ClInclude Include="entity_aspect.h" />
+    <ClInclude Include="event.h" />
+    <ClInclude Include="kbemain.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="script_callbacks.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="entity.ipp" />
+    <None Include="entity.inl" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>

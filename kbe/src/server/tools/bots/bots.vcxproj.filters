@@ -44,25 +44,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bots.hpp">
+    <ClInclude Include="bots.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bots_interface.hpp">
+    <ClInclude Include="bots_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bots_interface_macros.hpp">
+    <ClInclude Include="bots_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="clientobject.hpp">
+    <ClInclude Include="clientobject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="create_and_login_handler.hpp">
+    <ClInclude Include="create_and_login_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profile.hpp">
+    <ClInclude Include="profile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pybots.hpp">
+    <ClInclude Include="pybots.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

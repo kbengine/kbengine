@@ -98,11 +98,11 @@
     <ClCompile Include="kbe_tables.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="db_interface.hpp" />
-    <ClInclude Include="db_tasks.hpp" />
-    <ClInclude Include="db_threadpool.hpp" />
-    <ClInclude Include="entity_table.hpp" />
-    <ClInclude Include="kbe_tables.hpp" />
+    <ClInclude Include="db_interface.h" />
+    <ClInclude Include="db_tasks.h" />
+    <ClInclude Include="db_threadpool.h" />
+    <ClInclude Include="entity_table.h" />
+    <ClInclude Include="kbe_tables.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

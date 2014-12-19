@@ -1,6 +1,6 @@
 #pragma once
 #include "afxcmn.h"
-#include "server/components.hpp"
+#include "server/components.h"
 
 // StatusWindow dialog
 using namespace KBEngine;

@@ -2,8 +2,8 @@
 #include "afxwin.h"
 #include "ColorListBox.h"
 #include "MultiLineListBox.h"
-#include "common/common.hpp"
-#include "network/address.hpp"
+#include "common/common.h"
+#include "network/address.h"
 #include "afxcmn.h"
 #include "afxbutton.h"
 

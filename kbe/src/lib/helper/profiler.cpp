@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "profiler.hpp"
+#include "profiler.h"
 
 #ifndef CODE_INLINE
-#include "profiler.ipp"
+#include "profiler.inl"
 #endif
 
 

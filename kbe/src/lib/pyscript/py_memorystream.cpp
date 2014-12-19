@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pickler.hpp"
-#include "py_memorystream.hpp"
+#include "pickler.h"
+#include "py_memorystream.h"
 
 namespace KBEngine{ namespace script{
 

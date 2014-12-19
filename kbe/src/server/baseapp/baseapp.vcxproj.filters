@@ -77,73 +77,73 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="archiver.hpp">
+    <ClInclude Include="archiver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="backuper.hpp">
+    <ClInclude Include="backuper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base.hpp">
+    <ClInclude Include="base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base_interface_macros.hpp">
+    <ClInclude Include="base_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base_remotemethod.hpp">
+    <ClInclude Include="base_remotemethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseapp.hpp">
+    <ClInclude Include="baseapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseapp_interface.hpp">
+    <ClInclude Include="baseapp_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="baseapp_interface_macros.hpp">
+    <ClInclude Include="baseapp_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data_download.hpp">
+    <ClInclude Include="data_download.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data_downloads.hpp">
+    <ClInclude Include="data_downloads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="forward_message_over_handler.hpp">
+    <ClInclude Include="forward_message_over_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="initprogress_handler.hpp">
+    <ClInclude Include="initprogress_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profile.hpp">
+    <ClInclude Include="profile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="proxy.hpp">
+    <ClInclude Include="proxy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="proxy_forwarder.hpp">
+    <ClInclude Include="proxy_forwarder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="proxy_interface_macros.hpp">
+    <ClInclude Include="proxy_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="py_file_descriptor.hpp">
+    <ClInclude Include="py_file_descriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="restore_entity_handler.hpp">
+    <ClInclude Include="restore_entity_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sync_entitystreamtemplate_handler.hpp">
+    <ClInclude Include="sync_entitystreamtemplate_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base_messages_forward_handler.hpp">
+    <ClInclude Include="base_messages_forward_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="base.ipp">
+    <None Include="base.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="proxy.ipp">
+    <None Include="proxy.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

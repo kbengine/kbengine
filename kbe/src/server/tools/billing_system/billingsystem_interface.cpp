@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "billingsystem_interface.hpp"
+#include "billingsystem_interface.h"
 #define DEFINE_IN_INTERFACE
 #define BILLINGSYSTEM
-#include "billingsystem_interface.hpp"
+#include "billingsystem_interface.h"
 
 namespace KBEngine{
 namespace BillingSystemInterface{

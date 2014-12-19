@@ -38,22 +38,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="anonymous_channel.hpp">
+    <ClInclude Include="anonymous_channel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="billing_tasks.hpp">
+    <ClInclude Include="billing_tasks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="billingsystem.hpp">
+    <ClInclude Include="billingsystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="billingsystem_interface.hpp">
+    <ClInclude Include="billingsystem_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="billingsystem_interface_macros.hpp">
+    <ClInclude Include="billingsystem_interface_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="orders.hpp">
+    <ClInclude Include="orders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

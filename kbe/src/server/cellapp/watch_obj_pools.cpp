@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "helper/watcher.hpp"
-#include "watch_obj_pools.hpp"
-#include "witness.hpp"
+#include "helper/watcher.h"
+#include "watch_obj_pools.h"
+#include "witness.h"
 
 namespace KBEngine { 
 

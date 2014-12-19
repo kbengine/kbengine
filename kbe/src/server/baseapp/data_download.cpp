@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "data_download.hpp"
-#include "data_downloads.hpp"
-#include "resmgr/resmgr.hpp"
+#include "baseapp.h"
+#include "data_download.h"
+#include "data_downloads.h"
+#include "resmgr/resmgr.h"
 
-#include "client_lib/client_interface.hpp"
+#include "client_lib/client_interface.h"
 
 namespace KBEngine{	
 

@@ -100,7 +100,7 @@
   <ItemGroup>
     <ClInclude Include="..\dependencies\tinyxml\tinystr.h" />
     <ClInclude Include="..\dependencies\tinyxml\tinyxml.h" />
-    <ClInclude Include="xmlplus.hpp" />
+    <ClInclude Include="xmlplus.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

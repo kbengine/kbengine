@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "pystruct.hpp"
+#include "pystruct.h"
 namespace KBEngine{ 
 namespace script{
 

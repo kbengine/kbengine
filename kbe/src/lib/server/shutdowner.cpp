@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "shutdowner.hpp"
-#include "network/event_dispatcher.hpp"
+#include "shutdowner.h"
+#include "network/event_dispatcher.h"
 
 namespace KBEngine { 
 

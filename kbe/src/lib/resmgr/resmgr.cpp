@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "resmgr.hpp"
-#include "helper/watcher.hpp"
-#include "thread/threadguard.hpp"
+#include "resmgr.h"
+#include "helper/watcher.h"
+#include "thread/threadguard.h"
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 #include <unistd.h>

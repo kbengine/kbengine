@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "script_loglevel.hpp"
+#include "script_loglevel.h"
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/helpers/stringhelper.h"
 

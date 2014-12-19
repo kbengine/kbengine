@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "resmgr.hpp"
-#include "resourceobject.hpp"
-#include "common/timer.hpp"
+#include "resmgr.h"
+#include "resourceobject.h"
+#include "common/timer.h"
 
 namespace KBEngine{	
 

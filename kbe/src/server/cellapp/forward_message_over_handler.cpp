@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "forward_message_over_handler.hpp"
-#include "entitydef/entities.hpp"
-#include "common/memorystream.hpp"
-#include "entity.hpp"
-#include "space.hpp"
-#include "spaces.hpp"
+#include "cellapp.h"
+#include "forward_message_over_handler.h"
+#include "entitydef/entities.h"
+#include "common/memorystream.h"
+#include "entity.h"
+#include "space.h"
+#include "spaces.h"
 
 namespace KBEngine{	
 

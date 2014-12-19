@@ -18,20 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "entity.hpp"
-#include "config.hpp"
-#include "clientobjectbase.hpp"
-#include "pyscript/pywatcher.hpp"
-#include "network/channel.hpp"
-#include "network/fixed_messages.hpp"
-#include "network/common.hpp"
-#include "network/message_handler.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "entitydef/entitydef.hpp"
+#include "entity.h"
+#include "config.h"
+#include "clientobjectbase.h"
+#include "pyscript/pywatcher.h"
+#include "network/channel.h"
+#include "network/fixed_messages.h"
+#include "network/common.h"
+#include "network/message_handler.h"
+#include "entitydef/scriptdef_module.h"
+#include "entitydef/entity_mailbox.h"
+#include "entitydef/entitydef.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/loginapp/loginapp_interface.h"
 
 namespace KBEngine{
 

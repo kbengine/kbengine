@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "helper/debug_helper.hpp"
-#include "machine_infos.hpp"
+#include "helper/debug_helper.h"
+#include "machine_infos.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <intrin.h>

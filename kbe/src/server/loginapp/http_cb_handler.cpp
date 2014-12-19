@@ -18,17 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "loginapp.hpp"
-#include "http_cb_handler.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/event_poller.hpp"
-#include "network/endpoint.hpp"
-#include "network/bundle.hpp"
-#include "network/http_utility.hpp"
-#include "helper/debug_helper.hpp"
-#include "server/serverconfig.hpp"
+#include "loginapp.h"
+#include "http_cb_handler.h"
+#include "network/event_dispatcher.h"
+#include "network/event_poller.h"
+#include "network/endpoint.h"
+#include "network/bundle.h"
+#include "network/http_utility.h"
+#include "helper/debug_helper.h"
+#include "server/serverconfig.h"
 
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{
 

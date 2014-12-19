@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "tasks.hpp"
-#include "helper/debug_helper.hpp"
-#include "thread/threadguard.hpp"
+#include "tasks.h"
+#include "helper/debug_helper.h"
+#include "thread/threadguard.h"
 
 namespace KBEngine
 {

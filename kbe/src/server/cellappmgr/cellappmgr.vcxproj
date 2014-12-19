@@ -117,14 +117,14 @@
     <ClCompile Include="spaces.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cell.hpp" />
-    <ClInclude Include="cellapp.hpp" />
-    <ClInclude Include="cellappmgr.hpp" />
-    <ClInclude Include="cellappmgr_interface.hpp" />
-    <ClInclude Include="cellappmgr_interface_macros.hpp" />
-    <ClInclude Include="cells.hpp" />
-    <ClInclude Include="space.hpp" />
-    <ClInclude Include="spaces.hpp" />
+    <ClInclude Include="cell.h" />
+    <ClInclude Include="cellapp.h" />
+    <ClInclude Include="cellappmgr.h" />
+    <ClInclude Include="cellappmgr_interface.h" />
+    <ClInclude Include="cellappmgr_interface_macros.h" />
+    <ClInclude Include="cells.h" />
+    <ClInclude Include="space.h" />
+    <ClInclude Include="spaces.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

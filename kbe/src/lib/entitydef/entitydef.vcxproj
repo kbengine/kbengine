@@ -108,33 +108,33 @@
     <ClCompile Include="volatileinfo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="blob.hpp" />
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="datatype.hpp" />
-    <ClInclude Include="datatypes.hpp" />
-    <ClInclude Include="detaillevel.hpp" />
-    <ClInclude Include="entities.hpp" />
-    <ClInclude Include="entity_garbages.hpp" />
-    <ClInclude Include="entity_macro.hpp" />
-    <ClInclude Include="entity_mailbox.hpp" />
-    <ClInclude Include="entitydef.hpp" />
-    <ClInclude Include="entitymailboxabstract.hpp" />
-    <ClInclude Include="fixedarray.hpp" />
-    <ClInclude Include="fixeddict.hpp" />
-    <ClInclude Include="method.hpp" />
-    <ClInclude Include="property.hpp" />
-    <ClInclude Include="remote_entity_method.hpp" />
-    <ClInclude Include="scriptdef_module.hpp" />
-    <ClInclude Include="volatileinfo.hpp" />
+    <ClInclude Include="blob.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="datatype.h" />
+    <ClInclude Include="datatypes.h" />
+    <ClInclude Include="detaillevel.h" />
+    <ClInclude Include="entities.h" />
+    <ClInclude Include="entity_garbages.h" />
+    <ClInclude Include="entity_macro.h" />
+    <ClInclude Include="entity_mailbox.h" />
+    <ClInclude Include="entitydef.h" />
+    <ClInclude Include="entitymailboxabstract.h" />
+    <ClInclude Include="fixedarray.h" />
+    <ClInclude Include="fixeddict.h" />
+    <ClInclude Include="method.h" />
+    <ClInclude Include="property.h" />
+    <ClInclude Include="remote_entity_method.h" />
+    <ClInclude Include="scriptdef_module.h" />
+    <ClInclude Include="volatileinfo.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="datatype.ipp" />
-    <None Include="entitydef.ipp" />
-    <None Include="entitymailboxabstract.ipp" />
-    <None Include="method.ipp" />
-    <None Include="property.ipp" />
+    <None Include="datatype.inl" />
+    <None Include="entitydef.inl" />
+    <None Include="entitymailboxabstract.inl" />
+    <None Include="method.inl" />
+    <None Include="property.inl" />
     <None Include="ReadMe.txt" />
-    <None Include="scriptdef_module.ipp" />
+    <None Include="scriptdef_module.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

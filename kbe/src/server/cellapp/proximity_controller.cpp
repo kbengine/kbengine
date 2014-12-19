@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "trap_trigger.hpp"
-#include "entity.hpp"
-#include "proximity_controller.hpp"	
-#include "entity_coordinate_node.hpp"
+#include "trap_trigger.h"
+#include "entity.h"
+#include "proximity_controller.h"	
+#include "entity_coordinate_node.h"
 
 namespace KBEngine{	
 
