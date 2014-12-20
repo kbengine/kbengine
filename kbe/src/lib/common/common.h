@@ -19,7 +19,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef KBE_COMMON_HPP
 #define KBE_COMMON_HPP
-#include "common/kbemalloc.h"
 #include "common/platform.h"
 #include "common/singleton.h"
 #include "common/kbeversion.h"

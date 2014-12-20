@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_MEMORY_HELPER_HPP
 
 #include "common/common.h"
+#include "common/kbemalloc.h"
 #include "helper/debug_helper.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
