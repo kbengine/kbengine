@@ -1,6 +1,12 @@
 language: cpp
 compiler:
-- gcc
+   - gcc
 before_install:
-- sudo apt-get update
+   - sudo apt-get update
+notifications:
+  recipients:
+    - kbesrv@gmail.com
+  email:
+    on_success: change
+    on_failure: always
 script: cd kbe/src && make
