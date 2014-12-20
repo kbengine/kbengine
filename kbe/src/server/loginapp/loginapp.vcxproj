@@ -71,7 +71,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4996 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;jsoncpp_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xmlplus_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;jwsmtp_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xmlplus_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;jwsmtp_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -100,7 +100,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4996 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;jsoncpp.lib;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xmlplus.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;jwsmtp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xmlplus.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;jwsmtp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>

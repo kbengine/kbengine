@@ -139,7 +139,6 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/jsoncpp/include
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E
@@ -243,7 +242,6 @@ CPPFLAGS += -DUSE_JEMALLOC
 #endif
 
 LDLIBS += -ltinyxml
-LDLIBS += -ljsoncpp
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1

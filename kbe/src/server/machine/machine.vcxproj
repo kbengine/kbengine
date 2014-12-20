@@ -69,7 +69,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;Version.lib;netapi32.lib;jsoncpp_d.lib;resmgr_d.lib;server_d.lib;xmlplus_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;server_d.lib;xmlplus_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -96,7 +96,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;Version.lib;netapi32.lib;jsoncpp.lib;resmgr.lib;server.lib;xmlplus.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;Version.lib;netapi32.lib;resmgr.lib;server.lib;xmlplus.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
