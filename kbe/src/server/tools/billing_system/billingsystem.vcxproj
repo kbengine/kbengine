@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>billing_system</ProjectName>
+    <ProjectName>billingsystem</ProjectName>
     <ProjectGuid>{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}</ProjectGuid>
     <RootNamespace>billingsystem</RootNamespace>
     <Keyword>Win32Proj</Keyword>

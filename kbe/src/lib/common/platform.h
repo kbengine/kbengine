@@ -111,12 +111,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 /** 定义引擎名字空间 */
-namespace KBEngine{ 
+namespace KBEngine
+{ 
+
 /** 定义引擎字节序 */
 #define KBENGINE_LITTLE_ENDIAN							0
 #define KBENGINE_BIG_ENDIAN								1
 #if !defined(KBENGINE_ENDIAN)
-#  if defined (ACE_BIG_ENDIAN)
+#  if defined (USE_BIG_ENDIAN)
 #    define KBENGINE_ENDIAN KBENGINE_BIG_ENDIAN
 #  else 
 #    define KBENGINE_ENDIAN KBENGINE_LITTLE_ENDIAN
