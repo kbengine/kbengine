@@ -1,7 +1,7 @@
 KBEngine
 ========
 
-[![Build Status][4]][5]
+[![Build Status](https://travis-ci.org/kbengine/kbengine.svg)](https://travis-ci.org/kbengine/kbengine)
 
 ##Homepage
 http://www.kbengine.org
