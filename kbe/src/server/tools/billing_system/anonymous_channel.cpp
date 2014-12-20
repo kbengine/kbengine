@@ -180,8 +180,10 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	KBEUnordered_map<std::string, BACK_ORDERS_DATA>::iterator iter = backOrdersDatas_.begin();
 	BillingSystem::getSingleton().lockthread();
 
+	SERVER_ERROR_CODE retcode = SERVER_ERR_OP_FAILED;
 	BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
 	BillingSystem::ORDERS::iterator oiter = orders.begin();
+	
 	for(; oiter != orders.end(); )
 	{
 		if(oiter->second->timeout < timestamp())
@@ -195,11 +197,8 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			(*(*bundle)) << oiter->second->baseappID << oiter->second->ordersID << oiter->second->dbid;
 			std::string backdata = "timeout";
 			(*(*bundle)).appendBlob(backdata);
-
 			(*(*bundle)) << oiter->second->cbid;
-
-			bool success = false;
-			(*(*bundle)) << success;
+			(*(*bundle)) << retcode;
 
 			Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(oiter->second->address);
 
@@ -220,7 +219,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			++oiter;
 		}
 	}
-
+	
 	for(; iter != backOrdersDatas_.end(); iter++)
 	{
 		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
@@ -228,7 +227,8 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		std::string ordersID = iter->first;
 		DBID dbid = 0;
 		CALLBACK_ID cbid = 0;
-
+		retcode = SERVER_ERR_OP_FAILED;
+		
 		if(orderiter == orders.end())
 		{
 			WARNING_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={} not found!\n", 
@@ -242,8 +242,6 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			dbid = orderiter->second->dbid;
 			cbid = orderiter->second->cbid;
 		}
-		
-		bool success = false;
 
 		std::string::size_type fi = iter->second.data.find("cstate=");
 		std::string::size_type fi1 = iter->second.data.find("&chargeID=");
@@ -253,11 +251,13 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			std::string s;
 			int ilen = strlen("cstate=");
 			s.assign(iter->second.data.c_str() + fi + ilen, fi1 - (fi + ilen));
-			success = atoi(s.c_str()) > 0;
+			
+			if(atoi(s.c_str()) > 0)
+				retcode = SERVER_SUCCESS;
 		}
 
 		INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={}, dbid={}, success={}\n", 
-			ordersID, dbid, success));
+			ordersID, dbid, retcode));
 		
 		if(orderiter != orders.end())
 		{
@@ -270,7 +270,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 				(*(*bundle)) << baseappID << ordersID << dbid;
 				(*(*bundle)).appendBlob(iter->second.data);
 				(*(*bundle)) << cbid;
-				(*(*bundle)) << success;
+				(*(*bundle)) << retcode;
 				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 			}
 			else
@@ -296,7 +296,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 						(*(*bundle)) << baseappID << ordersID << dbid;
 						(*(*bundle)).appendBlob(iter->second.data);
 						(*(*bundle)) << cbid;
-						(*(*bundle)) << success;
+						(*(*bundle)) << retcode;
 						(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
 					}
 					else
