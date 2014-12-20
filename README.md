@@ -1,6 +1,8 @@
 KBEngine
 ========
 
+[![Build Status][4]][5]
+
 ##Homepage
 http://www.kbengine.org
 
@@ -13,7 +15,6 @@ http://www.kbengine.org
 	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases
 	ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases
 	html5		: https://github.com/kbengine/kbengine_html5_demo/releases
-
 
 ##Docs
 	docs		: http://www.kbengine.org/docs/
