@@ -208,7 +208,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 	// Iterate through the list of interfaces.
 	struct ifreq * ifr         = ifc.ifc_req;
 	int nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
-	for (int i = 0; i < nInterfaces; i++)
+	for (int i = 0; i < nInterfaces; ++i)
 	{
 		struct ifreq *item = &ifr[i];
 

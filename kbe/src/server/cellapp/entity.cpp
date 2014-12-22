@@ -437,7 +437,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		DETAIL_TYPE propertyDetailLevel = propertyDescription->getDetailLevel();
 
 		std::list<ENTITY_ID>::iterator witer = witnesses_.begin();
-		for(; witer != witnesses_.end(); witer++)
+		for(; witer != witnesses_.end(); ++witer)
 		{
 			Entity* pEntity = Cellapp::getSingleton().findEntity((*witer));
 			if(pEntity == NULL || pEntity->pWitness() == NULL)
@@ -490,10 +490,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
 	{
 		int8 detailLevel = propertyDescription->getDetailLevel();
-		for(int8 i=DETAIL_LEVEL_NEAR; i<=detailLevel; i++)
+		for(int8 i=DETAIL_LEVEL_NEAR; i<=detailLevel; ++i)
 		{
 			std::map<ENTITY_ID, Entity*>::iterator iter = witnessEntities_[i].begin();
-			for(; iter != witnessEntities_[i].end(); iter++)
+			for(; iter != witnessEntities_[i].end(); ++iter)
 			{
 				Entity* entity = iter->second;
 				EntityMailbox* clientMailbox = entity->clientMailbox();
@@ -510,10 +510,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		// 这个属性已经更新过， 将这些信息添加到曾经进入过这个级别的entity， 但现在可能走远了一点， 在他回来重新进入这个detaillevel
 		// 时如果重新将所有的属性都更新到他的客户端可能不合适， 我们记录这个属性的改变， 下次他重新进入我们只需要将所有期间有过改变的
 		// 数据发送到他的客户端更新
-		for(int8 i=detailLevel; i<=DETAIL_LEVEL_FAR; i++)
+		for(int8 i=detailLevel; i<=DETAIL_LEVEL_FAR; ++i)
 		{
 			std::map<ENTITY_ID, Entity*>::iterator iter = witnessEntities_[i].begin();
-			for(; iter != witnessEntities_[i].end(); iter++)
+			for(; iter != witnessEntities_[i].end(); ++iter)
 			{
 				Entity* entity = iter->second;
 				EntityMailbox* clientMailbox = entity->clientMailbox();
@@ -694,7 +694,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-	for(; iter != propertyDescrs.end(); iter++)
+	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		if((flags & propertyDescription->getFlags()) > 0)
@@ -888,7 +888,7 @@ void Entity::restoreProximitys()
 
 	Controllers::CONTROLLERS_MAP& objects = pControllers_->objects();
 	Controllers::CONTROLLERS_MAP::iterator iter = objects.begin();
-	for(; iter != objects.end(); iter++)
+	for(; iter != objects.end(); ++iter)
 	{
 		if(iter->second->type() == Controller::CONTROLLER_TYPE_PROXIMITY)
 		{
@@ -1737,7 +1737,7 @@ PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
 
 	int idx = 0;
 	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
-	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); iter++)
+	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); ++iter)
 	{
 		PyObject* pyHitposItem = PyTuple_New(3);
 		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
@@ -1992,7 +1992,7 @@ void Entity::debugAOI()
 	
 	int pending = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
-	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -2007,7 +2007,7 @@ void Entity::debugAOI()
 		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending, pWitness_->aoiRadius(), pWitness_->aoiHysteresisArea()));
 
 	iter = pWitness_->aoiEntities().begin();
-	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 		Position3D epos;
@@ -2076,7 +2076,7 @@ PyObject* Entity::pyEntitiesInAOI()
 
 	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
 	int i = 0;
-	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -2214,7 +2214,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 
 	std::vector<Entity*>::iterator iter = findentities.begin();
 	int i = 0;
-	for(; iter != findentities.end(); iter++)
+	for(; iter != findentities.end(); ++iter)
 	{
 		Entity* pEntity = (*iter);
 
@@ -2917,7 +2917,7 @@ void Entity::addWitnessToStream(KBEngine::MemoryStream& s)
 	s << size;
 
 	std::list<ENTITY_ID>::iterator iter = witnesses_.begin();
-	for(; iter != witnesses_.end(); iter++)
+	for(; iter != witnesses_.end(); ++iter)
 	{
 		s << (*iter);
 	}
@@ -2942,7 +2942,7 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 	KBE_ASSERT(witnesses_count_ == 0);
 	witnesses_count_ = size;
 
-	for(uint32 i=0; i<size; i++)
+	for(uint32 i=0; i<size; ++i)
 	{
 		ENTITY_ID entityID;
 		s >> entityID;
@@ -3032,7 +3032,7 @@ void Entity::createTimersFromStream(KBEngine::MemoryStream& s)
 	uint32 size;
 	s >> size;
 
-	for(uint32 i=0; i<size; i++)
+	for(uint32 i=0; i<size; ++i)
 	{
 		ScriptID tid;
 		uint32 time;

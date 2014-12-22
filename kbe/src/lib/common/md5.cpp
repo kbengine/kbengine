@@ -64,7 +64,7 @@ std::string KBE_MD5::getDigestStr()
 	const unsigned char* md = getDigest();
 
 	char tmp[3]={'\0'}, md5str[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; ++i)
 	{
 		sprintf(tmp,"%2.2X", md[i]);
 		strcat(md5str, tmp);

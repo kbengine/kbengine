@@ -230,7 +230,7 @@ int	TelnetHandler::handleInputNotification(int fd)
 	if(state_ == TELNET_STATE_READONLY)
 		return 0;
 
-	for(int i = 0; i < recvsize; i++)
+	for(int i = 0; i < recvsize; ++i)
 	{
 		buffer_.push_back(data[i]);
 	}
@@ -405,7 +405,7 @@ bool TelnetHandler::processCommand()
 
 
 	bool logcmd = true;
-	//for(int i=0; i<(int)historyCommand_.size(); i++)
+	//for(int i=0; i<(int)historyCommand_.size(); ++i)
 	{
 		//if(historyCommand_[i] == command_)
 		//{

@@ -53,7 +53,7 @@ void NetworkStats::addHandler(NetworkStatsHandler* pHandler)
 void NetworkStats::removeHandler(NetworkStatsHandler* pHandler)
 {
 	std::vector<NetworkStatsHandler*>::iterator iter = handlers_.begin();
-	for(; iter != handlers_.end(); iter++)
+	for(; iter != handlers_.end(); ++iter)
 	{
 		if((*iter) == pHandler)
 		{
@@ -80,7 +80,7 @@ void NetworkStats::trackMessage(S_OP op, const MessageHandler& msgHandler, uint3
 	}
 
 	std::vector<NetworkStatsHandler*>::iterator iter = handlers_.begin();
-	for(; iter != handlers_.end(); iter++)
+	for(; iter != handlers_.end(); ++iter)
 	{
 		if(op == SEND)
 			(*iter)->onSendMessage(msgHandler, size);

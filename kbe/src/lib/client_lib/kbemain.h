@@ -158,7 +158,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 		return;
 	}
 
-	for(int argIdx=1; argIdx<argc; argIdx++)
+	for(int argIdx=1; argIdx<argc; ++argIdx)
 	{
 		std::string cmd = argv[argIdx];
 		

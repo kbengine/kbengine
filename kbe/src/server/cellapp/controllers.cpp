@@ -98,7 +98,7 @@ void Controllers::addToStream(KBEngine::MemoryStream& s)
 	s << lastid_ << size;
 
 	CONTROLLERS_MAP::iterator iter = objects_.begin();
-	for(; iter != objects_.end(); iter++)
+	for(; iter != objects_.end(); ++iter)
 	{
 		uint8 itype = (uint8)iter->second->type();
 		s << itype;
@@ -115,7 +115,7 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 	Entity* pEntity = Cellapp::getSingleton().findEntity(entityID_);
 	KBE_ASSERT(pEntity);
 
-	for(uint32 i=0; i<size; i++)
+	for(uint32 i=0; i<size; ++i)
 	{
 		uint8 itype;
 		s >> itype;

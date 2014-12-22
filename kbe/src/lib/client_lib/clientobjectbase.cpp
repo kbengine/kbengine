@@ -1724,7 +1724,7 @@ void ClientObjectBase::clearSpace(bool isAll)
 	if(!isAll)
 	{
 		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
-		for(; iter != pEntities_->getEntities().end(); iter++)
+		for(; iter != pEntities_->getEntities().end(); ++iter)
 		{
 			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
 			if(pEntity->id() == this->entityID())
@@ -1749,7 +1749,7 @@ void ClientObjectBase::clearSpace(bool isAll)
 	else
 	{
 		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
-		for(; iter != pEntities_->getEntities().end(); iter++)
+		for(; iter != pEntities_->getEntities().end(); ++iter)
 		{
 			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
 
@@ -2072,7 +2072,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	PyObject* pyTuple = PyTuple_New(vec.size());
 	std::vector<std::string>::iterator iter = vec.begin();
 	int i = 0;
-	for(; iter != vec.end(); iter++)
+	for(; iter != vec.end(); ++iter)
 	{
 		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
 	}

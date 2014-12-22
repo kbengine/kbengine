@@ -45,7 +45,7 @@ BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelFrequentTask(this);
 
 	std::vector<Network::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
-	for(; iter != bufferedSendToCellappMessages_.end(); iter++)
+	for(; iter != bufferedSendToCellappMessages_.end(); ++iter)
 	{
 		Network::Bundle::ObjPool().reclaimObject((*iter));
 	}

@@ -68,7 +68,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-	for(; iter != propertyDescrs.end(); iter++)
+	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 
@@ -165,7 +165,7 @@ bool Baseapp::canShutdown()
 	if(cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); i++)
+		for(size_t i=0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
@@ -179,7 +179,7 @@ bool Baseapp::canShutdown()
 	int count = 0;
 	Entities<Base>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 	Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
-	for(; iter != entities.end(); iter++)
+	for(; iter != entities.end(); ++iter)
 	{
 		//if(static_cast<Base*>(iter->second.get())->hasDB())
 		{
@@ -232,7 +232,7 @@ void Baseapp::onShutdown(bool first)
 		{
 			bool done = false;
 			Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
-			for(; iter != entities.end(); iter++)
+			for(; iter != entities.end(); ++iter)
 			{
 				//if(static_cast<Base*>(iter->second.get())->hasDB() && 
 				//	static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
@@ -615,7 +615,7 @@ void Baseapp::onRequestRestoreCB(Network::Channel* pChannel, KBEngine::MemoryStr
 		cid, source_cid, canRestore, pChannel->c_str()));
 
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
-	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	for(; resiter != pRestoreEntityHandlers_.end(); ++resiter)
 	{
 		if((*resiter)->cellappID() == source_cid)
 		{
@@ -629,7 +629,7 @@ void Baseapp::onRequestRestoreCB(Network::Channel* pChannel, KBEngine::MemoryStr
 void Baseapp::onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 {
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
-	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	for(; resiter != pRestoreEntityHandlers_.end(); ++resiter)
 	{
 		if((*resiter).get() == pRestoreEntityHandler)
 		{
@@ -655,7 +655,7 @@ void Baseapp::onRestoreSpaceCellFromOtherBaseapp(Network::Channel* pChannel, KBE
 		baseappID, spaceID, spaceEntityID, destroyed, pRestoreEntityHandlers_.size(), cellappID));
 
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
-	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	for(; resiter != pRestoreEntityHandlers_.end(); ++resiter)
 	{
 		(*resiter)->onRestoreSpaceCellFromOtherBaseapp(baseappID, cellappID, spaceID, spaceEntityID, utype, destroyed);
 	}
@@ -3342,7 +3342,7 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		{
 			const Network::MessageHandlers::MessageHandlerMap& msgHandlers = BaseappInterface::messageHandlers.msgHandlers();
 			Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
-			for(; iter != msgHandlers.end(); iter++)
+			for(; iter != msgHandlers.end(); ++iter)
 			{
 				Network::MessageHandler* pMessageHandler = iter->second;
 				if(!iter->second->exposed)
@@ -3356,7 +3356,7 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
-				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
+				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
 				{
 					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
@@ -3368,13 +3368,13 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		bundle << size;
 
 		std::map< Network::MessageID, Network::ExposedMessageInfo >::iterator iter = messages.begin();
-		for(; iter != messages.end(); iter++)
+		for(; iter != messages.end(); ++iter)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
-			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			for(; argiter != iter->second.argsTypes.end(); ++argiter)
 			{
 				bundle << (*argiter);
 			}
@@ -3416,7 +3416,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		bundle << aliassize;
 
 		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
-		for(; dtiter != dataTypes.end(); dtiter++)
+		for(; dtiter != dataTypes.end(); ++dtiter)
 		{
 			const DataType* datatype = dtiter->second;
 
@@ -3436,7 +3436,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				bundle << dictdatatype->moduleName();
 
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
-				for(; keyiter != keys.end(); keyiter++)
+				for(; keyiter != keys.end(); ++keyiter)
 				{
 					bundle << keyiter->first;
 					bundle << keyiter->second->dataType->id();
@@ -3450,7 +3450,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 
 		const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
 		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
-		for(; iter != modules.end(); iter++)
+		for(; iter != modules.end(); ++iter)
 		{
 			const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = iter->get()->getClientPropertyDescriptions();
 			const ScriptDefModule::METHODDESCRIPTION_MAP& methods = iter->get()->getClientMethodDescriptions();
@@ -3477,7 +3477,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			bundle << spaceuid << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
-			for(; piter != propers.end(); piter++)
+			for(; piter != propers.end(); ++piter)
 			{
 				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
 				int16 aliasID = piter->second->aliasID();
@@ -3488,7 +3488,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
-			for(; miter != methods.end(); miter++)
+			for(; miter != methods.end(); ++miter)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
 				int16 aliasID = miter->second->aliasID();
@@ -3501,14 +3501,14 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
-				for(; argiter != args.end(); argiter++)
+				for(; argiter != args.end(); ++argiter)
 				{
 					bundle << (*argiter)->id();
 				}
 			}
 
 			miter = methods1.begin();
-			for(; miter != methods1.end(); miter++)
+			for(; miter != methods1.end(); ++miter)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
 				int16 aliasID = miter->second->aliasID();
@@ -3521,14 +3521,14 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
-				for(; argiter != args.end(); argiter++)
+				for(; argiter != args.end(); ++argiter)
 				{
 					bundle << (*argiter)->id();
 				}
 			}
 
 			miter = methods2.begin();
-			for(; miter != methods2.end(); miter++)
+			for(; miter != methods2.end(); ++miter)
 			{
 				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
 				int16 aliasID = miter->second->aliasID();
@@ -3541,7 +3541,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				bundle << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
-				for(; argiter != args.end(); argiter++)
+				for(; argiter != args.end(); ++argiter)
 				{
 					bundle << (*argiter)->id();
 				}
@@ -3582,7 +3582,7 @@ void Baseapp::onReloadScript(bool fullReload)
 {
 	Entities<Base>::ENTITYS_MAP& entities = pEntities_->getEntities();
 	Entities<Base>::ENTITYS_MAP::iterator eiter = entities.begin();
-	for(; eiter != entities.end(); eiter++)
+	for(; eiter != entities.end(); ++eiter)
 	{
 		static_cast<Base*>(eiter->second.get())->reload(fullReload);
 	}
@@ -3962,7 +3962,7 @@ void Baseapp::onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID enti
 
 		std::string http_host = "localhost";
 		Components::COMPONENTS::iterator iter = loginapps.begin();
-		for(; iter != loginapps.end(); iter++)
+		for(; iter != loginapps.end(); ++iter)
 		{
 			if((*iter).groupOrderid == 1)
 			{

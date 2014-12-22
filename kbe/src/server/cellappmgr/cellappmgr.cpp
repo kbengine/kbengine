@@ -172,7 +172,7 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 	std::tr1::variate_generator<std::tr1::mt19937, std::tr1::uniform_int<int> > generator (engine, unif);
 	COMPONENT_MAP::iterator iter = components.begin();
 	int index = 0;
-	for(int i=0; i<10; i++)
+	for(int i=0; i<10; ++i)
 		index = generator();
 		*/
 	static size_t index = 0;

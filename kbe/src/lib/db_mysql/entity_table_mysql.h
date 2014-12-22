@@ -280,7 +280,7 @@ public:
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
-		for(int i=0; i<2; i++)
+		for(int i=0; i<2; ++i)
 			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 	}
 
@@ -321,7 +321,7 @@ public:
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
-		for(int i=0; i<3; i++)
+		for(int i=0; i<3; ++i)
 			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 	}
 
@@ -362,7 +362,7 @@ public:
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
-		for(int i=0; i<4; i++)
+		for(int i=0; i<4; ++i)
 			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 	}
 

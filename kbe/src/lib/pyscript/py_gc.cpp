@@ -222,7 +222,7 @@ void PyGC::decTracing(std::string name)
 void PyGC::debugTracing(bool shuttingdown)
 {
 	KBEUnordered_map<std::string, int>::iterator iter = tracingCountMap_.begin();
-	for(; iter != tracingCountMap_.end(); iter++)
+	for(; iter != tracingCountMap_.end(); ++iter)
 	{
 		if(shuttingdown)
 		{

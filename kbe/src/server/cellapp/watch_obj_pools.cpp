@@ -49,7 +49,7 @@ uint32 watchWitnessPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Witness>::OBJECTS::const_iterator iter = Witness::ObjPool().objects().begin();
-	for(; iter != Witness::ObjPool().objects().end(); iter++)
+	for(; iter != Witness::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}

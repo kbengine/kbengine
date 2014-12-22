@@ -75,7 +75,7 @@ void EntityCoordinateNode::update()
 {
 	CoordinateNode::update();
 	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); iter++)
+	for(; iter != watcherNodes_.end(); ++iter)
 	{
 		(*iter)->update();
 	}
@@ -85,7 +85,7 @@ void EntityCoordinateNode::update()
 void EntityCoordinateNode::onRemove()
 {
 	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); iter++)
+	for(; iter != watcherNodes_.end(); ++iter)
 	{
 		(*iter)->onParentRemove(this);
 	}

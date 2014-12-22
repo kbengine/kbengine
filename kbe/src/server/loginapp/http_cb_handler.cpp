@@ -354,7 +354,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 {
 	std::map< int, CLIENT >::iterator iter = clients_.begin();
-	for(; iter != clients_.end(); iter++)
+	for(; iter != clients_.end(); ++iter)
 	{
 		if(iter->second.code == code)
 		{
@@ -380,7 +380,7 @@ void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
 {
 	std::map< int, CLIENT >::iterator iter = clients_.begin();
-	for(; iter != clients_.end(); iter++)
+	for(; iter != clients_.end(); ++iter)
 	{
 		if(iter->second.code == code)
 		{
@@ -406,7 +406,7 @@ void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
 void HTTPCBHandler::onAccountResetPassword(std::string& code, bool success)
 {
 	std::map< int, CLIENT >::iterator iter = clients_.begin();
-	for(; iter != clients_.end(); iter++)
+	for(; iter != clients_.end(); ++iter)
 	{
 		if(iter->second.code == code)
 		{

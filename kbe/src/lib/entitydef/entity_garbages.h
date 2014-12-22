@@ -55,7 +55,7 @@ public:
 			int i = 0;
 
 			ENTITYS_MAP::iterator iter = _entities.begin();
-			for(; iter != _entities.end(); iter++)
+			for(; iter != _entities.end(); ++iter)
 			{
 				if(i++ >= 256)
 					break;

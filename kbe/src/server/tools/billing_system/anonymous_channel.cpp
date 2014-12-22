@@ -220,7 +220,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		}
 	}
 	
-	for(; iter != backOrdersDatas_.end(); iter++)
+	for(; iter != backOrdersDatas_.end(); ++iter)
 	{
 		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
 		COMPONENT_ID baseappID = 0;
@@ -256,7 +256,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 				retcode = SERVER_SUCCESS;
 		}
 
-		INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={}, dbid={}, success={}\n", 
+		INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: orders={}, dbid={}, retcode={}\n", 
 			ordersID, dbid, retcode));
 		
 		if(orderiter != orders.end())
@@ -285,7 +285,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			if(channels.size() > 0)
 			{
 				Network::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
-				for(; channeliter != channels.end(); channeliter++)
+				for(; channeliter != channels.end(); ++channeliter)
 				{
 					Network::Channel* pChannel = channeliter->second;
 					if(pChannel)

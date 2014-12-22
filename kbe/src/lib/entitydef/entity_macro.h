@@ -411,7 +411,7 @@ public:																										\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
 				scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
-		for(; iter != propertyDescrs.end(); iter++)															\
+		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());				\
@@ -439,7 +439,7 @@ public:																										\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
 				scriptModule()->getClientPropertyDescriptions();											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
-		for(; iter != propertyDescrs.end(); iter++)															\
+		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			if(otherClient)																					\
@@ -873,7 +873,7 @@ public:																										\
 		}																									\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();			\
-		for(; iter != lpPropertyDescrs_->end(); iter++)														\
+		for(; iter != lpPropertyDescrs_->end(); ++iter)														\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			DataType* dataType = propertyDescription->getDataType();										\

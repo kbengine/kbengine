@@ -456,7 +456,7 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 		else
 		{
 			Components::COMPONENTS::iterator iter = loginapps.begin();
-			for(; iter != loginapps.end(); iter++)
+			for(; iter != loginapps.end(); ++iter)
 			{
 				if((*iter).groupOrderid == 1)
 				{
@@ -599,7 +599,7 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 		else
 		{
 			Components::COMPONENTS::iterator iter = loginapps.begin();
-			for(; iter != loginapps.end(); iter++)
+			for(; iter != loginapps.end(); ++iter)
 			{
 				if((*iter).groupOrderid == 1)
 				{
@@ -1025,7 +1025,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		{
 			const Network::MessageHandlers::MessageHandlerMap& msgHandlers = ClientInterface::messageHandlers.msgHandlers();
 			Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
-			for(; iter != msgHandlers.end(); iter++)
+			for(; iter != msgHandlers.end(); ++iter)
 			{
 				Network::MessageHandler* pMessageHandler = iter->second;
 
@@ -1037,7 +1037,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
-				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
+				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
 				{
 					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
@@ -1048,7 +1048,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		{
 			const Network::MessageHandlers::MessageHandlerMap& msgHandlers = LoginappInterface::messageHandlers.msgHandlers();
 			Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
-			for(; iter != msgHandlers.end(); iter++)
+			for(; iter != msgHandlers.end(); ++iter)
 			{
 				Network::MessageHandler* pMessageHandler = iter->second;
 				if(!iter->second->exposed)
@@ -1061,7 +1061,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 				
 				KBEngine::strutil::kbe_replace(info.name, "::", "_");
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
-				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
+				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
 				{
 					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
@@ -1074,26 +1074,26 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		bundle << size;
 
 		std::map< Network::MessageID, Network::ExposedMessageInfo >::iterator iter = clientMessages.begin();
-		for(; iter != clientMessages.end(); iter++)
+		for(; iter != clientMessages.end(); ++iter)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
-			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			for(; argiter != iter->second.argsTypes.end(); ++argiter)
 			{
 				bundle << (*argiter);
 			}
 		}
 
 		iter = messages.begin();
-		for(; iter != messages.end(); iter++)
+		for(; iter != messages.end(); ++iter)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
-			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			for(; argiter != iter->second.argsTypes.end(); ++argiter)
 			{
 				bundle << (*argiter);
 			}
@@ -1140,7 +1140,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		uint16 size = errsDescrs.size();
 
 		bundle << size;
-		for(; iter != errsDescrs.end(); iter++)
+		for(; iter != errsDescrs.end(); ++iter)
 		{
 			bundle << iter->first;
 			bundle.appendBlob(iter->second.first.data(), iter->second.first.size());

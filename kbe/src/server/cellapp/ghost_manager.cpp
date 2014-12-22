@@ -40,10 +40,10 @@ checkTime_(0)
 GhostManager::~GhostManager()
 {
 	std::map<COMPONENT_ID, std::vector< Network::Bundle* > >::iterator iter = messages_.begin();
-	for(; iter != messages_.end(); iter++)
+	for(; iter != messages_.end(); ++iter)
 	{
 		std::vector< Network::Bundle* >::iterator iter1 = iter->second.begin();
-		for(; iter1 != iter->second.end(); iter1++)
+		for(; iter1 != iter->second.end(); ++iter1)
 			Network::Bundle::ObjPool().reclaimObject((*iter1));
 	}
 
@@ -130,7 +130,7 @@ void GhostManager::checkRoute()
 void GhostManager::syncMessages()
 {
 	std::map<COMPONENT_ID, std::vector< Network::Bundle* > >::iterator iter = messages_.begin();
-	for(; iter != messages_.end(); iter++)
+	for(; iter != messages_.end(); ++iter)
 	{
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(iter->first);
 		std::vector< Network::Bundle* >::iterator iter1 = iter->second.begin();
@@ -139,14 +139,14 @@ void GhostManager::syncMessages()
 		{
 			ERROR_MSG(fmt::format("GhostManager::syncMessages: not found cellapp({})!\n", iter->first));
 			
-			for(; iter1 != iter->second.end(); iter1++)
+			for(; iter1 != iter->second.end(); ++iter1)
 				Network::Bundle::ObjPool().reclaimObject((*iter1));
 
 			iter->second.clear();
 			continue;
 		}
 
-		for(; iter1 != iter->second.end(); iter1++)
+		for(; iter1 != iter->second.end(); ++iter1)
 		{
 			(*iter1)->send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
 

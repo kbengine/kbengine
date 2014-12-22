@@ -443,7 +443,7 @@ bool Machine::findBroadcastInterface()
 	
 	std::string sinterface = "\t[";
 	std::map< u_int32_t, std::string >::iterator iter = interfaces.begin();
-	for(; iter != interfaces.end(); iter++)
+	for(; iter != interfaces.end(); ++iter)
 	{
 		sinterface += inet_ntoa((struct in_addr&)iter->first);
 		sinterface += ", ";

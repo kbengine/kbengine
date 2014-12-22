@@ -129,7 +129,7 @@ void Resmgr::updatePaths()
 
 	kb_env_.res_path = "";
 	std::vector<std::string>::iterator iter = respaths_.begin();
-	for(; iter != respaths_.end(); iter++)
+	for(; iter != respaths_.end(); ++iter)
 	{
 		if((*iter).size() <= 0)
 			continue;
@@ -201,7 +201,7 @@ std::string Resmgr::matchRes(const char* res)
 {
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
-	for(; iter != respaths_.end(); iter++)
+	for(; iter != respaths_.end(); ++iter)
 	{
 		std::string fpath = ((*iter) + res);
 
@@ -224,7 +224,7 @@ bool Resmgr::hasRes(const std::string& res)
 {
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
-	for(; iter != respaths_.end(); iter++)
+	for(; iter != respaths_.end(); ++iter)
 	{
 		std::string fpath = ((*iter) + res);
 
@@ -247,7 +247,7 @@ FILE* Resmgr::openRes(std::string res, const char* mode)
 {
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
-	for(; iter != respaths_.end(); iter++)
+	for(; iter != respaths_.end(); ++iter)
 	{
 		std::string fpath = ((*iter) + res);
 
@@ -326,7 +326,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 					std::vector<std::wstring> vec;
 					strutil::kbe_split<wchar_t>(wstr, L'.', vec);
 
-					for(size_t ext = 0; ext < extendNames.size(); ext++)
+					for(size_t ext = 0; ext < extendNames.size(); ++ext)
 					{
 						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
 						{
@@ -386,7 +386,7 @@ bool Resmgr::listPathRes(std::wstring path, const std::wstring& extendName, std:
 					std::vector<std::wstring> vec;
 					strutil::kbe_split<wchar_t>(FindFileData.cFileName, L'.', vec);
 
-					for(size_t ext = 0; ext < extendNames.size(); ext++)
+					for(size_t ext = 0; ext < extendNames.size(); ++ext)
 					{
 						if(extendNames[ext].size() > 0 && vec.size() > 1 && vec[vec.size() - 1] == extendNames[ext])
 						{
@@ -427,7 +427,7 @@ std::string Resmgr::matchPath(const char* path)
 	strutil::kbe_replace(npath, "\\", "/");
 	strutil::kbe_replace(npath, "//", "/");
 
-	for(; iter != respaths_.end(); iter++)
+	for(; iter != respaths_.end(); ++iter)
 	{
 		std::string fpath = ((*iter) + npath);
 

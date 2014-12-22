@@ -202,7 +202,7 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 
 	float minload = 1.f;
 
-	for(; iter != baseapps_.end(); iter++)
+	for(; iter != baseapps_.end(); ++iter)
 	{
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
@@ -421,7 +421,7 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 	size_t completedCount = 0;
 
 	std::map< COMPONENT_ID, Baseapp >::iterator iter1 = baseapps_.begin();
-	for(; iter1 != baseapps_.end(); iter1++)
+	for(; iter1 != baseapps_.end(); ++iter1)
 	{
 		if((*iter1).second.initProgress() > 1.f)
 			completedCount++;
@@ -440,7 +440,7 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 
 	Components::COMPONENTS::iterator iter = cts.begin();
-	for(; iter != cts.end(); iter++)
+	for(; iter != cts.end(); ++iter)
 	{
 		if((*iter).pChannel == NULL)
 			continue;

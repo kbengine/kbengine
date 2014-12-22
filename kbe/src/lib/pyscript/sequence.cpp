@@ -61,7 +61,7 @@ ScriptObject(pyType, isInitialised)
 Sequence::~Sequence()
 {
 	std::vector<PyObject*>::iterator iter = values_.begin();
-	for(; iter != values_.end(); iter++)
+	for(; iter != values_.end(); ++iter)
 	{
 		Py_DECREF((*iter));
 	}
@@ -123,10 +123,10 @@ PyObject* Sequence::seq_concat(PyObject* self, PyObject* seq)
 	int seqSize2 = PySequence_Size(seq);
 	PyObject* pyList = PyList_New(seqSize1 + seqSize2);
 
-	for (int i = 0; i < seqSize1; i++)
+	for (int i = 0; i < seqSize1; ++i)
 		PyList_SET_ITEM(pyList, i, values[i]);
 
-	for (int i = 0; i < seqSize2; i++)
+	for (int i = 0; i < seqSize2; ++i)
 	{
 		PyList_SET_ITEM(pyList, seqSize1 + i, PySequence_GetItem(seq, i));
 	}
@@ -149,14 +149,14 @@ PyObject* Sequence::seq_repeat(PyObject* self, Py_ssize_t n)
 	if (pyList == NULL) 
 		return NULL;
 
-	for (int j = 0; j < seqSize1; j++)
+	for (int j = 0; j < seqSize1; ++j)
 	{
 		PyList_SET_ITEM(pyList, j, values[j]);
 	}
 
 	for (int i = 1; i < n; i++)
 	{
-		for (int j = 0; j < seqSize1; j++)
+		for (int j = 0; j < seqSize1; ++j)
 		{
 			PyObject* pyTemp = PyList_GET_ITEM(pyList, j);
 			PyList_SET_ITEM(pyList, i * seqSize1 + j, pyTemp);

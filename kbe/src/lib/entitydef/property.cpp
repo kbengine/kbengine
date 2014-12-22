@@ -229,7 +229,7 @@ FixedDictDescription::FixedDictDescription(ENTITY_PROPERTY_UID utype,
 		static_cast<FixedDictType*>(dataType)->getKeyTypes();
 
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
-	for(; iter != keyTypes.end(); iter++)
+	for(; iter != keyTypes.end(); ++iter)
 	{
 		PropertyDescription* pPropertyDescription = PropertyDescription::createDescription(0,
 			std::string(iter->second->getName()), iter->first, flags, isPersistent, iter->second, false, 0, std::string(), detailLevel);

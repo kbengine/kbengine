@@ -199,7 +199,7 @@ inline const char* COMPONENT_NAME_EX_2(COMPONENT_TYPE CTYPE)
 
 inline COMPONENT_TYPE ComponentName2ComponentType(const char* name)
 {
-	for(int i=0; i<(int)COMPONENT_END_TYPE; i++)
+	for(int i=0; i<(int)COMPONENT_END_TYPE; ++i)
 	{
 		if(kbe_stricmp(COMPONENT_NAME[i], name) == 0)
 			return (COMPONENT_TYPE)i;
@@ -306,7 +306,7 @@ inline bool validName(const char* name, int size)
 	if(size >= 256)
 		return false;
 
-	for(int i=0; i<size; i++)
+	for(int i=0; i<size; ++i)
 	{
 		char ch = name[i];
 		if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_'))

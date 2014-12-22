@@ -316,7 +316,7 @@ void Entities<T>::clear(bool callScript, std::vector<ENTITY_ID> excludes)
 	{
 		if(std::find(excludes.begin(), excludes.end(), iter->first) != excludes.end())
 		{
-			iter++;
+			++iter;
 			continue;
 		}
 

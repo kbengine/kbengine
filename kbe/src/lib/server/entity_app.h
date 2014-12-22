@@ -903,7 +903,7 @@ PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
 	PyObject* pyTuple = PyTuple_New(vec.size());
 	std::vector<std::string>::iterator iter = vec.begin();
 	int i = 0;
-	for(; iter != vec.end(); iter++)
+	for(; iter != vec.end(); ++iter)
 	{
 		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
 	}
@@ -1086,7 +1086,7 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 			{
 				wExtendName = L"";
 				Py_ssize_t size = PySequence_Size(path_argsobj);
-				for(int i=0; i<size; i++)
+				for(int i=0; i<size; ++i)
 				{
 					PyObject* pyobj = PySequence_GetItem(path_argsobj, i);
 					if(!PyUnicode_Check(pyobj))
@@ -1154,7 +1154,7 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 	std::vector<std::wstring>::iterator iter = results.begin();
 	int i = 0;
 
-	for(; iter != results.end(); iter++)
+	for(; iter != results.end(); ++iter)
 	{
 		PyTuple_SET_ITEM(pyresults, i++, PyUnicode_FromWideChar((*iter).c_str(), (*iter).size()));
 	}
@@ -1299,7 +1299,7 @@ template<class E>
 void EntityApp<E>::onReloadScript(bool fullReload)
 {
 	EntityMailbox::MAILBOXS::iterator iter =  EntityMailbox::mailboxs.begin();
-	for(; iter != EntityMailbox::mailboxs.end(); iter++)
+	for(; iter != EntityMailbox::mailboxs.end(); ++iter)
 	{
 		(*iter)->reload();
 	}

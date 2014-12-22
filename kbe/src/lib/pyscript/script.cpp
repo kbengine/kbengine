@@ -56,7 +56,7 @@ PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 {
 	int sz = v.size();
 	PyObject * t = PyTuple_New( sz );
-	for (int i = 0; i < sz; i++)
+	for (int i = 0; i < sz; ++i)
 	{
 		PyTuple_SetItem( t, i, PyUnicode_FromString( v[i].c_str() ) );
 	}

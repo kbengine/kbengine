@@ -645,7 +645,7 @@ bool VectorType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	for(uint32 index=0; index<elemCount_; index++)
+	for(uint32 index=0; index<elemCount_; ++index)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 		if(!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
@@ -708,7 +708,7 @@ PyObject* VectorType::parseDefaultStr(std::string defaultVal)
 void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	(*mstream) << elemCount_;
-	for(ArraySize index=0; index<elemCount_; index++)
+	for(ArraySize index=0; index<elemCount_; ++index)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 #ifdef CLIENT_NO_FLOAT
@@ -1222,7 +1222,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 
 	if(pyValue != Py_None)
 	{
-		for(int i=0; i<2; i++)
+		for(int i=0; i<2; ++i)
 		{
 			PyTypeObject* stype = script::ScriptObject::getScriptObjectType(types[i]);
 			{
@@ -1431,7 +1431,7 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 	}
 
 	Py_ssize_t size = PySequence_Size(pyValue);
-	for(Py_ssize_t i=0; i<size; i++)
+	for(Py_ssize_t i=0; i<size; ++i)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
 		bool ok = dataType_->isSameType(pyVal);
@@ -1462,7 +1462,7 @@ void FixedArrayType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, boo
 	ArraySize size = PySequence_Size(pyValue);
 	(*mstream) << size;
 
-	for(ArraySize i=0; i<size; i++)
+	for(ArraySize i=0; i<size; ++i)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
 
@@ -1494,7 +1494,7 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 		(*mstream) >> size;	
 		
 		std::vector<PyObject*>& vals = arr->getValues();
-		for(ArraySize i=0; i<size; i++)
+		for(ArraySize i=0; i<size; ++i)
 		{
 			if(mstream->length() == 0)
 			{
@@ -1546,7 +1546,7 @@ moduleName_()
 FixedDictType::~FixedDictType()
 {
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		iter->second->dataType->decRef();
 	}
@@ -1565,7 +1565,7 @@ std::string FixedDictType::getKeyNames(void)
 	std::string keyNames = "";
 
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		keyNames += iter->first + ",";
 	}
@@ -1579,7 +1579,7 @@ std::string FixedDictType::debugInfos(void)
 	std::string retstr = "";
 
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		retstr += iter->first;
 		retstr += "(";
@@ -1603,7 +1603,7 @@ PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyo
 	}
 
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		if(iter->first == keyName)
 		{
@@ -1881,7 +1881,7 @@ bool FixedDictType::impl_isSameType(PyObject* pyobj)
 DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
 {
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		if(iter->first == keyName)
 		{
@@ -1951,7 +1951,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	}
 
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		if(pyObject == NULL || !iter->second->dataType->isSameType(pyObject))
@@ -1977,7 +1977,7 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 	PyObject* val = PyDict_New();
 
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		PyObject* item = iter->second->dataType->parseDefaultStr("");
 		PyDict_SetItemString(val, iter->first.c_str(), item);
@@ -2018,7 +2018,7 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 	}
 	
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); iter++)
+	for(; iter != keyTypes_.end(); ++iter)
 	{
 		if(onlyPersistents)
 		{

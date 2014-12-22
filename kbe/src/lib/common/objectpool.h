@@ -82,7 +82,7 @@ public:
 	{
 		isDestroyed_ = true;
 		typename OBJECTS::iterator iter = objects_.begin();
-		for(; iter!=objects_.end(); iter++)
+		for(; iter!=objects_.end(); ++iter)
 		{
 			if(!(*iter)->destructorPoolObject())
 			{
@@ -98,7 +98,7 @@ public:
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
-		for(unsigned int i=0; i<preAssignVal; i++){
+		for(unsigned int i=0; i<preAssignVal; ++i){
 			objects_.push_back(new T);
 			++total_allocs_;
 			++obj_count_;
@@ -167,7 +167,7 @@ public:
 	void reclaimObject(std::list<T*>& objs)
 	{
 		typename std::list< T* >::iterator iter = objs.begin();
-		for(; iter != objs.end(); iter++)
+		for(; iter != objs.end(); ++iter)
 		{
 			reclaimObject_((*iter));
 		}
@@ -181,7 +181,7 @@ public:
 	void reclaimObject(std::vector< T* >& objs)
 	{
 		typename std::vector< T* >::iterator iter = objs.begin();
-		for(; iter != objs.end(); iter++)
+		for(; iter != objs.end(); ++iter)
 		{
 			reclaimObject_((*iter));
 		}

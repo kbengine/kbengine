@@ -96,7 +96,7 @@ bool Dbmgr::canShutdown()
 	if(cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); i++)
+		for(size_t i=0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
@@ -111,7 +111,7 @@ bool Dbmgr::canShutdown()
 	if(baseapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<baseapp_components.size(); i++)
+		for(size_t i=0; i<baseapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", baseapp_components[i].cid);
 		}
@@ -384,11 +384,11 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 		tcomponentType == CELLAPP_TYPE)
 	{
 		KBEngine::COMPONENT_TYPE broadcastCpTypes[2] = {BASEAPP_TYPE, CELLAPP_TYPE};
-		for(int idx = 0; idx < 2; idx++)
+		for(int idx = 0; idx < 2; ++idx)
 		{
 			Components::COMPONENTS& cts = Components::getSingleton().getComponents(broadcastCpTypes[idx]);
 			Components::COMPONENTS::iterator fiter = cts.begin();
-			for(; fiter != cts.end(); fiter++)
+			for(; fiter != cts.end(); ++fiter)
 			{
 				if((*fiter).cid == componentID)
 					continue;

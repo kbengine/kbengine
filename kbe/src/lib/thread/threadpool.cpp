@@ -148,7 +148,7 @@ std::string ThreadPool::printThreadWorks()
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 	int i = 0;
 	std::list<TPThread*>::iterator itr = busyThreadList_.begin();
-	for(; itr != busyThreadList_.end(); itr++)
+	for(; itr != busyThreadList_.end(); ++itr)
 	{
 		ret += (fmt::format("{0:p}:({1}), ", (void*)(*itr), (*itr)->printWorkState()));
 		i++;
@@ -190,7 +190,7 @@ void ThreadPool::destroy()
 
 		int count = allThreadList_.size();
 		std::list<TPThread*>::iterator itr = allThreadList_.begin();
-		for(; itr != allThreadList_.end(); itr++)
+		for(; itr != allThreadList_.end(); ++itr)
 		{
 			if((*itr))
 			{
@@ -223,7 +223,7 @@ void ThreadPool::destroy()
 	KBEngine::sleep(100);
 
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
-	for(; itr != allThreadList_.end(); itr++)
+	for(; itr != allThreadList_.end(); ++itr)
 	{
 		if((*itr))
 		{
@@ -243,7 +243,7 @@ void ThreadPool::destroy()
 			finiTaskList_.size()));
 
 		std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
-		for(; finiiter != finiTaskList_.end(); finiiter++)
+		for(; finiiter != finiTaskList_.end(); ++finiiter)
 		{
 			delete (*finiiter);
 		}
@@ -322,7 +322,7 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 	normalThreadCount_ = inormalMaxThreadCount;
 	maxThreadCount_ = imaxThreadCount;
 	
-	for(uint32 i=0; i<normalThreadCount_; i++)
+	for(uint32 i=0; i<normalThreadCount_; ++i)
 	{
 		TPThread* tptd = createThread(0);
 		
@@ -555,7 +555,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		return false;
 	}
 
-	for(uint32 i=0; i<extraNewAddThreadCount_; i++)
+	for(uint32 i=0; i<extraNewAddThreadCount_; ++i)
 	{
 		TPThread* tptd = createThread(300);									// 设定5分钟未使用则退出的线程
 		if(!tptd)

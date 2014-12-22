@@ -74,7 +74,7 @@ ProfileHandler(networkInterface, timinglen, name, addr)
 	ProfileGroup& defaultGroup = ProfileGroup::defaultGroup();
 	ProfileGroup::PROFILEVALS::const_iterator iter = defaultGroup.profiles().begin();
 
-	for(; iter != defaultGroup.profiles().end(); iter++)
+	for(; iter != defaultGroup.profiles().end(); ++iter)
 	{
 		std::string name = (*iter)->name();
 	
@@ -109,7 +109,7 @@ void CProfileHandler::timeout()
 	s << size - 1;
 
 	CProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
-	for(; iter != profileVals_.end(); iter++)
+	for(; iter != profileVals_.end(); ++iter)
 	{
 		if(iter->first == "RunningTime")
 		{
@@ -170,7 +170,7 @@ bool CProfileHandler::process()
 	ProfileGroup& defaultGroup = ProfileGroup::defaultGroup();
 	ProfileGroup::PROFILEVALS::const_iterator iter = defaultGroup.profiles().begin();
 
-	for(; iter != defaultGroup.profiles().end(); iter++)
+	for(; iter != defaultGroup.profiles().end(); ++iter)
 	{
 		std::string name = (*iter)->name();
 	
@@ -238,7 +238,7 @@ void EventProfileHandler::timeout()
 	s << size;
 
 	EventProfileHandler::PROFILEVALMAP::iterator iter = profileMaps_.begin();
-	for(; iter != profileMaps_.end(); iter++)
+	for(; iter != profileMaps_.end(); ++iter)
 	{
 		std::string type_name = iter->first;
 		PROFILEVALS& vals = iter->second;
@@ -249,7 +249,7 @@ void EventProfileHandler::timeout()
 		s << size;
 
 		EventProfileHandler::PROFILEVALS::iterator iter1 = vals.begin();
-		for(; iter1 != vals.end(); iter1++)
+		for(; iter1 != vals.end(); ++iter1)
 		{
 			ProfileVal& val = iter1->second;
 
@@ -322,7 +322,7 @@ void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, co
 									  uint32 size)
 {
 	std::vector<EventProfileHandler*>::iterator iter = eventProfileHandlers_.begin();
-	for(; iter != eventProfileHandlers_.end(); iter++)
+	for(; iter != eventProfileHandlers_.end(); ++iter)
 	{
 		(*iter)->onTriggerEvent(eventHistory, stats, size);
 	}
@@ -354,7 +354,7 @@ void NetworkProfileHandler::timeout()
 	s << size;
 
 	NetworkProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
-	for(; iter != profileVals_.end(); iter++)
+	for(; iter != profileVals_.end(); ++iter)
 	{
 		NetworkProfileHandler::ProfileVal& profileVal = iter->second;
 

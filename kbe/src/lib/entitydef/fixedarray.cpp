@@ -109,7 +109,7 @@ void FixedArray::initialize(PyObject* pyObjInitData)
 	}
 
 	 Py_ssize_t size = PySequence_Size(pyObjInitData);
-	 for(Py_ssize_t i=0; i<size; i++)
+	 for(Py_ssize_t i=0; i<size; ++i)
 	 {
 		 PyObject* pyobj = PySequence_GetItem(pyObjInitData, i);
 		 values_.push_back(_dataType->createNewItemFromObj(pyobj));
@@ -131,7 +131,7 @@ PyObject* FixedArray::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 	if(len > 0)
 	{
 		std::vector<PyObject*>& values = arr->getValues();
-		for(int i=0; i<len; i++)
+		for(int i=0; i<len; ++i)
 		{
 			Py_INCREF(values[i]);
 			PyList_SET_ITEM(pyList, i, values[i]);
@@ -319,7 +319,7 @@ PyObject* FixedArray::tp_repr()
 	std::vector<PyObject*>& values = getValues();
 	PyObject* pyList = PyList_New(values.size());
 	
-	for(size_t i=0; i<values.size(); i++)
+	for(size_t i=0; i<values.size(); ++i)
 	{
 		Py_INCREF(values[i]);
 		PyList_SET_ITEM(pyList, i, values[i]);

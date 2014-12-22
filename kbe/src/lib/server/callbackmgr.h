@@ -163,7 +163,7 @@ inline void CallbackMgr<PyObjectPtr>::addToStream(KBEngine::MemoryStream& s)
 	s << idAlloc_.lastID() << size;
 
 	CALLBACKS::iterator iter = cbMap_.begin();
-	for(; iter != cbMap_.end(); iter++)
+	for(; iter != cbMap_.end(); ++iter)
 	{
 		s << iter->first;
 		s.appendBlob(script::Pickler::pickle(iter->second.first.get()));
@@ -182,7 +182,7 @@ inline void CallbackMgr<PyObjectPtr>::createFromStream(KBEngine::MemoryStream& s
 	uint32 size;
 	s >> size;
 
-	for(uint32 i=0; i<size; i++)
+	for(uint32 i=0; i<size; ++i)
 	{
 		CALLBACK_ID cbID;
 		s >> cbID;
@@ -215,7 +215,7 @@ template<>
 inline void CallbackMgr<PyObject*>::finalise()
 {
 	std::map< CALLBACK_ID, std::pair< PyObject*, uint64 > >::iterator iter = cbMap_.begin();
-	for(; iter!= cbMap_.end(); iter++)
+	for(; iter!= cbMap_.end(); ++iter)
 	{
 		Py_DECREF(iter->second.first);
 	}

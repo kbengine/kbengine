@@ -94,7 +94,7 @@ public:
 		{
 			// 开始更新所有的子表
 			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
-			for(; iter1 != context.optable.end(); iter1++)
+			for(; iter1 != context.optable.end(); ++iter1)
 			{
 				DBContext& wbox = *iter1->second.get();
 				
@@ -116,7 +116,7 @@ public:
 			if(context.dbid > 0)
 			{
 				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
-				for(; iter1 != context.optable.end(); iter1++)
+				for(; iter1 != context.optable.end(); ++iter1)
 				{
 					DBContext& wbox = *iter1->second.get();
 
@@ -215,7 +215,7 @@ public:
 			{
 				// 开始更新所有的子表
 				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
-				for(; iter1 != context.optable.end(); iter1++)
+				for(; iter1 != context.optable.end(); ++iter1)
 				{
 					DBContext& wbox = *iter1->second.get();
 					
@@ -249,7 +249,7 @@ public:
 			
 			// 删除废弃的数据项
 			KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
-			for(; tabiter != childTableDBIDs.end(); tabiter++)
+			for(; tabiter != childTableDBIDs.end(); ++tabiter)
 			{
 				if(tabiter->second.size() == 0)
 					continue;
@@ -260,7 +260,7 @@ public:
 				sqlstr += " where "TABLE_ID_CONST_STR" in (";
 
 				std::vector<DBID>::iterator iter = tabiter->second.begin();
-				for(; iter != tabiter->second.end(); iter++)
+				for(; iter != tabiter->second.end(); ++iter)
 				{
 					DBID dbid = (*iter);
 
@@ -276,13 +276,13 @@ public:
 				KBE_ASSERT(ret);
 
 				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
-				for(; iter1 != context.optable.end(); iter1++)
+				for(; iter1 != context.optable.end(); ++iter1)
 				{
 					DBContext& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();
-						for(; iter != tabiter->second.end(); iter++)
+						for(; iter != tabiter->second.end(); ++iter)
 						{
 							DBID dbid = (*iter);
 							

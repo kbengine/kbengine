@@ -74,13 +74,13 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 		COMPONENT_NAME_EX(componentType), key.size(), value.size(), (int)isDelete, pChannel->c_str()));
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
-	for(; iter != concernComponentTypes_.end(); iter++)
+	for(; iter != concernComponentTypes_.end(); ++iter)
 	{
 		COMPONENT_TYPE ct = (*iter);
 		Components::COMPONENTS& channels = Components::getSingleton().getComponents(ct);
 		Components::COMPONENTS::iterator iter1 = channels.begin();
 		
-		for(; iter1 != channels.end(); iter1++)
+		for(; iter1 != channels.end(); ++iter1)
 		{
 			Network::Channel* lpChannel = iter1->pChannel;
 			KBE_ASSERT(lpChannel != NULL);
@@ -148,7 +148,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 	bool isDelete = false;
 
 	DATA_MAP_KEY iter = dict_.begin();
-	for(; iter != dict_.end(); iter++)
+	for(; iter != dict_.end(); ++iter)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		

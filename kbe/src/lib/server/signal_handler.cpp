@@ -149,7 +149,7 @@ bool SignalHandlers::process()
 	if(signalledVec_.size() > 0)
 	{
 		std::vector<int>::iterator iter = signalledVec_.begin();
-		for(; iter != signalledVec_.end(); iter++)
+		for(; iter != signalledVec_.end(); ++iter)
 		{
 			int sigNum = (*iter);
 			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);

@@ -45,7 +45,7 @@ PendingLoginMgr::~PendingLoginMgr()
 	//dispatcher().cancelFrequentTask(this);
 
 	PTINFO_MAP::iterator iter = pPLMap_.begin();
-	for(; iter != pPLMap_.end(); iter++)
+	for(; iter != pPLMap_.end(); ++iter)
 	{
 		delete iter->second;
 	}

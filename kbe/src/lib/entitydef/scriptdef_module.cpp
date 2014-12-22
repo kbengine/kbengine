@@ -82,37 +82,37 @@ void ScriptDefModule::finalise(void)
 {
 	S_RELEASE(scriptType_);
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 	
 	cellPropertyDescr_.clear();
 
 	iter1 = basePropertyDescr_.begin();
-	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	for(; iter1 != basePropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 
 	basePropertyDescr_.clear();
 
 	iter1 = clientPropertyDescr_.begin();
-	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 
 	clientPropertyDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
-	for(; iter2 != methodCellDescr_.end(); iter2++)
+	for(; iter2 != methodCellDescr_.end(); ++iter2)
 		SAFE_RELEASE(iter2->second);
 		
 	methodCellDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
-	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	for(; iter3 != methodBaseDescr_.end(); ++iter3)
 		SAFE_RELEASE(iter3->second);
 	
 	methodBaseDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
-	for(; iter4 != methodClientDescr_.end(); iter4++)
+	for(; iter4 != methodClientDescr_.end(); ++iter4)
 		SAFE_RELEASE(iter4->second);
 
 	methodClientDescr_.clear();
@@ -125,7 +125,7 @@ void ScriptDefModule::onLoaded(void)
 	{
 		int aliasID = ENTITY_BASE_PROPERTY_ALIASID_MAX;
 		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-		for(; iter1 != cellPropertyDescr_.end(); iter1++)
+		for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -135,7 +135,7 @@ void ScriptDefModule::onLoaded(void)
 		}
 
 		iter1 = basePropertyDescr_.begin();
-		for(; iter1 != basePropertyDescr_.end(); iter1++)
+		for(; iter1 != basePropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -145,7 +145,7 @@ void ScriptDefModule::onLoaded(void)
 		}
 
 		iter1 = clientPropertyDescr_.begin();
-		for(; iter1 != clientPropertyDescr_.end(); iter1++)
+		for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -157,7 +157,7 @@ void ScriptDefModule::onLoaded(void)
 		if(aliasID > 255)
 		{
 			iter1 = cellPropertyDescr_.begin();
-			for(; iter1 != cellPropertyDescr_.end(); iter1++)
+			for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -166,7 +166,7 @@ void ScriptDefModule::onLoaded(void)
 			}
 
 			iter1 = basePropertyDescr_.begin();
-			for(; iter1 != basePropertyDescr_.end(); iter1++)
+			for(; iter1 != basePropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -175,7 +175,7 @@ void ScriptDefModule::onLoaded(void)
 			}
 
 			iter1 = clientPropertyDescr_.begin();
-			for(; iter1 != clientPropertyDescr_.end(); iter1++)
+			for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -193,7 +193,7 @@ void ScriptDefModule::onLoaded(void)
 		aliasID = 0;
 
 		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
-		for(; iter2 != methodClientDescr_.end(); iter2++)
+		for(; iter2 != methodClientDescr_.end(); ++iter2)
 		{
 			methodDescr_aliasmap_[aliasID] = iter2->second;
 			iter2->second->aliasID(aliasID++);
@@ -202,7 +202,7 @@ void ScriptDefModule::onLoaded(void)
 		if(aliasID > 255)
 		{
 			METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
-			for(; iter2 != methodClientDescr_.end(); iter2++)
+			for(; iter2 != methodClientDescr_.end(); ++iter2)
 			{
 				iter2->second->aliasID(-1);
 				methodDescr_aliasmap_.clear();
@@ -224,28 +224,28 @@ void ScriptDefModule::onLoaded(void)
 void ScriptDefModule::c_str()
 {
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
 			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = basePropertyDescr_.begin();
-	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	for(; iter1 != basePropertyDescr_.end(); ++iter1)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
 			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = clientPropertyDescr_.begin();
-	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
 			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
-	for(; iter2 != methodCellDescr_.end(); iter2++)
+	for(; iter2 != methodCellDescr_.end(); ++iter2)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.CellMethod {} uid={}, argssize={}, aliasID={}{}.\n",
 			getName(), iter2->second->getName(), iter2->second->getUType(),
@@ -253,7 +253,7 @@ void ScriptDefModule::c_str()
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
-	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	for(; iter3 != methodBaseDescr_.end(); ++iter3)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.BaseMethod {} uid={}, argssize={}, aliasID={}{}.\n",
 			getName(), iter3->second->getName(), iter3->second->getUType(),
@@ -261,7 +261,7 @@ void ScriptDefModule::c_str()
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
-	for(; iter4 != methodClientDescr_.end(); iter4++)
+	for(; iter4 != methodClientDescr_.end(); ++iter4)
 	{
 		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.ClientMethod {} uid={}, argssize={}, aliasID={}{}.\n",
 			getName(), iter4->second->getName(), iter4->second->getUType(), iter4->second->getArgSize(), iter4->second->aliasID()));

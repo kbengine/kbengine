@@ -220,7 +220,7 @@ void Bots::handleGameTick()
 	{
 		AUTO_SCOPED_PROFILE("updateBots");
 		CLIENTS::iterator iter = clients().begin();
-		for(;iter != clients().end(); iter++)
+		for(;iter != clients().end(); ++iter)
 			iter->second.get()->gameTick();
 	}
 }
@@ -454,7 +454,7 @@ ClientObject* Bots::findClient(Network::Channel * pChannel)
 ClientObject* Bots::findClientByAppID(int32 appID)
 {
 	CLIENTS::iterator iter = clients().begin();
-	for(; iter != clients().end(); iter++)
+	for(; iter != clients().end(); ++iter)
 	{
 		if(iter->second.get()->appID() == appID)
 			return iter->second.get();

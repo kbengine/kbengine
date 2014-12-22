@@ -176,7 +176,7 @@ bool TimersT< TIME_STAMP >::legal(TimerHandle handle) const
 	TimeIter begin = &timeQueue_.top();
 	TimeIter end = begin + timeQueue_.size();
 
-	for (TimeIter it = begin; it != end; it++)
+	for (TimeIter it = begin; it != end; ++it)
 	{
 		if (*it == pTime)
 		{

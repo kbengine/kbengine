@@ -165,7 +165,7 @@ void CoordinateSystem::removeDelNodes()
 		return;
 
 	std::list<CoordinateNode*>::iterator iter = dels_.begin();
-	for(; iter != dels_.end(); iter++)
+	for(; iter != dels_.end(); ++iter)
 	{
 		removeReal((*iter));
 	}

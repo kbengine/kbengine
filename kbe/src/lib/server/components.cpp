@@ -92,7 +92,7 @@ void Components::initialize(Network::NetworkInterface * pNetworkInterface, COMPO
 	componentType_ = componentType;
 	componentID_ = componentID;
 
-	for(uint8 i=0; i<8; i++)
+	for(uint8 i=0; i<8; ++i)
 		findComponentTypes_[i] = UNKNOWN_COMPONENT_TYPE;
 
 	switch(componentType_)
@@ -526,7 +526,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 {
 	COMPONENTS& components = getComponents(componentType);
 	COMPONENTS::iterator iter = components.begin();
-	for(; iter != components.end(); iter++)
+	for(; iter != components.end(); ++iter)
 	{
 		if((*iter).uid == uid && (componentID == 0 || (*iter).cid == componentID))
 			return &(*iter);
@@ -540,7 +540,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 {
 	COMPONENTS& components = getComponents(componentType);
 	COMPONENTS::iterator iter = components.begin();
-	for(; iter != components.end(); iter++)
+	for(; iter != components.end(); ++iter)
 	{
 		if(componentID == 0 || (*iter).cid == componentID)
 			return &(*iter);
@@ -581,7 +581,7 @@ Components::ComponentInfos* Components::findComponent(Network::Channel * pChanne
 		COMPONENTS& components = getComponents(componentType);
 		COMPONENTS::iterator iter = components.begin();
 
-		for(; iter != components.end(); iter++)
+		for(; iter != components.end(); ++iter)
 		{
 			if((*iter).pChannel == pChannel)
 			{
@@ -603,7 +603,7 @@ Components::ComponentInfos* Components::findLocalComponent(uint32 pid)
 		COMPONENTS& components = getComponents(componentType);
 		COMPONENTS::iterator iter = components.begin();
 
-		for(; iter != components.end(); iter++)
+		for(; iter != components.end(); ++iter)
 		{
 			if(isLocalComponent(&(*iter)) && (*iter).pid == pid)
 			{

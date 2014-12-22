@@ -84,13 +84,13 @@ bool EntityDef::finalise(bool isReload)
 	if(!isReload)
 	{
 		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
-		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		for(; iter != EntityDef::__scriptModules.end(); ++iter)
 		{
 			(*iter)->finalise();
 		}
 
 		iter = EntityDef::__oldScriptModules.begin();
-		for(; iter != EntityDef::__oldScriptModules.end(); iter++)
+		for(; iter != EntityDef::__oldScriptModules.end(); ++iter)
 		{
 			(*iter)->finalise();
 		}
@@ -117,7 +117,7 @@ void EntityDef::reload(bool fullReload)
 		EntityDef::__oldScriptTypeMappingUType.clear();
 
 		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
-		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		for(; iter != EntityDef::__scriptModules.end(); ++iter)
 		{
 			__oldScriptModules.push_back((*iter));
 			__oldScriptTypeMappingUType[(*iter)->getName()] = (*iter)->getUType();
@@ -1078,7 +1078,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 	};
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator iter = methodDescrsPtr->begin();
-	for(; iter != methodDescrsPtr->end(); iter++)
+	for(; iter != methodDescrsPtr->end(); ++iter)
 	{
 		PyObject* pyMethod = 
 			PyObject_GetAttrString(moduleObj, const_cast<char *>(iter->first.c_str()));
@@ -1180,7 +1180,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			std::string typeNames = "";
 			bool valid = false;
 			std::vector<PyTypeObject*>::iterator iter = scriptBaseTypes.begin();
-			for(; iter != scriptBaseTypes.end(); iter++)
+			for(; iter != scriptBaseTypes.end(); ++iter)
 			{
 				if(!PyObject_IsSubclass(pyClass, (PyObject *)(*iter)))
 				{

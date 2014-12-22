@@ -243,14 +243,14 @@ void Channel::destroy()
 void Channel::clearState( bool warnOnDiscard /*=false*/ )
 {
 	// 清空未处理的接受包缓存
-	for(uint8 i=0; i<2; i++)
+	for(uint8 i=0; i<2; ++i)
 	{
 		if (bufferedReceives_[i].size() > 0)
 		{
 			BufferedReceives::iterator iter = bufferedReceives_[i].begin();
 			int hasDiscard = 0;
 			
-			for(; iter != bufferedReceives_[i].end(); iter++)
+			for(; iter != bufferedReceives_[i].end(); ++iter)
 			{
 				Packet* pPacket = (*iter);
 				if(pPacket->length() > 0)
@@ -312,7 +312,7 @@ int32 Channel::bundlesLength()
 {
 	int32 len = 0;
 	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
+	for(; iter != bundles_.end(); ++iter)
 	{
 		len += (*iter)->packetsLength();
 	}
@@ -351,7 +351,7 @@ void Channel::send(Bundle * pBundle)
 		return;
 
 	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
+	for(; iter != bundles_.end(); ++iter)
 	{
 		(*iter)->send(*pNetworkInterface_, this);
 
@@ -389,7 +389,7 @@ const char * Channel::c_str() const
 void Channel::clearBundle()
 {
 	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
+	for(; iter != bundles_.end(); ++iter)
 	{
 		Bundle::ObjPool().reclaimObject((*iter));
 	}
@@ -577,7 +577,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 	try
 	{
 		BufferedReceives::iterator packetIter = bufferedReceives_[idx].begin();
-		for(; packetIter != bufferedReceives_[idx].end(); packetIter++)
+		for(; packetIter != bufferedReceives_[idx].end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);
 

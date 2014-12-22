@@ -50,7 +50,7 @@ bool EventHandler::registerHandle(EventHandle* pHhandle)
 bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 {
 	EVENT_HANDLES::iterator iter = eventHandles_.begin();
-	for(; iter != eventHandles_.end(); iter++)
+	for(; iter != eventHandles_.end(); ++iter)
 	{
 		if((*iter) == pHhandle)
 		{
@@ -66,7 +66,7 @@ bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 void EventHandler::fire(const EventData* lpEventData)
 {
 	EVENT_HANDLES::iterator iter = eventHandles_.begin();
-	for(; iter != eventHandles_.end(); iter++)
+	for(; iter != eventHandles_.end(); ++iter)
 	{
 		(*iter)->kbengine_onEvent(lpEventData);
 	}

@@ -82,7 +82,7 @@ bool EntityTable::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pMo
 bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
-	for(; iter != tableFixedOrderItems_.end(); iter++)
+	for(; iter != tableFixedOrderItems_.end(); ++iter)
 	{
 		if(!(*iter)->queryTable(dbi, dbid, s, pModule))
 			return false;
@@ -112,7 +112,7 @@ bool EntityTables::load(DBInterface* dbi)
 {
 	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
-	for(; iter != smodules.end(); iter++)
+	for(; iter != smodules.end(); ++iter)
 	{
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = dbi->createEntityTable();
@@ -153,14 +153,14 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 	{
 		// 开始同步所有表
 		EntityTables::TABLES_MAP::iterator kiter = kbe_tables_.begin();
-		for(; kiter != kbe_tables_.end(); kiter++)
+		for(; kiter != kbe_tables_.end(); ++kiter)
 		{
 			num++;
 			pDBThreadPool->addTask(new DBTaskSyncTable(kiter->second));
 		}
 
 		EntityTables::TABLES_MAP::iterator iter = tables_.begin();
-		for(; iter != tables_.end(); iter++)
+		for(; iter != tables_.end(); ++iter)
 		{
 			if(!iter->second->hasSync())
 			{
@@ -188,7 +188,7 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 
 		// 检查是否有需要删除的表
 		std::vector<std::string>::iterator iter0 = dbTableNames.begin();
-		for(; iter0 != dbTableNames.end(); iter0++)
+		for(; iter0 != dbTableNames.end(); ++iter0)
 		{
 			std::string tname = (*iter0);
 			if(std::string::npos == tname.find(ENTITY_TABLE_PERFIX"_"))
@@ -217,7 +217,7 @@ void EntityTables::addTable(EntityTable* pTable)
 {
 	TABLES_MAP::iterator iter = tables_.begin();
 
-	for(; iter != tables_.end(); iter++)
+	for(; iter != tables_.end(); ++iter)
 	{
 		if(iter->first == pTable->tableName())
 		{
@@ -246,7 +246,7 @@ void EntityTables::addKBETable(EntityTable* pTable)
 {
 	TABLES_MAP::iterator iter = kbe_tables_.begin();
 
-	for(; iter != kbe_tables_.end(); iter++)
+	for(; iter != kbe_tables_.end(); ++iter)
 	{
 		if(iter->first == pTable->tableName())
 		{

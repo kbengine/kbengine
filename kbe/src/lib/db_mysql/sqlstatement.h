@@ -108,7 +108,7 @@ public:
 		}
 
 		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
-		for(; tableValIter != tableItemDatas.end(); tableValIter++)
+		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
 			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 
@@ -185,7 +185,7 @@ public:
 		sqlstr_ += " set ";
 
 		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
-		for(; tableValIter != tableItemDatas.end(); tableValIter++)
+		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
 			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			
@@ -247,7 +247,7 @@ public:
 			{
 				sqlstr1_ += " where "TABLE_PARENTID_CONST_STR" in(";
 				std::vector<DBID>::const_iterator iter = parentTableDBIDs.begin();
-				for(; iter != parentTableDBIDs.end(); iter++)
+				for(; iter != parentTableDBIDs.end(); ++iter)
 				{
 					kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID",", (*iter));
 					sqlstr1_ += strdbid;
@@ -265,7 +265,7 @@ public:
 		}
 
 		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
-		for(; tableValIter != tableItemDatas.end(); tableValIter++)
+		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
 			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			

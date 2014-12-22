@@ -46,7 +46,7 @@ namespace strutil {
 	      
 		const char szTable[] = "0123456789ABCDEF";
 
-		for(int i=0; i<srcsize; i++)     
+		for(int i=0; i<srcsize; ++i)     
 		{     
 			*dst++ = szTable[src[i] >> 4];     
 			*dst++ = szTable[src[i] & 0x0f];   
@@ -69,7 +69,7 @@ namespace strutil {
 	      
 		iLen /= 2;  
 		str_toupper((char *)src); 
-		for (int i=0; i<iLen; i++)  
+		for (int i=0; i<iLen; ++i)  
 		{  
 			int iVal = 0;  
 			unsigned char *pSrcTemp = src + i*2;  

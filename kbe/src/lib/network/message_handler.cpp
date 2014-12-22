@@ -55,7 +55,7 @@ exposedMessages_()
 MessageHandlers::~MessageHandlers()
 {
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
-	for(; iter != msgHandlers_.end(); iter++)
+	for(; iter != msgHandlers_.end(); ++iter)
 	{
 		if(iter->second)
 			delete iter->second;
@@ -90,10 +90,10 @@ const char* MessageHandler::c_str()
 bool MessageHandlers::initializeWatcher()
 {
 	std::vector< std::string >::iterator siter = exposedMessages_.begin();
-	for(; siter != exposedMessages_.end(); siter++)
+	for(; siter != exposedMessages_.end(); ++siter)
 	{
 		MessageHandlerMap::iterator iter = msgHandlers_.begin();
-		for(; iter != msgHandlers_.end(); iter++)
+		for(; iter != msgHandlers_.end(); ++iter)
 		{
 			if((*siter) == iter->second->name)
 			{
@@ -103,7 +103,7 @@ bool MessageHandlers::initializeWatcher()
 	}
 
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
-	for(; iter != msgHandlers_.end(); iter++)
+	for(; iter != msgHandlers_.end(); ++iter)
 	{
 		char buf[MAX_BUF];
 		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
@@ -255,13 +255,13 @@ std::string MessageHandlers::getDigestStr()
 		md5.append((void*)&isize, sizeof(int32));
 
 		std::vector<MessageHandlers*>::const_iterator rootiter = msgHandlers.begin();
-		for(; rootiter != msgHandlers.end(); rootiter++)
+		for(; rootiter != msgHandlers.end(); ++rootiter)
 		{
 			isize += (*rootiter)->msgHandlers().size();
 			md5.append((void*)&isize, sizeof(int32));
 
 			MessageHandlerMap::const_iterator iter = (*rootiter)->msgHandlers().begin();
-			for(; iter != (*rootiter)->msgHandlers().end(); iter++)
+			for(; iter != (*rootiter)->msgHandlers().end(); ++iter)
 			{
 				MessageHandler* pMessageHandler = iter->second;
 			
@@ -280,7 +280,7 @@ std::string MessageHandlers::getDigestStr()
 				md5.append((void*)&argstype, sizeof(int32));
 
 				std::vector<std::string>::iterator saiter = pMessageHandler->pArgs->strArgsTypes.begin();
-				for(; saiter != pMessageHandler->pArgs->strArgsTypes.end(); saiter++)
+				for(; saiter != pMessageHandler->pArgs->strArgsTypes.end(); ++saiter)
 				{
 					md5.append((void*)(*saiter).c_str(), (*saiter).size());
 				}

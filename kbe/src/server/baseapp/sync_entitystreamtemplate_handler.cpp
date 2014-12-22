@@ -54,7 +54,7 @@ networkInterface_(networkInterface)
 			ADD_POSDIR_TO_STREAM(accountDefMemoryStream, pos, dir);
 		}
 
-		for(; iter != propertyDescrs.end(); iter++)
+		for(; iter != propertyDescrs.end(); ++iter)
 		{
 			PropertyDescription* propertyDescription = iter->second;
 			accountDefMemoryStream << propertyDescription->getUType();
@@ -108,7 +108,7 @@ bool SyncEntityStreamTemplateHandler::process()
 		ADD_POSDIR_TO_STREAM(accountDefMemoryStream, pos, dir);
 	}
 
-	for(; iter != propertyDescrs.end(); iter++)
+	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		accountDefMemoryStream << propertyDescription->getUType();

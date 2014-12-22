@@ -239,14 +239,14 @@ void SelectPoller::handleInputNotifications(int &countReady,
 	fd_set &readFDs, fd_set &writeFDs)
 {
 #ifdef _WIN32
-	for (unsigned i=0; i < readFDs.fd_count; i++)
+	for (unsigned i=0; i < readFDs.fd_count; ++i)
 	{
 		int fd = readFDs.fd_array[ i ];
 		--countReady;
 		this->triggerRead(fd);
 	}
 
-	for (unsigned i=0; i < writeFDs.fd_count; i++)
+	for (unsigned i=0; i < writeFDs.fd_count; ++i)
 	{
 		int fd = writeFDs.fd_array[ i ];
 		--countReady;

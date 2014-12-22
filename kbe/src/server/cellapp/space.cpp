@@ -330,7 +330,7 @@ bool Space::destroy(ENTITY_ID entityID)
 	Entity* creator = NULL;
 
 	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-	for(; iter != this->entities().end(); iter++)
+	for(; iter != this->entities().end(); ++iter)
 	{
 		const Entity* entity = (*iter).get();
 
@@ -341,7 +341,7 @@ bool Space::destroy(ENTITY_ID entityID)
 	}
 
 	iter = entitieslog.begin();
-	for(; iter != entitieslog.end(); iter++)
+	for(; iter != entitieslog.end(); ++iter)
 	{
 		(*iter)->destroyEntity();
 	}
@@ -446,7 +446,7 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 	}
 
 	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-	for(; iter != this->entities().end(); iter++)
+	for(; iter != this->entities().end(); ++iter)
 	{
 		const Entity* pEntity = (*iter).get();
 
@@ -508,7 +508,7 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 	(*pForwardBundle) << this->id();
 
 	SPACE_DATA::iterator iter = datas_.begin();
-	for(; iter != datas_.end(); iter++)
+	for(; iter != datas_.end(); ++iter)
 	{
 		(*pForwardBundle) << iter->first;
 		(*pForwardBundle) << iter->second;

@@ -296,7 +296,7 @@ public:
 	Bundle &append(Bundle& bundle)
 	{
 		Packets::iterator iter = bundle.packets_.begin();
-		for(; iter!=bundle.packets_.end(); iter++)
+		for(; iter!=bundle.packets_.end(); ++iter)
 		{
 			append((*iter)->data(), (*iter)->totalSize());
 		}

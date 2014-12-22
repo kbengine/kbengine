@@ -85,7 +85,7 @@ bool ForwardComponent_MessageBuffer::process()
 		{
 			std::vector<ForwardItem*>::iterator itervec = iter->second.begin();
 
-			for(; itervec != iter->second.end(); itervec++)
+			for(; itervec != iter->second.end(); ++itervec)
 			{
 				(*itervec)->pBundle->send(networkInterface_, cinfos->pChannel);
 				Network::Bundle::ObjPool().reclaimObject((*itervec)->pBundle);
@@ -160,14 +160,14 @@ bool ForwardAnywhere_MessageBuffer::process()
 	{
 		// 必须所有的组件频道都被设置， 如果不是则等待。
 		Components::COMPONENTS::iterator ctiter = cts.begin();
-		for(; ctiter != cts.end(); ctiter++)
+		for(; ctiter != cts.end(); ++ctiter)
 		{
 			if((*ctiter).pChannel == NULL)
 				return true;
 		}
 
 		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
-		for(; iter != pBundles_.end(); iter++)
+		for(; iter != pBundles_.end(); ++iter)
 		{
 			(*iter)->pBundle->send(networkInterface_, cts[idx].pChannel);
 			Network::Bundle::ObjPool().reclaimObject((*iter)->pBundle);

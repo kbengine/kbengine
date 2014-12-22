@@ -121,7 +121,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 	uint8 dataType = dataType_;
 	ArraySize slen = 0;
 
-	for(; iter1 != channels.end(); iter1++)
+	for(; iter1 != channels.end(); ++iter1)
 	{
 		Network::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);

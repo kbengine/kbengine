@@ -60,7 +60,7 @@ void SyncAppDatasHandler::pushApp(COMPONENT_ID cid, COMPONENT_ORDER startGroupOr
 {
 	lastRegAppTime_ = timestamp();
 	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
-	for(; iter != apps_.end(); iter++)
+	for(; iter != apps_.end(); ++iter)
 	{
 		if((*iter).cid == cid)
 		{
@@ -85,7 +85,7 @@ bool SyncAppDatasHandler::process()
 	bool hasApp = false;
 
 	std::vector<ComponentInitInfo>::iterator iter = apps_.begin();
-	for(; iter != apps_.end(); iter++)
+	for(; iter != apps_.end(); ++iter)
 	{
 		ComponentInitInfo cInitInfo = (*iter);
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cInitInfo.cid);
@@ -116,7 +116,7 @@ bool SyncAppDatasHandler::process()
 	// 如果是连接到dbmgr则需要等待接收app初始信息
 	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
 	iter = apps_.begin();
-	for(; iter != apps_.end(); iter++)
+	for(; iter != apps_.end(); ++iter)
 	{
 		ComponentInitInfo cInitInfo = (*iter);
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cInitInfo.cid);

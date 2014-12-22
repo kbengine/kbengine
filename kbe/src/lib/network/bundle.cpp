@@ -39,7 +39,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	finish();																								\
 																											\
 	Packets::iterator iter = packets_.begin();																\
-	for (; iter != packets_.end(); iter++)																	\
+	for (; iter != packets_.end(); ++iter)																	\
 	{																										\
 		Packet* pPacket = (*iter);																			\
 		int retries = 0;																					\
@@ -167,7 +167,7 @@ int32 Bundle::packetsLength(bool calccurr)
 	int32 len = 0;
 
 	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); iter++)
+	for (; iter != packets_.end(); ++iter)
 	{
 		len += (*iter)->length();
 	}
@@ -321,7 +321,7 @@ void Bundle::clear(bool isRecl)
 	}
 
 	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); iter++)
+	for (; iter != packets_.end(); ++iter)
 	{
 		if(!isRecl)
 		{
@@ -406,7 +406,7 @@ void Bundle::onSendCompleted()
 		return;
 
 	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); iter++)
+	for (; iter != packets_.end(); ++iter)
 	{
 		if(isTCPPacket_)
 			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));

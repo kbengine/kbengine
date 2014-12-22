@@ -36,7 +36,7 @@ Spaces::~Spaces()
 void Spaces::finalise()
 {
 	SPACES::iterator iter = spaces_.begin();
-	for(;iter != spaces_.end(); iter++)
+	for(;iter != spaces_.end(); ++iter)
 		iter->second->destroy(0);
 
 	spaces_.clear();
@@ -92,7 +92,7 @@ Space* Spaces::findSpace(SPACE_ID spaceID)
 void Spaces::update()
 {
 	SPACES::iterator iter = spaces_.begin();
-	for(;iter != spaces_.end(); iter++)
+	for(;iter != spaces_.end(); ++iter)
 		iter->second->update();
 }
 

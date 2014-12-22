@@ -67,7 +67,7 @@ bool initializeWatcher()
 	WATCH_OBJECT("network/numBytesReceived", g_numBytesReceived);
 	
 	std::vector<MessageHandlers*>::iterator iter = MessageHandlers::messageHandlers().begin();
-	for(; iter != MessageHandlers::messageHandlers().end(); iter++)
+	for(; iter != MessageHandlers::messageHandlers().end(); ++iter)
 	{
 		if(!(*iter)->initializeWatcher())
 			return false;

@@ -40,7 +40,7 @@ LogWatcher::~LogWatcher()
 //-------------------------------------------------------------------------------------
 void LogWatcher::reset()
 {
-	for(uint8 i =0; i<COMPONENT_END_TYPE; i++)
+	for(uint8 i =0; i<COMPONENT_END_TYPE; ++i)
 	{
 		filterOptions_.componentBitmap[i] = 0;
 	}
@@ -84,7 +84,7 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 	int8 count = 0;
 	(*s) >> count;
 	
-	for(int8 i=0; i<count; i++)
+	for(int8 i=0; i<count; ++i)
 	{
 		COMPONENT_TYPE type;
 		(*s) >> type;

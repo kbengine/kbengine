@@ -135,7 +135,7 @@ void FixedDict::initialize(std::string strDictInitData)
 {
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
-	for(; iter != keyTypes.end(); iter++)
+	for(; iter != keyTypes.end(); ++iter)
 	{
 		PyObject* pyobj = iter->second->dataType->parseDefaultStr("");
 		if(pyobj)
@@ -165,7 +165,7 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
 
-	for(; iter != keyTypes.end(); iter++)
+	for(; iter != keyTypes.end(); ++iter)
 	{
 		if(isPersistentsStream && !iter->second->persistent)
 		{
@@ -292,7 +292,7 @@ bool FixedDict::checkDataChanged(const char* keyName, PyObject* value, bool isDe
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
 	
-	for(; iter != keyTypes.end(); iter++)
+	for(; iter != keyTypes.end(); ++iter)
 	{
 		if((*iter).first == keyName)
 		{
@@ -342,7 +342,7 @@ PyObject* FixedDict::update(PyObject* args)
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
 
-	for(; iter != keyTypes.end(); iter++)
+	for(; iter != keyTypes.end(); ++iter)
 	{
 		PyObject* val = PyDict_GetItemString(args, iter->first.c_str());
 		if(val)

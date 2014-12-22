@@ -57,7 +57,7 @@ struct WitnessInfo
 	entity(e),
 	range(r)
 	{
-		for(int i=0; i<3; i++)
+		for(int i=0; i<3; ++i)
 			if(lv == i)
 				detailLevelLog[i] = true;
 			else

@@ -81,7 +81,7 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 
 				Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
 				Components::COMPONENTS::iterator iter = components.begin();
-				for(; iter != components.end(); iter++)
+				for(; iter != components.end(); ++iter)
 				{
 					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 					COMMON_NETWORK_MESSAGE(componentType, (*pBundle), onAppActiveTick);

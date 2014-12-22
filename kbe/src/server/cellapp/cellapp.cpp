@@ -83,7 +83,7 @@ bool Cellapp::canShutdown()
 {
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
-	for(; iter != entities.end(); iter++)
+	for(; iter != entities.end(); ++iter)
 	{
 		//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 		//if(pEntity->baseMailbox() != NULL && 
@@ -111,7 +111,7 @@ void Cellapp::onShutdown(bool first)
 
 		bool done = false;
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
-		for(; iter != entities.end(); iter++)
+		for(; iter != entities.end(); ++iter)
 		{
 			Entity* pEntity = static_cast<Entity*>(iter->second.get());
 			//if(pEntity->baseMailbox() != NULL && 
@@ -137,7 +137,7 @@ void Cellapp::onShutdown(bool first)
 		if(g_serverConfig.getCellApp().perSecsDestroyEntitySize == count && vecs.size() > 0)
 		{
 			std::vector<Entity*>::iterator iter1 = vecs.begin();
-			for(; iter1 != vecs.end(); iter1++)
+			for(; iter1 != vecs.end(); ++iter1)
 			{
 				this->destroyEntity(static_cast<Entity*>(*iter1)->id(), true);
 
@@ -1515,7 +1515,7 @@ void Cellapp::onReloadScript(bool fullReload)
 {
 	Entities<Entity>::ENTITYS_MAP& entities = pEntities_->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator eiter = entities.begin();
-	for(; eiter != entities.end(); eiter++)
+	for(; eiter != entities.end(); ++eiter)
 	{
 		static_cast<Entity*>(eiter->second.get())->reload(fullReload);
 	}

@@ -106,7 +106,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	values = KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n");
 	std::vector<std::string>::iterator iter = values.begin();
 
-	for(; iter != values.end(); iter++)
+	for(; iter != values.end(); ++iter)
 	{
 		header_and_data = KBEngine::strutil::kbe_splits((*iter), ": ");
 
@@ -162,7 +162,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 
 	sha.Result(message_digest);
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 5; ++i) {
 		message_digest[i] = htonl(message_digest[i]);
 	}
 

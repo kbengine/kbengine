@@ -87,7 +87,7 @@ void Archiver::createArchiveTable()
 
 	Entities<Base>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
 
-	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
+	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); ++iter)
 	{
 		Base* pBase = static_cast<Base*>(iter->second.get());
 

@@ -142,7 +142,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		
 		// 广播给其他人
 		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
-		for(; iter != entities.end(); iter++)
+		for(; iter != entities.end(); ++iter)
 		{
 			Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter));
 			if(pAoiEntity == NULL || pAoiEntity->pWitness() == NULL || pAoiEntity->isDestroyed())

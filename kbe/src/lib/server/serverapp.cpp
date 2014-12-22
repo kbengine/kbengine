@@ -492,7 +492,7 @@ void ServerApp::hello(Network::Channel* pChannel, MemoryStream& s)
 	{
 		char *c = buf;
 
-		for (int i=0; i < (int)encryptedKey.size(); i++)
+		for (int i=0; i < (int)encryptedKey.size(); ++i)
 		{
 			c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
 		}

@@ -57,7 +57,7 @@ PyObject * PyTuple_FromIntVector(const std::vector< T > & v)
 {
 	int sz = v.size();
 	PyObject * t = PyTuple_New( sz );
-	for (int i = 0; i < sz; i++)
+	for (int i = 0; i < sz; ++i)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromLong( v[i] ) );
 	}
@@ -69,7 +69,7 @@ inline PyObject * PyTuple_FromIntVector<int64>(const std::vector< int64 > & v)
 {
 	int sz = v.size();
 	PyObject * t = PyTuple_New( sz );
-	for (int i = 0; i < sz; i++)
+	for (int i = 0; i < sz; ++i)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromLongLong( v[i] ) );
 	}
@@ -81,7 +81,7 @@ inline PyObject * PyTuple_FromIntVector<uint64>(const std::vector< uint64 > & v)
 {
 	int sz = v.size();
 	PyObject * t = PyTuple_New( sz );
-	for (int i = 0; i < sz; i++)
+	for (int i = 0; i < sz; ++i)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromUnsignedLongLong( v[i] ) );
 	}

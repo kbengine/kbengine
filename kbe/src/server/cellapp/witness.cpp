@@ -76,7 +76,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	s << size;
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); iter++)
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		(*iter)->addToStream(s);
 	}
@@ -90,7 +90,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 	uint32 size;
 	s >> size;
 	
-	for(uint32 i=0; i<size; i++)
+	for(uint32 i=0; i<size; ++i)
 	{
 		EntityRef* pEntityRef = new EntityRef();
 		pEntityRef->createFromStream(s);
@@ -206,7 +206,7 @@ void Witness::clear(Entity* pEntity)
 	KBE_ASSERT(pEntity == pEntity_);
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); iter++)
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
 		{
@@ -355,7 +355,7 @@ void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); iter++)
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
@@ -420,7 +420,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	lastBasePos.z = -FLT_MAX;
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); iter++)
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
 		{
@@ -574,7 +574,7 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)const
 {
 	aliasID = 0;
 	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); iter++)
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		EntityRef* pEntityRef = (*iter);
 		if(pEntityRef->id() == id)

@@ -56,7 +56,7 @@ uint32 watchBundlePool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::Bundle>::OBJECTS::const_iterator iter = Network::Bundle::ObjPool().objects().begin();
-	for(; iter != Network::Bundle::ObjPool().objects().end(); iter++)
+	for(; iter != Network::Bundle::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -90,7 +90,7 @@ uint32 watchAddressPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::Address>::OBJECTS::const_iterator iter = Network::Address::ObjPool().objects().begin();
-	for(; iter != Network::Address::ObjPool().objects().end(); iter++)
+	for(; iter != Network::Address::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -124,7 +124,7 @@ uint32 watchMemoryStreamPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<MemoryStream>::OBJECTS::const_iterator iter = MemoryStream::ObjPool().objects().begin();
-	for(; iter != MemoryStream::ObjPool().objects().end(); iter++)
+	for(; iter != MemoryStream::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -158,7 +158,7 @@ uint32 watchTCPPacketPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::TCPPacket>::OBJECTS::const_iterator iter = Network::TCPPacket::ObjPool().objects().begin();
-	for(; iter != Network::TCPPacket::ObjPool().objects().end(); iter++)
+	for(; iter != Network::TCPPacket::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -192,7 +192,7 @@ uint32 watchTCPPacketReceiverPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::TCPPacketReceiver>::OBJECTS::const_iterator iter = Network::TCPPacketReceiver::ObjPool().objects().begin();
-	for(; iter != Network::TCPPacketReceiver::ObjPool().objects().end(); iter++)
+	for(; iter != Network::TCPPacketReceiver::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -226,7 +226,7 @@ uint32 watchUDPPacketPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::UDPPacket>::OBJECTS::const_iterator iter = Network::UDPPacket::ObjPool().objects().begin();
-	for(; iter != Network::UDPPacket::ObjPool().objects().end(); iter++)
+	for(; iter != Network::UDPPacket::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -260,7 +260,7 @@ uint32 watchUDPPacketReceiverPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::UDPPacketReceiver>::OBJECTS::const_iterator iter = Network::UDPPacketReceiver::ObjPool().objects().begin();
-	for(; iter != Network::UDPPacketReceiver::ObjPool().objects().end(); iter++)
+	for(; iter != Network::UDPPacketReceiver::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}
@@ -294,7 +294,7 @@ uint32 watchEndPointPool_bytes()
 	size_t bytes = 0;
 
 	ObjectPool<Network::EndPoint>::OBJECTS::const_iterator iter = Network::EndPoint::ObjPool().objects().begin();
-	for(; iter != Network::EndPoint::ObjPool().objects().end(); iter++)
+	for(; iter != Network::EndPoint::ObjPool().objects().end(); ++iter)
 	{
 		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
 	}

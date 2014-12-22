@@ -211,7 +211,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	uint32 listeningPort = listeningPort_min;
 	if(listeningPort_min != listeningPort_max)
 	{
-		for(int lpIdx=ntohs(listeningPort_min); lpIdx<ntohs(listeningPort_max); lpIdx++)
+		for(int lpIdx=ntohs(listeningPort_min); lpIdx<ntohs(listeningPort_max); ++lpIdx)
 		{
 			listeningPort = htons(lpIdx);
 			if (pEP->bind(listeningPort, ifaddr) != 0)
@@ -345,7 +345,7 @@ Channel * NetworkInterface::findChannel(const Address & addr)
 Channel * NetworkInterface::findChannel(int fd)
 {
 	ChannelMap::iterator iter = channelMap_.begin();
-	for(; iter != channelMap_.end(); iter++)
+	for(; iter != channelMap_.end(); ++iter)
 	{
 		if(iter->second->endpoint() && *iter->second->endpoint() == fd)
 			return iter->second;
@@ -495,7 +495,7 @@ Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 	{
 		const Bundle::Packets& pakcets = bundle.packets();
 		Bundle::Packets::const_iterator iter = pakcets.begin();
-		for (; iter != pakcets.end(); iter++)
+		for (; iter != pakcets.end(); ++iter)
 		{
 			reason = this->sendPacket((*iter), pChannel);
 			if(reason != REASON_SUCCESS)

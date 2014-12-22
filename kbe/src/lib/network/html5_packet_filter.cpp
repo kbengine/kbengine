@@ -306,7 +306,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
 					payloadSize_ = 0;
 
-					for(uint64 i=0; i<pTCPPacket_->length(); i++)
+					for(uint64 i=0; i<pTCPPacket_->length(); ++i)
 					{
 						pTCPPacket_->data()[i] = (pTCPPacket_->data()[i] ^ masks_[(i + startSize) % 4]);
 					}
@@ -340,7 +340,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					pPacket->done();
 					pRetTCPPacket = pTCPPacket_;
 					
-					for(uint64 i=0; i<pTCPPacket_->length(); i++)
+					for(uint64 i=0; i<pTCPPacket_->length(); ++i)
 					{
 						pTCPPacket_->data()[i] = (pTCPPacket_->data()[i] ^ masks_[(i + startSize) % 4]);
 					}

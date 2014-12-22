@@ -182,7 +182,7 @@ PyObject* ScriptVector4::tp_repr()
 	Vector4 v = this->getVector();
 
 	strcpy(str, "Vector4(");
-	for(int i=0; i < VECTOR_SIZE; i++)
+	for(int i=0; i < VECTOR_SIZE; ++i)
 	{
 		if (i > 0)
 			strcat(str, ", ");
@@ -269,7 +269,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			{
 				Vector2 v;
 				
-				for(int i = startIndex; i < endIndex; i++){
+				for(int i = startIndex; i < endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -279,7 +279,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			case 3:
 			{
 				Vector3 v;
-				for (int i = startIndex; i < endIndex; i++){
+				for (int i = startIndex; i < endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -725,7 +725,7 @@ PyObject* ScriptVector4::__py_pyTuple(PyObject* self, PyObject* args)
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 
-	for(int i = 0; i < VECTOR_SIZE; i++)
+	for(int i = 0; i < VECTOR_SIZE; ++i)
 		PyTuple_SetItem(pyTup, i, PyFloat_FromDouble(v[i]));
 
 	return pyTup;
@@ -745,7 +745,7 @@ PyObject* ScriptVector4::__py_pyList(PyObject* self, PyObject* args)
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
-	for (int i=0; i < VECTOR_SIZE; i++)
+	for (int i=0; i < VECTOR_SIZE; ++i)
 		PyList_SetItem(pyList, i, PyFloat_FromDouble(v[i]));
 
 	return pyList;
@@ -772,7 +772,7 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 		else
 		{
 			float f = float(PyFloat_AsDouble(pyItem));
-			for (int i=0; i < VECTOR_SIZE; i++)
+			for (int i=0; i < VECTOR_SIZE; ++i)
 			{
 				v[i] = f;
 			}

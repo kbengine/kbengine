@@ -166,7 +166,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	DebugHelper::getSingleton().changeLogger("default");
 
 	LOG_WATCHERS::iterator iter = logWatchers_.begin();
-	for(; iter != logWatchers_.end(); iter++)
+	for(; iter != logWatchers_.end(); ++iter)
 	{
 		iter->second.onMessage(pLogItem);
 	}
@@ -185,7 +185,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 void Messagelog::sendInitLogs(LogWatcher& logWatcher)
 {
 	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
-	for(; iter != buffered_logs_.end(); iter++)
+	for(; iter != buffered_logs_.end(); ++iter)
 	{
 		logWatcher.onMessage((*iter));
 	}
