@@ -41,9 +41,9 @@ int32 watchBundlePool_max()
 	return (int)Network::Bundle::ObjPool().max();
 }
 
-int32 watchBundlePool_totalAlloc()
+int32 watchBundlePool_totalAllocs()
 {
-	return (int)Network::Bundle::ObjPool().totalAlloc();
+	return (int)Network::Bundle::ObjPool().totalAllocs();
 }
 
 bool watchBundlePool_isDestroyed()
@@ -75,9 +75,9 @@ int32 watchAddressPool_max()
 	return (int)Network::Address::ObjPool().max();
 }
 
-int32 watchAddressPool_totalAlloc()
+int32 watchAddressPool_totalAllocs()
 {
-	return (int)Network::Address::ObjPool().totalAlloc();
+	return (int)Network::Address::ObjPool().totalAllocs();
 }
 
 bool watchAddressPool_isDestroyed()
@@ -109,9 +109,9 @@ int32 watchMemoryStreamPool_max()
 	return (int)MemoryStream::ObjPool().max();
 }
 
-int32 watchMemoryStreamPool_totalAlloc()
+int32 watchMemoryStreamPool_totalAllocs()
 {
-	return (int)MemoryStream::ObjPool().totalAlloc();
+	return (int)MemoryStream::ObjPool().totalAllocs();
 }
 
 bool watchMemoryStreamPool_isDestroyed()
@@ -143,9 +143,9 @@ int32 watchTCPPacketPool_max()
 	return (int)Network::TCPPacket::ObjPool().max();
 }
 
-int32 watchTCPPacketPool_totalAlloc()
+int32 watchTCPPacketPool_totalAllocs()
 {
-	return (int)Network::TCPPacket::ObjPool().totalAlloc();
+	return (int)Network::TCPPacket::ObjPool().totalAllocs();
 }
 
 bool watchTCPPacketPool_isDestroyed()
@@ -177,9 +177,9 @@ int32 watchTCPPacketReceiverPool_max()
 	return (int)Network::TCPPacketReceiver::ObjPool().max();
 }
 
-int32 watchTCPPacketReceiverPool_totalAlloc()
+int32 watchTCPPacketReceiverPool_totalAllocs()
 {
-	return (int)Network::TCPPacketReceiver::ObjPool().totalAlloc();
+	return (int)Network::TCPPacketReceiver::ObjPool().totalAllocs();
 }
 
 bool watchTCPPacketReceiverPool_isDestroyed()
@@ -211,9 +211,9 @@ int32 watchUDPPacketPool_max()
 	return (int)Network::UDPPacket::ObjPool().max();
 }
 
-int32 watchUDPPacketPool_totalAlloc()
+int32 watchUDPPacketPool_totalAllocs()
 {
-	return (int)Network::UDPPacket::ObjPool().totalAlloc();
+	return (int)Network::UDPPacket::ObjPool().totalAllocs();
 }
 
 bool watchUDPPacketPool_isDestroyed()
@@ -245,9 +245,9 @@ int32 watchUDPPacketReceiverPool_max()
 	return (int)Network::UDPPacketReceiver::ObjPool().max();
 }
 
-int32 watchUDPPacketReceiverPool_totalAlloc()
+int32 watchUDPPacketReceiverPool_totalAllocs()
 {
-	return (int)Network::UDPPacketReceiver::ObjPool().totalAlloc();
+	return (int)Network::UDPPacketReceiver::ObjPool().totalAllocs();
 }
 
 bool watchUDPPacketReceiverPool_isDestroyed()
@@ -279,9 +279,9 @@ int32 watchEndPointPool_max()
 	return (int)Network::EndPoint::ObjPool().max();
 }
 
-int32 watchEndPointPool_totalAlloc()
+int32 watchEndPointPool_totalAllocs()
 {
-	return (int)Network::EndPoint::ObjPool().totalAlloc();
+	return (int)Network::EndPoint::ObjPool().totalAllocs();
 }
 
 bool watchEndPointPool_isDestroyed()
@@ -309,49 +309,49 @@ bool WatchPool::initWatchPools()
 	WATCH_OBJECT("objectPools/Bundle/max", &watchBundlePool_max);
 	WATCH_OBJECT("objectPools/Bundle/isDestroyed", &watchBundlePool_isDestroyed);
 	WATCH_OBJECT("objectPools/Bundle/memory", &watchBundlePool_bytes);
-	WATCH_OBJECT("objectPools/Bundle/totalAllocs", &watchBundlePool_totalAlloc);
+	WATCH_OBJECT("objectPools/Bundle/totalAllocs", &watchBundlePool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/Address/size", &watchAddressPool_size);
 	WATCH_OBJECT("objectPools/Address/max", &watchAddressPool_max);
 	WATCH_OBJECT("objectPools/Address/isDestroyed", &watchAddressPool_isDestroyed);
 	WATCH_OBJECT("objectPools/Address/memory", &watchAddressPool_bytes);
-	WATCH_OBJECT("objectPools/Address/totalAllocs", &watchAddressPool_totalAlloc);
+	WATCH_OBJECT("objectPools/Address/totalAllocs", &watchAddressPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/MemoryStream/size", &watchMemoryStreamPool_size);
 	WATCH_OBJECT("objectPools/MemoryStream/max", &watchMemoryStreamPool_max);
 	WATCH_OBJECT("objectPools/MemoryStream/isDestroyed", &watchMemoryStreamPool_isDestroyed);
 	WATCH_OBJECT("objectPools/MemoryStream/memory", &watchMemoryStreamPool_bytes);
-	WATCH_OBJECT("objectPools/MemoryStream/totalAllocs", &watchMemoryStreamPool_totalAlloc);
+	WATCH_OBJECT("objectPools/MemoryStream/totalAllocs", &watchMemoryStreamPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/TCPPacket/size", &watchTCPPacketPool_size);
 	WATCH_OBJECT("objectPools/TCPPacket/max", &watchTCPPacketPool_max);
 	WATCH_OBJECT("objectPools/TCPPacket/isDestroyed", &watchTCPPacketPool_isDestroyed);
 	WATCH_OBJECT("objectPools/TCPPacket/memory", &watchTCPPacketPool_bytes);
-	WATCH_OBJECT("objectPools/TCPPacket/totalAllocs", &watchTCPPacketPool_totalAlloc);
+	WATCH_OBJECT("objectPools/TCPPacket/totalAllocs", &watchTCPPacketPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/TCPPacketReceiver/size", &watchTCPPacketReceiverPool_size);
 	WATCH_OBJECT("objectPools/TCPPacketReceiver/max", &watchTCPPacketReceiverPool_max);
 	WATCH_OBJECT("objectPools/TCPPacketReceiver/isDestroyed", &watchTCPPacketReceiverPool_isDestroyed);
 	WATCH_OBJECT("objectPools/TCPPacketReceiver/memory", &watchTCPPacketReceiverPool_bytes);
-	WATCH_OBJECT("objectPools/TCPPacketReceiver/totalAllocs", &watchTCPPacketReceiverPool_totalAlloc);
+	WATCH_OBJECT("objectPools/TCPPacketReceiver/totalAllocs", &watchTCPPacketReceiverPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/UDPPacket/size", &watchUDPPacketPool_size);
 	WATCH_OBJECT("objectPools/UDPPacket/max", &watchUDPPacketPool_max);
 	WATCH_OBJECT("objectPools/UDPPacket/isDestroyed", &watchUDPPacketPool_isDestroyed);
 	WATCH_OBJECT("objectPools/UDPPacket/memory", &watchUDPPacketPool_bytes);
-	WATCH_OBJECT("objectPools/UDPPacket/totalAllocs", &watchUDPPacketPool_totalAlloc);
+	WATCH_OBJECT("objectPools/UDPPacket/totalAllocs", &watchUDPPacketPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/UDPPacketReceiver/size", &watchUDPPacketReceiverPool_size);
 	WATCH_OBJECT("objectPools/UDPPacketReceiver/max", &watchUDPPacketReceiverPool_max);
 	WATCH_OBJECT("objectPools/UDPPacketReceiver/isDestroyed", &watchUDPPacketReceiverPool_isDestroyed);
 	WATCH_OBJECT("objectPools/UDPPacketReceiver/memory", &watchUDPPacketReceiverPool_bytes);
-	WATCH_OBJECT("objectPools/UDPPacketReceiver/totalAllocs", &watchUDPPacketReceiverPool_totalAlloc);
+	WATCH_OBJECT("objectPools/UDPPacketReceiver/totalAllocs", &watchUDPPacketReceiverPool_totalAllocs);
 
 	WATCH_OBJECT("objectPools/EndPoint/size", &watchEndPointPool_size);
 	WATCH_OBJECT("objectPools/EndPoint/max", &watchEndPointPool_max);
 	WATCH_OBJECT("objectPools/EndPoint/isDestroyed", &watchEndPointPool_isDestroyed);
 	WATCH_OBJECT("objectPools/EndPoint/memory", &watchEndPointPool_bytes);
-	WATCH_OBJECT("objectPools/EndPoint/totalAllocs", &watchEndPointPool_totalAlloc);
+	WATCH_OBJECT("objectPools/EndPoint/totalAllocs", &watchEndPointPool_totalAllocs);
 	return true;
 }
 

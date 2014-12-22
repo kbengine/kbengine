@@ -32,8 +32,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <queue> 
 
-#include "thread/threadmutex.h"
-
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -59,9 +57,8 @@ public:
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
-		mutex_(),
 		name_(name),
-		totalAlloc_(0),
+		total_allocs_(0),
 		obj_count_(0)
 	{
 	}
@@ -70,9 +67,8 @@ public:
 		objects_(),
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
-		mutex_(),
 		name_(name),
-		totalAlloc_(0),
+		total_allocs_(0),
 		obj_count_(0)
 	{
 	}
@@ -84,7 +80,6 @@ public:
 	
 	void destroy()
 	{
-		mutex_.lockMutex();
 		isDestroyed_ = true;
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); iter++)
@@ -97,7 +92,6 @@ public:
 				
 		objects_.clear();	
 		obj_count_ = 0;
-		mutex_.unlockMutex();
 	}
 
 	const OBJECTS& objects(void)const { return objects_; }
@@ -106,7 +100,7 @@ public:
 	{
 		for(unsigned int i=0; i<preAssignVal; i++){
 			objects_.push_back(new T);
-			++totalAlloc_;
+			++total_allocs_;
 			++obj_count_;
 		}
 	}
@@ -118,8 +112,6 @@ public:
 	template<typename T1>
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
-
 		while(true)
 		{
 			if(obj_count_ > 0)
@@ -127,14 +119,11 @@ public:
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
-				mutex_.unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
-
-		mutex_.unlockMutex();
 
 		return NULL;
 	}
@@ -145,8 +134,6 @@ public:
 	*/
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
-
 		while(true)
 		{
 			if(obj_count_ > 0)
@@ -157,15 +144,11 @@ public:
 
 				// 先重置状态
 				t->onReclaimObject();
-
-				mutex_.unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
-
-		mutex_.unlockMutex();
 
 		return NULL;
 	}
@@ -175,9 +158,7 @@ public:
 	*/
 	void reclaimObject(T* obj)
 	{
-		mutex_.lockMutex();
 		reclaimObject_(obj);
-		mutex_.unlockMutex();
 	}
 
 	/**
@@ -185,8 +166,6 @@ public:
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
-		mutex_.lockMutex();
-		
 		typename std::list< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); iter++)
 		{
@@ -194,7 +173,6 @@ public:
 		}
 		
 		objs.clear();
-		mutex_.unlockMutex();
 	}
 
 	/**
@@ -202,8 +180,6 @@ public:
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
-		mutex_.lockMutex();
-		
 		typename std::vector< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); iter++)
 		{
@@ -211,7 +187,6 @@ public:
 		}
 		
 		objs.clear();
-		mutex_.unlockMutex();
 	}
 
 	/**
@@ -219,34 +194,26 @@ public:
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
-		mutex_.lockMutex();
-		
 		while(!objs.empty())
 		{
 			T* t = objs.front();
 			objs.pop();
 			reclaimObject_(t);
 		}
-
-		mutex_.unlockMutex();
 	}
 
 	size_t size(void)const{ return obj_count_; }
 	
 	std::string c_str()
 	{
-		mutex_.lockMutex();
-
 		char buf[1024];
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
 			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
-
-		mutex_.unlockMutex();
 		return buf;
 	}
 
 	size_t max()const{ return max_; }
-	size_t totalAlloc()const{ return totalAlloc_; }
+	size_t totalAllocs()const{ return total_allocs_; }
 
 	bool isDestroyed()const{ return isDestroyed_; }
 
@@ -261,7 +228,7 @@ protected:
 			if(size() >= max_ || isDestroyed_)
 			{
 				delete obj;
-				--totalAlloc_;
+				--total_allocs_;
 			}
 			else
 			{
@@ -272,18 +239,18 @@ protected:
 	}
 
 protected:
-	OBJECTS objects_;							// 对象缓冲器
+	OBJECTS objects_;
 
 	size_t max_;
 
 	bool isDestroyed_;
 
-	KBEngine::thread::ThreadMutex mutex_;
-
 	std::string name_;
 
-	size_t totalAlloc_;
+	size_t total_allocs_;
 
+	// Linux环境中，list.size()使用的是std::distance(begin(), end())方式来获得
+	// 会对性能有影响，这里我们自己对size做一个记录
 	size_t obj_count_;
 };
 
