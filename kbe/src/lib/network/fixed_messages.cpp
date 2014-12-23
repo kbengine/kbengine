@@ -53,7 +53,7 @@ bool FixedMessages::loadConfig(std::string fileName)
 
 	TiXmlNode* node = NULL, *rootNode = NULL;
 
-	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(fileName).c_str()));
 
 	if(!xml->isGood())
 	{
@@ -66,11 +66,16 @@ bool FixedMessages::loadConfig(std::string fileName)
 			ERROR_MSG(fmt::format("FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str()));
 		}
 
-		SAFE_RELEASE(xml);
 		return false;
 	}
 	
 	rootNode = xml->getRootNode();
+	if(rootNode == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
+
 	XML_FOR_BEGIN(rootNode)
 	{
 		node = xml->enterNode(rootNode->FirstChild(), "id");
@@ -81,7 +86,6 @@ bool FixedMessages::loadConfig(std::string fileName)
 	}
 	XML_FOR_END(rootNode);
 
-	SAFE_RELEASE(xml);
 	return true;
 }
 

@@ -86,7 +86,7 @@ bool DataTypes::initialize(std::string file)
 bool DataTypes::loadAlias(std::string& file)
 {
 	TiXmlNode* node = NULL;
-	XML* xml = new XML(Resmgr::getSingleton().matchRes(file).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
 
 	if(xml == NULL || !xml->isGood())
 		return false;
@@ -95,8 +95,8 @@ bool DataTypes::loadAlias(std::string& file)
 
 	if(node == NULL)
 	{
-		ERROR_MSG("DataTypes::loadAlias: not found node<root->firstChildNode> !\n");
-		return false;
+		// root节点下没有子节点了
+		return true;
 	}
 
 	XML_FOR_BEGIN(node)
@@ -112,7 +112,7 @@ bool DataTypes::loadAlias(std::string& file)
 			{
 				FixedDictType* fixedDict = new FixedDictType;
 				
-				if(fixedDict->initialize(xml, childNode))
+				if(fixedDict->initialize(xml.get(), childNode))
 				{
 					addDateType(aliasName, fixedDict);
 				}
@@ -129,7 +129,7 @@ bool DataTypes::loadAlias(std::string& file)
 			{
 				FixedArrayType* fixedArray = new FixedArrayType;
 				
-				if(fixedArray->initialize(xml, childNode))
+				if(fixedArray->initialize(xml.get(), childNode))
 				{
 					addDateType(aliasName, fixedArray);
 				}
@@ -159,7 +159,6 @@ bool DataTypes::loadAlias(std::string& file)
 	}
 	XML_FOR_END(node);
 	
-	delete xml;
 	return true;
 }
 

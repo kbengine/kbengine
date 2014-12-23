@@ -339,11 +339,11 @@ void ScriptDefModule::autoMatchCompOwn()
 
 	// 打开这个entities.xml文件
 	SmartPointer<XML> xml(new XML());
-	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
+	if(!xml->openSection(entitiesFile.c_str()) || !xml->isGood())
 		return;
 	
 	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
-	TiXmlNode* node = xml.get()->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 	if(node == NULL)
 		return;
 

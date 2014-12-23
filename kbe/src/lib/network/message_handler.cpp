@@ -213,20 +213,25 @@ std::string MessageHandlers::getDigestStr()
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XML* xml = new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
+		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
 
 		if(!xml->isGood())
 		{
 			ERROR_MSG(fmt::format("MessageHandlers::getDigestStr(): load {} is failed!\n",
 				Resmgr::getSingleton().matchRes("server/server_errors.xml")));
 
-			SAFE_RELEASE(xml);
 			return "";
 		}
 
 		int32 isize = 0;
 
 		rootNode = xml->getRootNode();
+		if(rootNode == NULL)
+		{
+			// root节点下没有子节点了
+			return "";
+		}
+
 		XML_FOR_BEGIN(rootNode)
 		{
 			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
@@ -243,8 +248,6 @@ std::string MessageHandlers::getDigestStr()
 			isize++;
 		}
 		XML_FOR_END(rootNode);
-
-		SAFE_RELEASE(xml);
 
 		md5.append((void*)&isize, sizeof(int32));
 

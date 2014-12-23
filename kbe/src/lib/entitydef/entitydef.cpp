@@ -166,11 +166,11 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 
 	// 打开这个entities.xml文件
 	SmartPointer<XML> xml(new XML());
-	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
+	if(!xml->openSection(entitiesFile.c_str()))
 		return false;
 	
 	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
-	TiXmlNode* node = xml.get()->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 	if(node == NULL)
 		return true;
 
@@ -185,10 +185,15 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		std::string deffile = defFilePath + moduleName + ".def";
 		SmartPointer<XML> defxml(new XML());
 
-		if(!defxml.get()->openSection(deffile.c_str()))
+		if(!defxml->openSection(deffile.c_str()))
 			return false;
 
-		TiXmlNode* defNode = defxml.get()->getRootNode();
+		TiXmlNode* defNode = defxml->getRootNode();
+		if(defNode == NULL)
+		{
+			// root节点下没有子节点了
+			continue;
+		}
 
 		// 加载def文件中的定义
 		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
@@ -430,7 +435,13 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		if(!interfaceXml.get()->openSection(interfacefile.c_str()))
 			return false;
 
-		TiXmlNode* interfaceRootNode = interfaceXml.get()->getRootNode();
+		TiXmlNode* interfaceRootNode = interfaceXml->getRootNode();
+		if(interfaceRootNode == NULL)
+		{
+			// root节点下没有子节点了
+			return true;
+		}
+
 		if(!loadAllDefDescriptions(moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
 		{
 			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
@@ -473,15 +484,20 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 	TiXmlNode* parentClassNode = defxml->enterNode(defNode, "Parent");
 	if(parentClassNode == NULL)
 		return true;
-	
+
 	std::string parentClassName = defxml->getKey(parentClassNode);
 	std::string parentClassfile = defFilePath + parentClassName + ".def";
 	
 	SmartPointer<XML> parentClassXml(new XML());
-	if(!parentClassXml.get()->openSection(parentClassfile.c_str()))
+	if(!parentClassXml->openSection(parentClassfile.c_str()))
 		return false;
 	
-	TiXmlNode* parentClassdefNode = parentClassXml.get()->getRootNode();
+	TiXmlNode* parentClassdefNode = parentClassXml->getRootNode();
+	if(parentClassdefNode == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
 
 	// 加载def文件中的定义
 	if(!loadDefInfo(defFilePath, parentClassName, parentClassXml.get(), parentClassdefNode, scriptModule))
@@ -1128,10 +1144,10 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 	std::string entitiesFile = entitiesPath + "entities.xml";
 
 	SmartPointer<XML> xml(new XML());
-	if(!xml.get()->openSection(entitiesFile.c_str()))
+	if(!xml->openSection(entitiesFile.c_str()))
 		return false;
 
-	TiXmlNode* node = xml.get()->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 	if(node == NULL)
 		return true;
 

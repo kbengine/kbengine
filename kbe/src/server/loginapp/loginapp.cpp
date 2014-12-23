@@ -1123,18 +1123,23 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XML* xml = new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
+		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
 
 		if(!xml->isGood())
 		{
 			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
 				"server/server_errors.xml"));
 
-			SAFE_RELEASE(xml);
 			return;
 		}
 
 		rootNode = xml->getRootNode();
+		if(rootNode == NULL)
+		{
+			// root节点下没有子节点了
+			return;
+		}
+
 		XML_FOR_BEGIN(rootNode)
 		{
 			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
@@ -1142,8 +1147,6 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 			errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
 		}
 		XML_FOR_END(rootNode);
-
-		SAFE_RELEASE(xml);
 
 		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();

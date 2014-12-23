@@ -58,17 +58,22 @@ bool Config::loadConfig(std::string fileName)
 {
 	fileName_ = fileName;
 	TiXmlNode* rootNode = NULL;
-	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName_).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(fileName_).c_str()));
 
 	if(!xml->isGood())
 	{
 		ERROR_MSG(fmt::format("Config::loadConfig: load {} is failed!\n",
 			fileName.c_str()));
 
-		SAFE_RELEASE(xml);
 		return false;
 	}
 	
+	if(xml->getRootNode() == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
+
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
 		Network::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
@@ -293,7 +298,6 @@ bool Config::loadConfig(std::string fileName)
 		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
 
-	SAFE_RELEASE(xml);
 	return true;
 }
 

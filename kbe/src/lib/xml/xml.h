@@ -105,7 +105,7 @@ public:
 		rootElement_(NULL),
 		isGood_(false)
 	{
-		isGood_ = openSection(xmlFile) != NULL || rootElement_ != NULL;
+		openSection(xmlFile);
 	}
 	
 	~XML(void){
@@ -119,7 +119,7 @@ public:
 
 	bool isGood()const{ return isGood_; }
 
-	TiXmlNode* openSection(const char* xmlFile)
+	bool openSection(const char* xmlFile)
 	{
 		char pathbuf[MAX_PATH];
 		kbe_snprintf(pathbuf, MAX_PATH, "%s", xmlFile);
@@ -136,11 +136,13 @@ public:
 				ERROR_MSG(fmt::format("TiXmlNode::openXML: {}, is error!\n", pathbuf));
 			}
 
-			return NULL;
+			isGood_ = false;
+			return false;
 		}
 
 		rootElement_ = txdoc_->RootElement();
-		return getRootNode();
+		isGood_ = true;
+		return true;
 	}
 
 	/**获取根元素*/
