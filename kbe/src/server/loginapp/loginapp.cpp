@@ -646,6 +646,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	{
 		INFO_MSG("Loginapp::login: loginName is NULL.\n");
 		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas, true);
+		s.done();
 		return;
 	}
 
@@ -654,7 +655,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		INFO_MSG(fmt::format("Loginapp::login: loginName is too long, size={}, limit={}.\n",
 			loginName.size(), ACCOUNT_NAME_MAX_LENGTH));
 		
-		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas, true);
+		s.done();
 		return;
 	}
 
@@ -663,7 +665,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		INFO_MSG(fmt::format("Loginapp::login: password is too long, size={}, limit={}.\n",
 			password.size(), ACCOUNT_PASSWD_MAX_LENGTH));
 		
-		_loginFailed(pChannel, loginName, SERVER_ERR_PASSWORD, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_PASSWORD, datas, true);
+		s.done();
 		return;
 	}
 	
@@ -672,7 +675,27 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		INFO_MSG(fmt::format("Loginapp::login: bindatas is too long, size={}, limit={}.\n",
 			datas.size(), ACCOUNT_DATA_MAX_LENGTH));
 		
-		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+		s.done();
+		return;
+	}
+
+	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
+	Components::ComponentInfos* baseappmgrinfos = Components::getSingleton().getBaseappmgr();
+	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
+	{
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas, true);
+		s.done();
+		return;
+	}
+
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas, true);
+		s.done();
 		return;
 	}
 
@@ -700,7 +723,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	if(ptinfos != NULL)
 	{
 		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY, datas);
+		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY, datas, true);
 		return;
 	}
 
@@ -734,32 +757,6 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	INFO_MSG(fmt::format("Loginapp::login: new client[{0}], loginName={1}, datas={2}.\n",
 		COMPONENT_CLIENT_NAME[ctype], loginName, datas));
 
-	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	Components::ComponentInfos* baseappmgrinfos = NULL;
-	if(cts.size() > 0)
-		baseappmgrinfos = &(*cts.begin());
-
-	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
-	{
-		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
-		return;
-	}
-
-	Components::COMPONENTS& cts1 = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts1.size() > 0)
-		dbmgrinfos = &(*cts1.begin());
-
-	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
-	{
-		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
-		return;
-	}
-
 	pChannel->extra(loginName);
 
 	// 向dbmgr查询用户合法性
@@ -776,9 +773,14 @@ void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, 
 	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
 		loginName, SERVER_ERR_STR[failedcode], datas));
 	
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
-	if(infos == NULL && !force)
-		return;
+	PendingLoginMgr::PLInfos* infos = NULL;
+
+	if(!force)
+	{
+		infos = pendingLoginMgr_.remove(loginName);
+		if(infos == NULL)
+			return;
+	}
 
 	Network::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
@@ -791,9 +793,17 @@ void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, 
 	}
 	else 
 	{
-		Network::Channel* pClientChannel = this->networkInterface().findChannel(infos->addr);
-		if(pClientChannel)
-			bundle.send(this->networkInterface(), pClientChannel);
+		if(infos)
+		{
+			Network::Channel* pClientChannel = this->networkInterface().findChannel(infos->addr);
+			if(pClientChannel)
+				bundle.send(this->networkInterface(), pClientChannel);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Loginapp::_loginFailed: infos({}) is NULL!\n", 
+				loginName));
+		}
 	}
 
 	SAFE_RELEASE(infos);
