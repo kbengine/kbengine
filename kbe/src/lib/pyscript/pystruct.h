@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPT_STRUCT_HPP
-#define KBE_SCRIPT_STRUCT_HPP
+#ifndef KBE_SCRIPT_STRUCT_H
+#define KBE_SCRIPT_STRUCT_H
 
 #include "common/common.h"
 #include "scriptobject.h"
@@ -55,4 +55,4 @@ private:
 
 }
 }
-#endif // KBE_SCRIPT_STRUCT_HPP
+#endif // KBE_SCRIPT_STRUCT_H

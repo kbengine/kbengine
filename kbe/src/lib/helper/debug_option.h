@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_DEBUG_OPTION_HPP
-#define KBE_DEBUG_OPTION_HPP
+#ifndef KBE_DEBUG_OPTION_H
+#define KBE_DEBUG_OPTION_H
 #include "common/common.h"
 
 namespace KBEngine{
@@ -67,4 +67,4 @@ extern int8 g_appPublish;
 
 }
 
-#endif // KBE_DEBUG_OPTION_HPP
+#endif // KBE_DEBUG_OPTION_H

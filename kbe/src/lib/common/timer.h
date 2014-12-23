@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBE_TIMER_HPP
-#define KBE_TIMER_HPP
+#ifndef KBE_TIMER_H
+#define KBE_TIMER_H
 
 #include "common/common.h"
 #include "common/timestamp.h"
@@ -247,4 +247,4 @@ typedef TimersT<uint64> Timers64;
 #ifdef CODE_INLINE
 #include "timer.inl"
 #endif
-#endif // KBE_TIMER_HPP
+#endif // KBE_TIMER_H

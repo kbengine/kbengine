@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_CLIENT_COMMON_HPP
-#define KBE_CLIENT_COMMON_HPP
+#ifndef KBE_CLIENT_COMMON_H
+#define KBE_CLIENT_COMMON_H
 
 #include "common/common.h"
 
@@ -31,4 +31,4 @@ namespace KBEngine{
 
 }
 
-#endif // KBE_CLIENT_COMMON_HPP
+#endif // KBE_CLIENT_COMMON_H

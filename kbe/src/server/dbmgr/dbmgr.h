@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DBMGR_HPP
-#define KBE_DBMGR_HPP
+#ifndef KBE_DBMGR_H
+#define KBE_DBMGR_H
 	
 // common include	
 #include "db_interface/db_threadpool.h"
@@ -254,4 +254,4 @@ protected:
 
 }
 
-#endif // KBE_DBMGR_HPP
+#endif // KBE_DBMGR_H

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPTSTDOUT_HPP
-#define KBE_SCRIPTSTDOUT_HPP
+#ifndef KBE_SCRIPTSTDOUT_H
+#define KBE_SCRIPTSTDOUT_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -62,4 +62,4 @@ protected:
 #include "scriptstdout.inl"
 #endif
 
-#endif // KBE_SCRIPTSTDOUT_HPP
+#endif // KBE_SCRIPTSTDOUT_H

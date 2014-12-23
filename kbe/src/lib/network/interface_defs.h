@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_INTERFACE_DEFS_HPP
-#define KBE_INTERFACE_DEFS_HPP
+#ifndef KBE_INTERFACE_DEFS_H
+#define KBE_INTERFACE_DEFS_H
 	
 // common include
 #include "common/common.h"
@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #endif
-// KBE_INTERFACE_DEFS_HPP
+// KBE_INTERFACE_DEFS_H
 namespace KBEngine{
 namespace Network
 {

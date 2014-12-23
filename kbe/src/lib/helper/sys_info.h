@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_SYSINFO_HPP
-#define KBENGINE_SYSINFO_HPP
+#ifndef KBENGINE_SYSINFO_H
+#define KBENGINE_SYSINFO_H
 
 #include "debug_helper.h"
 #include "common/common.h"
@@ -72,6 +72,6 @@ private:
 
 #include "sys_info.inl"
 
-#endif // KBENGINE_SYSINFO_HPP
+#endif // KBENGINE_SYSINFO_H
 
 

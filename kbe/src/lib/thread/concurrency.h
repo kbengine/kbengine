@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef KBE_CONCURENCY_HPP
-#define KBE_CONCURENCY_HPP
+#ifndef KBE_CONCURENCY_H
+#define KBE_CONCURENCY_H
 
 #include "common/platform.h"
 #include "helper/debug_helper.h"
@@ -55,4 +55,4 @@ void setMainThreadIdleFunctions( void (*pStartFunc)(), void (*pEndFunc)() )
 
 }
 
-#endif // KBE_CONCURENCY_HPP
+#endif // KBE_CONCURENCY_H

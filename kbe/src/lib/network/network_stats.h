@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_NETWORK_STATS_HPP
-#define KBE_NETWORK_STATS_HPP
+#ifndef KBE_NETWORK_STATS_H
+#define KBE_NETWORK_STATS_H
 
 #include "network/interfaces.h"
 #include "common/common.h"
@@ -79,4 +79,4 @@ private:
 
 }
 }
-#endif // KBE_NETWORK_STATS_HPP
+#endif // KBE_NETWORK_STATS_H

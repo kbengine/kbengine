@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BACKUPER_HPP
-#define KBE_BACKUPER_HPP
+#ifndef KBE_BACKUPER_H
+#define KBE_BACKUPER_H
 
 // common include
 #include "helper/debug_helper.h"
@@ -54,4 +54,4 @@ private:
 
 }
 
-#endif // KBE_BACKUPER_HPP
+#endif // KBE_BACKUPER_H

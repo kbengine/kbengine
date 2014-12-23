@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_NETWORKPACKET_RECEIVER_HPP
-#define KBE_NETWORKPACKET_RECEIVER_HPP
+#ifndef KBE_NETWORKPACKET_RECEIVER_H
+#define KBE_NETWORKPACKET_RECEIVER_H
 
 #include "common/common.h"
 #include "common/objectpool.h"
@@ -81,4 +81,4 @@ protected:
 #ifdef CODE_INLINE
 #include "packet_receiver.inl"
 #endif
-#endif // KBE_NETWORKPACKET_RECEIVER_HPP
+#endif // KBE_NETWORKPACKET_RECEIVER_H

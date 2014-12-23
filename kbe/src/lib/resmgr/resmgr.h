@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 /*
 	资源管理器。
 */
-#ifndef KBE_RESMGR_HPP
-#define KBE_RESMGR_HPP
+#ifndef KBE_RESMGR_H
+#define KBE_RESMGR_H
 
 #include "resourceobject.h"
 #include "common/common.h"
@@ -134,4 +134,4 @@ private:
 
 }
 
-#endif // KBE_RESMGR_HPP
+#endif // KBE_RESMGR_H

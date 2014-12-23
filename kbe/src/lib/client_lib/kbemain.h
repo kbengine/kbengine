@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBEMAIN_CLIENT_HPP
-#define KBEMAIN_CLIENT_HPP
+#ifndef KBEMAIN_CLIENT_H
+#define KBEMAIN_CLIENT_H
 #include "clientapp.h"
 #include "entity.h"
 #include "common/common.h"
@@ -326,4 +326,4 @@ int kbeMain
 
 }
 
-#endif // KBEMAIN_CLIENT_HPP
+#endif // KBEMAIN_CLIENT_H

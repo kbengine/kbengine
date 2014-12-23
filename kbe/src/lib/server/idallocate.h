@@ -55,8 +55,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		// ·ÖÅäÒ»¸öid 
 		m_idClient->alloc()
 */
-#ifndef KBE_IDALLOCATE_HPP
-#define KBE_IDALLOCATE_HPP
+#ifndef KBE_IDALLOCATE_H
+#define KBE_IDALLOCATE_H
 
 // common include	
 #include "helper/debug_helper.h"
@@ -328,4 +328,4 @@ protected:
 
 }
 
-#endif // KBE_IDALLOCATE_HPP
+#endif // KBE_IDALLOCATE_H

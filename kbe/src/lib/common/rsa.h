@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_RSA_HPP
-#define KBENGINE_RSA_HPP
+#ifndef KBENGINE_RSA_H
+#define KBENGINE_RSA_H
 
 #include <string>
 
@@ -61,4 +61,4 @@ protected:
 
 }
 
-#endif // KBENGINE_RSA_HPP
+#endif // KBENGINE_RSA_H

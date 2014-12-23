@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPTSTDERR_HPP
-#define KBE_SCRIPTSTDERR_HPP
+#ifndef KBE_SCRIPTSTDERR_H
+#define KBE_SCRIPTSTDERR_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -62,4 +62,4 @@ protected:
 #include "scriptstderr.inl"
 #endif
 
-#endif // KBE_SCRIPTSTDERR_HPP
+#endif // KBE_SCRIPTSTDERR_H

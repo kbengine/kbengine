@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITIES_HPP
-#define KBE_ENTITIES_HPP
+#ifndef KBE_ENTITIES_H
+#define KBE_ENTITIES_H
 	
 // common include	
 #include "helper/debug_helper.h"
@@ -371,5 +371,5 @@ PyObject* Entities<T>::pyGarbages()
 }
 
 }
-#endif // KBE_ENTITIES_HPP
+#endif // KBE_ENTITIES_H
 

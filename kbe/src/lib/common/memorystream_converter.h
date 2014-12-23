@@ -24,8 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
  		 我们使用的PC机或者嵌入式系统可能使用BIG字节序也可能使用LITTEN(小字节序)
  		 所以我们必须在此之间做一个字节序的转换。
 */
-#ifndef KBE_MEMORYSTREAMCONVERTER_HPP
-#define KBE_MEMORYSTREAMCONVERTER_HPP
+#ifndef KBE_MEMORYSTREAMCONVERTER_H
+#define KBE_MEMORYSTREAMCONVERTER_H
 // common include
 #include "common/common.h"
 #include <algorithm>

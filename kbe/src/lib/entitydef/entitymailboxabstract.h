@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENTITY_MAILBOX_BASE_HPP
-#define KBE_ENTITY_MAILBOX_BASE_HPP
+#ifndef KBE_ENTITY_MAILBOX_BASE_H
+#define KBE_ENTITY_MAILBOX_BASE_H
 	
 // common include	
 #include "common/common.h"
@@ -129,4 +129,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entitymailboxabstract.inl"
 #endif
-#endif // KBE_ENTITY_MAILBOX_BASE_HPP
+#endif // KBE_ENTITY_MAILBOX_BASE_H

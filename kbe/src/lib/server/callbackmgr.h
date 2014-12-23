@@ -31,8 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // 可以使用bind来绑定一个类成员函数
 */
 
-#ifndef KBE_CALLBACKMGR_HPP
-#define KBE_CALLBACKMGR_HPP
+#ifndef KBE_CALLBACKMGR_H
+#define KBE_CALLBACKMGR_H
 
 // common include	
 #include "Python.h"
@@ -238,4 +238,4 @@ typedef CallbackMgr<PyObjectPtr> PY_CALLBACKMGR;
 
 }
 
-#endif // KBE_CALLBACKMGR_HPP
+#endif // KBE_CALLBACKMGR_H

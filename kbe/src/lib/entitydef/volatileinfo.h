@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_VOLATILEINFO_HPP
-#define KBE_VOLATILEINFO_HPP
+#ifndef KBE_VOLATILEINFO_H
+#define KBE_VOLATILEINFO_H
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -77,4 +77,4 @@ protected:
 }
 
 
-#endif // KBE_VOLATILEINFO_HPP
+#endif // KBE_VOLATILEINFO_H

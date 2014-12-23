@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBE_COMMON_HPP
-#define KBE_COMMON_HPP
+#ifndef KBE_COMMON_H
+#define KBE_COMMON_H
 #include "common/platform.h"
 #include "common/singleton.h"
 #include "common/kbeversion.h"
@@ -384,4 +384,4 @@ inline bool email_isvalid(const char *address)
 }
 
 }
-#endif // KBE_COMMON_HPP
+#endif // KBE_COMMON_H

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBENGINE_DEF_METHOD_HPP
-#define KBENGINE_DEF_METHOD_HPP
+#ifndef KBENGINE_DEF_METHOD_H
+#define KBENGINE_DEF_METHOD_H
 
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -128,4 +128,4 @@ protected:
 #ifdef CODE_INLINE
 #include "method.inl"
 #endif
-#endif // KBENGINE_DEF_METHOD_HPP
+#endif // KBENGINE_DEF_METHOD_H

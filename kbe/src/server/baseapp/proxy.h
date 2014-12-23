@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_PROXY_HPP
-#define KBE_PROXY_HPP
+#ifndef KBE_PROXY_H
+#define KBE_PROXY_H
 	
 // common include
 #include "base.h"
@@ -203,4 +203,4 @@ protected:
 #include "proxy.inl"
 #endif
 
-#endif // KBE_PROXY_HPP
+#endif // KBE_PROXY_H

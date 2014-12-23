@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPTOBJECT_HPP
-#define KBE_SCRIPTOBJECT_HPP
+#ifndef KBE_SCRIPTOBJECT_H
+#define KBE_SCRIPTOBJECT_H
 
 #include <vector>	
 #include "Python.h"     
@@ -551,4 +551,4 @@ public:
 #include "scriptobject.inl"
 #endif
 
-#endif // KBE_SCRIPTOBJECT_HPP
+#endif // KBE_SCRIPTOBJECT_H

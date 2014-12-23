@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_CONSOLE_HELPER_HPP
-#define KBE_CONSOLE_HELPER_HPP
+#ifndef KBE_CONSOLE_HELPER_H
+#define KBE_CONSOLE_HELPER_H
 #include "network/message_handler.h"
 #include "network/channel.h"
 
@@ -251,4 +251,4 @@ namespace ConsoleInterface{
 }
 }
 
-#endif // KBE_CONSOLE_HELPER_HPP
+#endif // KBE_CONSOLE_HELPER_H

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DATA_DOWNLOAD_HPP
-#define KBE_DATA_DOWNLOAD_HPP
+#ifndef KBE_DATA_DOWNLOAD_H
+#define KBE_DATA_DOWNLOAD_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -114,4 +114,4 @@ protected:
 
 }
 
-#endif // KBE_DATA_DOWNLOAD_HPP
+#endif // KBE_DATA_DOWNLOAD_H

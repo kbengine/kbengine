@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_PY_GC_HPP
-#define KBE_PY_GC_HPP
+#ifndef KBE_PY_GC_H
+#define KBE_PY_GC_H
 
 #include "common/common.h"
 #include "scriptobject.h"
@@ -82,4 +82,4 @@ private:
 }
 }
 
-#endif // KBE_PY_GC_HPP
+#endif // KBE_PY_GC_H

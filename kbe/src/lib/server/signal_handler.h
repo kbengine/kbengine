@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SIGNAL_HANDLER_HPP
-#define KBE_SIGNAL_HANDLER_HPP
+#ifndef KBE_SIGNAL_HANDLER_H
+#define KBE_SIGNAL_HANDLER_H
 
 // common include
 #include "common/common.h"
@@ -70,4 +70,4 @@ private:
 
 #define g_kbeSignalHandlers SignalHandlers::getSingleton()
 }
-#endif // KBE_SIGNAL_HANDLER_HPP
+#endif // KBE_SIGNAL_HANDLER_H

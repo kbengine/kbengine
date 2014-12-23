@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_EVENT_POLLER_HPP
-#define KBE_EVENT_POLLER_HPP
+#ifndef KBE_EVENT_POLLER_H
+#define KBE_EVENT_POLLER_H
 
 #include "common/common.h"
 #include "common/timestamp.h"
@@ -86,4 +86,4 @@ protected:
 
 }
 }
-#endif // KBE_EVENT_POLLER_HPP
+#endif // KBE_EVENT_POLLER_H

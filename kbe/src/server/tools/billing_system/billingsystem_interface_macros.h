@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef KBE_BILLINGSYSTEM_INTERFACE_MACRO_HPP
+	#undef KBE_BILLINGSYSTEM_INTERFACE_MACRO_H
 #endif
 
 
-#ifndef KBE_BILLINGSYSTEM_INTERFACE_MACRO_HPP
-#define KBE_BILLINGSYSTEM_INTERFACE_MACRO_HPP
+#ifndef KBE_BILLINGSYSTEM_INTERFACE_MACRO_H
+#define KBE_BILLINGSYSTEM_INTERFACE_MACRO_H
 
 // common include	
 #include "network/interface_defs.h"

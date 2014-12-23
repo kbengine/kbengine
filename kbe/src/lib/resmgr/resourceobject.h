@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_RESOURCE_OBJECT_HPP
-#define KBE_RESOURCE_OBJECT_HPP
+#ifndef KBE_RESOURCE_OBJECT_H
+#define KBE_RESOURCE_OBJECT_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -65,4 +65,4 @@ protected:
 typedef SmartPointer<ResourceObject> ResourceObjectPtr;
 }
 
-#endif // KBE_RESOURCE_OBJECT_HPP
+#endif // KBE_RESOURCE_OBJECT_H

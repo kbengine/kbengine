@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENTITY_MACRO_HPP
-#define KBE_ENTITY_MACRO_HPP
+#ifndef KBE_ENTITY_MACRO_H
+#define KBE_ENTITY_MACRO_H
 
 #include "common/common.h"
 #include "server/callbackmgr.h"		
@@ -934,4 +934,4 @@ public:																										\
 
 
 }
-#endif // KBE_ENTITY_MACRO_HPP
+#endif // KBE_ENTITY_MACRO_H

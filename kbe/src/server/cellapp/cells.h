@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_CELLS_HPP
-#define KBE_CELLS_HPP
+#ifndef KBE_CELLS_H
+#define KBE_CELLS_H
 
 // common include
 #include "cell.h"

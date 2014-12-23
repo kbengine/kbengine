@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITY_REF_HPP
-#define KBE_ENTITY_REF_HPP
+#ifndef KBE_ENTITY_REF_H
+#define KBE_ENTITY_REF_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"	

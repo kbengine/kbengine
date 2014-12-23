@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SERVER_COMMON_HPP
-#define KBE_SERVER_COMMON_HPP
+#ifndef KBE_SERVER_COMMON_H
+#define KBE_SERVER_COMMON_H
 
 // common include
 #include "common/timer.h"
@@ -167,4 +167,4 @@ uint16 datatype2id(std::string datatype);
 
 }
 
-#endif // KBE_SERVER_COMMON_HPP
+#endif // KBE_SERVER_COMMON_H

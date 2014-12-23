@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_REMOVE_ENTITY_HELPER_HPP
-#define KBE_REMOVE_ENTITY_HELPER_HPP
+#ifndef KBE_REMOVE_ENTITY_HELPER_H
+#define KBE_REMOVE_ENTITY_HELPER_H
 
 // common include	
 // #define NDEBUG
@@ -223,4 +223,4 @@ protected:
 };
 
 }
-#endif // KBE_REMOVE_ENTITY_HELPER_HPP
+#endif // KBE_REMOVE_ENTITY_HELPER_H

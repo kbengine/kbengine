@@ -43,8 +43,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		执行结果:
 			析构
 */
-#ifndef KBE_REFCOUNTABLE_HPP
-#define KBE_REFCOUNTABLE_HPP
+#ifndef KBE_REFCOUNTABLE_H
+#define KBE_REFCOUNTABLE_H
 	
 // common include
 #include "common.h"
@@ -262,4 +262,4 @@ private:
 };
 
 }
-#endif // KBE_REFCOUNTABLE_HPP
+#endif // KBE_REFCOUNTABLE_H

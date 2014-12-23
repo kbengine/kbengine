@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBENGINE_DEF_PROPERTY_HPP
-#define KBENGINE_DEF_PROPERTY_HPP
+#ifndef KBENGINE_DEF_PROPERTY_H
+#define KBENGINE_DEF_PROPERTY_H
 
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -268,5 +268,5 @@ protected:
 #ifdef CODE_INLINE
 #include "property.inl"
 #endif
-#endif // KBENGINE_DEF_PROPERTY_HPP
+#endif // KBENGINE_DEF_PROPERTY_H
 

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_PY_MEMORYSTREAM_HPP
-#define KBE_PY_MEMORYSTREAM_HPP
+#ifndef KBE_PY_MEMORYSTREAM_H
+#define KBE_PY_MEMORYSTREAM_H
 
 #include "scriptobject.h"
 #include "helper/debug_helper.h"
@@ -71,4 +71,4 @@ protected:
 #include "py_memorystream.inl"
 #endif
 
-#endif // KBE_PY_MEMORYSTREAM_HPP
+#endif // KBE_PY_MEMORYSTREAM_H

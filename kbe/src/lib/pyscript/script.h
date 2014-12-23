@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_SCRIPT_HPP
-#define KBENGINE_SCRIPT_HPP
+#ifndef KBENGINE_SCRIPT_H
+#define KBENGINE_SCRIPT_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -170,4 +170,4 @@ protected:
 #include "script.inl"
 #endif
 
-#endif // KBENGINE_SCRIPT_HPP
+#endif // KBENGINE_SCRIPT_H

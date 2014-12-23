@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_PYBOTS_HPP
-#define KBE_PYBOTS_HPP
+#ifndef KBE_PYBOTS_H
+#define KBE_PYBOTS_H
 	
 // common include	
 #include "profile.h"
@@ -77,4 +77,4 @@ protected:
 
 }
 
-#endif // KBE_PYBOTS_HPP
+#endif // KBE_PYBOTS_H

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_STRUTIL_HPP
-#define KBE_STRUTIL_HPP
+#ifndef KBE_STRUTIL_H
+#define KBE_STRUTIL_H
 
 #include <string>
 #include <vector>
@@ -223,5 +223,5 @@ namespace strutil {
 
 }
 
-#endif // KBE_STRUTIL_HPP
+#endif // KBE_STRUTIL_H
 

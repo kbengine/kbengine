@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITY_SQL_STATEMENT_MAPPING_HPP
-#define KBE_ENTITY_SQL_STATEMENT_MAPPING_HPP
+#ifndef KBE_ENTITY_SQL_STATEMENT_MAPPING_H
+#define KBE_ENTITY_SQL_STATEMENT_MAPPING_H
 
 // common include	
 // #define NDEBUG

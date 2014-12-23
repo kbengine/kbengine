@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP
-#define KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP
+#ifndef KBE_BASE_MESSAGES_FORWARD_HANDLER_H
+#define KBE_BASE_MESSAGES_FORWARD_HANDLER_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -51,4 +51,4 @@ private:
 
 }
 
-#endif // KBE_BASE_MESSAGES_FORWARD_HANDLER_HPP
+#endif // KBE_BASE_MESSAGES_FORWARD_HANDLER_H

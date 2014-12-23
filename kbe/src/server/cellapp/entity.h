@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITY_HPP
-#define KBE_ENTITY_HPP
+#ifndef KBE_ENTITY_H
+#define KBE_ENTITY_H
 	
 // common include
 //#include "entitymovecontroller.h"
@@ -619,4 +619,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entity.inl"
 #endif
-#endif // KBE_ENTITY_HPP
+#endif // KBE_ENTITY_H

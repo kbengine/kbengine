@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ARCHIVER_HPP
-#define KBE_ARCHIVER_HPP
+#ifndef KBE_ARCHIVER_H
+#define KBE_ARCHIVER_H
 
 // common include
 #include "helper/debug_helper.h"
@@ -50,4 +50,4 @@ private:
 
 }
 
-#endif // KBE_ARCHIVER_HPP
+#endif // KBE_ARCHIVER_H

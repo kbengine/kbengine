@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_THREAD_POOL_HPP
-#define KBE_DB_THREAD_POOL_HPP
+#ifndef KBE_DB_THREAD_POOL_H
+#define KBE_DB_THREAD_POOL_H
 
 // common include	
 // #define NDEBUG

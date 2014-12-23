@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPT_TIMERS_HPP
-#define KBE_SCRIPT_TIMERS_HPP
+#ifndef KBE_SCRIPT_TIMERS_H
+#define KBE_SCRIPT_TIMERS_H
 #include "common/common.h"
 #include "common/timer.h"
 

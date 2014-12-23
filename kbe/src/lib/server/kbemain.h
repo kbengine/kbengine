@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_KBEMAIN_HPP
-#define KBE_KBEMAIN_HPP
+#ifndef KBE_KBEMAIN_H
+#define KBE_KBEMAIN_H
 
 #include "helper/memory_helper.h"
 
@@ -309,4 +309,4 @@ int kbeMain
 #endif
 }
 
-#endif // KBE_KBEMAIN_HPP
+#endif // KBE_KBEMAIN_H

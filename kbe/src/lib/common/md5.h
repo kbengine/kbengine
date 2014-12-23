@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_MD5_HPP
-#define KBENGINE_MD5_HPP
+#ifndef KBENGINE_MD5_H
+#define KBENGINE_MD5_H
 
 #include "openssl/md5.h"
 #include <string>
@@ -63,4 +63,4 @@ private:
 
 }
 
-#endif // KBENGINE_MD5_HPP
+#endif // KBENGINE_MD5_H

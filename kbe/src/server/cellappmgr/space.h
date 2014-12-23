@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_MGR_SPACE_HPP
-#define KBE_MGR_SPACE_HPP
+#ifndef KBE_MGR_SPACE_H
+#define KBE_MGR_SPACE_H
 
 // common include
 #include "cells.h"

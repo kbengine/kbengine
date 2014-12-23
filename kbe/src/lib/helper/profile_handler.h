@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_PROFILE_HANDLER_HPP
-#define KBE_PROFILE_HANDLER_HPP
+#ifndef KBE_PROFILE_HANDLER_H
+#define KBE_PROFILE_HANDLER_H
 
 #include "common/common.h"
 #include "common/tasks.h"

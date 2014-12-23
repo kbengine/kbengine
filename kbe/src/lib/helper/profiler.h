@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBENGINE_PROFILE_HPP
-#define KBENGINE_PROFILE_HPP
+#ifndef KBENGINE_PROFILE_H
+#define KBENGINE_PROFILE_H
 
 #include "common/common.h"
 
@@ -42,7 +42,7 @@ private:
 
 #include "profiler.inl"
 
-#endif // KBENGINE_PROFILE_HPP
+#endif // KBENGINE_PROFILE_H
 
 
 

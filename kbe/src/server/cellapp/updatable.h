@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_UPDATABLE_HPP
-#define KBE_UPDATABLE_HPP
+#ifndef KBE_UPDATABLE_H
+#define KBE_UPDATABLE_H
 
 // common include
 #include "helper/debug_helper.h"

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBEVERSION_HPP
-#define KBEVERSION_HPP
+#ifndef KBEVERSION_H
+#define KBEVERSION_H
 
 #include "common/platform.h"
 
@@ -38,4 +38,4 @@ namespace KBEVersion
 }
 
 }
-#endif // KBEVERSION_HPP
+#endif // KBEVERSION_H

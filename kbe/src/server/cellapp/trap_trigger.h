@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_TRAP_TRIGGER_HPP
-#define KBE_TRAP_TRIGGER_HPP
+#ifndef KBE_TRAP_TRIGGER_H
+#define KBE_TRAP_TRIGGER_H
 
 #include "range_trigger.h"
 

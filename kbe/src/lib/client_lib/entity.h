@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_CLIENTAPP_ENTITY_HPP
-#define KBE_CLIENTAPP_ENTITY_HPP
+#ifndef KBE_CLIENTAPP_ENTITY_H
+#define KBE_CLIENTAPP_ENTITY_H
 	
 // common include
 #include "entity_aspect.h"

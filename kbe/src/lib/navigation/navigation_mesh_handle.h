@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_NAVIGATEMESHHANDLE_HPP
-#define KBE_NAVIGATEMESHHANDLE_HPP
+#ifndef KBE_NAVIGATEMESHHANDLE_H
+#define KBE_NAVIGATEMESHHANDLE_H
 
 #include "navigation/navigation_handle.h"
 
@@ -68,5 +68,5 @@ public:
 
 
 }
-#endif // KBE_NAVIGATEMESHHANDLE_HPP
+#endif // KBE_NAVIGATEMESHHANDLE_H
 

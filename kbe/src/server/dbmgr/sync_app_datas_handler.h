@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SYNC_APP_DATAS_HANDLER_HPP
-#define KBE_SYNC_APP_DATAS_HANDLER_HPP
+#ifndef KBE_SYNC_APP_DATAS_HANDLER_H
+#define KBE_SYNC_APP_DATAS_HANDLER_H
 
 // common include
 #include "helper/debug_helper.h"
@@ -59,4 +59,4 @@ private:
 
 }
 
-#endif // KBE_SYNC_APP_DATAS_HANDLER_HPP
+#endif // KBE_SYNC_APP_DATAS_HANDLER_H

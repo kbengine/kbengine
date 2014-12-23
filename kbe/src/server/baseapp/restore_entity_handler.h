@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_RESTORE_ENTITY_HANDLER_HPP
-#define KBE_RESTORE_ENTITY_HANDLER_HPP
+#ifndef KBE_RESTORE_ENTITY_HANDLER_H
+#define KBE_RESTORE_ENTITY_HANDLER_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -84,4 +84,4 @@ private:
 
 }
 
-#endif // KBE_RESTORE_ENTITY_HANDLER_HPP
+#endif // KBE_RESTORE_ENTITY_HANDLER_H

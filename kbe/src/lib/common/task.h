@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_TASK_HPP
-#define KBE_TASK_HPP
+#ifndef KBE_TASK_H
+#define KBE_TASK_H
 
 #include "common/common.h"
 
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif // KBE_TASK_HPP
+#endif // KBE_TASK_H

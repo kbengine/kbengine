@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBE_GLOBAL_DATA_CLIENT_HPP
-#define KBE_GLOBAL_DATA_CLIENT_HPP
+#ifndef KBE_GLOBAL_DATA_CLIENT_H
+#define KBE_GLOBAL_DATA_CLIENT_H
 
 #include "globaldata_server.h"
 #include "common/common.h"
@@ -54,4 +54,4 @@ private:
 
 }
 
-#endif // KBE_GLOBAL_DATA_CLIENT_HPP
+#endif // KBE_GLOBAL_DATA_CLIENT_H

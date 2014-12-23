@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_PROXY_FORWARDER_HPP
-#define KBE_PROXY_FORWARDER_HPP
+#ifndef KBE_PROXY_FORWARDER_H
+#define KBE_PROXY_FORWARDER_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
@@ -43,4 +43,4 @@ protected:
 
 }
 
-#endif // KBE_PROXY_FORWARDER_HPP
+#endif // KBE_PROXY_FORWARDER_H

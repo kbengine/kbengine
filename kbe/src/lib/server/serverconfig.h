@@ -22,8 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		ServerConfig::getSingleton().loadConfig("../../res/server/KBEngine.xml");
 		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();													
 */
-#ifndef KBE_SERVER_CONFIG_HPP
-#define KBE_SERVER_CONFIG_HPP
+#ifndef KBE_SERVER_CONFIG_H
+#define KBE_SERVER_CONFIG_H
 
 #define __LIB_DLLAPI__	
 // common include
@@ -317,4 +317,4 @@ public:
 #ifdef CODE_INLINE
 #include "serverconfig.inl"
 #endif
-#endif // KBE_SERVER_CONFIG_HPP
+#endif // KBE_SERVER_CONFIG_H

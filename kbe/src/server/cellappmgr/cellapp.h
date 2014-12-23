@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_CELLAPPMGR_CELLAPP_HPP
-#define KBE_CELLAPPMGR_CELLAPP_HPP
+#ifndef KBE_CELLAPPMGR_CELLAPP_H
+#define KBE_CELLAPPMGR_CELLAPP_H
 
 #include "spaces.h"
 #include "common/common.h"
@@ -57,4 +57,4 @@ protected:
 
 }
 
-#endif // KBE_CELLAPPMGR_CELLAPP_HPP
+#endif // KBE_CELLAPPMGR_CELLAPP_H

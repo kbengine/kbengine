@@ -8,8 +8,8 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef KBE_SOCKETPACKET_HPP
-#define KBE_SOCKETPACKET_HPP
+#ifndef KBE_SOCKETPACKET_H
+#define KBE_SOCKETPACKET_H
 	
 // common include
 #include "common/memorystream.h"
@@ -110,4 +110,4 @@ typedef SmartPointer<Packet> PacketPtr;
 }
 }
 
-#endif // KBE_SOCKETPACKET_HPP
+#endif // KBE_SOCKETPACKET_H

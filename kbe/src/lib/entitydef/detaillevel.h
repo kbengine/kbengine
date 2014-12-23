@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_DETAILLEVEL_HPP
-#define KBE_DETAILLEVEL_HPP
+#ifndef KBE_DETAILLEVEL_H
+#define KBE_DETAILLEVEL_H
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -63,5 +63,5 @@ struct DetailLevel
 }
 
 
-#endif // KBE_DETAILLEVEL_HPP
+#endif // KBE_DETAILLEVEL_H
 

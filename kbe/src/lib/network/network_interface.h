@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_NETWORK_INTERFACE_HPP
-#define KBE_NETWORK_INTERFACE_HPP
+#ifndef KBE_NETWORK_INTERFACE_H
+#define KBE_NETWORK_INTERFACE_H
 
 #include "common/memorystream.h"
 #include "network/common.h"
@@ -154,4 +154,4 @@ private:
 #ifdef CODE_INLINE
 #include "network_interface.inl"
 #endif
-#endif // KBE_NETWORK_INTERFACE_HPP
+#endif // KBE_NETWORK_INTERFACE_H

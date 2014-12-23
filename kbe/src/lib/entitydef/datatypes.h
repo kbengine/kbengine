@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_DATA_TYPES_HPP
-#define KBE_DATA_TYPES_HPP
+#ifndef KBE_DATA_TYPES_H
+#define KBE_DATA_TYPES_H
 
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -73,4 +73,4 @@ protected:
 };
 
 }
-#endif // KBE_DATA_TYPES_HPP
+#endif // KBE_DATA_TYPES_H

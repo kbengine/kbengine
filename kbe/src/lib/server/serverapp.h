@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_SERVER_APP_HPP
-#define KBE_SERVER_APP_HPP
+#ifndef KBE_SERVER_APP_H
+#define KBE_SERVER_APP_H
 
 // common include
 #include "common/common.h"
@@ -221,4 +221,4 @@ protected:
 
 }
 
-#endif // KBE_SERVER_APP_HPP
+#endif // KBE_SERVER_APP_H

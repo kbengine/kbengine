@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_WITNESS_HPP
-#define KBE_WITNESS_HPP
+#ifndef KBE_WITNESS_H
+#define KBE_WITNESS_H
 
 // common include
 #include "updatable.h"

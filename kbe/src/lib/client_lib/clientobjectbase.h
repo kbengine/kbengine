@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef CLIENT_OBJECT_BASE_HPP
-#define CLIENT_OBJECT_BASE_HPP
+#ifndef CLIENT_OBJECT_BASE_H
+#define CLIENT_OBJECT_BASE_H
 
 #include "event.h"
 #include "script_callbacks.h"

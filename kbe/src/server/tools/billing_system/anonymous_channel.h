@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ANONYMOUS_CHANNEL_HPP
-#define KBE_ANONYMOUS_CHANNEL_HPP
+#ifndef KBE_ANONYMOUS_CHANNEL_H
+#define KBE_ANONYMOUS_CHANNEL_H
 
 // common include	
 // #define NDEBUG
@@ -54,4 +54,4 @@ public:
 
 }
 
-#endif // KBE_ANONYMOUS_CHANNEL_HPP
+#endif // KBE_ANONYMOUS_CHANNEL_H

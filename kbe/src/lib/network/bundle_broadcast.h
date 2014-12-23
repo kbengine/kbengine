@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BUNDLE_BROADCAST_HPP
-#define KBE_BUNDLE_BROADCAST_HPP
+#ifndef KBE_BUNDLE_BROADCAST_H
+#define KBE_BUNDLE_BROADCAST_H
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -70,4 +70,4 @@ protected:
 #ifdef CODE_INLINE
 #include "bundle_broadcast.inl"
 #endif
-#endif // KBE_BUNDLE_BROADCAST_HPP
+#endif // KBE_BUNDLE_BROADCAST_H

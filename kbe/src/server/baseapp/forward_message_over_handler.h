@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_FORWARD_MESSAGE_HANDLER_HPP
-#define KBE_FORWARD_MESSAGE_HANDLER_HPP
+#ifndef KBE_FORWARD_MESSAGE_HANDLER_H
+#define KBE_FORWARD_MESSAGE_HANDLER_H
 
 // common include
 #include "helper/debug_helper.h"
@@ -38,4 +38,4 @@ namespace KBEngine{
 
 }
 
-#endif // KBE_FORWARD_MESSAGE_HANDLER_HPP
+#endif // KBE_FORWARD_MESSAGE_HANDLER_H

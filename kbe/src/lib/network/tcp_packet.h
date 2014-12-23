@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SOCKETTCPPACKET_HPP
-#define KBE_SOCKETTCPPACKET_HPP
+#ifndef KBE_SOCKETTCPPACKET_H
+#define KBE_SOCKETTCPPACKET_H
 	
 // common include
 #include "network/packet.h"
@@ -58,4 +58,4 @@ typedef SmartPointer<TCPPacket> TCPPacketPtr;
 }
 }
 
-#endif // KBE_SOCKETTCPPACKET_HPP
+#endif // KBE_SOCKETTCPPACKET_H

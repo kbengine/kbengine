@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef KBE_CELLAPPMGR_INTERFACE_HPP
+	#undef KBE_CELLAPPMGR_INTERFACE_H
 #endif
 
 
-#ifndef KBE_CELLAPPMGR_INTERFACE_HPP
-#define KBE_CELLAPPMGR_INTERFACE_HPP
+#ifndef KBE_CELLAPPMGR_INTERFACE_H
+#define KBE_CELLAPPMGR_INTERFACE_H
 
 // common include	
 #if defined(CELLAPPMGR)

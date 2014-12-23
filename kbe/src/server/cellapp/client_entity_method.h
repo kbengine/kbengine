@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBENGINE_CLIENT_ENTITY_METHOD_HPP
-#define KBENGINE_CLIENT_ENTITY_METHOD_HPP
+#ifndef KBENGINE_CLIENT_ENTITY_METHOD_H
+#define KBENGINE_CLIENT_ENTITY_METHOD_H
 
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -75,4 +75,4 @@ protected:
 
 }
 
-#endif // KBENGINE_CLIENT_ENTITY_METHOD_HPP
+#endif // KBENGINE_CLIENT_ENTITY_METHOD_H

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_FIXED_NETWORK_MESSAGES_HPP
-#define KBE_FIXED_NETWORK_MESSAGES_HPP
+#ifndef KBE_FIXED_NETWORK_MESSAGES_H
+#define KBE_FIXED_NETWORK_MESSAGES_H
 
 #include "common/common.h"
 #include "common/singleton.h"
@@ -57,4 +57,4 @@ private:
 
 }
 }
-#endif // KBE_FIXED_NETWORK_MESSAGES_HPP
+#endif // KBE_FIXED_NETWORK_MESSAGES_H

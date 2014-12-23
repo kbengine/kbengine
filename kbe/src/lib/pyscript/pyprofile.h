@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SCRIPT_PY_PROFILE_HPP
-#define KBE_SCRIPT_PY_PROFILE_HPP
+#ifndef KBE_SCRIPT_PY_PROFILE_H
+#define KBE_SCRIPT_PY_PROFILE_H
 
 #include "common/common.h"
 #include "common/smartpointer.h"
@@ -66,4 +66,4 @@ private:
 
 }
 }
-#endif // KBE_SCRIPT_PY_PROFILE_HPP
+#endif // KBE_SCRIPT_PY_PROFILE_H

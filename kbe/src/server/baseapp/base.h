@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef KBE_BASE_HPP
-#define KBE_BASE_HPP
+#ifndef KBE_BASE_H
+#define KBE_BASE_H
 	
 // common include	
 #include "profile.h"
@@ -335,4 +335,4 @@ protected:
 #include "base.inl"
 #endif
 
-#endif // KBE_BASE_HPP
+#endif // KBE_BASE_H

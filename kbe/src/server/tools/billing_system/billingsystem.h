@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BILLINGSYSTEM_HPP
-#define KBE_BILLINGSYSTEM_HPP
+#ifndef KBE_BILLINGSYSTEM_H
+#define KBE_BILLINGSYSTEM_H
 	
 // common include	
 #include "server/kbemain.h"
@@ -125,5 +125,5 @@ protected:
 
 }
 
-#endif // KBE_BILLINGSYSTEM_HPP
+#endif // KBE_BILLINGSYSTEM_H
 

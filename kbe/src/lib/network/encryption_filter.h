@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENCRYPTION_FILTER_HPP
-#define KBE_ENCRYPTION_FILTER_HPP
+#ifndef KBE_ENCRYPTION_FILTER_H
+#define KBE_ENCRYPTION_FILTER_H
 
 #include "network/packet_filter.h"
 
@@ -83,4 +83,4 @@ inline EncryptionFilter* createEncryptionFilter(int8 type, const std::string& da
 }
 }
 
-#endif // KBE_ENCRYPTION_FILTER_HPP
+#endif // KBE_ENCRYPTION_FILTER_H

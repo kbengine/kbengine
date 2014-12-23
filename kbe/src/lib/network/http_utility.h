@@ -17,8 +17,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBE_HTTP_UTILTY_HPP
-#define KBE_HTTP_UTILTY_HPP
+#ifndef KBE_HTTP_UTILTY_H
+#define KBE_HTTP_UTILTY_H
 
 #include "common/common.h"
 
@@ -91,6 +91,6 @@ namespace HttpUtility
 }
 
 
-#endif // KBE_HTTP_UTILTY_HPP
+#endif // KBE_HTTP_UTILTY_H
 
 

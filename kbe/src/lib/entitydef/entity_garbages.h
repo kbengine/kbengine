@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITYGARBAGES_HPP
-#define KBE_ENTITYGARBAGES_HPP
+#ifndef KBE_ENTITYGARBAGES_H
+#define KBE_ENTITYGARBAGES_H
 	
 // common include	
 #include "helper/debug_helper.h"
@@ -324,5 +324,5 @@ void EntityGarbages<T>::erase(ENTITY_ID id)
 }
 
 }
-#endif // KBE_ENTITYGARBAGES_HPP
+#endif // KBE_ENTITYGARBAGES_H
 

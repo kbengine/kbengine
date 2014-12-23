@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_DATA_TYPE_HPP
-#define KBE_DATA_TYPE_HPP
+#ifndef KBE_DATA_TYPE_H
+#define KBE_DATA_TYPE_H
 
 // common include
 #include "common/common.h"
@@ -740,5 +740,5 @@ template class IntType<int32>;
 #ifdef CODE_INLINE
 #include "datatype.inl"
 #endif
-#endif // KBE_DATA_TYPE_HPP
+#endif // KBE_DATA_TYPE_H
 

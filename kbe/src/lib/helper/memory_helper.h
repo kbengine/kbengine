@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_MEMORY_HELPER_HPP
-#define KBE_MEMORY_HELPER_HPP
+#ifndef KBE_MEMORY_HELPER_H
+#define KBE_MEMORY_HELPER_H
 
 #include "common/common.h"
 #include "common/kbemalloc.h"
@@ -56,4 +56,4 @@ namespace KBEngine{
 
 }
 
-#endif // KBE_MEMORY_HELPER_HPP
+#endif // KBE_MEMORY_HELPER_H

@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBENGINE_DEF_COMMON_HPP
-#define KBENGINE_DEF_COMMON_HPP
+#ifndef KBENGINE_DEF_COMMON_H
+#define KBENGINE_DEF_COMMON_H
 
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -135,5 +135,5 @@ enum ENTITY_BASE_PROPERTY_ALIASID
 };
 
 }
-#endif // KBENGINE_DEF_COMMON_HPP
+#endif // KBENGINE_DEF_COMMON_H
 

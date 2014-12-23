@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITY_TABLE_HPP
-#define KBE_ENTITY_TABLE_HPP
+#ifndef KBE_ENTITY_TABLE_H
+#define KBE_ENTITY_TABLE_H
 
 #include "common/common.h"
 #include "common/singleton.h"
@@ -320,4 +320,4 @@ protected:
 
 }
 
-#endif // KBE_ENTITY_TABLE_HPP
+#endif // KBE_ENTITY_TABLE_H

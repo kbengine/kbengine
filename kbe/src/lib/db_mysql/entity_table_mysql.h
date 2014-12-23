@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ENTITY_TABLE_MYSQL_HPP
-#define KBE_ENTITY_TABLE_MYSQL_HPP
+#ifndef KBE_ENTITY_TABLE_MYSQL_H
+#define KBE_ENTITY_TABLE_MYSQL_H
 #include "db_interface_mysql.h"
 #include "common.h"
 #include "common/common.h"
@@ -552,4 +552,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entity_table_mysql.inl"
 #endif
-#endif // KBE_ENTITY_TABLE_MYSQL_HPP
+#endif // KBE_ENTITY_TABLE_MYSQL_H

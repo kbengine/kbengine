@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_PYOBJECT_POINTER_HPP
-#define KBE_PYOBJECT_POINTER_HPP
+#ifndef KBE_PYOBJECT_POINTER_H
+#define KBE_PYOBJECT_POINTER_H
 
 namespace KBEngine { 
 
@@ -38,4 +38,4 @@ inline void decrementReferenceCount(const PyObject& obj)
 };
 
 }
-#endif // KBE_PYOBJECT_POINTER_HPP
+#endif // KBE_PYOBJECT_POINTER_H

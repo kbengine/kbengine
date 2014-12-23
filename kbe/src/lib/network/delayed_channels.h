@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DELAYED_CHANNELS_HPP
-#define DELAYED_CHANNELS_HPP
+#ifndef DELAYED_CHANNELS_H
+#define DELAYED_CHANNELS_H
 
 #include "common/tasks.h"
 #include "common/smartpointer.h"
@@ -54,4 +54,4 @@ private:
 
 }
 }
-#endif // DELAYED_CHANNELS_HPP
+#endif // DELAYED_CHANNELS_H
