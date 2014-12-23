@@ -136,7 +136,7 @@ public:
 	*/
 	void onUpdatePropertys(MemoryStream& s);
 
-	bool isEnterword()const{ return enterword_; }
+	bool inWorld()const{ return enterworld_; }
 
 	void onBecomePlayer();
 	void onBecomeNonPlayer();
@@ -156,7 +156,7 @@ protected:
 
 	float									velocity_;
 
-	bool									enterword_;							// 是否已经enterworld了， restore时有用
+	bool									enterworld_;						// 是否已经enterworld了， restore时有用
 	
 	bool									isOnGound_;
 };																										

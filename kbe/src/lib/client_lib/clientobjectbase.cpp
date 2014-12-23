@@ -107,6 +107,11 @@ void ClientObjectBase::finalise(void)
 
 	if(pEntities_)
 	{
+		client::Entity* entity = pPlayer();
+
+		if(entity && entity->inWorld())
+			entity->onBecomeNonPlayer();
+
 		pEntities_->finalise();
 		S_RELEASE(pEntities_);
 	}
@@ -812,7 +817,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 		DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}).\n",
 			entity->scriptName(), eid, (int)isOnGound));
 
-		KBE_ASSERT(!entity->isEnterword());
+		KBE_ASSERT(!entity->inWorld());
 		KBE_ASSERT(entity->cellMailbox() == NULL);
 
 		// ÉèÖÃentityµÄcellMailbox
@@ -874,6 +879,9 @@ void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID
 	EventData_LeaveWorld eventdata;
 	eventdata.spaceID = entity->spaceID();
 	eventdata.entityID = entity->id();
+
+	if(entityID_ == eid)
+		entity->onBecomeNonPlayer();
 
 	entity->onLeaveWorld();
 

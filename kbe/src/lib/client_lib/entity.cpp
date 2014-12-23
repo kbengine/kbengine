@@ -68,7 +68,7 @@ direction_(),
 pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f),
-enterword_(false),
+enterworld_(false),
 isOnGound_(true)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
@@ -78,7 +78,7 @@ isOnGound_(true)
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
-	enterword_ = false;
+	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(cellMailbox_);
 	S_RELEASE(baseMailbox_);
@@ -454,7 +454,7 @@ void Entity::onMoveSpeedChanged()
 void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	enterword_ = true;
+	enterworld_ = true;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
 }
 
@@ -462,7 +462,7 @@ void Entity::onEnterWorld()
 void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	enterword_ = false;
+	enterworld_ = false;
 	spaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
 }
@@ -532,11 +532,14 @@ void Entity::onBecomePlayer()
 //-------------------------------------------------------------------------------------
 void Entity::onBecomeNonPlayer()
 {
-	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
-	SCRIPT_ERROR_CHECK();
-
+	if(!enterworld_)
+		return;
+	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
+
+	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
