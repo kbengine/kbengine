@@ -246,6 +246,7 @@ __RECONNECT:
 		if (mysql_set_character_set(mysql(), "utf8") != 0)
 		{
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+			return false;
 		}
 
 		// 不需要关闭自动提交，底层会START TRANSACTION之后再COMMIT

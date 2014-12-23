@@ -169,6 +169,10 @@ public:
 
 	void clearBufferedLog(bool destroy = false);
 
+	void set_errorcolor();
+	void set_normalcolor();
+	void set_warningcolor();
+
 	void setScriptMsgType(int msgtype);
 	void resetScriptMsgType();
 

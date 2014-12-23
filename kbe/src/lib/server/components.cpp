@@ -921,9 +921,23 @@ bool Components::findInterfaces()
 			COMPONENT_TYPE findComponentType = (COMPONENT_TYPE)findComponentTypes_[findIdx_];
 			static int count = 0;
 
-			INFO_MSG(fmt::format("Components::findInterfaces: finding {}({})...\n",
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
-			
+			if(count <= 15)
+			{
+				INFO_MSG(fmt::format("Components::findInterfaces: finding {}({})...\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
+			}
+			else
+			{
+				std::string s = fmt::format("Components::findInterfaces: finding {}({})...\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
+				WARNING_MSG(s);
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+				DebugHelper::getSingleton().set_warningcolor();
+				printf("[WARNING]: %s", s.c_str());
+#endif
+			}
+
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
