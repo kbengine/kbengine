@@ -18,7 +18,7 @@
 #include "network/event_dispatcher.h"
 #include "network/network_interface.h"
 #include "helper/debug_helper.h"
-#include "xmlplus/xmlplus.h"
+#include "xml/xml.h"
 #include "common/smartpointer.h"
 
 // CguiconsoleApp:

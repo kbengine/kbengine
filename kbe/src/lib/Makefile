@@ -45,5 +45,5 @@ all install clean full:
 	cd network && $(MAKE) $@
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
-	cd xmlplus && $(MAKE) $@
+	cd xml && $(MAKE) $@
 

@@ -10,7 +10,7 @@
 #include "network/message_handler.h"
 #include "server/components.h"
 #include "helper/console_helper.h"
-#include "xmlplus/xmlplus.h"
+#include "xml/xml.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.h"

@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/profile.h"
 #include "helper/profiler.h"
 #include "helper/profile_handler.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "server/common.h"
 #include "server/components.h"
 #include "server/serverconfig.h"

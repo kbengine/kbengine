@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/memorystream.h"
 #include "pyscript/scriptobject.h"
 #include "pyscript/pickler.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -85,7 +85,7 @@ public:
 		return pyobj;
 	}
 		
-	virtual bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
+	virtual bool initialize(XML* xml, TiXmlNode* node);
 
 	virtual PyObject* parseDefaultStr(std::string defaultVal) = 0;
 
@@ -624,7 +624,7 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
+	bool initialize(XML* xml, TiXmlNode* node);
 
 	const char* getName(void)const{ return "ARRAY";}
 
@@ -675,7 +675,7 @@ public:
 	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
-	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
+	bool initialize(XML* xml, TiXmlNode* node);
 	
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj

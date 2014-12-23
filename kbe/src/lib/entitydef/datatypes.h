@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 // common include	
 #include "datatype.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "common/smartpointer.h"
 //#define NDEBUG
 // windows include	

@@ -58,7 +58,7 @@ bool Config::loadConfig(std::string fileName)
 {
 	fileName_ = fileName;
 	TiXmlNode* rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
+	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName_).c_str());
 
 	if(!xml->isGood())
 	{
@@ -310,7 +310,7 @@ void Config::writeAccountName(const char* name)
 		return;
 
 	TiXmlNode* rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
+	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName_).c_str());
 
 	if(!xml->isGood())
 	{

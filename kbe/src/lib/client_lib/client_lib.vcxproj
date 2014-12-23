@@ -148,7 +148,7 @@
       <Project>{863b8043-533c-499d-b48e-f5ec91a6cb9b}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\xmlplus\xmlplus.vcxproj">
+    <ProjectReference Include="..\xml\xml.vcxproj">
       <Project>{2992abdb-0853-4c43-b9e2-98d4211192ee}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

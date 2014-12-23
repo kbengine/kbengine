@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/script.h"
 #include "network/endpoint.h"
 #include "helper/debug_helper.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "common/singleton.h"
 #include "common/smartpointer.h"
 #include "common/timer.h"

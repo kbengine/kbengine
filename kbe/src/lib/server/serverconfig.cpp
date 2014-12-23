@@ -65,7 +65,7 @@ ServerConfig::~ServerConfig()
 bool ServerConfig::loadConfig(std::string fileName)
 {
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
+	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName).c_str());
 
 	if(!xml->isGood())
 	{
@@ -1069,7 +1069,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	if(email_service_config.size() > 0)
 	{
-		xml = new XmlPlus(Resmgr::getSingleton().matchRes(email_service_config).c_str());
+		xml = new XML(Resmgr::getSingleton().matchRes(email_service_config).c_str());
 
 		if(!xml->isGood())
 		{

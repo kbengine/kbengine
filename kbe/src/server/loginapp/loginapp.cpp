@@ -1123,7 +1123,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
+		XML* xml = new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
 
 		if(!xml->isGood())
 		{

@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/common.h"
 #include "common/singleton.h"
 #include "common/timer.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "common/smartpointer.h"
 	
 namespace KBEngine{

@@ -66,7 +66,7 @@ bool DataType::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-bool DataType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
+bool DataType::initialize(XML* xml, TiXmlNode* node)
 {
 	return true;
 }
@@ -1351,23 +1351,23 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 }
 
 //-------------------------------------------------------------------------------------
-bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
+bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 {
 	dataType_ = NULL;
-	TiXmlNode* arrayNode = xmlplus->enterNode(node, "of");
+	TiXmlNode* arrayNode = xml->enterNode(node, "of");
 	if(arrayNode == NULL)
 	{
 		ERROR_MSG("FixedArrayType::initialize: not found \"of\".\n");
 		return false;
 	}
 
-	std::string strType = xmlplus->getValStr(arrayNode);
+	std::string strType = xml->getValStr(arrayNode);
 	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 	if(strType == "ARRAY")
 	{
 		FixedArrayType* dataType = new FixedArrayType();
-		if(dataType->initialize(xmlplus, arrayNode)){
+		if(dataType->initialize(xml, arrayNode)){
 			dataType_ = dataType;
 			dataType_->incRef();
 
@@ -1639,9 +1639,9 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 }
 
 //-------------------------------------------------------------------------------------
-bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
+bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 {
-	TiXmlNode* propertiesNode = xmlplus->enterNode(node, "Properties");
+	TiXmlNode* propertiesNode = xml->enterNode(node, "Properties");
 	if(propertiesNode == NULL)
 	{
 		ERROR_MSG("FixedDictType::initialize: not found \"Properties\".\n");
@@ -1652,15 +1652,15 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 	XML_FOR_BEGIN(propertiesNode)
 	{
-		typeName = xmlplus->getKey(propertiesNode);
+		typeName = xml->getKey(propertiesNode);
 
-		TiXmlNode* typeNode = xmlplus->enterNode(propertiesNode->FirstChild(), "Type");
-		TiXmlNode* PersistentNode = xmlplus->enterNode(propertiesNode->FirstChild(), "Persistent");
+		TiXmlNode* typeNode = xml->enterNode(propertiesNode->FirstChild(), "Type");
+		TiXmlNode* PersistentNode = xml->enterNode(propertiesNode->FirstChild(), "Persistent");
 		
 		bool persistent = true;
 		if(PersistentNode)
 		{
-			std::string strval = xmlplus->getValStr(PersistentNode);
+			std::string strval = xml->getValStr(PersistentNode);
 			if(strval == "false")
 			{
 				persistent = false;
@@ -1669,7 +1669,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 		if(typeNode)
 		{
-			strType = xmlplus->getValStr(typeNode);
+			strType = xml->getValStr(typeNode);
 			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 			if(strType == "ARRAY")
@@ -1678,7 +1678,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				DictItemDataTypePtr pDictItemDataType(new DictItemDataType());
 				pDictItemDataType->dataType = dataType;
 
-				if(dataType->initialize(xmlplus, typeNode))
+				if(dataType->initialize(xml, typeNode))
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
@@ -1741,10 +1741,10 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	}
 	XML_FOR_END(propertiesNode);
 
-	TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
+	TiXmlNode* implementedByNode = xml->enterNode(node, "implementedBy");
 	if(implementedByNode)
 	{
-		strType = xmlplus->getValStr(implementedByNode);
+		strType = xml->getValStr(implementedByNode);
 
 		if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
 				g_componentType == CLIENT_TYPE)

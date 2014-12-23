@@ -33,7 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "property.h"
 #include "math/math.h"
 #include "pyscript/scriptobject.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "common/smartpointer.h"
 //#define NDEBUG
 // windows include	
@@ -73,57 +73,57 @@ public:
 		std::vector<PyTypeObject*>& scriptBaseTypes);
 
 	static bool loadAllDefDescriptions(const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDefPropertys(const std::string& moduleName, 
-		XmlPlus* xml, 
+		XML* xml, 
 		TiXmlNode* defPropertyNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDefCellMethods(const std::string& moduleName, 
-		XmlPlus* xml, 
+		XML* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDefBaseMethods(const std::string& moduleName, 
-		XmlPlus* xml, 
+		XML* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDefClientMethods(const std::string& moduleName, 
-		XmlPlus* xml, 
+		XML* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadInterfaces(const std::string& defFilePath, 
 		const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadParentClass(const std::string& defFilePath, 
 		const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDefInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadDetailLevelInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
 	static bool loadVolatileInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
-		XmlPlus* defxml, 
+		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 

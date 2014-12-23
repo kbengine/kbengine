@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="xmlplus.cpp">
+    <ClCompile Include="xml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\tinyxml\tinystr.cpp">
@@ -41,7 +41,7 @@
     <ClInclude Include="..\dependencies\tinyxml\tinyxml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="xmlplus.h">
+    <ClInclude Include="xml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

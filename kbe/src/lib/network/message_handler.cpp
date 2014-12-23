@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_receiver.h"
 #include "network/fixed_messages.h"
 #include "helper/watcher.h"
-#include "xmlplus/xmlplus.h"
+#include "xml/xml.h"
 #include "resmgr/resmgr.h"	
 
 namespace KBEngine { 
@@ -213,7 +213,7 @@ std::string MessageHandlers::getDigestStr()
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
 		TiXmlNode *rootNode = NULL;
-		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
+		XML* xml = new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str());
 
 		if(!xml->isGood())
 		{

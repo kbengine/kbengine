@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>xmlplus</ProjectName>
+    <ProjectName>xml</ProjectName>
     <ProjectGuid>{2992ABDB-0853-4C43-B9E2-98D4211192EE}</ProjectGuid>
-    <RootNamespace>xmlplus</RootNamespace>
+    <RootNamespace>xml</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -91,7 +91,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="xmlplus.cpp" />
+    <ClCompile Include="xml.cpp" />
     <ClCompile Include="..\dependencies\tinyxml\tinystr.cpp" />
     <ClCompile Include="..\dependencies\tinyxml\tinyxml.cpp" />
     <ClCompile Include="..\dependencies\tinyxml\tinyxmlerror.cpp" />
@@ -100,7 +100,7 @@
   <ItemGroup>
     <ClInclude Include="..\dependencies\tinyxml\tinystr.h" />
     <ClInclude Include="..\dependencies\tinyxml\tinyxml.h" />
-    <ClInclude Include="xmlplus.h" />
+    <ClInclude Include="xml.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

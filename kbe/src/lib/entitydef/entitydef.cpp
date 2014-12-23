@@ -165,7 +165,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		return false;
 
 	// 打开这个entities.xml文件
-	SmartPointer<XmlPlus> xml(new XmlPlus());
+	SmartPointer<XML> xml(new XML());
 	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
 		return false;
 	
@@ -183,7 +183,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		EntityDef::__scriptModules.push_back(scriptModule);
 
 		std::string deffile = defFilePath + moduleName + ".def";
-		SmartPointer<XmlPlus> defxml(new XmlPlus());
+		SmartPointer<XML> defxml(new XML());
 
 		if(!defxml.get()->openSection(deffile.c_str()))
 			return false;
@@ -223,7 +223,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefInfo(const std::string& defFilePath, 
 							const std::string& moduleName, 
-							XmlPlus* defxml, 
+							XML* defxml, 
 							TiXmlNode* defNode, 
 							ScriptDefModule* scriptModule)
 {
@@ -278,7 +278,7 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath, 
 									const std::string& moduleName, 
-									XmlPlus* defxml, 
+									XML* defxml, 
 									TiXmlNode* defNode, 
 									ScriptDefModule* scriptModule)
 {
@@ -345,7 +345,7 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadVolatileInfo(const std::string& defFilePath, 
 									const std::string& moduleName, 
-									XmlPlus* defxml, 
+									XML* defxml, 
 									TiXmlNode* defNode, 
 									ScriptDefModule* scriptModule)
 {
@@ -413,7 +413,7 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadInterfaces(const std::string& defFilePath, 
 							   const std::string& moduleName, 
-							   XmlPlus* defxml, 
+							   XML* defxml, 
 							   TiXmlNode* defNode, 
 							   ScriptDefModule* scriptModule)
 {
@@ -426,7 +426,7 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		TiXmlNode* interfaceNode = defxml->enterNode(implementsNode, "Interface");
 		std::string interfaceName = defxml->getKey(interfaceNode);
 		std::string interfacefile = defFilePath + "interfaces/" + interfaceName + ".def";
-		SmartPointer<XmlPlus> interfaceXml(new XmlPlus());
+		SmartPointer<XML> interfaceXml(new XML());
 		if(!interfaceXml.get()->openSection(interfacefile.c_str()))
 			return false;
 
@@ -466,7 +466,7 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadParentClass(const std::string& defFilePath, 
 								const std::string& moduleName, 
-								XmlPlus* defxml, 
+								XML* defxml, 
 								TiXmlNode* defNode, 
 								ScriptDefModule* scriptModule)
 {
@@ -477,7 +477,7 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 	std::string parentClassName = defxml->getKey(parentClassNode);
 	std::string parentClassfile = defFilePath + parentClassName + ".def";
 	
-	SmartPointer<XmlPlus> parentClassXml(new XmlPlus());
+	SmartPointer<XML> parentClassXml(new XML());
 	if(!parentClassXml.get()->openSection(parentClassfile.c_str()))
 		return false;
 	
@@ -497,7 +497,7 @@ bool EntityDef::loadParentClass(const std::string& defFilePath,
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadAllDefDescriptions(const std::string& moduleName, 
-									  XmlPlus* defxml, 
+									  XML* defxml, 
 									  TiXmlNode* defNode, 
 									  ScriptDefModule* scriptModule)
 {
@@ -537,7 +537,7 @@ bool EntityDef::loadAllDefDescriptions(const std::string& moduleName,
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefPropertys(const std::string& moduleName, 
-								 XmlPlus* xml, 
+								 XML* xml, 
 								 TiXmlNode* defPropertyNode, 
 								 ScriptDefModule* scriptModule)
 {
@@ -742,7 +742,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefCellMethods(const std::string& moduleName, 
-								   XmlPlus* xml, 
+								   XML* xml, 
 								   TiXmlNode* defMethodNode, 
 								   ScriptDefModule* scriptModule)
 {
@@ -834,7 +834,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml, 
+bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml, 
 								   TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
 {
 	if(defMethodNode)
@@ -925,7 +925,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml, 
+bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml, 
 									 TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
 {
 	if(defMethodNode)
@@ -1127,7 +1127,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 {
 	std::string entitiesFile = entitiesPath + "entities.xml";
 
-	SmartPointer<XmlPlus> xml(new XmlPlus());
+	SmartPointer<XML> xml(new XML());
 	if(!xml.get()->openSection(entitiesFile.c_str()))
 		return false;
 

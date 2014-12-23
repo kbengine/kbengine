@@ -338,7 +338,7 @@ void ScriptDefModule::autoMatchCompOwn()
 	std::string entitiesFile = Resmgr::getSingleton().getPyUserScriptsPath() + "entities.xml";
 
 	// 打开这个entities.xml文件
-	SmartPointer<XmlPlus> xml(new XmlPlus());
+	SmartPointer<XML> xml(new XML());
 	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
 		return;
 	

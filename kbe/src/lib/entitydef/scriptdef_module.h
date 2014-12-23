@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "volatileinfo.h"
 #include "math/math.h"
 #include "pyscript/scriptobject.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 #include "common/refcountable.h"
 //#define NDEBUG
 // windows include	

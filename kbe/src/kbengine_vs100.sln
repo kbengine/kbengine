@@ -15,7 +15,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math", "lib\math\math.vcxpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyscript", "lib\pyscript\pyscript.vcxproj", "{7A411D5D-DA3B-474D-B08B-3DD787A1F375}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlplus", "lib\xmlplus\xmlplus.vcxproj", "{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xml", "lib\xml\xml.vcxproj", "{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server", "lib\server\server.vcxproj", "{56D453A7-787B-49E3-84BC-465EED38DE8A}"
 EndProject

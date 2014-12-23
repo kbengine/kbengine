@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/singleton.h"
 #include "thread/threadmutex.h"
 #include "thread/threadguard.h"
-#include "xmlplus/xmlplus.h"	
+#include "xml/xml.h"	
 	
 namespace KBEngine{
 
