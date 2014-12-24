@@ -935,6 +935,7 @@ bool Components::findInterfaces()
 #if KBE_PLATFORM == PLATFORM_WIN32
 				DebugHelper::getSingleton().set_warningcolor();
 				printf("[WARNING]: %s", s.c_str());
+				DebugHelper::getSingleton().set_normalcolor();
 #endif
 			}
 
