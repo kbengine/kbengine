@@ -64,7 +64,7 @@
 
 		<reqRemoveAvatar>
 			<Exposed/>
-			<Arg>	UNICODE	</Arg>	<!-- name -->
+			<Arg>	UNICODE	</Arg>	<!-- name --> 
 		</reqRemoveAvatar>
 	</BaseMethods>
 

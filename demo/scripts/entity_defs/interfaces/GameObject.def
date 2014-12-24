@@ -55,7 +55,7 @@
 	<CellMethods>
 	</CellMethods>
 	
-	<DetailLevels><!-- entityÏêÇé¼¶±ð, ¾ö¶¨Ä³Ð©ÊôÐÔ¹ã²¥¸ø¿Í»§¶ËµÄÓÅÏÈ¼¶ -->
+	<DetailLevels><!-- entityè¯¦æƒ…çº§åˆ«, å†³å®šæŸäº›å±žæ€§å¹¿æ’­ç»™å®¢æˆ·ç«¯çš„ä¼˜å…ˆçº§ -->
 		<NEAR>
 			<hyst>5</hyst>
 			<radius>25</radius>
@@ -70,3 +70,4 @@
 		</FAR>
 	</DetailLevels>
 </root>
+

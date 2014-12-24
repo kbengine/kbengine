@@ -1,5 +1,4 @@
 <root>
-
 	<Properties>
 		<state>
 			<Type>			ENTITY_STATE				</Type>
@@ -37,3 +36,4 @@
 	<ClientMethods>
 	</ClientMethods>
 </root>
+

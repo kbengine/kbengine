@@ -4,7 +4,7 @@
 
 	<Properties>
 		<moveSpeed>
-			<Type>			UINT8			</Type> <!-- Ê¹ÓÃÊ±ÒªËõ·Å10±¶, ×î¸ß25.5Ã×Ã¿Ãë -->
+			<Type>			UINT8			</Type> <!-- ä½¿ç”¨æ—¶è¦ç¼©æ”¾10å€, æœ€é«˜25.5ç±³æ¯ç§’ -->
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		50			</Default>
 		</moveSpeed>
@@ -28,3 +28,4 @@
 	<ClientMethods>
 	</ClientMethods>
 </root>
+
