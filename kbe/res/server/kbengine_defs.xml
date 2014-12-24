@@ -1,37 +1,37 @@
 <root>
-	<!-- ÓÎÏ·Âß¼­´¦ÀíÆµÂÊ 
+	<!-- æ¸¸æˆé€»è¾‘å¤„ç†é¢‘çŽ‡ 
 		(Update frequency process)
 	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
-	<!-- Ã¿Ãë·¢ËÍµ½¿Í»§¶ËµÄ´ø¿íÏÞÖÆ(bit) 
+	<!-- æ¯ç§’å‘é€åˆ°å®¢æˆ·ç«¯çš„å¸¦å®½é™åˆ¶(bit) 
 		(The data sent to the client, the second bandwidth limit (bit))
 	-->
 	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient>				<!-- Type: Integer -->
 	
-	<!-- ·Ç0Ôò²»ÓÅ»¯£¬ ²»´ø°ü³¤ÐÅÏ¢µÄ°üÇ¿ÖÆ¶¼Ð¯´ø³¤¶ÈÐÅÏ¢£¬ Ä³Ð©Çé¿öÏÂ·½±ãÄ³Ð©Ç°¶Ë¶Ô½ÓÐ­Òé
-	Ê²Ã´ÑùµÄ°ü²»´ø³¤¶ÈÐÅÏ¢? ËùÓÐÄÜ¹»Ô¤ÏÈ¼ÆËã³ö°ü´óÐ¡µÄÇÒÓÀÔ¶²»±äµÄ°ü²»´ø³¤¶ÈÐÅÏ¢£¬ 
-	Èç¹ûÓÐ¿É±ä×Ö·û´®²ÎÊýÔòÒ»¶¨ÐèÒª´ø³¤¶ÈÐÅÏ¢
+	<!-- éž0åˆ™ä¸ä¼˜åŒ–ï¼Œ ä¸å¸¦åŒ…é•¿ä¿¡æ¯çš„åŒ…å¼ºåˆ¶éƒ½æºå¸¦é•¿åº¦ä¿¡æ¯ï¼Œ æŸäº›æƒ…å†µä¸‹æ–¹ä¾¿æŸäº›å‰ç«¯å¯¹æŽ¥åè®®
+	ä»€ä¹ˆæ ·çš„åŒ…ä¸å¸¦é•¿åº¦ä¿¡æ¯? æ‰€æœ‰èƒ½å¤Ÿé¢„å…ˆè®¡ç®—å‡ºåŒ…å¤§å°çš„ä¸”æ°¸è¿œä¸å˜çš„åŒ…ä¸å¸¦é•¿åº¦ä¿¡æ¯ï¼Œ 
+	å¦‚æžœæœ‰å¯å˜å­—ç¬¦ä¸²å‚æ•°åˆ™ä¸€å®šéœ€è¦å¸¦é•¿åº¦ä¿¡æ¯
 	(Non-0 is not optimized, Force all packets contain length information, Some convenient docking protocol client.
 	What of data packet length information does not? All packages can be calculated in advance 
 	and never change the size of the package with no length information.) 
 	-->
 	<packetAlwaysContainLength>0</packetAlwaysContainLength>
 	
-	<!-- ÊÇ·ñÐèÒª½«ÈÎºÎ½ÓÊÕºÍ·¢ËÍµÄ°üÒÔÎÄ±¾Êä³öµ½logÖÐÌá¹©µ÷ÊÔ
+	<!-- æ˜¯å¦éœ€è¦å°†ä»»ä½•æŽ¥æ”¶å’Œå‘é€çš„åŒ…ä»¥æ–‡æœ¬è¾“å‡ºåˆ°logä¸­æä¾›è°ƒè¯•
 		(Whether the contents of the log output packet)
 		
 		debug_type:
-			0: ²»Êä³ö(Not output)
-			1: 16½øÖÆÊä³ö(16 hexadecimal output)
-			2: ×Ö·ûÁ÷Êä³ö(Stringstream output)
-			3: 10½øÖÆÊä³ö(10 hexadecimal output)
+			0: ä¸è¾“å‡º(Not output)
+			1: 16è¿›åˆ¶è¾“å‡º(16 hexadecimal output)
+			2: å­—ç¬¦æµè¾“å‡º(Stringstream output)
+			3: 10è¿›åˆ¶è¾“å‡º(10 hexadecimal output)
 		use_logfile:
-			ÊÇ·ñ¶ÀÁ¢Ò»¸ölogÎÄ¼þÀ´¼ÇÂ¼°üÄÚÈÝ£¬ÎÄ¼þÃûÍ¨³£Îª
+			æ˜¯å¦ç‹¬ç«‹ä¸€ä¸ªlogæ–‡ä»¶æ¥è®°å½•åŒ…å†…å®¹ï¼Œæ–‡ä»¶åé€šå¸¸ä¸º
 			(Whether the use of other log files ? such as:)
 			appname_packetlogs.log
 		disable_msgs:
-			¹Ø±ÕÄ³Ð©°üµÄÊä³ö
+			å…³é—­æŸäº›åŒ…çš„è¾“å‡º
 			(Some messages are not output)
 	-->
 	<trace_packet>
@@ -71,30 +71,30 @@
 		</disables>
 	</trace_packet>
 	
-	<!-- ÊÇ·ñÊä³öentityµÄ´´½¨£¬ ½Å±¾»ñÈ¡ÊôÐÔ£¬ ³õÊ¼»¯ÊôÐÔµÈµ÷ÊÔÐÅÏ¢£¬ ÒÔ¼°defÐÅÏ¢ 
+	<!-- æ˜¯å¦è¾“å‡ºentityçš„åˆ›å»ºï¼Œ è„šæœ¬èŽ·å–å±žæ€§ï¼Œ åˆå§‹åŒ–å±žæ€§ç­‰è°ƒè¯•ä¿¡æ¯ï¼Œ ä»¥åŠdefä¿¡æ¯ 
 		(Whether the output the logs: create the entity, Script get attributes, 
 			Initialization attributes information, Def information.)
 	-->
 	<debugEntity>0</debugEntity>
 
 	<publish>
-		<!-- ·¢²¼×´Ì¬, ¿ÉÔÚ½Å±¾ÖÐ»ñÈ¡¸ÃÖµ¡£ KBEngine.publish()
+		<!-- å‘å¸ƒçŠ¶æ€, å¯åœ¨è„šæœ¬ä¸­èŽ·å–è¯¥å€¼ã€‚ KBEngine.publish()
 			(apps released state, This value can be obtained in the script. KBEngine.publish())
 			Type: Integer8
 			0 : debug
 			1 : release
-			ÆäËû×Ô¶¨Òå(Other custom)
+			å…¶ä»–è‡ªå®šä¹‰(Other custom)
 		-->
 		<state>0</state>
 
-		<!-- ½Å±¾²ã·¢²¼µÄ°æ±¾ºÅ
+		<!-- è„šæœ¬å±‚å‘å¸ƒçš„ç‰ˆæœ¬å·
 			(Script layer released version number)
 		 -->
 		<script_version> 0.1.0 </script_version>
 	</publish>
 	
 	<channelCommon> 
-		<!-- ×îºóÒ»´ÎÍ¨ÐÅÊ±¼ä³¬¹ý´ËÊ±¼äÔò±»ÈÏ¶¨Îª³¬Ê±Í¨µÀ£¬ ·þÎñÆ÷½«Ìß³ö¸ÃÍ¨µÀ 
+		<!-- æœ€åŽä¸€æ¬¡é€šä¿¡æ—¶é—´è¶…è¿‡æ­¤æ—¶é—´åˆ™è¢«è®¤å®šä¸ºè¶…æ—¶é€šé“ï¼Œ æœåŠ¡å™¨å°†è¸¢å‡ºè¯¥é€šé“ 
 			(If long (configurable value) no communication, channel will be kicked out of the server.)
 		-->
 		<timeout> 
@@ -102,33 +102,33 @@
 			<external> 60.0 </external>
 		</timeout>
 
-		<!-- ·¢ËÍÊý¾ÝÖØÊÔµÄ×î´óÊ±¼äºÍ×î´ó´ÎÊý 
+		<!-- å‘é€æ•°æ®é‡è¯•çš„æœ€å¤§æ—¶é—´å’Œæœ€å¤§æ¬¡æ•° 
 			(Send retry max-time and max-count)
 		-->
 		<resend> 
 			<internal> 
-				<interval> 10 </interval>					<!-- ºÁÃë(Millisecond) -->
-				<retries> 0 </retries>						<!-- ÖØÊÔ´ÎÊý(Retry count), 0ÎÞÏÞ(0 is unlimited) -->
+				<interval> 10 </interval>					<!-- æ¯«ç§’(Millisecond) -->
+				<retries> 0 </retries>						<!-- é‡è¯•æ¬¡æ•°(Retry count), 0æ— é™(0 is unlimited) -->
 			</internal>
 			<external>
-				<interval> 10 </interval>					<!-- ºÁÃë -->
-				<retries> 10 </retries>						<!-- ÖØÊÔ´ÎÊý, 0ÎÞÏÞ(0 is unlimited) -->
+				<interval> 10 </interval>					<!-- æ¯«ç§’ -->
+				<retries> 10 </retries>						<!-- é‡è¯•æ¬¡æ•°, 0æ— é™(0 is unlimited) -->
 			</external>
 		</resend>
 		
-		<!-- socket¶ÁÐ´»º³å´óÐ¡ 
+		<!-- socketè¯»å†™ç¼“å†²å¤§å° 
 			(socket send/recv buffer size)
 		-->
 		<readBufferSize> 
 			<internal>	16777216	</internal> 			<!-- 16M -->
-			<external>	0			</external>				<!-- ÏµÍ³Ä¬ÈÏ(system default) -->
+			<external>	0			</external>				<!-- ç³»ç»Ÿé»˜è®¤(system default) -->
 		</readBufferSize>
 		<writeBufferSize> 
 			<internal>	16777216	</internal>				<!-- 16M -->
-			<external>	0			</external>				<!-- ÏµÍ³Ä¬ÈÏ(system default) -->
+			<external>	0			</external>				<!-- ç³»ç»Ÿé»˜è®¤(system default) -->
 		</writeBufferSize>
 		
-		<!-- Ò»¸ötickÄÚ½ÓÊÕ´°¿ÚÒç³öÖµ 0ÎÞÏÞÖÆ
+		<!-- ä¸€ä¸ªtickå†…æŽ¥æ”¶çª—å£æº¢å‡ºå€¼ 0æ— é™åˆ¶
 			(A tick, the value of the receive window overflow, 0 is unlimited)
 		-->
 		<receiveWindowOverflow>
@@ -143,36 +143,36 @@
 			</bytes>
 		</receiveWindowOverflow>
 		
-		<!-- ¼ÓÃÜÍ¨ÐÅ£¬Ö»¶ÔÍâ²¿Í¨µÀ
+		<!-- åŠ å¯†é€šä¿¡ï¼Œåªå¯¹å¤–éƒ¨é€šé“
 			(Encrypted communication, channel-external only)
 			
-			¿ÉÑ¡ÔñµÄ¼ÓÃÜ·½Ê½(Optional encryption):
-				0: ÎÞ¼ÓÃÜ(No Encryption)
+			å¯é€‰æ‹©çš„åŠ å¯†æ–¹å¼(Optional encryption):
+				0: æ— åŠ å¯†(No Encryption)
 				1: Blowfish
 				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_type> 1 </encrypt_type>
 	</channelCommon> 
 	
-	<!-- ¹Ø·þµ¹¼ÆÊ±(Ãë) 
+	<!-- å…³æœå€’è®¡æ—¶(ç§’) 
 		(Countdown to shutdown the server(seconds))
 	-->
 	<shutdown_time> 10.0 </shutdown_time>
 	
-	<!-- ¹Ø±Õ·þÎñÆ÷µÄÊ±ºò£¬ Èç¹ûÓÐÎ´Íê³ÉµÄÈÎÎñ£¬ ·þÎñÆ÷ÐèÒªµÈ´ýÈÎÎñ½áÊø¡£
-		Ã¿Tick£¨Ãë£©¼ì²éÒ»´Î
+	<!-- å…³é—­æœåŠ¡å™¨çš„æ—¶å€™ï¼Œ å¦‚æžœæœ‰æœªå®Œæˆçš„ä»»åŠ¡ï¼Œ æœåŠ¡å™¨éœ€è¦ç­‰å¾…ä»»åŠ¡ç»“æŸã€‚
+		æ¯Tickï¼ˆç§’ï¼‰æ£€æŸ¥ä¸€æ¬¡
 	(Shutdown the server, if you have not completed the task, the server needs to wait for the end of the mission.
 		Time(seconds) for each waiting.)
 	-->
 	<shutdown_waittick> 1.0 </shutdown_waittick>
 	
-	<!-- callbackÄ¬ÈÏ³¬Ê±Ê±¼ä(Ãë) 
+	<!-- callbacké»˜è®¤è¶…æ—¶æ—¶é—´(ç§’) 
 		(The callback: default timeout(seconds))
 	-->
 	<callback_timeout> 300.0 </callback_timeout>
 	
 	<thread_pool>
-		<!-- Ä¬ÈÏ³¬Ê±Ê±¼ä(Ãë) 
+		<!-- é»˜è®¤è¶…æ—¶æ—¶é—´(ç§’) 
 			(default timeout(seconds))
 		-->
 		<timeout> 300.0 </timeout>
@@ -182,113 +182,113 @@
 		<max_create> 8 </max_create>
 	</thread_pool>
 	
-	<!-- Email·þÎñ, Ìá¹©ÕËºÅÑéÖ¤£¬ ÃÜÂëÕÒ»ØµÈµÈ¡£
+	<!-- EmailæœåŠ¡, æä¾›è´¦å·éªŒè¯ï¼Œ å¯†ç æ‰¾å›žç­‰ç­‰ã€‚
 		(Email services, providing the account verification, password recovery, etc.)
 	-->
 	<email_service_config>server/email_service.xml</email_service_config>
 		
 	<billingSystem>
 		<!-- 
-			ÕËºÅµÄÀàÐÍ(Account Type):
-			normal: Ä¬ÈÏµ±Ç°½ø³Ì´¦Àí(default handling the current process), 
-			thirdparty: ÓÉµÚÈý·½·þÎñÉÌ´¦Àí(handled by third-party service providers) 
+			è´¦å·çš„ç±»åž‹(Account Type):
+			normal: é»˜è®¤å½“å‰è¿›ç¨‹å¤„ç†(default handling the current process), 
+			thirdparty: ç”±ç¬¬ä¸‰æ–¹æœåŠ¡å•†å¤„ç†(handled by third-party service providers) 
 		-->
 		<accountType> normal </accountType>
 		
 		<!-- 
-			¼Æ·ÑµÄÀàÐÍ(Charge Type):
-			normal: Ä¬ÈÏµ±Ç°½ø³Ì´¦Àí(default handling the current process), 
-			thirdparty: ÓÉµÚÈý·½·þÎñÉÌ´¦Àí(handled by third-party service providers) 
+			è®¡è´¹çš„ç±»åž‹(Charge Type):
+			normal: é»˜è®¤å½“å‰è¿›ç¨‹å¤„ç†(default handling the current process), 
+			thirdparty: ç”±ç¬¬ä¸‰æ–¹æœåŠ¡å•†å¤„ç†(handled by third-party service providers) 
 		-->
 		<chargeType> normal </chargeType>
 		
-		<!-- billingSystemµÄµØÖ·£¬¶à×éÓÎÏ··þÎñ¶Ë¿ÉÒÔ¹²ÓÃÒ»¸öbillingSystem
+		<!-- billingSystemçš„åœ°å€ï¼Œå¤šç»„æ¸¸æˆæœåŠ¡ç«¯å¯ä»¥å…±ç”¨ä¸€ä¸ªbillingSystem
 			(billingSystem address, multiple gameserver can share a billingSystem)
 		-->
 		<host> localhost </host>
 		<port> 30099 	</port>
 		
-		<!-- ¶©µ¥³¬Ê±(Ãë) 
+		<!-- è®¢å•è¶…æ—¶(ç§’) 
 			(Orders timeout(seconds))
 		-->
 		<orders_timeout> 3600 	</orders_timeout>
 		
-		<!-- µÚÈý·½ÕËºÅ·þÎñ½Ó¿Ú,Èç: www.google.com, µ±accountTypeÊÇthirdpartyÊ±ÓÐÐ§ 
+		<!-- ç¬¬ä¸‰æ–¹è´¦å·æœåŠ¡æŽ¥å£,å¦‚: www.google.com, å½“accountTypeæ˜¯thirdpartyæ—¶æœ‰æ•ˆ 
 			(Third-party account service interfaces, such as: www.google.com, 
 			When the accountType is thirdparty, is valid.)
 		-->
 		<thirdpartyAccountService_addr></thirdpartyAccountService_addr>
 		<thirdpartyAccountService_port> 80 </thirdpartyAccountService_port>
 		
-		<!-- µÚÈý·½³äÖµ·þÎñ½Ó¿Ú Èç: www.google.com, µ±chargeTypeÊÇthirdpartyÊ±ÓÐÐ§ 
+		<!-- ç¬¬ä¸‰æ–¹å……å€¼æœåŠ¡æŽ¥å£ å¦‚: www.google.com, å½“chargeTypeæ˜¯thirdpartyæ—¶æœ‰æ•ˆ 
 			(Third-party charge service interfaces, such as: www.google.com, 
 			When the chargeType is thirdparty, is valid.)
 		-->
 		<thirdpartyChargeService_addr></thirdpartyChargeService_addr>
 		<thirdpartyChargeService_port> 80 </thirdpartyChargeService_port>
 		
-		<!-- billingSystemºÍµÚÈý·½·þÎñÉÌÐ­×÷µÄ»Øµ÷µØÖ·, Õâ¸öÍ¨µÀÊÇÒ»¸öÎ´¶¨ÒåµÄÐ­ÒéÍ¨µÀ£¬ Ïà¹ØÐ­ÒéÐèÒª¿ª·¢Õß¸ù¾ÝÐèÒª×Ô¼º½âÎö
+		<!-- billingSystemå’Œç¬¬ä¸‰æ–¹æœåŠ¡å•†åä½œçš„å›žè°ƒåœ°å€, è¿™ä¸ªé€šé“æ˜¯ä¸€ä¸ªæœªå®šä¹‰çš„åè®®é€šé“ï¼Œ ç›¸å…³åè®®éœ€è¦å¼€å‘è€…æ ¹æ®éœ€è¦è‡ªå·±è§£æž
 			(billingSystem and third-party service providers collaborate callback address)
 		-->
 		<thirdpartyService_cbport> 30040 </thirdpartyService_cbport>
 		
-		<!-- listen¼àÌý¶ÓÁÐ×î´óÖµ
+		<!-- listenç›‘å¬é˜Ÿåˆ—æœ€å¤§å€¼
 		    (listen: Maximum listen queue)
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 	</billingSystem>
 	
 	<dbmgr>
-		<!-- debugÄ£Ê½ÏÂ¿ÉÊä³ö¶ÁÐ´²Ù×÷ÐÅÏ¢
+		<!-- debugæ¨¡å¼ä¸‹å¯è¾“å‡ºè¯»å†™æ“ä½œä¿¡æ¯
 		    (Debug mode can output the read and write informations)
 		 -->
 		<debug> false </debug>
 		
-		<!-- ÊÇ·ñ¼ì²édefs-MD5
+		<!-- æ˜¯å¦æ£€æŸ¥defs-MD5
 			(Check whether the defs-MD5) 
 		-->
 		<allowEmptyDigest> false </allowEmptyDigest>					<!-- Type: Boolean -->
 		
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- Êý¾Ý¿âÀàÐÍ 
-			£¨Database type)
+		<!-- æ•°æ®åº“ç±»åž‹ 
+			ï¼ˆDatabase type)
 		-->
 		<type> mysql </type>											<!-- Type: String -->
 		
-		<!-- Êý¾Ý¿âµØÖ· 
-			£¨Database address)
+		<!-- æ•°æ®åº“åœ°å€ 
+			ï¼ˆDatabase address)
 		-->
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 0 </port>												<!-- Type: Integer -->
 		
-		<!-- Êý¾Ý¿âÕËºÅÑéÖ¤ 
-			£¨Database auth)
+		<!-- æ•°æ®åº“è´¦å·éªŒè¯ 
+			ï¼ˆDatabase auth)
 		-->
 		<auth>  
 			<username> kbe </username>									<!-- Type: String -->
 			<password> kbe </password>									<!-- Type: String -->
 			
-			<!-- ÎªtrueÔò±íÊ¾passwordÊÇ¼ÓÃÜ(rsa)µÄ, ¿É·ÀÖ¹Ã÷ÎÄÅäÖÃ 
+			<!-- ä¸ºtrueåˆ™è¡¨ç¤ºpasswordæ˜¯åŠ å¯†(rsa)çš„, å¯é˜²æ­¢æ˜Žæ–‡é…ç½® 
 				(is true, password is RSA)
 			-->
 			<encrypt> true </encrypt>
 		</auth>
 		
-		<!-- Êý¾Ý¿âÃû³Æ 
+		<!-- æ•°æ®åº“åç§° 
 			(Database name)
 		-->
 		<databaseName> kbe </databaseName> 								<!-- Type: String -->
 		
-		<!-- Êý¾Ý¿âÔÊÐíµÄÁ¬½ÓÊý 
+		<!-- æ•°æ®åº“å…è®¸çš„è¿žæŽ¥æ•° 
 			(Number of connections allowed by the database)
 		-->
 		<numConnections> 5 </numConnections>							<!-- Type: Integer -->
 		
-		<!-- ×Ö·û±àÂëÀàÐÍ 
+		<!-- å­—ç¬¦ç¼–ç ç±»åž‹ 
 			(Character encoding type)
 		-->
 		<unicodeString>
@@ -296,38 +296,38 @@
 			<collation> utf8_bin </collation> 							<!-- Type: String -->
 		</unicodeString>
 		
-		<!-- ÕËºÅÏµÍ³
+		<!-- è´¦å·ç³»ç»Ÿ
 			(Account system)
 		-->
 		<account_system> 
-			<!-- ÕËºÅEntityµÄÃû³Æ
+			<!-- è´¦å·Entityçš„åç§°
 			    (Name of AccountEntity)
 			 -->
 			<accountEntityScriptType>	Account	</accountEntityScriptType>
 			
-			<!-- ÐÂÕËºÅÄ¬ÈÏ±ê¼Ç(¿É×éºÏ£¬ÌîÐ´Ê±°´Ê®½øÖÆ¸ñÊ½) 
+			<!-- æ–°è´¦å·é»˜è®¤æ ‡è®°(å¯ç»„åˆï¼Œå¡«å†™æ—¶æŒ‰åè¿›åˆ¶æ ¼å¼) 
 				(Default flags a new account, Can be combined, Fill in decimal format when)
-				³£¹æ±ê¼Ç(normal flag)	= 0x00000000
-				Ëø¶¨±ê¼Ç(lock flag)	= 0x000000001
-				Î´¼¤»î±ê¼Ç(normal flag)	= 0x000000002
+				å¸¸è§„æ ‡è®°(normal flag)	= 0x00000000
+				é”å®šæ ‡è®°(lock flag)	= 0x000000001
+				æœªæ¿€æ´»æ ‡è®°(normal flag)	= 0x000000002
 			-->
 			<accountDefaultFlags> 0 </accountDefaultFlags>							<!-- Type: Integer -->
 			
-			<!-- ÐÂÕËºÅÄ¬ÈÏ¹ýÆÚÊ±¼ä(Ãë, ÒýÇæ»á¼ÓÉÏµ±Ç°Ê±¼ä) 
+			<!-- æ–°è´¦å·é»˜è®¤è¿‡æœŸæ—¶é—´(ç§’, å¼•æ“Žä¼šåŠ ä¸Šå½“å‰æ—¶é—´) 
 				(New account default expiration time (seconds, the engine will add the current time))
 			-->
 			<accountDefaultDeadline> 0 </accountDefaultDeadline>						<!-- Type: Integer -->
 
-			<!-- ÕËºÅ×¢²áÏà¹Ø
+			<!-- è´¦å·æ³¨å†Œç›¸å…³
 				(Account registration)
 			-->
 			<account_registration> 
-				<!-- ÊÇ·ñ¿ª·Å×¢²á 
+				<!-- æ˜¯å¦å¼€æ”¾æ³¨å†Œ 
 					(Whether open registration)
 				-->
 				<enable>	true	</enable>
 				
-				<!-- µÇÂ¼ºÏ·¨Ê±ÓÎÏ·Êý¾Ý¿âÕÒ²»µ½ÓÎÏ·ÕËºÅÔò×Ô¶¯´´½¨ 
+				<!-- ç™»å½•åˆæ³•æ—¶æ¸¸æˆæ•°æ®åº“æ‰¾ä¸åˆ°æ¸¸æˆè´¦å·åˆ™è‡ªåŠ¨åˆ›å»º 
 					(When logged in, the game database can not find the game account is automatically created)
 				-->
 				<loginAutoCreate> true </loginAutoCreate>
@@ -336,12 +336,12 @@
 	</dbmgr>
 	
 	<cellapp>
-		<!-- Èë¿ÚÄ£¿é£¬ Ïàµ±ÓÚmainº¯Êý 
+		<!-- å…¥å£æ¨¡å—ï¼Œ ç›¸å½“äºŽmainå‡½æ•° 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
 		
-		<!-- Ä¬ÈÏAOI°ë¾¶, ½Å±¾ÖÐ¿ÉÒÔ¸Ä±äËü 
+		<!-- é»˜è®¤AOIåŠå¾„, è„šæœ¬ä¸­å¯ä»¥æ”¹å˜å®ƒ 
 			(Default AOI radius, the script can change it)
 		-->
 		<defaultAoIRadius>			
@@ -349,35 +349,35 @@
 			<hysteresisArea> 5.0 </hysteresisArea>
 		</defaultAoIRadius>
 		
-		<!-- ÓÅ»¯EntityID£¬AOI·¶Î§ÄÚÊµÌåÊýÐ¡ÓÚ255¸ö, EntityID´«Êäµ½clientÊ±Ê¹ÓÃ1×Ö½Ú±ðÃûID 
-			£¨Optimization EntityID£¬AOI the Entity is less than 255, 
+		<!-- ä¼˜åŒ–EntityIDï¼ŒAOIèŒƒå›´å†…å®žä½“æ•°å°äºŽ255ä¸ª, EntityIDä¼ è¾“åˆ°clientæ—¶ä½¿ç”¨1å­—èŠ‚åˆ«åID 
+			ï¼ˆOptimization EntityIDï¼ŒAOI the Entity is less than 255, 
 			use an aliasID(1byte) transmitted to the client)
 		-->
 		<aliasEntityID> true </aliasEntityID>
 		
-		<!-- ÓÅ»¯EntityÊôÐÔºÍ·½·¨ÔÚ¹ã²¥Ê±ËùÏûºÄµÄ´ø¿í£¬Entity¿Í»§¶ËÊôÐÔ»òÕß¿Í»§¶Ë·½·¨²»³¬¹ý255Ê±£¬ 
-			·½·¨uidºÍÊôÐÔuid´«Êäµ½clientÊ±Ê¹ÓÃ1×Ö½Ú±ðÃûID 
+		<!-- ä¼˜åŒ–Entityå±žæ€§å’Œæ–¹æ³•åœ¨å¹¿æ’­æ—¶æ‰€æ¶ˆè€—çš„å¸¦å®½ï¼ŒEntityå®¢æˆ·ç«¯å±žæ€§æˆ–è€…å®¢æˆ·ç«¯æ–¹æ³•ä¸è¶…è¿‡255æ—¶ï¼Œ 
+			æ–¹æ³•uidå’Œå±žæ€§uidä¼ è¾“åˆ°clientæ—¶ä½¿ç”¨1å­—èŠ‚åˆ«åID 
 			(Entity client (property or a method) is less than 256, using 1 byte transmission.)
 		-->
 		<entitydefAliasID>true</entitydefAliasID>
 	
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- entityID·ÖÅäÆ÷£¬½øÈëÒç³ö·¶Î§ÔòÇëÇó»ñÈ¡ÐÂµÄID×ÊÔ´ 
+		<!-- entityIDåˆ†é…å™¨ï¼Œè¿›å…¥æº¢å‡ºèŒƒå›´åˆ™è¯·æ±‚èŽ·å–æ–°çš„IDèµ„æº 
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
-		<!-- ³ÌÐòµÄÐÔÄÜ·ÖÎö
-			£¨Analysis of program performance£© 
+		<!-- ç¨‹åºçš„æ€§èƒ½åˆ†æž
+			ï¼ˆAnalysis of program performanceï¼‰ 
 		-->
 		<profiles>
-			<!-- Èç¹ûÉèÖÃÎªtrue£¬ÒýÇæÆô¶¯Ê±¾Í»á¿ªÊ¼¼ÇÂ¼Ïà¹ØprofileÐÅÏ¢£¬ ½ø³ÌÍË³öºó½«µ¼³öÒ»·Ý±¨¸æ 
+			<!-- å¦‚æžœè®¾ç½®ä¸ºtrueï¼Œå¼•æ“Žå¯åŠ¨æ—¶å°±ä¼šå¼€å§‹è®°å½•ç›¸å…³profileä¿¡æ¯ï¼Œ è¿›ç¨‹é€€å‡ºåŽå°†å¯¼å‡ºä¸€ä»½æŠ¥å‘Š 
 				(if is true, Engine start is completed, start to record profile information, 
 				Process exit will export a report.)
 			-->
@@ -390,27 +390,27 @@
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
 		
-		<!-- ghost¸üÐÂÆµÂÊ 
+		<!-- ghostæ›´æ–°é¢‘çŽ‡ 
 			(Update frequency process)
 		-->
 		<ghostUpdateHertz> 30 </ghostUpdateHertz>		<!-- Type: Integer -->
 		
-		<!-- ÊÇ·ñÊ¹ÓÃ×ø±êÏµÍ³, Èç¹ûÉèÖÃÎªfalse£¬ ÄÇÃ´AOI¡¢Trap¡¢ MoveµÈ¹¦ÄÜ½«²»¿ÉÓÃ 
+		<!-- æ˜¯å¦ä½¿ç”¨åæ ‡ç³»ç»Ÿ, å¦‚æžœè®¾ç½®ä¸ºfalseï¼Œ é‚£ä¹ˆAOIã€Trapã€ Moveç­‰åŠŸèƒ½å°†ä¸å¯ç”¨ 
 			(Whether the use of coordinate-system, if is false, 
 			AOI, Trap, Move and other functions will not be available)
 		-->
 		<coordinate_system> 
 			<enable> true </enable>
 			
-			<!-- ÊÇ·ñ¹ÜÀíyÖá? ×¢£º¹ÜÀíyÖá£¬ÔòAOI¡¢TrapµÈ¹¦ÄÜÓÐÁË¸ß¶È£¬µ±spaceÄÚµÄÊµÌå½ÏÉÙÊ±±È½ÏºÃÓÃ£¬
-				·ñÔòyÖáµÄ¹ÜÀí»á´øÀ´Ò»Ð©ÏûºÄ 
-				(is maintenance Y axis? Note: Management y axis, AOI¡¢Trap and other functions with the height,
+			<!-- æ˜¯å¦ç®¡ç†yè½´? æ³¨ï¼šç®¡ç†yè½´ï¼Œåˆ™AOIã€Trapç­‰åŠŸèƒ½æœ‰äº†é«˜åº¦ï¼Œå½“spaceå†…çš„å®žä½“è¾ƒå°‘æ—¶æ¯”è¾ƒå¥½ç”¨ï¼Œ
+				å¦åˆ™yè½´çš„ç®¡ç†ä¼šå¸¦æ¥ä¸€äº›æ¶ˆè€— 
+				(is maintenance Y axis? Note: Management y axis, AOIã€Trap and other functions with the height,
 				When the entity space within little more useful when, Otherwise, 
 				the management of the y-axis will produce some consumption
 				-->
 			<rangemgr_y> false </rangemgr_y>
 			
-			<!-- ÊµÌåÎ»ÖÃÍ£Ö¹·¢Éú¸Ä±äºó£¬ÒýÇæ¼ÌÐøÏò¿Í»§¶Ë¸üÐÂtick´ÎµÄÎ»ÖÃÐÅÏ¢£¬Îª0Ôò×ÜÊÇ¸üÐÂ¡£ 
+			<!-- å®žä½“ä½ç½®åœæ­¢å‘ç”Ÿæ”¹å˜åŽï¼Œå¼•æ“Žç»§ç»­å‘å®¢æˆ·ç«¯æ›´æ–°tickæ¬¡çš„ä½ç½®ä¿¡æ¯ï¼Œä¸º0åˆ™æ€»æ˜¯æ›´æ–°ã€‚ 
 				(After stopping to change the position/direction, 
 				the engine continued to update client information(position/direction) ticks
 				If 0, then always update)
@@ -418,37 +418,37 @@
 			<entity_posdir_additional_updates> 5 </entity_posdir_additional_updates>
 		</coordinate_system>
 
-		<!-- Telnet·þÎñ, Èç¹û¶Ë¿Ú±»Õ¼ÓÃÔòÏòºó³¢ÊÔ50001.. 
+		<!-- TelnetæœåŠ¡, å¦‚æžœç«¯å£è¢«å ç”¨åˆ™å‘åŽå°è¯•50001.. 
 			(Telnet service, if the port is occupied backwards to try 50001)
 		-->
 		<telnet_service>
 			<port> 50000 </port>
 			<password> kbe </password>
-			<!-- ÃüÁîÄ¬ÈÏ²ã 
+			<!-- å‘½ä»¤é»˜è®¤å±‚ 
 				(layer of default the command)
 			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
 		
-		<!-- ·þÎñ¶Ë¹Ø±Õ¹ý³ÌµÄ²ÎÊý 
+		<!-- æœåŠ¡ç«¯å…³é—­è¿‡ç¨‹çš„å‚æ•° 
 			(Parameter server shutdown process)
 		-->
 		<shutdown>
-			<!-- Ã¿ÃëÏú»ÙÓÐbase²¿·ÖµÄentityµÄÊýÁ¿
+			<!-- æ¯ç§’é”€æ¯æœ‰baseéƒ¨åˆ†çš„entityçš„æ•°é‡
 				(In per-seconds, The destruction of the number of entity's(has base))
 			-->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
 		
-		<!-- Ë­ÊÇ¹Û²ìÕß? Íæ¼Ò¾ÍÊÇ¹Û²ìÕß£¬¹Û²ìµ½µÄÐÅÏ¢»áÍ¬²½¸ø¿Í»§¶Ë¡£
-			¿ª·¢Õß¿ÉÒÔÉè¼ÆÎªNPC/MonsterÔÚ±»¹Û²ìÊ±²Å¼¤»îAI£¬ÕâÑù¿ÉÒÔ¼õÉÙ·þÎñ¶ËµÄCPUÏûºÄ¡£²Î¿¼Entity.onWitnessed
+		<!-- è°æ˜¯è§‚å¯Ÿè€…? çŽ©å®¶å°±æ˜¯è§‚å¯Ÿè€…ï¼Œè§‚å¯Ÿåˆ°çš„ä¿¡æ¯ä¼šåŒæ­¥ç»™å®¢æˆ·ç«¯ã€‚
+			å¼€å‘è€…å¯ä»¥è®¾è®¡ä¸ºNPC/Monsteråœ¨è¢«è§‚å¯Ÿæ—¶æ‰æ¿€æ´»AIï¼Œè¿™æ ·å¯ä»¥å‡å°‘æœåŠ¡ç«¯çš„CPUæ¶ˆè€—ã€‚å‚è€ƒEntity.onWitnessed
 			(Who is witness? Player is witness, The observed information will be synchronized to the client.
 			Developers can be designed to: Activation (NPC / Monster) AI was observed when, This can reduce server CPU consumption.
 			see also: Entity.onWitnessed.
 			)
 		-->
 		<witness>
-			<!-- µ±Ò»¸öÊµÌå²»ÔÙ±»¹Û²ìÕß¹Û²ìÖ®ºó£¬ÊµÌå²¢²»»áÂíÉÏ»Ö¸´ÎªÎ´±»¹Û²ì×´Ì¬£¬ÔÚtimeout(Ãë)Ê±¼ä·¶Î§ÄÚÃ»ÓÐÔÙ´Î±»¹Û²ìÔòÖØÖÃ×´Ì¬ 
+			<!-- å½“ä¸€ä¸ªå®žä½“ä¸å†è¢«è§‚å¯Ÿè€…è§‚å¯Ÿä¹‹åŽï¼Œå®žä½“å¹¶ä¸ä¼šé©¬ä¸Šæ¢å¤ä¸ºæœªè¢«è§‚å¯ŸçŠ¶æ€ï¼Œåœ¨timeout(ç§’)æ—¶é—´èŒƒå›´å†…æ²¡æœ‰å†æ¬¡è¢«è§‚å¯Ÿåˆ™é‡ç½®çŠ¶æ€ 
 				(When the observer to stop observing entity, Entity does not recovery immediately to the initial-state,
 				Not observed before timeout again, the recovery state.)
 			-->
@@ -457,77 +457,77 @@
 	</cellapp>
 	
 	<baseapp>
-		<!-- Èë¿ÚÄ£¿é£¬ Ïàµ±ÓÚmainº¯Êý 
+		<!-- å…¥å£æ¨¡å—ï¼Œ ç›¸å½“äºŽmainå‡½æ•° 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
 
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
-		<!-- Íâ²¿IPµØÖ·»òÕßÓòÃû£¬ÔÚÄ³Ð©»ú·¿µÄ»·¾³ÏÂ£¬¿ÉÄÜ»áÊ¹ÓÃ¶Ë¿ÚÓ³ÉäµÄ·½Ê½À´·ÃÎÊÄÚ²¿kbe·þÎñÆ÷£¬ÄÇÃ´kbeÔÚµ±Ç°
-			µÄ»úÆ÷ÉÏ»ñµÃµÄÍâ²¿µØÖ·¿ÉÄÜÒ²ÊÇ¾ÖÓòÍøµØÖ·£¬´ËÊ±Ä³Ð©¹¦ÄÜ½«»á²»Õý³£¡£ÀýÈç£ºÕËºÅ¼¤»îÓÊ¼þÖÐ¸ø³öµÄ»Øµ÷
-			µØÖ·¡£
+		<!-- å¤–éƒ¨IPåœ°å€æˆ–è€…åŸŸåï¼Œåœ¨æŸäº›æœºæˆ¿çš„çŽ¯å¢ƒä¸‹ï¼Œå¯èƒ½ä¼šä½¿ç”¨ç«¯å£æ˜ å°„çš„æ–¹å¼æ¥è®¿é—®å†…éƒ¨kbeæœåŠ¡å™¨ï¼Œé‚£ä¹ˆkbeåœ¨å½“å‰
+			çš„æœºå™¨ä¸ŠèŽ·å¾—çš„å¤–éƒ¨åœ°å€å¯èƒ½ä¹Ÿæ˜¯å±€åŸŸç½‘åœ°å€ï¼Œæ­¤æ—¶æŸäº›åŠŸèƒ½å°†ä¼šä¸æ­£å¸¸ã€‚ä¾‹å¦‚ï¼šè´¦å·æ¿€æ´»é‚®ä»¶ä¸­ç»™å‡ºçš„å›žè°ƒ
+			åœ°å€ã€‚
 			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
 			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
 			For example: account activation email address given callback.)
 		-->
 		<externalAddress>  </externalAddress>							<!-- Type: String -->
 		
-		<!-- ±©Â¶¸ø¿Í»§¶ËµÄ¶Ë¿Ú·¶Î§
-			£¨Exposed to the client port range£© 
+		<!-- æš´éœ²ç»™å®¢æˆ·ç«¯çš„ç«¯å£èŒƒå›´
+			ï¼ˆExposed to the client port rangeï¼‰ 
 		-->
 		<externalPorts_min> 20015 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 20019 </externalPorts_max>					<!-- Type: Integer -->
 
-		<!-- ×Ô¶¯´æµµµÄÊ±¼äÖÜÆÚ
-			£¨Automatic archiving time period£© 
+		<!-- è‡ªåŠ¨å­˜æ¡£çš„æ—¶é—´å‘¨æœŸ
+			ï¼ˆAutomatic archiving time periodï¼‰ 
 		-->
 		<archivePeriod> 100 </archivePeriod> 							<!-- Type: Float -->
 		
-		<!-- ×Ô¶¯±¸·ÝµÄÊ±¼ä
-			£¨Automatic backup time period£© 
+		<!-- è‡ªåŠ¨å¤‡ä»½çš„æ—¶é—´
+			ï¼ˆAutomatic backup time periodï¼‰ 
 		-->
 		<backupPeriod> 10 </backupPeriod>								<!-- Type: Float -->
 		
-		<!-- ÊÇ·ñ±¸·ÝÎ´¶¨ÒåµÄÊôÐÔ
-			£¨Whether backup undefined property£© 
+		<!-- æ˜¯å¦å¤‡ä»½æœªå®šä¹‰çš„å±žæ€§
+			ï¼ˆWhether backup undefined propertyï¼‰ 
 		-->
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>		<!-- Type: Boolean -->
 
-		<!-- ¸ºÔØÆ½ºâÂË²¨Æ÷Ö¸±êÖµ
-			£¨Load balancing Smoothing Bias value£© 
+		<!-- è´Ÿè½½å¹³è¡¡æ»¤æ³¢å™¨æŒ‡æ ‡å€¼
+			ï¼ˆLoad balancing Smoothing Bias valueï¼‰ 
 		-->
 		<loadSmoothingBias> 0.01 </loadSmoothingBias>
 
-		<!-- ×ÊÔ´ÏÂÔØ´ø¿íÏÞÖÆ
-			£¨Download bandwidth limits£© 
+		<!-- èµ„æºä¸‹è½½å¸¦å®½é™åˆ¶
+			ï¼ˆDownload bandwidth limitsï¼‰ 
 		-->
 		<downloadStreaming>
 			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
 			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
 
-		<!-- entityID·ÖÅäÆ÷£¬½øÈëÒç³ö·¶Î§ÔòÇëÇó»ñÈ¡ÐÂµÄID×ÊÔ´ 
+		<!-- entityIDåˆ†é…å™¨ï¼Œè¿›å…¥æº¢å‡ºèŒƒå›´åˆ™è¯·æ±‚èŽ·å–æ–°çš„IDèµ„æº 
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
-		<!-- µ±ÔÖÄÑ·¢Éúºó£¬baseapp½øÐÐÔÖÄÑ»Ö¸´Ê±£¬Ã¿´Î»Ö¸´entityµÄÊýÁ¿ 
+		<!-- å½“ç¾éš¾å‘ç”ŸåŽï¼Œbaseappè¿›è¡Œç¾éš¾æ¢å¤æ—¶ï¼Œæ¯æ¬¡æ¢å¤entityçš„æ•°é‡ 
 			(When after the disaster, When baseapp recovery, Each time the number of recovery entity's)
 		-->
 		<entityRestoreSize> 32 </entityRestoreSize>
 		
-		<!-- ³ÌÐòµÄÐÔÄÜ·ÖÎö
-			£¨Analysis of program performance£© 
+		<!-- ç¨‹åºçš„æ€§èƒ½åˆ†æž
+			ï¼ˆAnalysis of program performanceï¼‰ 
 		-->
 		<profiles>
-			<!-- Èç¹ûÉèÖÃÎªtrue£¬ÒýÇæÆô¶¯Ê±¾Í»á¿ªÊ¼¼ÇÂ¼Ïà¹ØprofileÐÅÏ¢£¬ ½ø³ÌÍË³öºó½«µ¼³öÒ»·Ý±¨¸æ 
+			<!-- å¦‚æžœè®¾ç½®ä¸ºtrueï¼Œå¼•æ“Žå¯åŠ¨æ—¶å°±ä¼šå¼€å§‹è®°å½•ç›¸å…³profileä¿¡æ¯ï¼Œ è¿›ç¨‹é€€å‡ºåŽå°†å¯¼å‡ºä¸€ä»½æŠ¥å‘Š 
 				(if is true, Engine start is completed, start to record profile information, 
 				Process exit will export a report.)
 			-->
@@ -537,46 +537,46 @@
 			<networkprofile> false </networkprofile>
 		</profiles>
 		
-		<!-- listen¼àÌý¶ÓÁÐ×î´óÖµ
+		<!-- listenç›‘å¬é˜Ÿåˆ—æœ€å¤§å€¼
 		    (listen: Maximum listen queue)
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- Telnet·þÎñ, Èç¹û¶Ë¿Ú±»Õ¼ÓÃÔòÏòºó³¢ÊÔ40001.. 
+		<!-- TelnetæœåŠ¡, å¦‚æžœç«¯å£è¢«å ç”¨åˆ™å‘åŽå°è¯•40001.. 
 			(Telnet service, if the port is occupied backwards to try 40001)
 		-->
 		<telnet_service>
 			<port> 40000 </port>
 			<password> kbe </password>
-			<!-- ÃüÁîÄ¬ÈÏ²ã 
+			<!-- å‘½ä»¤é»˜è®¤å±‚ 
 				(layer of default the command)
 			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
 		
-		<!-- ·þÎñ¶Ë¹Ø±Õ¹ý³ÌµÄ²ÎÊý 
+		<!-- æœåŠ¡ç«¯å…³é—­è¿‡ç¨‹çš„å‚æ•° 
 			(Parameter server shutdown process)
 		-->
 		<shutdown>
-			<!-- Ã¿ÃëÏú»ÙbaseµÄÊýÁ¿
+			<!-- æ¯ç§’é”€æ¯baseçš„æ•°é‡
 				(The destroy of the per-seconds base's)
 			-->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
 		
 		<respool>
-			<!-- »º³åÇø´óÐ¡Ò²µÈÓÚ×ÊÔ´´óÐ¡£¬ ÔÚÕâ¸öKB´óÐ¡·¶Î§ÒÔÄÚµÄ×ÊÔ´²Å¿ÉÒÔ½øÈë×ÊÔ´³Ø 
+			<!-- ç¼“å†²åŒºå¤§å°ä¹Ÿç­‰äºŽèµ„æºå¤§å°ï¼Œ åœ¨è¿™ä¸ªKBå¤§å°èŒƒå›´ä»¥å†…çš„èµ„æºæ‰å¯ä»¥è¿›å…¥èµ„æºæ±  
 				(Buffer size is equal to the size of resources, 
 				Less than the buffer resources before they can enter the resource pool)
 			-->
 			<buffer_size> 1024 </buffer_size>
 			
-			<!-- ×ÊÔ´³ØÖÐµÄ×ÊÔ´³¬¹ýÕâ¸öÊ±¼äÎ´±»·ÃÎÊÔòÏú»Ù(Ãë) 
+			<!-- èµ„æºæ± ä¸­çš„èµ„æºè¶…è¿‡è¿™ä¸ªæ—¶é—´æœªè¢«è®¿é—®åˆ™é”€æ¯(ç§’) 
 			(Resources have not been accessed overtime will be destroyed (s))
 			-->
 			<timeout> 600 </timeout>
 			
-			<!-- ×ÊÔ´³Ø¼ì²étick(Ãë) 
+			<!-- èµ„æºæ± æ£€æŸ¥tick(ç§’) 
 				(Resource pool check tick (secs))
 			-->
 			<checktick>60</checktick>
@@ -584,64 +584,64 @@
 	</baseapp>
 	
 	<cellappmgr>
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 	</cellappmgr>
 	
 	<baseappmgr>
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 	</baseappmgr>
 	
 	<loginapp>
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
-		<!-- Íâ²¿IPµØÖ·»òÕßÓòÃû£¬ÔÚÄ³Ð©»ú·¿µÄ»·¾³ÏÂ£¬¿ÉÄÜ»áÊ¹ÓÃ¶Ë¿ÚÓ³ÉäµÄ·½Ê½À´·ÃÎÊÄÚ²¿kbe·þÎñÆ÷£¬ÄÇÃ´kbeÔÚµ±Ç°
-			µÄ»úÆ÷ÉÏ»ñµÃµÄÍâ²¿µØÖ·¿ÉÄÜÒ²ÊÇ¾ÖÓòÍøµØÖ·£¬´ËÊ±Ä³Ð©¹¦ÄÜ½«»á²»Õý³£¡£ÀýÈç£ºÕËºÅ¼¤»îÓÊ¼þÖÐ¸ø³öµÄ»Øµ÷
-			µØÖ·¡£
+		<!-- å¤–éƒ¨IPåœ°å€æˆ–è€…åŸŸåï¼Œåœ¨æŸäº›æœºæˆ¿çš„çŽ¯å¢ƒä¸‹ï¼Œå¯èƒ½ä¼šä½¿ç”¨ç«¯å£æ˜ å°„çš„æ–¹å¼æ¥è®¿é—®å†…éƒ¨kbeæœåŠ¡å™¨ï¼Œé‚£ä¹ˆkbeåœ¨å½“å‰
+			çš„æœºå™¨ä¸ŠèŽ·å¾—çš„å¤–éƒ¨åœ°å€å¯èƒ½ä¹Ÿæ˜¯å±€åŸŸç½‘åœ°å€ï¼Œæ­¤æ—¶æŸäº›åŠŸèƒ½å°†ä¼šä¸æ­£å¸¸ã€‚ä¾‹å¦‚ï¼šè´¦å·æ¿€æ´»é‚®ä»¶ä¸­ç»™å‡ºçš„å›žè°ƒ
+			åœ°å€ã€‚
 			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
 			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
 			For example: account activation email address given callback.)
 		-->
 		<externalAddress>  </externalAddress>							<!-- Type: String -->
 		
-		<!-- ±©Â¶¸ø¿Í»§¶ËµÄ¶Ë¿Ú·¶Î§
-			£¨Exposed to the client port range£© 
+		<!-- æš´éœ²ç»™å®¢æˆ·ç«¯çš„ç«¯å£èŒƒå›´
+			ï¼ˆExposed to the client port rangeï¼‰ 
 		-->
 		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 		
-		<!-- ¼ÓÃÜµÇÂ¼ÐÅÏ¢
+		<!-- åŠ å¯†ç™»å½•ä¿¡æ¯
 			(The encrypted user login information)
 			
-			¿ÉÑ¡ÔñµÄ¼ÓÃÜ·½Ê½(Optional encryption):
-				0: ÎÞ¼ÓÃÜ(No Encryption)
+			å¯é€‰æ‹©çš„åŠ å¯†æ–¹å¼(Optional encryption):
+				0: æ— åŠ å¯†(No Encryption)
 				1: Blowfish
 				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_login> 2 </encrypt_login>
 		
-		<!-- listen¼àÌý¶ÓÁÐ×î´óÖµ
+		<!-- listenç›‘å¬é˜Ÿåˆ—æœ€å¤§å€¼
 		    (listen: Maximum listen queue)
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- ÕËºÅµÄÀàÐÍ								(Account types)
-			1: ÆÕÍ¨ÕËºÅ								(Normal Account)
-			2: emailÕËºÅ(ÐèÒª¼¤»î)					(Email Account, Note: activation required.)
-			3: ÖÇÄÜÕËºÅ(×Ô¶¯Ê¶±ðEmail£¬ ÆÕÍ¨ºÅÂëµÈ)	(Smart Account (Email or Normal, etc.))
+		<!-- è´¦å·çš„ç±»åž‹								(Account types)
+			1: æ™®é€šè´¦å·								(Normal Account)
+			2: emailè´¦å·(éœ€è¦æ¿€æ´»)					(Email Account, Note: activation required.)
+			3: æ™ºèƒ½è´¦å·(è‡ªåŠ¨è¯†åˆ«Emailï¼Œ æ™®é€šå·ç ç­‰)	(Smart Account (Email or Normal, etc.))
 		-->
 		<account_type> 3 </account_type>
 		
-		<!-- http»Øµ÷½Ó¿Ú£¬´¦ÀíÈÏÖ¤¡¢ÃÜÂëÖØÖÃµÈ 
+		<!-- httpå›žè°ƒæŽ¥å£ï¼Œå¤„ç†è®¤è¯ã€å¯†ç é‡ç½®ç­‰ 
 			(Http-callback interface, handling authentication, password reset, etc.)
 		-->
 		<http_cbhost> localhost </http_cbhost>
@@ -649,31 +649,31 @@
 	</loginapp>		
 	
 	<kbmachine>
-		<!-- ±©Â¶¸ø¿Í»§¶ËµÄ¶Ë¿Ú·¶Î§
-			£¨Exposed to the tools port range£© 
+		<!-- æš´éœ²ç»™å®¢æˆ·ç«¯çš„ç«¯å£èŒƒå›´
+			ï¼ˆExposed to the tools port rangeï¼‰ 
 		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 	</kbmachine>
 	
 	<bots>
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- loginappµØÖ· 
-			£¨loginapp address)
+		<!-- loginappåœ°å€ 
+			ï¼ˆloginapp address)
 		-->
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 20013 </port>											<!-- Type: Integer -->
 		
 		
-		<!-- Ä¬ÈÏÆô¶¯½ø³Ìºó×Ô¶¯Ìí¼ÓÕâÃ´¶à¸ö»úÆ÷ÈË 
+		<!-- é»˜è®¤å¯åŠ¨è¿›ç¨‹åŽè‡ªåŠ¨æ·»åŠ è¿™ä¹ˆå¤šä¸ªæœºå™¨äºº 
 			(After starting the process, automatically add some robots)
-			totalcount	£º Ìí¼Ó×ÜÊýÁ¿			(Add the total-number)
-			ticktime	£º Ã¿´ÎÌí¼ÓËùÓÃÊ±¼ä(s)	(Interval time-secs)
-			tickcount	£º Ã¿´ÎÌí¼ÓÊýÁ¿			(Each time you add the number of)
+			totalcount	ï¼š æ·»åŠ æ€»æ•°é‡			(Add the total-number)
+			ticktime	ï¼š æ¯æ¬¡æ·»åŠ æ‰€ç”¨æ—¶é—´(s)	(Interval time-secs)
+			tickcount	ï¼š æ¯æ¬¡æ·»åŠ æ•°é‡			(Each time you add the number of)
 		-->
 		<defaultAddBots> 
 			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
@@ -681,28 +681,28 @@
 			<tickcount> 5  </tickcount>									<!-- Type: Integer -->
 		</defaultAddBots>
 		
-		<!-- »úÆ÷ÈËÕËºÅÏà¹Ø 
+		<!-- æœºå™¨äººè´¦å·ç›¸å…³ 
 			(about bots-accounts)
 		-->
 		<account_infos>
-			<!-- »úÆ÷ÈËÕËºÅÃû³ÆµÄÇ°×º 
+			<!-- æœºå™¨äººè´¦å·åç§°çš„å‰ç¼€ 
 				(The account name prefix)
 			-->
 			<account_name_prefix>		bot_	</account_name_prefix>
 			
-			<!-- »úÆ÷ÈËÕËºÅÃû³ÆµÄºó×ºµÝÔö, 0Ê¹ÓÃËæ»úÊýµÝÔö£¬ ·ñÔò°´ÕÕbaseNumÌîÐ´µÄÊýµÝÔö 
+			<!-- æœºå™¨äººè´¦å·åç§°çš„åŽç¼€é€’å¢ž, 0ä½¿ç”¨éšæœºæ•°é€’å¢žï¼Œ å¦åˆ™æŒ‰ç…§baseNumå¡«å†™çš„æ•°é€’å¢ž 
 				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
 		</account_infos>
 		
-		<!-- Telnet·þÎñ, Èç¹û¶Ë¿Ú±»Õ¼ÓÃÔòÏòºó³¢ÊÔ51001.. 
+		<!-- TelnetæœåŠ¡, å¦‚æžœç«¯å£è¢«å ç”¨åˆ™å‘åŽå°è¯•51001.. 
 			(Telnet service, if the port is occupied backwards to try 51001)
 		-->
 		<telnet_service>
 			<port> 51000 </port>
 			<password> kbe </password>
-			<!-- ÃüÁîÄ¬ÈÏ²ã 
+			<!-- å‘½ä»¤é»˜è®¤å±‚ 
 				(layer of default the command)
 			-->
 			<default_layer> python </default_layer>
@@ -710,18 +710,18 @@
 	</bots>
 	
 	<messagelog>
-		<!-- ½Ó¿ÚÍø¿¨µÄÃû³Æ
-			£¨Name of the interface(NIC)£© 
+		<!-- æŽ¥å£ç½‘å¡çš„åç§°
+			ï¼ˆName of the interface(NIC)ï¼‰ 
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- µ¥¸öapp(baseapp, cellapp, µÈµÈ..)½ø³ÌÉÏ, Ò»¸ötick×î¶à»º´æµÄlogÊýÁ¿
-			£¨The number of single-process(baseapp, cellapp, etc..), The number of log a tick buffer.£© 
+		<!-- å•ä¸ªapp(baseapp, cellapp, ç­‰ç­‰..)è¿›ç¨‹ä¸Š, ä¸€ä¸ªtickæœ€å¤šç¼“å­˜çš„logæ•°é‡
+			ï¼ˆThe number of single-process(baseapp, cellapp, etc..), The number of log a tick buffer.ï¼‰ 
 		-->
 		<tick_max_buffered_logs> 256 </tick_max_buffered_logs>
 
-		<!-- µ¥¸öapp(baseapp, cellapp, µÈµÈ..)½ø³ÌÉÏ, Ò»¸ötickÍ¬²½¸ømessagelogµÄlogÊýÁ¿
-			£¨The number of single-process(baseapp, cellapp, etc..), A tick synchronization to the number of messagelog£© 
+		<!-- å•ä¸ªapp(baseapp, cellapp, ç­‰ç­‰..)è¿›ç¨‹ä¸Š, ä¸€ä¸ªtickåŒæ­¥ç»™messagelogçš„logæ•°é‡
+			ï¼ˆThe number of single-process(baseapp, cellapp, etc..), A tick synchronization to the number of messagelogï¼‰ 
 		-->
 		<tick_sync_logs> 32 </tick_sync_logs>
 	</messagelog>
