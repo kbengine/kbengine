@@ -629,7 +629,7 @@ inline uint64 genUUID64()
 		lastNum = 0;
 	}
 	
-	if(g_componentGlobalOrder <= 0)
+	if(g_componentGlobalOrder <= 0 || g_componentGlobalOrder > 255)
 	{
 		// 16位随机数， 时间戳32位， 16位迭代数
 		static uint64 rnd = 0;
