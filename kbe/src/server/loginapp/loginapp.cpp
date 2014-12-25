@@ -699,7 +699,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && ctype != CLIENT_TYPE_MINI))
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && 
+		ctype != CLIENT_TYPE_MINI && ctype != CLIENT_TYPE_MOBILE))
 	{
 		std::string clientDigest;
 
