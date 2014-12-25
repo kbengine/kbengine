@@ -109,7 +109,7 @@ class ClusterControllerHandler:
 		while(dectrycount > 0):
 			try:
 				dectrycount = trycount
-				recvdata, address = self.udp_socket.recvfrom(4096)
+				recvdata, address = self.udp_socket.recvfrom(10240)
 				self.recvDatas.append(recvdata)
 				#print ("received %r from %r" % (self.recvDatas, address))
 			except socket.timeout: 
@@ -295,6 +295,7 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 		
 	def do(self):
 		self._interfaces_groups = {}
+		print("finding(" + self.consoleType  + ")...")
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
 		
@@ -304,10 +305,13 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 				info = infos.pop(0)
 
 			for info in infos:
-				if COMPONENT_NAME[info[16]] + str(info[3]) == self.consoleType:
+				if COMPONENT_NAME[info[16]] + str(info[3]) == self.consoleType or \
+					COMPONENT_NAME[info[16]] + str("%02d" %(info[3])) == self.consoleType:
 					os.system('telnet %s %i' % (socket.inet_ntoa(struct.pack('I', info[9])), info[20]))
-					
-
+					return
+		
+		print("not found " + self.consoleType  + "!")
+		
 class ClusterQueryHandler(ClusterControllerHandler):
 	def __init__(self, uid):
 		ClusterControllerHandler.__init__(self)
