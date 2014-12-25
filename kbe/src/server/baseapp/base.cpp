@@ -102,6 +102,38 @@ Base::~Base()
 void Base::onDefDataChanged(const PropertyDescription* propertyDescription, 
 		PyObject* pyData)
 {
+	if(initing_)
+		return;
+
+	uint32 flags = propertyDescription->getFlags();
+
+	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
+		return;
+
+	// 创建一个需要广播的模板流
+	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+
+	propertyDescription->getDataType()->addToStream(mstream, pyData);
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
+	(*pBundle) << id();
+
+	if(scriptModule_->usePropertyDescrAlias())
+		(*pBundle) << propertyDescription->aliasIDAsUint8();
+	else
+		(*pBundle) << propertyDescription->getUType();
+
+	pBundle->append(*mstream);
+	
+	g_privateClientEventHistoryStats.trackEvent(scriptName(), 
+		propertyDescription->getName(), 
+		pBundle->currMsgLength());
+
+	// 按照当前的设计来说，有clientMailbox_必定是proxy
+	// 至于为何跑到base里来和python本身是C语言实现有关
+	static_cast<Proxy*>(this)->sendToClient(ClientInterface::onUpdatePropertys, pBundle);
+	MemoryStream::ObjPool().reclaimObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------

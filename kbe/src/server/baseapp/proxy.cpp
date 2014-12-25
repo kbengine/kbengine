@@ -388,39 +388,6 @@ void Proxy::onGetWitness()
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onDefDataChanged(const PropertyDescription* propertyDescription, 
-		PyObject* pyData)
-{
-	uint32 flags = propertyDescription->getFlags();
-
-	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
-		return;
-
-	// 创建一个需要广播的模板流
-	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
-
-	propertyDescription->getDataType()->addToStream(mstream, pyData);
-
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
-	(*pBundle) << id();
-
-	if(scriptModule_->usePropertyDescrAlias())
-		(*pBundle) << propertyDescription->aliasIDAsUint8();
-	else
-		(*pBundle) << propertyDescription->getUType();
-
-	pBundle->append(*mstream);
-	
-	g_privateClientEventHistoryStats.trackEvent(scriptName(), 
-		propertyDescription->getName(), 
-		pBundle->currMsgLength());
-
-	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
-	MemoryStream::ObjPool().reclaimObject(mstream);
-}
-
-//-------------------------------------------------------------------------------------
 double Proxy::getRoundTripTime()const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
