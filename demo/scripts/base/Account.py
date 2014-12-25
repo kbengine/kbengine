@@ -116,7 +116,7 @@ class Account(KBEngine.Proxy):
 		
 		if self.getClientType() == 2:
 			spaceUType = 2
-		elif self.getClientType() == 5:
+		elif self.getClientType() == 5 or self.getClientType() == 1:
 			spaceUType = 3
 		else:
 			spaceUType = 1
