@@ -277,9 +277,13 @@ bool Cellapp::initializeEnd()
 
 	pTelnetServer_ = new TelnetServer(&this->mainDispatcher(), &this->networkInterface());
 	pTelnetServer_->pScript(&this->getScript());
-	return pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 
+
+	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 
 		g_kbeSrvConfig.getCellApp().telnet_deflayer, 
 		g_kbeSrvConfig.getCellApp().telnet_port);
+
+	Components::getSingleton().extraData4(pTelnetServer_->port());
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------

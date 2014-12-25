@@ -74,7 +74,11 @@ _pHandler(NULL),
 componentType_(UNKNOWN_COMPONENT_TYPE),
 componentID_(0),
 state_(0),
-findIdx_(0)
+findIdx_(0),
+extraData1_(0),
+extraData2_(0),
+extraData3_(0),
+extraData4_(0)
 {
 }
 
@@ -1153,7 +1157,8 @@ bool Components::process()
 				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 				pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
 				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
-				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_, 
+				pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 			
 			bhandler.broadcast();
 

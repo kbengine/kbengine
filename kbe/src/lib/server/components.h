@@ -197,6 +197,12 @@ public:
 	Network::EventDispatcher & dispatcher();
 
 	void onChannelDeregister(Network::Channel * pChannel, bool isShutingdown);
+
+	void extraData1(uint64 v){ extraData1_ = v; }
+	void extraData2(uint64 v){ extraData2_ = v; }
+	void extraData3(uint64 v){ extraData3_ = v; }
+	void extraData4(uint64 v){ extraData4_ = v; }
+
 private:
 	virtual bool process();
 	bool findInterfaces();
@@ -232,6 +238,11 @@ private:
 	uint8									state_;
 	int16									findIdx_;
 	int8									findComponentTypes_[8];
+
+	uint64									extraData1_;
+	uint64									extraData2_;
+	uint64									extraData3_;
+	uint64									extraData4_;
 };
 
 }
