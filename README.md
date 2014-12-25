@@ -7,14 +7,14 @@ KBEngine
 http://www.kbengine.org
 
 ##Releases
-	sources		: https://github.com/kbengine/kbengine/releases 
+	sources		: https://github.com/kbengine/kbengine/releases/latest
 	binarys		: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources
-	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases
-	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases
-	ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases
-	html5		: https://github.com/kbengine/kbengine_html5_demo/releases
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases/latest
+	unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases/latest
+	ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases/latest
+	html5		: https://github.com/kbengine/kbengine_html5_demo/releases/latest
 
 ##Docs
 	docs		: http://www.kbengine.org/docs/
