@@ -442,9 +442,31 @@ def echoSystemEnvironment():
 	OUT_MSG("python_version=" + sys.version)
 	OUT_MSG("python_path=" + sys.executable)
 	OUT_MSG("currpath=" + os.getcwd())
+
+def findLocalKBEVersion():
+	global KBE_ROOT
+	
+	KBE_ROOT = getEnvironment('user', 'KBE_ROOT')
+	
+	fpath = "../../../../HISTORY.md"
+	if len(KBE_ROOT) > 0:
+		fpath = KBE_ROOT + "/HISTORY.md"
+	
+	try:
+		f = open(fpath)
+		for line in f.readlines():
+			if "#v" in line:
+				f.close()
+				return line.replace("#", "")
+
+		f.close()
+	except:
+		pass
+		
+	return "unknown"
 	
 def echoKBEVersion():
-	INFO_MSG("version=0.0.1")
+	INFO_MSG("version=" + findLocalKBEVersion())
 	
 	if getInput("View the latest version of GitHub? [yes|no]") != "yes":
 		return
