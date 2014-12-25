@@ -657,7 +657,7 @@ void DebugHelper::critical_msg(const std::string& s)
 void DebugHelper::set_errorcolor()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_INTENSITY);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
 #endif
 }
 
@@ -674,7 +674,7 @@ void DebugHelper::set_normalcolor()
 void DebugHelper::set_warningcolor()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_GREEN);
 #endif
 }
 
