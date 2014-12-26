@@ -4,8 +4,8 @@ set curpath=%~dp0
 cd ..
 echo %cd%
 set KBE_ROOT=%cd%
-set KBE_RES_PATH=%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/scripts/;%KBE_ROOT%demo/res/
-set KBE_BIN_PATH=%KBE_ROOT%kbe/bin/server/
+set KBE_RES_PATH=%KBE_ROOT%/kbe/res/;%curpath%/;%curpath%/scripts/;%curpath%/res/
+set KBE_BIN_PATH=%KBE_ROOT%/kbe/bin/server/
 
 if defined uid (echo %uid%) else set uid=%random%%%32760+1
 
