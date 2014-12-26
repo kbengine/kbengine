@@ -165,7 +165,7 @@ public:
 	void registerMessagelog(Network::MessageID msgID, Network::Address* pAddr);
 	void unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr);
 
-	void changeLogger(std::string name);
+	void changeLogger(const std::string& name);
 
 	void clearBufferedLog(bool destroy = false);
 

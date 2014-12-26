@@ -677,5 +677,15 @@ inline bool isPlatformLittleEndian()
    return *((char*)&n)? true:false;
 }
 
+/** 设置环境变量 */
+#if KBE_PLATFORM == PLATFORM_WIN32
+	inline void setenv(const std::string& name, const std::string& value, int overwrite)
+	{
+		_putenv((name + "=" + value).c_str());
+	}
+#else
+	// Linux下面直接使用setenv
+#endif
+
 }
 #endif // KBE_PLATFORM_H

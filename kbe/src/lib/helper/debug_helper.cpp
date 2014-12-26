@@ -192,9 +192,8 @@ void DebugHelper::shouldWriteToSyslog(bool v)
 std::string DebugHelper::getLogName()
 {
 #ifndef NO_USE_LOG4CXX
-	/*
 	log4cxx::FileAppenderPtr appender = (log4cxx::FileAppenderPtr)g_logger->getAppender(log4cxx::LogString(L"R"));
-	if(appender->getFile().size() == 0 || appender == NULL)
+	if(appender == NULL || appender->getFile().size() == 0)
 		return "";
 
 	char* ccattr = strutil::wchar2char(appender->getFile().c_str());
@@ -202,17 +201,16 @@ std::string DebugHelper::getLogName()
 	free(ccattr);
 
 	return path;
-	*/
 #endif
 
 	return "";
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::changeLogger(std::string name)
+void DebugHelper::changeLogger(const std::string& name)
 {
 #ifndef NO_USE_LOG4CXX
-	g_logger = log4cxx::Logger::getLogger(name.c_str());
+	g_logger = log4cxx::Logger::getLogger(name);
 #endif
 }
 
@@ -234,19 +232,18 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 #ifndef NO_USE_LOG4CXX
 	
 	char helpConfig[MAX_PATH];
-
 	if(componentType == CLIENT_TYPE || componentType == CONSOLE_TYPE)
 	{
-		g_logger = log4cxx::Logger::getLogger("default");
 		kbe_snprintf(helpConfig, MAX_PATH, "log4j.properties");
+		log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
 	}
 	else
 	{
-		g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME_EX(componentType));
 		kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+		log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
 	}
 
-	log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
+	g_logger = log4cxx::Logger::getRootLogger();
 #endif
 }
 

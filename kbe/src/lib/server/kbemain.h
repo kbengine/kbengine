@@ -112,15 +112,9 @@ inline void setEvns()
 		scomponentID = KBEngine::StringConv::val2str(v);
 	}
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-		_putenv((std::string("KBE_COMPONENTID=") + scomponentID).c_str());
-		_putenv((std::string("KBE_GLOBALID=") + scomponentGlobalOrder).c_str());
-		_putenv((std::string("KBE_GROUPID=") + scomponentGroupOrder).c_str());
-#else
-		setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
-		setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
-		setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
-#endif
+	setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
+	setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
+	setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
 }
 
 template <class SERVER_APP>
