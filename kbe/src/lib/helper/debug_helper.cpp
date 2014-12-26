@@ -192,6 +192,7 @@ void DebugHelper::shouldWriteToSyslog(bool v)
 std::string DebugHelper::getLogName()
 {
 #ifndef NO_USE_LOG4CXX
+	/*
 	log4cxx::FileAppenderPtr appender = (log4cxx::FileAppenderPtr)g_logger->getAppender(log4cxx::LogString(L"R"));
 	if(appender == NULL || appender->getFile().size() == 0)
 		return "";
@@ -201,6 +202,7 @@ std::string DebugHelper::getLogName()
 	free(ccattr);
 
 	return path;
+	*/
 #endif
 
 	return "";

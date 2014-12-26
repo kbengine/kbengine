@@ -153,6 +153,8 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
     kbe_snprintf(timebuf, MAX_BUF, "%02d", (int)pLogItem->componentGroupOrder);
 	pLogItem->logstream << timebuf;
 	pLogItem->logstream << " ";
+	pLogItem->logstream << pLogItem->componentID;
+	pLogItem->logstream << " ";
 
     kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %03d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
 		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, pLogItem->kbetime);
@@ -160,6 +162,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	pLogItem->logstream << "- ";
 	pLogItem->logstream << str;
+
 
 	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(pLogItem->componentType));
 	PRINT_MSG(pLogItem->logstream.str());
