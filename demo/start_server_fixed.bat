@@ -1,12 +1,15 @@
 @echo off
 set curpath=%~dp0
 
-set KBE_ROOT=%curpath:~0,-5%
-set KBE_RES_PATH=%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/scripts/;%KBE_ROOT%demo/res/
-set KBE_BIN_PATH=%KBE_ROOT%kbe/bin/server/
+cd ..
+echo %cd%
+set KBE_ROOT=%cd%
+set KBE_RES_PATH=%KBE_ROOT%/kbe/res/;%KBE_ROOT%/demo/;%KBE_ROOT%/demo/scripts/;%KBE_ROOT%/demo/res/
+set KBE_BIN_PATH=%KBE_ROOT%/kbe/bin/server/
 
 if defined uid (echo %uid%) else set uid=%random%%%32760+1
 
+cd %curpath%
 call "kill_server.bat"
 
 echo KBE_ROOT = %KBE_ROOT%
@@ -14,7 +17,7 @@ echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 start %KBE_BIN_PATH%/kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
-rem start %KBE_BIN_PATH%/messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
+start %KBE_BIN_PATH%/messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
 start %KBE_BIN_PATH%/billingsystem.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
 start %KBE_BIN_PATH%/dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=4
 start %KBE_BIN_PATH%/baseappmgr.exe --cid=4129652375332859700 --grouporder=1  --globalorder=5

@@ -1,7 +1,9 @@
 @echo off
 set curpath=%~dp0
 
-set KBE_ROOT=%curpath:~0,-5%
+cd ..
+echo %cd%
+set KBE_ROOT=%cd%
 set KBE_RES_PATH=%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%demo/scripts/;%KBE_ROOT%demo/res/
 set KBE_BIN_PATH=%KBE_ROOT%kbe/bin/server/
 
@@ -11,5 +13,5 @@ echo KBE_ROOT = %KBE_ROOT%
 echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
-
-start bots.exe
+cd %curpath%
+start %KBE_BIN_PATH%/bots.exe
