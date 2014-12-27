@@ -1240,6 +1240,46 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	return UNKNOWN_COMPONENT_TYPE;
 }
 
+int32 CguiconsoleDlg::getSelTreeItemUID()
+{
+	HTREEITEM hItem = m_tree.GetSelectedItem();
+	if(hItem == NULL)
+		return 0;
+
+	CString s = m_tree.GetItemText(hItem);
+	if(s.Find(L"uid[") >= 0)
+	{
+		s.Replace(L"uid[", L"");
+		s.Replace(L"]", L"");
+	}
+	else
+	{
+		hItem = m_tree.GetParentItem(hItem);
+		if(hItem == NULL)
+			return 0;
+
+		s = m_tree.GetItemText(hItem);
+		if(s.Find(L"uid[") >= 0)
+		{
+			s.Replace(L"uid[", L"");
+			s.Replace(L"]", L"");
+		}
+		else
+		{
+			s = L"";
+		}
+	}
+
+	if(s.GetLength() == 0)
+		return 0;
+
+	char* buf = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+	int32 uid = atoi(buf);
+	free(buf);
+
+	return uid;
+}
+
 Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 {
 	if(hItem == NULL)
@@ -1273,6 +1313,7 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 
 	char* buf = KBEngine::strutil::wchar2char(s.GetBuffer(0));
 	std::string sbuf = buf;
+	free(buf);
 
 	std::string::size_type i = sbuf.find("[");
 	std::string::size_type j = sbuf.find("]");

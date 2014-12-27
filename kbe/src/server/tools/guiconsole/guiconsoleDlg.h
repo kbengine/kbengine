@@ -59,7 +59,8 @@ public:
 	void closeCurrTreeSelChannel();
 	Network::Address getTreeItemAddr(HTREEITEM hItem);
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
-	
+	int32 getSelTreeItemUID();
+
 	bool hasTreeComponent(Components::ComponentInfos& cinfos);
 
 	void onReceiveRemoteLog(std::string str);

@@ -104,8 +104,8 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if(!VALID_COMPONENT(pLogItem->componentType) || filterOptions_.componentBitmap[pLogItem->componentType] == 0)
 		return;
 
-	//if(filterOptions_.uid != pLogItem->uid)
-	//	return;
+	if(filterOptions_.uid != pLogItem->uid)
+		return;
 
 	if((filterOptions_.logtypes & pLogItem->logtype) <= 0)
 		return;

@@ -5,6 +5,7 @@
 #include "guiconsole.h"
 #include "LogWindow.h"
 #include "guiconsoleDlg.h"
+#include "common/common.h"
 #include "../../../server/tools/message_log/messagelog_interface.h"
 // CLogWindow dialog
 
@@ -287,7 +288,15 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 	s.Replace(L"\n\r", L"");
 	s.Replace(L"\r", L"");
 
-	if(s.Find(L"WARNING") >= 0 || s.Find(L"S_WARN") >= 0)
+	std::vector<std::wstring> logSplit;
+	KBEngine::strutil::kbe_split<wchar_t>(s.GetBuffer(0), L' ', logSplit);
+
+	if(logSplit.size() == 0)
+		return;
+
+	s.Replace((logSplit[2] + L" " + logSplit[3]).c_str(), L"");
+
+	if(logSplit[0] == L"WARNING" || logSplit[0] == L"S_WARN")
 	{
 		if(fromServer)
 			m_warnCount++;
@@ -295,7 +304,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 		if(m_warnChecked)
 			m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
 	}
-	else if(s.Find(L"ERROR") >= 0 || s.Find(L"S_ERR") >= 0)
+	else if(logSplit[0] == L"ERROR" || logSplit[0] == L"S_ERR")
 	{
 		if(fromServer)
 			m_errCount++;
@@ -303,7 +312,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 		if(m_errChecked)
 			m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
 	}
-	else if(s.Find(L"CRITICAL") >= 0)
+	else if(logSplit[0] == L"CRITICAL")
 	{
 		if(fromServer)
 			m_errCount++;
@@ -311,7 +320,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 		if(m_errChecked)
 			m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
 	}
-	else if(s.Find(L"S_DBG") >= 0 || s.Find(L"S_NORM") >= 0 || s.Find(L"S_INFO") >= 0)
+	else if(logSplit[0] == L"S_DBG" || logSplit[0] == L"S_NORM" || logSplit[0] == L"S_INFO")
 	{
 		if(fromServer)
 			m_infoCount++;
@@ -371,7 +380,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 		Network::Bundle bundle;
 		bundle.newMessage(MessagelogInterface::registerLogWatcher);
 
-		int32 uid = 0;
+		int32 uid = dlg->getSelTreeItemUID();
 		bundle << uid;
 
 		bundle << getSelLogTypes();
@@ -601,7 +610,8 @@ void CLogWindow::updateSettingToServer()
 	Network::Bundle bundle;
 	bundle.newMessage(MessagelogInterface::updateLogWatcherSetting);
 
-	int32 uid = 0;
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+	int32 uid = dlg->getSelTreeItemUID();
 	bundle << uid;
 
 	bundle << getSelLogTypes();
@@ -644,7 +654,6 @@ void CLogWindow::updateSettingToServer()
 		bundle << (*iter);
 	}
 
-	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	HTREEITEM item = dlg->hasCheckApp(MESSAGELOG_TYPE);
 	if(item == NULL)
 	{
