@@ -5,7 +5,7 @@ cd ..
 echo %cd%
 set KBE_ROOT=%cd%
 set KBE_RES_PATH=%KBE_ROOT%/kbe/res/;%curpath%/;%curpath%/scripts/;%curpath%/res/
-set KBE_BIN_PATH=%KBE_ROOT%kbe/bin/server/
+set KBE_BIN_PATH=%KBE_ROOT%/kbe/bin/server/
 
 set uid=%random%%%32760+1
 
