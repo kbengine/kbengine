@@ -45,6 +45,7 @@ namespace KBEngine{
 
 struct LOG_ITEM
 {
+	int32 uid;
 	uint32 logtype;
 	COMPONENT_TYPE componentType;
 	COMPONENT_ID componentID;

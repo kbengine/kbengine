@@ -45,6 +45,7 @@ void LogWatcher::reset()
 		filterOptions_.componentBitmap[i] = 0;
 	}
 	
+	filterOptions_.uid = 0;
 	filterOptions_.logtypes = 0;
 	filterOptions_.globalOrder = 0;
 	filterOptions_.groupOrder = 0;
@@ -75,6 +76,7 @@ bool LogWatcher::updateSetting(MemoryStream * s)
 {
 	reset();
 	
+	(*s) >> filterOptions_.uid;
 	(*s) >> filterOptions_.logtypes;
 	(*s) >> filterOptions_.globalOrder;
 	(*s) >> filterOptions_.groupOrder;
@@ -101,6 +103,9 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 {
 	if(!VALID_COMPONENT(pLogItem->componentType) || filterOptions_.componentBitmap[pLogItem->componentType] == 0)
 		return;
+
+	//if(filterOptions_.uid != pLogItem->uid)
+	//	return;
 
 	if((filterOptions_.logtypes & pLogItem->logtype) <= 0)
 		return;

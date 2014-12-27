@@ -172,16 +172,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	}
 	
 	INFO_MSG(fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType)));
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 	printf("[INFO]: %s", (fmt::format("---- {} is running ----\n", COMPONENT_NAME_EX(componentType))).c_str());
-
-	wchar_t exe_path[MAX_PATH];
-	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
-	GetCurrentDirectory(MAX_PATH, exe_path);
-	
-	char* ccattr = strutil::wchar2char(exe_path);
-	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(componentType));
-	free(ccattr);
 #endif
 
 	int ret = app.run();

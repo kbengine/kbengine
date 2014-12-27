@@ -120,6 +120,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	LOG_ITEM* pLogItem = new LOG_ITEM();
 	std::string str;
 
+	s >> pLogItem->uid;
 	s >> pLogItem->logtype;
 	s >> pLogItem->componentType;
 	s >> pLogItem->componentID;
@@ -152,6 +153,8 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
     kbe_snprintf(timebuf, MAX_BUF, "%02d", (int)pLogItem->componentGroupOrder);
 	pLogItem->logstream << timebuf;
+	pLogItem->logstream << " ";
+	pLogItem->logstream << pLogItem->uid;
 	pLogItem->logstream << " ";
 	pLogItem->logstream << pLogItem->componentID;
 	pLogItem->logstream << " ";

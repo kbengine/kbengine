@@ -371,6 +371,9 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 		Network::Bundle bundle;
 		bundle.newMessage(MessagelogInterface::registerLogWatcher);
 
+		int32 uid = 0;
+		bundle << uid;
+
 		bundle << getSelLogTypes();
 	
 		CString apporder;
@@ -597,6 +600,9 @@ void CLogWindow::updateSettingToServer()
 {
 	Network::Bundle bundle;
 	bundle.newMessage(MessagelogInterface::updateLogWatcherSetting);
+
+	int32 uid = 0;
+	bundle << uid;
 
 	bundle << getSelLogTypes();
 	

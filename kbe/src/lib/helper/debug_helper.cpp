@@ -247,6 +247,17 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 
 	g_logger = log4cxx::Logger::getRootLogger();
 #endif
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	wchar_t exe_path[MAX_PATH];
+	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
+	GetCurrentDirectory(MAX_PATH, exe_path);
+	
+	char* ccattr = strutil::wchar2char(exe_path);
+	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
+	free(ccattr);
+#endif
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -431,6 +442,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	Network::g_trace_packet = 0;
 	pBundle->newMessage(MessagelogInterface::writeLog);
 
+	(*pBundle) << getUserUID();
 	(*pBundle) << logType;
 	(*pBundle) << g_componentType;
 	(*pBundle) << g_componentID;
@@ -457,12 +469,32 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 void DebugHelper::registerMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = *pAddr;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	wchar_t exe_path[MAX_PATH];
+	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
+	GetCurrentDirectory(MAX_PATH, exe_path);
+	
+	char* ccattr = strutil::wchar2char(exe_path);
+	printf("Writing to: %s/logs/message_%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
+	free(ccattr);
+#endif
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = Network::Address::NONE;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	wchar_t exe_path[MAX_PATH];
+	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
+	GetCurrentDirectory(MAX_PATH, exe_path);
+	
+	char* ccattr = strutil::wchar2char(exe_path);
+	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
+	free(ccattr);
+#endif
 }
 
 //-------------------------------------------------------------------------------------

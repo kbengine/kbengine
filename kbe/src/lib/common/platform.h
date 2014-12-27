@@ -541,23 +541,30 @@ inline int kbe_lasterror()
 /** 获取用户UID */
 inline int32 getUserUID()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	// VS2005:
-	#if _MSC_VER >= 1400
-		char uid[16];
-		size_t sz;
-		return getenv_s( &sz, uid, sizeof( uid ), "UID" ) == 0 ? atoi( uid ) : 0;
+	static int32 iuid = 0;
 
-	// VS2003:
-	#elif _MSC_VER < 1400
-		char * uid = getenv( "UID" );
-		return uid ? atoi( uid ) : 0;
-	#endif
+	if(iuid == 0)
+	{
+#if KBE_PLATFORM == PLATFORM_WIN32
+		// VS2005:
+		#if _MSC_VER >= 1400
+			char uid[16];
+			size_t sz;
+			iuid = getenv_s( &sz, uid, sizeof( uid ), "UID" ) == 0 ? atoi( uid ) : 0;
+
+		// VS2003:
+		#elif _MSC_VER < 1400
+			char * uid = getenv( "UID" );
+			iuid = uid ? atoi( uid ) : 0;
+		#endif
 #else
-// Linux:
-	char * uid = getenv( "UID" );
-	return uid ? atoi( uid ) : getuid();
+	// Linux:
+		char * uid = getenv( "UID" );
+		iuid = uid ? atoi( uid ) : getuid();
 #endif
+	}
+
+	return iuid;
 }
 
 /** 获取用户名 */

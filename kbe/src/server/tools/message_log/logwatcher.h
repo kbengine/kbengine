@@ -39,6 +39,7 @@ struct LOG_ITEM;
 
 struct FilterOptions
 {
+	int32 uid;
 	uint32 logtypes;
 	uint8 componentBitmap[COMPONENT_END_TYPE];
 	COMPONENT_ORDER globalOrder;
