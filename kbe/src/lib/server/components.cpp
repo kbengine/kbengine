@@ -1128,7 +1128,17 @@ RESTART_RECV:
 bool Components::process()
 {
 	if(componentType_ == MACHINE_TYPE)
+	{
+		INFO_MSG("Components::process(): The required components have been found!\n");
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		DebugHelper::getSingleton().set_normalcolor();
+		printf("[INFO]: The required components have been found!\n");
+		DebugHelper::getSingleton().set_normalcolor();
+#endif
+
 		return false;
+	}
 
 	if(state_ == 0)
 	{
@@ -1231,6 +1241,14 @@ bool Components::process()
 		else
 			return true;
 	}
+
+	INFO_MSG("Components::process(): The required components have been found!\n");
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		DebugHelper::getSingleton().set_normalcolor();
+		printf("[INFO]: The required components have been found!\n");
+		DebugHelper::getSingleton().set_normalcolor();
+#endif
 
 	return false;
 }
