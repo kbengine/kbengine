@@ -103,13 +103,13 @@ public:
 
 	/**
 		获得用户级资源目录
-		demo\\res\\*
+		assets\\res\\*
 	*/
 	std::string getPyUserResPath();
 
 	/**
 		获得用户级脚本目录
-		demo\\scripts\\*
+		assets\\scripts\\*
 	*/
 	std::string getPyUserScriptsPath();
 

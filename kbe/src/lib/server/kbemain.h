@@ -85,7 +85,7 @@ inline void loadConfig()
 	// "../../res/server/kbengine_defs.xml"
 	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
 
-	// "../../../demo/res/server/kbengine.xml"
+	// "../../../assets/res/server/kbengine.xml"
 	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 }
 

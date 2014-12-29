@@ -1,7 +1,7 @@
 BIN  = interfaces
 SRCS =						\
 	anonymous_channel			\
-	interfacessystem			\
+	interfaces				\
 	interfaces_tasks			\
 	interfaces_interface			\
 	orders					\

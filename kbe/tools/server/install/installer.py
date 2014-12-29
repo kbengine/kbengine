@@ -231,9 +231,9 @@ def resetKBEEnvironment():
 			x_KBE_ROOT.replace("\\", "/").replace("//", "/")
 		
 		if platform.system() == 'Windows':
-			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res/;%KBE_ROOT%/demo/;%KBE_ROOT%/demo/scripts/;%KBE_ROOT%/demo/res/"
+			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res/;%KBE_ROOT%/assets/;%KBE_ROOT%/assets/scripts/;%KBE_ROOT%/assets/res/"
 		else:
-			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/scripts/:$KBE_ROOT/demo/res/"
+			x_KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/assets/:$KBE_ROOT/assets/scripts/:$KBE_ROOT/assets/res/"
 			
 	if platform.architecture()[0] == '32bit':
 		x_KBE_BIN_PATH = "%KBE_ROOT%/kbe/bin/server/"
@@ -1273,13 +1273,13 @@ def copy_new_to_kbengine_dir(checksources = True):
 	if len(_install_path) > 0:
 		KBE_ROOT = _install_path
 		if platform.system() == 'Windows':
-			KBE_RES_PATH = "%KBE_ROOT%kbe/res/;%KBE_ROOT%demo/;%KBE_ROOT%/demo/scripts/;%KBE_ROOT%demo/res/"
+			KBE_RES_PATH = "%KBE_ROOT%kbe/res/;%KBE_ROOT%assets/;%KBE_ROOT%/assets/scripts/;%KBE_ROOT%assets/res/"
 			if platform.architecture()[0] == '32bit':
 				KBE_BIN_PATH = "%KBE_ROOT%kbe/bin/server/"
 			else:
 				KBE_BIN_PATH = "%KBE_ROOT%kbe/bin/server/"
 		else:
-			KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/scripts/:$KBE_ROOT/demo/res/"
+			KBE_RES_PATH = "$KBE_ROOT/kbe/res/:$KBE_ROOT/assets/:$KBE_ROOT/assets/scripts/:$KBE_ROOT/assets/res/"
 			if platform.architecture()[0] == '32bit':
 				KBE_BIN_PATH = "$KBE_ROOT/kbe/bin/server/"
 			else:

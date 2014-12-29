@@ -5,9 +5,10 @@
 	
 	<app_publish>0</app_publish>
 	
+	<!-- defined => kbe/res/server/kbengine_defs.xml -->
 	<dbmgr>
-		<host> 127.0.0.1 </host>
-		<databaseName> demo </databaseName>
+		<!-- <host> localhost </host> -->
+		<!-- <databaseName> kbe </databaseName> -->
 	</dbmgr>
 	
 	<baseapp>

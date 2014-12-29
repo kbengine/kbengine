@@ -84,7 +84,7 @@ void Resmgr::autoSetPaths()
 
 	s = s.substr(0, pos1 + 1);
 	kb_env_.root = s;
-	kb_env_.res_path = kb_env_.root + "kbe/res/;" + kb_env_.root + "/demo/;" + kb_env_.root + "/demo/scripts/;" + kb_env_.root + "/demo/res/";
+	kb_env_.res_path = kb_env_.root + "kbe/res/;" + kb_env_.root + "/assets/;" + kb_env_.root + "/assets/scripts/;" + kb_env_.root + "/assets/res/";
 }
 
 //-------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ bool Resmgr::initialize()
 	kb_env_.bin_path		= getenv("KBE_BIN_PATH") == NULL ? "" : getenv("KBE_BIN_PATH"); 
 
 	//kb_env_.root			= "/home/kbengine/";
-	//kb_env_.res_path		= "/home/kbengine/kbe/res/;/home/kbengine/demo/;/home/kbengine/demo/scripts/;/home/kbengine/demo/res/"; 
+	//kb_env_.res_path		= "/home/kbengine/kbe/res/;/home/kbengine/assets/;/home/kbengine/assets/scripts/;/home/kbengine/assets/res/"; 
 	//kb_env_.bin_path		= "/home/kbengine/kbe/bin/server/"; 
 	updatePaths();
 

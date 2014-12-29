@@ -328,7 +328,7 @@ bool EntityApp<E>::installEntityDef()
 		return false;
 
 	// 初始化所有扩展模块
-	// demo/scripts/
+	// assets/scripts/
 	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
 		return false;
 	}

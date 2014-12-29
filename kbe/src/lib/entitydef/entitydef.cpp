@@ -160,7 +160,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 初始化数据类别
-	// demo/scripts/entity_defs/alias.xml
+	// assets/scripts/entity_defs/alias.xml
 	if(!DataTypes::initialize(defFilePath + "alias.xml"))
 		return false;
 
