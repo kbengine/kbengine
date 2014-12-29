@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "orders.h"
 #include "interfaces.h"
-#include "billing_tasks.h"
+#include "interfaces_tasks.h"
 #include "anonymous_channel.h"
 #include "interfaces_interface.h"
 #include "network/common.h"
@@ -288,7 +288,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	OrdersCharge* pOrdersCharge = new OrdersCharge();
 
-	pOrdersCharge->timeout = timestamp()  + uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ * stampsPerSecond());
+	pOrdersCharge->timeout = timestamp()  + uint64(g_kbeSrvConfig.interfaces_orders_timeout_ * stampsPerSecond());
 
 	pOrdersCharge->dbmgrID = pChannel->componentID();
 	pOrdersCharge->address = pChannel->addr();

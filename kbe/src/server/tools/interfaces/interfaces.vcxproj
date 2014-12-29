@@ -110,7 +110,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="anonymous_channel.cpp" />
-    <ClCompile Include="billing_tasks.cpp" />
+    <ClCompile Include="interfaces_tasks.cpp" />
     <ClCompile Include="interfaces.cpp" />
     <ClCompile Include="interfaces_interface.cpp" />
     <ClCompile Include="main.cpp" />
@@ -118,7 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="anonymous_channel.h" />
-    <ClInclude Include="billing_tasks.h" />
+    <ClInclude Include="interfaces_tasks.h" />
     <ClInclude Include="interfaces.h" />
     <ClInclude Include="interfaces_interface.h" />
     <ClInclude Include="interfaces_interface_macros.h" />

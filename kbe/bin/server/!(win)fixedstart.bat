@@ -10,7 +10,7 @@ call "!(win)kill.bat"
 
 start kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
 rem start messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
-start billingsystem.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
+start interfaces.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
 start dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=4
 start baseappmgr.exe --cid=4129652375332859700 --grouporder=1  --globalorder=5
 start cellappmgr.exe --cid=5129652375332859700 --grouporder=1  --globalorder=6

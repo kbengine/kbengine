@@ -48,7 +48,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class DBInterface;
-class BillingHandler;
+class InterfacesHandler;
 class SyncAppDatasHandler;
 
 class Dbmgr :	public ServerApp, 
@@ -80,7 +80,7 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
-	bool initBillingHandler();
+	bool initInterfacesHandler();
 
 	bool initDB();
 
@@ -115,7 +115,7 @@ public:
 		请求创建账号
 	*/
 	void reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void onCreateAccountCBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateAccountCBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求擦除客户端请求任务
@@ -126,7 +126,7 @@ public:
 		一个新用户登录， 需要检查合法性
 	*/
 	void onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void onLoginAccountCBBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onLoginAccountCBBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseapp请求查询account信息
@@ -246,8 +246,8 @@ protected:
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
 
-	BillingHandler*										pBillingAccountHandler_;
-	BillingHandler*										pBillingChargeHandler_;
+	InterfacesHandler*									pInterfacesAccountHandler_;
+	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 };

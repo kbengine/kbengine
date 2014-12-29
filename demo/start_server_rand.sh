@@ -12,7 +12,7 @@ sh ./kill_server.sh
 
 $KBE_BIN_PATH/kbmachine&
 sleep 1s
-$KBE_BIN_PATH/billingsystem&
+$KBE_BIN_PATH/interfaces&
 sleep 1s
 $KBE_BIN_PATH/messagelog&
 sleep 1s

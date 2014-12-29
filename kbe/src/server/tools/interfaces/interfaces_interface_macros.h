@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef INTERFACES_INTERFACE_MACRO_H
+	#undef KBE_INTERFACES_TOOL_INTERFACE_MACRO_H
 #endif
 
 
-#ifndef KBE_INTERFACES_INTERFACE_MACRO_H
-#define KBE_INTERFACES_INTERFACE_MACRO_H
+#ifndef KBE_INTERFACES_TOOL_INTERFACE_MACRO_H
+#define KBE_INTERFACES_TOOL_INTERFACE_MACRO_H
 
 // common include	
 #include "network/interface_defs.h"

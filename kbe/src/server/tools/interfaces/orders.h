@@ -18,11 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BILLING_ORDERS_H
-#define KBE_BILLING_ORDERS_H
+#ifndef KBE_INTERFACES_ORDERS_H
+#define KBE_INTERFACES_ORDERS_H
 
-// common include	
-// #define NDEBUG
 #include "common/common.h"
 #include "common/memorystream.h"
 #include "thread/threadtask.h"
@@ -67,4 +65,4 @@ public:
 
 }
 
-#endif // KBE_BILLING_ORDERS_H
+#endif // KBE_INTERFACES_ORDERS_H

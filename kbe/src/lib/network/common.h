@@ -104,7 +104,7 @@ typedef uint16								PacketLength;				// 最大65535
 #define KBE_PORT_BROADCAST_DISCOVERY		KBE_PORT_START + 87
 #define KBE_MACHINE_TCP_PORT				KBE_PORT_START + 88
 
-#define KBE_INTERFACES_TYPE_TCP_PORT		30099
+#define KBE_INTERFACES_TCP_PORT				30099
 
 /*
 	网络消息类型， 定长或者变长。

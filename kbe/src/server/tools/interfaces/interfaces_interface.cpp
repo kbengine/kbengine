@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "interfaces_interface.h"
 
 namespace KBEngine{
-namespace InterfacesSystemInterface{
+namespace InterfacesInterface{
 //-------------------------------------------------------------------------------------
 }
 }

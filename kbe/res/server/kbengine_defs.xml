@@ -187,7 +187,7 @@
 	-->
 	<email_service_config>server/email_service.xml</email_service_config>
 		
-	<billingSystem>
+	<interfaces>
 		<!-- 
 			账号的类型(Account Type):
 			normal: 默认当前进程处理(default handling the current process), 
@@ -202,8 +202,8 @@
 		-->
 		<chargeType> normal </chargeType>
 		
-		<!-- billingSystem的地址，多组游戏服务端可以共用一个billingSystem
-			(billingSystem address, multiple gameserver can share a billingSystem)
+		<!-- interfaces的地址，多组游戏服务端可以共用一个interfaces
+			(interfaces address, multiple gameserver can share a interfaces)
 		-->
 		<host> localhost </host>
 		<port> 30099 	</port>
@@ -227,8 +227,8 @@
 		<thirdpartyChargeService_addr></thirdpartyChargeService_addr>
 		<thirdpartyChargeService_port> 80 </thirdpartyChargeService_port>
 		
-		<!-- billingSystem和第三方服务商协作的回调地址, 这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析
-			(billingSystem and third-party service providers collaborate callback address)
+		<!-- interfaces和第三方服务商协作的回调地址, 这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析
+			(interfaces and third-party service providers collaborate callback address)
 		-->
 		<thirdpartyService_cbport> 30040 </thirdpartyService_cbport>
 		
@@ -236,7 +236,7 @@
 		    (listen: Maximum listen queue)
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
-	</billingSystem>
+	</interfaces>
 	
 	<dbmgr>
 		<!-- debug模式下可输出读写操作信息

@@ -9,7 +9,7 @@ call "!(win)kill.bat"
 
 start kbmachine.exe
 #ping 127.0.0.1 -n 1
-start billingsystem.exe
+start interfaces.exe
 #ping 127.0.0.1 -n 1
 #start messagelog.exe
 #ping 127.0.0.1 -n 1

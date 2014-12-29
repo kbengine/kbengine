@@ -12,7 +12,7 @@ sh ./kill_server.sh
 
 $KBE_BIN_PATH/kbmachine --cid=2129652375332859700 --grouporder=1  --globalorder=1&
 $KBE_BIN_PATH/messagelog --cid=1129653375331859700 --grouporder=1 --globalorder=2&
-$KBE_BIN_PATH/billingsystem --cid=1129652375332859700 --grouporder=1 --globalorder=3&
+$KBE_BIN_PATH/interfaces --cid=1129652375332859700 --grouporder=1 --globalorder=3&
 $KBE_BIN_PATH/dbmgr --cid=3129652375332859700 --grouporder=1 --globalorder=4&
 $KBE_BIN_PATH/baseappmgr --cid=4129652375332859700 --grouporder=1  --globalorder=5&
 $KBE_BIN_PATH/cellappmgr --cid=5129652375332859700 --grouporder=1  --globalorder=6&

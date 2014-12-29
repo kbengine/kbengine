@@ -107,7 +107,7 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 	{
 		const std::string& extra = pChannel->extra();
 
-		// 通知billing从队列中清除他的请求， 避免拥塞
+		// 通知Interfaces从队列中清除他的请求， 避免拥塞
 		if(extra.size() > 0)
 		{
 			Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);

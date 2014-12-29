@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.h"
 #include "dbmgr_interface.h"
 #include "dbtasks.h"
-#include "billinghandler.h"
+#include "interfaceshandler.h"
 #include "sync_app_datas_handler.h"
 #include "db_mysql/kbe_table_mysql.h"
 #include "network/common.h"
@@ -233,7 +233,7 @@ bool Dbmgr::initInterfacesHandler()
 	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 
-	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: billing addr({}), accountType:({}), chargeType:({}).\n", 
+	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: interfaces addr({}), accountType:({}), chargeType:({}).\n", 
 		g_kbeSrvConfig.interfacesAddr().c_str(),
 		g_kbeSrvConfig.interfacesAccountType(),
 		g_kbeSrvConfig.interfacesChargeType()));

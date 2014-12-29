@@ -363,7 +363,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			port = xml->getValInt(childnode);
 
 			if(port <= 0)
-				port = KBE_BILLING_TCP_PORT;
+				port = KBE_INTERFACES_TCP_PORT;
 
 			Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
 			interfacesAddr_ = addr;

@@ -16,7 +16,7 @@ echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 start %KBE_BIN_PATH%/kbmachine.exe
-start %KBE_BIN_PATH%/billingsystem.exe
+start %KBE_BIN_PATH%/interfaces.exe
 ping 127.0.0.1 -n 1
 start %KBE_BIN_PATH%/messagelog.exe
 ping 127.0.0.1 -n 1

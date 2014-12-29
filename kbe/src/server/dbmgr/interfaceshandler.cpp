@@ -248,13 +248,13 @@ bool InterfacesHandler_ThirdParty::loginAccount(Network::Channel* pChannel, std:
 	(*(*bundle)) << loginName << password;
 	(*(*bundle)).appendBlob(datas);
 
-	if(pinterfacesChannel_->isDestroyed())
+	if(pInterfacesChannel_->isDestroyed())
 	{
 		if(!this->reconnect())
 			return false;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pinterfacesChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pInterfacesChannel_);
 	return true;
 }
 

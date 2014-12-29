@@ -17,7 +17,7 @@ echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
 start %KBE_BIN_PATH%/kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
 start %KBE_BIN_PATH%/messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
-start %KBE_BIN_PATH%/billingsystem.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
+start %KBE_BIN_PATH%/interfaces.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
 start %KBE_BIN_PATH%/dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=4
 start %KBE_BIN_PATH%/baseappmgr.exe --cid=4129652375332859700 --grouporder=1  --globalorder=5
 start %KBE_BIN_PATH%/cellappmgr.exe --cid=5129652375332859700 --grouporder=1  --globalorder=6
