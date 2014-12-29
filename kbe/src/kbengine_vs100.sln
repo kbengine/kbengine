@@ -49,7 +49,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_interface", "lib\db_inte
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_mysql", "lib\db_mysql\db_mysql.vcxproj", "{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "messagelog", "server\tools\message_log\messagelog.vcxproj", "{E999D336-32D1-48CC-A71F-FC552BD5093B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "logger", "server\tools\logger\logger.vcxproj", "{E999D336-32D1-48CC-A71F-FC552BD5093B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zip", "lib\dependencies\zip\zip2008.vcxproj", "{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
 EndProject
