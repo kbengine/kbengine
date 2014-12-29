@@ -1124,19 +1124,25 @@ RESTART_RECV:
 
 	return true;
 }
+
+//-------------------------------------------------------------------------------------
+void Components::onFoundAllComponents()
+{
+	INFO_MSG("Components::process(): Found all!\n");
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		DebugHelper::getSingleton().set_normalcolor();
+		printf("[INFO]: Found all!\n");
+		DebugHelper::getSingleton().set_normalcolor();
+#endif
+}
+
 //-------------------------------------------------------------------------------------
 bool Components::process()
 {
 	if(componentType_ == MACHINE_TYPE)
 	{
-		INFO_MSG("Components::process(): The required components have been found!\n");
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-		DebugHelper::getSingleton().set_normalcolor();
-		printf("[INFO]: The required components have been found!\n");
-		DebugHelper::getSingleton().set_normalcolor();
-#endif
-
+		onFoundAllComponents();
 		return false;
 	}
 
@@ -1242,14 +1248,7 @@ bool Components::process()
 			return true;
 	}
 
-	INFO_MSG("Components::process(): The required components have been found!\n");
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-		DebugHelper::getSingleton().set_normalcolor();
-		printf("[INFO]: The required components have been found!\n");
-		DebugHelper::getSingleton().set_normalcolor();
-#endif
-
+	onFoundAllComponents();
 	return false;
 }
 

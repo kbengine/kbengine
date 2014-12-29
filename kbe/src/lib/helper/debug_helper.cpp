@@ -83,6 +83,22 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 }
 #endif
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+	#define WRITING_LOG_TO(NAME)								\
+	{															\
+		wchar_t exe_path[MAX_PATH];								\
+		memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));		\
+		GetCurrentDirectory(MAX_PATH, exe_path);				\
+																\
+		char* ccattr = strutil::wchar2char(exe_path);			\
+		printf("Writing to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
+		free(ccattr);											\
+	}															\
+
+#else
+#define WRITING_LOG_TO(NAME) {}
+#endif
+
 //-------------------------------------------------------------------------------------
 void utf8printf(FILE *out, const char *str, ...)
 {
@@ -248,16 +264,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	g_logger = log4cxx::Logger::getRootLogger();
 #endif
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	wchar_t exe_path[MAX_PATH];
-	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
-	GetCurrentDirectory(MAX_PATH, exe_path);
-	
-	char* ccattr = strutil::wchar2char(exe_path);
-	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
-	free(ccattr);
-#endif
-
+	WRITING_LOG_TO("");
 }
 
 //-------------------------------------------------------------------------------------
@@ -469,32 +476,14 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 void DebugHelper::registerMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = *pAddr;
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	wchar_t exe_path[MAX_PATH];
-	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
-	GetCurrentDirectory(MAX_PATH, exe_path);
-	
-	char* ccattr = strutil::wchar2char(exe_path);
-	printf("Writing to: %s/logs/message_%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
-	free(ccattr);
-#endif
+	WRITING_LOG_TO("message_");
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = Network::Address::NONE;
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	wchar_t exe_path[MAX_PATH];
-	memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));
-	GetCurrentDirectory(MAX_PATH, exe_path);
-	
-	char* ccattr = strutil::wchar2char(exe_path);
-	printf("Writing to: %s/logs/%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));
-	free(ccattr);
-#endif
+	WRITING_LOG_TO("");
 }
 
 //-------------------------------------------------------------------------------------

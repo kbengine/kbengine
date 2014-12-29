@@ -207,6 +207,7 @@ private:
 	virtual bool process();
 	bool findInterfaces();
 
+	void onFoundAllComponents();
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;
