@@ -428,10 +428,10 @@ void Baseapp::updateLoad()
 	double spareTime = 1.0;
 	if (lastTickInStamps != 0)
 	{
-		spareTime = double(mainDispatcher_.getSpareTime())/double(lastTickInStamps);
+		spareTime = double(dispatcher_.getSpareTime())/double(lastTickInStamps);
 	}
 
-	mainDispatcher_.clearSpareTime();
+	dispatcher_.clearSpareTime();
 
 	// 如果空闲时间比例小于0 或者大于1则表明计时不准确
 	if ((spareTime < 0.f) || (1.f < spareTime))
@@ -506,12 +506,12 @@ bool Baseapp::initializeBegin()
 bool Baseapp::initializeEnd()
 {
 	// 添加一个timer， 每秒检查一些状态
-	loopCheckTimerHandle_ = this->mainDispatcher().addTimer(1000000, this,
+	loopCheckTimerHandle_ = this->dispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
 	if(Resmgr::respool_checktick > 0)
 	{
-		pResmgrTimerHandle_ = this->mainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
+		pResmgrTimerHandle_ = this->dispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
 			Resmgr::getSingletonPtr(), NULL);
 
 		INFO_MSG(fmt::format("Baseapp::initializeEnd: started resmgr tick({}s)!\n", 
@@ -532,7 +532,7 @@ bool Baseapp::initializeEnd()
 		script::PyProfile::start("kbengine");
 	}
 
-	pTelnetServer_ = new TelnetServer(&this->mainDispatcher(), &this->networkInterface());
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 
 	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getBaseApp().telnet_passwd, 

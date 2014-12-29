@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/timer.h"
 #include "helper/debug_helper.h"
 #include "network/common.h"
-#include "network/nub_exception.h"
+#include "network/network_exception.h"
 
 namespace KBEngine { 
 namespace Network
@@ -57,7 +57,7 @@ public:
 	void reportPendingExceptions(bool reportBelowThreshold = false);
 
 private:
-	void reportException(const NubException & ne, const char * prefix = NULL);
+	void reportException(const NetworkException & ne, const char * prefix = NULL);
 
 	void reportError(const Address & address, const char* format, ...);
 

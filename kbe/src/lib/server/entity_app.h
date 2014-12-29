@@ -287,7 +287,7 @@ bool EntityApp<E>::initialize()
 	bool ret = ServerApp::initialize();
 	if(ret)
 	{
-		gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		gameTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 								reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	}
 	return ret;

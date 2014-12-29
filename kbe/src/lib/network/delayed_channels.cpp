@@ -33,13 +33,13 @@ namespace Network
 void DelayedChannels::init(EventDispatcher & dispatcher, NetworkInterface* pNetworkInterface)
 {
 	pNetworkInterface_ = pNetworkInterface;
-	dispatcher.addFrequentTask( this );
+	dispatcher.addTask( this );
 }
 
 //-------------------------------------------------------------------------------------
 void DelayedChannels::fini(EventDispatcher & dispatcher)
 {
-	dispatcher.cancelFrequentTask( this );
+	dispatcher.cancelTask( this );
 }
 
 //-------------------------------------------------------------------------------------

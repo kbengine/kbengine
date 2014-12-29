@@ -69,7 +69,7 @@ CProfileHandler::CProfileHandler(Network::NetworkInterface & networkInterface, u
 							   std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr)
 {
-	networkInterface_.dispatcher().addFrequentTask(this);
+	networkInterface_.dispatcher().addTask(this);
 
 	ProfileGroup& defaultGroup = ProfileGroup::defaultGroup();
 	ProfileGroup::PROFILEVALS::const_iterator iter = defaultGroup.profiles().begin();
@@ -95,7 +95,7 @@ ProfileHandler(networkInterface, timinglen, name, addr)
 //-------------------------------------------------------------------------------------
 CProfileHandler::~CProfileHandler()
 {
-	networkInterface_.dispatcher().cancelFrequentTask(this);
+	networkInterface_.dispatcher().cancelTask(this);
 }
 
 //-------------------------------------------------------------------------------------

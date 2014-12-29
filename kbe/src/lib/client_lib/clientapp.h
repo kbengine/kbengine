@@ -112,8 +112,8 @@ public:
 	GAME_TIME time() const { return g_kbetime; }
 	double gameTimeInSeconds() const;
 
-	Network::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
-	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
+	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
+	Network::NetworkInterface & networkInterface()		{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
@@ -225,7 +225,7 @@ protected:
 	// 本组件的ID
 	COMPONENT_ID											componentID_;									
 
-	Network::EventDispatcher& 								mainDispatcher_;
+	Network::EventDispatcher& 								dispatcher_;
 	Network::NetworkInterface&								networkInterface_;
 	
 	Network::TCPPacketReceiver*								pTCPPacketReceiver_;

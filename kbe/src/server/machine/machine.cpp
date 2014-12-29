@@ -496,7 +496,7 @@ bool Machine::initNetwork()
 	ep_.addr(address);
 	pEPPacketReceiver_ = new Network::UDPPacketReceiver(ep_, this->networkInterface());
 
-	if(!this->mainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
+	if(!this->dispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
 	{
 		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
 		return false;
@@ -528,7 +528,7 @@ bool Machine::initNetwork()
 		epBroadcast_.addr(address);
 		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
 	
-		if(!this->mainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
+		if(!this->dispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
 			ERROR_MSG("Machine::initNetwork: registerFileDescriptor epBroadcast is failed!\n");
 			return false;
@@ -551,7 +551,7 @@ bool Machine::initNetwork()
 	epLocal_.addr(address);
 	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
 
-	if(!this->mainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
+	if(!this->dispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
 		ERROR_MSG("Machine::initNetwork: registerFileDescriptor epLocal is failed!\n");
 		return false;
@@ -566,10 +566,10 @@ bool Machine::run()
 {
 	bool ret = true;
 
-	while(!this->mainDispatcher().isBreakProcessing())
+	while(!this->dispatcher().hasBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->mainDispatcher().processOnce(false);
+		this->dispatcher().processOnce(false);
 		networkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};

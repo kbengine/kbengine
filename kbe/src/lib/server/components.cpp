@@ -919,7 +919,7 @@ bool Components::findInterfaces()
 
 		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
-			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
+			if(dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
 				return false;
 
 			COMPONENT_TYPE findComponentType = (COMPONENT_TYPE)findComponentTypes_[findIdx_];
@@ -1095,7 +1095,7 @@ RESTART_RECV:
 		// 开始注册到所有的组件
 		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
-			if(dispatcher().isBreakProcessing())
+			if(dispatcher().hasBreakProcessing())
 				return false;
 
 			int8 findComponentType = findComponentTypes_[findIdx_];
@@ -1148,7 +1148,7 @@ bool Components::process()
 
 		while(cidex++ < 2)
 		{
-			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
+			if(dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
 				return false;
 
 			srand(KBEngine::getSystemTime());

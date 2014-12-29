@@ -36,7 +36,7 @@ SyncEntityStreamTemplateHandler::SyncEntityStreamTemplateHandler(Network::Networ
 Task(),
 networkInterface_(networkInterface)
 {
-	networkInterface.dispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addTask(this);
 
 	MemoryStream accountDefMemoryStream;
 
@@ -66,7 +66,7 @@ networkInterface_(networkInterface)
 //-------------------------------------------------------------------------------------
 SyncEntityStreamTemplateHandler::~SyncEntityStreamTemplateHandler()
 {
-	// networkInterface_.mainDispatcher().cancelFrequentTask(this);
+	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("SyncEntityStreamTemplateHandler::~SyncEntityStreamTemplateHandler()\n");
 }
 

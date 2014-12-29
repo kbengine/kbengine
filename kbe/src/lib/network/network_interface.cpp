@@ -41,7 +41,7 @@ const int NetworkInterface::RECV_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB
 const char * NetworkInterface::USE_KBEMACHINED = "kbemachine";
 
 //-------------------------------------------------------------------------------------
-NetworkInterface::NetworkInterface(Network::EventDispatcher * pMainDispatcher,
+NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
 		uint32 extrbuffer, uint32 extwbuffer,
 		int32 intlisteningPort, const char * intlisteningInterface,
@@ -49,7 +49,7 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pMainDispatcher,
 	extEndpoint_(),
 	intEndpoint_(),
 	channelMap_(),
-	pDispatcher_(pMainDispatcher),
+	pDispatcher_(pDispatcher),
 	pExtensionData_(NULL),
 	pExtListenerReceiver_(NULL),
 	pIntListenerReceiver_(NULL),

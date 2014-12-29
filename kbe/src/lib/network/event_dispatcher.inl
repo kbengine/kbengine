@@ -27,12 +27,6 @@ INLINE TimerHandle EventDispatcher::addTimer(int64 microseconds,
 	return this->addTimerCommon(microseconds, handler, arg, true);
 }
 
-INLINE TimerHandle EventDispatcher::addOnceOffTimer(int64 microseconds,
-	TimerHandler * handler, void * arg)
-{
-	return this->addTimerCommon(microseconds, handler, arg, false);
-}
-
 INLINE void EventDispatcher::breakProcessing(bool breakState)
 {
 	if(breakState)
@@ -46,9 +40,14 @@ INLINE void EventDispatcher::setWaitBreakProcessing()
 	breakProcessing_ = EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING;
 }
 
-INLINE bool EventDispatcher::processingBroken() const
-{
-	return breakProcessing_ == EVENT_DISPATCHER_STATUS_BREAK_PROCESSING;
+INLINE bool EventDispatcher::hasBreakProcessing()const 
+{ 
+	return breakProcessing_ == EVENT_DISPATCHER_STATUS_BREAK_PROCESSING; 
+}
+
+INLINE bool EventDispatcher::waitingBreakProcessing()const 
+{ 
+	return breakProcessing_ == EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING; 
 }
 
 INLINE double EventDispatcher::maxWait() const

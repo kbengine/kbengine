@@ -143,9 +143,6 @@ public:
 	TimerHandle	add(TimeStamp startTime, TimeStamp interval,
 						TimerHandler* pHandler, void * pUser);
 	
-	TIME_STAMP timerDeliveryTime(TimerHandle handle) const;
-	TIME_STAMP timerIntervalTime(TimerHandle handle) const;
-	TIME_STAMP& timerIntervalTime(TimerHandle handle);
 private:
 	
 	typedef std::vector<KBEngine::TimeBase *> Container;
@@ -162,9 +159,6 @@ private:
 
 		TIME_STAMP time() const			{ return time_; }
 		TIME_STAMP interval() const		{ return interval_; }
-		TIME_STAMP &intervalRef()		{ return interval_; }
-
-		TIME_STAMP deliveryTime() const;
 
 		void triggerTimer();
 
@@ -220,7 +214,7 @@ private:
 
 		Container & container()		{ return container_; }
 
-		void heapify()
+		void make_heap()
 		{
 			std::make_heap( container_.begin(), container_.end(),
 					Comparator() );

@@ -43,14 +43,14 @@ spaceIDs_(),
 cellappID_(cellappID),
 canRestore_(false)
 {
-	// networkInterface_.mainDispatcher().addFrequentTask(this);
+	// networkInterface_.dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 RestoreEntityHandler::~RestoreEntityHandler()
 {
 	if(inProcess_)
-		networkInterface_.dispatcher().cancelFrequentTask(this);
+		networkInterface_.dispatcher().cancelTask(this);
 
 	std::vector<RestoreData>::iterator restoreSpacesIter = otherRestoredSpaces_.begin();
 	for(; restoreSpacesIter != otherRestoredSpaces_.end(); ++restoreSpacesIter)
@@ -97,7 +97,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 	if(!inProcess_)
 	{
 		inProcess_ = true;
-		networkInterface_.dispatcher().addFrequentTask(this);
+		networkInterface_.dispatcher().addTask(this);
 	}
 
 	tickReport_ = timestamp();

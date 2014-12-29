@@ -34,13 +34,13 @@ ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Network::NetworkI
 	networkInterface_(networkInterface),
 	start_(false)
 {
-	// dispatcher().addFrequentTask(this);
+	// dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 ForwardComponent_MessageBuffer::~ForwardComponent_MessageBuffer()
 {
-	//dispatcher().cancelFrequentTask(this);
+	//dispatcher().cancelTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ void ForwardComponent_MessageBuffer::push(COMPONENT_ID componentID, ForwardItem*
 {
 	if(!start_)
 	{
-		dispatcher().addFrequentTask(this);
+		dispatcher().addTask(this);
 		start_ = true;
 	}
 	
@@ -117,13 +117,13 @@ ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Network::NetworkInt
 	forwardComponentType_(forwardComponentType),
 	start_(false)
 {
-	// dispatcher().addFrequentTask(this);
+	// dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 ForwardAnywhere_MessageBuffer::~ForwardAnywhere_MessageBuffer()
 {
-	//dispatcher().cancelFrequentTask(this);
+	//dispatcher().cancelTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ void ForwardAnywhere_MessageBuffer::push(ForwardItem* pHandler)
 {
 	if(!start_)
 	{
-		dispatcher().addFrequentTask(this);
+		dispatcher().addTask(this);
 		start_ = true;
 	}
 	

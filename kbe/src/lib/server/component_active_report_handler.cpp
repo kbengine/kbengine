@@ -60,7 +60,7 @@ void ComponentActiveReportHandler::cancel()
 void ComponentActiveReportHandler::startActiveTick(float period)
 {
 	cancel();
-	pActiveTimerHandle_ = pApp_->mainDispatcher().addTimer(int(period * 1000000),
+	pActiveTimerHandle_ = pApp_->dispatcher().addTimer(int(period * 1000000),
 									this, (void *)TIMEOUT_ACTIVE_TICK);
 }
 

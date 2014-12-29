@@ -43,7 +43,7 @@ public:
 	void historyCommandCheck();
 	CString getHistoryCommand(bool isNextCommand);
 	void commitPythonCommand(CString strCommand);
-	Network::EventDispatcher & mainDispatcher()				{ return _dispatcher; }
+	Network::EventDispatcher & dispatcher()				{ return _dispatcher; }
 	Network::NetworkInterface & networkInterface()			{ return _networkInterface; }
 	HTREEITEM hasCheckApp(COMPONENT_TYPE type);
 

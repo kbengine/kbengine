@@ -118,7 +118,7 @@ void TimersT< TIME_STAMP >::purgeCancelledTimes()
 	KBE_ASSERT( (numCancelled_ == 0) || (numCancelled_ == 1) );
 	
 	container.erase( newEnd, container.end() );
-	timeQueue_.heapify();
+	timeQueue_.make_heap();
 }
 
 template <class TIME_STAMP>
@@ -219,29 +219,6 @@ bool TimersT< TIME_STAMP >::getTimerInfo( TimerHandle handle,
 	return false;
 }
 
-template <class TIME_STAMP>
-TIME_STAMP
-	TimersT< TIME_STAMP >::timerDeliveryTime(TimerHandle handle) const
-{
-	Time * pTime = static_cast< Time * >( handle.time() );
-	return pTime->deliveryTime();
-}
-
-template <class TIME_STAMP>
-TIME_STAMP
-	TimersT< TIME_STAMP >::timerIntervalTime(TimerHandle handle) const
-{
-	Time * pTime = static_cast< Time * >( handle.time() );
-	return pTime->interval();
-}
-
-template <class TIME_STAMP>
-TIME_STAMP & TimersT< TIME_STAMP >::timerIntervalTime( TimerHandle handle )
-{
-	Time * pTime = static_cast< Time * >( handle.time() );
-	return pTime->intervalRef();
-}
-
 
 inline TimeBase::TimeBase(TimersBase & owner, TimerHandler * pHandler, void * pUserData) :
 	owner_(owner),
@@ -279,13 +256,6 @@ TimersT< TIME_STAMP >::Time::Time( TimersBase & owner,
 	interval_(interval)
 {
 }
-
-template <class TIME_STAMP>
-TIME_STAMP TimersT< TIME_STAMP >::Time::deliveryTime() const
-{
-	return this->isExecuting() ?  (time_ + interval_) : time_;
-}
-
 
 template <class TIME_STAMP>
 void TimersT< TIME_STAMP >::Time::triggerTimer()

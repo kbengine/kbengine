@@ -76,7 +76,7 @@ Bots::~Bots()
 bool Bots::initialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
-	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
+	this->dispatcher().addTask(&Components::getSingleton());
 	return ClientApp::initialize();
 }
 
@@ -89,7 +89,7 @@ bool Bots::initializeBegin()
 	Network::g_extReceiveWindowMessagesOverflow = 0;
 	Network::g_receiveWindowMessagesOverflowCritical = 0;
 
-	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
@@ -99,7 +99,7 @@ bool Bots::initializeBegin()
 //-------------------------------------------------------------------------------------	
 bool Bots::initializeEnd()
 {
-	pTelnetServer_ = new TelnetServer(&mainDispatcher(), &networkInterface());
+	pTelnetServer_ = new TelnetServer(&dispatcher(), &networkInterface());
 	pTelnetServer_->pScript(&getScript());
 	if(!pTelnetServer_->start(g_kbeSrvConfig.getBots().telnet_passwd, 
 		g_kbeSrvConfig.getBots().telnet_deflayer, 

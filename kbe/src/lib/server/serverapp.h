@@ -110,7 +110,7 @@ public:
 
 	thread::ThreadPool& threadPool(){ return threadPool_; }
 
-	Network::EventDispatcher & mainDispatcher()				{ return mainDispatcher_; }
+	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
 	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
 	COMPONENT_ID componentID()const	{ return componentID_; }
@@ -202,7 +202,7 @@ protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
 
-	Network::EventDispatcher& 								mainDispatcher_;	
+	Network::EventDispatcher& 								dispatcher_;	
 	Network::NetworkInterface&								networkInterface_;
 	
 	Timers													timers_;

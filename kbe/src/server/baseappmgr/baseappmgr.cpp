@@ -147,7 +147,7 @@ bool Baseappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeEnd()
 {
-	gameTimer_ = this->mainDispatcher().addTimer(1000000 / 50, this,
+	gameTimer_ = this->dispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	return true;
 }

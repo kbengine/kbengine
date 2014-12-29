@@ -61,7 +61,7 @@ Network::ChannelTimeOutHandler(),
 Components::ComponentsNotificationHandler(),
 componentType_(componentType),
 componentID_(componentID),
-mainDispatcher_(dispatcher),
+dispatcher_(dispatcher),
 networkInterface_(ninterface),
 timers_(),
 startGlobalOrder_(-1),
@@ -95,7 +95,7 @@ void ServerApp::shutDown(float shutdowntime)
 		pShutdowner_ = new Shutdowner(this);
 
 	pShutdowner_->shutdown(shutdowntime < 0.f ? g_kbeSrvConfig.shutdowntime() : shutdowntime, 
-		g_kbeSrvConfig.shutdownWaitTickTime(), mainDispatcher_);
+		g_kbeSrvConfig.shutdownWaitTickTime(), dispatcher_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ void ServerApp::onShutdownBegin()
 	printf("[INFO]: shutdown begin.\n");
 #endif
 
-	mainDispatcher_.setWaitBreakProcessing();
+	dispatcher_.setWaitBreakProcessing();
 }
 
 //-------------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ void ServerApp::onShutdown(bool first)
 //-------------------------------------------------------------------------------------
 void ServerApp::onShutdownEnd()
 {
-	mainDispatcher_.breakProcessing();
+	dispatcher_.breakProcessing();
 }
 
 //-------------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ bool ServerApp::initialize()
 	// 广播自己的地址给网上上的所有kbemachine
 	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
 	Components::getSingleton().pHandler(this);
-	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
+	this->dispatcher().addTask(&Components::getSingleton());
 
 	bool ret = initializeEnd();
 
@@ -259,7 +259,7 @@ void ServerApp::handleTimers()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::run(void)
 {
-	mainDispatcher_.processUntilBreak();
+	dispatcher_.processUntilBreak();
 	return true;
 }
 

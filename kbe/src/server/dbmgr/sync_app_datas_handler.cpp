@@ -43,13 +43,13 @@ networkInterface_(networkInterface),
 lastRegAppTime_(0),
 apps_()
 {
-	networkInterface.dispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 SyncAppDatasHandler::~SyncAppDatasHandler()
 {
-	// networkInterface_.mainDispatcher().cancelFrequentTask(this);
+	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("SyncAppDatasHandler::~SyncAppDatasHandler()\n");
 
 	Dbmgr::getSingleton().pSyncAppDatasHandler(NULL);

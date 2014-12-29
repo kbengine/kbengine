@@ -155,7 +155,7 @@ void ErrorReporter::reportException(Reason reason,
 		const Address & addr,
 		const char* prefix)
 {
-	NubException ne(reason, addr);
+	NetworkException ne(reason, addr);
 	this->reportException(ne, prefix);
 
 }
@@ -170,7 +170,7 @@ void ErrorReporter::reportException(Reason reason,
  *	@param prefix 	any prefix to add to the error message, or NULL if no prefix
  *
  */
-void ErrorReporter::reportException(const NubException & ne, const char* prefix)
+void ErrorReporter::reportException(const NetworkException & ne, const char* prefix)
 {
 	Address offender(0, 0);
 	ne.getAddress(offender);

@@ -49,7 +49,7 @@ public:
 	static const char * USE_KBEMACHINED;
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
-	NetworkInterface(EventDispatcher * pMainDispatcher,
+	NetworkInterface(EventDispatcher * pDispatcher,
 		int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 		uint32 extrbuffer = 0, uint32 extwbuffer = 0, 
 		int32 intlisteningPort = 0, const char * intlisteningInterface = "",

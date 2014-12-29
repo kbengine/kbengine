@@ -32,7 +32,7 @@ pBase_(pBase),
 completed_(false),
 startForward_(false)
 {
-	Baseapp::getSingleton().networkInterface().dispatcher().addFrequentTask(this);
+	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 		bufferedSendToCellappMessages_.size()));
 
 	if(!completed_)
-		Baseapp::getSingleton().networkInterface().dispatcher().cancelFrequentTask(this);
+		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
 
 	std::vector<Network::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
 	for(; iter != bufferedSendToCellappMessages_.end(); ++iter)

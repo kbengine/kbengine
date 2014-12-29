@@ -60,7 +60,7 @@ scriptBaseTypes_(),
 gameTimer_(),
 componentType_(componentType),
 componentID_(componentID),
-mainDispatcher_(dispatcher),
+dispatcher_(dispatcher),
 networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
 pBlowfishFilter_(NULL),
@@ -109,7 +109,7 @@ int ClientApp::unregisterPyObjectToScript(const char* attrName)
 //-------------------------------------------------------------------------------------	
 bool ClientApp::initializeBegin()
 {
-	gameTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->dispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
@@ -420,14 +420,14 @@ void ClientApp::handleGameTick()
 //-------------------------------------------------------------------------------------		
 bool ClientApp::run(void)
 {
-	mainDispatcher_.processUntilBreak();
+	dispatcher_.processUntilBreak();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------		
 int ClientApp::processOnce(bool shouldIdle)
 {
-	return mainDispatcher_.processOnce(shouldIdle);
+	return dispatcher_.processOnce(shouldIdle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -544,7 +544,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 void ClientApp::shutDown()
 {
 	INFO_MSG("ClientApp::shutDown: shutting down\n");
-	mainDispatcher_.breakProcessing();
+	dispatcher_.breakProcessing();
 }
 
 //-------------------------------------------------------------------------------------	

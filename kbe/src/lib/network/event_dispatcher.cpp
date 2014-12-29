@@ -39,7 +39,7 @@ EventDispatcher::EventDispatcher() :
 	oldSpareTime_(0),
 	totSpareTime_(0),
 	lastStatisticsGathered_(0),
-	pFrequentTasks_(new Tasks),
+	pTasks_(new Tasks),
 	pErrorReporter_(NULL),
 	pTimers_(new Timers64)
 	
@@ -52,7 +52,7 @@ EventDispatcher::EventDispatcher() :
 EventDispatcher::~EventDispatcher()
 {
 	SAFE_RELEASE(pErrorReporter_);
-	SAFE_RELEASE(pFrequentTasks_);
+	SAFE_RELEASE(pTasks_);
 	SAFE_RELEASE(pPoller_);
 	
 	if (!pTimers_->empty())
@@ -132,41 +132,16 @@ void EventDispatcher::clearSpareTime()
 	pPoller_->clearSpareTime();
 }
 
-uint64 EventDispatcher::timerDeliveryTime(TimerHandle handle) const
+//-------------------------------------------------------------------------------------
+void EventDispatcher::addTask(Task * pTask)
 {
-	return pTimers_->timerDeliveryTime(handle);
+	pTasks_->add(pTask);
 }
 
 //-------------------------------------------------------------------------------------
-uint64 EventDispatcher::timerIntervalTime(TimerHandle handle) const
+bool EventDispatcher::cancelTask(Task * pTask)
 {
-	return pTimers_->timerIntervalTime(handle);
-}
-
-//-------------------------------------------------------------------------------------
-uint64 & EventDispatcher::timerIntervalTime(TimerHandle handle)
-{
-	return pTimers_->timerIntervalTime(handle);
-}
-
-//-------------------------------------------------------------------------------------
-double EventDispatcher::proportionalSpareTime() const
-{
-	double ret = (double)(int64)(totSpareTime_ - oldSpareTime_);
-	return ret / stampsPerSecondD();
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::addFrequentTask(Task * pTask)
-{
-	pFrequentTasks_->add(pTask);
-}
-
-//-------------------------------------------------------------------------------------
-bool EventDispatcher::cancelFrequentTask(Task * pTask)
-{
-	return pFrequentTasks_->cancel(pTask);
+	return pTasks_->cancel(pTask);
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,21 +155,13 @@ double EventDispatcher::calculateWait() const
 			pTimers_->nextExp(timestamp()) / stampsPerSecondD());
 	}
 
-	ChildDispatchers::const_iterator iter = childDispatchers_.begin();
-
-	while (iter != childDispatchers_.end())
-	{
-		maxWait = std::min(maxWait, (*iter)->calculateWait());
-		++iter;
-	}
-
 	return maxWait;
 }
 
 //-------------------------------------------------------------------------------------
-void EventDispatcher::processFrequentTasks()
+void EventDispatcher::processTasks()
 {
-	pFrequentTasks_->process();
+	pTasks_->process();
 }
 
 //-------------------------------------------------------------------------------------
@@ -225,12 +192,6 @@ int EventDispatcher::processNetwork(bool shouldIdle)
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processUntilBreak()
 {
-	this->processContinuously();
-}
-
-//-------------------------------------------------------------------------------------
-void EventDispatcher::processContinuously()
-{
 	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
 		breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
 
@@ -246,7 +207,7 @@ int EventDispatcher::processOnce(bool shouldIdle)
 	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
 		breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
 
-	this->processFrequentTasks();
+	this->processTasks();
 
 	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING){
 		this->processTimers();

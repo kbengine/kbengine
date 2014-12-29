@@ -57,10 +57,10 @@ bool Messagelog::run()
 {
 	bool ret = true;
 
-	while(!this->mainDispatcher().isBreakProcessing())
+	while(!this->dispatcher().hasBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->mainDispatcher().processOnce(false);
+		this->dispatcher().processOnce(false);
 		networkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
 		KBEngine::sleep(10);
 	};

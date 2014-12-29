@@ -271,11 +271,11 @@ bool Cellapp::initializeEnd()
 	// ÊÇ·ñ¹ÜÀíYÖá
 	CoordinateSystem::hasY = g_kbeSrvConfig.getCellApp().coordinateSystem_hasY;
 
-	mainDispatcher_.clearSpareTime();
+	dispatcher_.clearSpareTime();
 
 	pGhostManager_ = new GhostManager();
 
-	pTelnetServer_ = new TelnetServer(&this->mainDispatcher(), &this->networkInterface());
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 
 	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 

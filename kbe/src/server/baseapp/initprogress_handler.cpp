@@ -36,13 +36,13 @@ InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInte
 Task(),
 networkInterface_(networkInterface)
 {
-	networkInterface.dispatcher().addFrequentTask(this);
+	networkInterface.dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 InitProgressHandler::~InitProgressHandler()
 {
-	// networkInterface_.mainDispatcher().cancelFrequentTask(this);
+	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("InitProgressHandler::~InitProgressHandler()\n");
 }
 

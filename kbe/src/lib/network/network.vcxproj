@@ -142,7 +142,7 @@
     <ClInclude Include="network_stats.h" />
     <ClInclude Include="message_handler.h" />
     <ClInclude Include="network_interface.h" />
-    <ClInclude Include="nub_exception.h" />
+    <ClInclude Include="network_exception.h" />
     <ClInclude Include="packet.h" />
     <ClInclude Include="packet_filter.h" />
     <ClInclude Include="packet_reader.h" />

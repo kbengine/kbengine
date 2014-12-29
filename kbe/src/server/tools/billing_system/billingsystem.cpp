@@ -176,14 +176,14 @@ bool BillingSystem::inInitialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
-	this->mainDispatcher().addFrequentTask(&Components::getSingleton());
+	this->dispatcher().addTask(&Components::getSingleton());
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool BillingSystem::initializeEnd()
 {
-	mainProcessTimer_ = this->mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	// 不做频道超时检查

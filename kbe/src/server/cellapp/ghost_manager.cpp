@@ -69,7 +69,7 @@ void GhostManager::start()
 	if(pTimerHandle_ == NULL)
 	{
 		pTimerHandle_ = new TimerHandle();
-		(*pTimerHandle_) = Cellapp::getSingleton().mainDispatcher().addTimer(1000000 / g_kbeSrvConfig.getCellApp().ghostUpdateHertz, this,
+		(*pTimerHandle_) = Cellapp::getSingleton().dispatcher().addTimer(1000000 / g_kbeSrvConfig.getCellApp().ghostUpdateHertz, this,
 								NULL);
 	}
 }
