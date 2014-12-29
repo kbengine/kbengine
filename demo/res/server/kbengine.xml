@@ -27,11 +27,8 @@
 	<loginapp>
 	</loginapp>	
 	
-	<kbmachine>
-	</kbmachine>
-	
-	<kbcenter>
-	</kbcenter>
+	<machine>
+	</machine>
 	
 	<bots>
 	</bots>

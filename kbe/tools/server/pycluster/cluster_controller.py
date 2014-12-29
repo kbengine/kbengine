@@ -43,7 +43,7 @@ COMPONENT_NAME2TYPE = {
 	"cellapp" 		: CELLAPP_TYPE,
 	"baseapp" 		: BASEAPP_TYPE,
 	"client" 		: CLIENT_TYPE,
-	"kbmachine"		: MACHINE_TYPE,
+	"machine"		: MACHINE_TYPE,
 	"console" 		: CONSOLE_TYPE,
 	"messagelog" 	: MESSAGELOG_TYPE,
 	"bots" 			: BOTS_TYPE,
@@ -61,7 +61,7 @@ COMPONENT_NAME = (
 	"cellapp",
 	"baseapp",
 	"client",
-	"kbmachine",
+	"machine",
 	"kbcenter",
 	"console",
 	"messagelog",
@@ -471,8 +471,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 		print("online-components:")
 		printed = []
 		for ctype in self.startTemplate:
-			if ctype not in COMPONENT_NAME2TYPE or ctype == "kbmachine":
-				if(ctype != "kbmachine"):
+			if ctype not in COMPONENT_NAME2TYPE or ctype == "machine":
+				if(ctype != "machine"):
 					print("not found %s, stop failed!" % ctype)
 				continue
 			
@@ -515,7 +515,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			waitcount = 0
 			for ctype in interfacesCount:
-				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "kbmachine":
+				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "machine":
 					continue
 			
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])

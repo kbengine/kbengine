@@ -648,13 +648,13 @@
 		<http_cbport> 21103 </http_cbport>
 	</loginapp>		
 	
-	<kbmachine>
+	<machine>
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the tools port range） 
 		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
-	</kbmachine>
+	</machine>
 	
 	<bots>
 		<!-- 接口网卡的名称

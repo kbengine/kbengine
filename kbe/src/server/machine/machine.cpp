@@ -141,7 +141,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
 		{
-			WARNING_MSG("Machine::onBroadcastInterface: kbmachine has running!\n");
+			WARNING_MSG("Machine::onBroadcastInterface: machine has running!\n");
 			return;
 		}
 	

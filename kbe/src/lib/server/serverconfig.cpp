@@ -936,7 +936,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 	
-	rootNode = xml->getRootNode("kbmachine");
+	rootNode = xml->getRootNode("machine");
 	if(rootNode != NULL)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
