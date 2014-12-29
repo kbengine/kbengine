@@ -84,19 +84,22 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 #endif
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	#define WRITING_LOG_TO(NAME)								\
+	#define ALERT_LOG_TO(NAME, CHANGED)							\
 	{															\
 		wchar_t exe_path[MAX_PATH];								\
 		memset(exe_path, 0, MAX_PATH * sizeof(wchar_t));		\
 		GetCurrentDirectory(MAX_PATH, exe_path);				\
 																\
 		char* ccattr = strutil::wchar2char(exe_path);			\
-		printf("Writing to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
+		if(CHANGED)												\
+			printf("Logging(changed) to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
+		else													\
+			printf("Logging to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
 		free(ccattr);											\
 	}															\
 
 #else
-#define WRITING_LOG_TO(NAME) {}
+#define ALERT_LOG_TO(NAME, CHANGED) {}
 #endif
 
 //-------------------------------------------------------------------------------------
@@ -264,7 +267,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	g_logger = log4cxx::Logger::getRootLogger();
 #endif
 
-	WRITING_LOG_TO("");
+	ALERT_LOG_TO("", false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -476,14 +479,14 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 void DebugHelper::registerMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = *pAddr;
-	WRITING_LOG_TO("message_");
+	ALERT_LOG_TO("message_", true);
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr)
 {
 	messagelogAddr_ = Network::Address::NONE;
-	WRITING_LOG_TO("");
+	ALERT_LOG_TO("", true);
 }
 
 //-------------------------------------------------------------------------------------
