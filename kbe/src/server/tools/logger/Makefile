@@ -1,7 +1,7 @@
-BIN  = messagelog
+BIN  = logger
 SRCS =						\
-	messagelog				\
-	messagelog_interface			\
+	logger					\
+	logger_interface			\
 	logwatcher				\
 	main
 
@@ -23,7 +23,7 @@ ifndef NO_USE_LOG4CXX
 endif
 
 #HAS_PCH = 1
-CPPFLAGS += -DKBE_MESSAGELOG
+CPPFLAGS += -DKBE_LOGGER
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/tools/$(BIN),,$(CURDIR))
