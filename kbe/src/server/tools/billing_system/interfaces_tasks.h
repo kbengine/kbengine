@@ -18,11 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BILLING_TASKS_H
-#define KBE_BILLING_TASKS_H
+#ifndef KBE_INTERFACES_TASKS_H
+#define KBE_INTERFACES_TASKS_H
 
 // common include	
-// #define NDEBUG
 #include "common/common.h"
 #include "common/memorystream.h"
 #include "thread/threadtask.h"
@@ -34,16 +33,16 @@ namespace KBEngine{
 
 class Orders;
 
-#define BILLING_TASK_UNKNOWN 0
-#define BILLING_TASK_CREATEACCOUNT 1
-#define BILLING_TASK_LOGIN 2
-#define BILLING_TASK_CHARGE 3
+#define INTERFACES_TASK_UNKNOWN 0
+#define INTERFACES_TASK_CREATEACCOUNT 1
+#define INTERFACES_TASK_LOGIN 2
+#define INTERFACES_TASK_CHARGE 3
 
-class BillingTask : public thread::TPTask
+class InterfacesTask : public thread::TPTask
 {
 public:
-	BillingTask();
-	virtual ~BillingTask();
+	InterfacesTask();
+	virtual ~InterfacesTask();
 	
 	virtual bool process() = 0;
 	
@@ -67,13 +66,13 @@ public:
 	bool enable;
 };
 
-class CreateAccountTask : public BillingTask
+class CreateAccountTask : public InterfacesTask
 {
 public:
 	CreateAccountTask();
 	virtual ~CreateAccountTask();
 	
-	virtual uint8 type(){ return BILLING_TASK_CREATEACCOUNT; }
+	virtual uint8 type(){ return INTERFACES_TASK_CREATEACCOUNT; }
 
 	virtual bool process();
 	
@@ -81,8 +80,8 @@ public:
 
 	thread::TPTask::TPTaskState presentMainThread();
 
-	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(); }
-	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort(); }
+	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.interfacesThirdpartyAccountServiceAddr(); }
+	virtual uint16 servicePort() const{ return g_kbeSrvConfig.interfacesThirdpartyAccountServicePort(); }
 protected:
 };
 
@@ -92,26 +91,26 @@ public:
 	LoginAccountTask();
 	virtual ~LoginAccountTask();
 	
-	virtual uint8 type(){ return BILLING_TASK_LOGIN; }
+	virtual uint8 type(){ return INTERFACES_TASK_LOGIN; }
 
 	virtual void removeLog();
 	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };
 
-class ChargeTask : public BillingTask
+class ChargeTask : public InterfacesTask
 {
 public:
 	ChargeTask();
 	virtual ~ChargeTask();
 	
-	virtual uint8 type(){ return BILLING_TASK_CHARGE; }
+	virtual uint8 type(){ return INTERFACES_TASK_CHARGE; }
 
 	virtual bool process();
 	thread::TPTask::TPTaskState presentMainThread();
 
-	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr(); }
-	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort(); }
+	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.interfacesThirdpartyChargeServiceAddr(); }
+	virtual uint16 servicePort() const{ return g_kbeSrvConfig.interfacesThirdpartyChargeServicePort(); }
 
 	OrdersCharge* pOrders;
 	OrdersCharge orders;
@@ -121,4 +120,4 @@ public:
 
 }
 
-#endif // KBE_BILLING_TASKS_H
+#endif // KBE_INTERFACES_TASKS_H

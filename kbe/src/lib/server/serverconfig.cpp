@@ -38,14 +38,14 @@ ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
 tick_max_buffered_logs_(4096),
 tick_max_sync_logs_(32),
-billingSystemAddr_(),
-billingSystem_accountType_(""),
-billingSystem_chargeType_(""),
-billingSystem_thirdpartyAccountServiceAddr_(""),
-billingSystem_thirdpartyAccountServicePort_(80),
-billingSystem_thirdpartyChargeServiceAddr_(""),
-billingSystem_thirdpartyChargeServicePort_(80),
-billingSystem_thirdpartyServiceCBPort_(0),
+interfacesAddr_(),
+interfaces_accountType_(""),
+interfaces_chargeType_(""),
+interfaces_thirdpartyAccountServiceAddr_(""),
+interfaces_thirdpartyAccountServicePort_(80),
+interfaces_thirdpartyChargeServiceAddr_(""),
+interfaces_thirdpartyChargeServicePort_(80),
+interfaces_thirdpartyServiceCBPort_(0),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
 callback_timeout_(180.f),
@@ -325,23 +325,23 @@ bool ServerConfig::loadConfig(std::string fileName)
 		bitsPerSecondToClient_ = xml->getValInt(rootNode);
 	}
 
-	rootNode = xml->getRootNode("billingSystem");
+	rootNode = xml->getRootNode("interfaces");
 	if(rootNode != NULL)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "accountType");
 		if(childnode)
 		{
-			billingSystem_accountType_ = xml->getValStr(childnode);
-			if(billingSystem_accountType_.size() == 0)
-				billingSystem_accountType_ = "normal";
+			interfaces_accountType_ = xml->getValStr(childnode);
+			if(interfaces_accountType_.size() == 0)
+				interfaces_accountType_ = "normal";
 		}
 
 		childnode = xml->enterNode(rootNode, "chargeType");
 		if(childnode)
 		{
-			billingSystem_chargeType_ = xml->getValStr(childnode);
-			if(billingSystem_chargeType_.size() == 0)
-				billingSystem_chargeType_ = "normal";
+			interfaces_chargeType_ = xml->getValStr(childnode);
+			if(interfaces_chargeType_.size() == 0)
+				interfaces_chargeType_ = "normal";
 		}
 
 		std::string ip = "";
@@ -352,8 +352,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(ip.size() == 0)
 				ip = "localhost";
 
-			Network::Address addr(ip, ntohs(billingSystemAddr_.port));
-			billingSystemAddr_ = addr;
+			Network::Address addr(ip, ntohs(interfacesAddr_.port));
+			interfacesAddr_ = addr;
 		}
 
 		uint16 port = 0;
@@ -365,48 +365,48 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(port <= 0)
 				port = KBE_BILLING_TCP_PORT;
 
-			Network::Address addr(inet_ntoa((struct in_addr&)billingSystemAddr_.ip), port);
-			billingSystemAddr_ = addr;
+			Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
+			interfacesAddr_ = addr;
 		}
 
 		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
 		if(childnode)
 		{
-			billingSystem_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
+			interfaces_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
 		}
 
 		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
 		if(childnode)
 		{
-			billingSystem_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
+			interfaces_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
 		}
 		
 		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
 		if(childnode)
 		{
-			billingSystem_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
+			interfaces_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
 		}
 
 		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
 		if(childnode)
 		{
-			billingSystem_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
+			interfaces_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
 		}
 
 		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
 		if(childnode)
 		{
-			billingSystem_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
+			interfaces_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
 		}
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
-			_billingInfo.tcp_SOMAXCONN = xml->getValInt(node);
+			_interfacesInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
 		node = xml->enterNode(rootNode, "orders_timeout");
 		if(node != NULL){
-			billingSystem_orders_timeout_ = xml->getValInt(node);
+			interfaces_orders_timeout_ = xml->getValInt(node);
 		}
 	}
 

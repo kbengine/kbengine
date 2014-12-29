@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "network/bundle.h"
 #include "network/tcp_packet.h"
-#include "billingsystem.h"
+#include "interfaces.h"
 #include "anonymous_channel.h"
 #include "orders.h"
 
@@ -38,8 +38,8 @@ AnonymousChannel::AnonymousChannel()
 		return;
 	}
 
-	if (listen.bind(htons(g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort()), 
-		BillingSystem::getSingleton().networkInterface().extaddr().ip) == -1)
+	if (listen.bind(htons(g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()), 
+		Interfaces::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
 		ERROR_MSG(fmt::format("AnonymousChannel::bind({}): \n",
 			 kbe_strerror()));
@@ -60,8 +60,8 @@ AnonymousChannel::AnonymousChannel()
 	listen.setnonblocking(true);
 
 	INFO_MSG(fmt::format("AnonymousChannel::bind: {}:{}\n",
-		inet_ntoa((struct in_addr&)BillingSystem::getSingleton().networkInterface().extaddr().ip), 
-		g_kbeSrvConfig.billingSystemThirdpartyServiceCBPort()));
+		inet_ntoa((struct in_addr&)Interfaces::getSingleton().networkInterface().extaddr().ip), 
+		g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -178,11 +178,11 @@ bool AnonymousChannel::process()
 thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 {
 	KBEUnordered_map<std::string, BACK_ORDERS_DATA>::iterator iter = backOrdersDatas_.begin();
-	BillingSystem::getSingleton().lockthread();
+	Interfaces::getSingleton().lockthread();
 
 	SERVER_ERROR_CODE retcode = SERVER_ERR_OP_FAILED;
-	BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
-	BillingSystem::ORDERS::iterator oiter = orders.begin();
+	Interfaces::ORDERS& orders = Interfaces::getSingleton().orders();
+	Interfaces::ORDERS::iterator oiter = orders.begin();
 	
 	for(; oiter != orders.end(); )
 	{
@@ -200,11 +200,11 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			(*(*bundle)) << oiter->second->cbid;
 			(*(*bundle)) << retcode;
 
-			Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(oiter->second->address);
+			Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(oiter->second->address);
 
 			if(pChannel)
 			{
-				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+				(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
@@ -222,7 +222,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	
 	for(; iter != backOrdersDatas_.end(); ++iter)
 	{
-		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
+		Interfaces::ORDERS::iterator orderiter = orders.find(iter->first);
 		COMPONENT_ID baseappID = 0;
 		std::string ordersID = iter->first;
 		DBID dbid = 0;
@@ -261,7 +261,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		
 		if(orderiter != orders.end())
 		{
-			Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orderiter->second->address);
+			Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(orderiter->second->address);
 			if(pChannel)
 			{
 				Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
@@ -271,7 +271,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 				(*(*bundle)).appendBlob(iter->second.data);
 				(*(*bundle)) << cbid;
 				(*(*bundle)) << retcode;
-				(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+				(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 			}
 			else
 			{
@@ -281,7 +281,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		}
 		else
 		{
-			const Network::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().networkInterface().channels();
+			const Network::NetworkInterface::ChannelMap& channels = Interfaces::getSingleton().networkInterface().channels();
 			if(channels.size() > 0)
 			{
 				Network::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
@@ -297,7 +297,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 						(*(*bundle)).appendBlob(iter->second.data);
 						(*(*bundle)) << cbid;
 						(*(*bundle)) << retcode;
-						(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+						(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 					}
 					else
 					{
@@ -319,7 +319,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 
 	backOrdersDatas_.clear();
 
-	BillingSystem::getSingleton().unlockthread();
+	Interfaces::getSingleton().unlockthread();
 	return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 }
 

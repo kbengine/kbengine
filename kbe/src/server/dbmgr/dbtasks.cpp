@@ -1459,7 +1459,7 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
 				accountName_));
 
-			if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
+			if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
 			{
 				info.password = KBE_MD5::getDigest(password_.data(), password_.length());
 			}
@@ -1477,7 +1477,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
+	if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
 	{
 		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
 		{

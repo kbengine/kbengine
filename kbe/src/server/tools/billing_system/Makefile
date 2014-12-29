@@ -1,9 +1,9 @@
-BIN  = billingsystem
+BIN  = interfaces
 SRCS =						\
 	anonymous_channel			\
-	billingsystem				\
-	billing_tasks				\
-	billingsystem_interface			\
+	interfacessystem			\
+	interfaces_tasks			\
+	interfaces_interface			\
 	orders					\
 	main
 
@@ -27,7 +27,7 @@ ifndef NO_USE_LOG4CXX
 endif
 
 #HAS_PCH = 1
-CPPFLAGS += -DKBE_BILLINGSYSTEM
+CPPFLAGS += -DKBE_INTERFACES
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/tools/$(BIN),,$(CURDIR))

@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "server/kbemain.h"
-#include "billingsystem.h"
+#include "interfaces.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "machine/machine_interface.h"
@@ -75,5 +75,5 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<BillingSystem>(argc, argv, BILLING_TYPE, -1, -1, "", ntohs(g_kbeSrvConfig.billingSystemAddr().port), "");
+	return kbeMainT<Interfaces>(argc, argv, INTERFACES_TYPE, -1, -1, "", ntohs(g_kbeSrvConfig.interfacesAddr().port), "");
 }

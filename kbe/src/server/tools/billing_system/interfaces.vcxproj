@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>billingsystem</ProjectName>
+    <ProjectName>interfaces</ProjectName>
     <ProjectGuid>{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}</ProjectGuid>
-    <RootNamespace>billingsystem</RootNamespace>
+    <RootNamespace>interfaces</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -55,7 +55,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies/mysql;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;LOG4CXX_STATIC;KBE_SERVER;KBE_BILLINGSYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;LOG4CXX_STATIC;KBE_SERVER;KBE_INTERFACES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -84,7 +84,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies/mysql;../../../lib/dependencies;../../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;LOG4CXX_STATIC;KBE_SERVER;KBE_BILLINGSYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;LOG4CXX_STATIC;KBE_SERVER;KBE_INTERFACES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -111,17 +111,17 @@
   <ItemGroup>
     <ClCompile Include="anonymous_channel.cpp" />
     <ClCompile Include="billing_tasks.cpp" />
-    <ClCompile Include="billingsystem.cpp" />
-    <ClCompile Include="billingsystem_interface.cpp" />
+    <ClCompile Include="interfaces.cpp" />
+    <ClCompile Include="interfaces_interface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="orders.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="anonymous_channel.h" />
     <ClInclude Include="billing_tasks.h" />
-    <ClInclude Include="billingsystem.h" />
-    <ClInclude Include="billingsystem_interface.h" />
-    <ClInclude Include="billingsystem_interface_macros.h" />
+    <ClInclude Include="interfaces.h" />
+    <ClInclude Include="interfaces_interface.h" />
+    <ClInclude Include="interfaces_interface_macros.h" />
     <ClInclude Include="orders.h" />
   </ItemGroup>
   <ItemGroup>

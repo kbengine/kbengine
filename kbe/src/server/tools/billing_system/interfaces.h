@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BILLINGSYSTEM_H
-#define KBE_BILLINGSYSTEM_H
+#ifndef KBE_INTERFACES_TOOL_H
+#define KBE_INTERFACES_TOOL_H
 	
 // common include	
 #include "server/kbemain.h"
@@ -44,8 +44,8 @@ class Orders;
 class CreateAccountTask;
 class LoginAccountTask;
 
-class BillingSystem : public ServerApp, 
-				public Singleton<BillingSystem>
+class Interfaces : public ServerApp, 
+				public Singleton<Interfaces>
 {
 public:
 	enum TimeOutType
@@ -53,12 +53,12 @@ public:
 		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 
-	BillingSystem(Network::EventDispatcher& dispatcher, 
+	Interfaces(Network::EventDispatcher& dispatcher, 
 		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
-	~BillingSystem();
+	~Interfaces();
 	
 	bool run();
 	
@@ -99,7 +99,7 @@ public:
 	void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
-	BillingSystem::ORDERS& orders(){ return orders_; }
+	Interfaces::ORDERS& orders(){ return orders_; }
 
 	typedef KBEUnordered_map<std::string, CreateAccountTask* /*不用担心释放问题, 由线程池完成*/> REQCREATE_MAP;
 	typedef KBEUnordered_map<std::string, LoginAccountTask* /*不用担心释放问题, 由线程池完成*/> REQLOGIN_MAP;
@@ -125,5 +125,5 @@ protected:
 
 }
 
-#endif // KBE_BILLINGSYSTEM_H
+#endif // KBE_INTERFACES_TOOL_H
 

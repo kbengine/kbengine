@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/loginapp/loginapp_interface.h"
 #include "../../server/tools/message_log/messagelog_interface.h"
 #include "../../server/tools/bots/bots_interface.h"
-#include "../../server/tools/billing_system/billingsystem_interface.h"
+#include "../../server/tools/interfaces/interfaces_interface.h"
 
 #include "../../server/machine/machine_interface.h"
 
@@ -62,7 +62,7 @@ _cellappmgrs(),
 _baseappmgrs(),
 _machines(),
 _messagelogs(),
-_billings(),
+_interfaceses(),
 _bots(),
 _consoles(),
 _pNetworkInterface(NULL),
@@ -134,7 +134,7 @@ void Components::initialize(Network::NetworkInterface * pNetworkInterface, COMPO
 	default:
 		if(componentType_ != MESSAGELOG_TYPE && 
 			componentType_ != MACHINE_TYPE && 
-			componentType_ != BILLING_TYPE)
+			componentType_ != INTERFACES_TYPE)
 			findComponentTypes_[0] = MESSAGELOG_TYPE;
 		break;
 	};
@@ -513,8 +513,8 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 		return _machines;
 	case MESSAGELOG_TYPE:
 		return _messagelogs;			
-	case BILLING_TYPE:
-		return _billings;	
+	case INTERFACES_TYPE:
+		return _interfaceses;	
 	case BOTS_TYPE:
 		return _bots;	
 	default:
@@ -838,9 +838,9 @@ Components::ComponentInfos* Components::getMessagelog()
 }
 
 //-------------------------------------------------------------------------------------		
-Components::ComponentInfos* Components::getBillings()
+Components::ComponentInfos* Components::getInterfaceses()
 {
-	return findComponent(BILLING_TYPE, getUserUID(), 0);
+	return findComponent(INTERFACES_TYPE, getUserUID(), 0);
 }
 
 //-------------------------------------------------------------------------------------		

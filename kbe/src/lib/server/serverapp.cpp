@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/dbmgr/dbmgr_interface.h"
 #include "../../server/loginapp/loginapp_interface.h"
 #include "../../server/tools/message_log/messagelog_interface.h"
-#include "../../server/tools/billing_system/billingsystem_interface.h"
+#include "../../server/tools/interfaces/interfaces_interface.h"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;

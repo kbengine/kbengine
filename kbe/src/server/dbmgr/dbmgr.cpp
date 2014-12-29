@@ -64,8 +64,8 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	numQueryEntity_(0),
 	numExecuteRawDatabaseCommand_(0),
 	numCreatedAccount_(0),
-	pBillingAccountHandler_(NULL),
-	pBillingChargeHandler_(NULL),
+	pInterfacesAccountHandler_(NULL),
+	pInterfacesChargeHandler_(NULL),
 	pSyncAppDatasHandler_(NULL)
 {
 }
@@ -77,8 +77,8 @@ Dbmgr::~Dbmgr()
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
 
-	SAFE_RELEASE(pBillingAccountHandler_);
-	SAFE_RELEASE(pBillingChargeHandler_);
+	SAFE_RELEASE(pInterfacesAccountHandler_);
+	SAFE_RELEASE(pInterfacesChargeHandler_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -224,35 +224,35 @@ bool Dbmgr::initializeEnd()
 	INFO_MSG(fmt::format("Dbmgr::initializeEnd: digest({})\n", 
 		EntityDef::md5().getDigestStr()));
 	
-	return initBillingHandler() && initDB();
+	return initInterfacesHandler() && initDB();
 }
 
 //-------------------------------------------------------------------------------------		
-bool Dbmgr::initBillingHandler()
+bool Dbmgr::initInterfacesHandler()
 {
-	pBillingAccountHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
-	pBillingChargeHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
+	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
+	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
 
-	INFO_MSG(fmt::format("Dbmgr::initBillingHandler: billing addr({}), accountType:({}), chargeType:({}).\n", 
-		g_kbeSrvConfig.billingSystemAddr().c_str(),
-		g_kbeSrvConfig.billingSystemAccountType(),
-		g_kbeSrvConfig.billingSystemChargeType()));
+	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: billing addr({}), accountType:({}), chargeType:({}).\n", 
+		g_kbeSrvConfig.interfacesAddr().c_str(),
+		g_kbeSrvConfig.interfacesAccountType(),
+		g_kbeSrvConfig.interfacesChargeType()));
 
-	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) > 0)
+	if(strlen(g_kbeSrvConfig.interfacesThirdpartyAccountServiceAddr()) > 0)
 	{
-		INFO_MSG(fmt::format("Dbmgr::initBillingHandler: thirdpartyAccountService_addr({}:{}).\n", 
-			g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(),
-			g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort()));
+		INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: thirdpartyAccountService_addr({}:{}).\n", 
+			g_kbeSrvConfig.interfacesThirdpartyAccountServiceAddr(),
+			g_kbeSrvConfig.interfacesThirdpartyAccountServicePort()));
 	}
 
-	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr()) > 0)
+	if(strlen(g_kbeSrvConfig.interfacesThirdpartyChargeServiceAddr()) > 0)
 	{
-		INFO_MSG(fmt::format("Dbmgr::initBillingHandler: thirdpartyChargeService_addr({}:{}).\n", 
-			g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr(),
-			g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort()));
+		INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: thirdpartyChargeService_addr({}:{}).\n", 
+			g_kbeSrvConfig.interfacesThirdpartyChargeServiceAddr(),
+			g_kbeSrvConfig.interfacesThirdpartyChargeServicePort()));
 	}
 
-	return pBillingAccountHandler_->initialize() && pBillingChargeHandler_->initialize();
+	return pInterfacesAccountHandler_->initialize() && pInterfacesChargeHandler_->initialize();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -498,14 +498,14 @@ void Dbmgr::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream&
 		return;
 	}
 
-	pBillingAccountHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
+	pInterfacesAccountHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
 	numCreatedAccount_++;
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onCreateAccountCBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::onCreateAccountCBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingAccountHandler_->onCreateAccountCB(s);
+	pInterfacesAccountHandler_->onCreateAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -521,13 +521,13 @@ void Dbmgr::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 
-	pBillingAccountHandler_->loginAccount(pChannel, loginName, password, datas);
+	pInterfacesAccountHandler_->loginAccount(pChannel, loginName, password, datas);
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onLoginAccountCBBFromBilling(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
+void Dbmgr::onLoginAccountCBBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
-	pBillingAccountHandler_->onLoginAccountCB(s);
+	pInterfacesAccountHandler_->onLoginAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -674,40 +674,40 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 //-------------------------------------------------------------------------------------
 void Dbmgr::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingChargeHandler_->charge(pChannel, s);
+	pInterfacesChargeHandler_->charge(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pBillingChargeHandler_->onChargeCB(s);
+	pInterfacesChargeHandler_->onChargeCB(s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
-	pBillingAccountHandler_->eraseClientReq(pChannel, logkey);
+	pInterfacesAccountHandler_->eraseClientReq(pChannel, logkey);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountActivate(Network::Channel* pChannel, std::string& scode)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountActivate: code={}.\n", scode));
-	pBillingAccountHandler_->accountActivate(pChannel, scode);
+	pInterfacesAccountHandler_->accountActivate(pChannel, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountReqResetPassword(Network::Channel* pChannel, std::string& accountName)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountReqResetPassword: accountName={}.\n", accountName));
-	pBillingAccountHandler_->accountReqResetPassword(pChannel, accountName);
+	pInterfacesAccountHandler_->accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountResetPassword: accountName={}.\n", accountName));
-	pBillingAccountHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
+	pInterfacesAccountHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
 }
 
 //-------------------------------------------------------------------------------------
@@ -715,14 +715,14 @@ void Dbmgr::accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& email)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountReqBindMail: accountName={}, email={}.\n", accountName, email));
-	pBillingAccountHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
+	pInterfacesAccountHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountBindMail: username={}, scode={}.\n", username, scode));
-	pBillingAccountHandler_->accountBindMail(pChannel, username, scode);
+	pInterfacesAccountHandler_->accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
@@ -730,7 +730,7 @@ void Dbmgr::accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& newpassword)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountNewPassword: accountName={}.\n", accountName));
-	pBillingAccountHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
+	pInterfacesAccountHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

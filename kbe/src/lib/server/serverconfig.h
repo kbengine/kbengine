@@ -227,7 +227,7 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getKBMachine(void);
 	INLINE ENGINE_COMPONENT_INFO& getBots(void);
 	INLINE ENGINE_COMPONENT_INFO& getMessagelog(void);
-	INLINE ENGINE_COMPONENT_INFO& getBilling(void);
+	INLINE ENGINE_COMPONENT_INFO& getInterfaces(void);
 
 	INLINE ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
  	
@@ -239,18 +239,18 @@ public:
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void)const;
-	INLINE Network::Address billingSystemAddr(void)const;
+	INLINE Network::Address interfacesAddr(void)const;
 	
-	INLINE const char* billingSystemAccountType()const;
-	INLINE const char* billingSystemChargeType()const;
+	INLINE const char* interfacesAccountType()const;
+	INLINE const char* interfacesChargeType()const;
 
-	INLINE const char* billingSystemThirdpartyAccountServiceAddr()const;
-	INLINE uint16 billingSystemThirdpartyAccountServicePort()const;
+	INLINE const char* interfacesThirdpartyAccountServiceAddr()const;
+	INLINE uint16 interfacesThirdpartyAccountServicePort()const;
 
-	INLINE const char* billingSystemThirdpartyChargeServiceAddr()const;
-	INLINE uint16 billingSystemThirdpartyChargeServicePort()const;
+	INLINE const char* interfacesThirdpartyChargeServiceAddr()const;
+	INLINE uint16 interfacesThirdpartyChargeServicePort()const;
 
-	INLINE uint16 billingSystemThirdpartyServiceCBPort()const;
+	INLINE uint16 interfacesThirdpartyServiceCBPort()const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -274,7 +274,7 @@ private:
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
 	ENGINE_COMPONENT_INFO _botsInfo;
 	ENGINE_COMPONENT_INFO _messagelogInfo;
-	ENGINE_COMPONENT_INFO _billingInfo;
+	ENGINE_COMPONENT_INFO _interfacesInfo;
 public:
 	int16 gameUpdateHertz_;
 	uint32 tick_max_buffered_logs_;
@@ -285,15 +285,15 @@ public:
 	// 每个客户端每秒占用的最大带宽
 	uint32 bitsPerSecondToClient_;		
 
-	Network::Address billingSystemAddr_;
-	std::string billingSystem_accountType_;							// 计费系统类别
-	std::string billingSystem_chargeType_;							// 计费系统类别
-	std::string billingSystem_thirdpartyAccountServiceAddr_;		// 第三方运营账号服务地址(当type是thirdparty时有效)
-	uint16	billingSystem_thirdpartyAccountServicePort_;			
-	std::string billingSystem_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
-	uint16 billingSystem_thirdpartyChargeServicePort_;	
-	uint16 billingSystem_thirdpartyServiceCBPort_;	
-	uint32 billingSystem_orders_timeout_;
+	Network::Address interfacesAddr_;
+	std::string interfaces_accountType_;							// 账号系统类别
+	std::string interfaces_chargeType_;								// 计费系统类别
+	std::string interfaces_thirdpartyAccountServiceAddr_;			// 第三方运营账号服务地址(当type是thirdparty时有效)
+	uint16 interfaces_thirdpartyAccountServicePort_;			
+	std::string interfaces_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
+	uint16 interfaces_thirdpartyChargeServicePort_;	
+	uint16 interfaces_thirdpartyServiceCBPort_;	
+	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;
 	float shutdown_waitTickTime_;

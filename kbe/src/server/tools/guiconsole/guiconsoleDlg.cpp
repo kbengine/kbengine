@@ -63,9 +63,9 @@
 #include "tools/bots/bots_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.h"
+#include "tools/interfaces/interfaces_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/billing_system/billingsystem_interface.h"
+#include "tools/interfaces/interfaces_interface.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

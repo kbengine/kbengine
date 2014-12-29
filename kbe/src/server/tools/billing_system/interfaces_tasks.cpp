@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "orders.h"
-#include "billingsystem.h"
-#include "billing_tasks.h"
+#include "interfaces.h"
+#include "interfaces_tasks.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/message_handler.h"
@@ -50,24 +50,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-BillingTask::BillingTask()
+InterfacesTask::InterfacesTask()
 {
 }
 
 //-------------------------------------------------------------------------------------
-BillingTask::~BillingTask()
+InterfacesTask::~InterfacesTask()
 {
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState BillingTask::presentMainThread()
+thread::TPTask::TPTaskState InterfacesTask::presentMainThread()
 {
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------
 CreateAccountTask::CreateAccountTask():
-BillingTask()
+InterfacesTask()
 {
 }
 
@@ -79,9 +79,9 @@ CreateAccountTask::~CreateAccountTask()
 //-------------------------------------------------------------------------------------
 void CreateAccountTask::removeLog()
 {
-	BillingSystem::getSingleton().lockthread();
-	BillingSystem::getSingleton().reqCreateAccount_requests().erase(commitName);
-	BillingSystem::getSingleton().unlockthread();
+	Interfaces::getSingleton().lockthread();
+	Interfaces::getSingleton().reqCreateAccount_requests().erase(commitName);
+	Interfaces::getSingleton().unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,13 +107,13 @@ bool CreateAccountTask::process()
 
 	if (!endpoint.good())
 	{
-		ERROR_MSG("BillingTask::process: couldn't create a socket\n");
+		ERROR_MSG("InterfacesTask::process: couldn't create a socket\n");
 		return false;
 	}
 
 	if(postDatas.size() == 0)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: {} postData is NULL.\n", commitName));
+		ERROR_MSG(fmt::format("InterfacesTask::process: {} postData is NULL.\n", commitName));
 		return false;
 	}
 
@@ -122,7 +122,7 @@ bool CreateAccountTask::process()
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: connect billingserver({}:{}) is error({})!\n", 
+		ERROR_MSG(fmt::format("InterfacesTask::process: connect billingserver({}:{}) is error({})!\n", 
 			serviceAddr(), servicePort(), kbe_strerror()));
 
 		endpoint.close();
@@ -147,8 +147,8 @@ bool CreateAccountTask::process()
 	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
 	if(selgot <= 0)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: {} send({}).\n", commitName, postDatas));
-		ERROR_MSG(fmt::format("BillingTask::process: {} recv is error({}).\n", commitName, KBEngine::kbe_strerror()));
+		ERROR_MSG(fmt::format("InterfacesTask::process: {} send({}).\n", commitName, postDatas));
+		ERROR_MSG(fmt::format("InterfacesTask::process: {} recv is error({}).\n", commitName, KBEngine::kbe_strerror()));
 		endpoint.close();
 		return false;
 	}
@@ -157,7 +157,7 @@ bool CreateAccountTask::process()
 
 	if(len <= 0)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: {} recv is size<= 0.\n===>postdatas={}\n", commitName, postDatas));
+		ERROR_MSG(fmt::format("InterfacesTask::process: {} recv is size<= 0.\n===>postdatas={}\n", commitName, postDatas));
 		endpoint.close();
 		return false;
 	}
@@ -211,7 +211,7 @@ bool CreateAccountTask::process()
 
 						}
 
-						DEBUG_MSG(fmt::format("BillingTask::process: ({})op is failed! err={}\n<==send({})\n==>recv({}).\n", 
+						DEBUG_MSG(fmt::format("InterfacesTask::process: ({})op is failed! err={}\n<==send({})\n==>recv({}).\n", 
 							commitName, err, postDatas, getDatas));
 						
 						return false;
@@ -247,7 +247,7 @@ bool CreateAccountTask::process()
 	catch(...)
 	{
 		retcode = SERVER_ERR_OP_FAILED;
-		ERROR_MSG(fmt::format("BillingTask::process: {} recv is error.\n===>postdatas={}\n===>recv={}\n", 
+		ERROR_MSG(fmt::format("InterfacesTask::process: {} recv is error.\n===>postdatas={}\n===>recv={}\n", 
 			commitName, postDatas, getDatas));
 	}
 
@@ -268,21 +268,21 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 
 	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 
-	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
+	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
 	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
+	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+		(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("BillingTask::presentMainThread: not found channel. commitName={}\n", commitName));
+		ERROR_MSG(fmt::format("InterfacesTask::presentMainThread: not found channel. commitName={}\n", commitName));
 	}
 
 	removeLog();
@@ -303,9 +303,9 @@ LoginAccountTask::~LoginAccountTask()
 //-------------------------------------------------------------------------------------
 void LoginAccountTask::removeLog()
 {
-	BillingSystem::getSingleton().lockthread();
-	BillingSystem::getSingleton().reqAccountLogin_requests().erase(commitName);
-	BillingSystem::getSingleton().unlockthread();
+	Interfaces::getSingleton().lockthread();
+	Interfaces::getSingleton().reqAccountLogin_requests().erase(commitName);
+	Interfaces::getSingleton().unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -326,21 +326,21 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 			accountName = commitName;
 	}
 
-	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
+	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
 	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
 
 	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
-	Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(address);
+	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+		(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("BillingTask::presentMainThread: not found channel. commitName={}\n", commitName));
+		ERROR_MSG(fmt::format("InterfacesTask::presentMainThread: not found channel. commitName={}\n", commitName));
 	}
 
 	removeLog();
@@ -349,7 +349,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 ChargeTask::ChargeTask():
-BillingTask(),
+InterfacesTask(),
 pOrders(NULL),
 retcode(SERVER_ERR_OP_FAILED)
 {
@@ -363,7 +363,7 @@ ChargeTask::~ChargeTask()
 //-------------------------------------------------------------------------------------
 bool ChargeTask::process()
 {
-	if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
+	if(!Interfaces::getSingleton().hasOrders(orders.ordersID))
 	{
 		WARNING_MSG(fmt::format("ChargeTask::process: not found ordersID({}), exit threadProcess.\n",
 			orders.ordersID));
@@ -444,7 +444,7 @@ bool ChargeTask::process()
 	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
 	if(selgot <= 0)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: recv is error({}).\n", KBEngine::kbe_strerror()));
+		ERROR_MSG(fmt::format("InterfacesTask::process: recv is error({}).\n", KBEngine::kbe_strerror()));
 		pOrders->getDatas = "recv is error!";
 		orders.getDatas = pOrders->getDatas;
 		return false;
@@ -454,7 +454,7 @@ bool ChargeTask::process()
 
 	if(len <= 0)
 	{
-		ERROR_MSG(fmt::format("BillingTask::process: recv is size<= 0.\n===>postdatas={}\n", pOrders->postDatas));
+		ERROR_MSG(fmt::format("InterfacesTask::process: recv is size<= 0.\n===>postdatas={}\n", pOrders->postDatas));
 		pOrders->getDatas = "recv is error!";
 		orders.getDatas = pOrders->getDatas;
 		return false;
@@ -484,7 +484,7 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 	// 如果成功使用异步接收处理
 	if(retcode != SERVER_SUCCESS)
 	{
-		if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
+		if(!Interfaces::getSingleton().hasOrders(orders.ordersID))
 		{
 			WARNING_MSG(fmt::format("ChargeTask::presentMainThread: not found ordersID({}), exit thread!\n",
 				orders.ordersID));
@@ -500,14 +500,14 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		(*(*bundle)) << orders.cbid;
 		(*(*bundle)) << retcode;
 
-		Network::Channel* pChannel = BillingSystem::getSingleton().networkInterface().findChannel(orders.address);
+		Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{
 			WARNING_MSG(fmt::format("ChargeTask::presentMainThread: orders={} commit is failed!\n", 
 				pOrders->ordersID));
 
-			(*(*bundle)).send(BillingSystem::getSingleton().networkInterface(), pChannel);
+			(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
 		}
 		else
 		{
@@ -515,11 +515,11 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 				orders.ordersID));
 		}
 
-		BillingSystem::getSingleton().lockthread();
-		BillingSystem::ORDERS& ordersmap = BillingSystem::getSingleton().orders();
-		BillingSystem::ORDERS::iterator iter = ordersmap.find(orders.ordersID);
+		Interfaces::getSingleton().lockthread();
+		Interfaces::ORDERS& ordersmap = Interfaces::getSingleton().orders();
+		Interfaces::ORDERS::iterator iter = ordersmap.find(orders.ordersID);
 		if(iter != ordersmap.end())ordersmap.erase(iter);
-		BillingSystem::getSingleton().unlockthread();
+		Interfaces::getSingleton().unlockthread();
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 

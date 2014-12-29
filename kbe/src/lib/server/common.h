@@ -103,9 +103,9 @@ namespace KBEngine {
 				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
-		case BILLING_TYPE:																					\
+		case INTERFACES_TYPE:																				\
 			{																								\
-				BUNDLE.newMessage(BillingSystemInterface::MESSAGENAME);										\
+				BUNDLE.newMessage(InterfacesInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
 		default:																							\

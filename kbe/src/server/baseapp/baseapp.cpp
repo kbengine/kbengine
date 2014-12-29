@@ -2196,7 +2196,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback)
 {
-	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ + 
+	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.interfaces_orders_timeout_ + 
 		g_kbeSrvConfig.callback_timeout_));
 
 	INFO_MSG(fmt::format("Baseapp::charge: chargeID={0}, dbid={3}, datas={1}, pycallback={2}.\n", 

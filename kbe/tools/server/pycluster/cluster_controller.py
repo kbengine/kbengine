@@ -30,10 +30,10 @@ CONSOLE_TYPE			= 9
 MESSAGELOG_TYPE			= 10
 BOTS_TYPE				= 11
 WATCHER_TYPE			= 12
-BILLING_TYPE			= 13
+INTERFACES_TYPE			= 13
 COMPONENT_END_TYPE		= 16
 
-# ת
+# 组件名称转换为类别
 COMPONENT_NAME2TYPE = {
 	"unknown"		: UNKNOWN_COMPONENT_TYPE,
 	"dbmgr"			: DBMGR_TYPE,
@@ -48,8 +48,7 @@ COMPONENT_NAME2TYPE = {
 	"messagelog" 	: MESSAGELOG_TYPE,
 	"bots" 			: BOTS_TYPE,
 	"watcher" 		: WATCHER_TYPE,
-	"billing" 		: BILLING_TYPE,
-	"billingsystem" : BILLING_TYPE
+	"interfaces" 	: INTERFACES_TYPE,
 }
 
 #  
@@ -69,7 +68,7 @@ COMPONENT_NAME = (
 	"resourcemgr",
 	"bots",
 	"watcher",
-	"billing",
+	"interfaces",
 )
 
 

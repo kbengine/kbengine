@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BILLING_HANDLER_H
-#define KBE_BILLING_HANDLER_H
+#ifndef KBE_INTERFACES_HANDLER_H
+#define KBE_INTERFACES_HANDLER_H
 
 // common include	
 // #define NDEBUG
@@ -41,11 +41,11 @@ class DBThreadPool;
 /*
 	处理计费、第三方运营账号、注册登录系统等挂接
 */
-class BillingHandler
+class InterfacesHandler
 {
 public:
-	BillingHandler(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
-	virtual ~BillingHandler();
+	InterfacesHandler(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
+	virtual ~InterfacesHandler();
 	
 	virtual bool initialize() = 0;
 
@@ -76,11 +76,11 @@ protected:
 	thread::ThreadPool& threadPool_;
 };
 
-class BillingHandler_Normal : public BillingHandler
+class InterfacesHandler_Normal : public InterfacesHandler
 {
 public:
-	BillingHandler_Normal(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
-	virtual ~BillingHandler_Normal();
+	InterfacesHandler_Normal(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
+	virtual ~InterfacesHandler_Normal();
 	
 	virtual bool initialize(){ return true; }
 
@@ -109,11 +109,11 @@ public:
 protected:
 };
 
-class BillingHandler_ThirdParty : public BillingHandler_Normal, public thread::TPTask
+class InterfacesHandler_ThirdParty : public InterfacesHandler_Normal, public thread::TPTask
 {
 public:
-	BillingHandler_ThirdParty(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
-	virtual ~BillingHandler_ThirdParty();
+	InterfacesHandler_ThirdParty(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
+	virtual ~InterfacesHandler_ThirdParty();
 	
 	virtual bool initialize();
 
@@ -144,16 +144,16 @@ public:
 
 	virtual bool process();
 protected:
-	Network::Channel* pBillingChannel_;
+	Network::Channel* pInterfacesChannel_;
 };
 
-class BillingHandlerFactory
+class InterfacesHandlerFactory
 {
 public:
-	static BillingHandler* create(std::string type, thread::ThreadPool& threadPool, 
+	static InterfacesHandler* create(std::string type, thread::ThreadPool& threadPool, 
 		DBThreadPool& dbThreadPool);
 };
 
 }
 
-#endif // KBE_BILLING_HANDLER_H
+#endif // KBE_INTERFACES_HANDLER_H

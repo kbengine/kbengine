@@ -177,7 +177,7 @@ public:
 	Components::ComponentInfos* getCellappmgr();
 	Components::ComponentInfos* getDbmgr();
 	Components::ComponentInfos* getMessagelog();
-	Components::ComponentInfos* getBillings();
+	Components::ComponentInfos* getInterfaceses();
 
 	Network::Channel* getBaseappmgrChannel();
 	Network::Channel* getCellappmgrChannel();
@@ -216,7 +216,7 @@ private:
 	COMPONENTS								_baseappmgrs;
 	COMPONENTS								_machines;
 	COMPONENTS								_messagelogs;
-	COMPONENTS								_billings;
+	COMPONENTS								_interfaceses;
 	COMPONENTS								_bots;
 	COMPONENTS								_consoles;
 

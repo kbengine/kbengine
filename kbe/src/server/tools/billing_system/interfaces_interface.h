@@ -20,18 +20,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef KBE_BILLINGSYSTEM_INTERFACE_H
+	#undef KBE_INTERFACES_INTERFACE_H
 #endif
 
 
-#ifndef KBE_BILLINGSYSTEM_INTERFACE_H
-#define KBE_BILLINGSYSTEM_INTERFACE_H
+#ifndef KBE_INTERFACES_INTERFACE_H
+#define KBE_INTERFACES_INTERFACE_H
 
 // common include	
-#if defined(BILLINGSYSTEM)
-#include "billingsystem.h"
+#if defined(INTERFACES)
+#include "interfaces.h"
 #endif
-#include "billingsystem_interface_macros.h"
+#include "interfaces_interface_macros.h"
 #include "network/interface_defs.h"
 //#define NDEBUG
 // windows include	
@@ -43,15 +43,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 /**
-	BillingSystem消息宏，  参数为流， 需要自己解开
+	Interfaces消息宏，  参数为流， 需要自己解开
 */
 
 /**
-	BillingSystem所有消息接口在此定义
+	Interfaces所有消息接口在此定义
 */
-NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
+NETWORK_INTERFACE_DECLARE_BEGIN(InterfacesInterface)
 	// 某app注册自己的接口地址到本app
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,					NETWORK_VARIABLE_MESSAGE,
+	INTERFACES_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						NETWORK_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									COMPONENT_TYPE,							componentType, 
@@ -65,37 +65,37 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 									std::string,							extaddrEx)
 
 	// 请求创建账号。
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCreateAccount,					NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(reqCreateAccount,						NETWORK_VARIABLE_MESSAGE)
 
 	// 登陆账号。
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(onAccountLogin,					NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(onAccountLogin,						NETWORK_VARIABLE_MESSAGE)
 
 	// 充值请求
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(charge,							NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(charge,								NETWORK_VARIABLE_MESSAGE)
 
 	// 某app主动请求look。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS0(lookApp,							NETWORK_FIXED_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_ARGS0(lookApp,								NETWORK_FIXED_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					NETWORK_FIXED_MESSAGE,
+	INTERFACES_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						NETWORK_FIXED_MESSAGE,
 										COMPONENT_TYPE,						componentType, 
 										COMPONENT_ID,						componentID)
 
 	// 请求关闭服务器
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCloseServer,					NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(reqCloseServer,						NETWORK_VARIABLE_MESSAGE)
 
 	// 请求查询watcher数据
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(queryWatcher,						NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(queryWatcher,							NETWORK_VARIABLE_MESSAGE)
 
 	// 请求擦除客户端请求任务。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS1(eraseClientReq,						NETWORK_VARIABLE_MESSAGE,
+	INTERFACES_MESSAGE_DECLARE_ARGS1(eraseClientReq,						NETWORK_VARIABLE_MESSAGE,
 										std::string,						logkey)
 
 	// 开始profile
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(startProfile,						NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(startProfile,							NETWORK_VARIABLE_MESSAGE)
 
 	// 请求强制杀死当前app
-	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqKillServer,						NETWORK_VARIABLE_MESSAGE)
+	INTERFACES_MESSAGE_DECLARE_STREAM(reqKillServer,						NETWORK_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 
@@ -105,4 +105,4 @@ NETWORK_INTERFACE_DECLARE_END()
 
 }
 
-#endif // KBE_BILLINGSYSTEM_INTERFACE_H
+#endif // KBE_INTERFACES_INTERFACE_H

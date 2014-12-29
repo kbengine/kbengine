@@ -53,7 +53,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "messagelog", "server\tools\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zip", "lib\dependencies\zip\zip2008.vcxproj", "{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "billingsystem", "server\tools\billing_system\billingsystem.vcxproj", "{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "interfaces", "server\tools\interfaces\interfaces.vcxproj", "{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "lib\python\PCbuild\pythoncore.vcxproj", "{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}"
 EndProject

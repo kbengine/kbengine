@@ -113,18 +113,18 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componen
 INLINE int16 ServerConfig::gameUpdateHertz(void)const { return gameUpdateHertz_;}
 
 //-------------------------------------------------------------------------------------	
-INLINE Network::Address ServerConfig::billingSystemAddr(void)const { return billingSystemAddr_;}
+INLINE Network::Address ServerConfig::interfacesAddr(void)const { return interfacesAddr_;}
 
-INLINE const char* ServerConfig::billingSystemAccountType()const { return billingSystem_accountType_.c_str(); }
-INLINE const char* ServerConfig::billingSystemChargeType()const { return billingSystem_chargeType_.c_str(); }
+INLINE const char* ServerConfig::interfacesAccountType()const { return interfaces_accountType_.c_str(); }
+INLINE const char* ServerConfig::interfacesChargeType()const { return interfaces_chargeType_.c_str(); }
 
-INLINE const char* ServerConfig::billingSystemThirdpartyAccountServiceAddr()const { return billingSystem_thirdpartyAccountServiceAddr_.c_str(); }
-INLINE uint16 ServerConfig::billingSystemThirdpartyAccountServicePort()const { return billingSystem_thirdpartyAccountServicePort_; }
+INLINE const char* ServerConfig::interfacesThirdpartyAccountServiceAddr()const { return interfaces_thirdpartyAccountServiceAddr_.c_str(); }
+INLINE uint16 ServerConfig::interfacesThirdpartyAccountServicePort()const { return interfaces_thirdpartyAccountServicePort_; }
 
-INLINE const char* ServerConfig::billingSystemThirdpartyChargeServiceAddr()const { return billingSystem_thirdpartyChargeServiceAddr_.c_str(); }
-INLINE uint16 ServerConfig::billingSystemThirdpartyChargeServicePort()const { return billingSystem_thirdpartyChargeServicePort_; }
+INLINE const char* ServerConfig::interfacesThirdpartyChargeServiceAddr()const { return interfaces_thirdpartyChargeServiceAddr_.c_str(); }
+INLINE uint16 ServerConfig::interfacesThirdpartyChargeServicePort()const { return interfaces_thirdpartyChargeServicePort_; }
 
-INLINE uint16 ServerConfig::billingSystemThirdpartyServiceCBPort()const { return billingSystem_thirdpartyServiceCBPort_; }
+INLINE uint16 ServerConfig::interfacesThirdpartyServiceCBPort()const { return interfaces_thirdpartyServiceCBPort_; }
 
 //-------------------------------------------------------------------------------------	
 

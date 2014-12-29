@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "orders.h"
-#include "billingsystem.h"
+#include "interfaces.h"
 #include "billing_tasks.h"
 #include "anonymous_channel.h"
-#include "billingsystem_interface.h"
+#include "interfaces_interface.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -41,10 +41,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
-KBE_SINGLETON_INIT(BillingSystem);
+KBE_SINGLETON_INIT(Interfaces);
 
 //-------------------------------------------------------------------------------------
-BillingSystem::BillingSystem(Network::EventDispatcher& dispatcher, 
+Interfaces::Interfaces(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
@@ -57,7 +57,7 @@ BillingSystem::BillingSystem(Network::EventDispatcher& dispatcher,
 }
 
 //-------------------------------------------------------------------------------------
-BillingSystem::~BillingSystem()
+Interfaces::~Interfaces()
 {
 	mainProcessTimer_.cancel();
 	lockthread();
@@ -68,7 +68,7 @@ BillingSystem::~BillingSystem()
 		REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.begin();
 		for(; iter != reqCreateAccount_requests_.end(); ++iter)
 		{
-			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqCreateAccount[{2:p}] tasks.\n", 
+			WARNING_MSG(fmt::format("Interfaces::~Interfaces(): Discarding {0}/{1} reqCreateAccount[{2:p}] tasks.\n", 
 				++i, reqCreateAccount_requests_.size(), (void*)iter->second));
 		}
 	}
@@ -79,7 +79,7 @@ BillingSystem::~BillingSystem()
 		REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.begin();
 		for(; iter != reqAccountLogin_requests_.end(); ++iter)
 		{
-			WARNING_MSG(fmt::format("BillingSystem::~BillingSystem(): Discarding {0}/{1} reqAccountLogin[{2:p}] tasks.\n", 
+			WARNING_MSG(fmt::format("Interfaces::~Interfaces(): Discarding {0}/{1} reqAccountLogin[{2:p}] tasks.\n", 
 				++i, reqAccountLogin_requests_.size(), (void*)iter->second));
 		}
 	}
@@ -88,32 +88,32 @@ BillingSystem::~BillingSystem()
 }
 
 //-------------------------------------------------------------------------------------	
-void BillingSystem::onShutdownEnd()
+void Interfaces::onShutdownEnd()
 {
 	ServerApp::onShutdownEnd();
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::lockthread()
+void Interfaces::lockthread()
 {
 	mutex_.lockMutex();
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::unlockthread()
+void Interfaces::unlockthread()
 {
 	mutex_.unlockMutex();
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::eraseOrders_s(std::string ordersid)
+void Interfaces::eraseOrders_s(std::string ordersid)
 {
 	lockthread();
 
 	ORDERS::iterator iter = orders_.find(ordersid);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(fmt::format("BillingSystem::eraseOrders_s: chargeID={} not found!\n", ordersid));
+		ERROR_MSG(fmt::format("Interfaces::eraseOrders_s: chargeID={} not found!\n", ordersid));
 	}
 
 	orders_.erase(iter);
@@ -121,7 +121,7 @@ void BillingSystem::eraseOrders_s(std::string ordersid)
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingSystem::hasOrders(std::string ordersid)
+bool Interfaces::hasOrders(std::string ordersid)
 {
 	bool ret = false;
 	
@@ -134,13 +134,13 @@ bool BillingSystem::hasOrders(std::string ordersid)
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingSystem::run()
+bool Interfaces::run()
 {
 	return ServerApp::run();
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::handleTimeout(TimerHandle handle, void * arg)
+void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 {
 	switch (reinterpret_cast<uintptr>(arg))
 	{
@@ -155,24 +155,24 @@ void BillingSystem::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::handleMainTick()
+void Interfaces::handleMainTick()
 {
 	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("BillingSystem::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 //DEBUG_MSG("Interfaces::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&BillingSystemInterface::messageHandlers);
+	networkInterface().processAllChannelPackets(&InterfacesInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingSystem::initializeBegin()
+bool Interfaces::initializeBegin()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingSystem::inInitialize()
+bool Interfaces::inInitialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
@@ -181,7 +181,7 @@ bool BillingSystem::inInitialize()
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingSystem::initializeEnd()
+bool Interfaces::initializeEnd()
 {
 	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
@@ -195,19 +195,19 @@ bool BillingSystem::initializeEnd()
 }
 
 //-------------------------------------------------------------------------------------		
-bool BillingSystem::initDB()
+bool Interfaces::initDB()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::finalise()
+void Interfaces::finalise()
 {
 	ServerApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string registerName, accountName, password, datas;
 	COMPONENT_ID cid;
@@ -248,7 +248,7 @@ void BillingSystem::reqCreateAccount(Network::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
+void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
 	std::string loginName, accountName, password, datas;
 	COMPONENT_ID cid;
@@ -284,7 +284,7 @@ void BillingSystem::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryS
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	OrdersCharge* pOrdersCharge = new OrdersCharge();
 
@@ -299,7 +299,7 @@ void BillingSystem::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	s.readBlob(pOrdersCharge->postDatas);
 	s >> pOrdersCharge->cbid;
 
-	INFO_MSG(fmt::format("BillingSystem::charge: componentID={4}, chargeID={0}, dbid={1}, cbid={2}, datas={3}!\n",
+	INFO_MSG(fmt::format("Interfaces::charge: componentID={4}, chargeID={0}, dbid={1}, cbid={2}, datas={3}!\n",
 		pOrdersCharge->ordersID, pOrdersCharge->dbid, pOrdersCharge->cbid, pOrdersCharge->postDatas, pOrdersCharge->baseappID));
 
 	lockthread();
@@ -307,7 +307,7 @@ void BillingSystem::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(fmt::format("BillingSystem::charge: chargeID={} is exist!\n", pOrdersCharge->ordersID));
+		ERROR_MSG(fmt::format("Interfaces::charge: chargeID={} is exist!\n", pOrdersCharge->ordersID));
 		delete pOrdersCharge;
 		unlockthread();
 		return;
@@ -323,7 +323,7 @@ void BillingSystem::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
+void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
 	lockthread();
 
@@ -331,14 +331,14 @@ void BillingSystem::eraseClientReq(Network::Channel* pChannel, std::string& logk
 	if(citer != reqCreateAccount_requests_.end())
 	{
 		citer->second->enable = false;
-		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey={} set disabled!\n", logkey));
+		DEBUG_MSG(fmt::format("Interfaces::eraseClientReq: reqCreateAccount_logkey={} set disabled!\n", logkey));
 	}
 
 	REQLOGIN_MAP::iterator liter = reqAccountLogin_requests_.find(logkey);
 	if(liter != reqAccountLogin_requests_.end())
 	{
 		liter->second->enable = false;
-		DEBUG_MSG(fmt::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
+		DEBUG_MSG(fmt::format("Interfaces::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
 	}
 
 	unlockthread();
