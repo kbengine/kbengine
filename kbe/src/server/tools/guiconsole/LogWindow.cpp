@@ -6,7 +6,7 @@
 #include "LogWindow.h"
 #include "guiconsoleDlg.h"
 #include "common/common.h"
-#include "../../../server/tools/message_log/messagelog_interface.h"
+#include "../../../server/tools/logger/logger_interface.h"
 // CLogWindow dialog
 
 #pragma warning(disable:4244)
@@ -353,10 +353,10 @@ void CLogWindow::OnBnClickedButton1()
 	// 请求服务器拉取日志
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	
-	HTREEITEM item = dlg->hasCheckApp(MESSAGELOG_TYPE);
+	HTREEITEM item = dlg->hasCheckApp(LOGGER_TYPE);
 	if(item == NULL)
 	{
-		::AfxMessageBox(L"messagelog no select!");
+		::AfxMessageBox(L"logger no select!");
 		return;
 	}
 
@@ -371,14 +371,14 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
-		::AfxMessageBox(L"messagelog is error!");
+		::AfxMessageBox(L"logger is error!");
 		return;
 	}
 
 	if(!pulling)
 	{
 		Network::Bundle bundle;
-		bundle.newMessage(MessagelogInterface::registerLogWatcher);
+		bundle.newMessage(LoggerInterface::registerLogWatcher);
 
 		int32 uid = dlg->getSelTreeItemUID();
 		bundle << uid;
@@ -436,7 +436,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 		m_autopull.SetWindowTextW(L"auto");
 
 		Network::Bundle bundle;
-		bundle.newMessage(MessagelogInterface::deregisterLogWatcher);
+		bundle.newMessage(LoggerInterface::deregisterLogWatcher);
 		bundle.send(dlg->networkInterface(), pChannel);
 	}
 
@@ -608,7 +608,7 @@ void CLogWindow::OnLbnSelchangeMsgtypeList2()
 void CLogWindow::updateSettingToServer()
 {
 	Network::Bundle bundle;
-	bundle.newMessage(MessagelogInterface::updateLogWatcherSetting);
+	bundle.newMessage(LoggerInterface::updateLogWatcherSetting);
 
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	int32 uid = dlg->getSelTreeItemUID();
@@ -654,10 +654,10 @@ void CLogWindow::updateSettingToServer()
 		bundle << (*iter);
 	}
 
-	HTREEITEM item = dlg->hasCheckApp(MESSAGELOG_TYPE);
+	HTREEITEM item = dlg->hasCheckApp(LOGGER_TYPE);
 	if(item == NULL)
 	{
-		::AfxMessageBox(L"messagelog no select!");
+		::AfxMessageBox(L"logger no select!");
 		return;
 	}
 
@@ -666,7 +666,7 @@ void CLogWindow::updateSettingToServer()
 	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
-		::AfxMessageBox(L"messagelog is error!");
+		::AfxMessageBox(L"logger is error!");
 		return;
 	}
 

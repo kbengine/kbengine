@@ -162,8 +162,8 @@ public:
 
 	void onMessage(uint32 logType, const char * str, uint32 length);
 
-	void registerMessagelog(Network::MessageID msgID, Network::Address* pAddr);
-	void unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr);
+	void registerLogger(Network::MessageID msgID, Network::Address* pAddr);
+	void unregisterLogger(Network::MessageID msgID, Network::Address* pAddr);
 
 	void changeLogger(const std::string& name);
 
@@ -179,7 +179,7 @@ public:
 	void shouldWriteToSyslog(bool v = true);
 
 	/** 
-		同步日志到messagelog
+		同步日志到logger
 	*/
 	void sync();
 private:
@@ -187,7 +187,7 @@ private:
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
 
-	Network::Address messagelogAddr_;
+	Network::Address loggerAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 
 	std::queue< Network::Bundle* > bufferedLogPackets_;

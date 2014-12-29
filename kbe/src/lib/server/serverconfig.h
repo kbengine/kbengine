@@ -226,7 +226,7 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
 	INLINE ENGINE_COMPONENT_INFO& getKBMachine(void);
 	INLINE ENGINE_COMPONENT_INFO& getBots(void);
-	INLINE ENGINE_COMPONENT_INFO& getMessagelog(void);
+	INLINE ENGINE_COMPONENT_INFO& getLogger(void);
 	INLINE ENGINE_COMPONENT_INFO& getInterfaces(void);
 
 	INLINE ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
@@ -273,7 +273,7 @@ private:
 	ENGINE_COMPONENT_INFO _baseAppMgrInfo;
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
 	ENGINE_COMPONENT_INFO _botsInfo;
-	ENGINE_COMPONENT_INFO _messagelogInfo;
+	ENGINE_COMPONENT_INFO _loggerInfo;
 	ENGINE_COMPONENT_INFO _interfacesInfo;
 public:
 	int16 gameUpdateHertz_;

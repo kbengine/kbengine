@@ -53,9 +53,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loginapp/loginapp_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.h"
+#include "tools/logger/logger_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.h"
+#include "tools/logger/logger_interface.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "tools/bots/bots_interface.h"

@@ -27,7 +27,7 @@ BASEAPP_TYPE			= 6
 CLIENT_TYPE				= 7
 MACHINE_TYPE			= 8
 CONSOLE_TYPE			= 9
-MESSAGELOG_TYPE			= 10
+LOGGER_TYPE				= 10
 BOTS_TYPE				= 11
 WATCHER_TYPE			= 12
 INTERFACES_TYPE			= 13
@@ -45,7 +45,7 @@ COMPONENT_NAME2TYPE = {
 	"client" 		: CLIENT_TYPE,
 	"machine"		: MACHINE_TYPE,
 	"console" 		: CONSOLE_TYPE,
-	"messagelog" 	: MESSAGELOG_TYPE,
+	"logger" 		: LOGGER_TYPE,
 	"bots" 			: BOTS_TYPE,
 	"watcher" 		: WATCHER_TYPE,
 	"interfaces" 	: INTERFACES_TYPE,
@@ -64,8 +64,7 @@ COMPONENT_NAME = (
 	"machine",
 	"kbcenter",
 	"console",
-	"messagelog",
-	"resourcemgr",
+	"logger",
 	"bots",
 	"watcher",
 	"interfaces",

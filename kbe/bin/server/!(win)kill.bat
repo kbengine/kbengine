@@ -1,6 +1,5 @@
 taskkill /f /t /im machine.exe > nul 2> nul 
-taskkill /f /t /im messagelog.exe > nul 2> nul 
-taskkill /f /t /im resourcemgr.exe > nul 2> nul 
+taskkill /f /t /im logger.exe > nul 2> nul 
 taskkill /f /t /im dbmgr.exe > nul 2> nul 
 taskkill /f /t /im baseappmgr.exe > nul 2> nul 
 taskkill /f /t /im cellappmgr.exe > nul 2> nul 

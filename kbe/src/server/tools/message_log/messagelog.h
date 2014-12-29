@@ -56,8 +56,8 @@ struct LOG_ITEM
 	std::stringstream logstream;
 };
 
-class Messagelog:	public ServerApp, 
-				public Singleton<Messagelog>
+class Logger:	public ServerApp, 
+				public Singleton<Logger>
 {
 public:
 	typedef std::map<Network::Address, LogWatcher> LOG_WATCHERS;
@@ -67,12 +67,12 @@ public:
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 
-	Messagelog(Network::EventDispatcher& dispatcher, 
+	Logger(Network::EventDispatcher& dispatcher, 
 		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
-	~Messagelog();
+	~Logger();
 	
 	bool run();
 	

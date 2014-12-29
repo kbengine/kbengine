@@ -28,10 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_MESSAGELOG_INTERFACE_H
 
 // common include	
-#if defined(MESSAGELOG)
-#include "messagelog.h"
+#if defined(LOGGER)
+#include "logger.h"
 #endif
-#include "messagelog_interface_macros.h"
+#include "logger_interface_macros.h"
 #include "network/interface_defs.h"
 //#define NDEBUG
 // windows include	
@@ -43,9 +43,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 /**
-	Messagelog所有消息接口在此定义
+	Logger所有消息接口在此定义
 */
-NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
+NETWORK_INTERFACE_DECLARE_BEGIN(LoggerInterface)
 	// 某app注册自己的接口地址到本app
 	MESSAGELOG_MESSAGE_DECLARE_ARGS11(onRegisterNewApp,						NETWORK_VARIABLE_MESSAGE,
 									int32,									uid, 

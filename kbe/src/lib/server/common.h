@@ -98,9 +98,9 @@ namespace KBEngine {
 				BUNDLE.newMessage(LoginappInterface::MESSAGENAME);											\
 			}																								\
 			break;																							\
-		case MESSAGELOG_TYPE:																				\
+		case LOGGER_TYPE:																					\
 			{																								\
-				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
+				BUNDLE.newMessage(LoggerInterface::MESSAGENAME);											\
 			}																								\
 			break;																							\
 		case INTERFACES_TYPE:																				\

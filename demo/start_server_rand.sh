@@ -14,7 +14,7 @@ $KBE_BIN_PATH/machine&
 sleep 1s
 $KBE_BIN_PATH/interfaces&
 sleep 1s
-$KBE_BIN_PATH/messagelog&
+$KBE_BIN_PATH/logger&
 sleep 1s
 $KBE_BIN_PATH/dbmgr&
 sleep 2s

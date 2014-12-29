@@ -9,7 +9,7 @@ if defined uid (echo %uid%) else set uid=%random%%%32760+1
 call "!(win)kill.bat"
 
 start machine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
-rem start messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
+rem start logger.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
 start interfaces.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
 start dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=4
 start baseappmgr.exe --cid=4129652375332859700 --grouporder=1  --globalorder=5

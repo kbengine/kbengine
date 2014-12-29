@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.h"
 #include "../../server/dbmgr/dbmgr_interface.h"
 #include "../../server/loginapp/loginapp_interface.h"
-#include "../../server/tools/message_log/messagelog_interface.h"
+#include "../../server/tools/logger/logger_interface.h"
 #include "../../server/tools/bots/bots_interface.h"
 #include "../../server/tools/interfaces/interfaces_interface.h"
 
@@ -61,7 +61,7 @@ _loginapps(),
 _cellappmgrs(),
 _baseappmgrs(),
 _machines(),
-_messagelogs(),
+_loggers(),
 _interfaceses(),
 _bots(),
 _consoles(),
@@ -102,40 +102,40 @@ void Components::initialize(Network::NetworkInterface * pNetworkInterface, COMPO
 	switch(componentType_)
 	{
 	case CELLAPP_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		findComponentTypes_[1] = DBMGR_TYPE;
 		findComponentTypes_[2] = CELLAPPMGR_TYPE;
 		findComponentTypes_[3] = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		findComponentTypes_[1] = DBMGR_TYPE;
 		findComponentTypes_[2] = BASEAPPMGR_TYPE;
 		findComponentTypes_[3] = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		findComponentTypes_[1] = DBMGR_TYPE;
 		findComponentTypes_[2] = CELLAPPMGR_TYPE;
 		break;
 	case CELLAPPMGR_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		findComponentTypes_[1] = DBMGR_TYPE;
 		findComponentTypes_[2] = BASEAPPMGR_TYPE;
 		break;
 	case LOGINAPP_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		findComponentTypes_[1] = DBMGR_TYPE;
 		findComponentTypes_[2] = BASEAPPMGR_TYPE;
 		break;
 	case DBMGR_TYPE:
-		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[0] = LOGGER_TYPE;
 		break;
 	default:
-		if(componentType_ != MESSAGELOG_TYPE && 
+		if(componentType_ != LOGGER_TYPE && 
 			componentType_ != MACHINE_TYPE && 
 			componentType_ != INTERFACES_TYPE)
-			findComponentTypes_[0] = MESSAGELOG_TYPE;
+			findComponentTypes_[0] = LOGGER_TYPE;
 		break;
 	};
 }
@@ -449,11 +449,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 			}
-			else if(componentType == MESSAGELOG_TYPE)
+			else if(componentType == LOGGER_TYPE)
 			{
-				(*pBundle).newMessage(MessagelogInterface::onRegisterNewApp);
+				(*pBundle).newMessage(LoggerInterface::onRegisterNewApp);
 				
-				MessagelogInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				LoggerInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					componentType_, componentID_, 
 					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
@@ -489,7 +489,7 @@ void Components::clear(int32 uid, bool shouldShowLog)
 	delComponent(uid, CELLAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, BASEAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, LOGINAPP_TYPE, uid, true, shouldShowLog);
-	//delComponent(uid, MESSAGELOG_TYPE, uid, true, shouldShowLog);
+	//delComponent(uid, LOGGER_TYPE, uid, true, shouldShowLog);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -511,8 +511,8 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 		return _baseapps;
 	case MACHINE_TYPE:
 		return _machines;
-	case MESSAGELOG_TYPE:
-		return _messagelogs;			
+	case LOGGER_TYPE:
+		return _loggers;			
 	case INTERFACES_TYPE:
 		return _interfaceses;	
 	case BOTS_TYPE:
@@ -832,9 +832,9 @@ Components::ComponentInfos* Components::getDbmgr()
 }
 
 //-------------------------------------------------------------------------------------		
-Components::ComponentInfos* Components::getMessagelog()
+Components::ComponentInfos* Components::getLogger()
 {
-	return findComponent(MESSAGELOG_TYPE, getUserUID(), 0);
+	return findComponent(LOGGER_TYPE, getUserUID(), 0);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -874,9 +874,9 @@ Network::Channel* Components::getDbmgrChannel()
 }
 
 //-------------------------------------------------------------------------------------		
-Network::Channel* Components::getMessagelogChannel()
+Network::Channel* Components::getLoggerChannel()
 {
-	Components::ComponentInfos* cinfo = getMessagelog();
+	Components::ComponentInfos* cinfo = getLogger();
 	if(cinfo == NULL)
 		 return NULL;
 
@@ -1022,8 +1022,8 @@ RESTART_RECV:
 				// 防止接收到的数据不是想要的数据
 				if(findComponentType == args.componentType)
 				{
-					// 这里做个特例， 是messagelog则优先连接上去， 这样可以尽早同步日志
-					if(findComponentType == (int8)MESSAGELOG_TYPE)
+					// 这里做个特例， 是logger则优先连接上去， 这样可以尽早同步日志
+					if(findComponentType == (int8)LOGGER_TYPE)
 					{
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)

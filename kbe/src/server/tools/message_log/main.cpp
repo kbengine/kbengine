@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// messagelog需要增加吞吐量
+// logger需要增加吞吐量
 #define PACKET_MAX_SIZE_TCP 65535
 
 #include "common/common.h"
 #include "server/kbemain.h"
-#include "messagelog.h"
+#include "logger.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.h"
@@ -80,8 +80,8 @@ int KBENGINE_MAIN(int argc, char* argv[])
 	setrlimit(RLIMIT_CORE, &rlimitData);
 #endif
 	
-	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getMessagelog();
-	int ret = kbeMainT<Messagelog>(argc, argv, MESSAGELOG_TYPE, info.externalPorts_min, 
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLogger();
+	int ret = kbeMainT<Logger>(argc, argv, LOGGER_TYPE, info.externalPorts_min, 
 		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
 	return ret; 
 }

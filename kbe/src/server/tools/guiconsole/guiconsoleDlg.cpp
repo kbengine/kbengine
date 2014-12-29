@@ -53,9 +53,9 @@
 #include "cellappmgr/cellappmgr_interface.h"
 
 #undef DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.h"
+#include "tools/logger/logger_interface.h"
 #define DEFINE_IN_INTERFACE
-#include "tools/message_log/messagelog_interface.h"
+#include "tools/logger/logger_interface.h"
 
 #undef DEFINE_IN_INTERFACE
 #include "tools/bots/bots_interface.h"
@@ -152,7 +152,7 @@ public:
 
 	virtual bool process()
 	{
-		//COMPONENT_TYPE findComponentTypes[] = {MESSAGELOG_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+		//COMPONENT_TYPE findComponentTypes[] = {LOGGER_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
 		if(g_isDestroyed)
@@ -822,7 +822,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 2:
 		{
-			threadPool_.addTask(new FindServersTask(MESSAGELOG_TYPE));
+			threadPool_.addTask(new FindServersTask(LOGGER_TYPE));
 			threadPool_.addTask(new FindServersTask(BASEAPP_TYPE));
 			threadPool_.addTask(new FindServersTask(CELLAPP_TYPE));
 			threadPool_.addTask(new FindServersTask(BASEAPPMGR_TYPE));
@@ -975,7 +975,7 @@ void CguiconsoleDlg::updateTree()
 	Components::COMPONENTS& cts3 = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
 	Components::COMPONENTS& cts4 = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::COMPONENTS& cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
-	Components::COMPONENTS& cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
+	Components::COMPONENTS& cts6 = Components::getSingleton().getComponents(LOGGER_TYPE);
 	Components::COMPONENTS& cts7 = Components::getSingleton().getComponents(BOTS_TYPE);
 	Components::COMPONENTS cts;
 	
@@ -1189,7 +1189,7 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 		fi_baseapp = -1;
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
-	int fi_messagelog = s.Find(L"messagelog", 0);
+	int fi_logger = s.Find(L"logger", 0);
 	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
@@ -1197,7 +1197,7 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 		fi_cellappmgr < 0 &&
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
-		fi_messagelog < 0 &&
+		fi_logger < 0 &&
 		fi_dbmgr < 0 &&
 		fi_bots < 0)
 	{
@@ -1228,9 +1228,9 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	{
 		return DBMGR_TYPE;
 	}
-	else if(fi_messagelog >= 0)
+	else if(fi_logger >= 0)
 	{
-		return MESSAGELOG_TYPE;
+		return LOGGER_TYPE;
 	}
 	else if(fi_bots >= 0)
 	{
@@ -1296,7 +1296,7 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_baseapp = -1;
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
-	int fi_messagelog = s.Find(L"messagelog", 0);
+	int fi_logger = s.Find(L"logger", 0);
 	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
@@ -1304,7 +1304,7 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_cellappmgr < 0 &&
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
-		fi_messagelog < 0 &&
+		fi_logger < 0 &&
 		fi_dbmgr < 0 &&
 		fi_bots < 0)
 	{
@@ -1404,7 +1404,7 @@ void CguiconsoleDlg::OnMenu_Update()
 {
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
-	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, LOGGER_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 }
@@ -1551,7 +1551,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 
 	m_watcherWnd.clearAllData();
 
-	if(debugComponentType == MESSAGELOG_TYPE && changeToChecked)
+	if(debugComponentType == LOGGER_TYPE && changeToChecked)
 	{
 		HTREEITEM hItem = m_tree.GetSelectedItem(); 
 		KBEngine::Network::Address addr = getTreeItemAddr(hItem);
@@ -1636,7 +1636,7 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
-	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, LOGGER_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 1000, NULL);
 	*/
@@ -1742,8 +1742,8 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 			bundle.newMessage(DbmgrInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGINAPP_TYPE)
 			bundle.newMessage(LoginappInterface::startProfile);
-		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == MESSAGELOG_TYPE)
-			bundle.newMessage(MessagelogInterface::startProfile);
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGGER_TYPE)
+			bundle.newMessage(LoggerInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BOTS_TYPE)
 			bundle.newMessage(BotsInterface::startProfile);
 		else

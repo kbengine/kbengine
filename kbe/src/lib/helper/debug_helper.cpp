@@ -55,7 +55,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #endif
 
-#include "../../server/tools/message_log/messagelog_interface.h"
+#include "../../server/tools/logger/logger_interface.h"
 
 namespace KBEngine{
 	
@@ -182,7 +182,7 @@ _logfile(NULL),
 _currFile(),
 _currFuncName(),
 _currLine(0),
-messagelogAddr_(),
+loggerAddr_(),
 logMutex(),
 bufferedLogPackets_(),
 hasBufferedLogPackets_(0),
@@ -321,7 +321,7 @@ void DebugHelper::sync()
 		return;
 	}
 
-	if(Network::Address::NONE == messagelogAddr_)
+	if(Network::Address::NONE == loggerAddr_)
 	{
 		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
@@ -333,8 +333,8 @@ void DebugHelper::sync()
 		return;
 	}
 	
-	Network::Channel* pMessagelogChannel = pNetworkInterface_->findChannel(messagelogAddr_);
-	if(pMessagelogChannel == NULL)
+	Network::Channel* pLoggerChannel = pNetworkInterface_->findChannel(loggerAddr_);
+	if(pLoggerChannel == NULL)
 	{
 		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 		{
@@ -349,8 +349,8 @@ void DebugHelper::sync()
 	static bool alertmsg = false;
 	if(!alertmsg)
 	{
-		LOG4CXX_WARN(g_logger, fmt::format("The message is forwarded to the messagelog[{}]...\n", 
-			pMessagelogChannel->c_str()));
+		LOG4CXX_WARN(g_logger, fmt::format("The message is forwarded to the logger[{}]...\n", 
+			pLoggerChannel->c_str()));
 		alertmsg = true;
 	}
 
@@ -369,7 +369,7 @@ void DebugHelper::sync()
 		bufferedLogPackets_.pop();
 
 		totalLen += pBundle->currMsgLength();
-		pMessagelogChannel->send(pBundle);
+		pLoggerChannel->send(pBundle);
 		
 		--hasBufferedLogPackets_;
 	}
@@ -426,7 +426,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || 
-		g_componentType == MESSAGELOG_TYPE || 
+		g_componentType == LOGGER_TYPE || 
 		g_componentType == CLIENT_TYPE)
 		return;
 
@@ -450,7 +450,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	int8 v = Network::g_trace_packet;
 	Network::g_trace_packet = 0;
-	pBundle->newMessage(MessagelogInterface::writeLog);
+	pBundle->newMessage(LoggerInterface::writeLog);
 
 	(*pBundle) << getUserUID();
 	(*pBundle) << logType;
@@ -476,16 +476,16 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::registerMessagelog(Network::MessageID msgID, Network::Address* pAddr)
+void DebugHelper::registerLogger(Network::MessageID msgID, Network::Address* pAddr)
 {
-	messagelogAddr_ = *pAddr;
+	loggerAddr_ = *pAddr;
 	ALERT_LOG_TO("message_", true);
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::unregisterMessagelog(Network::MessageID msgID, Network::Address* pAddr)
+void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* pAddr)
 {
-	messagelogAddr_ = Network::Address::NONE;
+	loggerAddr_ = Network::Address::NONE;
 	ALERT_LOG_TO("", true);
 }
 

@@ -1047,16 +1047,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 
-	rootNode = xml->getRootNode("messagelog");
+	rootNode = xml->getRootNode("logger");
 	if(rootNode != NULL)
 	{
-		node = xml->enterNode(rootNode, "messagelog");	
+		node = xml->enterNode(rootNode, "logger");	
 		if(node != NULL)
-			strncpy((char*)&_messagelogInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_loggerInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
-			_messagelogInfo.tcp_SOMAXCONN = xml->getValInt(node);
+			_loggerInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
 		node = xml->enterNode(rootNode, "tick_max_buffered_logs");

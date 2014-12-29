@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "messagelog.h"
-#include "messagelog_interface.h"
+#include "logger.h"
+#include "logger_interface.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -33,10 +33,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
-KBE_SINGLETON_INIT(Messagelog);
+KBE_SINGLETON_INIT(Logger);
 
 //-------------------------------------------------------------------------------------
-Messagelog::Messagelog(Network::EventDispatcher& dispatcher, 
+Logger::Logger(Network::EventDispatcher& dispatcher, 
 				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
@@ -48,12 +48,12 @@ buffered_logs_()
 }
 
 //-------------------------------------------------------------------------------------
-Messagelog::~Messagelog()
+Logger::~Logger()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool Messagelog::run()
+bool Logger::run()
 {
 	bool ret = true;
 
@@ -61,7 +61,7 @@ bool Messagelog::run()
 	{
 		threadPool_.onMainThreadTick();
 		this->dispatcher().processOnce(false);
-		networkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
+		networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
 		KBEngine::sleep(10);
 	};
 
@@ -69,43 +69,43 @@ bool Messagelog::run()
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::handleTimeout(TimerHandle handle, void * arg)
+void Logger::handleTimeout(TimerHandle handle, void * arg)
 {
 	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
-bool Messagelog::initializeBegin()
+bool Logger::initializeBegin()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool Messagelog::inInitialize()
+bool Logger::inInitialize()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool Messagelog::initializeEnd()
+bool Logger::initializeEnd()
 {
-	// 由于messagelog接收其他app的log，如果跟踪包输出将会非常卡。
+	// 由于logger接收其他app的log，如果跟踪包输出将会非常卡。
 	Network::g_trace_packet = 0;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::finalise()
+void Logger::finalise()
 {
 	ServerApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------	
-bool Messagelog::canShutdown()
+bool Logger::canShutdown()
 {
 	if(Components::getSingleton().getGameSrvComponentsSize() > 0)
 	{
-		INFO_MSG(fmt::format("Messagelog::canShutdown(): Waiting for components({}) destruction!\n", 
+		INFO_MSG(fmt::format("Logger::canShutdown(): Waiting for components({}) destruction!\n", 
 			Components::getSingleton().getGameSrvComponentsSize()));
 
 		return false;
@@ -115,7 +115,7 @@ bool Messagelog::canShutdown()
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	LOG_ITEM* pLogItem = new LOG_ITEM();
 	std::string str;
@@ -141,7 +141,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if(aTm == NULL)
 	{
-		ERROR_MSG("Messagelog::writeLog: log is error!\n");
+		ERROR_MSG("Logger::writeLog: log is error!\n");
 		return;
 	}
 
@@ -188,7 +188,7 @@ void Messagelog::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::sendInitLogs(LogWatcher& logWatcher)
+void Logger::sendInitLogs(LogWatcher& logWatcher)
 {
 	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
 	for(; iter != buffered_logs_.end(); ++iter)
@@ -198,12 +198,12 @@ void Messagelog::sendInitLogs(LogWatcher& logWatcher)
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Logger::registerLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->createFromStream(&s))
 	{
-		ERROR_MSG(fmt::format("Messagelog::registerLogWatcher: addr={} is failed!\n",
+		ERROR_MSG(fmt::format("Logger::registerLogWatcher: addr={} is failed!\n",
 			pChannel->addr().c_str()));
 
 		logWatchers_.erase(pChannel->addr());
@@ -213,7 +213,7 @@ void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::Memory
 
 	pLogwatcher->addr(pChannel->addr());
 
-	INFO_MSG(fmt::format("Messagelog::registerLogWatcher: addr={0} is successfully!\n",
+	INFO_MSG(fmt::format("Logger::registerLogWatcher: addr={0} is successfully!\n",
 		pChannel->addr().c_str()));
 
 	bool first;
@@ -224,21 +224,21 @@ void Messagelog::registerLogWatcher(Network::Channel* pChannel, KBEngine::Memory
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::deregisterLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Logger::deregisterLogWatcher(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	logWatchers_.erase(pChannel->addr());
 
-	INFO_MSG(fmt::format("Messagelog::deregisterLogWatcher: addr={0} is successfully!\n",
+	INFO_MSG(fmt::format("Logger::deregisterLogWatcher: addr={0} is successfully!\n",
 		pChannel->addr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::updateLogWatcherSetting(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Logger::updateLogWatcherSetting(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->updateSetting(&s))
 	{
-		ERROR_MSG(fmt::format("Messagelog::updateLogWatcherSetting: addr={} is failed!\n",
+		ERROR_MSG(fmt::format("Logger::updateLogWatcherSetting: addr={} is failed!\n",
 			pChannel->addr().c_str()));
 
 		logWatchers_.erase(pChannel->addr());

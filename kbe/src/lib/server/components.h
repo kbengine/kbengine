@@ -176,13 +176,13 @@ public:
 	Components::ComponentInfos* getBaseappmgr();
 	Components::ComponentInfos* getCellappmgr();
 	Components::ComponentInfos* getDbmgr();
-	Components::ComponentInfos* getMessagelog();
+	Components::ComponentInfos* getLogger();
 	Components::ComponentInfos* getInterfaceses();
 
 	Network::Channel* getBaseappmgrChannel();
 	Network::Channel* getCellappmgrChannel();
 	Network::Channel* getDbmgrChannel();
-	Network::Channel* getMessagelogChannel();
+	Network::Channel* getLoggerChannel();
 
 	/** 
 		获取游戏服务端必要组件的注册数量。
@@ -216,7 +216,7 @@ private:
 	COMPONENTS								_cellappmgrs;
 	COMPONENTS								_baseappmgrs;
 	COMPONENTS								_machines;
-	COMPONENTS								_messagelogs;
+	COMPONENTS								_loggers;
 	COMPONENTS								_interfaceses;
 	COMPONENTS								_bots;
 	COMPONENTS								_consoles;

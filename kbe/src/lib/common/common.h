@@ -104,7 +104,7 @@ enum COMPONENT_TYPE
 	CLIENT_TYPE				= 7,
 	MACHINE_TYPE			= 8,
 	CONSOLE_TYPE			= 9,
-	MESSAGELOG_TYPE			= 10,
+	LOGGER_TYPE				= 10,
 	BOTS_TYPE				= 11,
 	WATCHER_TYPE			= 12,
 	INTERFACES_TYPE			= 13,
@@ -127,7 +127,7 @@ const char COMPONENT_NAME[][255] = {
 	"client",
 	"machine",
 	"console",
-	"messagelog",
+	"logger",
 	"bots",
 	"watcher",
 	"interfaces",
@@ -144,7 +144,7 @@ const char COMPONENT_NAME_1[][255] = {
 	"client    ",
 	"machine   ",
 	"console   ",
-	"messagelog",
+	"logger    ",
 	"bots      ",
 	"watcher   ",
 	"interfaces",
@@ -161,7 +161,7 @@ const char COMPONENT_NAME_2[][255] = {
 	"    client",
 	"   machine",
 	"   console",
-	"messagelog",
+	"    logger",
 	"      bots",
 	"   watcher",
 	"interfaces",
@@ -210,12 +210,12 @@ inline COMPONENT_TYPE ComponentName2ComponentType(const char* name)
 
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, MESSAGELOG_TYPE, 
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, LOGGER_TYPE, 
 						WATCHER_TYPE, INTERFACES_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的后端组件列表
 const COMPONENT_TYPE ALL_SERVER_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, MESSAGELOG_TYPE, 
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, LOGGER_TYPE, 
 						WATCHER_TYPE, INTERFACES_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的后端组件列表
@@ -223,7 +223,7 @@ const COMPONENT_TYPE ALL_GAME_SERVER_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLA
 						BASEAPP_TYPE, LOGINAPP_TYPE, INTERFACES_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的辅助性组件
-const COMPONENT_TYPE ALL_HELPER_COMPONENT_TYPE[] = {MESSAGELOG_TYPE, UNKNOWN_COMPONENT_TYPE};
+const COMPONENT_TYPE ALL_HELPER_COMPONENT_TYPE[] = {LOGGER_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 返回是否是一个有效的组件
 #define VALID_COMPONENT(C_TYPE) ((C_TYPE) > 0 && (C_TYPE) < COMPONENT_END_TYPE)

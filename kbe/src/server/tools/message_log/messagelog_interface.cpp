@@ -19,13 +19,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "messagelog_interface.h"
+#include "logger_interface.h"
 #define DEFINE_IN_INTERFACE
 #define MESSAGELOG
-#include "messagelog_interface.h"
+#include "logger_interface.h"
 
 namespace KBEngine{
-namespace MessagelogInterface{
+namespace LoggerInterface{
 //-------------------------------------------------------------------------------------
 }
 }

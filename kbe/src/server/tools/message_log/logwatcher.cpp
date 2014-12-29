@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "logwatcher.h"
-#include "messagelog.h"
+#include "logger.h"
 #include "common/memorystream.h"
 #include "helper/console_helper.h"
 
@@ -116,7 +116,7 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if(filterOptions_.groupOrder > 0 && filterOptions_.groupOrder != pLogItem->componentGroupOrder)
 		return;
 
-	Network::Channel* pChannel = Messagelog::getSingleton().networkInterface().findChannel(addr_);
+	Network::Channel* pChannel = Logger::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pChannel == NULL)
 		return;
@@ -128,7 +128,7 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
 	bundle << pLogItem->logstream.str().c_str();
-	bundle.send(Messagelog::getSingleton().networkInterface(), pChannel);
+	bundle.send(Logger::getSingleton().networkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

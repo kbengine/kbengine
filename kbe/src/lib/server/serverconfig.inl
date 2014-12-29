@@ -70,9 +70,9 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
 }
 
 //-------------------------------------------------------------------------------------		
-INLINE ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
+INLINE ENGINE_COMPONENT_INFO& ServerConfig::getLogger(void)
 {
-	return _messagelogInfo;
+	return _loggerInfo;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -100,8 +100,8 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componen
 		return getBaseApp();
 	case MACHINE_TYPE:
 		return getKBMachine();
-	case MESSAGELOG_TYPE:
-		return getMessagelog();
+	case LOGGER_TYPE:
+		return getLogger();
 	default:
 		return getCellApp();
 	};

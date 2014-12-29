@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef KBE_MESSAGELOG_INTERFACE_MACRO_H
+	#undef KBE_LOGGER_INTERFACE_MACRO_H
 #endif
 
 
-#ifndef KBE_MESSAGELOG_INTERFACE_MACRO_H
-#define KBE_MESSAGELOG_INTERFACE_MACRO_H
+#ifndef KBE_LOGGER_INTERFACE_MACRO_H
+#define KBE_LOGGER_INTERFACE_MACRO_H
 
 // common include	
 #include "network/interface_defs.h"
@@ -38,32 +38,32 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 /**
-	Messagelog消息宏，  参数为流， 需要自己解开
+	Logger消息宏，  参数为流， 需要自己解开
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_STREAM
+	#undef LOGGER_MESSAGE_HANDLER_STREAM
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##MessagelogMessagehandler_stream::handle(Network::Channel* pChannel,	\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##LoggerMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel, s);				\
+			KBEngine::Logger::getSingleton().NAME(pChannel, s);					\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_STREAM(NAME)									\
-	void NAME##MessagelogMessagehandler_stream::handle(Network::Channel* pChannel,	\
+#define LOGGER_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##LoggerMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_STREAM(NAME)									\
-	class NAME##MessagelogMessagehandler_stream : public Network::MessageHandler\
+#define LOGGER_MESSAGE_HANDLER_STREAM(NAME)										\
+	class NAME##LoggerMessagehandler_stream : public Network::MessageHandler\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -72,39 +72,39 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)						\
-	MESSAGELOG_MESSAGE_HANDLER_STREAM(NAME)										\
-	NETWORK_MESSAGE_DECLARE_STREAM(Messagelog, NAME,							\
-				NAME##MessagelogMessagehandler_stream, MSG_LENGTH)				\
+#define LOGGER_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
+	LOGGER_MESSAGE_HANDLER_STREAM(NAME)											\
+	NETWORK_MESSAGE_DECLARE_STREAM(Logger, NAME,								\
+				NAME##LoggerMessagehandler_stream, MSG_LENGTH)					\
 																				\
 
 /**
-	Messagelog消息宏，  只有零个参数的消息
+	Logger消息宏，  只有零个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS0
+	#undef LOGGER_MESSAGE_HANDLER_ARGS0
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##MessagelogMessagehandler0::handle(Network::Channel* pChannel,	\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##LoggerMessagehandler0::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel);				\
+			KBEngine::Logger::getSingleton().NAME(pChannel);					\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
-	void NAME##MessagelogMessagehandler0::handle(Network::Channel* pChannel,	\
+#define LOGGER_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##LoggerMessagehandler0::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
-	class NAME##MessagelogMessagehandler0 : public Network::MessageHandler		\
+#define LOGGER_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##LoggerMessagehandler0 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -113,42 +113,42 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)										\
-	NETWORK_MESSAGE_DECLARE_ARGS0(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler0, MSG_LENGTH)					\
+#define LOGGER_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	LOGGER_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Logger, NAME,									\
+				NAME##LoggerMessagehandler0, MSG_LENGTH)						\
 																				\
 
 
 /**
-	Messagelog消息宏，  只有一个参数的消息
+	Logger消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS1
+	#undef LOGGER_MESSAGE_HANDLER_ARGS1
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##MessagelogMessagehandler1::handle(Network::Channel* pChannel,	\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##LoggerMessagehandler1::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel, ARG_NAME1);		\
+			KBEngine::Logger::getSingleton().NAME(pChannel, ARG_NAME1);			\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##MessagelogMessagehandler1::handle(Network::Channel* pChannel,	\
+#define LOGGER_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##LoggerMessagehandler1::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	class NAME##MessagelogMessagehandler1 : public Network::MessageHandler		\
+#define LOGGER_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	class NAME##LoggerMessagehandler1 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -157,47 +157,47 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	NETWORK_MESSAGE_DECLARE_ARGS1(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+#define LOGGER_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+	LOGGER_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
+	NETWORK_MESSAGE_DECLARE_ARGS1(Logger, NAME,									\
+				NAME##LoggerMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
 
 /**
-	Messagelog消息宏，  只有二个参数的消息
+	Logger消息宏，  只有二个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS2
+	#undef LOGGER_MESSAGE_HANDLER_ARGS2
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##MessagelogMessagehandler2::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler2::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
 			ARG_TYPE2 ARG_NAME2;												\
 			s >> ARG_NAME2;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 													ARG_NAME1, ARG_NAME2);		\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	void NAME##MessagelogMessagehandler2::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler2::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2)				\
-	class NAME##MessagelogMessagehandler2 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler2 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -206,25 +206,25 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2)				\
-	NETWORK_MESSAGE_DECLARE_ARGS2(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Logger, NAME,									\
+				NAME##LoggerMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2)				\
 
 
 /**
-	Messagelog消息宏，  只有三个参数的消息
+	Logger消息宏，  只有三个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS3
+	#undef LOGGER_MESSAGE_HANDLER_ARGS3
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
 	void NAME##CellAppMessagehandler3::handle(Network::Channel* pChannel,		\
@@ -236,13 +236,13 @@ namespace KBEngine{
 			s >> ARG_NAME2;														\
 			ARG_TYPE3 ARG_NAME3;												\
 			s >> ARG_NAME3;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3);														\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
 	void NAME##CellAppMessagehandler3::handle(Network::Channel* pChannel,		\
@@ -252,7 +252,7 @@ namespace KBEngine{
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
 	class NAME##CellAppMessagehandler3 : public Network::MessageHandler			\
@@ -264,32 +264,32 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
-	NETWORK_MESSAGE_DECLARE_ARGS3(Messagelog, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS3(Logger, NAME,									\
 				NAME##CellAppMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3)				\
 
 
 /**
-	Messagelog消息宏，  只有四个参数的消息
+	Logger消息宏，  只有四个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS4
+	#undef LOGGER_MESSAGE_HANDLER_ARGS4
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##MessagelogMessagehandler4::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler4::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -300,28 +300,28 @@ namespace KBEngine{
 			s >> ARG_NAME3;														\
 			ARG_TYPE4 ARG_NAME4;												\
 			s >> ARG_NAME4;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3, ARG_NAME4);											\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	void NAME##MessagelogMessagehandler4::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler4::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	class NAME##MessagelogMessagehandler4 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler4 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -330,35 +330,35 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS4(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS4(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	NETWORK_MESSAGE_DECLARE_ARGS4(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler4, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS4(Logger, NAME,									\
+				NAME##LoggerMessagehandler4, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
 
 /**
-	Messagelog消息宏，  只有五个参数的消息
+	Logger消息宏，  只有五个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS5
+	#undef LOGGER_MESSAGE_HANDLER_ARGS5
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##MessagelogMessagehandler5::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler5::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -371,30 +371,30 @@ namespace KBEngine{
 			s >> ARG_NAME4;														\
 			ARG_TYPE5 ARG_NAME5;												\
 			s >> ARG_NAME5;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5);								\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	void NAME##MessagelogMessagehandler5::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler5::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	class NAME##MessagelogMessagehandler5 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler5 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -403,18 +403,18 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS5(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS5(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	NETWORK_MESSAGE_DECLARE_ARGS5(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler5, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS5(Logger, NAME,									\
+				NAME##LoggerMessagehandler5, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -422,21 +422,21 @@ namespace KBEngine{
 
 
 /**
-	Messagelog消息宏，  只有六个参数的消息
+	Logger消息宏，  只有六个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS6
+	#undef LOGGER_MESSAGE_HANDLER_ARGS6
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##MessagelogMessagehandler6::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler6::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -451,32 +451,32 @@ namespace KBEngine{
 			s >> ARG_NAME5;														\
 			ARG_TYPE6 ARG_NAME6;												\
 			s >> ARG_NAME6;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5, ARG_NAME6);					\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	void NAME##MessagelogMessagehandler6::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler6::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	class NAME##MessagelogMessagehandler6 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler6 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -485,20 +485,20 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS6(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS6(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS6(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	NETWORK_MESSAGE_DECLARE_ARGS6(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler6, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS6(Logger, NAME,									\
+				NAME##LoggerMessagehandler6, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -506,15 +506,15 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6)				\
 
 /**
-	Messagelog消息宏，  只有八个参数的消息
+	Logger消息宏，  只有八个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS8
+	#undef LOGGER_MESSAGE_HANDLER_ARGS8
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -522,7 +522,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##MessagelogMessagehandler8::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler8::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -541,14 +541,14 @@ namespace KBEngine{
 			s >> ARG_NAME7;														\
 			ARG_TYPE8 ARG_NAME8;												\
 			s >> ARG_NAME8;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8);					\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -556,14 +556,14 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	void NAME##MessagelogMessagehandler8::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler8::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -571,7 +571,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	class NAME##MessagelogMessagehandler8 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler8 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -580,7 +580,7 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS8(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS8(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -588,7 +588,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -596,8 +596,8 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	NETWORK_MESSAGE_DECLARE_ARGS8(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler8, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+	NETWORK_MESSAGE_DECLARE_ARGS8(Logger, NAME,									\
+				NAME##LoggerMessagehandler8, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -608,15 +608,15 @@ namespace KBEngine{
 
 
 /**
-	Messagelog消息宏，  只有九个参数的消息
+	Logger消息宏，  只有九个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS9
+	#undef LOGGER_MESSAGE_HANDLER_ARGS9
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -625,7 +625,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##MessagelogMessagehandler9::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler9::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -646,14 +646,14 @@ namespace KBEngine{
 			s >> ARG_NAME8;														\
 			ARG_TYPE9 ARG_NAME9;												\
 			s >> ARG_NAME9;														\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8, ARG_NAME9);		\
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -662,14 +662,14 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	void NAME##MessagelogMessagehandler9::handle(Network::Channel* pChannel,	\
+	void NAME##LoggerMessagehandler9::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+#define LOGGER_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -678,7 +678,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	class NAME##MessagelogMessagehandler9 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler9 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -687,7 +687,7 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS9(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+#define LOGGER_MESSAGE_DECLARE_ARGS9(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -696,7 +696,7 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1, 				\
+	LOGGER_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -705,8 +705,8 @@ namespace KBEngine{
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9)				\
-	NETWORK_MESSAGE_DECLARE_ARGS9(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler9, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS9(Logger, NAME,									\
+				NAME##LoggerMessagehandler9, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -717,15 +717,15 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9)				\
 
 /**
-	Messagelog消息宏，  只有十个参数的消息
+	Logger消息宏，  只有十个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS10
+	#undef LOGGER_MESSAGE_HANDLER_ARGS10
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -735,7 +735,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##MessagelogMessagehandler10::handle(Network::Channel* pChannel,		\
+	void NAME##LoggerMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -758,7 +758,7 @@ namespace KBEngine{
 			s >> ARG_NAME9;														\
 			ARG_TYPE10 ARG_NAME10;												\
 			s >> ARG_NAME10;													\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
@@ -766,7 +766,7 @@ namespace KBEngine{
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+#define LOGGER_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -776,14 +776,14 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	void NAME##MessagelogMessagehandler10::handle(Network::Channel* pChannel,		\
+	void NAME##LoggerMessagehandler10::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+#define LOGGER_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -793,7 +793,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	class NAME##MessagelogMessagehandler10 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler10 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -802,7 +802,7 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS10(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+#define LOGGER_MESSAGE_DECLARE_ARGS10(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -812,7 +812,7 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1, 					\
+	LOGGER_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -822,8 +822,8 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8,				\
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10)				\
-	NETWORK_MESSAGE_DECLARE_ARGS10(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler10, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+	NETWORK_MESSAGE_DECLARE_ARGS10(Logger, NAME,								\
+				NAME##LoggerMessagehandler10, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -836,15 +836,15 @@ namespace KBEngine{
 
 
 /**
-	Messagelog消息宏，  只有十一个参数的消息
+	Logger消息宏，  只有十一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS11
+	#undef LOGGER_MESSAGE_HANDLER_ARGS11
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-#if defined(MESSAGELOG)
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+#if defined(LOGGER)
+#define LOGGER_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -855,7 +855,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##MessagelogMessagehandler11::handle(Network::Channel* pChannel,		\
+	void NAME##LoggerMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -880,7 +880,7 @@ namespace KBEngine{
 			s >> ARG_NAME10;													\
 			ARG_TYPE11 ARG_NAME11;												\
 			s >> ARG_NAME11;													\
-			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+			KBEngine::Logger::getSingleton().NAME(pChannel,						\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
@@ -888,7 +888,7 @@ namespace KBEngine{
 	}																			\
 
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+#define LOGGER_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -899,14 +899,14 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	void NAME##MessagelogMessagehandler11::handle(Network::Channel* pChannel,		\
+	void NAME##LoggerMessagehandler11::handle(Network::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+#define LOGGER_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -917,7 +917,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	class NAME##MessagelogMessagehandler11 : public Network::MessageHandler		\
+	class NAME##LoggerMessagehandler11 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -926,7 +926,7 @@ namespace KBEngine{
 
 #endif
 
-#define MESSAGELOG_MESSAGE_DECLARE_ARGS11(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+#define LOGGER_MESSAGE_DECLARE_ARGS11(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -937,7 +937,7 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1, 					\
+	LOGGER_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1, 					\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
@@ -948,8 +948,8 @@ namespace KBEngine{
 											ARG_TYPE9, ARG_NAME9,				\
 											ARG_TYPE10, ARG_NAME10,				\
 											ARG_TYPE11, ARG_NAME11)				\
-	NETWORK_MESSAGE_DECLARE_ARGS11(Messagelog, NAME,								\
-				NAME##MessagelogMessagehandler11, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+	NETWORK_MESSAGE_DECLARE_ARGS11(Logger, NAME,								\
+				NAME##LoggerMessagehandler11, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\

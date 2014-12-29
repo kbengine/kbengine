@@ -18,7 +18,7 @@ echo KBE_BIN_PATH = %KBE_BIN_PATH%
 start %KBE_BIN_PATH%/machine.exe
 start %KBE_BIN_PATH%/interfaces.exe
 ping 127.0.0.1 -n 1
-start %KBE_BIN_PATH%/messagelog.exe
+start %KBE_BIN_PATH%/logger.exe
 ping 127.0.0.1 -n 1
 start %KBE_BIN_PATH%/dbmgr.exe
 ping 127.0.0.1 -n 2
