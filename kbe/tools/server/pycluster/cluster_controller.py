@@ -62,7 +62,6 @@ COMPONENT_NAME = (
 	"baseapp",
 	"client",
 	"machine",
-	"kbcenter",
 	"console",
 	"logger",
 	"bots",
