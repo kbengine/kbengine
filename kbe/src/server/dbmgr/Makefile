@@ -4,7 +4,7 @@ SRCS =						\
 	dbmgr					\
 	dbmgr_interface				\
 	dbtasks					\
-	interfaceshandler			\
+	interfaces_handler			\
 	main					\
 	sync_app_datas_handler
 

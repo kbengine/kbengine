@@ -110,7 +110,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="interfaceshandler.cpp" />
+    <ClCompile Include="interfaces_handler.cpp" />
     <ClCompile Include="buffered_dbtasks.cpp" />
     <ClCompile Include="dbmgr.cpp" />
     <ClCompile Include="dbmgr_interface.cpp" />
@@ -120,7 +120,7 @@
     <ClCompile Include="sync_app_datas_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="interfaceshandler.h" />
+    <ClInclude Include="interfaces_handler.h" />
     <ClInclude Include="buffered_dbtasks.h" />
     <ClInclude Include="dbmgr.h" />
     <ClInclude Include="dbmgr_interface.h" />

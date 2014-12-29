@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="billinghandler.cpp">
+    <ClCompile Include="interfaces_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="buffered_dbtasks.cpp">
@@ -44,7 +44,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="billinghandler.h">
+    <ClInclude Include="interfaces_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="buffered_dbtasks.h">

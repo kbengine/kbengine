@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "dbmgr.h"
-#include "Interfaceshandler.h"
+#include "interfaces_handler.h"
 #include "buffered_dbtasks.h"
 #include "db_interface/db_threadpool.h"
 #include "thread/threadpool.h"
