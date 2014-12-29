@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.h"
 #include "dbmgr_interface.h"
 #include "dbtasks.h"
-#include "interfaceshandler.h"
+#include "interfaces_handler.h"
 #include "sync_app_datas_handler.h"
 #include "db_mysql/kbe_table_mysql.h"
 #include "network/common.h"
