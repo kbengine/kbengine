@@ -1,5 +1,5 @@
 #!/bin/sh
-pkill -9 kbmachine
+pkill -9 machine
 pkill -9 dbmgr
 pkill -9 cellappmgr
 pkill -9 baseappmgr
@@ -8,4 +8,4 @@ pkill -9 baseapp
 pkill -9 loginapp
 pkill -9 bots
 pkill -9 messagelog
-pkill -9 billingsystem
+pkill -9 interfaces

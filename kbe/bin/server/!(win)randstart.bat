@@ -7,7 +7,7 @@ if defined KBE_BIN_PATH (echo %KBE_BIN_PATH%) else set KBE_BIN_PATH=%KBE_ROOT%kb
 set uid=%random%%%32760+1
 call "!(win)kill.bat"
 
-start kbmachine.exe
+start machine.exe
 #ping 127.0.0.1 -n 1
 start interfaces.exe
 #ping 127.0.0.1 -n 1

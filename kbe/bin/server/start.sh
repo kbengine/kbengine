@@ -6,9 +6,9 @@ echo KBE_BIN_PATH = \"${KBE_BIN_PATH}\"
 
 sh ./kill.sh
 
-./kbmachine&
+./machine&
 sleep 1s
-./billingsystem&
+./interfaces&
 sleep 1s
 ./messagelog&
 sleep 1s

@@ -1,5 +1,5 @@
 #!/bin/sh
-pkill -9 kbmachine
+pkill -9 machine
 pkill -9 dbmgr
 pkill -9 cellappmgr
 pkill -9 baseappmgr

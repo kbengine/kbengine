@@ -10,7 +10,7 @@ echo KBE_BIN_PATH = \"${KBE_BIN_PATH}\"
 
 sh ./kill_server.sh
 
-$KBE_BIN_PATH/kbmachine&
+$KBE_BIN_PATH/machine&
 sleep 1s
 $KBE_BIN_PATH/interfaces&
 sleep 1s

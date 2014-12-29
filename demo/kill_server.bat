@@ -1,4 +1,4 @@
-taskkill /f /t /im kbmachine.exe > nul 2> nul 
+taskkill /f /t /im machine.exe > nul 2> nul 
 taskkill /f /t /im messagelog.exe > nul 2> nul 
 taskkill /f /t /im resourcemgr.exe > nul 2> nul 
 taskkill /f /t /im dbmgr.exe > nul 2> nul 

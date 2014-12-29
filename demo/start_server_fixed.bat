@@ -15,7 +15,7 @@ echo KBE_ROOT = %KBE_ROOT%
 echo KBE_RES_PATH = %KBE_RES_PATH%
 echo KBE_BIN_PATH = %KBE_BIN_PATH%
 
-start %KBE_BIN_PATH%/kbmachine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
+start %KBE_BIN_PATH%/machine.exe --cid=2129652375332859700 --grouporder=1  --globalorder=1
 start %KBE_BIN_PATH%/messagelog.exe --cid=1129653375331859700 --grouporder=1 --globalorder=2
 start %KBE_BIN_PATH%/interfaces.exe --cid=1129652375332859700 --grouporder=1 --globalorder=3
 start %KBE_BIN_PATH%/dbmgr.exe --cid=3129652375332859700 --grouporder=1 --globalorder=4
