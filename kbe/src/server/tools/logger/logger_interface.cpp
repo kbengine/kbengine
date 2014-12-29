@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "logger_interface.h"
 #define DEFINE_IN_INTERFACE
-#define MESSAGELOG
+#define LOGGER
 #include "logger_interface.h"
 
 namespace KBEngine{
