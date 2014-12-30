@@ -301,9 +301,13 @@
 	
 	<Client::onScriptVersionNotMatch>
 		<id>522</id>
-		<descr>版本不匹配。</descr>
+		<descr>脚本版本不匹配。</descr>
 	</Client::onScriptVersionNotMatch>
 	
+	<Client::onVersionNotMatch>
+		<id>523</id>
+		<descr>引擎版本不匹配。</descr>
+	</Client::onVersionNotMatch>
 	
 	<Property::position>
 		<id>40000</id>
