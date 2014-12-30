@@ -8,5 +8,5 @@ set KBE_BIN_PATH=%KBE_ROOT%/kbe/bin/server/
 
 set uid=%random%%%32760+1
 
-
-start %KBE_ROOT%/kbe/tools/server/guiconsole/guiconsole.exe
+cd %KBE_ROOT%/kbe/tools/server/guiconsole/
+start guiconsole.exe
