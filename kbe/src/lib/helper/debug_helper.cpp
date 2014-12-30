@@ -479,7 +479,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 void DebugHelper::registerLogger(Network::MessageID msgID, Network::Address* pAddr)
 {
 	loggerAddr_ = *pAddr;
-	ALERT_LOG_TO("message_", true);
+	ALERT_LOG_TO("logger_", true);
 }
 
 //-------------------------------------------------------------------------------------
