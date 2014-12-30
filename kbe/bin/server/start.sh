@@ -10,7 +10,7 @@ sh ./kill.sh
 sleep 1s
 ./interfaces&
 sleep 1s
-./messagelog&
+./logger&
 sleep 1s
 ./dbmgr&
 sleep 2s
