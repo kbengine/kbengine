@@ -50,6 +50,9 @@ public:
 	};
 
 	KBEUnordered_map<std::string, BACK_ORDERS_DATA> backOrdersDatas_;
+
+private:	
+	void initListen();
 };
 
 }

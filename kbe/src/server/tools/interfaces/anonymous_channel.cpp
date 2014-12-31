@@ -30,38 +30,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 AnonymousChannel::AnonymousChannel()
 {
-	listen.socket(SOCK_STREAM);
-
-	if (!listen.good())
-	{
-		ERROR_MSG("AnonymousChannel::process: couldn't create a socket\n");
-		return;
-	}
-
-	if (listen.bind(htons(g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()), 
-		Interfaces::getSingleton().networkInterface().extaddr().ip) == -1)
-	{
-		ERROR_MSG(fmt::format("AnonymousChannel::bind({}): \n",
-			 kbe_strerror()));
-
-		listen.close();
-		return;
-	}
-
-	if(listen.listen() == -1)
-	{
-		ERROR_MSG(fmt::format("AnonymousChannel::listeningSocket({}): \n",
-			 kbe_strerror()));
-
-		listen.close();
-		return;
-	}
-
-	listen.setnonblocking(true);
-
-	INFO_MSG(fmt::format("AnonymousChannel::bind: {}:{}\n",
-		inet_ntoa((struct in_addr&)Interfaces::getSingleton().networkInterface().extaddr().ip), 
-		g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()));
+	initListen();
 }
 
 //-------------------------------------------------------------------------------------
@@ -75,6 +44,8 @@ bool AnonymousChannel::process()
 	if (!listen.good())
 	{
 		ERROR_MSG("AnonymousChannel::process: invalid endpoint.\n");
+		KBEngine::sleep(1000);
+		initListen();
 		return false;
 	}
 
@@ -324,4 +295,44 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+void AnonymousChannel::initListen()
+{
+	if (!listen.good())
+	{
+		listen.socket(SOCK_STREAM);
+
+		if (!listen.good())
+		{
+			return;
+		}
+
+		if (listen.bind(htons(g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()), 
+			Interfaces::getSingleton().networkInterface().extaddr().ip) == -1)
+		{
+			ERROR_MSG(fmt::format("AnonymousChannel::bind({}): \n",
+				 kbe_strerror()));
+
+			listen.close();
+			return;
+		}
+
+		if(listen.listen() == -1)
+		{
+			ERROR_MSG(fmt::format("AnonymousChannel::listeningSocket({}): \n",
+				 kbe_strerror()));
+
+			listen.close();
+			return;
+		}
+
+		listen.setnonblocking(true);
+
+		INFO_MSG(fmt::format("AnonymousChannel::bind: {}:{}\n",
+			inet_ntoa((struct in_addr&)Interfaces::getSingleton().networkInterface().extaddr().ip), 
+			g_kbeSrvConfig.interfacesThirdpartyServiceCBPort()));
+	}
 }
+
+//-------------------------------------------------------------------------------------
+}
+
