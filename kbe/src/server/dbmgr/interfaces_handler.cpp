@@ -335,7 +335,20 @@ bool InterfacesHandler_ThirdParty::reconnect()
 			int selgot = select((*pInterfacesChannel_->endpoint())+1, &frds, &fwds, NULL, &tv);
 			if(selgot > 0)
 			{
-				break;
+				int error;
+
+				if(FD_ISSET(int(*pInterfacesChannel_->endpoint()), &frds) || FD_ISSET(int(*pInterfacesChannel_->endpoint()), &fwds) )
+				{
+					socklen_t len = sizeof(error);
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+					if( getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len) == 0)
+						break;
+#else
+					if( getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+						break;
+#endif
+				}
 			}
 
 			trycount++;
