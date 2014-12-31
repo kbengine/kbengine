@@ -81,6 +81,8 @@ public:
 	void onReceiveProfileData(MemoryStream& s);
 
 	bool startProfile(std::string name, int8 type, uint32 timinglen);
+
+	void addThreadTask(thread::TPTask* tptask);
 protected:
 	HICON m_hIcon;
 

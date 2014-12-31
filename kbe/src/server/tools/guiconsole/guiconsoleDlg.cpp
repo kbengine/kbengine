@@ -750,6 +750,11 @@ HCURSOR CguiconsoleDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CguiconsoleDlg::addThreadTask(thread::TPTask* tptask)
+{
+	threadPool_.addTask(tptask);
+}
+
 void CguiconsoleDlg::updateFindTreeStatus()
 {
 	static int count = 0;

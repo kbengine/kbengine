@@ -75,7 +75,7 @@ public:
 			logTime = timestamp();
 		}
 
-		KBEShared_ptr<Network::Address > pIntAddr, pExtAddr;	// 内部和外部地址
+		KBEShared_ptr<Network::Address> pIntAddr, pExtAddr;		// 内部和外部地址
 		char externalAddressEx[MAX_NAME + 1];					// 强制暴露给外部的公网地址, 详见配置中的externalAddressEx
 
 		int32 uid;

@@ -19,6 +19,7 @@ public:
 	void autoWndSize();
 
 	void addApp(Components::ComponentInfos& cinfos);
+	void update(Components::ComponentInfos& cinfos);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
