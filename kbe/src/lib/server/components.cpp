@@ -936,7 +936,11 @@ bool Components::findInterfaces()
 				WARNING_MSG(s);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-				DebugHelper::getSingleton().set_warningcolor();
+				if(count <= 25)
+					DebugHelper::getSingleton().set_warningcolor();
+				else
+					DebugHelper::getSingleton().set_errorcolor();
+
 				printf("[WARNING]: %s", s.c_str());
 				DebugHelper::getSingleton().set_normalcolor();
 #endif
