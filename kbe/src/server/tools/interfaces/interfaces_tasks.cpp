@@ -152,31 +152,6 @@ bool CreateAccountTask::process()
 		endpoint.close();
 		return false;
 	}
-	
-	int error;
-
-	if(FD_ISSET(endpoint, &frds))
-	{
-		socklen_t len = sizeof(error);
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-		if( getsockopt(endpoint, SOL_SOCKET, SO_ERROR, (char*)&error, &len) != 0)
-		{
-			ERROR_MSG(fmt::format("InterfacesTask::process: {} send({}).\n", commitName, postDatas));
-			ERROR_MSG(fmt::format("InterfacesTask::process: {} recv is error({}).\n", commitName, error));
-			endpoint.close();
-			return false;
-		}
-#else
-		if( getsockopt(endpoint, SOL_SOCKET, SO_ERROR, &error, &len) >= 0)
-		{
-			ERROR_MSG(fmt::format("InterfacesTask::process: {} send({}).\n", commitName, postDatas));
-			ERROR_MSG(fmt::format("InterfacesTask::process: {} recv is error({}).\n", commitName, error));
-			endpoint.close();
-			return false;
-		}
-#endif
-	}
 
 	int len = endpoint.recv(packet.data(), 1024);
 
