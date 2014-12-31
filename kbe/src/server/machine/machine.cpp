@@ -87,7 +87,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 {
 	// 先查询一下是否存在相同身份，如果是相同身份且不是一个进程我们需要告知对方启动非法
 	const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent(componentID);
-	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, true))
+	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, false, true))
 	{
 		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
 			username != pinfos->username || uid != pinfos->uid)
@@ -129,7 +129,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
 		if(pinfos)
 		{
-			if(checkComponentUsable(pinfos, true))
+			if(checkComponentUsable(pinfos, false, true))
 			{
 				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
 					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
@@ -224,7 +224,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 
 		const Components::ComponentInfos* pinfos = &(*iter);
 		
-		bool usable = checkComponentUsable(pinfos, false);
+		bool usable = checkComponentUsable(pinfos, false, false);
 
 		if(usable)
 		{
@@ -279,9 +279,14 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 }
 
 //-------------------------------------------------------------------------------------
-bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool autoerase)
+bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool getdatas, bool autoerase)
 {
-	bool ret = Components::getSingleton().lookupLocalComponentRunning(info->pid) != NULL;
+	bool ret = false;
+	
+	if(!getdatas)
+		ret = Components::getSingleton().lookupLocalComponentRunning(info->pid) != NULL;
+	else
+		ret = Components::getSingleton().updateComponentInfos(info);
 
 	// 如果已经不可用且允许自动擦除则擦除它
 	if(!ret && autoerase)
@@ -359,7 +364,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
 					this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip;
 
-			bool usable = checkComponentUsable(pinfos, false);
+			bool usable = checkComponentUsable(pinfos, true, false);
 
 			if(usable)
 			{
@@ -747,7 +752,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
 			(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
 
-		bool usable = checkComponentUsable(&(*iter), false);
+		bool usable = checkComponentUsable(&(*iter), false, false);
 		
 		if(!usable)
 		{

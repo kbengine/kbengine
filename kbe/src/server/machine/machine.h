@@ -110,7 +110,7 @@ public:
 	/**
 		对本机运行的组件进行检查是否可用
 	*/
-	bool checkComponentUsable(const Components::ComponentInfos* info, bool autoerase);
+	bool checkComponentUsable(const Components::ComponentInfos* info, bool getdatas, bool autoerase);
 protected:
 	// udp广播地址
 	u_int32_t broadcastAddr_;

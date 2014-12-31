@@ -656,7 +656,7 @@ const Components::ComponentInfos* Components::lookupLocalComponentRunning(uint32
 }
 
 //-------------------------------------------------------------------------------------		
-bool Components::checkComponentPortUsable(const Components::ComponentInfos* info)
+bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 {
 	// 不对其他machine做处理
 	if(info->componentType == MACHINE_TYPE)
@@ -799,8 +799,7 @@ bool Components::checkComponentPortUsable(const Components::ComponentInfos* info
 				winfo->extradata1 = cellSize;
 				winfo->extradata3 = telnet_port;
 			}
-			
-			if(ctype == BASEAPP_TYPE)
+			else if(ctype == BASEAPP_TYPE)
 			{
 				winfo->extradata = entitySize;
 				winfo->extradata1 = clientsSize;

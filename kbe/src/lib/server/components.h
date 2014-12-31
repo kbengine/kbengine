@@ -161,7 +161,7 @@ public:
 	/** 
 		检查某个组件端口是否有效.
 	*/
-	bool checkComponentPortUsable(const Components::ComponentInfos* info);
+	bool updateComponentInfos(const Components::ComponentInfos* info);
 
 	/** 
 		是否是本地组件.
