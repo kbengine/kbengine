@@ -37,9 +37,9 @@ public:
 	/** 
 		脚本请求(注册/注销)文件描述符(读和写)
 	*/
-	static PyObject* __py_registerFileDescriptor(PyObject* self, PyObject* args);
+	static PyObject* __py_registerReadFileDescriptor(PyObject* self, PyObject* args);
 	static PyObject* __py_registerWriteFileDescriptor(PyObject* self, PyObject* args);
-	static PyObject* __py_deregisterFileDescriptor(PyObject* self, PyObject* args);
+	static PyObject* __py_deregisterReadFileDescriptor(PyObject* self, PyObject* args);
 	static PyObject* __py_deregisterWriteFileDescriptor(PyObject* self, PyObject* args);
 protected:
 

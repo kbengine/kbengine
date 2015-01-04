@@ -68,7 +68,7 @@ clients_()
 
 	pEndPoint_->setnonblocking(true);
 
-	Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*pEndPoint_, this);
+	Loginapp::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor(*pEndPoint_, this);
 
 	INFO_MSG(fmt::format("HTTPCBHandler::bind: {}:{}\n",
 		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
@@ -79,7 +79,7 @@ clients_()
 HTTPCBHandler::~HTTPCBHandler()
 {
 	clients_.clear();
-	Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*pEndPoint_);
+	Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 	SAFE_RELEASE(pEndPoint_);
 }
 
@@ -106,7 +106,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		CLIENT& client = clients_[*newclient];
 		client.endpoint = KBEShared_ptr< Network::EndPoint >(newclient);
 		client.state = 0;
-		Loginapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(*newclient, this);
+		Loginapp::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor(*newclient, this);
 	}
 	else
 	{
@@ -131,7 +131,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		
 			if(len == 0)
 			{
-				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 			return 0;
@@ -139,7 +139,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(client.state == 1)
 		{
-			Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+			Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 			clients_.erase(iter);
 		}
 
@@ -154,7 +154,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			{
 				std::string response = "<?xml version='1.0'?><cross-domain-policy><allow-access-from domain=""*"" to-ports=""*"" /></cross-domain-policy>";
 				iter->second.endpoint->send(response.c_str(), response.size());
-				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 
@@ -341,7 +341,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		{
 			if(client.state != 2)
 			{
-				Loginapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
 		}

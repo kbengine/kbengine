@@ -101,9 +101,9 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 		return false;
 	}
 
-	if(!pDispatcher_->registerFileDescriptor(listener_, this))
+	if(!pDispatcher_->registerReadFileDescriptor(listener_, this))
 	{
-		ERROR_MSG(fmt::format("TelnetServer::start:: registerFileDescriptor is failed! addr={}\n", 
+		ERROR_MSG(fmt::format("TelnetServer::start:: registerReadFileDescriptor is failed! addr={}\n", 
 			listener_.c_str()));
 
 		return false;
@@ -120,14 +120,14 @@ void TelnetServer::onTelnetHandlerClosed(int fd, TelnetHandler* pTelnetHandler)
 		pTelnetHandler->pEndPoint()->c_str()));
 
 	KBE_ASSERT(fd == (*pTelnetHandler->pEndPoint()));
-	pDispatcher_->deregisterFileDescriptor(fd);
+	pDispatcher_->deregisterReadFileDescriptor(fd);
 	handlers_.erase(fd);
 }
 
 //-------------------------------------------------------------------------------------
 bool TelnetServer::stop()
 {
-	pDispatcher_->deregisterFileDescriptor(listener_);
+	pDispatcher_->deregisterReadFileDescriptor(listener_);
 	listener_.close();
 	listener_.detach();
 	return true;
@@ -143,7 +143,7 @@ void TelnetServer::closeHandler(int fd, TelnetHandler* pTelnetHandler)
 		return;
 	}
 
-	pDispatcher_->deregisterFileDescriptor(fd);
+	pDispatcher_->deregisterReadFileDescriptor(fd);
 	handlers_.erase(iter);
 
 #ifdef unix
@@ -180,9 +180,9 @@ int	TelnetServer::handleInputNotification(int fd)
 			TelnetHandler* pTelnetHandler = new TelnetHandler(pNewEndPoint, this, pNetworkInterface_, passwd_.size() > 0 ? 
 				TelnetHandler::TELNET_STATE_PASSWD : (TelnetHandler::TELNET_STATE)this->deflayer());
 
-			if(!pDispatcher_->registerFileDescriptor((*pNewEndPoint), pTelnetHandler))
+			if(!pDispatcher_->registerReadFileDescriptor((*pNewEndPoint), pTelnetHandler))
 			{
-				ERROR_MSG(fmt::format("TelnetServer::start:: registerFileDescriptor(pTelnetHandler) is failed! addr={}\n", 
+				ERROR_MSG(fmt::format("TelnetServer::start:: registerReadFileDescriptor(pTelnetHandler) is failed! addr={}\n", 
 					pNewEndPoint->c_str()));
 				
 				delete pTelnetHandler;

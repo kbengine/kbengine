@@ -40,9 +40,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Network
 {
-const int EXTERNAL_CHANNEL_SIZE = 256;
-const int INTERNAL_CHANNEL_SIZE = 4096;
-const int INDEXED_CHANNEL_SIZE = 512;
 
 //-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
@@ -69,14 +66,9 @@ Channel::Channel(NetworkInterface & networkInterface,
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	windowSize_(	(traits != INTERNAL)    ? EXTERNAL_CHANNEL_SIZE :
-					(id == CHANNEL_ID_NULL) ? INTERNAL_CHANNEL_SIZE :
-											  INDEXED_CHANNEL_SIZE),
-
 	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
 	isDestroyed_(false),
-	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
 	numBytesSent_(0),
@@ -99,8 +91,9 @@ Channel::Channel(NetworkInterface & networkInterface,
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
 		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
+
 		// UDP²»ÐèÒª×¢²áÃèÊö·û
-		pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
+		pNetworkInterface_->dispatcher().registerReadFileDescriptor(*pEndPoint_, pPacketReceiver_);
 	}
 	else
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
@@ -118,7 +111,6 @@ Channel::Channel():
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	windowSize_(EXTERNAL_CHANNEL_SIZE),
 	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
 	isDestroyed_(false),
@@ -153,7 +145,7 @@ Channel::~Channel()
 
 		if(protocoltype_ == PROTOCOL_TCP)
 		{
-			pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 			pEndPoint_->close();
 		}
 	}
@@ -229,7 +221,7 @@ void Channel::destroy()
 
 		if(protocoltype_ == PROTOCOL_TCP)
 		{
-			pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 			pEndPoint_->close();
 		}
 	}
@@ -606,24 +598,6 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 
 	bufferedReceives_[idx].clear();
 	this->send();
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::readDataToBuffer()
-{
-	struct timeval tv = { 0, 1000 };
-
-	fd_set	readFDs;
-	FD_ZERO(&readFDs);
-	FD_SET((*endpoint()), &readFDs);
-
-	int countReady = select((*endpoint())+1, &readFDs,
-			NULL, NULL, &tv);
-
-	if (countReady > 0)
-	{
-		pPacketReceiver_->handleInputNotification((*endpoint()));
-	}
 }
 
 //-------------------------------------------------------------------------------------

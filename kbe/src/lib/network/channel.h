@@ -70,13 +70,6 @@ public:
 		CHANNEL_WEB = 1,
 	};
 
-	enum AddToReceiveWindowResult
-	{
-		SHOULD_PROCESS,
-		SHOULD_NOT_PROCESS,
-		PACKET_IS_CORRUPT
-	};
-
 	typedef std::vector<Packet*> BufferedReceives;
 public:
 	Channel();
@@ -150,7 +143,6 @@ public:
 	void onPacketReceived(int bytes);
 	
 	const char * c_str() const;
-	int windowSize() const;
 	ChannelID id() const	{ return id_; }
 	
 	uint32	numPacketsSent() const		{ return numPacketsSent_; }
@@ -186,7 +178,6 @@ public:
 	KBEngine::Network::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
 
-	void readDataToBuffer();
 	bool waitSend();
 private:
 	enum TimeOutType
@@ -212,8 +203,6 @@ private:
 	uint64						lastReceivedTime_;
 	
 	Bundles						bundles_;
-
-	uint32						windowSize_;
 	
 	uint8						bufferedReceivesIdx_;
 	BufferedReceives			bufferedReceives_[2];

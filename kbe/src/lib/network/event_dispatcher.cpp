@@ -73,7 +73,7 @@ EventPoller* EventDispatcher::createPoller()
 }
 
 //-------------------------------------------------------------------------------------
-bool EventDispatcher::registerFileDescriptor(int fd,
+bool EventDispatcher::registerReadFileDescriptor(int fd,
 	InputNotificationHandler * handler)
 {
 	return pPoller_->registerForRead(fd, handler);
@@ -87,7 +87,7 @@ bool EventDispatcher::registerWriteFileDescriptor(int fd,
 }
 
 //-------------------------------------------------------------------------------------
-bool EventDispatcher::deregisterFileDescriptor(int fd)
+bool EventDispatcher::deregisterReadFileDescriptor(int fd)
 {
 	return pPoller_->deregisterForRead(fd);
 }

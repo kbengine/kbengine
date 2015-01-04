@@ -36,7 +36,7 @@ PyFileDescriptor::PyFileDescriptor(int fd, PyObject* pyCallback, bool write) :
 	if(write)
 		Baseapp::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor(fd_, this);
 	else
-		Baseapp::getSingleton().networkInterface().dispatcher().registerFileDescriptor(fd_, this);
+		Baseapp::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor(fd_, this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -45,15 +45,15 @@ PyFileDescriptor::~PyFileDescriptor()
 	if(write_)
 		Baseapp::getSingleton().networkInterface().dispatcher().deregisterWriteFileDescriptor(fd_);
 	else
-		Baseapp::getSingleton().networkInterface().dispatcher().deregisterFileDescriptor(fd_);
+		Baseapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(fd_);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* PyFileDescriptor::__py_registerFileDescriptor(PyObject* self, PyObject* args)
+PyObject* PyFileDescriptor::__py_registerReadFileDescriptor(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: args != (fileDescriptor, callback)!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::registerReadFileDescriptor: args != (fileDescriptor, callback)!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -63,21 +63,21 @@ PyObject* PyFileDescriptor::__py_registerFileDescriptor(PyObject* self, PyObject
 
 	if(PyArg_ParseTuple(args, "i|O", &fd, &pycallback) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::registerReadFileDescriptor: args is error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	
 	if(fd <= 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: fd <= 0!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::registerReadFileDescriptor: fd <= 0!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 
 	if(!PyCallable_Check(pycallback))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: invalid pycallback!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::registerReadFileDescriptor: invalid pycallback!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -87,11 +87,11 @@ PyObject* PyFileDescriptor::__py_registerFileDescriptor(PyObject* self, PyObject
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* PyFileDescriptor::__py_deregisterFileDescriptor(PyObject* self, PyObject* args)
+PyObject* PyFileDescriptor::__py_deregisterReadFileDescriptor(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: args != (fileDescriptor)!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::deregisterReadFileDescriptor: args != (fileDescriptor)!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -100,14 +100,14 @@ PyObject* PyFileDescriptor::__py_deregisterFileDescriptor(PyObject* self, PyObje
 
 	if(PyArg_ParseTuple(args, "i", &fd) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::deregisterReadFileDescriptor: args is error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	
 	if(fd <= 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::registerFileDescriptor: fd <= 0!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::deregisterReadFileDescriptor: fd <= 0!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}

@@ -62,8 +62,8 @@ public:
 	INLINE double maxWait() const;
 	INLINE void maxWait(double seconds);
 
-	bool registerFileDescriptor(int fd, InputNotificationHandler * handler);
-	bool deregisterFileDescriptor(int fd);
+	bool registerReadFileDescriptor(int fd, InputNotificationHandler * handler);
+	bool deregisterReadFileDescriptor(int fd);
 	bool registerWriteFileDescriptor(int fd, InputNotificationHandler * handler);
 	bool deregisterWriteFileDescriptor(int fd);
 

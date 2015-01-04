@@ -33,11 +33,6 @@ INLINE EndPoint * Channel::endpoint() const
 	return pEndPoint_;
 }
 
-INLINE int Channel::windowSize() const
-{
-	return windowSize_;
-}
-
 INLINE PacketReader* Channel::pPacketReader()const
 {
 	return pPacketReader_;

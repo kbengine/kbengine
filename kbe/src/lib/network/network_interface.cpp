@@ -126,14 +126,14 @@ void NetworkInterface::closeSocket()
 {
 	if (extEndpoint_.good())
 	{
-		this->dispatcher().deregisterFileDescriptor(extEndpoint_);
+		this->dispatcher().deregisterReadFileDescriptor(extEndpoint_);
 		extEndpoint_.close();
 		extEndpoint_.detach();
 	}
 
 	if (intEndpoint_.good())
 	{
-		this->dispatcher().deregisterFileDescriptor(intEndpoint_);
+		this->dispatcher().deregisterReadFileDescriptor(intEndpoint_);
 		intEndpoint_.close();
 		intEndpoint_.detach();
 	}
@@ -148,7 +148,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 	if (pEP->good())
 	{
-		this->dispatcher().deregisterFileDescriptor(*pEP);
+		this->dispatcher().deregisterReadFileDescriptor(*pEP);
 		pEP->close();
 		pEP->detach();
 	}
@@ -172,7 +172,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			(const char*)&val, sizeof(val));
 	*/
 	
-	this->dispatcher().registerFileDescriptor(*pEP, pLR);
+	this->dispatcher().registerReadFileDescriptor(*pEP, pLR);
 	
 	char ifname[IFNAMSIZ];
 	u_int32_t ifaddr = INADDR_ANY;

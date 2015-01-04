@@ -501,9 +501,9 @@ bool Machine::initNetwork()
 	ep_.addr(address);
 	pEPPacketReceiver_ = new Network::UDPPacketReceiver(ep_, this->networkInterface());
 
-	if(!this->dispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
+	if(!this->dispatcher().registerReadFileDescriptor(ep_, pEPPacketReceiver_))
 	{
-		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor ep is failed!\n");
 		return false;
 	}
 	
@@ -533,9 +533,9 @@ bool Machine::initNetwork()
 		epBroadcast_.addr(address);
 		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
 	
-		if(!this->dispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
+		if(!this->dispatcher().registerReadFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
-			ERROR_MSG("Machine::initNetwork: registerFileDescriptor epBroadcast is failed!\n");
+			ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor epBroadcast is failed!\n");
 			return false;
 		}
 
@@ -556,9 +556,9 @@ bool Machine::initNetwork()
 	epLocal_.addr(address);
 	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
 
-	if(!this->dispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
+	if(!this->dispatcher().registerReadFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
-		ERROR_MSG("Machine::initNetwork: registerFileDescriptor epLocal is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor epLocal is failed!\n");
 		return false;
 	}
 

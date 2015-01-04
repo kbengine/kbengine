@@ -356,7 +356,7 @@ void ClientApp::handleGameTick()
 				if(pServerChannel_->endpoint())
 				{
 					lastAddr = pServerChannel_->endpoint()->addr();
-					networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+					networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->endpoint());
 					exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 				}
 
@@ -373,7 +373,7 @@ void ClientApp::handleGameTick()
 						pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 					}
 
-					networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+					networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 					
 					// 先握手然后等helloCB之后再进行登录
 					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -576,7 +576,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	if(pServerChannel_->endpoint())
 	{
 		lastAddr = pServerChannel_->endpoint()->addr();
-		networkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+		networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->endpoint());
 		exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 	}
 
@@ -593,7 +593,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
 		}
 
-		networkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
 		// 先握手然后等helloCB之后再进行登录
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
