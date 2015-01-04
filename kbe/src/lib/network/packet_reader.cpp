@@ -95,7 +95,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
-				WARNING_MSG(fmt::format("PacketReader::processMessages: invalide msgID={}, msglen={}, from {}.\n",
+				ERROR_MSG(fmt::format("PacketReader::processMessages: not found msgID={}, msglen={}, from {}.\n",
 					currMsgID_, pPacket1->length(), pChannel_->c_str()));
 
 				currMsgID_ = 0;
