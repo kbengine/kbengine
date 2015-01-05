@@ -318,49 +318,35 @@ bool InterfacesHandler_ThirdParty::reconnect()
 	pInterfacesChannel_ = new Network::Channel(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
 	pInterfacesChannel_->incRef();
 
-	int trycount = 0;
-
-	while(true)
+	if(pInterfacesChannel_->endpoint()->connect() == -1)
 	{
-		fd_set	frds, fwds;
-		struct timeval tv = { 0, 100000 }; // 100ms
+		struct timeval tv = { 0, 300000 }; // 300ms
+		fd_set	fds;
+		FD_ZERO(&fds);
+		FD_SET((int)(*pInterfacesChannel_->endpoint()), &fds);
 
-		FD_ZERO( &frds );
-		FD_ZERO( &fwds );
-		FD_SET((int)(*pInterfacesChannel_->endpoint()), &frds);
-		FD_SET((int)(*pInterfacesChannel_->endpoint()), &fwds);
-
-		if(pInterfacesChannel_->endpoint()->connect() == -1)
+		bool connected = false;
+		int selgot = select((*pInterfacesChannel_->endpoint())+1, &fds, &fds, NULL, &tv);
+		if(selgot > 0)
 		{
-			int selgot = select((*pInterfacesChannel_->endpoint())+1, &frds, &fwds, NULL, &tv);
-			if(selgot > 0)
-			{
-				int error;
-
-				if(FD_ISSET(int(*pInterfacesChannel_->endpoint()), &frds) || FD_ISSET(int(*pInterfacesChannel_->endpoint()), &fwds) )
-				{
-					socklen_t len = sizeof(error);
-
+			int error;
+			socklen_t len = sizeof(error);
 #if KBE_PLATFORM == PLATFORM_WIN32
-					if( getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len) == 0)
-						break;
+			getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len);
 #else
-					if( getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, &error, &len) < 0)
-						break;
+			getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, &error, &len);
 #endif
-				}
-			}
+			if(0 == error)
+				connected = true;
+		}
 
-			trycount++;
+		if(!connected)
+		{
+			ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::reconnect(): couldn't connect to:{}\n", 
+				pInterfacesChannel_->endpoint()->addr().c_str()));
 
-			if(trycount > 3)
-			{
-				ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::reconnect(): couldn't connect to:{}\n", 
-					pInterfacesChannel_->endpoint()->addr().c_str()));
-				
-				pInterfacesChannel_->destroy();
-				return false;
-			}
+			pInterfacesChannel_->destroy();
+			return false;
 		}
 	}
 
