@@ -22,12 +22,6 @@ class Account(KBEngine.Proxy):
 		cell部分。
 		"""
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
-		
-		# 如果一个在线的账号被一个客户端登陆并且onLogOnAttempt返回允许
-		# 那么会挤掉之前的客户端， 并且onEntitiesEnabled会再次触发
-		# 那么此时self.activeCharacter不为None
-		if self.activeCharacter:
-			self.giveClientTo(self.activeCharacter)
 			
 	def onLogOnAttempt(self, ip, port, password):
 		"""
