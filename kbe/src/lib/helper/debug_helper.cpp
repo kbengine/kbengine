@@ -349,8 +349,9 @@ void DebugHelper::sync()
 	static bool alertmsg = false;
 	if(!alertmsg)
 	{
-		LOG4CXX_WARN(g_logger, fmt::format("The message is forwarded to the logger[{}]...\n", 
+		LOG4CXX_WARN(g_logger, fmt::format("Forwarding logs to logger[{}]...\n", 
 			pLoggerChannel->c_str()));
+
 		alertmsg = true;
 	}
 
