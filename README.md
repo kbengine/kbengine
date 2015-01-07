@@ -40,7 +40,7 @@ in theory only need to expand hardware can increase load-limit, the single machi
 depends on complexity of logic of the game itself.)
 
 ##什么是KBEngine?
-一款开源的游戏服务端引擎，使用简单的约定协议就能够使客户端与服务端进行交互，
+一款开源的游戏服务端引擎，客户端使用简单的约定协议就能与服务端交互，
 使用KBEngine插件能够快速与(Unity3D, OGRE, Cocos2d-x, HTML5, 等等)技术结合形成一个完整的客户端。
 
 服务端底层框架使用C++编写，游戏逻辑层使用Python(支持热更新)，开发者无需重复的实现一些游戏服务端通用的底层技术，
