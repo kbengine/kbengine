@@ -39,6 +39,7 @@
 		<use_logfile>false</use_logfile>
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
+			<item>Baseappmgr::onBaseappInitProgress</item>
 			<item>Cellapp::onUpdateDataFromClient</item>
 			<item>Baseapp::onUpdateDataFromClient</item>
 			<item>Baseapp::forwardMessageToClientFromCellapp</item>
