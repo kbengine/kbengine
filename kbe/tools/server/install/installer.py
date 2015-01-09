@@ -1132,15 +1132,15 @@ def get_sources_infos():
 	release_title = release_title[0][1]
 
 	# descriptions
-	tag_start = """<ul class="task-list">"""
-	tag_end = """</ul>"""
+	tag_start = """<div class="markdown-body">"""
+	tag_end = """</div>"""
 
 	descrs = html
 	descrs = descrs[descrs.find(tag_start) + len(tag_start):]
 	descrs = descrs[:descrs.find(tag_end)]
 	descrs = descrs.replace("\n", "")
-	descrs = descrs.replace("<li>", "\t- ")
-	descrs = descrs.replace("</li>", "\n")
+	descrs = descrs.replace("<p>", "\t- ")
+	descrs = descrs.replace("</p>", "\n")
 
 	# downloads
 	#print("\ndownloads:")
