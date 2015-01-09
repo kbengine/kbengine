@@ -801,7 +801,13 @@ def modifyKBEConfig():
 		
 	state = 0
 
-	f = open(kbengine_defs)
+	f = None
+	
+	try:
+		f = open(kbengine_defs, encoding='UTF-8')
+	except:
+		f = open(kbengine_defs)
+		
 	newxml = []
 	for x in f.readlines():
 		if "</dbmgr>" in x:
@@ -830,7 +836,13 @@ def modifyKBEConfig():
 		newxml.append(x)
 
 	f.close()
-	f = open(kbengine_defs, "w")
+	
+	try:
+		f = open(kbengine_defs, "w", encoding='UTF-8')
+	except:
+		f = open(kbengine_defs, "w")
+		
+	
 	f.writelines(newxml)
 	f.close()
 	return True
