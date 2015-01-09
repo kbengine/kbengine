@@ -40,6 +40,7 @@
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
 			<item>Baseappmgr::onBaseappInitProgress</item>
+			<item>Loginapp::onBaseappInitProgress</item>
 			<item>Cellapp::onUpdateDataFromClient</item>
 			<item>Baseapp::onUpdateDataFromClient</item>
 			<item>Baseapp::forwardMessageToClientFromCellapp</item>
