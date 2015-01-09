@@ -134,8 +134,7 @@ bool RestoreEntityHandler::process()
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(CellappInterface::requestRestore);
 			(*pBundle) << cellappID();
-			(*pBundle).send(Baseapp::getSingleton().networkInterface(), pChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			pChannel->send(pBundle);
 		}
 
 		return true;
@@ -244,8 +243,7 @@ bool RestoreEntityHandler::process()
 						Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
 						(*pBundle) << baseappID << cellappID << spaceID << spaceEntityID << utype << destroyed;
-						pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
-						Network::Bundle::ObjPool().reclaimObject(pBundle);
+						pChannel->send(pBundle);
 					}
 				}
 			}

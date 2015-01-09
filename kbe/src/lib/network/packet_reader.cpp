@@ -65,7 +65,7 @@ void PacketReader::reset()
 //-------------------------------------------------------------------------------------
 void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket)
 {
-	while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
+	while(pPacket->length() > 0 || pFragmentStream_ != NULL)
 	{
 		if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
 		{
@@ -87,12 +87,12 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			if(pMsgHandler == NULL)
 			{
 				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				
 				// 用作调试时比对
 				uint32 rpos = pPacket1->rpos();
 				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
 				ERROR_MSG(fmt::format("PacketReader::processMessages: not found msgID={}, msglen={}, from {}.\n",
@@ -166,12 +166,12 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				currMsgLen_ > NETWORK_MESSAGE_MAX_SIZE)
 			{
 				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 
 				// 用作调试时比对
 				uint32 rpos = pPacket1->rpos();
 				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pPacket1, pMsgHandler, pPacket1->length(), pChannel_->c_str());
 				pPacket1->rpos(rpos);
 
 				WARNING_MSG(fmt::format("PacketReader::processMessages({0}): msglen exceeds the limit! msgID={1}, msglen=({2}:{3}), maxlen={5}, from {4}.\n", 
@@ -184,7 +184,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 
 			if(pFragmentStream_ != NULL)
 			{
-				TRACE_BUNDLE_DATA(true, pFragmentStream_, pMsgHandler, currMsgLen_, pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pFragmentStream_, pMsgHandler, currMsgLen_, pChannel_->c_str());
 				pMsgHandler->handle(pChannel_, *pFragmentStream_);
 				MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
 				pFragmentStream_ = NULL;
@@ -203,7 +203,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 				size_t frpos = pPacket->rpos() + currMsgLen_;
 				pPacket->wpos(frpos);
 
-				TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, pChannel_->c_str());
+				TRACE_MESSAGE_PACKET(true, pPacket, pMsgHandler, currMsgLen_, pChannel_->c_str());
 				pMsgHandler->handle(pChannel_, *pPacket);
 
 				// 如果handler没有处理完数据则输出一个警告

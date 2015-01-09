@@ -85,7 +85,6 @@ Proxy::~Proxy()
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
-		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		this->sendToClient(ClientInterface::onKicked, pBundle);
 		this->sendToClient();
 		pChannel->condemn();
@@ -111,7 +110,6 @@ void Proxy::initClientBasePropertys()
 		(*pBundle).append(*s1);
 		sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 		//clientMailbox()->postMail((*pBundle));
-		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(s1);
@@ -154,7 +152,6 @@ void Proxy::initClientCellPropertys()
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
 	//clientMailbox()->postMail((*pBundle));
-	//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
 
@@ -355,7 +352,6 @@ void Proxy::giveClientTo(Proxy* proxy)
 			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 			(*pBundle) << this->id();
 			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
-			//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 }
@@ -391,10 +387,10 @@ void Proxy::onGetWitness()
 double Proxy::getRoundTripTime()const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->endpoint() == NULL)
+		clientMailbox()->getChannel()->pEndPoint() == NULL)
 		return 0.0;
 
-	return double(clientMailbox()->getChannel()->endpoint()->getRTT()) / 1000000.0;
+	return double(clientMailbox()->getChannel()->pEndPoint()->getRTT()) / 1000000.0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -415,7 +411,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 double Proxy::getTimeSinceHeardFromClient()const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->endpoint() == NULL)
+		clientMailbox()->getChannel()->pEndPoint() == NULL)
 		return DBL_MAX;
 
 	return double(timestamp() - clientMailbox()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
@@ -439,7 +435,7 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 bool Proxy::hasClient()const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->endpoint() == NULL)
+		clientMailbox()->getChannel()->pEndPoint() == NULL)
 		return false;
 
 	return true;
@@ -478,14 +474,14 @@ PyObject* Proxy::pyClientAddr()
 	PyObject* pyobj = PyTuple_New(2);
 
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->endpoint() == NULL)
+		clientMailbox()->getChannel()->pEndPoint() == NULL)
 	{
 		PyTuple_SetItem(pyobj, 0, PyLong_FromLong(0));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromLong(0));
 	}
 	else
 	{
-		const Network::Address& addr = clientMailbox()->getChannel()->endpoint()->addr();
+		const Network::Address& addr = clientMailbox()->getChannel()->pEndPoint()->addr();
 		PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
 	}
@@ -712,7 +708,7 @@ bool Proxy::pushBundle(Network::Bundle* pBundle)
 	if(!pChannel)
 		return false;
 
-	pChannel->pushBundle(pBundle);
+	pChannel->send(pBundle);
 	return true;
 }
 

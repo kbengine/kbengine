@@ -161,10 +161,10 @@ void Base::eraseEntityLog()
 	// 需要判断dbid是否大于0， 如果大于0则应该要去擦除在线等记录情况.
 	if(this->dbid() > 0)
 	{
-		Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
-		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
-		(*(*bundleptr)) << this->dbid();
-		(*(*bundleptr)) << this->scriptModule()->getUType();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(DbmgrInterface::onEntityOffline);
+		(*pBundle) << this->dbid();
+		(*pBundle) << this->scriptModule()->getUType();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
@@ -175,10 +175,11 @@ void Base::eraseEntityLog()
 		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 		{
 			ERROR_MSG("Base::onDestroy: not found dbmgr!\n");
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 			return;
 		}
 
-		(*bundleptr)->send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+		dbmgrinfos->pChannel->send(pBundle);
 	}
 }
 
@@ -440,8 +441,7 @@ void Base::sendToCellapp(Network::Bundle* pBundle)
 void Base::sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle)
 {
 	KBE_ASSERT(pChannel != NULL && pBundle != NULL);
-	(*pBundle).send(Baseapp::getSingleton().networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -595,8 +595,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 		(*pBundle) << this->id();
 		(*pBundle) << this->dbid();
 		(*pBundle) << this->scriptModule()->getUType();
-		(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		dbmgrinfos->pChannel->send(pBundle);
 
 		this->hasDB(false);
 		return;
@@ -1082,9 +1081,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	(*pBundle).append(*s);
 
-	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+	dbmgrinfos->pChannel->send(pBundle);
 	MemoryStream::ObjPool().reclaimObject(s);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

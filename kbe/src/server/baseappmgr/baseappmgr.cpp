@@ -124,11 +124,11 @@ void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
 
 	if(pInfos->componentType == LOGINAPP_TYPE && cinfo->pChannel != NULL)
 	{
-		Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
-		(*(*bundleptr)) << baseappsInitProgress_;
-		(*bundleptr)->send(networkInterface_, cinfo->pChannel);
+		(*pBundle).newMessage(LoginappInterface::onBaseappInitProgress);
+		(*pBundle) << baseappsInitProgress_;
+		cinfo->pChannel->send(pBundle);
 	}
 }
 
@@ -178,9 +178,8 @@ void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
+	cinfos->pChannel->send(pBundle);
 	s.done();
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -250,10 +249,8 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
+	cinfos->pChannel->send(pBundle);
 	s.done();
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -284,10 +281,8 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
+	cinfos->pChannel->send(pBundle);
 	s.done();
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -331,8 +326,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -364,8 +358,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -399,9 +392,7 @@ void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel,
 	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
 		accountName, addr, port);
 
-	(*pBundleToLoginapp).send(this->networkInterface(), cinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
-
+	cinfos->pChannel->send(pBundleToLoginapp);
 	pending_logins_.erase(iter);
 }
 
@@ -445,11 +436,11 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 		if((*iter).pChannel == NULL)
 			continue;
 
-		Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-		(*bundleptr)->newMessage(LoginappInterface::onBaseappInitProgress);
-		(*(*bundleptr)) << baseappsInitProgress_;
-		(*bundleptr)->send(networkInterface_, (*iter).pChannel);
+		(*pBundle).newMessage(LoginappInterface::onBaseappInitProgress);
+		(*pBundle) << baseappsInitProgress_;
+		(*iter).pChannel->send(pBundle);
 	}
 }
 

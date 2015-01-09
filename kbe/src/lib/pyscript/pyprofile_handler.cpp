@@ -78,16 +78,16 @@ void PyProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
-	(*(*bundle)).newMessage(msgHandler);
+	(*pBundle).newMessage(msgHandler);
 
 	int8 type = 0;
-	(*(*bundle)) << type;
-	(*(*bundle)) << timinglen_;
-	(*(*bundle)).append(s);
-	(*(*bundle)).send(networkInterface_, pChannel);
+	(*pBundle) << type;
+	(*pBundle) << timinglen_;
+	(*pBundle).append(s);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

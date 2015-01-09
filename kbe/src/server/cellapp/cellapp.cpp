@@ -331,8 +331,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(DbmgrInterface::reqKillServer);
 			(*pBundle) << g_componentID << g_componentType << KBEngine::getUsername() << KBEngine::getUserUID() << "Duplicate app-id.";
-			(*pBundle).send(this->networkInterface(), pChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			pChannel->send(pBundle);
 		}
 	}
 
@@ -393,8 +392,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 		break;
 	};
 	
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -524,8 +522,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 	(*pBundle) << callbackID;
 	(*pBundle) << size;
 	(*pBundle).append(datas, size);
-	(*pBundle).send(this->networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -822,8 +819,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
-		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 		return;
 	}
 	
@@ -897,8 +893,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
-		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 		return;
 	}
 	
@@ -920,8 +915,7 @@ void Cellapp::requestRestore(Network::Channel* pChannel, KBEngine::MemoryStream&
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onRequestRestoreCB);
 	(*pBundle) << g_componentID << cid << canRestore;
-	(*pBundle).send(this->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -990,8 +984,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		pBundle->newMessage(BaseappInterface::onCreateCellFailure);
 		BaseappInterface::onCreateCellFailureArgs1::staticAddToBundle(*pBundle, entityID);
-		pBundle->send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 		return;
 	}
 
@@ -1007,8 +1000,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		pBundle->newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
-		pBundle->send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 
 		// 解包cellData信息.
 		PyObject* cellData = NULL;
@@ -1484,9 +1476,7 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 
 	(*pBundle) << port;
 
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1571,8 +1561,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
-		pBundle->send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n", 
 			nearbyMBRefID, spaceID, teleportEntityID));
@@ -1591,8 +1580,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
-		pBundle->send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found space({}),  reqTeleportEntity({})!\n", spaceID, teleportEntityID));
 		s.done();
@@ -1610,8 +1598,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
-		pBundle->send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
 		s.done();
@@ -1661,8 +1648,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
-		pBundle->send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 	}
 }
 

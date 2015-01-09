@@ -164,8 +164,7 @@ bool SyncAppDatasHandler::process()
 				break;
 			}
 
-			(*pBundle).send(networkInterface_, cinfos->pChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			cinfos->pChannel->send(pBundle);
 		}
 	}
 

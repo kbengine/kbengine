@@ -32,7 +32,9 @@ class KBE_MD5;
 
 namespace Network
 {
+
 class Channel;
+class MessageHandlers;
 
 /** 一个消息的参数抽象类 */
 class MessageArgs
@@ -74,6 +76,7 @@ public:
 	MessageArgs* pArgs;
 	int32 msgLen;					// 如果长度为-1则为非固定长度消息
 	bool exposed;
+	MessageHandlers* pMessageHandlers;
 
 	// stats
 	volatile mutable uint32 send_size;

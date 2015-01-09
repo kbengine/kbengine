@@ -73,11 +73,8 @@ UDPPacketReceiver::~UDPPacketReceiver()
 
 
 //-------------------------------------------------------------------------------------
-bool UDPPacketReceiver::processSocket(bool expectingPacket)
-{
-//	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
-//	KBE_ASSERT(pChannel != NULL);
-	
+bool UDPPacketReceiver::processRecv(bool expectingPacket)
+{	
 	Address	srcAddr;
 	UDPPacket* pChannelReceiveWindow = UDPPacket::ObjPool().createObject();
 	int len = pChannelReceiveWindow->recvFromEndPoint(*pEndpoint_, &srcAddr);
@@ -98,7 +95,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 
 		if(!pNetworkInterface_->registerChannel(pSrcChannel))
 		{
-			ERROR_MSG(fmt::format("UDPPacketReceiver::processSocket:registerChannel({}) is failed!\n",
+			ERROR_MSG(fmt::format("UDPPacketReceiver::processRecv:registerChannel({}) is failed!\n",
 				pSrcChannel->c_str()));
 
 			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
@@ -131,7 +128,6 @@ Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 	// 如果为None， 则可能是被过滤器过滤掉了(过滤器正在按照自己的规则组包解密)
 	if(pPacket)
 	{
-		pNetworkInterface_->onPacketIn(*pPacket);
 		pChannel->addReceiveWindow(pPacket);
 	}
 

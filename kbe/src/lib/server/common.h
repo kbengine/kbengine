@@ -37,21 +37,21 @@ namespace KBEngine {
 #define NETWORK_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)						\
 	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																				\
 	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																				\
-	FORWARDBUNDLE.finish(true);																											\
+	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
 // cellapp转发消息给客户端
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
-	FORWARDBUNDLE.finish(true);																											\
+	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
 // cellapp转发消息给cellapp
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CELLAPP(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);														\
 	SENDBUNDLE << ENTITYID;																												\
-	FORWARDBUNDLE.finish(true);																											\
+	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);	
 
 // cellapp转发消息给客户端开始
@@ -61,7 +61,7 @@ namespace KBEngine {
 
 // cellapp转发消息给客户端消息包追加消息
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND(SENDBUNDLE, FORWARDBUNDLE)															\
-	FORWARDBUNDLE.finish(true);																											\
+	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
 // 公共消息

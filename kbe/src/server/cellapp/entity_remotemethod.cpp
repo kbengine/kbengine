@@ -112,8 +112,6 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 
 		//mailbox->postMail((*pBundle));
 		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
-
-		//Network::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 
 		// 记录这个事件产生的数据量大小

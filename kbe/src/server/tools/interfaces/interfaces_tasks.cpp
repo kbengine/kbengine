@@ -134,7 +134,7 @@ bool CreateAccountTask::process()
 
 	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(postDatas.data(), postDatas.size());
-	(*(*bundle)).send(endpoint);
+	Network::Channel::send(endpoint, bundle->get());
 
 	Network::TCPPacket packet;
 	packet.resize(1024);
@@ -266,23 +266,24 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
-	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
+	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
+	(*pBundle) << baseappID << commitName << accountName << password << retcode;
 
-	(*(*bundle)).appendBlob(postDatas);
-	(*(*bundle)).appendBlob(getDatas);
+	(*pBundle).appendBlob(postDatas);
+	(*pBundle).appendBlob(getDatas);
 
 	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+		pChannel->send(pBundle);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("InterfacesTask::presentMainThread: not found channel. commitName={}\n", commitName));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	removeLog();
@@ -318,7 +319,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	
 	if(retcode == SERVER_ERR_OP_FAILED)
 	{
@@ -326,21 +327,22 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 			accountName = commitName;
 	}
 
-	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
-	(*(*bundle)) << baseappID << commitName << accountName << password << retcode;
+	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
+	(*pBundle) << baseappID << commitName << accountName << password << retcode;
 
-	(*(*bundle)).appendBlob(postDatas);
-	(*(*bundle)).appendBlob(getDatas);
+	(*pBundle).appendBlob(postDatas);
+	(*pBundle).appendBlob(getDatas);
 
 	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(address);
 
 	if(pChannel)
 	{
-		(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+		pChannel->send(pBundle);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("InterfacesTask::presentMainThread: not found channel. commitName={}\n", commitName));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	removeLog();
@@ -430,8 +432,7 @@ bool ChargeTask::process()
 	endpoint.setnodelay(true);
 
 	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-	(*(*bundle)).append(pOrders->postDatas.data(), pOrders->postDatas.size());
-	(*(*bundle)).send(endpoint);
+	Network::Channel::send(endpoint, bundle->get());
 
 	Network::TCPPacket packet;
 	packet.resize(1024);
@@ -492,13 +493,13 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 			return thread::TPTask::TPTASK_STATE_COMPLETED;
 		}
 	
-		Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
-		(*(*bundle)).appendBlob(orders.getDatas);
-		(*(*bundle)) << orders.cbid;
-		(*(*bundle)) << retcode;
+		(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+		(*pBundle) << orders.baseappID << orders.ordersID << orders.dbid;
+		(*pBundle).appendBlob(orders.getDatas);
+		(*pBundle) << orders.cbid;
+		(*pBundle) << retcode;
 
 		Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(orders.address);
 
@@ -507,12 +508,14 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 			WARNING_MSG(fmt::format("ChargeTask::presentMainThread: orders={} commit is failed!\n", 
 				pOrders->ordersID));
 
-			(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+			pChannel->send(pBundle);
 		}
 		else
 		{
 			ERROR_MSG(fmt::format("ChargeTask::presentMainThread: not found channel. orders={}\n", 
 				orders.ordersID));
+
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 
 		Interfaces::getSingleton().lockthread();

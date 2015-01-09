@@ -136,8 +136,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				(*pBundle).assign(value.data(), slen);
 			}
 
-			(*pBundle).send(lpChannel->networkInterface(), lpChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			lpChannel->send(pBundle);
 		}
 	}
 }
@@ -201,8 +200,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 		(*pBundle) << slen;
 		(*pBundle).assign(iter->second.data(), slen);
 
-		(*pBundle).send(client->networkInterface(), client);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		client->send(pBundle);
 	}
 }
 

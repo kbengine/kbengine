@@ -115,11 +115,11 @@ bool SyncEntityStreamTemplateHandler::process()
 		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*bundleptr)->newMessage(DbmgrInterface::syncEntityStreamTemplate);
-	(*bundleptr)->append(accountDefMemoryStream);
-	(*bundleptr)->send(networkInterface_, pChannel);
+	(*pBundle).newMessage(DbmgrInterface::syncEntityStreamTemplate);
+	(*pBundle).append(accountDefMemoryStream);
+	pChannel->send(pBundle);
 	delete this;
 	return false;
 }

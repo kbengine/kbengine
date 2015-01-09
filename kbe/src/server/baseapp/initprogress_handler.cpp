@@ -114,11 +114,11 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundleptr = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*bundleptr)->newMessage(BaseappmgrInterface::onBaseappInitProgress);
-	(*(*bundleptr)) << g_componentID << v;
-	(*bundleptr)->send(networkInterface_, pChannel);
+	(*pBundle).newMessage(BaseappmgrInterface::onBaseappInitProgress);
+	(*pBundle) << g_componentID << v;
+	pChannel->send(pBundle);
 
 	if(completed)
 	{

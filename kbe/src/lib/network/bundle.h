@@ -29,7 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.h"
 #include "network/endpoint.h"
 #include "network/common.h"
-#include "network/packet.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
 #include "network/interface_defs.h"
 
 namespace KBEngine { 
@@ -45,65 +46,21 @@ class Channel;
 	if(packets_.size() <= 0)																				\
 		return *this;																						\
 																											\
-    (*packets_[0]) >> v;																					\
-	if(packets_[0]->length() == 0)																			\
+	Packet* pPacket = packets_[0];																			\
+    (*pPacket) >> v;																						\
+	if(pPacket->length() == 0)																				\
+	{																										\
+		RECLAIM_PACKET(isTCPPacket_, pPacket);																\
 		packets_.erase(packets_.begin());																	\
+	}																										\
 																											\
 	return *this;																							\
 
 
-#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length, addr)									\
-	if(Network::g_trace_packet > 0)																			\
-	{																										\
-		if(Network::g_trace_packet_use_logfile)																\
-			DebugHelper::getSingleton().changeLogger("packetlogs");											\
-																											\
-		bool isprint = true;																				\
-		if(pCurrMsgHandler)																					\
-		{																									\
-			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	\
-														Network::g_trace_packet_disables.end(),				\
-															pCurrMsgHandler->name);							\
-																											\
-			if(iter != Network::g_trace_packet_disables.end())												\
-			{																								\
-				isprint = false;																			\
-			}																								\
-			else																							\
-			{																								\
-				DEBUG_MSG(fmt::format("{} {}:msgID:{}, currMsgLength:{}, addr:{}\n",						\
-						((isrecv == true) ? "====>" : "<===="),												\
-						pCurrMsgHandler->name.c_str(),														\
-						pCurrMsgHandler->msgID,																\
-						length,																				\
-						addr));																				\
-			}																								\
-		}																									\
-																											\
-		if(isprint)																							\
-		{																									\
-			switch(Network::g_trace_packet)																	\
-			{																								\
-			case 1:																							\
-				bundle->hexlike();																			\
-				break;																						\
-			case 2:																							\
-				bundle->textlike();																			\
-				break;																						\
-			default:																						\
-				bundle->print_storage();																	\
-				break;																						\
-			};																								\
-		}																									\
-																											\
-		if(Network::g_trace_packet_use_logfile)																\
-			DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));					\
-	}																										\
-
-
 // 从对象池中创建与回收
-#define NEW_BUNDLE() Network::Bundle::ObjPool().createObject()
+#define MALLOC_BUNDLE() Network::Bundle::ObjPool().createObject()
 #define DELETE_BUNDLE(obj) { Network::Bundle::ObjPool().reclaimObject(obj); obj = NULL; }
+#define RECLAIM_BUNDLE(obj) { Network::Bundle::ObjPool().reclaimObject(obj);}
 
 class Bundle : public PoolObject
 {
@@ -118,52 +75,43 @@ public:
 	typedef std::vector<Packet*> Packets;
 	
 	Bundle(Channel * pChannel = NULL, ProtocolType pt = PROTOCOL_TCP);
+	Bundle(const Bundle& bundle);
 	virtual ~Bundle();
 	
 	void newMessage(const MessageHandler& msgHandler);
-	
-	void finish(bool issend = true);
+	void finiMessage(bool isSend = true);
 
-	void resend(NetworkInterface & networkInterface, Channel * pChannel);
-	void send(NetworkInterface & networkInterface, Channel * pChannel);
-	void send(EndPoint& ep);
-	void sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
-	void onSendCompleted();
-	
-	void clearPackets(){packets_.clear();}
+	void clearPackets();
 
-	MessageLength currMsgLength()const { return currMsgLength_; }
+	INLINE MessageLength currMsgLength()const;
 	
-	void pCurrMsgHandler(const Network::MessageHandler* pMsgHandler){ pCurrMsgHandler_ = pMsgHandler; }
+	INLINE void pCurrMsgHandler(const Network::MessageHandler* pMsgHandler);
 
 	/**
 		计算所有包包括当前还未写完的包的总长度
 	*/
 	int32 packetsLength(bool calccurr = true);
 
-	void clear(bool isRecl);
-	bool isEmpty() const;
-	int totalSize() const;
-	int sizeInPackets();
-	
-	const Packets& packets() { return packets_; }
-	Packet* pCurrPacket() { return pCurrPacket_; }
-	void pCurrPacket(Packet* p) { pCurrPacket_ = p; }
+	INLINE bool isTCPPacket()const{ return isTCPPacket_; }
 
-	void finiCurrPacket(){ 
-		packets_.push_back(pCurrPacket_); 
-		pCurrPacket_ = NULL; 
-	}
+	void clear(bool isRecl);
+	bool empty() const;
+	int packetsSize() const;
+	
+	INLINE Packets& packets();
+	INLINE Packet* pCurrPacket()const;
+	INLINE void pCurrPacket(Packet* p);
+
+	INLINE void finiCurrPacket();
 
 	Packet* newPacket();
 	
-	inline MessageID messageID() const { return currMsgID_; }
+	INLINE MessageID messageID() const { return currMsgID_; }
 
-	bool reuse(){ return reuse_; } 
-	void setreuse(bool v = true){ reuse_ = v; } 
-public:
+protected:
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
-
+	void _debugMessages();
+public:
     Bundle &operator<<(uint8 value)
     {
 		onPacketAppend(sizeof(uint8));
@@ -298,13 +246,13 @@ public:
 		Packets::iterator iter = bundle.packets_.begin();
 		for(; iter!=bundle.packets_.end(); ++iter)
 		{
-			append((*iter)->data(), (*iter)->totalSize());
+			append((*iter)->data(), (*iter)->length());
 		}
 		
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 
-		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->totalSize());
+		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->length());
 	}
 
 	Bundle &append(MemoryStream* s)
@@ -448,8 +396,6 @@ private:
 	bool isTCPPacket_;
 
 	const Network::MessageHandler* pCurrMsgHandler_;
-
-	bool reuse_;
 
 };
 

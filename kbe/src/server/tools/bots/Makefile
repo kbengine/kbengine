@@ -6,7 +6,9 @@ SRCS =						\
 	create_and_login_handler		\
 	profile					\
 	main					\
-	pybots
+	pybots					\
+	tcp_packet_receiver_ex			\
+	tcp_packet_sender_ex
 
 ASMS =
 

@@ -377,13 +377,13 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 
 	if(!pulling)
 	{
-		Network::Bundle bundle;
-		bundle.newMessage(LoggerInterface::registerLogWatcher);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(LoggerInterface::registerLogWatcher);
 
 		int32 uid = dlg->getSelTreeItemUID();
-		bundle << uid;
+		(*pBundle) << uid;
 
-		bundle << getSelLogTypes();
+		(*pBundle) << getSelLogTypes();
 	
 		CString apporder;
 		m_appIDEdit.GetWindowTextW(apporder);
@@ -392,42 +392,42 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 		COMPONENT_ORDER order = atoi(cs);
 		free(cs);
 
-		bundle << order;
+		(*pBundle) << order;
 
 		m_appIDEdit1.GetWindowTextW(apporder);
 		cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
 		order = atoi(cs);
 		free(cs);
 
-		bundle << order;
+		(*pBundle) << order;
 
 		CString date;
 		m_dateEdit.GetWindowTextW(date);
 		cs = KBEngine::strutil::wchar2char(date.GetBuffer(0));
-		bundle << cs;
+		(*pBundle) << cs;
 		free(cs);
 
 		CString keystr;
 		m_findEdit.GetWindowTextW(keystr);
 		cs = KBEngine::strutil::wchar2char(keystr.GetBuffer(0));
-		bundle << cs;
+		(*pBundle) << cs;
 		free(cs);
 
 		int8 count = 0;
 		std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
 		count = vec.size();
-		bundle << count;
+		(*pBundle) << count;
 		std::vector<KBEngine::COMPONENT_TYPE>::iterator iter = vec.begin();
 		for(; iter != vec.end(); iter++)
 		{
-			bundle << (*iter);
+			(*pBundle) << (*iter);
 		}
 
-		bundle << isfind_;
+		(*pBundle) << isfind_;
 
 		bool first = m_loglist.GetCount() <= 0;
-		bundle << first;
-		bundle.send(dlg->networkInterface(), pChannel);
+		(*pBundle) << first;
+		pChannel->send(pBundle);
 
 		m_autopull.SetWindowTextW(L"stop");
 	}
@@ -435,9 +435,9 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 	{
 		m_autopull.SetWindowTextW(L"auto");
 
-		Network::Bundle bundle;
-		bundle.newMessage(LoggerInterface::deregisterLogWatcher);
-		bundle.send(dlg->networkInterface(), pChannel);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(LoggerInterface::deregisterLogWatcher);
+		pChannel->send(pBundle);
 	}
 
 	pulling = !pulling;
@@ -607,14 +607,14 @@ void CLogWindow::OnLbnSelchangeMsgtypeList2()
 
 void CLogWindow::updateSettingToServer()
 {
-	Network::Bundle bundle;
-	bundle.newMessage(LoggerInterface::updateLogWatcherSetting);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoggerInterface::updateLogWatcherSetting);
 
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	int32 uid = dlg->getSelTreeItemUID();
-	bundle << uid;
+	(*pBundle) << uid;
 
-	bundle << getSelLogTypes();
+	(*pBundle) << getSelLogTypes();
 	
 	CString apporder;
 	m_appIDEdit.GetWindowTextW(apporder);
@@ -623,41 +623,42 @@ void CLogWindow::updateSettingToServer()
 	COMPONENT_ORDER order = atoi(cs);
 	free(cs);
 
-	bundle << order;
+	(*pBundle) << order;
 
 	m_appIDEdit1.GetWindowTextW(apporder);
 	cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
 	order = atoi(cs);
 	free(cs);
 
-	bundle << order;
+	(*pBundle) << order;
 
 	CString date;
 	m_dateEdit.GetWindowTextW(date);
 	cs = KBEngine::strutil::wchar2char(date.GetBuffer(0));
-	bundle << cs;
+	(*pBundle) << cs;
 	free(cs);
 
 	CString keystr;
 	m_findEdit.GetWindowTextW(keystr);
 	cs = KBEngine::strutil::wchar2char(keystr.GetBuffer(0));
-	bundle << cs;
+	(*pBundle) << cs;
 	free(cs);
 
 	int8 count = 0;
 	std::vector<KBEngine::COMPONENT_TYPE> vec = getSelComponents();
 	count = vec.size();
-	bundle << count;
+	(*pBundle) << count;
 	std::vector<KBEngine::COMPONENT_TYPE>::iterator iter = vec.begin();
 	for(; iter != vec.end(); iter++)
 	{
-		bundle << (*iter);
+		(*pBundle) << (*iter);
 	}
 
 	HTREEITEM item = dlg->hasCheckApp(LOGGER_TYPE);
 	if(item == NULL)
 	{
 		::AfxMessageBox(L"logger no select!");
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
@@ -667,12 +668,13 @@ void CLogWindow::updateSettingToServer()
 	if(pChannel == NULL)
 	{
 		::AfxMessageBox(L"logger is error!");
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
 	bool first = m_loglist.GetCount() <= 0;
-	bundle << first;
-	bundle.send(dlg->networkInterface(), pChannel);
+	(*pBundle) << first;
+	pChannel->send(pBundle);
 }
 
 void CLogWindow::OnBnClickedButton2()

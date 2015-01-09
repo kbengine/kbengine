@@ -57,7 +57,7 @@ public:
 
 	virtual ~DBTask();
 
-	bool send(Network::Bundle& bundle);
+	bool send(Network::Bundle* pBundle);
 protected:
 	MemoryStream* pDatas_;
 	Network::Address addr_;

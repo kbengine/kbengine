@@ -83,13 +83,13 @@ HTML5PacketFilter::~HTML5PacketFilter()
 }
 
 //-------------------------------------------------------------------------------------
-Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
+Reason HTML5PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
 	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 
 	Bundle* pBundle = pPacket->pBundle();
 	
-	uint64 payloadSize = pPacket->totalSize();
+	uint64 payloadSize = pPacket->length();
 	int8 basicSize = (int8)payloadSize;
 
 	//create the flags byte
@@ -148,17 +148,9 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 
 	(*pRetTCPPacket).append(pPacket->data() + pPacket->rpos(), pPacket->length());
 	
-	if(!pBundle->reuse())
-	{
-		pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
-		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
-		return PacketFilter::send(networkInterface, pChannel, pPacket);
-	}
-	
-	Reason reason  = PacketFilter::send(networkInterface, pChannel, pRetTCPPacket);
+	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
 	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
-
-	return reason;
+	return PacketFilter::send(pChannel, sender, pPacket);
 }
 
 //-------------------------------------------------------------------------------------
@@ -166,7 +158,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 {
 	TCPPacket* pRetTCPPacket = NULL;
 
-	while(pPacket->totalSize() > 0)
+	while(pPacket->length() > 0)
 	{
 		if(web_fragmentDatasFlag_ != FRAGMENT_DATA_MESSAGE_BODY)
 		{
@@ -174,7 +166,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 			{
 				if(web_pFragmentDatasRemain_ == 2)
 				{
-					if(pPacket->totalSize() == 1)
+					if(pPacket->length() == 1)
 					{
 						web_pFragmentDatasRemain_ -= 1;
 						pPacket->done();
@@ -229,7 +221,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 
 			if(web_fragmentDatasFlag_ == FRAGMENT_DATA_PAYLOAD_LENGTH)
 			{
-				if(pPacket->totalSize() >= web_pFragmentDatasRemain_)
+				if(pPacket->length() >= web_pFragmentDatasRemain_)
 				{
 					memcpy(&masks_[(basicSize_ == 126 ? 2 : 8) - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), web_pFragmentDatasRemain_);
 					pPacket->read_skip(web_pFragmentDatasRemain_);
@@ -254,8 +246,8 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 				}
 				else
 				{
-					memcpy(&masks_[(basicSize_ == 126 ? 2 : 8) - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), pPacket->totalSize());
-					web_pFragmentDatasRemain_ -= pPacket->totalSize();
+					memcpy(&masks_[(basicSize_ == 126 ? 2 : 8) - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), pPacket->length());
+					web_pFragmentDatasRemain_ -= pPacket->length();
 					pPacket->done();
 					pRetTCPPacket = pTCPPacket_;
 					pTCPPacket_ = NULL;
@@ -265,7 +257,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 
 			if(web_fragmentDatasFlag_ == FRAGMENT_DATA_PAYLOAD_MASKS)
 			{
-				if(pPacket->totalSize() >= web_pFragmentDatasRemain_)
+				if(pPacket->length() >= web_pFragmentDatasRemain_)
 				{
 					memcpy(&masks_[4 - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), web_pFragmentDatasRemain_);
 					pPacket->read_skip(web_pFragmentDatasRemain_);
@@ -275,8 +267,8 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 				}
 				else
 				{
-					memcpy(&masks_[4 - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), pPacket->totalSize());
-					web_pFragmentDatasRemain_ -= pPacket->totalSize();
+					memcpy(&masks_[4 - web_pFragmentDatasRemain_], pPacket->data() + pPacket->rpos(), pPacket->length());
+					web_pFragmentDatasRemain_ -= pPacket->length();
 					pPacket->done();
 					pRetTCPPacket = pTCPPacket_;
 					pTCPPacket_ = NULL;
@@ -296,7 +288,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 			}
 			else
 			{
-				if(pPacket->totalSize() >= payloadSize_)
+				if(pPacket->length() >= payloadSize_)
 				{
 					pTCPPacket_->append(pPacket->data() + pPacket->rpos(), (size_t)payloadSize_);
 
@@ -316,7 +308,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					pRetTCPPacket = pTCPPacket_;
 					pTCPPacket_ = NULL;
 
-					if(pPacket->totalSize() == 0)
+					if(pPacket->length() == 0)
 					{
 						break;
 					}
@@ -333,10 +325,10 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 				}
 				else
 				{
-					pTCPPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->totalSize());
+					pTCPPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->length());
 
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
-					payloadSize_ -= pPacket->totalSize();
+					payloadSize_ -= pPacket->length();
 					pPacket->done();
 					pRetTCPPacket = pTCPPacket_;
 					

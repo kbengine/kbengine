@@ -70,12 +70,12 @@ DBTask::~DBTask()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTask::send(Network::Bundle& bundle)
+bool DBTask::send(Network::Bundle* pBundle)
 {
 	Network::Channel* pChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().networkInterface(), pChannel);
+		pChannel->send(pBundle);
 	}
 	else{
 		return false;
@@ -219,15 +219,16 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
+		cinfos->pChannel->send(pBundle);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found.",
 			COMPONENT_NAME_EX(componentType_)));
+
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return EntityDBTask::presentMainThread();
 }
 
@@ -261,15 +262,16 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
+		cinfos->pChannel->send(pBundle);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("DBTaskExecuteRawDatabaseCommand::presentMainThread: {} not found.",
 			COMPONENT_NAME_EX(componentType_)));
+
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
@@ -345,12 +347,11 @@ thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 	BaseappInterface::onWriteToDBCallbackArgs4::staticAddToBundle((*pBundle), 
 		eid_, entityDBID_, callbackID_, success_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskWriteEntity::presentMainThread: channel({0}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	
 	return EntityDBTask::presentMainThread();
 }
@@ -455,12 +456,11 @@ thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskDeleteBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -523,12 +523,11 @@ thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -668,12 +667,11 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskCreateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -783,12 +781,11 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskCreateMailAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -832,16 +829,15 @@ bool DBTaskActivateAccount::db_thread_process()
 thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 {
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
 	(*pBundle).newMessage(LoginappInterface::onAccountActivated);
-
-
 	(*pBundle) << code_ << success_;
-	if(!this->send((*pBundle)))
+
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskActivateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -903,12 +899,11 @@ thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 	(*pBundle) << failedcode;
 	(*pBundle) << code_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskReqAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -953,12 +948,11 @@ thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 	(*pBundle) << code_;
 	(*pBundle) << success_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -1022,12 +1016,11 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	(*pBundle) << failedcode;
 	(*pBundle) << code_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskReqAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -1071,12 +1064,11 @@ thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 	(*pBundle) << code_;
 	(*pBundle) << success_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -1138,12 +1130,12 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 	(*pBundle) << accountName_;
 	(*pBundle) << failedcode;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountNewPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
@@ -1276,12 +1268,12 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 		(*pBundle) << error_;
 	}
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return EntityDBTask::presentMainThread();
 }
 
@@ -1537,12 +1529,12 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << deadline_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return DBTask::presentMainThread();
 }
 
@@ -1659,12 +1651,11 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 		pBundle->append(s_);
 	}
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return EntityDBTask::presentMainThread();
 }

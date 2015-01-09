@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_reader.h"
 #include "network/network_interface.h"
 #include "network/tcp_packet_receiver.h"
+#include "network/tcp_packet_sender.h"
 #include "network/udp_packet_receiver.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -56,7 +57,7 @@ bool Channel::destructorPoolObject()
 
 //-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
-		const EndPoint * endpoint, Traits traits, ProtocolType pt,
+		const EndPoint * pEndPoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
 	pNetworkInterface_(&networkInterface),
 	traits_(traits),
@@ -77,6 +78,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
+	pPacketSender_(NULL),
+	sending_(false),
 	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
@@ -86,19 +89,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 {
 	this->incRef();
 	this->clearBundle();
-	this->endpoint(endpoint);
-	
-	if(protocoltype_ == PROTOCOL_TCP)
-	{
-		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
-
-		// UDP不需要注册描述符
-		pNetworkInterface_->dispatcher().registerReadFileDescriptor(*pEndPoint_, pPacketReceiver_);
-	}
-	else
-		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
-	
-	startInactivityDetection((traits == INTERNAL) ? g_channelInternalTimeout : g_channelExternalTimeout);
+	this->pEndPoint(pEndPoint);
+	initialize();
 }
 
 //-------------------------------------------------------------------------------------
@@ -123,6 +115,8 @@ Channel::Channel():
 	pFilter_(NULL),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
+	pPacketSender_(NULL),
+	sending_(false),
 	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
@@ -132,22 +126,47 @@ Channel::Channel():
 {
 	this->incRef();
 	this->clearBundle();
-	this->endpoint(NULL);
+	this->pEndPoint(NULL);
 }
 
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
 	//DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
+	finalise();
+}
+
+//-------------------------------------------------------------------------------------
+bool Channel::initialize()
+{
+	if(protocoltype_ == PROTOCOL_TCP)
+	{
+		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+
+		// UDP不需要注册描述符
+		pNetworkInterface_->dispatcher().registerReadFileDescriptor(*pEndPoint_, pPacketReceiver_);
+
+		// 需要发送数据时再注册
+		// pPacketSender_ =  new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+		// pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+	}
+	else
+	{
+		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+	}
+
+	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
+													g_channelExternalTimeout);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Channel::finalise()
+{
 	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL && !isDestroyed_)
 	{
 		pNetworkInterface_->onChannelGone(this);
-
-		if(protocoltype_ == PROTOCOL_TCP)
-		{
-			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
-			pEndPoint_->close();
-		}
 	}
 
 	this->clearState();
@@ -155,6 +174,8 @@ Channel::~Channel()
 	SAFE_RELEASE(pPacketReceiver_);
 	SAFE_RELEASE(pEndPoint_);
 	SAFE_RELEASE(pPacketReader_);
+	SAFE_RELEASE(pPacketSender_);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -195,12 +216,12 @@ void Channel::stopInactivityDetection()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::endpoint(const EndPoint* endpoint)
+void Channel::pEndPoint(const EndPoint* pEndPoint)
 {
-	if (pEndPoint_ != endpoint)
+	if (pEndPoint_ != pEndPoint)
 	{
 		delete pEndPoint_;
-		pEndPoint_ = const_cast<EndPoint*>(endpoint);
+		pEndPoint_ = const_cast<EndPoint*>(pEndPoint);
 	}
 	
 	lastReceivedTime_ = timestamp();
@@ -221,6 +242,12 @@ void Channel::destroy()
 
 		if(protocoltype_ == PROTOCOL_TCP)
 		{
+			if(sending_)
+			{
+				sending_ = false;
+				pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+			}
+
 			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 			pEndPoint_->close();
 		}
@@ -280,11 +307,26 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	channelType_ = CHANNEL_NORMAL;
 	bufferedReceivesIdx_ = 0;
 
+	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP)
+	{
+		if(sending_)
+			pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+
+		pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
+	}
+
 	SAFE_RELEASE(pPacketReader_);
+	SAFE_RELEASE(pPacketSender_);
+	sending_ = false;
 	pFilter_ = NULL;
 
 	stopInactivityDetection();
-	this->endpoint(NULL);
+
+	if(pEndPoint_)
+	{
+		pEndPoint_->close();
+		this->pEndPoint(NULL);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -313,18 +355,6 @@ int32 Channel::bundlesLength()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::pushBundle(Bundle* pBundle)
-{
-	bundles_.push_back(pBundle);
-
-	// 如果打开了消息跟踪开关，这里就应该实时的发送出去
-	if(Network::g_trace_packet > 0)
-	{
-		send();
-	}
-}
-
-//-------------------------------------------------------------------------------------
 void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())
@@ -335,25 +365,48 @@ void Channel::send(Bundle * pBundle)
 		this->clearBundle();
 		return;
 	}
-	
+
+	if(isCondemn())
+	{
+		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", c_str(), 
+			reasonToString(REASON_CHANNEL_CONDEMN)));
+
+		this->clearBundle();
+		return;
+	}
+
 	if(pBundle)
+	{
+		pBundle->finiMessage(true);
 		bundles_.push_back(pBundle);
+	}
 
 	if(bundles_.size() == 0)
 		return;
 
-	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); ++iter)
+	if(!sending_)
 	{
-		(*iter)->send(*pNetworkInterface_, this);
+		sending_ = true;
 
-		++numPacketsSent_;
-		++g_numPacketsSent;
-		numBytesSent_ += (*iter)->totalSize();
-		g_numBytesSent += (*iter)->totalSize();
+		if(pPacketSender_ == NULL)
+			pPacketSender_ =  new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+
+		pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
 	}
+}
 
-	this->clearBundle();
+//-------------------------------------------------------------------------------------
+void Channel::send(EndPoint& ep, Bundle * pBundle)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SEND_BUNDLE(ep, (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SENDTO_BUNDLE(ep, networkAddr, networkPort, (*pBundle));
 }
 
 //-------------------------------------------------------------------------------------
@@ -408,10 +461,10 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
+void Channel::reset(const EndPoint* pEndPoint, bool warnOnDiscard)
 {
 	// 如果地址没有改变则不重置
-	if (endpoint == pEndPoint_)
+	if (pEndPoint == pEndPoint_)
 	{
 		return;
 	}
@@ -421,7 +474,28 @@ void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 		pNetworkInterface_->sendIfDelayed(*this);
 
 	this->clearState(warnOnDiscard);
-	this->endpoint(endpoint);
+	this->pEndPoint(pEndPoint);
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::onSendCompleted()
+{
+	KBE_ASSERT(bundles_.size() == 0 && sending_);
+	sending_ = false;
+	pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::onPacketSent(int bytes, bool sentCompleted)
+{
+	if(sentCompleted)
+	{
+		++numPacketsSent_;
+		++g_numPacketsSent;
+	}
+
+	numBytesSent_ += bytes;
+	g_numBytesSent += bytes;
 }
 
 //-------------------------------------------------------------------------------------
@@ -511,7 +585,7 @@ void Channel::handshake()
 			channelType_ = CHANNEL_WEB;
 			if(html5::WebSocketProtocol::handshake(this, pPacket))
 			{
-				if(pPacket->totalSize() == 0)
+				if(pPacket->length() == 0)
 				{
 					bufferedReceives_[bufferedReceivesIdx_].erase(packetIter);
 				}
@@ -603,7 +677,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 //-------------------------------------------------------------------------------------
 bool Channel::waitSend()
 {
-	return endpoint()->waitSend();
+	return pEndPoint()->waitSend();
 }
 
 //-------------------------------------------------------------------------------------

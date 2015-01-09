@@ -231,10 +231,10 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(type == 1)
 			{
 				// 向dbmgr激活账号
-				Network::Bundle bundle;
-				bundle.newMessage(DbmgrInterface::accountActivate);
-				bundle << code;
-				bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(DbmgrInterface::accountActivate);
+				(*pBundle) << code;
+				dbmgrinfos->pChannel->send(pBundle);
 
 				hellomessage = g_kbeSrvConfig.emailAtivationInfo_.backlink_hello_message;
 			}
@@ -278,12 +278,12 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					password = HttpUtility::URLDecode(password);
 
 					// 向dbmgr重置账号
-					Network::Bundle bundle;
-					bundle.newMessage(DbmgrInterface::accountResetPassword);
-					bundle << KBEngine::strutil::kbe_trim(username);
-					bundle << KBEngine::strutil::kbe_trim(password);
-					bundle << code;
-					bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					(*pBundle).newMessage(DbmgrInterface::accountResetPassword);
+					(*pBundle) << KBEngine::strutil::kbe_trim(username);
+					(*pBundle) << KBEngine::strutil::kbe_trim(password);
+					(*pBundle) << code;
+					dbmgrinfos->pChannel->send(pBundle);
 				}
 
 				hellomessage = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_hello_message;
@@ -309,11 +309,11 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					username = HttpUtility::URLDecode(username);
 
 					// 向dbmgr重置账号
-					Network::Bundle bundle;
-					bundle.newMessage(DbmgrInterface::accountBindMail);
-					bundle << KBEngine::strutil::kbe_trim(username);
-					bundle << code;
-					bundle.send(Loginapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
+					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					(*pBundle).newMessage(DbmgrInterface::accountBindMail);
+					(*pBundle) << KBEngine::strutil::kbe_trim(username);
+					(*pBundle) << code;
+					dbmgrinfos->pChannel->send(pBundle);
 				}
 
 				hellomessage = g_kbeSrvConfig.emailBindInfo_.backlink_hello_message;

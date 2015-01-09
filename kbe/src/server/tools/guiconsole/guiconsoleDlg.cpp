@@ -586,18 +586,18 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle bundle;
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
-			bundle.newMessage(BaseappInterface::onExecScriptCommand);
+			(*pBundle).newMessage(BaseappInterface::onExecScriptCommand);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
-			bundle.newMessage(CellappInterface::onExecScriptCommand);
+			(*pBundle).newMessage(CellappInterface::onExecScriptCommand);
 		else
-			bundle.newMessage(BotsInterface::onExecScriptCommand);
+			(*pBundle).newMessage(BotsInterface::onExecScriptCommand);
 
 		ArraySize size = outcmd.size();
-		bundle << size;
-		bundle.append(outcmd.data(), size);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << size;
+		(*pBundle).append(outcmd.data(), size);
+		pChannel->send(pBundle);
 
 		CString str1, str2;
 		m_debugWnd.displaybufferWnd()->GetWindowText(str2);
@@ -845,20 +845,20 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			for(; iter != channels.end(); iter++)
 			{
 				Network::Channel* pChannel = const_cast<KBEngine::Network::Channel*>(iter->second);
-				Network::Bundle bundle;
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 				if(pChannel->proxyID() != BOTS_TYPE)
 				{
-					COMMON_NETWORK_MESSAGE((KBEngine::COMPONENT_TYPE)pChannel->proxyID(), bundle, onAppActiveTick);
+					COMMON_NETWORK_MESSAGE((KBEngine::COMPONENT_TYPE)pChannel->proxyID(), (*pBundle), onAppActiveTick);
 				}
 				else
 				{
-					bundle.newMessage(BotsInterface::onAppActiveTick);
+					(*pBundle).newMessage(BotsInterface::onAppActiveTick);
 				}
 
-				bundle << _componentType;
-				bundle << _componentID;
-				bundle.send(networkInterface(), pChannel);
+				(*pBundle) << _componentType;
+				(*pBundle) << _componentID;
+				pChannel->send(pBundle);
 
 				pChannel->updateLastReceivedTime();
 			}
@@ -1162,19 +1162,19 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 
 	if(pChannel)
 	{
-		Network::Bundle bundle;
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 		if(debugComponentType == BOTS_TYPE)
 		{
-			bundle.newMessage(BotsInterface::queryWatcher);
+			(*pBundle).newMessage(BotsInterface::queryWatcher);
 		}
 		else
 		{
-			COMMON_NETWORK_MESSAGE(debugComponentType, bundle, queryWatcher);
+			COMMON_NETWORK_MESSAGE(debugComponentType, (*pBundle), queryWatcher);
 		}
 
-		bundle << paths;
-		bundle.send(_networkInterface, pChannel);
+		(*pBundle) << paths;
+		pChannel->send(pBundle);
 	}
 }
 
@@ -1734,33 +1734,34 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle bundle;
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
-			bundle.newMessage(BaseappInterface::startProfile);
+			(*pBundle).newMessage(BaseappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)
-			bundle.newMessage(BaseappmgrInterface::startProfile);
+			(*pBundle).newMessage(BaseappmgrInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
-			bundle.newMessage(CellappInterface::startProfile);
+			(*pBundle).newMessage(CellappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPPMGR_TYPE)
-			bundle.newMessage(CellappmgrInterface::startProfile);
+			(*pBundle).newMessage(CellappmgrInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == DBMGR_TYPE)
-			bundle.newMessage(DbmgrInterface::startProfile);
+			(*pBundle).newMessage(DbmgrInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGINAPP_TYPE)
-			bundle.newMessage(LoginappInterface::startProfile);
+			(*pBundle).newMessage(LoginappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == LOGGER_TYPE)
-			bundle.newMessage(LoggerInterface::startProfile);
+			(*pBundle).newMessage(LoggerInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BOTS_TYPE)
-			bundle.newMessage(BotsInterface::startProfile);
+			(*pBundle).newMessage(BotsInterface::startProfile);
 		else
 		{
 			::AfxMessageBox(L"not support!");
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 			return false;
 		}
 
-		bundle << name;
-		bundle << type;
-		bundle << timinglen;
-		bundle.send(networkInterface(), pChannel);
+		(*pBundle) << name;
+		(*pBundle) << type;
+		(*pBundle) << timinglen;
+		pChannel->send(pBundle);
 		return true;
 	}
 

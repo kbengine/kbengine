@@ -616,9 +616,10 @@ void TelnetHandler::processPythonCommand(std::string command)
 	if(retbuf.size() > 0)
 	{
 		// 将结果返回给客户端
-		Network::Bundle bundle;
-		bundle << retbuf;
-		bundle.send(*pEndPoint_);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle) << retbuf;
+		Network::Channel::send(*pEndPoint_, pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		sendEnter();
 	}
 

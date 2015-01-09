@@ -153,9 +153,9 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
-	Network::Bundle bundle;
-	bundle.append((char*)s.data() + s.rpos(), s.length());
-	bundle.send(this->networkInterface(), cinfos->pChannel);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	cinfos->pChannel->send(pBundle);
 	s.done();
 }
 
@@ -227,8 +227,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	}
 	else
 	{
-		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 	}
 }
 
@@ -274,8 +273,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	}
 	else
 	{
-		(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 	}
 }
 

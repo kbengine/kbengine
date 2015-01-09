@@ -37,18 +37,44 @@ class Address;
 class NetworkInterface;
 class EventDispatcher;
 
-class PacketSender : public OutputNotificationHandler
+class PacketSender : public OutputNotificationHandler, public PoolObject
 {
 public:
+	PacketSender();
 	PacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketSender();
 
 	EventDispatcher& dispatcher();
-protected:
+
+	void onReclaimObject()
+	{
+		pEndpoint_ = NULL;
+		pNetworkInterface_ = NULL;
+	}
+
+	void pEndPoint(EndPoint* pEndpoint){ 
+		pEndpoint_ = pEndpoint; 
+	}
+
+	EndPoint* pEndPoint()const { 
+		return pEndpoint_; 
+	}
+
 	virtual int handleOutputNotification(int fd);
+
+	virtual Reason processPacket(Channel* pChannel, Packet * pPacket);
+	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket) = 0;
+
+	static Reason checkSocketErrors(const EndPoint * pEndpoint, int len, int packetTotalSize);
+
+	virtual Channel* getChannel();
+
 protected:
-	EndPoint & endpoint_;
-	NetworkInterface & networkInterface_;
+	virtual bool processSend() = 0;
+
+protected:
+	EndPoint* pEndpoint_;
+	NetworkInterface* pNetworkInterface_;
 };
 
 }

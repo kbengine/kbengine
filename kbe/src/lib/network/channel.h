@@ -45,6 +45,7 @@ class Bundle;
 class NetworkInterface;
 class MessageHandlers;
 class PacketReader;
+class PacketSender;
 
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
@@ -75,7 +76,7 @@ public:
 	Channel();
 
 	Channel(NetworkInterface & networkInterface, 
-		const EndPoint * endpoint, 
+		const EndPoint * pEndPoint, 
 		Traits traits, 
 		ProtocolType pt = PROTOCOL_TCP, 
 		PacketFilterPtr pFilter = NULL, 
@@ -113,27 +114,30 @@ public:
 	void pNetworkInterface(NetworkInterface* pNetworkInterface) { pNetworkInterface_ = pNetworkInterface; }
 
 	INLINE const Address& addr() const;
-	void endpoint(const EndPoint* endpoint);
-	INLINE EndPoint * endpoint() const;
+	void pEndPoint(const EndPoint* pEndPoint);
+	INLINE EndPoint * pEndPoint() const;
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
 	
 	int32 bundlesLength();
 
-	void pushBundle(Bundle* pBundle);
-
 	const Bundles & bundles() const;
 
 	void clearBundle();
 
 	void send(Bundle * pBundle = NULL);
+	static void send(EndPoint& ep, Bundle * pBundle);
+	static void sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
+
 	void delayedSend();
 
-	void reset(const EndPoint* endpoint, bool warnOnDiscard = true);
+	void reset(const EndPoint* pEndPoint, bool warnOnDiscard = true);
 
 
 	INLINE PacketReader* pPacketReader()const;
+	INLINE PacketSender* pPacketSender()const;
+	INLINE void pPacketSender(PacketSender* pPacketSender);
 	INLINE PacketReceiver* pPacketReceiver()const;
 
 	Traits traits() const { return traits_; }
@@ -141,7 +145,9 @@ public:
 	bool isInternal() const { return traits_ == INTERNAL; }
 		
 	void onPacketReceived(int bytes);
-	
+	void onPacketSent(int bytes, bool sentCompleted);
+	void onSendCompleted();
+
 	const char * c_str() const;
 	ChannelID id() const	{ return id_; }
 	
@@ -152,8 +158,6 @@ public:
 		
 	uint64 lastReceivedTime()const		{ return lastReceivedTime_; }
 	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
-
-	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
 		
 	void addReceiveWindow(Packet* pPacket);
 	
@@ -179,6 +183,7 @@ public:
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
 
 	bool waitSend();
+
 private:
 	enum TimeOutType
 	{
@@ -189,6 +194,8 @@ private:
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
 
+	bool initialize();
+	bool finalise();
 private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
@@ -222,6 +229,8 @@ private:
 	
 	EndPoint *					pEndPoint_;
 	PacketReceiver*				pPacketReceiver_;
+	PacketSender*				pPacketSender_;
+	bool						sending_;
 
 	// 如果为true， 则该频道已经变得不合法
 	bool						isCondemn_;

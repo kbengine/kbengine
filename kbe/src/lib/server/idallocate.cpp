@@ -66,8 +66,7 @@ void EntityIDClient::onAlloc(void)
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
-	(*pBundle).send(pApp_->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 
 	setReqServerAllocFlag(true);
 

@@ -317,8 +317,7 @@ void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER compo
 
 	(*pBundle) << idRange.first;
 	(*pBundle) << idRange.second;
-	(*pBundle).send(this->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -410,8 +409,7 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 				}
 				
 				KBE_ASSERT((*fiter).pChannel != NULL);
-				(*pBundle).send(networkInterface_, (*fiter).pChannel);
-				Network::Bundle::ObjPool().reclaimObject(pBundle);
+				(*fiter).pChannel->send(pBundle);
 			}
 		}
 	}

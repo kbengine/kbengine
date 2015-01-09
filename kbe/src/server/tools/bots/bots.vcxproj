@@ -118,6 +118,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="profile.cpp" />
     <ClCompile Include="pybots.cpp" />
+    <ClCompile Include="tcp_packet_receiver_ex.cpp" />
+    <ClCompile Include="tcp_packet_sender_ex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bots.h" />
@@ -127,6 +129,8 @@
     <ClInclude Include="create_and_login_handler.h" />
     <ClInclude Include="profile.h" />
     <ClInclude Include="pybots.h" />
+    <ClInclude Include="tcp_packet_receiver_ex.h" />
+    <ClInclude Include="tcp_packet_sender_ex.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

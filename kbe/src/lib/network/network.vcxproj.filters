@@ -102,6 +102,15 @@
     <ClCompile Include="network_stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tcp_packet_sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poller_epoll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poller_select.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="address.h">
@@ -200,6 +209,15 @@
     <ClInclude Include="network_exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tcp_packet_sender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poller_epoll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poller_select.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -249,6 +267,9 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="udp_packet.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet_sender.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

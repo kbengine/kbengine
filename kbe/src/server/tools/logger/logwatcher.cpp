@@ -124,11 +124,11 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	if(!validDate_(pLogItem->logstream.str()) || !containKeyworlds_(pLogItem->logstream.str()))
 		return;
 
-	Network::Bundle bundle;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	ConsoleInterface::ConsoleLogMessageHandler msgHandler;
-	bundle.newMessage(msgHandler);
-	bundle << pLogItem->logstream.str().c_str();
-	bundle.send(Logger::getSingleton().networkInterface(), pChannel);
+	(*pBundle).newMessage(msgHandler);
+	(*pBundle) << pLogItem->logstream.str().c_str();
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

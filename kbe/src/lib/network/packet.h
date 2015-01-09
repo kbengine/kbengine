@@ -69,9 +69,7 @@ public:
 	void pBundle(Bundle* v){ pBundle_ = v; }
 
 	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
-	
-	virtual size_t totalSize() const { return wpos() - rpos(); }
-    virtual bool empty() const { return totalSize() > 0; }
+    virtual bool empty() const { return length() == 0; }
 
 	void resetPacket(void)
 	{

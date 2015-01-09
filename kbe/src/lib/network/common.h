@@ -183,51 +183,188 @@ const char * reasonToString(Reason reason)
 }
 
 
-#define NETWORK_SEND_TO_ENDPOINT(ep, op, pPacket)														\
-{																										\
-	int retries = 0;																					\
-	Network::Reason reason;																				\
-																										\
-	while(true)																							\
-	{																									\
-		retries++;																						\
-		int slen = ep->op(pPacket->data(), pPacket->totalSize());										\
-																										\
-		if(slen != (int)pPacket->totalSize())															\
-		{																								\
-			reason = Network::NetworkInterface::getSendErrorReason(ep, slen, pPacket->totalSize());		\
-			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
-			if (reason == Network::REASON_NO_SUCH_PORT && retries <= 3)									\
-			{																							\
-				continue;																				\
-			}																							\
-																										\
-			/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
-			if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
-															&& retries <= 3)							\
-			{																							\
-				WARNING_MSG(fmt::format("{}: "															\
-					"Transmit queue full, waiting for space... ({})\n",									\
-					__FUNCTION__, retries));															\
-																										\
-				KBEngine::sleep(10);																	\
-				continue;																				\
-			}																							\
-																										\
-			if(retries > 3 && reason != Network::REASON_SUCCESS)										\
-			{																							\
-				ERROR_MSG(fmt::format("NETWORK_SEND::send: packet discarded(reason={}).\n",				\
-															(reasonToString(reason))));					\
-				break;																					\
-			}																							\
-		}																								\
-		else																							\
-		{																								\
-			break;																						\
-		}																								\
-	}																									\
-																										\
-}																										\
+#define NETWORK_SEND_TO_ENDPOINT(ep, op, pPacket)															\
+{																											\
+	int retries = 0;																						\
+	Network::Reason reason;																					\
+																											\
+	while(true)																								\
+	{																										\
+		retries++;																							\
+		int slen = ep->op(pPacket->data(), pPacket->totalSize());											\
+																											\
+		if(slen != (int)pPacket->totalSize())																\
+		{																									\
+			reason = Network::PacketSender::checkSocketErrors(ep, slen, pPacket->totalSize());				\
+			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/									\
+			if (reason == Network::REASON_NO_SUCH_PORT && retries <= 3)										\
+			{																								\
+				continue;																					\
+			}																								\
+																											\
+			/* 如果系统发送缓冲已经满了，则我们等待10ms	*/													\
+			if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)					\
+															&& retries <= 3)								\
+			{																								\
+				WARNING_MSG(fmt::format("{}: "																\
+					"Transmit queue full, waiting for space... ({})\n",										\
+					__FUNCTION__, retries));																\
+																											\
+				KBEngine::sleep(10);																		\
+				continue;																					\
+			}																								\
+																											\
+			if(retries > 3 && reason != Network::REASON_SUCCESS)											\
+			{																								\
+				ERROR_MSG(fmt::format("NETWORK_SEND::send: packet discarded(reason={}).\n",					\
+															(reasonToString(reason))));						\
+				break;																						\
+			}																								\
+		}																									\
+		else																								\
+		{																									\
+			break;																							\
+		}																									\
+	}																										\
+																											\
+}																											\
+
+
+#define SEND_BUNDLE_COMMON(SND_FUNC, BUNDLE)																\
+	BUNDLE.finiMessage();																					\
+																											\
+	Network::Bundle::Packets::iterator iter = BUNDLE.packets().begin();										\
+	for (; iter != BUNDLE.packets().end(); ++iter)															\
+	{																										\
+		Packet* pPacket = (*iter);																			\
+		int retries = 0;																					\
+		Reason reason;																						\
+		pPacket->sentSize = 0;																				\
+																											\
+		while(true)																							\
+		{																									\
+			++retries;																						\
+			int slen = SND_FUNC;																			\
+																											\
+			if(slen > 0)																					\
+				pPacket->sentSize += slen;																	\
+																											\
+			if(pPacket->sentSize != pPacket->length())														\
+			{																								\
+				reason = PacketSender::checkSocketErrors(&ep, pPacket->sentSize, pPacket->length());		\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
+				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
+				{																							\
+					continue;																				\
+				}																							\
+																											\
+				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
+				if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
+																					&& retries <= 60)		\
+				{																							\
+					WARNING_MSG(fmt::format("{}: "															\
+						"Transmit queue full, waiting for space... ({})\n",									\
+						__FUNCTION__, retries));															\
+																											\
+					ep.waitSend();																			\
+					continue;																				\
+				}																							\
+																											\
+				if(retries > 60 && reason != REASON_SUCCESS)												\
+				{																							\
+					ERROR_MSG(fmt::format("Bundle::basicSendWithRetries: packet discarded(reason={}).\n",	\
+															(reasonToString(reason))));						\
+					break;																					\
+				}																							\
+			}																								\
+			else																							\
+			{																								\
+				break;																						\
+			}																								\
+		}																									\
+																											\
+	}																										\
+																											\
+	BUNDLE.clearPackets();																					\
+																											\
+
+
+#define SEND_BUNDLE(ENDPOINT, BUNDLE)																		\
+	SEND_BUNDLE_COMMON(ENDPOINT.send(pPacket->data() + pPacket->sentSize,									\
+		pPacket->length() - pPacket->sentSize), BUNDLE);
+
+
+#define SENDTO_BUNDLE(ENDPOINT, ADDR, PORT, BUNDLE)															\
+	SEND_BUNDLE_COMMON(ENDPOINT.sendto(pPacket->data() + pPacket->sentSize,									\
+		pPacket->length() - pPacket->sentSize, PORT, ADDR), BUNDLE);
+
+
+#define MALLOC_PACKET(outputPacket, isTCPPacket)															\
+{																											\
+	if(isTCPPacket)																							\
+		outputPacket = TCPPacket::ObjPool().createObject();													\
+	else																									\
+		outputPacket = UDPPacket::ObjPool().createObject();													\
+}																											\
+
+
+#define RECLAIM_PACKET(isTCPPacket, pPacket)																\
+{																											\
+	if(isTCPPacket)																							\
+		TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));								\
+	else																									\
+		UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));								\
+}																											\
+
+
+// 配合服务端配置选项trace_packet使用，用来跟踪一条即将输出的消息包
+#define TRACE_MESSAGE_PACKET(isrecv, pPacket, pCurrMsgHandler, length, addr)								\
+	if(Network::g_trace_packet > 0)																			\
+	{																										\
+		if(Network::g_trace_packet_use_logfile)																\
+			DebugHelper::getSingleton().changeLogger("packetlogs");											\
+																											\
+		bool isprint = true;																				\
+		if(pCurrMsgHandler)																					\
+		{																									\
+			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	\
+														Network::g_trace_packet_disables.end(),				\
+															pCurrMsgHandler->name);							\
+																											\
+			if(iter != Network::g_trace_packet_disables.end())												\
+			{																								\
+				isprint = false;																			\
+			}																								\
+			else																							\
+			{																								\
+				DEBUG_MSG(fmt::format("{} {}:msgID:{}, currMsgLength:{}, addr:{}\n",						\
+						((isrecv == true) ? "====>" : "<===="),												\
+						pCurrMsgHandler->name.c_str(),														\
+						pCurrMsgHandler->msgID,																\
+						length,																				\
+						addr));																				\
+			}																								\
+		}																									\
+																											\
+		if(isprint)																							\
+		{																									\
+			switch(Network::g_trace_packet)																	\
+			{																								\
+			case 1:																							\
+				pPacket->hexlike();																			\
+				break;																						\
+			case 2:																							\
+				pPacket->textlike();																		\
+				break;																						\
+			default:																						\
+				pPacket->print_storage();																	\
+				break;																						\
+			};																								\
+		}																									\
+																											\
+		if(Network::g_trace_packet_use_logfile)																\
+			DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));					\
+	}																										\
 
 
 void destroyObjPool();

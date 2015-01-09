@@ -54,16 +54,15 @@ SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ClientObject::ClientObject(std::string name, Network::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
-Network::TCPPacketReceiver(),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT),
-pBlowfishFilter_(0)
+pBlowfishFilter_(0),
+pTCPPacketSenderEx_(NULL),
+pTCPPacketReceiverEx_(NULL)
 {
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
 	extradatas_ = "bots";
-
-	this->pNetworkInterface_ = &ninterface;
 }
 
 //-------------------------------------------------------------------------------------
@@ -75,8 +74,19 @@ ClientObject::~ClientObject()
 //-------------------------------------------------------------------------------------		
 void ClientObject::reset(void)
 {
-	if(pServerChannel_ && pServerChannel_->endpoint())
-		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
+	if(pServerChannel_ && pServerChannel_->pEndPoint())
+	{
+		if(pTCPPacketReceiverEx_)
+			Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+
+		if(pTCPPacketSenderEx_)
+			Bots::getSingleton().networkInterface().dispatcher().deregisterWriteFileDescriptor(*pTCPPacketSenderEx_->pEndPoint());
+
+		pServerChannel_->pPacketSender(NULL);
+
+		SAFE_RELEASE(pTCPPacketSenderEx_);
+		SAFE_RELEASE(pTCPPacketReceiverEx_);
+	}
 
 	std::string name = name_;
 	std::string passwd = password_;
@@ -120,12 +130,19 @@ bool ClientObject::initCreate()
 	Network::Address addr(infos.login_ip, infos.login_port);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
 	pServerChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
-	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->ninterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->ninterface_, this);
+	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
+	
+	//不在这里注册
+	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
+	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::hello);
@@ -142,52 +159,13 @@ bool ClientObject::initCreate()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->pushBundle(pBundle);
+	KBEngine::Network::Channel::send(*pEndpoint, pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-	this->pEndpoint_ = pEndpoint;
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool ClientObject::processSocket(bool expectingPacket)
-{
-	
-	Network::TCPPacket* pReceiveWindow = Network::TCPPacket::ObjPool().createObject();
-	int len = pReceiveWindow->recvFromEndPoint(*pServerChannel_->endpoint());
-
-	if (len < 0)
+	if(Network::g_channelExternalEncryptType == 1)
 	{
-		Network::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-
-		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
-
-		if(rstate == Network::PacketReceiver::RECV_STATE_INTERRUPT)
-		{
-			Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
-			pServerChannel_->destroy();
-			Bots::getSingleton().delClient(this);
-			return false;
-		}
-
-		return rstate == Network::PacketReceiver::RECV_STATE_CONTINUE;
-	}
-	else if(len == 0) // 客户端正常退出
-	{
-		Network::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-
-		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
-		pServerChannel_->destroy();
-		Bots::getSingleton().delClient(this);
-		return false;
-	}
-
-	Network::Reason ret = this->processPacket(pServerChannel_, pReceiveWindow);
-
-	if(ret != Network::REASON_SUCCESS)
-	{
-		ERROR_MSG(fmt::format("ClientObject::processSocket: "
-					"Throwing {}\n",
-					Network::reasonToString(ret)));
+		pServerChannel_->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
 	}
 
 	return true;
@@ -196,7 +174,12 @@ bool ClientObject::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 bool ClientObject::initLoginGateWay()
 {
-	Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
+	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketSenderEx_->pEndPoint());
+	pServerChannel_->pPacketSender(NULL);
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
+
 	Network::EndPoint* pEndpoint = new Network::EndPoint();
 	
 	pEndpoint->socket(SOCK_STREAM);
@@ -224,12 +207,18 @@ bool ClientObject::initLoginGateWay()
 
 	Network::Address addr(ip_.c_str(), port_);
 	pEndpoint->addr(addr);
-
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->ninterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->ninterface_, this);
+	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
+
+	//不在这里注册
+	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
+	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
+
 	connectedGateway_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -248,14 +237,22 @@ bool ClientObject::initLoginGateWay()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->pushBundle(pBundle);
+	Network::Channel::send(*pEndpoint, pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
+
+	if(Network::g_channelExternalEncryptType == 1)
+	{
+		pServerChannel_->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
+	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObject::gameTick()
 {
-	if(pServerChannel()->endpoint())
+	if(pServerChannel()->pEndPoint())
 	{
 		pServerChannel()->processPackets(NULL);
 	}
@@ -336,12 +333,6 @@ void ClientObject::onHelloCB_(Network::Channel* pChannel, const std::string& ver
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
-	if(Network::g_channelExternalEncryptType == 1)
-	{
-		pChannel->pFilter(pBlowfishFilter_);
-		pBlowfishFilter_ = NULL;
-	}
-
 	if(componentType == LOGINAPP_TYPE)
 	{
 		state_ = C_STATE_CREATE;

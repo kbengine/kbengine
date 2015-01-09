@@ -33,16 +33,17 @@ namespace Network
 {
 	
 class InputNotificationHandler;
-typedef std::map<int, InputNotificationHandler *> FDHandlers;
+typedef std::map<int, InputNotificationHandler *> FDReadHandlers;
+typedef std::map<int, OutputNotificationHandler *> FDWriteHandlers;
 
-class EventPoller : public InputNotificationHandler
+class EventPoller
 {
 public:
 	EventPoller();
 	virtual ~EventPoller();
 
 	bool registerForRead(int fd, InputNotificationHandler * handler);
-	bool registerForWrite(int fd, InputNotificationHandler * handler);
+	bool registerForWrite(int fd, OutputNotificationHandler * handler);
 
 	bool deregisterForRead(int fd);
 	bool deregisterForWrite(int fd);
@@ -50,14 +51,14 @@ public:
 
 	virtual int processPendingEvents(double maxWait) = 0;
 	virtual int getFileDescriptor() const;
-	virtual int handleInputNotification(int fd);
 
 	void clearSpareTime()		{spareTime_ = 0;}
 	uint64 spareTime() const	{return spareTime_;}
 
 	static EventPoller * create();
 
-	InputNotificationHandler* find(int fd, bool isForRead);
+	InputNotificationHandler* findForRead(int fd);
+	OutputNotificationHandler* findForWrite(int fd);
 protected:
 	virtual bool doRegisterForRead(int fd) = 0;
 	virtual bool doRegisterForWrite(int fd) = 0;
@@ -65,20 +66,17 @@ protected:
 	virtual bool doDeregisterForRead(int fd) = 0;
 	virtual bool doDeregisterForWrite(int fd) = 0;
 
-	bool triggerRead(int fd)	{return this->trigger(fd, fdReadHandlers_);}
-	bool triggerWrite(int fd)	{return this->trigger(fd, fdWriteHandlers_);}
+	bool triggerRead(int fd);
+	bool triggerWrite(int fd);
 	bool triggerError(int fd);
-
-	bool trigger(int fd, FDHandlers & handlers);
 	
 	bool isRegistered(int fd, bool isForRead) const;
 
 	int maxFD() const;
 
 private:
-	static int maxFD(const FDHandlers & handlerMap);
-	FDHandlers fdReadHandlers_;
-	FDHandlers fdWriteHandlers_;
+	FDReadHandlers fdReadHandlers_;
+	FDWriteHandlers fdWriteHandlers_;
 
 protected:
 	uint64 spareTime_;

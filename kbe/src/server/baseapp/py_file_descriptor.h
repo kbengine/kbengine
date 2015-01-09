@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 typedef SmartPointer<PyObject> PyObjectPtr;
 
-class PyFileDescriptor : public Network::InputNotificationHandler
+class PyFileDescriptor : public Network::InputNotificationHandler, public Network::OutputNotificationHandler
 {
 public:
 	PyFileDescriptor(int fd, PyObject* pyCallback, bool write);
@@ -44,7 +44,8 @@ public:
 protected:
 
 	virtual int handleInputNotification( int fd );
-	
+	virtual int handleOutputNotification( int fd );
+
 	void callback();
 
 	int fd_;

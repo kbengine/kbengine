@@ -49,8 +49,6 @@ bool AnonymousChannel::process()
 		return false;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-
 	while(1)
 	{
 		fd_set	frds, fwds;
@@ -162,25 +160,27 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			INFO_MSG(fmt::format("AnonymousChannel::presentMainThread: order({}) timeout!\n", oiter->second->ordersID));
 
 
-			Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-			(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-			(*(*bundle)) << oiter->second->baseappID << oiter->second->ordersID << oiter->second->dbid;
+			(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+			(*pBundle) << oiter->second->baseappID << oiter->second->ordersID << oiter->second->dbid;
 			std::string backdata = "timeout";
-			(*(*bundle)).appendBlob(backdata);
-			(*(*bundle)) << oiter->second->cbid;
-			(*(*bundle)) << retcode;
+			(*pBundle).appendBlob(backdata);
+			(*pBundle) << oiter->second->cbid;
+			(*pBundle) << retcode;
 
 			Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(oiter->second->address);
 
 			if(pChannel)
 			{
-				(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+				pChannel->send(pBundle);
 			}
 			else
 			{
 				ERROR_MSG(fmt::format("AnonymousChannel::presentMainThread: not found channel. orders={}\n", 
 					oiter->second->ordersID));
+
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 			}
 
 			oiter = orders.erase(oiter);
@@ -235,14 +235,14 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 			Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(orderiter->second->address);
 			if(pChannel)
 			{
-				Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-				(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-				(*(*bundle)) << baseappID << ordersID << dbid;
-				(*(*bundle)).appendBlob(iter->second.data);
-				(*(*bundle)) << cbid;
-				(*(*bundle)) << retcode;
-				(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+				(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+				(*pBundle) << baseappID << ordersID << dbid;
+				(*pBundle).appendBlob(iter->second.data);
+				(*pBundle) << cbid;
+				(*pBundle) << retcode;
+				pChannel->send(pBundle);
 			}
 			else
 			{
@@ -261,14 +261,14 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 					Network::Channel* pChannel = channeliter->second;
 					if(pChannel)
 					{
-						Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+						Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-						(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-						(*(*bundle)) << baseappID << ordersID << dbid;
-						(*(*bundle)).appendBlob(iter->second.data);
-						(*(*bundle)) << cbid;
-						(*(*bundle)) << retcode;
-						(*(*bundle)).send(Interfaces::getSingleton().networkInterface(), pChannel);
+						(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+						(*pBundle) << baseappID << ordersID << dbid;
+						(*pBundle).appendBlob(iter->second.data);
+						(*pBundle) << cbid;
+						(*pBundle) << retcode;
+						pChannel->send(pBundle);
 					}
 					else
 					{

@@ -467,8 +467,7 @@ void Baseapp::updateLoad()
 		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
 			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), this->getLoad());
 
-		(*pBundle).send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 	}
 }
 
@@ -565,7 +564,7 @@ void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 
 	PyObject* pyobj = PyTuple_New(2);
 
-	const Network::Address& addr = pChannel->endpoint()->addr();
+	const Network::Address& addr = pChannel->pEndPoint()->addr();
 	PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
 	PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
 	PyTuple_SetItem(pyarg, 0, pyobj);
@@ -728,8 +727,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 			(*pBundle).newMessage(DbmgrInterface::reqKillServer);
 			(*pBundle) << g_componentID << g_componentType << KBEngine::getUsername() << KBEngine::getUserUID() << "Duplicate app-id.";
-			(*pBundle).send(this->networkInterface(), pChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			pChannel->send(pBundle);
 		}
 	}
 
@@ -791,8 +789,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 		break;
 	};
 	
-	(*pBundle).send(this->networkInterface(), cinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -986,8 +983,7 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
 		g_componentID, 0, dbid, entityType, callbackID, entityID);
 	
-	pBundle->send(this->networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1241,8 +1237,7 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 	DbmgrInterface::queryEntityArgs6::staticAddToBundle((*pBundle), 
 		g_componentID, 1, dbid, entityType, callbackID, entityID);
 	
-	pBundle->send(this->networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1362,8 +1357,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBID);
 	pBundle->append((*stream));
-	pBundle->send(this->networkInterface(), pBaseappmgrChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pBaseappmgrChannel->send(pBundle);
 	MemoryStream::ObjPool().reclaimObject(stream);
 }
 
@@ -1421,8 +1415,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 			return;
 		}
 		
-		pBundle->send(this->networkInterface(), baseappinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		baseappinfos->pChannel->send(pBundle);
 	}
 }
 
@@ -1503,14 +1496,14 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	{
 		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
+			pComponents->pChannel->send(pBundle);
 		}
 		else
 		{
 			ERROR_MSG("Baseapp::createInNewSpace: cellappmgr channel is NULL.\n");
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
@@ -1543,14 +1536,14 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	{
 		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
+			pComponents->pChannel->send(pBundle);
 		}
 		else
 		{
 			ERROR_MSG("Baseapp::restoreSpaceInCell: cellappmgr channel is NULL.\n");
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 	
@@ -1592,14 +1585,14 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 	{
 		if(pComponents->pChannel != NULL)
 		{
-			(*pBundle).send(this->networkInterface(), pComponents->pChannel);
+			pComponents->pChannel->send(pBundle);
 		}
 		else
 		{
 			ERROR_MSG("Baseapp::createBaseAnywhere: baseappmgr channel is NULL.\n");
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
@@ -1669,8 +1662,7 @@ void Baseapp::onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s)
 		(*pForwardbundle) << entityType;
 		(*pForwardbundle) << base->id();
 		(*pForwardbundle) << componentID_;
-		(*pForwardbundle).send(this->networkInterface(), lpChannel);
-		Network::Bundle::ObjPool().reclaimObject(pForwardbundle);
+		lpChannel->send(pForwardbundle);
 	}
 	else
 	{
@@ -1832,8 +1824,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 		return;
 	}
 
-	(*pBundle).send(this->networkInterface(), createToCellMailbox->getChannel());
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	createToCellMailbox->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1868,11 +1859,11 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 	// 可能客户端在期间掉线了
 	if(base == NULL)
 	{
-		Network::Bundle::SmartPoolObjectPtr pBundle = Network::Bundle::createSmartPoolObj();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-		(*(*pBundle)).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
-		(*(*pBundle)) << id;
-		(*(*pBundle)).send(this->networkInterface(), pChannel);
+		(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+		(*pBundle) << id;
+		pChannel->send(pBundle);
 		ERROR_MSG(fmt::format("Baseapp::onEntityGetCell: not found entity({}), I will destroyEntityCell!\n", id));
 		return;
 	}
@@ -1916,7 +1907,6 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	(*pBundle) << base->ob_type->tp_name;
 	//base->clientMailbox()->postMail((*pBundle));
 	base->sendToClient(ClientInterface::onCreatedProxies, pBundle);
-	//Network::Bundle::ObjPool().reclaimObject(pBundle);
 
 	base->initClientBasePropertys();
 
@@ -1992,8 +1982,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 	(*pBundle) << callbackID;
 	(*pBundle) << size;
 	(*pBundle).append(datas, size);
-	(*pBundle).send(this->networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2205,23 +2194,24 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 		callbackID,
 		dbid));
 
-	Network::Bundle::SmartPoolObjectPtr pBundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*(*pBundle)).newMessage(DbmgrInterface::charge);
-	(*(*pBundle)) << chargeID;
-	(*(*pBundle)) << dbid;
-	(*(*pBundle)).appendBlob(datas);
-	(*(*pBundle)) << callbackID;
+	(*pBundle).newMessage(DbmgrInterface::charge);
+	(*pBundle) << chargeID;
+	(*pBundle) << dbid;
+	(*pBundle).appendBlob(datas);
+	(*pBundle) << callbackID;
 
 	Network::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
 
 	if(pChannel == NULL)
 	{
 		ERROR_MSG("Baseapp::charge: not found dbmgr!\n");
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
-	(*(*pBundle)).send(this->networkInterface(), pChannel);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2417,7 +2407,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, std::string& logi
 	}
 
 	(*pBundle) << this->networkInterface().extaddr().port;
-	(*pBundle).send(this->networkInterface(), pChannel);
+	pChannel->send(pBundle);
 
 	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
@@ -2428,8 +2418,6 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, std::string& logi
 	ptinfos->deadline = deadline;
 	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
 	pendingLoginMgr_.add(ptinfos);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2462,8 +2450,7 @@ void Baseapp::loginGatewayFailed(Network::Channel* pChannel, std::string& accoun
 		(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
 
 	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle((*pBundle), failedcode);
-	(*pBundle).send(this->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2615,8 +2602,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 		DbmgrInterface::queryAccountArgs7::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
 			entityID, ptinfos->entityDBID, pChannel->addr().ip, pChannel->addr().port);
 
-		(*pBundle).send(this->networkInterface(), dbmgrinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		dbmgrinfos->pChannel->send(pBundle);
 	}
 
 	// 记录客户端地址
@@ -2689,8 +2675,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
 	(*pBundle) << proxy->rndUUID();
-	(*pBundle).send(this->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 	*/
 }
 
@@ -2706,8 +2691,7 @@ void Baseapp::kickChannel(Network::Channel* pChannel, SERVER_ERROR_CODE failedco
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onKicked);
 	ClientInterface::onKickedArgs1::staticAddToBundle((*pBundle), failedcode);
-	(*pBundle).send(this->networkInterface(), pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 
 	pChannel->proxyID(0);
 	pChannel->condemn();
@@ -2793,8 +2777,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle((*pBundle), accountName, 
 			componentID_, base->id());
 
-		(*pBundle).send(this->networkInterface(), pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->send(pBundle);
 		*/
 	}
 
@@ -2916,7 +2899,6 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	(*pBundle).append(s);
 	static_cast<Proxy*>(base)->sendToClient(pBundle);
 	//mailbox->postMail((*pBundle));
-	//Network::Bundle::ObjPool().reclaimObject(pBundle);
 	
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
@@ -3284,9 +3266,7 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 
 	if(Network::g_channelExternalEncryptType > 0)
 	{
@@ -3329,9 +3309,7 @@ void Baseapp::lookApp(Network::Channel* pChannel)
 
 	(*pBundle) << port;
 
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3339,7 +3317,7 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 {
 	static Network::Bundle bundle;
 
-	if(bundle.packets().size() == 0)
+	if(bundle.empty())
 	{
 		std::map< Network::MessageID, Network::ExposedMessageInfo > messages;
 
@@ -3385,7 +3363,7 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(networkInterface(), pChannel);
+	pChannel->send(new Network::Bundle(bundle));
 }
 
 //-------------------------------------------------------------------------------------
@@ -3393,7 +3371,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 {
 	static Network::Bundle bundle;
 	
-	if(bundle.packets().size() == 0)
+	if(bundle.empty())
 	{
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
@@ -3553,7 +3531,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(networkInterface(), pChannel);
+	pChannel->send(new Network::Bundle(bundle));
 }
 
 //-------------------------------------------------------------------------------------
@@ -3673,8 +3651,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	(*pBundle) << dbid;
 	(*pBundle) << callbackID;
 	(*pBundle) << sm->getUType();
-	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 
 	S_Return;
 }
@@ -3813,8 +3790,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 	(*pBundle) << dbid;
 	(*pBundle) << callbackID;
 	(*pBundle) << sm->getUType();
-	(*pBundle).send(Baseapp::getSingleton().networkInterface(), dbmgrinfos->pChannel);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	dbmgrinfos->pChannel->send(pBundle);
 
 	S_Return;
 }
@@ -3939,18 +3915,18 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
-		bundle << retcode;
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::accountReqBindMail);
-	bundle << entityID << accountName << password << email;
-	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::accountReqBindMail);
+	(*pBundle) << entityID << accountName << password << email;
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3989,10 +3965,10 @@ void Baseapp::onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID enti
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
-	bundle << failedcode;
-	bundle.send(this->networkInterface(), base->clientMailbox()->getChannel());
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+	(*pBundle) << failedcode;
+	base->clientMailbox()->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -4045,18 +4021,18 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 		ERROR_MSG(fmt::format("Baseapp::reqAccountNewPassword: accountName({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onReqAccountNewPasswordCB);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountNewPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
-		bundle << retcode;
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::accountNewPassword);
-	bundle << entityID << accountName << oldpassworld << newpassword;
-	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::accountNewPassword);
+	(*pBundle) << entityID << accountName << oldpassworld << newpassword;
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -4073,10 +4049,10 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
-	bundle << failedcode;
-	bundle.send(this->networkInterface(), base->clientMailbox()->getChannel());
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+	(*pBundle) << failedcode;
+	base->clientMailbox()->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -4085,12 +4061,9 @@ void Baseapp::onVersionNotMatch(Network::Channel* pChannel)
 	INFO_MSG(fmt::format("Baseapp::onVersionNotMatch: {}.\n", pChannel->c_str()));
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
 	(*pBundle) << KBEVersion::versionString();
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -4099,12 +4072,9 @@ void Baseapp::onScriptVersionNotMatch(Network::Channel* pChannel)
 	INFO_MSG(fmt::format("Baseapp::onScriptVersionNotMatch: {}.\n", pChannel->c_str()));
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

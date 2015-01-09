@@ -1285,11 +1285,11 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 	}
 
 	// 将结果返回给客户端
-	Network::Bundle bundle;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
-	bundle.newMessage(msgHandler);
-	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
-	bundle.send(this->networkInterface(), pChannel);
+	(*pBundle).newMessage(msgHandler);
+	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle((*pBundle), retbuf);
+	pChannel->send(pBundle);
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);

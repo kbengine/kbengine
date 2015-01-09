@@ -152,8 +152,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		bundle.newMessage(KBEngine::MachineInterface::startserver);
 		bundle << KBEngine::getUserUID();
 		bundle << ctype;
-		bundle.send(*endpoint);
-
+		KBEngine::Network::Channel::send(*endpoint, &bundle);
 		KBEngine::Network::TCPPacket packet;
 		packet.resize(1024);
 
@@ -285,8 +284,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		bundle.newMessage(KBEngine::MachineInterface::stopserver);
 		bundle << KBEngine::getUserUID();
 		bundle << ctype;
-		bundle.send(*endpoint);
-
+		KBEngine::Network::Channel::send(*endpoint, &bundle);
 		KBEngine::Network::TCPPacket packet;
 		packet.resize(1024);
 

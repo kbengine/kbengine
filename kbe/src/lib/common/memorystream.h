@@ -507,7 +507,7 @@ public:
 	size_t length()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 
 	// 剩余可填充的大小
-	virtual size_t space() const { return size() - wpos(); }
+	virtual size_t space() const { return wpos() >= size() ? 0 : size() - wpos(); }
 
 	// 将读索引强制设置到写索引，表示操作结束
 	void done(){ read_skip(length()); }

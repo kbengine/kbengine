@@ -55,8 +55,10 @@ public:
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 
 protected:
-	bool processSocket(bool expectingPacket);
+	virtual bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
+
+	virtual void onGetError(Channel* pChannel);
 	
 };
 }

@@ -171,7 +171,7 @@ void ClientObjectBase::tickSend()
 {
 	handleTimers();
 
-	if(!pServerChannel_ || !pServerChannel_->endpoint())
+	if(!pServerChannel_ || !pServerChannel_->pEndPoint())
 		return;
 	
 	if(pServerChannel_ && pServerChannel_->isDestroyed())
@@ -196,7 +196,7 @@ void ClientObjectBase::tickSend()
 		else
 			(*pBundle).newMessage(LoginappInterface::onClientActiveTick);
 
-		pServerChannel_->pushBundle(pBundle);
+		pServerChannel_->send(pBundle);
 	}
 
 	updatePlayerToServer();
@@ -233,11 +233,11 @@ void ClientObjectBase::onKicked(Network::Channel * pChannel, SERVER_ERROR_CODE f
 	eventHandler_.fire(&eventdata);
 
 #ifdef unix
-	::close(*pChannel->endpoint());
+	::close(*pChannel->pEndPoint());
 #elif defined(PLAYSTATION3)
-	::socketclose(*pChannel->endpoint());
+	::socketclose(*pChannel->pEndPoint());
 #else
-	::closesocket(*pChannel->endpoint());
+	::closesocket(*pChannel->pEndPoint());
 #endif
 }
 
@@ -438,7 +438,7 @@ bool ClientObjectBase::createAccount()
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 	return true;
 }
 
@@ -469,7 +469,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	Network::Address addr(ip.c_str(), port);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
@@ -506,7 +506,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	Network::Address addr(ip_.c_str(), port_);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
@@ -594,7 +594,7 @@ bool ClientObjectBase::login()
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << EntityDef::md5().getDigestStr();
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 	connectedGateway_ = false;
 	return true;
 }
@@ -609,7 +609,7 @@ bool ClientObjectBase::loginGateWay()
 	(*pBundle).newMessage(BaseappInterface::loginGateway);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 	return true;
 }
 
@@ -625,7 +625,7 @@ bool ClientObjectBase::reLoginGateWay()
 	(*pBundle) << password_;
 	(*pBundle) << rndUUID();
 	(*pBundle) << entityID_;
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 	return true;
 }
 
@@ -1121,7 +1121,7 @@ void ClientObjectBase::updatePlayerToServer()
 
 	(*pBundle) << pEntity->isOnGound();
 	(*pBundle) << spaceID_;
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

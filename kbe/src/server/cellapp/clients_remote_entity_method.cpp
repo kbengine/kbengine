@@ -131,8 +131,6 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			//mailbox->postMail((*pBundle));
 			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-			//Network::Bundle::ObjPool().reclaimObject(pBundle);
-
 			// 记录这个事件产生的数据量大小
 			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
 				methodDescription->getName(), 
@@ -197,8 +195,6 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 			//mailbox->postMail((*pBundle));
 			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
-
-			//Network::Bundle::ObjPool().reclaimObject(pSendBundle);
 
 			// 记录这个事件产生的数据量大小
 			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->scriptName(), 

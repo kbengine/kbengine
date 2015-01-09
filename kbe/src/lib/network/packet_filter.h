@@ -36,14 +36,14 @@ class Packet;
 class Address;
 class PacketFilter;
 class PacketReceiver;
-
+class PacketSender;
 
 class PacketFilter : public RefCountable
 {
 public:
 	virtual ~PacketFilter() {}
 
-	virtual Reason send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket);
+	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
 
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 };

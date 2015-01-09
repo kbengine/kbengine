@@ -73,15 +73,14 @@ TCPPacketReceiver::~TCPPacketReceiver()
 }
 
 //-------------------------------------------------------------------------------------
-bool TCPPacketReceiver::processSocket(bool expectingPacket)
+bool TCPPacketReceiver::processRecv(bool expectingPacket)
 {
-	Channel* pChannel = pNetworkInterface_->findChannel(pEndpoint_->addr());
+	Channel* pChannel = getChannel();
 	KBE_ASSERT(pChannel != NULL);
 	
 	if(pChannel->isCondemn())
 	{
-		pNetworkInterface_->deregisterChannel(pChannel);
-		pChannel->destroy();
+		onGetError(pChannel);
 		return false;
 	}
 
@@ -96,8 +95,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 
 		if(rstate == PacketReceiver::RECV_STATE_INTERRUPT)
 		{
-			pNetworkInterface_->deregisterChannel(pChannel);
-			pChannel->destroy();
+			onGetError(pChannel);
 			return false;
 		}
 
@@ -106,8 +104,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	else if(len == 0) // 客户端正常退出
 	{
 		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-		pNetworkInterface_->deregisterChannel(pChannel);
-		pChannel->destroy();
+		onGetError(pChannel);
 		return false;
 	}
 	
@@ -120,12 +117,20 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
+void TCPPacketReceiver::onGetError(Channel* pChannel)
+{
+	pNetworkInterface_->deregisterChannel(pChannel);
+
+	if(!pChannel->isDestroyed())
+		pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------
 Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
 	// 如果为None， 则可能是被过滤器过滤掉了(过滤器正在按照自己的规则组包解密)
 	if(pPacket)
 	{
-		pNetworkInterface_->onPacketIn(*pPacket);
 		pChannel->addReceiveWindow(pPacket);
 	}
 

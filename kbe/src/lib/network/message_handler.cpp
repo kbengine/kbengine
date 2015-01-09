@@ -172,8 +172,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;	
 	msgHandler->exposed = false;
-
+	msgHandler->pMessageHandlers = this;
 	msgHandler->onInstall();
+
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
 	if(msgLen == NETWORK_VARIABLE_MESSAGE)

@@ -121,10 +121,10 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 			}
 			else
 			{
-				Network::Bundle bundle;
-				bundle.newMessage(DbmgrInterface::eraseClientReq);
-				bundle << extra;
-				bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(DbmgrInterface::eraseClientReq);
+				(*pBundle) << extra;
+				dbmgrinfos->pChannel->send(pBundle);
 			}
 		}
 	}
@@ -200,12 +200,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		WARNING_MSG(fmt::format("Loginapp::_createAccount({}): not available!\n", accountName));
 
 		std::string retdatas = "";
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE;
-		bundle << retcode;
-		bundle.appendBlob(retdatas);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		(*pBundle).appendBlob(retdatas);
+		pChannel->send(pBundle);
 		return false;
 	}
 
@@ -241,12 +241,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 	{
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: shutting down, create {} failed!\n", accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_IN_SHUTTINGDOWN;
-		bundle << retcode;
-		bundle.appendBlob(retdatas);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		(*pBundle).appendBlob(retdatas);
+		pChannel->send(pBundle);
 		return false;
 	}
 
@@ -256,12 +256,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: pendingCreateMgr has {}, request create failed!\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_BUSY;
-		bundle << retcode;
-		bundle.appendBlob(retdatas);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		(*pBundle).appendBlob(retdatas);
+		pChannel->send(pBundle);
 		return false;
 	}
 	
@@ -278,12 +278,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
 					accountName));
 
-				Network::Bundle bundle;
-				bundle.newMessage(ClientInterface::onCreateAccountResult);
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 				SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
-				bundle << retcode;
-				bundle.appendBlob(retdatas);
-				bundle.send(this->networkInterface(), pChannel);
+				(*pBundle) << retcode;
+				(*pBundle).appendBlob(retdatas);
+				pChannel->send(pBundle);
 				return false;
 			}
 
@@ -297,12 +297,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
 				accountName));
 
-			Network::Bundle bundle;
-			bundle.newMessage(ClientInterface::onCreateAccountResult);
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 			SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
-			bundle << retcode;
-			bundle.appendBlob(retdatas);
-			bundle.send(this->networkInterface(), pChannel);
+			(*pBundle) << retcode;
+			(*pBundle).appendBlob(retdatas);
+			pChannel->send(pBundle);
 			return false;
 		}
 	}
@@ -316,12 +316,12 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid mail={}\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
-		bundle << retcode;
-		bundle.appendBlob(retdatas);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		(*pBundle).appendBlob(retdatas);
+		pChannel->send(pBundle);
 		return false;
     }
 
@@ -346,23 +346,23 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
-		bundle << retcode;
-		bundle.appendBlob(retdatas);
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		(*pBundle).appendBlob(retdatas);
+		pChannel->send(pBundle);
 		return false;
 	}
 
 	pChannel->extra(accountName);
 
-	Network::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::reqCreateAccount);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::reqCreateAccount);
 	uint8 uatype = uint8(type);
-	bundle << accountName << password << uatype;
-	bundle.appendBlob(datas);
-	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+	(*pBundle) << accountName << password << uatype;
+	(*pBundle).appendBlob(datas);
+	dbmgrinfos->pChannel->send(pBundle);
 	return true;
 }
 
@@ -417,13 +417,12 @@ void Loginapp::onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream
 
 	pClientChannel->extra("");
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onCreateAccountResult);
-	bundle << failedcode;
-	bundle.appendBlob(retdatas);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+	(*pBundle) << failedcode;
+	(*pBundle).appendBlob(retdatas);
 
-	bundle.send(this->networkInterface(), pClientChannel);
-
+	pClientChannel->send(pBundle);
 	SAFE_RELEASE(ptinfos);
 }
 
@@ -484,12 +483,12 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 	pClientChannel->extra("");
 	retdatas = "";
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onCreateAccountResult);
-	bundle << failedcode;
-	bundle.appendBlob(retdatas);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+	(*pBundle) << failedcode;
+	(*pBundle).appendBlob(retdatas);
 
-	bundle.send(this->networkInterface(), pClientChannel);
+	pClientChannel->send(pBundle);
 
 	SAFE_RELEASE(ptinfos);
 }
@@ -553,27 +552,27 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onReqAccountResetPasswordCB);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
-		bundle << retcode;
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
 		return;
 	}
 
 	{
-		Network::Bundle bundle;
-		bundle.newMessage(DbmgrInterface::accountReqResetPassword);
-		bundle << accountName;
-		bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(DbmgrInterface::accountReqResetPassword);
+		(*pBundle) << accountName;
+		dbmgrinfos->pChannel->send(pBundle);
 	}
 
 	{
-		Network::Bundle bundle;
-		bundle.newMessage(ClientInterface::onReqAccountResetPasswordCB);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
-		bundle << retcode;
-		bundle.send(this->networkInterface(), pChannel);
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
 	}
 }
 
@@ -761,11 +760,11 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	pChannel->extra(loginName);
 
 	// 向dbmgr查询用户合法性
-	Network::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::onAccountLogin);
-	bundle << loginName << password;
-	bundle.appendBlob(datas);
-	bundle.send(this->networkInterface(), dbmgrinfos->pChannel);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::onAccountLogin);
+	(*pBundle) << loginName << password;
+	(*pBundle).appendBlob(datas);
+	dbmgrinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -783,14 +782,14 @@ void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, 
 			return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onLoginFailed);
-	bundle << failedcode;
-	bundle.appendBlob(datas);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onLoginFailed);
+	(*pBundle) << failedcode;
+	(*pBundle).appendBlob(datas);
 
 	if(pChannel)
 	{
-		bundle.send(this->networkInterface(), pChannel);
+		pChannel->send(pBundle);
 	}
 	else 
 	{
@@ -798,12 +797,16 @@ void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, 
 		{
 			Network::Channel* pClientChannel = this->networkInterface().findChannel(infos->addr);
 			if(pClientChannel)
-				bundle.send(this->networkInterface(), pClientChannel);
+				pClientChannel->send(pBundle);
+			else
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		else
 		{
 			ERROR_MSG(fmt::format("Loginapp::_loginFailed: infos({}) is NULL!\n", 
 				loginName));
+
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 
@@ -898,26 +901,26 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	// 如果大于0则说明当前账号仍然存活于某个baseapp上
 	if(componentID > 0)
 	{
-		Network::Bundle bundle;
-		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		bundle << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype;
-		bundle.send(this->networkInterface(), baseappmgrinfos->pChannel);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
+		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype;
+		baseappmgrinfos->pChannel->send(pBundle);
 		return;
 	}
 	else
 	{
 		// 注册到baseapp并且获取baseapp的地址
-		Network::Bundle bundle;
-		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
 
-		bundle << loginName;
-		bundle << accountName;
-		bundle << password;
-		bundle << dbid;
-		bundle << flags;
-		bundle << deadline;
-		bundle << infos->ctype;
-		bundle.send(this->networkInterface(), baseappmgrinfos->pChannel);
+		(*pBundle) << loginName;
+		(*pBundle) << accountName;
+		(*pBundle) << password;
+		(*pBundle) << dbid;
+		(*pBundle) << flags;
+		(*pBundle) << deadline;
+		(*pBundle) << infos->ctype;
+		baseappmgrinfos->pChannel->send(pBundle);
 	}
 }
 
@@ -956,14 +959,14 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		return;
 	}
 
-	Network::Bundle bundle;
-	bundle.newMessage(ClientInterface::onLoginSuccessfully);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onLoginSuccessfully);
 	uint16 fport = ntohs(port);
-	bundle << accountName;
-	bundle << addr;
-	bundle << fport;
-	bundle.appendBlob(infos->datas);
-	bundle.send(this->networkInterface(), pClientChannel);
+	(*pBundle) << accountName;
+	(*pBundle) << addr;
+	(*pBundle) << fport;
+	(*pBundle).appendBlob(infos->datas);
+	pClientChannel->send(pBundle);
 
 	SAFE_RELEASE(infos);
 }
@@ -982,9 +985,7 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << digest_;
 	(*pBundle) << g_componentType;
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 
 	if(Network::g_channelExternalEncryptType > 0)
 	{
@@ -1008,9 +1009,7 @@ void Loginapp::onVersionNotMatch(Network::Channel* pChannel)
 	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
 	(*pBundle) << KBEVersion::versionString();
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1020,9 +1019,7 @@ void Loginapp::onScriptVersionNotMatch(Network::Channel* pChannel)
 	
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
-	(*pBundle).send(networkInterface(), pChannel);
-
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1030,7 +1027,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 {
 	static Network::Bundle bundle;
 	
-	if(bundle.packets().size() == 0)
+	if(bundle.empty())
 	{
 		std::map< Network::MessageID, Network::ExposedMessageInfo > clientMessages;
 		{
@@ -1111,7 +1108,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(networkInterface(), pChannel);
+	pChannel->send(new Network::Bundle(bundle));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1119,7 +1116,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 {
 	static Network::Bundle bundle;
 	
-	if(bundle.packets().size() == 0)
+	if(bundle.empty())
 	{
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
@@ -1162,7 +1159,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		}
 	}
 
-	bundle.resend(networkInterface(), pChannel);
+	pChannel->send(new Network::Bundle(bundle));
 }
 
 //-------------------------------------------------------------------------------------

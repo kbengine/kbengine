@@ -24,11 +24,7 @@ namespace Network
 {
 
 INLINE EndPoint::EndPoint(int fd):
-#if KBE_PLATFORM == PLATFORM_WIN32
 socket_(fd)
-#else
-socket_(fd)
-#endif
 {
 	if(socket_ > 0)
 	{

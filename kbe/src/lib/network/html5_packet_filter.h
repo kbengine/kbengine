@@ -50,7 +50,7 @@ public:
 	HTML5PacketFilter(Channel* pChannel);
 	virtual ~HTML5PacketFilter();
 
-	virtual Reason send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket);
+	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
 
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 

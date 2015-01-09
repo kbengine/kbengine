@@ -189,22 +189,23 @@ bool InterfacesHandler_ThirdParty::createAccount(Network::Channel* pChannel, std
 {
 	KBE_ASSERT(pInterfacesChannel_);
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-	
-	(*(*bundle)).newMessage(InterfacesInterface::reqCreateAccount);
-	(*(*bundle)) << pChannel->componentID();
-
-	uint8 accountType = uatype;
-	(*(*bundle)) << registerName << password << accountType;
-	(*(*bundle)).appendBlob(datas);
-
 	if(pInterfacesChannel_->isDestroyed())
 	{
 		if(!this->reconnect())
+		{
 			return false;
+		}
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pInterfacesChannel_);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	
+	(*pBundle).newMessage(InterfacesInterface::reqCreateAccount);
+	(*pBundle) << pChannel->componentID();
+
+	uint8 accountType = uatype;
+	(*pBundle) << registerName << password << accountType;
+	(*pBundle).appendBlob(datas);
+	pInterfacesChannel_->send(pBundle);
 	return true;
 }
 
@@ -241,20 +242,19 @@ bool InterfacesHandler_ThirdParty::loginAccount(Network::Channel* pChannel, std:
 {
 	KBE_ASSERT(pInterfacesChannel_);
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-
-	(*(*bundle)).newMessage(InterfacesInterface::onAccountLogin);
-	(*(*bundle)) << pChannel->componentID();
-	(*(*bundle)) << loginName << password;
-	(*(*bundle)).appendBlob(datas);
-
 	if(pInterfacesChannel_->isDestroyed())
 	{
 		if(!this->reconnect())
 			return false;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pInterfacesChannel_);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pBundle).newMessage(InterfacesInterface::onAccountLogin);
+	(*pBundle) << pChannel->componentID();
+	(*pBundle) << loginName << password;
+	(*pBundle).appendBlob(datas);
+	pInterfacesChannel_->send(pBundle);
 	return true;
 }
 
@@ -318,23 +318,23 @@ bool InterfacesHandler_ThirdParty::reconnect()
 	pInterfacesChannel_ = new Network::Channel(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
 	pInterfacesChannel_->incRef();
 
-	if(pInterfacesChannel_->endpoint()->connect() == -1)
+	if(pInterfacesChannel_->pEndPoint()->connect() == -1)
 	{
 		struct timeval tv = { 0, 300000 }; // 300ms
 		fd_set	fds;
 		FD_ZERO(&fds);
-		FD_SET((int)(*pInterfacesChannel_->endpoint()), &fds);
+		FD_SET((int)(*pInterfacesChannel_->pEndPoint()), &fds);
 
 		bool connected = false;
-		int selgot = select((*pInterfacesChannel_->endpoint())+1, &fds, &fds, NULL, &tv);
+		int selgot = select((*pInterfacesChannel_->pEndPoint())+1, &fds, &fds, NULL, &tv);
 		if(selgot > 0)
 		{
 			int error;
 			socklen_t len = sizeof(error);
 #if KBE_PLATFORM == PLATFORM_WIN32
-			getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+			getsockopt(int(*pInterfacesChannel_->pEndPoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len);
 #else
-			getsockopt(int(*pInterfacesChannel_->endpoint()), SOL_SOCKET, SO_ERROR, &error, &len);
+			getsockopt(int(*pInterfacesChannel_->pEndPoint()), SOL_SOCKET, SO_ERROR, &error, &len);
 #endif
 			if(0 == error)
 				connected = true;
@@ -343,7 +343,7 @@ bool InterfacesHandler_ThirdParty::reconnect()
 		if(!connected)
 		{
 			ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::reconnect(): couldn't connect to:{}\n", 
-				pInterfacesChannel_->endpoint()->addr().c_str()));
+				pInterfacesChannel_->pEndPoint()->addr().c_str()));
 
 			pInterfacesChannel_->destroy();
 			return false;
@@ -365,6 +365,14 @@ bool InterfacesHandler_ThirdParty::process()
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_ThirdParty::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	KBE_ASSERT(pInterfacesChannel_);
+
+	if(pInterfacesChannel_->isDestroyed())
+	{
+		if(!this->reconnect())
+			return;
+	}
+
 	std::string chargeID;
 	std::string datas;
 	CALLBACK_ID cbid;
@@ -378,24 +386,15 @@ void InterfacesHandler_ThirdParty::charge(Network::Channel* pChannel, KBEngine::
 	INFO_MSG(fmt::format("InterfacesHandler_ThirdParty::charge: chargeID={0}, dbid={3}, cbid={1}, datas={2}!\n",
 		chargeID, cbid, datas, dbid));
 
-	KBE_ASSERT(pInterfacesChannel_);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-
-	(*(*bundle)).newMessage(InterfacesInterface::charge);
-	(*(*bundle)) << pChannel->componentID();
-	(*(*bundle)) << chargeID;
-	(*(*bundle)) << dbid;
-	(*(*bundle)).appendBlob(datas);
-	(*(*bundle)) << cbid;
-
-	if(pInterfacesChannel_->isDestroyed())
-	{
-		if(!this->reconnect())
-			return;
-	}
-
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pInterfacesChannel_);
+	(*pBundle).newMessage(InterfacesInterface::charge);
+	(*pBundle) << pChannel->componentID();
+	(*pBundle) << chargeID;
+	(*pBundle) << dbid;
+	(*pBundle).appendBlob(datas);
+	(*pBundle) << cbid;
+	pInterfacesChannel_->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -427,16 +426,16 @@ void InterfacesHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 		return;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*(*bundle)).newMessage(BaseappInterface::onChargeCB);
-	(*(*bundle)) << chargeID;
-	(*(*bundle)) << dbid;
-	(*(*bundle)).appendBlob(datas);
-	(*(*bundle)) << cbid;
-	(*(*bundle)) << retcode;
+	(*pBundle).newMessage(BaseappInterface::onChargeCB);
+	(*pBundle) << chargeID;
+	(*pBundle) << dbid;
+	(*pBundle).appendBlob(datas);
+	(*pBundle) << cbid;
+	(*pBundle) << retcode;
 
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), cinfos->pChannel);
+	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -444,18 +443,17 @@ void InterfacesHandler_ThirdParty::eraseClientReq(Network::Channel* pChannel, st
 {
 	KBE_ASSERT(pInterfacesChannel_);
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-
-	(*(*bundle)).newMessage(InterfacesInterface::eraseClientReq);
-	(*(*bundle)) << logkey;
-
 	if(pInterfacesChannel_->isDestroyed())
 	{
 		if(!this->reconnect())
 			return;
 	}
 
-	(*(*bundle)).send(Dbmgr::getSingleton().networkInterface(), pInterfacesChannel_);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pBundle).newMessage(InterfacesInterface::eraseClientReq);
+	(*pBundle) << logkey;
+	pInterfacesChannel_->send(pBundle);
 }
 
 

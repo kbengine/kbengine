@@ -95,18 +95,10 @@ NetworkInterface::~NetworkInterface()
 	{
 		ChannelMap::iterator oldIter = iter++;
 		Channel * pChannel = oldIter->second;
-
-		if (pChannel->isOwnedByInterface())
-		{
-			pChannel->destroy();
-		}
-		else
-		{
-			WARNING_MSG(fmt::format("NetworkInterface::~NetworkInterface: "
-					"Channel to {} is still registered\n",
-				pChannel->c_str()));
-		}
+		pChannel->destroy();
 	}
+
+	channelMap_.clear();
 
 	this->closeSocket();
 
@@ -347,7 +339,7 @@ Channel * NetworkInterface::findChannel(int fd)
 	ChannelMap::iterator iter = channelMap_.begin();
 	for(; iter != channelMap_.end(); ++iter)
 	{
-		if(iter->second->endpoint() && *iter->second->endpoint() == fd)
+		if(iter->second->pEndPoint() && *iter->second->pEndPoint() == fd)
 			return iter->second;
 	}
 
@@ -400,7 +392,7 @@ bool NetworkInterface::deregisterAllChannels()
 bool NetworkInterface::deregisterChannel(Channel* pChannel)
 {
 	const Address & addr = pChannel->addr();
-	KBE_ASSERT(pChannel->endpoint() != NULL);
+	KBE_ASSERT(pChannel->pEndPoint() != NULL);
 
 	if(pChannel->isExternal())
 		numExtChannels_--;
@@ -416,6 +408,7 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 				"Channel not found {}!\n",
 			pChannel->c_str()));
 
+		pChannel->decRef();
 		return false;
 	}
 
@@ -437,11 +430,12 @@ bool NetworkInterface::deregisterChannel(const Address & addr)
 		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
 				"addr not found {}!\n",
 			addr.c_str()));
+
 		return false;
 	}
 
 	Channel* pChannel = iter->second;
-	KBE_ASSERT(pChannel->endpoint() != NULL);
+	KBE_ASSERT(pChannel->pEndPoint() != NULL);
 
 	if(pChannel->isExternal())
 		numExtChannels_--;
@@ -484,218 +478,6 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 					"Channel {} timed out but no handler is registered.\n",
 				pChannel->c_str()));
 	}
-}
-
-//-------------------------------------------------------------------------------------
-Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
-{
-	Reason reason = REASON_SUCCESS;
-
-	if(!pChannel->isCondemn())
-	{
-		const Bundle::Packets& pakcets = bundle.packets();
-		Bundle::Packets::const_iterator iter = pakcets.begin();
-		for (; iter != pakcets.end(); ++iter)
-		{
-			reason = this->sendPacket((*iter), pChannel);
-			if(reason != REASON_SUCCESS)
-				break; 
-		}
-	}
-	else
-	{
-		ERROR_MSG(fmt::format("NetworkInterface::send: channel({}) send error, reason={}.\n", pChannel->c_str(), 
-			reasonToString(REASON_CHANNEL_CONDEMN)));
-
-		reason = REASON_CHANNEL_CONDEMN;
-	}
-
-	bundle.onSendCompleted();
-	return reason;
-}
-
-//-------------------------------------------------------------------------------------
-Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
-{
-	PacketFilterPtr pFilter = pChannel ? pChannel->pFilter() : NULL;
-	this->onPacketOut(*pPacket);
-	
-	Reason reason = REASON_SUCCESS;
-	if (pFilter)
-	{
-		reason = pFilter->send(*this, pChannel, pPacket);
-	}
-	else
-	{
-		reason = this->basicSendWithRetries(pChannel, pPacket);
-	}
-	
-	return reason;
-}
-
-//-------------------------------------------------------------------------------------
-Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPacket)
-{
-	if(pChannel->isCondemn())
-	{
-		return REASON_CHANNEL_CONDEMN;
-	}
-
-	// 尝试发送的次数
-	uint32 retries = 0;
-	Reason reason;
-	
-	pPacket->sentSize = 0;
-
-	while(true)
-	{
-		retries++;
-
-		reason = this->basicSendSingleTry(pChannel, pPacket);
-
-		if (reason == REASON_SUCCESS)
-			return reason;
-
-		// 如果发送出现错误那么我们可以继续尝试一次， 外部通道超过3次退出
-		// 内部通道则无限尝试
-		if (reason == REASON_NO_SUCH_PORT && retries <= 3)
-		{
-			continue;
-		}
-
-		// 如果系统发送缓冲已经满了，则我们等待10ms
-		if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
-		{
-			if(pChannel->isInternal())
-			{
-				if(g_intReSendRetries > 0 && retries > g_intReSendRetries)
-				{
-					pChannel->condemn();
-					break;
-				}
-			}
-			else
-			{
-				if(g_extReSendRetries > 0 && retries > g_extReSendRetries)
-				{
-					pChannel->condemn();
-					break;
-				}
-			}
-
-			WARNING_MSG(fmt::format("NetworkInterface::basicSendWithRetries: "
-				"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})... ({})\n",
-				(pChannel->isInternal() ? "internal" : "external"), retries));
-			
-			KBEngine::sleep(pChannel->isInternal() ? g_intReSendInterval : g_extReSendInterval);
-			continue;
-		}
-
-		break;
-	}
-
-	// 其他错误退出尝试
-	ERROR_MSG(fmt::format("NetworkInterface::basicSendWithRetries: packet discarded(reason={}).\n", (reasonToString(reason))));
-	return reason;
-}
-
-//-------------------------------------------------------------------------------------
-Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
-{
-	if(pChannel->isCondemn())
-	{
-		ERROR_MSG(fmt::format("NetworkInterface::basicSendSingleTry: channel({}) send error, reason={}.\n", pChannel->c_str(), 
-			reasonToString(REASON_CHANNEL_CONDEMN)));
-
-		return REASON_CHANNEL_CONDEMN;
-	}
-
-	EndPoint * endpoint = pChannel->endpoint();
-	KBE_ASSERT(pPacket->rpos() == 0);
-
-	int len = endpoint->send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize);
-
-	if(len > 0)
-	{
-		pPacket->sentSize += len;
-		// DEBUG_MSG(fmt::format("NetworkInterface::basicSendSingleTry: sent={}, sentTotalSize={}.\n", len, pPacket->sentSize));
-	}
-
-	if (pPacket->sentSize == pPacket->totalSize())
-	{
-		return REASON_SUCCESS;
-	}
-	else
-	{
-		return NetworkInterface::getSendErrorReason(endpoint, pPacket->sentSize, pPacket->totalSize());
-	}
-}
-
-//-------------------------------------------------------------------------------------
-Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint, 
-											int retSendSize, int packetTotalSize)
-{
-	int err;
-	Reason reason;
-
-	#ifdef unix
-		err = errno;
-
-		switch (err)
-		{
-			case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
-			case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
-			case EPIPE:			reason = REASON_CLIENT_DISCONNECTED; break;
-			case ECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
-			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
-			default:			reason = REASON_GENERAL_NETWORK; break;
-		}
-	#else
-		err = WSAGetLastError();
-
-		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
-		{
-			reason = REASON_RESOURCE_UNAVAILABLE;
-		}
-		else
-		{
-			switch (err)
-			{
-				case WSAECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
-				case WSAECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
-				case WSAECONNABORTED:	reason = REASON_CLIENT_DISCONNECTED; break;
-				default:reason = REASON_GENERAL_NETWORK;break;
-			}
-		}
-	#endif
-
-	if (retSendSize == -1)
-	{
-		if (reason != REASON_NO_SUCH_PORT)
-		{
-			ERROR_MSG(fmt::format("NetworkInterface::getSendErrorReason({}): "
-					"Could not send packet: {}\n",
-				endpoint->addr().c_str(), kbe_strerror( err )));
-		}
-	}
-	else
-	{
-		WARNING_MSG(fmt::format("NetworkInterface::getSendErrorReason({}): "
-			"Packet length {} does not match sent length {} ({})\n",
-			endpoint->addr().c_str(), packetTotalSize, retSendSize, kbe_strerror( err )));
-	}
-
-	return reason;
-}
-
-//-------------------------------------------------------------------------------------
-void NetworkInterface::onPacketIn(const Packet & packet)
-{
-}
-
-//-------------------------------------------------------------------------------------
-void NetworkInterface::onPacketOut(const Packet & packet)
-{
 }
 
 //-------------------------------------------------------------------------------------

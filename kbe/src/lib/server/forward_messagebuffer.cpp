@@ -87,8 +87,7 @@ bool ForwardComponent_MessageBuffer::process()
 
 			for(; itervec != iter->second.end(); ++itervec)
 			{
-				(*itervec)->pBundle->send(networkInterface_, cinfos->pChannel);
-				Network::Bundle::ObjPool().reclaimObject((*itervec)->pBundle);
+				cinfos->pChannel->send((*itervec)->pBundle);
 				(*itervec)->pBundle = NULL;
 
 				if((*itervec)->pHandler != NULL)
@@ -169,8 +168,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
 		for(; iter != pBundles_.end(); ++iter)
 		{
-			(*iter)->pBundle->send(networkInterface_, cts[idx].pChannel);
-			Network::Bundle::ObjPool().reclaimObject((*iter)->pBundle);
+			cts[idx].pChannel->send((*iter)->pBundle);
 			(*iter)->pBundle = NULL;
 
 			idx++;

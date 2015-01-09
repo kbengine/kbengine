@@ -42,6 +42,12 @@
     <ClCompile Include="pybots.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tcp_packet_receiver_ex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp_packet_sender_ex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bots.h">
@@ -63,6 +69,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pybots.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp_packet_receiver_ex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp_packet_sender_ex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

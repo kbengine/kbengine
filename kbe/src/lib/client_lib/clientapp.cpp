@@ -272,7 +272,7 @@ bool ClientApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------		
 void ClientApp::finalise(void)
 {
-	if(pServerChannel_ && pServerChannel_->endpoint())
+	if(pServerChannel_ && pServerChannel_->pEndPoint())
 		networkInterface().deregisterChannel(pServerChannel_);
 
 	SAFE_RELEASE(pTCPPacketReceiver_);
@@ -353,11 +353,11 @@ void ClientApp::handleGameTick()
 
 				bool exist = false;
 
-				if(pServerChannel_->endpoint())
+				if(pServerChannel_->pEndPoint())
 				{
-					lastAddr = pServerChannel_->endpoint()->addr();
-					networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->endpoint());
-					exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+					lastAddr = pServerChannel_->pEndPoint()->addr();
+					networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->pEndPoint());
+					exist = networkInterface().findChannel(pServerChannel_->pEndPoint()->addr()) != NULL;
 				}
 
 				bool ret = initBaseappChannel() != NULL;
@@ -366,14 +366,14 @@ void ClientApp::handleGameTick()
 					if(!exist)
 					{
 						networkInterface().registerChannel(pServerChannel_);
-						pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
+						pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->pEndPoint(), networkInterface());
 					}
 					else
 					{
-						pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
+						pTCPPacketReceiver_->pEndPoint(pServerChannel_->pEndPoint());
 					}
 
-					networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+					networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->pEndPoint(), pTCPPacketReceiver_);
 					
 					// 先握手然后等helloCB之后再进行登录
 					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -393,7 +393,15 @@ void ClientApp::handleGameTick()
 						(*pBundle).appendBlob(key);
 					}
 
-					pServerChannel_->pushBundle(pBundle);
+					Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
+					Network::Bundle::ObjPool().reclaimObject(pBundle);
+
+					if(Network::g_channelExternalEncryptType == 1)
+					{
+						pServerChannel_->pFilter(pBlowfishFilter_);
+						pBlowfishFilter_ = NULL;
+					}
+
 					// ret = ClientObjectBase::loginGateWay();
 				}
 			}
@@ -573,11 +581,11 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	if(canReset_)
 		reset();
 
-	if(pServerChannel_->endpoint())
+	if(pServerChannel_->pEndPoint())
 	{
-		lastAddr = pServerChannel_->endpoint()->addr();
-		networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->endpoint());
-		exist = networkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+		lastAddr = pServerChannel_->pEndPoint()->addr();
+		networkInterface().dispatcher().deregisterReadFileDescriptor(*pServerChannel_->pEndPoint());
+		exist = networkInterface().findChannel(pServerChannel_->pEndPoint()->addr()) != NULL;
 	}
 
 	bool ret = initLoginappChannel(accountName, passwd, ip, port) != NULL;
@@ -586,14 +594,14 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 		if(!exist)
 		{
 			networkInterface().registerChannel(pServerChannel_);
-			pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->endpoint(), networkInterface());
+			pTCPPacketReceiver_ = new Network::TCPPacketReceiver(*pServerChannel_->pEndPoint(), networkInterface());
 		}
 		else
 		{
-			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
+			pTCPPacketReceiver_->pEndPoint(pServerChannel_->pEndPoint());
 		}
 
-		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->pEndPoint(), pTCPPacketReceiver_);
 		
 		// 先握手然后等helloCB之后再进行登录
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -612,7 +620,15 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 			(*pBundle).appendBlob(key);
 		}
 
-		pServerChannel_->pushBundle(pBundle);
+		Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+
+		if(Network::g_channelExternalEncryptType == 1)
+		{
+			pServerChannel_->pFilter(pBlowfishFilter_);
+			pBlowfishFilter_ = NULL;
+		}
+
 		//ret = ClientObjectBase::login();
 	}
 
@@ -624,12 +640,6 @@ void ClientApp::onHelloCB_(Network::Channel* pChannel, const std::string& verInf
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
-	if(Network::g_channelExternalEncryptType == 1)
-	{
-		pServerChannel_->pFilter(pBlowfishFilter_);
-		pBlowfishFilter_ = NULL;
-	}
-
 	if(componentType == LOGINAPP_TYPE)
 	{
 		state_ = C_STATE_LOGIN;

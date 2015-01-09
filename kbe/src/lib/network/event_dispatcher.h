@@ -64,7 +64,7 @@ public:
 
 	bool registerReadFileDescriptor(int fd, InputNotificationHandler * handler);
 	bool deregisterReadFileDescriptor(int fd);
-	bool registerWriteFileDescriptor(int fd, InputNotificationHandler * handler);
+	bool registerWriteFileDescriptor(int fd, OutputNotificationHandler * handler);
 	bool deregisterWriteFileDescriptor(int fd);
 
 	INLINE TimerHandle addTimer(int64 microseconds,

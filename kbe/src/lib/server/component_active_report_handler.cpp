@@ -88,10 +88,11 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 					
 					(*pBundle) << g_componentType;
 					(*pBundle) << g_componentID;
-					if((*iter).pChannel != NULL)
-						(*pBundle).send(pApp_->networkInterface(), (*iter).pChannel);
 
-					Network::Bundle::ObjPool().reclaimObject(pBundle);
+					if((*iter).pChannel != NULL)
+						(*iter).pChannel->send(pBundle);
+					else
+						Network::Bundle::ObjPool().reclaimObject(pBundle);
 				}
 
 				ifind++;

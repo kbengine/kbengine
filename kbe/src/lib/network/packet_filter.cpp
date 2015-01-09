@@ -28,14 +28,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.h"
 #include "network/network_interface.h"
 #include "network/packet_receiver.h"
+#include "network/packet_sender.h"
 
 namespace KBEngine { 
 namespace Network
 {
 //-------------------------------------------------------------------------------------
-Reason PacketFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
+Reason PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
-	return networkInterface.basicSendWithRetries(pChannel, pPacket);
+	return sender.processFilterPacket(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------

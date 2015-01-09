@@ -62,14 +62,21 @@ public:
 		pNetworkInterface_ = NULL;
 	}
 
-	void endpoint(EndPoint* pEndpoint){ 
+	void pEndPoint(EndPoint* pEndpoint){ 
 		pEndpoint_ = pEndpoint; 
 	}
 
+	EndPoint* pEndPoint()const { 
+		return pEndpoint_; 
+	}
+
 	virtual int handleInputNotification(int fd);
+
+	virtual Channel* getChannel();
 protected:
-	virtual bool processSocket(bool expectingPacket) = 0;
+	virtual bool processRecv(bool expectingPacket) = 0;
 	virtual RecvState checkSocketErrors(int len, bool expectingPacket) = 0;
+
 protected:
 	EndPoint* pEndpoint_;
 	NetworkInterface* pNetworkInterface_;

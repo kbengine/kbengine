@@ -146,8 +146,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 
 		(*pBundle) << g_componentType;
 
-		(*pBundle).send(lpChannel->networkInterface(), lpChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		lpChannel->send(pBundle);
 	}
 }
 

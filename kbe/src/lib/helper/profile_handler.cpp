@@ -152,15 +152,15 @@ void CProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
-	(*(*bundle)).newMessage(msgHandler);
+	(*pBundle).newMessage(msgHandler);
 
 	int8 type = 1;
-	(*(*bundle)) << type;
-	(*(*bundle)).append(s);
-	(*(*bundle)).send(networkInterface_, pChannel);
+	(*pBundle) << type;
+	(*pBundle).append(s);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -273,15 +273,15 @@ void EventProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
-	(*(*bundle)).newMessage(msgHandler);
+	(*pBundle).newMessage(msgHandler);
 
 	int8 type = 2;
-	(*(*bundle)) << type;
-	(*(*bundle)).append(s);
-	(*(*bundle)).send(networkInterface_, pChannel);
+	(*pBundle) << type;
+	(*pBundle).append(s);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -381,15 +381,15 @@ void NetworkProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
-	(*(*bundle)).newMessage(msgHandler);
+	(*pBundle).newMessage(msgHandler);
 
 	int8 type = 3;
-	(*(*bundle)) << type;
-	(*(*bundle)).append(s);
-	(*(*bundle)).send(networkInterface_, pChannel);
+	(*pBundle) << type;
+	(*pBundle).append(s);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

@@ -148,10 +148,8 @@ void GhostManager::syncMessages()
 
 		for(; iter1 != iter->second.end(); ++iter1)
 		{
-			(*iter1)->send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
-
 			// 将消息同步到ghost
-			Network::Bundle::ObjPool().reclaimObject((*iter1));
+			cinfos->pChannel->send((*iter1));
 		}
 			
 		iter->second.clear();

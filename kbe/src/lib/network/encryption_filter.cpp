@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.h"
 #include "network/network_interface.h"
 #include "network/packet_receiver.h"
+#include "network/packet_sender.h"
 
 namespace KBEngine { 
 namespace Network
@@ -64,7 +65,7 @@ BlowfishFilter::~BlowfishFilter()
 }
 
 //-------------------------------------------------------------------------------------
-Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
+Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
 	if(!pPacket->encrypted())
 	{
@@ -114,7 +115,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 		*/
 	}
 
-	return networkInterface.basicSendWithRetries(pChannel, pPacket);
+	return sender.processFilterPacket(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,10 +261,10 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 	// 不足8字节则填充0
 	uint8 padSize = 0;
 
-	if (pInPacket->totalSize() % BLOCK_SIZE != 0)
+	if (pInPacket->length() % BLOCK_SIZE != 0)
 	{
 		// 得到不足大小
-		padSize = BLOCK_SIZE - (pInPacket->totalSize() % BLOCK_SIZE);
+		padSize = BLOCK_SIZE - (pInPacket->length() % BLOCK_SIZE);
 
 		// 向pPacket中填充这么多
 		pInPacket->data_resize(pInPacket->size() + padSize);

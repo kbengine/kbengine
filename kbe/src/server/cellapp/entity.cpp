@@ -1558,7 +1558,6 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		// Network::Bundle::ObjPool().reclaimObject(pSendBundle);
 		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }
@@ -2235,8 +2234,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
 		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
-		(*pBundle).send(Cellapp::getSingleton().networkInterface(), cinfos->pChannel);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		cinfos->pChannel->send(pBundle);
 	}
 }
 
@@ -2474,8 +2472,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
-			(*pBundle).send(Cellapp::getSingleton().networkInterface(), pBaseChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			pBaseChannel->send(pBundle);
 		}
 		else
 		{

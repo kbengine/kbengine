@@ -22,76 +22,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.h"
 #include "network/network_stats.h"
 #include "network/network_interface.h"
-#include "network/packet.h"
 #include "network/channel.h"
-#include "network/tcp_packet.h"
-#include "network/udp_packet.h"
 #include "helper/profile.h"
+#include "network/packet_sender.h"
 
 #ifndef CODE_INLINE
 #include "bundle.inl"
 #endif
 
 #include "common/blowfish.h"
-
-
-#define BUNDLE_SEND_OP(op)																					\
-	finish();																								\
-																											\
-	Packets::iterator iter = packets_.begin();																\
-	for (; iter != packets_.end(); ++iter)																	\
-	{																										\
-		Packet* pPacket = (*iter);																			\
-		int retries = 0;																					\
-		Reason reason;																						\
-		pPacket->sentSize = 0;																				\
-																											\
-		while(true)																							\
-		{																									\
-			retries++;																						\
-			int slen = op;																					\
-																											\
-			if(slen > 0)																					\
-				pPacket->sentSize += slen;																	\
-																											\
-			if(pPacket->sentSize != pPacket->totalSize())													\
-			{																								\
-				reason = NetworkInterface::getSendErrorReason(&ep, pPacket->sentSize, pPacket->totalSize());\
-				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
-				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
-				{																							\
-					continue;																				\
-				}																							\
-																											\
-				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
-				if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
-																					&& retries <= 60)		\
-				{																							\
-					WARNING_MSG(fmt::format("{}: "															\
-						"Transmit queue full, waiting for space... ({})\n",									\
-						__FUNCTION__, retries));															\
-																											\
-					ep.waitSend();																			\
-					continue;																				\
-				}																							\
-																											\
-				if(retries > 60 && reason != REASON_SUCCESS)												\
-				{																							\
-					ERROR_MSG(fmt::format("Bundle::basicSendWithRetries: packet discarded(reason={}).\n",	\
-															(reasonToString(reason))));						\
-					break;																					\
-				}																							\
-			}																								\
-			else																							\
-			{																								\
-				break;																						\
-			}																								\
-		}																									\
-																											\
-	}																										\
-																											\
-	onSendCompleted();																						\
-																											\
 
 
 namespace KBEngine { 
@@ -117,7 +56,7 @@ void Bundle::destroyObjPool()
 //-------------------------------------------------------------------------------------
 size_t Bundle::getPoolObjectBytes()
 {
-	size_t bytes = sizeof(reuse_) + sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
+	size_t bytes = sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
 		sizeof(currMsgLengthPos_) + sizeof(currMsgHandlerLength_) + sizeof(currMsgLength_) + 
 		sizeof(currMsgPacketCount_) + sizeof(currMsgID_) + sizeof(numMessages_) + sizeof(pChannel_)
 		+ (packets_.size() * sizeof(Packet*));
@@ -143,10 +82,38 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	currMsgLengthPos_(0),
 	packets_(),
 	isTCPPacket_(pt == PROTOCOL_TCP),
-	pCurrMsgHandler_(NULL),
-	reuse_(false)
+	pCurrMsgHandler_(NULL)
 {
 	 newPacket();
+}
+
+//-------------------------------------------------------------------------------------
+Bundle::Bundle(const Bundle& bundle)
+{
+	Packets::const_iterator iter = bundle.packets_.begin();
+	for (; iter != bundle.packets_.end(); ++iter)
+	{
+		newPacket();
+		pCurrPacket_->append(*(*iter));
+		packets_.push_back(pCurrPacket_);
+	}
+
+	pCurrPacket_ = NULL;
+	if(bundle.pCurrPacket_)
+	{
+		newPacket();
+		pCurrPacket_->append(*bundle.pCurrPacket_);
+	}
+
+	pChannel_ = bundle.pChannel_;
+	numMessages_ = bundle.numMessages_;
+	currMsgID_ = bundle.currMsgID_;
+	currMsgPacketCount_ = bundle.currMsgPacketCount_;
+	currMsgLength_ = bundle.currMsgLength_;
+	currMsgHandlerLength_ = bundle.currMsgHandlerLength_;
+	currMsgLengthPos_ = bundle.currMsgLengthPos_;
+	isTCPPacket_ = bundle.isTCPPacket_;
+	pCurrMsgHandler_ = bundle.pCurrMsgHandler_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -191,9 +158,9 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
 	// 这样我们在加密一个满载包时不需要额外填充字节
 	if(g_channelExternalEncryptType == 1)
-		packetmaxsize -=  packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
+		packetmaxsize -= packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
 
-	int32 totalsize = (int32)pCurrPacket_->totalSize();
+	int32 totalsize = (int32)pCurrPacket_->length();
 	int32 fwpos = (int32)pCurrPacket_->wpos();
 
 	if(inseparable)
@@ -201,7 +168,6 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 
 	if(fwpos >= packetmaxsize)
 	{
-		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize, "None");
 		packets_.push_back(pCurrPacket_);
 		currMsgPacketCount_++;
 		newPacket();
@@ -211,7 +177,7 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 	int32 remainsize = packetmaxsize - totalsize;
 	int32 taddsize = addsize;
 
-	// 如果 当前包剩余空间小于要添加的字节则本次填满此包
+	// 如果当前包剩余空间小于要添加的字节则本次填满此包
 	if(remainsize < addsize)
 		taddsize = remainsize;
 	
@@ -222,23 +188,100 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 //-------------------------------------------------------------------------------------
 Packet* Bundle::newPacket()
 {
-	if(isTCPPacket_)
-		pCurrPacket_ = TCPPacket::ObjPool().createObject();
-	else
-		pCurrPacket_ = UDPPacket::ObjPool().createObject();
-	
+	MALLOC_PACKET(pCurrPacket_, isTCPPacket_);
 	pCurrPacket_->pBundle(this);
 	return pCurrPacket_;
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::finish(bool issend)
+void Bundle::clear(bool isRecl)
+{
+	if(pCurrPacket_ != NULL)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
+	Packets::iterator iter = packets_.begin();
+	for (; iter != packets_.end(); ++iter)
+	{
+		if(!isRecl)
+		{
+			delete (*iter);
+		}
+		else
+		{
+			RECLAIM_PACKET(isTCPPacket_, (*iter));
+		}
+	}
+	
+	packets_.clear();
+
+	pChannel_ = NULL;
+	numMessages_ = 0;
+
+	currMsgID_ = 0;
+	currMsgPacketCount_ = 0;
+	currMsgLength_ = 0;
+	currMsgLengthPos_ = 0;
+	currMsgHandlerLength_ = 0;
+	pCurrMsgHandler_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::clearPackets()
+{
+	if(pCurrPacket_ != NULL)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
+	Packets::iterator iter = packets_.begin();
+	for (; iter != packets_.end(); ++iter)
+	{
+		RECLAIM_PACKET(isTCPPacket_, (*iter));
+	}
+
+	packets_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::newMessage(const MessageHandler& msgHandler)
+{
+	pCurrMsgHandler_ = &msgHandler;
+	
+	if(pCurrPacket_ == NULL)
+		this->newPacket();
+
+	finiMessage(false);
+	KBE_ASSERT(pCurrPacket_ != NULL);
+	
+	(*this) << msgHandler.msgID;
+	pCurrPacket_->messageID(msgHandler.msgID);
+
+	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
+	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
+	{
+		MessageLength msglen = 0;
+		currMsgLengthPos_ = pCurrPacket_->wpos();
+		(*this) << msglen;
+	}
+
+	++numMessages_;
+	currMsgID_ = msgHandler.msgID;
+	currMsgPacketCount_ = 0;
+	currMsgHandlerLength_ = msgHandler.msgLen;
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::finiMessage(bool isSend)
 {
 	KBE_ASSERT(pCurrPacket_ != NULL);
 	
 	pCurrPacket_->pBundle(this);
 
-	if(issend)
+	if(isSend)
 	{
 		currMsgPacketCount_++;
 		packets_.push_back(pCurrPacket_);
@@ -246,10 +289,10 @@ void Bundle::finish(bool issend)
 
 	// 对消息进行跟踪
 	if(pCurrMsgHandler_){
-		if(issend || numMessages_ > 1)
+		if(isSend || numMessages_ > 1)
 		{
 			NetworkStats::getSingleton().trackMessage(NetworkStats::SEND, 
-				*pCurrMsgHandler_, currMsgLength_);
+									*pCurrMsgHandler_, currMsgLength_);
 		}
 	}
 
@@ -283,7 +326,8 @@ void Bundle::finish(bool issend)
 			memcpy(&pPacket->data()[currMsgLengthPos_], 
 				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);
 
-			pPacket->insert(currMsgLengthPos_ + NETWORK_MESSAGE_LENGTH_SIZE, (uint8*)&ex_msg_length, NETWORK_MESSAGE_LENGTH1_SIZE);
+			pPacket->insert(currMsgLengthPos_ + NETWORK_MESSAGE_LENGTH_SIZE, (uint8*)&ex_msg_length, 
+														NETWORK_MESSAGE_LENGTH1_SIZE);
 		}
 		else
 		{
@@ -295,14 +339,13 @@ void Bundle::finish(bool issend)
 		}
 	}
 
-	if(issend)
+	if(isSend)
 	{
 		currMsgHandlerLength_ = 0;
-
-		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, this->totalSize(), 
-			(pChannel_ != NULL ? pChannel_->c_str() : "None"));
-
 		pCurrPacket_ = NULL;
+
+		if(Network::g_trace_packet > 0)
+			_debugMessages();
 	}
 
 	currMsgID_ = 0;
@@ -312,137 +355,121 @@ void Bundle::finish(bool issend)
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::clear(bool isRecl)
+void Bundle::_debugMessages()
 {
-	if(pCurrPacket_ != NULL)
-	{
-		packets_.push_back(pCurrPacket_);
-		pCurrPacket_ = NULL;
-	}
-
-	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); ++iter)
-	{
-		if(!isRecl)
-		{
-			delete (*iter);
-		}
-		else
-		{
-			if(isTCPPacket_)
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
-			else
-				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
-		}
-	}
-	
-	packets_.clear();
-
-	reuse_ = false;
-	pChannel_ = NULL;
-	numMessages_ = 0;
-
-	currMsgID_ = 0;
-	currMsgPacketCount_ = 0;
-	currMsgLength_ = 0;
-	currMsgLengthPos_ = 0;
-	currMsgHandlerLength_ = 0;
-	pCurrMsgHandler_ = NULL;
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	pChannel_ = pChannel;
-	finish();
-	networkInterface.send(*this, pChannel);
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::resend(NetworkInterface & networkInterface, Channel * pChannel)
-{
-	if(!reuse_)
-	{
-		MessageID msgid = currMsgID_;
-		const Network::MessageHandler* pCurrMsgHandler = pCurrMsgHandler_;
-		finish();
-		currMsgID_ = msgid;
-		pCurrMsgHandler_ = pCurrMsgHandler;
-	}
-	else
-	{
-		if(this->totalSize() == 0)
-			return;
-
-		TRACE_BUNDLE_DATA(false, packets_[0], pCurrMsgHandler_, this->totalSize(), 
-			(pChannel != NULL ? pChannel->c_str() : "None"));
-	}
-	
-	reuse_ = true;
-	pChannel_ = pChannel;
-	networkInterface.send(*this, pChannel);
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::send(EndPoint& ep)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	BUNDLE_SEND_OP(ep.send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize));
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
-{
-	//AUTO_SCOPED_PROFILE("sendToBundle");
-	BUNDLE_SEND_OP(ep.sendto(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize, 
-		networkPort, networkAddr));
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::onSendCompleted()
-{
-	if(reuse_)
+	if(!pCurrMsgHandler_)
 		return;
 
-	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); ++iter)
+	Packets packets;
+	packets.insert(packets.end(), packets_.begin(), packets_.end());
+	if(pCurrPacket_)
+		packets.push_back(pCurrPacket_);
+
+	MemoryStream* pMemoryStream = MemoryStream::ObjPool().createObject();
+	MessageID msgid = 0;
+	MessageLength msglen = 0;
+	MessageLength1 msglen1 = 0;
+	const Network::MessageHandler* pCurrMsgHandler = NULL;
+
+	int state = 0; // 0:读取消息ID， 1：读取消息长度， 2：读取消息扩展长度, 3:读取内容
+
+	for(Packets::iterator iter = packets.begin(); iter != packets.end(); iter++)
 	{
-		if(isTCPPacket_)
-			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
-		else
-			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
+		Packet* pPacket = (*iter);
+		if(pPacket->length() == 0)
+			continue;
+
+		size_t rpos = pPacket->rpos();
+		size_t wpos = pPacket->wpos();
+
+		while(pPacket->length() > 0)
+		{
+			if(state == 0)
+			{
+				// 一些sendto操作的包导致, 这类包也不需要追踪
+				if(pPacket->length() < NETWORK_MESSAGE_ID_SIZE)
+				{
+					pPacket->done();
+					continue;
+				}
+
+				(*pPacket) >> msgid;
+				(*pMemoryStream) << msgid;
+				state = 1;
+				continue;
+			}
+			else if(state == 1)
+			{
+				pCurrMsgHandler = pCurrMsgHandler_->pMessageHandlers->find(msgid);
+
+				// 一些sendto操作的包导致找不到MsgHandler, 这类包也不需要追踪
+				if(!pCurrMsgHandler)
+				{
+					pPacket->done();
+					continue;
+				}
+
+				if(pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+				{
+					(*pPacket) >> msglen;
+					(*pMemoryStream) << msglen;
+
+					if(msglen == NETWORK_MESSAGE_MAX_SIZE)
+						state = 2;
+					else
+						state = 3;
+				}
+				else
+				{
+					msglen = pCurrMsgHandler->msgLen;
+					state = 3;
+				}
+
+				continue;
+			}
+			else if(state == 2)
+			{
+				(*pPacket) >> msglen1;
+				(*pMemoryStream) << msglen1;
+				state = 3;
+				continue;
+			}
+			else if(state == 3)
+			{
+				MessageLength1 totallen = msglen1 > 0 ? msglen1 : msglen;
+				
+				if(pPacket->length() >= totallen - pMemoryStream->length())
+				{
+					pPacket->rpos(pPacket->rpos() + totallen);
+					pMemoryStream->append(pPacket->data() + pPacket->rpos(), totallen);
+				}
+				else
+				{
+					pMemoryStream->append(*pPacket);
+					pPacket->done();
+				}
+
+				if(pMemoryStream->length() - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE == totallen)
+				{
+					state = 0;
+					msglen1 = 0;
+					msglen = 0;
+					msgid = 0;
+
+					TRACE_MESSAGE_PACKET(false, pMemoryStream, pCurrMsgHandler, pMemoryStream->length(), 
+						(pChannel_ != NULL ? pChannel_->c_str() : "None"));
+
+					pMemoryStream->clear(false);
+					continue;
+				}
+			}
+		};
+
+		pPacket->rpos(rpos);
+		pPacket->wpos(wpos);
 	}
 
-	packets_.clear();
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::newMessage(const MessageHandler& msgHandler)
-{
-	pCurrMsgHandler_ = &msgHandler;
-	
-	if(pCurrPacket_ == NULL)
-		this->newPacket();
-
-	finish(false);
-	KBE_ASSERT(pCurrPacket_ != NULL);
-	
-	(*this) << msgHandler.msgID;
-	pCurrPacket_->messageID(msgHandler.msgID);
-
-	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
-	{
-		MessageLength msglen = 0;
-		currMsgLengthPos_ = pCurrPacket_->wpos();
-		(*this) << msglen;
-	}
-
-	++numMessages_;
-	currMsgID_ = msgHandler.msgID;
-	currMsgPacketCount_ = 0;
-	currMsgHandlerLength_ = msgHandler.msgLen;
+	MemoryStream::ObjPool().reclaimObject(pMemoryStream);
 }
 
 //-------------------------------------------------------------------------------------

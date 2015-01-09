@@ -447,7 +447,7 @@ bool Witness::pushBundle(Network::Bundle* pBundle)
 	if(!pChannel)
 		return false;
 
-	pChannel->pushBundle(pBundle);
+	pChannel->send(pBundle);
 	return true;
 }
 
@@ -614,7 +614,7 @@ bool Witness::update()
 	{
 		if(aoiEntities_.size() > 0)
 		{
-			Network::Bundle* pSendBundle = NEW_BUNDLE();
+			Network::Bundle* pSendBundle = MALLOC_BUNDLE();
 
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
@@ -734,7 +734,7 @@ bool Witness::update()
 						pEntity_->id(), packetsLength));
 				}
 
-				pChannel->pushBundle(pSendBundle);
+				pChannel->send(pSendBundle);
 			}
 			else
 			{

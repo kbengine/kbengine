@@ -136,7 +136,7 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 
 	if(pChannel && !pChannel->isDead())
 	{
-		pChannel->pushBundle(pBundle);
+		pChannel->send(pBundle);
 		return true;
 	}
 	else

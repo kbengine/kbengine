@@ -464,8 +464,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				KBE_ASSERT(false && "invalid componentType.\n");
 			}
 
-			(*pBundle).send(*_pNetworkInterface, pComponentInfos->pChannel);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			pComponentInfos->pChannel->send(pBundle);
 		}
 	}
 	else

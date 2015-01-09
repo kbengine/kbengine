@@ -21,9 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_CLIENT_OBJECT_H
 #define KBE_CLIENT_OBJECT_H
 
+#include "tcp_packet_receiver_ex.h"
+#include "tcp_packet_sender_ex.h"
 #include "client_lib/entity.h"
 #include "client_lib/clientobjectbase.h"
-#include "network/tcp_packet_receiver.h"
 #include "network/encryption_filter.h"
 #include "pyscript/pyobject_pointer.h"
 
@@ -32,7 +33,7 @@ namespace KBEngine{
 /*
 */
 
-class ClientObject : public ClientObjectBase, Network::TCPPacketReceiver
+class ClientObject : public ClientObjectBase
 {
 	/** 
 		子类化 将一些py操作填充进派生类 
@@ -60,8 +61,6 @@ public:
 
 	ClientObject(std::string name, Network::NetworkInterface& ninterface);
 	virtual ~ClientObject();
-
-	bool processSocket(bool expectingPacket);
 	
 	void reset(void);
 
@@ -106,6 +105,9 @@ protected:
 	C_ERROR error_;
 	C_STATE state_;
 	Network::BlowfishFilter* pBlowfishFilter_;
+
+	Network::TCPPacketSenderEx* pTCPPacketSenderEx_;
+	Network::TCPPacketReceiverEx* pTCPPacketReceiverEx_;
 };
 
 

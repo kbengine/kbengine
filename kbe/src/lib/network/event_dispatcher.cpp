@@ -81,7 +81,7 @@ bool EventDispatcher::registerReadFileDescriptor(int fd,
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::registerWriteFileDescriptor(int fd,
-	InputNotificationHandler * handler)
+	OutputNotificationHandler * handler)
 {
 	return pPoller_->registerForWrite(fd, handler);
 }

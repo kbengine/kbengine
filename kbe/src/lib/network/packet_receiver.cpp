@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.h"
 #include "network/network_interface.h"
 #include "network/event_poller.h"
+
 namespace KBEngine { 
 namespace Network
 {
@@ -57,9 +58,9 @@ PacketReceiver::~PacketReceiver()
 //-------------------------------------------------------------------------------------
 int PacketReceiver::handleInputNotification(int fd)
 {
-	if (this->processSocket(/*expectingPacket:*/true))
+	if (this->processRecv(/*expectingPacket:*/true))
 	{
-		while (this->processSocket(/*expectingPacket:*/false))
+		while (this->processRecv(/*expectingPacket:*/false))
 		{
 			/* pass */;
 		}
@@ -73,7 +74,7 @@ Reason PacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 {
 	if (pChannel != NULL)
 	{
-		pChannel->onPacketReceived(pPacket->totalSize());
+		pChannel->onPacketReceived(pPacket->length());
 
 		if (pChannel->pFilter())
 		{
@@ -88,6 +89,12 @@ Reason PacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 EventDispatcher & PacketReceiver::dispatcher()
 {
 	return this->pNetworkInterface_->dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+Channel* PacketReceiver::getChannel()
+{
+	return pNetworkInterface_->findChannel(pEndpoint_->addr());
 }
 
 //-------------------------------------------------------------------------------------

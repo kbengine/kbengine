@@ -127,7 +127,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 		return false;
 	}
 
-	this->sendto(epBroadcast_, htons(port), Network::BROADCAST);
+	Channel::sendto(epBroadcast_, this, htons(port), Network::BROADCAST);
 	return true;
 }
 

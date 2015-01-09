@@ -113,7 +113,7 @@ PyObject* PyFileDescriptor::__py_deregisterReadFileDescriptor(PyObject* self, Py
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->find(fd, true));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->findForRead(fd));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -186,7 +186,7 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->find(fd, false));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->findForWrite(fd));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -198,6 +198,16 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 int PyFileDescriptor::handleInputNotification(int fd)
 {
 	INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
+				fd));
+
+	callback();
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int PyFileDescriptor::handleOutputNotification( int fd )
+{
+	INFO_MSG(fmt::format("PyFileDescriptor:handleOutputNotification: fd = {}\n",
 				fd));
 
 	callback();
