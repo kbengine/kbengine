@@ -94,7 +94,7 @@ Bundle::Bundle(const Bundle& bundle)
 	for (; iter != bundle.packets_.end(); ++iter)
 	{
 		newPacket();
-		pCurrPacket_->append(*(*iter));
+		pCurrPacket_->append(*static_cast<MemoryStream*>((*iter)));
 		packets_.push_back(pCurrPacket_);
 	}
 
@@ -102,7 +102,7 @@ Bundle::Bundle(const Bundle& bundle)
 	if(bundle.pCurrPacket_)
 	{
 		newPacket();
-		pCurrPacket_->append(*bundle.pCurrPacket_);
+		pCurrPacket_->append(*static_cast<MemoryStream*>(bundle.pCurrPacket_));
 	}
 
 	pChannel_ = bundle.pChannel_;
@@ -445,7 +445,7 @@ void Bundle::_debugMessages()
 				}
 				else
 				{
-					pMemoryStream->append(*pPacket);
+					pMemoryStream->append(*static_cast<MemoryStream*>(pPacket));
 					pPacket->done();
 				}
 

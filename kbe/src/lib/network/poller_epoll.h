@@ -23,6 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "event_poller.h"
 
+#ifndef _WIN32
+#define HAS_EPOLL
+#endif
+
 namespace KBEngine { 
 namespace Network
 {
