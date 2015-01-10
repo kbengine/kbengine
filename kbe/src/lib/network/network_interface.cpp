@@ -422,45 +422,6 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::deregisterChannel(const Address & addr)
-{
-	ChannelMap::iterator iter = channelMap_.find(addr);
-	if(iter == channelMap_.end())
-	{
-		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
-				"addr not found {}!\n",
-			addr.c_str()));
-
-		return false;
-	}
-
-	Channel* pChannel = iter->second;
-	KBE_ASSERT(pChannel->pEndPoint() != NULL);
-
-	if(pChannel->isExternal())
-		numExtChannels_--;
-
-	if(pChannelDeregisterHandler_)
-	{
-		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
-	}
-
-	INFO_MSG(fmt::format("NetworkInterface::deregisterChannel: del channel: {}\n",
-		pChannel->c_str()));
-
-	if (!channelMap_.erase(addr))
-	{
-		CRITICAL_MSG(fmt::format("NetworkInterface::deregisterChannel: "
-				"Channel not found {}!\n",
-			pChannel->c_str()));
-
-		return false;
-	}
-	
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 void NetworkInterface::onChannelGone(Channel * pChannel)
 {
 }
