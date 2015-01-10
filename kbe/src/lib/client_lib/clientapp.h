@@ -43,6 +43,7 @@ namespace KBEngine{
 namespace Network
 {
 class Channel;
+class TCPPacketSender;
 class TCPPacketReceiver;
 }
 
@@ -108,6 +109,9 @@ public:
 
 	bool login(std::string accountName, std::string passwd, 
 		std::string ip, KBEngine::uint32 port);
+
+	bool updateChannel(bool loginapp, std::string accountName, std::string passwd, 
+								   std::string ip, KBEngine::uint32 port);
 
 	GAME_TIME time() const { return g_kbetime; }
 	double gameTimeInSeconds() const;
@@ -228,6 +232,7 @@ protected:
 	Network::EventDispatcher& 								dispatcher_;
 	Network::NetworkInterface&								networkInterface_;
 	
+	Network::TCPPacketSender*								pTCPPacketSender_;
 	Network::TCPPacketReceiver*								pTCPPacketReceiver_;
 	Network::BlowfishFilter*								pBlowfishFilter_;
 

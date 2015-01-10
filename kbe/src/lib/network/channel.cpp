@@ -478,11 +478,20 @@ void Channel::reset(const EndPoint* pEndPoint, bool warnOnDiscard)
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::stopSend()
+{
+	if(!sending_)
+		return;
+
+	sending_ = false;
+	pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::onSendCompleted()
 {
 	KBE_ASSERT(bundles_.size() == 0 && sending_);
-	sending_ = false;
-	pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+	stopSend();
 }
 
 //-------------------------------------------------------------------------------------

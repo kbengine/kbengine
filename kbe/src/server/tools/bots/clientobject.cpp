@@ -79,9 +79,7 @@ void ClientObject::reset(void)
 		if(pTCPPacketReceiverEx_)
 			Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
 
-		if(pTCPPacketSenderEx_)
-			Bots::getSingleton().networkInterface().dispatcher().deregisterWriteFileDescriptor(*pTCPPacketSenderEx_->pEndPoint());
-
+		pServerChannel_->stopSend();
 		pServerChannel_->pPacketSender(NULL);
 
 		SAFE_RELEASE(pTCPPacketSenderEx_);
@@ -175,7 +173,7 @@ bool ClientObject::initCreate()
 bool ClientObject::initLoginGateWay()
 {
 	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
-	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketSenderEx_->pEndPoint());
+	pServerChannel_->stopSend();
 	pServerChannel_->pPacketSender(NULL);
 	SAFE_RELEASE(pTCPPacketSenderEx_);
 	SAFE_RELEASE(pTCPPacketReceiverEx_);
