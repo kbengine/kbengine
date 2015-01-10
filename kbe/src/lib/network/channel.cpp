@@ -242,12 +242,7 @@ void Channel::destroy()
 
 		if(protocoltype_ == PROTOCOL_TCP)
 		{
-			if(sending_)
-			{
-				sending_ = false;
-				pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
-			}
-
+			this->stopSend();
 			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 			pEndPoint_->close();
 		}
@@ -309,9 +304,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP)
 	{
-		if(sending_)
-			pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
-
+		this->stopSend();
 		pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 	}
 
