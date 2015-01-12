@@ -305,7 +305,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP)
 	{
 		this->stopSend();
-		pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
+
+		if(!this->isDestroyed())
+			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 	}
 
 	SAFE_RELEASE(pPacketReader_);
