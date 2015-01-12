@@ -763,7 +763,7 @@ void CguiconsoleDlg::updateFindTreeStatus()
 		count = 0;
 	}
 
-	CString s = L"finding server";
+	CString s = L"find server";
 
 	for(int i=0; i<count; i++)
 	{
@@ -790,7 +790,7 @@ void CguiconsoleDlg::updateFindTreeStatus()
 	tcitem.hParent = hItemRoot;
 	tcitem.hInsertAfter = TVI_LAST;
 	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-	CString s = L"finding server";
+	CString s = L"find server";
 
 	for(int i=0; i<count; i++)
 	{

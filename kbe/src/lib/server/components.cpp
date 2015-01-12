@@ -925,12 +925,12 @@ bool Components::findInterfaces()
 
 			if(count <= 15)
 			{
-				INFO_MSG(fmt::format("Components::findInterfaces: finding {}({})...\n",
+				INFO_MSG(fmt::format("Components::findInterfaces: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			}
 			else
 			{
-				std::string s = fmt::format("Components::findInterfaces: finding {}({})...\n",
+				std::string s = fmt::format("Components::findInterfaces: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
 				WARNING_MSG(s);
 
