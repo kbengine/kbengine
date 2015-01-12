@@ -675,7 +675,6 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 	}
 
 	bufferedReceives_[idx].clear();
-	this->send();
 }
 
 //-------------------------------------------------------------------------------------
