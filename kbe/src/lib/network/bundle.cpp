@@ -422,6 +422,7 @@ void Bundle::_debugMessages()
 				else
 				{
 					msglen = pCurrMsgHandler->msgLen;
+					(*pMemoryStream) << msglen;
 					state = 3;
 				}
 
