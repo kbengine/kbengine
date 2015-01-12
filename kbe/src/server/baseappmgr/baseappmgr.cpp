@@ -130,6 +130,8 @@ void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
 		(*pBundle) << baseappsInitProgress_;
 		cinfo->pChannel->send(pBundle);
 	}
+
+	ServerApp::onAddComponent(pInfos);
 }
 
 //-------------------------------------------------------------------------------------
