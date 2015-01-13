@@ -419,7 +419,7 @@ void Channel::reset(const EndPoint* pEndPoint, bool warnOnDiscard)
 //-------------------------------------------------------------------------------------
 void Channel::send(Bundle * pBundle)
 {
-	if (this->isDestroyed())
+	if (isDestroyed())
 	{
 		ERROR_MSG(fmt::format("Channel::send({}): channel has destroyed.\n", 
 			this->c_str()));
@@ -463,12 +463,17 @@ void Channel::send(Bundle * pBundle)
 
 	if(!sending_)
 	{
-		sending_ = true;
-
 		if(pPacketSender_ == NULL)
 			pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
 
-		pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+		pPacketSender_->processSend(this);
+
+		// 如果不能立即发送到系统缓冲区，那么交给poller处理
+		if(bundles_.size() > 0 && !isCondemn() && !isDestroyed())
+		{
+			sending_ = true;
+			pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+		}
 	}
 
 	if(Network::g_sendWindowMessagesOverflowCritical > 0 && bundleSize > Network::g_sendWindowMessagesOverflowCritical)

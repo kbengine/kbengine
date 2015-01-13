@@ -84,9 +84,14 @@ void TCPPacketSender::onGetError(Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-bool TCPPacketSender::processSend()
+bool TCPPacketSender::processSend(Channel* pChannel)
 {
-	Channel* pChannel = getChannel();
+	bool noticed = pChannel == NULL;
+
+	// 如果是有poller通知的，我们需要通过地址找到channel
+	if(noticed)
+		pChannel = getChannel();
+
 	KBE_ASSERT(pChannel != NULL);
 	
 	if(pChannel->isCondemn())
@@ -146,7 +151,9 @@ bool TCPPacketSender::processSend()
 		}
 	};
 
-	pChannel->onSendCompleted();
+	if(noticed)
+		pChannel->onSendCompleted();
+
 	return true;
 }
 

@@ -53,10 +53,9 @@ public:
 	~TCPPacketSender();
 
 	virtual void onGetError(Channel* pChannel);
+	virtual bool processSend(Channel* pChannel);
 
 protected:
-
-	virtual bool processSend();
 	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket);
 };
 }

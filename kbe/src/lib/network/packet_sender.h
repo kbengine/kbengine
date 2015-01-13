@@ -69,8 +69,7 @@ public:
 
 	virtual Channel* getChannel();
 
-protected:
-	virtual bool processSend() = 0;
+	virtual bool processSend(Channel* pChannel) = 0;
 
 protected:
 	EndPoint* pEndpoint_;
