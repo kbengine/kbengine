@@ -91,6 +91,25 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 	"client",
 };
 
+/** 定义服务器各组件状态 */
+enum COMPONENT_STATE
+{
+	// 初始状态
+	COMPONENT_STATE_INIT = 0,
+
+	// 进程正在运行中
+	COMPONENT_STATE_RUN = 1,
+
+	// 进程开始关闭
+	COMPONENT_STATE_SHUTTINGDOWN_BEGIN = 2,
+
+	// 进程正在关闭
+	COMPONENT_STATE_SHUTTINGDOWN_RUNNING = 3,
+
+	// 进程关闭完成了
+	COMPONENT_STATE_STOP = 4
+};
+
 /** 定义服务器各组件类别 */
 enum COMPONENT_TYPE
 {

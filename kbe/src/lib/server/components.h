@@ -66,7 +66,7 @@ public:
 			groupOrderid = 0;
 			globalOrderid = 0;
 			pChannel = NULL;
-			shutdownState = 0;
+			state = COMPONENT_STATE_INIT;
 			mem = cpu = 0.f;
 			usedmem = 0;
 			extradata = extradata1 = extradata2 = 0;
@@ -85,7 +85,10 @@ public:
 		Network::Channel* pChannel;
 		COMPONENT_TYPE componentType;
 		uint32 flags;
-		int8 shutdownState;
+
+		// ½ø³Ì×´Ì¬
+		COMPONENT_STATE state;
+
 		float cpu;
 		float mem;
 		uint32 usedmem;

@@ -27,7 +27,7 @@ class LookAppTask : public thread::TPTask
 	uint16 _port;
 	COMPONENT_TYPE _componentType;
 	uint64 extradata, extradata1, extradata2, extradata3;
-	int8 shutdownState;
+	int8 state;
 	bool _success;
 	StatusWindow* _pStatusWindow;
 public:
@@ -38,7 +38,7 @@ public:
 	_ip(ip),
 	_port(port),
 	extradata(0), extradata1(0), extradata2(0), extradata3(0),
-	shutdownState(0),
+	state(0),
 	_success(false),
 	_pStatusWindow(pStatusWindow)
 	{
@@ -178,7 +178,7 @@ public:
 				extradata2 = telnet_port;
 				extradata3 = 0;
 
-				shutdownState = istate;
+				state = istate;
 
 				if(ctype == CELLAPP_TYPE)
 				{
@@ -209,7 +209,7 @@ public:
 		if(winfo == NULL)
 			return thread::TPTask::TPTASK_STATE_COMPLETED; 
 
-		winfo->shutdownState = shutdownState;
+		winfo->state = (COMPONENT_STATE)state;
 		winfo->extradata = extradata;
 		winfo->extradata1 = extradata1;
 		winfo->extradata2 = extradata2;

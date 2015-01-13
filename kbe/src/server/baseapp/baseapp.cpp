@@ -192,6 +192,7 @@ bool Baseapp::canShutdown()
 		lastShutdownFailReason_ = "destroyHasDBBases";
 		INFO_MSG(fmt::format("Baseapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n", 
 			count));
+
 		return false;
 	}
 

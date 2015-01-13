@@ -814,7 +814,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		Components::ComponentInfos* winfo = findComponent(info->cid);
 		if(winfo)
 		{
-			winfo->shutdownState = istate;
+			winfo->state = (COMPONENT_STATE)istate;
 
 			if(ctype == CELLAPP_TYPE)
 			{

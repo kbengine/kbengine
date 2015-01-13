@@ -85,6 +85,7 @@ public:
 		更新cellapp情况。
 	*/
 	void updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, float load);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;

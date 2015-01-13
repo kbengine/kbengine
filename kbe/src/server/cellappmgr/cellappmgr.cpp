@@ -174,15 +174,29 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 	int index = 0;
 	for(int i=0; i<10; ++i)
 		index = generator();
-		*/
-	static size_t index = 0;
-	if(index >= components.size())
-		index = 0;
+	*/
 
-	Components::COMPONENTS::iterator iter = components.begin();
-	DEBUG_MSG(fmt::format("Cellappmgr::findFreeCellapp: index={0}.\n", index));
-	std::advance(iter, index++);
-	return (*iter).cid;
+	static size_t index = 0;
+	int count = components.size();
+
+	while(count > 0)
+	{
+		if(index >= components.size())
+			index = 0;
+
+		Components::COMPONENTS::iterator iter = components.begin();
+	
+		std::advance(iter, index++);
+		--count;
+
+		//if((*iter).pChannel && (*iter).state == COMPONENT_STATE_RUN)
+		{
+			DEBUG_MSG(fmt::format("Cellappmgr::findFreeCellapp: index={0}.\n", (index - 1)));
+			return (*iter).cid;
+		}
+	}
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -213,8 +227,10 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 
 	updateBestCellapp();
 
-	Components::ComponentInfos* cinfos = 
-		Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+	Components::ComponentInfos* cinfos = NULL;
+
+	if(bestCellappID_ > 0)
+		cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
@@ -259,8 +275,10 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 
 	updateBestCellapp();
 
-	Components::ComponentInfos* cinfos = 
-		Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+	Components::ComponentInfos* cinfos = NULL;
+
+	if(bestCellappID_ > 0)
+		cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
