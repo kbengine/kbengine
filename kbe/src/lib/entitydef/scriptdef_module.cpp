@@ -130,7 +130,7 @@ void ScriptDefModule::onLoaded(void)
 			if(iter1->second->hasClient())
 			{
 				propertyDescr_aliasmap_[aliasID] = iter1->second;
-				EntityDef::md5().append((void*)aliasID, sizeof(int));
+				EntityDef::md5().append((void*)&aliasID, sizeof(int));
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -141,7 +141,7 @@ void ScriptDefModule::onLoaded(void)
 			if(iter1->second->hasClient())
 			{
 				propertyDescr_aliasmap_[aliasID] = iter1->second;
-				EntityDef::md5().append((void*)aliasID, sizeof(int));
+				EntityDef::md5().append((void*)&aliasID, sizeof(int));
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -152,7 +152,7 @@ void ScriptDefModule::onLoaded(void)
 			if(iter1->second->hasClient())
 			{
 				propertyDescr_aliasmap_[aliasID] = iter1->second;
-				EntityDef::md5().append((void*)aliasID, sizeof(int));
+				EntityDef::md5().append((void*)&aliasID, sizeof(int));
 				iter1->second->aliasID(aliasID++);
 			}
 		}
@@ -199,7 +199,7 @@ void ScriptDefModule::onLoaded(void)
 		for(; iter2 != methodClientDescr_.end(); ++iter2)
 		{
 			methodDescr_aliasmap_[aliasID] = iter2->second;
-			EntityDef::md5().append((void*)aliasID, sizeof(int));
+			EntityDef::md5().append((void*)&aliasID, sizeof(int));
 			iter2->second->aliasID(aliasID++);
 		}
 
@@ -209,7 +209,7 @@ void ScriptDefModule::onLoaded(void)
 			for(; iter2 != methodClientDescr_.end(); ++iter2)
 			{
 				iter2->second->aliasID(-1);
-				EntityDef::md5().append((void*)aliasID, sizeof(int));
+				EntityDef::md5().append((void*)&aliasID, sizeof(int));
 				methodDescr_aliasmap_.clear();
 			}
 		}
@@ -371,7 +371,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasClient = 0;
 			}
 
-			EntityDef::md5().append((void*)assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
 
 			val = node->ToElement()->Attribute("hasCell");
 			if(val)
@@ -382,7 +382,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasCell = 0;
 			}
 
-			EntityDef::md5().append((void*)assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
 
 			val = node->ToElement()->Attribute("hasBase");
 			if(val)
@@ -393,7 +393,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasBase = 0;
 			}
 
-			EntityDef::md5().append((void*)assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
 			break;
 		}
 	}
