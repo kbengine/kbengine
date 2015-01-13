@@ -40,11 +40,6 @@ INLINE bool MethodDescription::isExposed(void)const
 { 
 	return isExposed_; 
 }
-
-INLINE void MethodDescription::setExposed(void)
-{ 
-	isExposed_ = true; 
-}
 	
 INLINE std::vector<DataType*>& MethodDescription::getArgTypes(void)
 { 

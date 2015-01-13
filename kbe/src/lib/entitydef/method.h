@@ -62,7 +62,7 @@ public:
 
 	INLINE bool isExposed(void)const;
 
-	INLINE void setExposed(void);
+	void setExposed(void);
 
 	bool pushArgType(DataType* dataType);
 

@@ -60,6 +60,13 @@ MethodDescription::~MethodDescription()
 }
 
 //-------------------------------------------------------------------------------------
+void MethodDescription::setExposed(void)
+{ 
+	isExposed_ = true; 
+	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
+}
+
+//-------------------------------------------------------------------------------------
 bool MethodDescription::pushArgType(DataType* dataType)
 {
 	if(dataType == NULL)
@@ -73,6 +80,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 
 	DATATYPE_UID uid = dataType->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
 	return true;
 }
 
