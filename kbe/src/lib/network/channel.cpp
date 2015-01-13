@@ -75,6 +75,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	lastTickBytesReceived_(0),
+	lastTickBytesSent_(0),
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
@@ -112,6 +113,7 @@ Channel::Channel():
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	lastTickBytesReceived_(0),
+	lastTickBytesSent_(0),
 	pFilter_(NULL),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
@@ -350,61 +352,6 @@ int32 Channel::bundlesLength()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::send(Bundle * pBundle)
-{
-	if (this->isDestroyed())
-	{
-		ERROR_MSG(fmt::format("Channel::send({}): Channel is destroyed.\n", 
-			this->c_str()));
-		
-		this->clearBundle();
-		return;
-	}
-
-	if(isCondemn())
-	{
-		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", c_str(), 
-			reasonToString(REASON_CHANNEL_CONDEMN)));
-
-		this->clearBundle();
-		return;
-	}
-
-	if(pBundle)
-	{
-		pBundle->finiMessage(true);
-		bundles_.push_back(pBundle);
-	}
-
-	if(bundles_.size() == 0)
-		return;
-
-	if(!sending_)
-	{
-		sending_ = true;
-
-		if(pPacketSender_ == NULL)
-			pPacketSender_ =  new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
-
-		pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::send(EndPoint& ep, Bundle * pBundle)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	SEND_BUNDLE(ep, (*pBundle));
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	SENDTO_BUNDLE(ep, networkAddr, networkPort, (*pBundle));
-}
-
-//-------------------------------------------------------------------------------------
 void Channel::delayedSend()
 {
 	this->networkInterface().delayedSend(*this);
@@ -473,6 +420,89 @@ void Channel::reset(const EndPoint* pEndPoint, bool warnOnDiscard)
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::send(Bundle * pBundle)
+{
+	if (this->isDestroyed())
+	{
+		ERROR_MSG(fmt::format("Channel::send({}): Channel is destroyed.\n", 
+			this->c_str()));
+		
+		this->clearBundle();
+		return;
+	}
+
+	if(isCondemn())
+	{
+		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", c_str(), 
+			reasonToString(REASON_CHANNEL_CONDEMN)));
+
+		this->clearBundle();
+		return;
+	}
+
+	if(pBundle)
+	{
+		pBundle->finiMessage(true);
+		bundles_.push_back(pBundle);
+	}
+	
+	uint32 bundleSize = (uint32)bundles_.size();
+	if(bundleSize == 0)
+		return;
+
+	if(!sending_)
+	{
+		sending_ = true;
+
+		if(pPacketSender_ == NULL)
+			pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+
+		pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+	}
+
+	if(Network::g_sendWindowMessagesOverflowCritical > 0 && bundleSize > Network::g_sendWindowMessagesOverflowCritical)
+	{
+		if(this->isExternal())
+		{
+			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), sendMessages is overflow({} > {}).\n", 
+				(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
+
+			if(Network::g_extSendWindowMessagesOverflow > 0 && 
+				bundleSize >  Network::g_extSendWindowMessagesOverflow)
+			{
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), sendMessages is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
+
+				this->condemn();
+			}
+		}
+		else
+		{
+			if(Network::g_intSendWindowMessagesOverflow > 0 && 
+				bundleSize > Network::g_intSendWindowMessagesOverflow)
+			{
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::send(EndPoint& ep, Bundle * pBundle)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SEND_BUNDLE(ep, (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SENDTO_BUNDLE(ep, networkAddr, networkPort, (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::stopSend()
 {
 	if(!sending_)
@@ -500,6 +530,28 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 
 	numBytesSent_ += bytes;
 	g_numBytesSent += bytes;
+	lastTickBytesSent_ += bytes;
+
+	if(this->isExternal())
+	{
+		if(g_extSendWindowBytesOverflow > 0 && 
+			lastTickBytesSent_ >= g_extSendWindowBytesOverflow)
+		{
+			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+				(void*)this, this->c_str(), lastTickBytesSent_, g_extSendWindowBytesOverflow));
+
+			this->condemn();
+		}
+	}
+	else
+	{
+		if(g_intSendWindowBytesOverflow > 0 && 
+			lastTickBytesSent_ >= g_intSendWindowBytesOverflow)
+		{
+			WARNING_MSG(fmt::format("Channel::onPacketSent[{:p}]: internal channel({}), bufferedBytes is overflow({} > {}).\n", 
+				(void*)this, this->c_str(), lastTickBytesSent_, g_intSendWindowBytesOverflow));
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -518,7 +570,7 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
 			this->condemn();
@@ -539,19 +591,20 @@ void Channel::onPacketReceived(int bytes)
 void Channel::addReceiveWindow(Packet* pPacket)
 {
 	bufferedReceives_[bufferedReceivesIdx_].push_back(pPacket);
+	uint32 size = (uint32)bufferedReceives_[bufferedReceivesIdx_].size();
 
-	if(Network::g_receiveWindowMessagesOverflowCritical > 0 && bufferedReceives_[bufferedReceivesIdx_].size() > Network::g_receiveWindowMessagesOverflowCritical)
+	if(Network::g_receiveWindowMessagesOverflowCritical > 0 && size > Network::g_receiveWindowMessagesOverflowCritical)
 	{
 		if(this->isExternal())
 		{
 			WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}).\n", 
-				(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Network::g_receiveWindowMessagesOverflowCritical));
+				(void*)this, this->c_str(), size, Network::g_receiveWindowMessagesOverflowCritical));
 
 			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
-				bufferedReceives_[bufferedReceivesIdx_].size() >  Network::g_extReceiveWindowMessagesOverflow)
+				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
 				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
-					(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Network::g_extReceiveWindowMessagesOverflow));
+					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
 			}
@@ -559,10 +612,10 @@ void Channel::addReceiveWindow(Packet* pPacket)
 		else
 		{
 			if(Network::g_intReceiveWindowMessagesOverflow > 0 && 
-				bufferedReceives_[bufferedReceivesIdx_].size() > Network::g_intReceiveWindowMessagesOverflow)
+				size > Network::g_intReceiveWindowMessagesOverflow)
 			{
 				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: internal channel({}), bufferedMessages is overflow({} > {}).\n", 
-					(void*)this, this->c_str(), (int)bufferedReceives_[bufferedReceivesIdx_].size(), Network::g_intReceiveWindowMessagesOverflow));
+					(void*)this, this->c_str(), size, Network::g_intReceiveWindowMessagesOverflow));
 			}
 		}
 	}
@@ -613,6 +666,7 @@ void Channel::handshake()
 void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 {
 	lastTickBytesReceived_ = 0;
+	lastTickBytesSent_ = 0;
 
 	if(pMsgHandlers_ != NULL)
 	{

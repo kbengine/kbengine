@@ -276,35 +276,71 @@ bool ServerConfig::loadConfig(std::string fileName)
 				channelCommon_.extWriteBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
 		}
 
-		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
+		childnode = xml->enterNode(rootNode, "windowOverflow");
 		if(childnode)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(childnode, "messages");
-			if(childnode1)
+			TiXmlNode* sendNode = xml->enterNode(childnode, "send");
+			if(sendNode)
 			{
-				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
-				if(childnode2)
-					Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				TiXmlNode* childnode1 = xml->enterNode(sendNode, "messages");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode2 = xml->enterNode(childnode1, "external");
-				if(childnode2)
-					Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode2 = xml->enterNode(childnode1, "critical");
-				if(childnode2)
-					Network::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_sendWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(sendNode, "bytes");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
-			childnode1 = xml->enterNode(childnode, "bytes");
-			if(childnode1)
+			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
+			if(recvNode)
 			{
-				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
-				if(childnode2)
-					Network::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				TiXmlNode* childnode1 = xml->enterNode(recvNode, "messages");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(recvNode, "bytes");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				
-				childnode2 = xml->enterNode(childnode1, "external");
-				if(childnode2)
-					Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 		};
 

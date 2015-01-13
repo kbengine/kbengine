@@ -227,6 +227,7 @@ private:
 	uint32						numBytesSent_;
 	uint32						numBytesReceived_;
 	uint32						lastTickBytesReceived_;
+	uint32						lastTickBytesSent_;
 
 	PacketFilterPtr				pFilter_;
 	

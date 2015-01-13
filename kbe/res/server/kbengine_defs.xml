@@ -103,20 +103,6 @@
 			<internal> 60.0 </internal>
 			<external> 60.0 </external>
 		</timeout>
-
-		<!-- 发送数据重试的最大时间和最大次数 
-			(Send retry max-time and max-count)
-		-->
-		<resend> 
-			<internal> 
-				<interval> 10 </interval>					<!-- 毫秒(Millisecond) -->
-				<retries> 0 </retries>						<!-- 重试次数(Retry count), 0无限(0 is unlimited) -->
-			</internal>
-			<external>
-				<interval> 10 </interval>					<!-- 毫秒 -->
-				<retries> 10 </retries>						<!-- 重试次数, 0无限(0 is unlimited) -->
-			</external>
-		</resend>
 		
 		<!-- socket读写缓冲大小 
 			(socket send/recv buffer size)
@@ -130,20 +116,34 @@
 			<external>	0			</external>				<!-- 系统默认(system default) -->
 		</writeBufferSize>
 		
-		<!-- 一个tick内接收窗口溢出值 0无限制
-			(A tick, the value of the receive window overflow, 0 is unlimited)
+		<!-- 一个tick内发送与接收窗口溢出值，0无限制
+			(A tick, the value of the send/receive window overflow, 0 is unlimited)
 		-->
-		<receiveWindowOverflow>
-			<messages>
-				<critical>	24			</critical>
-				<internal>	65535		</internal>
-				<external>	32			</external>
-			</messages>
-			<bytes>
-				<internal>	0			</internal>
-				<external>	2048		</external>
-			</bytes>
-		</receiveWindowOverflow>
+		<windowOverflow>
+			<send>
+				<messages>
+					<critical>	128			</critical>
+					<internal>	65535		</internal>
+					<external>	256			</external>
+				</messages>
+				<bytes>
+					<internal>	0			</internal>
+					<external>	0			</external>
+				</bytes>
+			</send>
+			
+			<receive>
+				<messages>
+					<critical>	24			</critical>
+					<internal>	65535		</internal>
+					<external>	32			</external>
+				</messages>
+				<bytes>
+					<internal>	0			</internal>
+					<external>	2048		</external>
+				</bytes>
+			</receive>
+		</windowOverflow>
 		
 		<!-- 加密通信，只对外部通道
 			(Encrypted communication, channel-external only)
