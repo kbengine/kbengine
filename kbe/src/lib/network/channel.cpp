@@ -272,10 +272,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 				if(pPacket->length() > 0)
 					hasDiscard++;
 
-				if(pPacket->isTCPPacket())
-					TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
-				else
-					UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
+				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 			}
 
 			if (hasDiscard > 0 && warnOnDiscard)
@@ -428,6 +425,10 @@ void Channel::send(Bundle * pBundle)
 			this->c_str()));
 		
 		this->clearBundle();
+
+		if(pBundle)
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+
 		return;
 	}
 
@@ -437,6 +438,16 @@ void Channel::send(Bundle * pBundle)
 			reasonToString(REASON_CHANNEL_CONDEMN)));
 
 		this->clearBundle();
+
+		if(pBundle)
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+
+		if(pNetworkInterface_->findChannel(this->addr()))
+			pNetworkInterface_->deregisterChannel(this);
+
+		if(!isDestroyed())
+			destroy();
+
 		return;
 	}
 
