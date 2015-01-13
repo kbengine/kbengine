@@ -624,13 +624,6 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 		Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
-
-		if(Network::g_channelExternalEncryptType == 1)
-		{
-			pServerChannel_->pFilter(pBlowfishFilter_);
-			pBlowfishFilter_ = NULL;
-		}
-
 		//ret = ClientObjectBase::login();
 	}
 
@@ -642,6 +635,12 @@ void ClientApp::onHelloCB_(Network::Channel* pChannel, const std::string& verInf
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
+	if(Network::g_channelExternalEncryptType == 1)
+	{
+		pServerChannel_->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
+	}
+
 	if(componentType == LOGINAPP_TYPE)
 	{
 		state_ = C_STATE_LOGIN;

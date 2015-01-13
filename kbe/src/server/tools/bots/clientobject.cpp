@@ -159,13 +159,6 @@ bool ClientObject::initCreate()
 
 	KBEngine::Network::Channel::send(*pEndpoint, pBundle);
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
-
-	if(Network::g_channelExternalEncryptType == 1)
-	{
-		pServerChannel_->pFilter(pBlowfishFilter_);
-		pBlowfishFilter_ = NULL;
-	}
-
 	return true;
 }
 
@@ -237,13 +230,6 @@ bool ClientObject::initLoginGateWay()
 
 	Network::Channel::send(*pEndpoint, pBundle);
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
-
-	if(Network::g_channelExternalEncryptType == 1)
-	{
-		pServerChannel_->pFilter(pBlowfishFilter_);
-		pBlowfishFilter_ = NULL;
-	}
-
 	return true;
 }
 
@@ -331,6 +317,12 @@ void ClientObject::onHelloCB_(Network::Channel* pChannel, const std::string& ver
 		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
+	if(Network::g_channelExternalEncryptType == 1)
+	{
+		pServerChannel_->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
+	}
+
 	if(componentType == LOGINAPP_TYPE)
 	{
 		state_ = C_STATE_CREATE;

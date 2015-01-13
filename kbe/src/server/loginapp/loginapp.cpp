@@ -237,7 +237,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 	}
 	
 	std::string retdatas = "";
-	if(shuttingdown_)
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
 	{
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: shutting down, create {} failed!\n", accountName));
 
@@ -738,7 +738,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
 		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
 
-	if(shuttingdown_)
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
 	{
 		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
 
