@@ -481,8 +481,15 @@ void Channel::send(Bundle * pBundle)
 			if(Network::g_intSendWindowMessagesOverflow > 0 && 
 				bundleSize > Network::g_intSendWindowMessagesOverflow)
 			{
-				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
+
+				this->condemn();
+			}
+			else
+			{
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 			}
 		}
 	}
@@ -597,9 +604,6 @@ void Channel::addReceiveWindow(Packet* pPacket)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}).\n", 
-				(void*)this, this->c_str(), size, Network::g_receiveWindowMessagesOverflowCritical));
-
 			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
 				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
@@ -607,6 +611,11 @@ void Channel::addReceiveWindow(Packet* pPacket)
 					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
+			}
+			else
+			{
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}).\n", 
+					(void*)this, this->c_str(), size, Network::g_receiveWindowMessagesOverflowCritical));
 			}
 		}
 		else
