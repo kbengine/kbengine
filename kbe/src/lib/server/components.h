@@ -133,10 +133,14 @@ public:
 
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 
+	/** 
+		查找组件
+	*/
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(Network::Channel * pChannel);
+	Components::ComponentInfos* findComponent(Network::Address* pAddress);
 
 	/** 
 		通过进程id寻找本地组件
@@ -156,6 +160,9 @@ public:
 	*/
 	bool checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid);
 
+	/** 
+		设置用于接收组件通知的处理器实例
+	*/
 	void pHandler(ComponentsNotificationHandler* ph){ _pHandler = ph; };
 
 	/** 
@@ -232,10 +239,12 @@ private:
 
 	ComponentsNotificationHandler*			_pHandler;
 
-	// 以下组网用
+	// 本组件的类别
 	COMPONENT_TYPE							componentType_;
+
 	// 本组件的ID
-	COMPONENT_ID							componentID_;									
+	COMPONENT_ID							componentID_;	
+
 	uint8									state_;
 	int16									findIdx_;
 	int8									findComponentTypes_[8];
