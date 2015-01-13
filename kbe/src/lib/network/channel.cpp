@@ -421,7 +421,7 @@ void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(fmt::format("Channel::send({}): Channel is destroyed.\n", 
+		ERROR_MSG(fmt::format("Channel::send({}): channel has destroyed.\n", 
 			this->c_str()));
 		
 		this->clearBundle();
@@ -434,8 +434,8 @@ void Channel::send(Bundle * pBundle)
 
 	if(isCondemn())
 	{
-		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", c_str(), 
-			reasonToString(REASON_CHANNEL_CONDEMN)));
+		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+			c_str()));
 
 		this->clearBundle();
 
@@ -475,13 +475,13 @@ void Channel::send(Bundle * pBundle)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), sendMessages is overflow({} > {}).\n", 
+			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}).\n", 
 				(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 
 			if(Network::g_extSendWindowMessagesOverflow > 0 && 
 				bundleSize >  Network::g_extSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), sendMessages is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
 
 				this->condemn();
@@ -492,14 +492,14 @@ void Channel::send(Bundle * pBundle)
 			if(Network::g_intSendWindowMessagesOverflow > 0 && 
 				bundleSize > Network::g_intSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
 
 				this->condemn();
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), sendMessages is overflow({} > {}).\n", 
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 			}
 		}
@@ -555,7 +555,7 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 		if(g_extSendWindowBytesOverflow > 0 && 
 			lastTickBytesSent_ >= g_extSendWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesSent_, g_extSendWindowBytesOverflow));
 
 			this->condemn();
@@ -566,7 +566,7 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 		if(g_intSendWindowBytesOverflow > 0 && 
 			lastTickBytesSent_ >= g_intSendWindowBytesOverflow)
 		{
-			WARNING_MSG(fmt::format("Channel::onPacketSent[{:p}]: internal channel({}), bufferedBytes is overflow({} > {}).\n", 
+			WARNING_MSG(fmt::format("Channel::onPacketSent[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n", 
 				(void*)this, this->c_str(), lastTickBytesSent_, g_intSendWindowBytesOverflow));
 		}
 	}
@@ -588,7 +588,7 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes is overflow({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
 			this->condemn();
@@ -599,7 +599,7 @@ void Channel::onPacketReceived(int bytes)
 		if(g_intReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_intReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(fmt::format("Channel::onPacketReceived[{:p}]: internal channel({}), bufferedBytes is overflow({} > {}).\n", 
+			WARNING_MSG(fmt::format("Channel::onPacketReceived[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n", 
 				(void*)this, this->c_str(), lastTickBytesReceived_, g_intReceiveWindowBytesOverflow));
 		}
 	}
@@ -618,14 +618,14 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
 				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
+				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
 					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), bufferedMessages is overflow({} > {}).\n", 
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), size, Network::g_receiveWindowMessagesOverflowCritical));
 			}
 		}
@@ -634,7 +634,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Network::g_intReceiveWindowMessagesOverflow > 0 && 
 				size > Network::g_intReceiveWindowMessagesOverflow)
 			{
-				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: internal channel({}), bufferedMessages is overflow({} > {}).\n", 
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: internal channel({}), receive window has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), size, Network::g_intReceiveWindowMessagesOverflow));
 			}
 		}
