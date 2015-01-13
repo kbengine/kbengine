@@ -122,9 +122,9 @@
 		<windowOverflow>
 			<send>
 				<messages>
-					<critical>	128			</critical>
+					<critical>	1024		</critical>
 					<internal>	65535		</internal>
-					<external>	256			</external>
+					<external>	512			</external>
 				</messages>
 				<bytes>
 					<internal>	0			</internal>
