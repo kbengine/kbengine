@@ -50,8 +50,9 @@ clients_()
 	if (pEndPoint_->bind(htons(g_kbeSrvConfig.getLoginApp().http_cbport), 
 		Loginapp::getSingleton().networkInterface().extaddr().ip) == -1)
 	{
-		ERROR_MSG(fmt::format("HTTPCBHandler::bind({}): \n",
-			 kbe_strerror()));
+		ERROR_MSG(fmt::format("HTTPCBHandler::bind({}): {}:{}\n",
+			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+			g_kbeSrvConfig.getLoginApp().http_cbport));
 
 		pEndPoint_->close();
 		return;
@@ -59,8 +60,9 @@ clients_()
 
 	if(pEndPoint_->listen() == -1)
 	{
-		ERROR_MSG(fmt::format("HTTPCBHandler::listeningSocket({}): \n",
-			 kbe_strerror()));
+		ERROR_MSG(fmt::format("HTTPCBHandler::listeningSocket({}): {}:{}\n",
+			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+			g_kbeSrvConfig.getLoginApp().http_cbport));
 
 		pEndPoint_->close();
 		return;
