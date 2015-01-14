@@ -796,12 +796,12 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			bufferedCreateEntityMessage_.erase(iter);
 			entity->isOnGound(isOnGound > 0);
 
-			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}).\n", 
-				entity->scriptName(), eid, (int)isOnGound));
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}), appID({}).\n", 
+				entity->scriptName(), eid, (int)isOnGound, appID()));
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: not found entity({}).\n", eid));
+			ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: not found entity({}), appID({}).\n", eid, appID()));
 			return;
 		}
 	}
@@ -814,8 +814,8 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 		// 初始化一下服务端当前的位置
 		entity->serverPosition(entity->position());
 
-		DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}).\n",
-			entity->scriptName(), eid, (int)isOnGound));
+		DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}), appID({}).\n",
+			entity->scriptName(), eid, (int)isOnGound, appID()));
 
 		KBE_ASSERT(!entity->inWorld());
 		KBE_ASSERT(entity->cellMailbox() == NULL);
@@ -869,12 +869,12 @@ void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: not found entity({}).\n", eid));
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: not found entity({}), appID({}).\n", eid, appID()));
 		return;
 	}
 
-	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}).\n", 
-		entity->scriptName(), eid));
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}), appID({}), appID().\n", 
+		entity->scriptName(), eid, appID()));
 
 	EventData_LeaveWorld eventdata;
 	eventdata.spaceID = entity->spaceID();
