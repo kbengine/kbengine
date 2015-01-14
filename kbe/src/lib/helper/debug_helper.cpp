@@ -324,12 +324,21 @@ void DebugHelper::sync()
 
 	if(Network::Address::NONE == loggerAddr_)
 	{
-		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+		if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0)
 		{
-			clearBufferedLog();
+			if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+			{
+				clearBufferedLog();
+			}
 		}
-		
-		canLogFile_ = true;
+		else
+		{
+			if(hasBufferedLogPackets_ > 256)
+			{
+				clearBufferedLog();
+			}
+		}
+
 		unlockthread();
 		return;
 	}
@@ -337,12 +346,21 @@ void DebugHelper::sync()
 	Network::Channel* pLoggerChannel = pNetworkInterface_->findChannel(loggerAddr_);
 	if(pLoggerChannel == NULL)
 	{
-		if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+		if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0)
 		{
-			clearBufferedLog();
+			if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+			{
+				clearBufferedLog();
+			}
+		}
+		else
+		{
+			if(hasBufferedLogPackets_ > 256)
+			{
+				clearBufferedLog();
+			}
 		}
 		
-		canLogFile_ = true;
 		unlockthread();
 		return;
 	}
@@ -364,7 +382,8 @@ void DebugHelper::sync()
 
 	while(!bufferedLogPackets_.empty())
 	{
-		if(i++ >= g_kbeSrvConfig.tickMaxSyncLogs() || totalLen > (PACKET_MAX_SIZE_TCP * 10))
+		if((g_kbeSrvConfig.tickMaxSyncLogs() > 0 && i++ >= g_kbeSrvConfig.tickMaxSyncLogs()) || 
+			totalLen > (PACKET_MAX_SIZE_TCP * 10))
 			break;
 		
 		Network::Bundle* pBundle = bufferedLogPackets_.front();
@@ -432,7 +451,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		g_componentType == CLIENT_TYPE)
 		return;
 
-	if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+	if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0 && hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
 	{
 		int8 v = Network::g_trace_packet;
 		Network::g_trace_packet = 0;
