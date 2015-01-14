@@ -873,7 +873,7 @@ void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID
 		return;
 	}
 
-	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}), appID({}), appID().\n", 
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}), appID({}).\n", 
 		entity->scriptName(), eid, appID()));
 
 	EventData_LeaveWorld eventdata;
