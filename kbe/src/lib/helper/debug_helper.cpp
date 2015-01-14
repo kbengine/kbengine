@@ -305,6 +305,7 @@ void DebugHelper::clearBufferedLog(bool destroy)
 
 	hasBufferedLogPackets_ = 0;
 	noSyncLog_ = true;
+	canLogFile_ = true;
 
 	if(!destroy)
 		g_pDebugHelperSyncHandler->cancel();
@@ -438,7 +439,8 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 #ifdef NO_USE_LOG4CXX
 #else
-		LOG4CXX_WARN(g_logger, "DebugHelper::onMessage: bufferedLogPackets is full, discard log-packets!\n");
+		LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine_defs.xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
+			hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
 #endif
 
 		Network::g_trace_packet = v;

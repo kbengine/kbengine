@@ -251,7 +251,7 @@ const char * reasonToString(Reason reason)
 																											\
 			if(pPacket->sentSize != pPacket->length())														\
 			{																								\
-				reason = PacketSender::checkSocketErrors(&ep, pPacket->sentSize, pPacket->length());		\
+				reason = PacketSender::checkSocketErrors(&ep);												\
 				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
 				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
 				{																							\

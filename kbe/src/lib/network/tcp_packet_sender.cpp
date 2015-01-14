@@ -96,7 +96,9 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 	
 	if(pChannel->isCondemn())
 	{
-		onGetError(pChannel);
+		if(noticed)
+			onGetError(pChannel);
+
 		return false;
 	}
 	
@@ -143,7 +145,11 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 				else
 				{
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
-					onGetError(pChannel);
+
+					if(noticed)
+						onGetError(pChannel);
+					else
+						pChannel->condemn();
 				}
 
 				return false;
@@ -180,7 +186,7 @@ Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
 	if (sentCompleted)
 		return REASON_SUCCESS;
 
-	return checkSocketErrors(pEndpoint, pPacket->sentSize, pPacket->length());
+	return checkSocketErrors(pEndpoint);
 }
 
 //-------------------------------------------------------------------------------------

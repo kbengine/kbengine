@@ -89,7 +89,7 @@ EventDispatcher & PacketSender::dispatcher()
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint, int len, int packetTotalSize)
+Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 {
 	int err;
 	Reason reason;
@@ -124,22 +124,6 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint, int len, int 
 			}
 		}
 	#endif
-
-	if (len == -1)
-	{
-		if (reason != REASON_NO_SUCH_PORT)
-		{
-			ERROR_MSG(fmt::format("PacketSender::checkSocketErrors({}): "
-					"Could not send packet: {}\n",
-				pEndpoint->addr().c_str(), kbe_strerror( err )));
-		}
-	}
-	else
-	{
-		WARNING_MSG(fmt::format("PacketSender::checkSocketErrors({}): "
-			"Packet length {} does not match sent length {} ({})\n",
-			pEndpoint->addr().c_str(), packetTotalSize, len, kbe_strerror( err )));
-	}
 
 	return reason;
 }

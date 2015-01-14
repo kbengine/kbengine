@@ -65,7 +65,7 @@ public:
 	virtual Reason processPacket(Channel* pChannel, Packet * pPacket);
 	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket) = 0;
 
-	static Reason checkSocketErrors(const EndPoint * pEndpoint, int len, int packetTotalSize);
+	static Reason checkSocketErrors(const EndPoint * pEndpoint);
 
 	virtual Channel* getChannel();
 
