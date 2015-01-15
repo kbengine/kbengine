@@ -39,12 +39,6 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(script::Script);
 namespace script{
 
-#ifndef KBE_SINGLE_THREADED
-static PyObject * s_pOurInitTimeModules;
-static PyThreadState * s_pMainThreadState;
-static PyThreadState* s_defaultContext;
-#endif
-
 //-------------------------------------------------------------------------------------
 static PyObject* __py_genUUID64(PyObject *self, void *closure)	
 {
@@ -279,14 +273,6 @@ bool Script::uninstall()
 		return false;
 	}
 
-#ifndef KBE_SINGLE_THREADED
-	if (s_pOurInitTimeModules != NULL)
-	{
-		Py_DECREF(s_pOurInitTimeModules);
-		s_pOurInitTimeModules = NULL;
-	}
-#endif
-
 	PyGC::initialize();
 
 	// –∂‘ÿpythonΩ‚ Õ∆˜
@@ -321,9 +307,7 @@ bool Script::installExtraModule(const char* moduleName)
 //-------------------------------------------------------------------------------------
 bool Script::registerExtraMethod(const char* attrName, PyMethodDef* pyFunc)
 {
-	PyObject* obj = PyCFunction_New(pyFunc, NULL);
-	bool ret = PyModule_AddObject(extraModule_, attrName, obj) != -1;
-	return ret;
+	return PyModule_AddObject(extraModule_, attrName, PyCFunction_New(pyFunc, NULL)) != -1;
 }
 
 //-------------------------------------------------------------------------------------
