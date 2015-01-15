@@ -122,9 +122,8 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="pickler.h" />
     <ClInclude Include="py_gc.h" />
+    <ClInclude Include="py_macros.h" />
     <ClInclude Include="py_memorystream.h" />
-    <ClInclude Include="pyattr_macro.h" />
-    <ClInclude Include="pyobject_call_template.h" />
     <ClInclude Include="pyobject_pointer.h" />
     <ClInclude Include="pyprofile.h" />
     <ClInclude Include="pyprofile_handler.h" />

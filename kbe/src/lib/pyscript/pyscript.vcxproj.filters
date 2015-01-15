@@ -101,12 +101,6 @@
     <ClInclude Include="py_memorystream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pyattr_macro.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pyobject_call_template.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pyobject_pointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -156,6 +150,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scriptstderr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

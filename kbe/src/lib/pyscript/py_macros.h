@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PYATTR_MACRO_H
-#define _PYATTR_MACRO_H
+#ifndef _PY_MACROS_H
+#define _PY_MACROS_H
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -669,7 +669,119 @@ namespace KBEngine{ namespace script{
 																																	\
 
 
+//-----------------------------------------------------------------------------------------------------------
+/** 定义宏用于安全的调用一个对象的方法
+*/
+#define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 									\
+															const_cast<char*>(""));						\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
+			
+			
+#define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1)										\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1)													\
+													);													\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
+			
+			
+#define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2)									\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2)													\
+													);													\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
 
+
+#define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3)							\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3)													\
+													);													\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
+
+
+#define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4)						\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3),													\
+												(ARG4)													\
+													);													\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
+
+
+#define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5)				\
+{																										\
+	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	{																									\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3),													\
+												(ARG4),													\
+												(ARG5)													\
+													);													\
+		if(pyResult != NULL)																			\
+			Py_DECREF(pyResult);																		\
+		else																							\
+			PyErr_PrintEx(0);																			\
+	}																									\
+}																										\
+			
+			
+			
 }
 }
 #endif

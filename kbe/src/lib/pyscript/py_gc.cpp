@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.h"
 #include "py_gc.h"
 #include "scriptstdouterr.h"
-#include "pyattr_macro.h"
+#include "py_macros.h"
 #include "helper/profile.h"
 
 namespace KBEngine{ namespace script {
