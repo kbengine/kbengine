@@ -90,7 +90,12 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 //-------------------------------------------------------------------------------------
 Bundle::Bundle(const Bundle& bundle)
 {
+	// 这些必须在前面设置
+	// 否则中途创建packet可能错误
 	isTCPPacket_ = bundle.isTCPPacket_;
+	pChannel_ = bundle.pChannel_;
+	pCurrMsgHandler_ = bundle.pCurrMsgHandler_;
+	currMsgID_ = bundle.currMsgID_;
 
 	Packets::const_iterator iter = bundle.packets_.begin();
 	for (; iter != bundle.packets_.end(); ++iter)
@@ -107,14 +112,11 @@ Bundle::Bundle(const Bundle& bundle)
 		pCurrPacket_->append(*static_cast<MemoryStream*>(bundle.pCurrPacket_));
 	}
 
-	pChannel_ = bundle.pChannel_;
 	numMessages_ = bundle.numMessages_;
-	currMsgID_ = bundle.currMsgID_;
 	currMsgPacketCount_ = bundle.currMsgPacketCount_;
 	currMsgLength_ = bundle.currMsgLength_;
 	currMsgHandlerLength_ = bundle.currMsgHandlerLength_;
 	currMsgLengthPos_ = bundle.currMsgLengthPos_;
-	pCurrMsgHandler_ = bundle.pCurrMsgHandler_;
 }
 
 //-------------------------------------------------------------------------------------
