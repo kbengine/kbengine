@@ -729,14 +729,8 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		for(; packetIter != bufferedReceives_[idx].end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);
-
 			pPacketReader_->processMessages(pMsgHandlers, pPacket);
-
-			if(pPacket->isTCPPacket())
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
-			else
-				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
-
+			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
 	}catch(MemoryStreamException &)
 	{
