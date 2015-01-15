@@ -100,9 +100,12 @@ void ClientApp::reset(void)
 		networkInterface().deregisterChannel(pServerChannel_);
 	}
 
+	pServerChannel_->pFilter(NULL);
 	pServerChannel_->pPacketSender(NULL);
+
 	SAFE_RELEASE(pTCPPacketSender_);
 	SAFE_RELEASE(pTCPPacketReceiver_);
+	SAFE_RELEASE(pBlowfishFilter_);
 
 	ClientObjectBase::reset();
 }

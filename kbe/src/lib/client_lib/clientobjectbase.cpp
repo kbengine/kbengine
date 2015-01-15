@@ -143,7 +143,7 @@ void ClientObjectBase::reset(void)
 	canReset_ = false;
 	locktime_ = 0;
 
-	if(pServerChannel_)
+	if(pServerChannel_ && !pServerChannel_->isDestroyed())
 	{
 		pServerChannel_->destroy();
 		pServerChannel_->decRef();
@@ -232,13 +232,7 @@ void ClientObjectBase::onKicked(Network::Channel * pChannel, SERVER_ERROR_CODE f
 	eventdata.failedcode = failedcode;
 	eventHandler_.fire(&eventdata);
 
-#ifdef unix
-	::close(*pChannel->pEndPoint());
-#elif defined(PLAYSTATION3)
-	::socketclose(*pChannel->pEndPoint());
-#else
-	::closesocket(*pChannel->pEndPoint());
-#endif
+	onServerClosed();
 }
 
 //-------------------------------------------------------------------------------------
