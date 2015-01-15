@@ -90,6 +90,8 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 //-------------------------------------------------------------------------------------
 Bundle::Bundle(const Bundle& bundle)
 {
+	isTCPPacket_ = bundle.isTCPPacket_;
+
 	Packets::const_iterator iter = bundle.packets_.begin();
 	for (; iter != bundle.packets_.end(); ++iter)
 	{
@@ -112,7 +114,6 @@ Bundle::Bundle(const Bundle& bundle)
 	currMsgLength_ = bundle.currMsgLength_;
 	currMsgHandlerLength_ = bundle.currMsgHandlerLength_;
 	currMsgLengthPos_ = bundle.currMsgLengthPos_;
-	isTCPPacket_ = bundle.isTCPPacket_;
 	pCurrMsgHandler_ = bundle.pCurrMsgHandler_;
 }
 
