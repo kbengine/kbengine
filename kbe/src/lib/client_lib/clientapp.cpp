@@ -386,13 +386,6 @@ void ClientApp::handleGameTick()
 
 					Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
 					Network::Bundle::ObjPool().reclaimObject(pBundle);
-
-					if(Network::g_channelExternalEncryptType == 1)
-					{
-						pServerChannel_->pFilter(pBlowfishFilter_);
-						pBlowfishFilter_ = NULL;
-					}
-
 					// ret = ClientObjectBase::loginGateWay();
 				}
 			}
