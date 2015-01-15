@@ -27,28 +27,38 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.h"
 namespace KBEngine{
 
-extern void (*pMainThreadIdleStartFunc)();
-extern void (*pMainThreadIdleEndFunc)();
+extern void (*pMainThreadIdleStartCallback)();
+extern void (*pMainThreadIdleEndCallback)();
 
 namespace KBEConcurrency
 {
-inline void startMainThreadIdling()
+
+/**
+	主线程处于空闲时触发
+*/
+inline void onStartMainThreadIdling()
 {
-	if(pMainThreadIdleStartFunc)
-		(*pMainThreadIdleStartFunc)();
+	if(pMainThreadIdleStartCallback)
+		(*pMainThreadIdleStartCallback)();
 }
 
-inline void endMainThreadIdling()
+/**
+	主线程结束空闲开始繁忙时触发
+*/
+inline void onEndMainThreadIdling()
 {
-	if(pMainThreadIdleEndFunc)
-		(*pMainThreadIdleEndFunc)();
+	if(pMainThreadIdleEndCallback)
+		(*pMainThreadIdleEndCallback)();
 }
 
-inline
-void setMainThreadIdleFunctions( void (*pStartFunc)(), void (*pEndFunc)() )
+/**
+	设置回调函数
+	当回调触发时通知他们
+*/
+inline void setMainThreadIdleCallbacks(void (*pStartCallback)(), void (*pEndCallback)())
 {
-	pMainThreadIdleStartFunc = pStartFunc;
-	pMainThreadIdleEndFunc = pEndFunc;
+	pMainThreadIdleStartCallback = pStartCallback;
+	pMainThreadIdleEndCallback = pEndCallback;
 }
 
 }

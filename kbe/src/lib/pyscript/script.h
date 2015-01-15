@@ -130,32 +130,10 @@ public:
 	int registerToModule(const char* attrName, PyObject* pyObj);
 	int unregisterToModule(const char* attrName);
 
-	void initThread( bool plusOwnInterpreter = false );
-	void finiThread( bool plusOwnInterpreter = false );
-
-	static PyThreadState* createInterpreter();
-	static void destroyInterpreter( PyThreadState* pInterpreter );
-	static PyThreadState* swapInterpreter( PyThreadState* pInterpreter );
-
-	class AutoInterpreterSwapper
-	{
-		PyThreadState*	pSwappedOutInterpreter_;
-	public:
-		explicit AutoInterpreterSwapper( PyThreadState* pNewInterpreter ) :
-		pSwappedOutInterpreter_( Script::swapInterpreter( pNewInterpreter ) )
-		{}
-		~AutoInterpreterSwapper()
-		{
-			Script::swapInterpreter( pSwappedOutInterpreter_ );
-		}
-	};
-
-	static void acquireLock();
-	static void releaseLock();
-
 	INLINE ScriptStdOutErr* pyStdouterr()const;
 
 	INLINE void pyPrint(const std::string& str);
+
 protected:
 	PyObject* 					module_;
 	PyObject*					extraModule_;		// À©Õ¹½Å±¾Ä£¿é

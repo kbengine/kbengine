@@ -20,9 +20,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "concurrency.h"
-namespace KBEngine{
-static void NoOp() { }
-void (*pMainThreadIdleStartFunc)() = &NoOp;
-void (*pMainThreadIdleEndFunc)() = &NoOp;
+
+namespace KBEngine
+{
+
+static void default_op() {}
+
+void (*pMainThreadIdleStartCallback)() = &default_op;
+void (*pMainThreadIdleEndCallback)() = &default_op;
 
 }
