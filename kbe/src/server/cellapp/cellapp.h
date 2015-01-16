@@ -75,6 +75,9 @@ public:
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
 
+	float _getLoad()const { return getLoad(); }
+	virtual void onUpdateLoad();
+
 	/**  网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
@@ -188,11 +191,6 @@ public:
 		获取游戏时间
 	*/
 	static PyObject* __py_gametime(PyObject* self, PyObject* args);
-
-	/**
-		更新负载情况
-	*/
-	void updateLoad();
 
 	/**
 		添加与删除一个Updatable对象

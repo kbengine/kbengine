@@ -132,6 +132,8 @@ public:
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
+	EntityIDClient& idClient(){ return idClient_; }
+
 	/**
 		创建一个entity 
 	*/
@@ -217,6 +219,17 @@ public:
 		匹配相对路径获得全路径 
 	*/
 	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
+
+	/**
+		更新负载情况
+	*/
+	int tickPassedPercent(uint64 curr = timestamp());
+	float getLoad()const { return load_; }
+	void updateLoad();
+	virtual void onUpdateLoad(){}
+	virtual void calcLoad(float spareTime);
+	uint64 checkTickPeriod();
+
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -234,6 +247,11 @@ protected:
 	GlobalDataClient*										pGlobalData_;									
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
+
+	uint64													lastTimestamp_;
+
+	// 进程当前负载
+	float													load_;
 };
 
 
@@ -250,7 +268,9 @@ idClient_(),
 pEntities_(NULL),
 gameTimer_(),
 pGlobalData_(NULL),
-pyCallbackMgr_()
+pyCallbackMgr_(),
+lastTimestamp_(timestamp()),
+load_(0.f)
 {
 	ScriptTimers::initialize(*this);
 	idClient_.pApp(this);
@@ -290,6 +310,8 @@ bool EntityApp<E>::initialize()
 		gameTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 								reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	}
+
+	lastTimestamp_ = timestamp();
 	return ret;
 }
 
@@ -1293,6 +1315,84 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);
+}
+
+template<class E>
+int EntityApp<E>::tickPassedPercent(uint64 curr = timestamp())
+{
+	// 得到上一个tick到现在所流逝的时间
+	uint64 pass_stamps = (curr - lastTimestamp_) * uint64(1000) / stampsPerSecond();
+
+	// 得到每Hertz的毫秒数
+	static int expected = (1000 / g_kbeSrvConfig.gameUpdateHertz());
+
+	// 得到当前流逝的时间占一个时钟周期的的百分比
+	return int(pass_stamps) * 100 / expected;
+}
+
+template<class E>
+uint64 EntityApp<E>::checkTickPeriod()
+{
+	uint64 curr = timestamp();
+	int percent = tickPassedPercent(curr);
+
+	if (percent > 200)
+	{
+		WARNING_MSG(fmt::format("EntityApp::checkTickPeriod: tick took {0}% ({1:.2f} seconds)!\n",
+					percent, (float(percent)/1000.f)));
+	}
+
+	uint64 elapsed = curr - lastTimestamp_;
+	lastTimestamp_ = curr;
+	return elapsed;
+}
+
+
+template<class E>
+void EntityApp<E>::updateLoad()
+{
+	uint64 lastTickInStamps = checkTickPeriod();
+
+	// 获得空闲时间比例
+	double spareTime = 1.0;
+	if (lastTickInStamps != 0)
+	{
+		spareTime = double(dispatcher_.getSpareTime())/double(lastTickInStamps);
+	}
+
+	dispatcher_.clearSpareTime();
+
+	// 如果空闲时间比例小于0 或者大于1则表明计时不准确
+	if ((spareTime < 0.f) || (1.f < spareTime))
+	{
+		if (g_timingMethod == RDTSC_TIMING_METHOD)
+		{
+			CRITICAL_MSG(fmt::format("EntityApp::handleGameTick: "
+						"Invalid timing result {:.3f}.\n"
+						"Please change the environment variable KBE_TIMING_METHOD to [rdtsc|gettimeofday|gettime](curr = {1})!",
+						spareTime, getTimingMethodName()));
+		}
+		else
+		{
+			CRITICAL_MSG(fmt::format("EntityApp::handleGameTick: Invalid timing result {:.3f}.\n",
+					spareTime));
+		}
+	}
+
+	calcLoad((float)spareTime);
+	onUpdateLoad();
+}
+
+template<class E>
+void EntityApp<E>::calcLoad(float spareTime)
+{
+	// 负载的值为1.0 - 空闲时间比例, 必须在0-1.f之间
+	float load = KBEClamp(1.f - spareTime, 0.f, 1.f);
+
+	// 此处算法看server_operations_guide.pdf介绍loadSmoothingBias处
+	// loadSmoothingBias 决定本次负载取最后一次负载的loadSmoothingBias剩余比例 + 当前负载的loadSmoothingBias比例
+	static float loadSmoothingBias = g_kbeSrvConfig.getConfig().loadSmoothingBias;
+	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
 }
 
 template<class E>

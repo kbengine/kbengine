@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "watch_obj_pools.h"
 #include "cellapp_interface.h"
 #include "entity_remotemethod.h"
+#include "initprogress_handler.h"
 #include "forward_message_over_handler.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -157,6 +158,7 @@ bool Cellapp::initializeWatcher()
 {
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
+	WATCH_OBJECT("load", this, &Cellapp::_getLoad);
 	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Entity>::initializeWatcher() && WatchObjectPool::initWatchPools();
 }
@@ -243,6 +245,7 @@ void Cellapp::handleGameTick()
 {
 	AUTO_SCOPED_PROFILE("gameTick");
 
+	// 一定要在最前面
 	updateLoad();
 
 	EntityApp<Entity>::handleGameTick();
@@ -396,8 +399,18 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::updateLoad()
+void Cellapp::onUpdateLoad()
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if(pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateCellapp);
+		CellappmgrInterface::updateCellappArgs2::staticAddToBundle((*pBundle), 
+			componentID_, getLoad());
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -690,6 +703,8 @@ void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+
+	new InitProgressHandler(this->networkInterface());
 }
 
 //-------------------------------------------------------------------------------------

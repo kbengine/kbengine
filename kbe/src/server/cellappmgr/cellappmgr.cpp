@@ -162,41 +162,23 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 {
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if(components.size() == 0)
-		return 0;
+	std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.begin();
+	COMPONENT_ID cid = 0;
 
-	/*
-	std::tr1::mt19937 engine;
-	std::tr1::uniform_int<int> unif(1, components.size());
-	std::tr1::variate_generator<std::tr1::mt19937, std::tr1::uniform_int<int> > generator (engine, unif);
-	COMPONENT_MAP::iterator iter = components.begin();
-	int index = 0;
-	for(int i=0; i<10; ++i)
-		index = generator();
-	*/
+	float minload = 1.f;
 
-	static size_t index = 0;
-	int count = components.size();
-
-	while(count > 0)
+	for(; iter != cellapps_.end(); ++iter)
 	{
-		if(index >= components.size())
-			index = 0;
-
-		Components::COMPONENTS::iterator iter = components.begin();
-	
-		std::advance(iter, index++);
-		--count;
-
-		//if((*iter).pChannel && (*iter).state == COMPONENT_STATE_RUN)
+		if(!iter->second.isDestroyed() &&
+			iter->second.initProgress() > 1.f && 
+			minload > iter->second.load())
 		{
-			DEBUG_MSG(fmt::format("Cellappmgr::findFreeCellapp: index={0}.\n", (index - 1)));
-			return (*iter).cid;
+			cid = iter->first;
+			minload = iter->second.load();
 		}
 	}
 
-	return 0;
+	return cid;
 }
 
 //-------------------------------------------------------------------------------------
@@ -224,8 +206,6 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 
 	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={0}, entityID={1}, componentID={2}.\n",
 		entityType, id, componentID));
-
-	updateBestCellapp();
 
 	Components::ComponentInfos* cinfos = NULL;
 
@@ -273,8 +253,6 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	DEBUG_MSG(fmt::format("Cellappmgr::reqRestoreSpaceInCell: entityType={0}, entityID={1}, componentID={2}, spaceID={3}.\n",
 		entityType, id, componentID, spaceID));
 
-	updateBestCellapp();
-
 	Components::ComponentInfos* cinfos = NULL;
 
 	if(bestCellappID_ > 0)
@@ -298,7 +276,25 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, float load)
 {
-	// updateBestCellapp();
+	Cellapp& cellapp = cellapps_[componentID];
+	
+	cellapp.load(load);
+
+	updateBestCellapp();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress)
+{
+	if(progress > 1.f)
+	{
+		INFO_MSG(fmt::format("Cellappmgr::onCellappInitProgress: cid={0}, progress={1}.\n",
+			cid , (progress > 1.f ? 1.f : progress)));
+	}
+
+	KBE_ASSERT(cellapps_.find(cid) != cellapps_.end());
+
+	cellapps_[cid].initProgress(progress);
 }
 
 //-------------------------------------------------------------------------------------

@@ -40,6 +40,8 @@
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
 			<item>Baseappmgr::onBaseappInitProgress</item>
+			<item>Cellappmgr::updateCellapp</item>
+			<item>Cellappmgr::onCellappInitProgress</item>
 			<item>Loginapp::onBaseappInitProgress</item>
 			<item>Cellapp::onUpdateDataFromClient</item>
 			<item>Baseapp::onUpdateDataFromClient</item>
@@ -388,6 +390,11 @@
 			<eventprofile> false </eventprofile>
 			<networkprofile> false </networkprofile>
 		</profiles>
+		
+		<!-- 负载平衡滤波器指标值
+			（Load balancing Smoothing Bias value） 
+		-->
+		<loadSmoothingBias> 0.01 </loadSmoothingBias>
 		
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->

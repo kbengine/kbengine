@@ -138,6 +138,9 @@
     <ClCompile Include="witnessed_timeout_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="initprogress_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="all_clients.h">
@@ -258,6 +261,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="witnessed_timeout_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="initprogress_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

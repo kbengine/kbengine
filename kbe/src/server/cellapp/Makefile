@@ -18,6 +18,7 @@ SRCS =						\
 	entity_coordinate_node			\
 	ghost_manager				\
 	history_event				\
+	initprogress_handler			\
 	loadnavmesh_threadtasks			\
 	main					\
 	space					\

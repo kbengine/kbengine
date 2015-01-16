@@ -525,6 +525,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_cellAppInfo.entitydefAliasID = (xml->getValStr(node) == "true");
 		}
 
+		node = xml->enterNode(rootNode, "loadSmoothingBias");
+		if(node != NULL)
+			_cellAppInfo.loadSmoothingBias = float(xml->getValFloat(node));
+
 		node = xml->enterNode(rootNode, "ghostDistance");
 		if(node != NULL){
 			_cellAppInfo.ghostDistance = (float)xml->getValFloat(node);

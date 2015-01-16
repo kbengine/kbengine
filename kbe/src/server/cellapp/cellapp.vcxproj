@@ -131,6 +131,7 @@
     <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c" />
     <ClCompile Include="ghost_manager.cpp" />
     <ClCompile Include="history_event.cpp" />
+    <ClCompile Include="initprogress_handler.cpp" />
     <ClCompile Include="loadnavmesh_threadtasks.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="move_controller.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="forward_message_over_handler.h" />
     <ClInclude Include="ghost_manager.h" />
     <ClInclude Include="history_event.h" />
+    <ClInclude Include="initprogress_handler.h" />
     <ClInclude Include="loadnavmesh_threadtasks.h" />
     <ClInclude Include="move_controller.h" />
     <ClInclude Include="moveto_entity_handler.h" />

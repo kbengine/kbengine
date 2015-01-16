@@ -96,6 +96,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 请求强制杀死当前app
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqKillServer,			NETWORK_VARIABLE_MESSAGE)
 
+	// cellapp同步自己的初始化信息
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onCellappInitProgress,		NETWORK_FIXED_MESSAGE,
+									COMPONENT_ID,				cid,
+									float,						progress)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

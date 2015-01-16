@@ -17,26 +17,30 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "cellapp.h"
+
+#ifndef KBE_CELLAPP_INIT_PROGRESS_HANDLER_H
+#define KBE_CELLAPP_INIT_PROGRESS_HANDLER_H
+
+// common include
+#include "helper/debug_helper.h"
+#include "common/common.h"
 
 namespace KBEngine{
 
-//-------------------------------------------------------------------------------------
-Cellapp::Cellapp():
-numEntities_(0),
-load_(0.f),
-isDestroyed_(false),
-watchers_(),
-spaces_(),
-initProgress_(0.f)
+class InitProgressHandler : public Task
 {
+public:
+	InitProgressHandler(Network::NetworkInterface & networkInterface);
+	~InitProgressHandler();
+	
+	bool process();
+
+private:
+	Network::NetworkInterface & networkInterface_;
+	int delayTicks_;
+};
+
+
 }
 
-//-------------------------------------------------------------------------------------
-Cellapp::~Cellapp()
-{
-}
-
-
-//-------------------------------------------------------------------------------------
-}
+#endif // KBE_CELLAPP_INIT_PROGRESS_HANDLER_H

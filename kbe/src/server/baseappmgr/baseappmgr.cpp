@@ -88,7 +88,6 @@ void Baseappmgr::handleGameTick()
 	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
-	updateBestBaseapp();
 	threadPool_.onMainThreadTick();
 	networkInterface().processAllChannelPackets(&BaseappmgrInterface::messageHandlers);
 }
@@ -193,6 +192,8 @@ void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componen
 	baseapp.load(load);
 	baseapp.numProxices(numProxices);
 	baseapp.numBases(numBases);
+
+	updateBestBaseapp();
 }
 
 //-------------------------------------------------------------------------------------

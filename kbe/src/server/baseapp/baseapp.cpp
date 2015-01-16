@@ -57,8 +57,6 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseapp);
 
-uint64 Baseapp::_g_lastTimestamp = timestamp();
-
 PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
@@ -138,7 +136,6 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
 	pBackuper_(),
-	load_(0.f),
 	numProxices_(0),
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_(),
@@ -269,7 +266,7 @@ bool Baseapp::initializeWatcher()
 
 	WATCH_OBJECT("numProxices", this, &Baseapp::numProxices);
 	WATCH_OBJECT("numClients", this, &Baseapp::numClients);
-	WATCH_OBJECT("load", this, &Baseapp::getLoad);
+	WATCH_OBJECT("load", this, &Baseapp::_getLoad);
 	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Base>::initializeWatcher();
 }
@@ -360,37 +357,22 @@ PyObject* Baseapp::__py_gametime(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_quantumPassedPercent(PyObject* self, PyObject* args)
 {
-	return PyLong_FromLong(quantumPassedPercent());
+	return PyLong_FromLong(Baseapp::getSingleton().tickPassedPercent());
 }
 
 //-------------------------------------------------------------------------------------
-int Baseapp::quantumPassedPercent(uint64 curr)
+void Baseapp::onUpdateLoad()
 {
-	// 得到上一个tick到现在所流逝的时间
-	uint64 pass_stamps = (curr - _g_lastTimestamp) * uint64(1000) / stampsPerSecond();
-
-	// 得到每Hertz的毫秒数
-	static int ms_expected = (1000 / g_kbeSrvConfig.gameUpdateHertz());
-
-	// 得到当前流逝的时间占一个时钟周期的的百分比
-	return int(pass_stamps) * 100 / ms_expected;
-}
-
-//-------------------------------------------------------------------------------------
-uint64 Baseapp::checkTickPeriod()
-{
-	uint64 curr = timestamp();
-	int percent = quantumPassedPercent(curr);
-
-	if (percent > 200)
+	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
+	if(pChannel != NULL)
 	{
-		WARNING_MSG(fmt::format("Baseapp::handleGameTick: tick took {0}% ({1:.2f} seconds)!\n",
-			percent, (float(percent)/1000.f)));
-	}
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
+		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
+			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad());
 
-	uint64 elapsed = curr - _g_lastTimestamp;
-	_g_lastTimestamp = curr;
-	return elapsed;
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -421,60 +403,10 @@ void Baseapp::handleCheckStatusTick()
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::updateLoad()
-{
-	uint64 lastTickInStamps = checkTickPeriod();
-
-	// 获得空闲时间比例
-	double spareTime = 1.0;
-	if (lastTickInStamps != 0)
-	{
-		spareTime = double(dispatcher_.getSpareTime())/double(lastTickInStamps);
-	}
-
-	dispatcher_.clearSpareTime();
-
-	// 如果空闲时间比例小于0 或者大于1则表明计时不准确
-	if ((spareTime < 0.f) || (1.f < spareTime))
-	{
-		if (g_timingMethod == RDTSC_TIMING_METHOD)
-		{
-			CRITICAL_MSG(fmt::format("Baseapp::handleGameTick: "
-				"Invalid timing result {:.3f}.\n"
-				"Please change the environment variable KBE_TIMING_METHOD to [rdtsc|gettimeofday|gettime](curr = {1})!",
-				spareTime, getTimingMethodName()));
-		}
-		else
-		{
-			CRITICAL_MSG(fmt::format("Baseapp::handleGameTick: Invalid timing result {:.3f}.\n",
-				spareTime));
-		}
-	}
-
-	// 负载的值为1.0 - 空闲时间比例, 必须在0-1.f之间
-	float load = KBEClamp(1.f - float(spareTime), 0.f, 1.f);
-
-	// 此处算法看server_operations_guide.pdf介绍loadSmoothingBias处
-	// loadSmoothingBias 决定本次负载取最后一次负载的loadSmoothingBias剩余比例 + 当前负载的loadSmoothingBias比例
-	static float loadSmoothingBias = g_kbeSrvConfig.getBaseApp().loadSmoothingBias;
-	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
-
-	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
-	
-	if(pChannel != NULL)
-	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
-		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), this->getLoad());
-
-		pChannel->send(pBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
 void Baseapp::handleGameTick()
 {
+	AUTO_SCOPED_PROFILE("gameTick");
+
 	// 一定要在最前面
 	updateLoad();
 
@@ -522,8 +454,6 @@ bool Baseapp::initializeEnd()
 	pArchiver_.reset(new Archiver());
 
 	new SyncEntityStreamTemplateHandler(this->networkInterface());
-
-	_g_lastTimestamp = timestamp();
 
 	// 如果需要pyprofile则在此处安装
 	// 结束时卸载并输出结果

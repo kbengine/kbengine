@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+
 class Cellappmgr :	public ServerApp, 
 					public Singleton<Cellappmgr>
 {
@@ -86,6 +87,12 @@ public:
 	*/
 	void updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, float load);
 
+	/** 网络接口
+		cellapp同步自己的初始化信息
+		startGlobalOrder: 全局启动顺序 包括各种不同组件
+		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
+	*/
+	void onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress);
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;

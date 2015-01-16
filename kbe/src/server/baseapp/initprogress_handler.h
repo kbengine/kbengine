@@ -18,18 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_INIT_PROGRESS_HANDLER_H
-#define KBE_INIT_PROGRESS_HANDLER_H
+#ifndef KBE_BASEAPP_INIT_PROGRESS_HANDLER_H
+#define KBE_BASEAPP_INIT_PROGRESS_HANDLER_H
 
 // common include
 #include "helper/debug_helper.h"
 #include "common/common.h"
-// #define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 
 namespace KBEngine{
 
@@ -40,12 +34,13 @@ public:
 	~InitProgressHandler();
 	
 	bool process();
+
 private:
 	Network::NetworkInterface & networkInterface_;
-
+	int delayTicks_;
 };
 
 
 }
 
-#endif // KBE_INIT_PROGRESS_HANDLER_H
+#endif // KBE_BASEAPP_INIT_PROGRESS_HANDLER_H

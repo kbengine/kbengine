@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.h"
+#include "cellapp.h"
 #include "initprogress_handler.h"
 #include "network/bundle.h"
 #include "network/channel.h"
 
-#include "../../server/baseappmgr/baseappmgr_interface.h"
+#include "../../server/cellappmgr/cellappmgr_interface.h"
 
 namespace KBEngine{	
 
@@ -46,7 +46,7 @@ InitProgressHandler::~InitProgressHandler()
 //-------------------------------------------------------------------------------------
 bool InitProgressHandler::process()
 {
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
 	Network::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)
@@ -61,7 +61,7 @@ bool InitProgressHandler::process()
 	if(pChannel == NULL)
 		return true;
 
-	if(Baseapp::getSingleton().idClient().getSize() == 0)
+	if(Cellapp::getSingleton().idClient().getSize() == 0)
 		return true;
 
 	if(delayTicks_++ < 1)
@@ -70,10 +70,10 @@ bool InitProgressHandler::process()
 	float v = 0.0f;
 	bool completed = false;
 
-	if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "onReadyForLogin") > 0)
+	if(PyObject_HasAttrString(Cellapp::getSingleton().getEntryScript().get(), "onReadyForLogin") > 0)
 	{
 		// 所有脚本都加载完毕
-		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
+		PyObject* pyResult = PyObject_CallMethod(Cellapp::getSingleton().getEntryScript().get(), 
 											const_cast<char*>("onReadyForLogin"), 
 											const_cast<char*>("i"), 
 											g_componentGroupOrder);
@@ -119,7 +119,7 @@ bool InitProgressHandler::process()
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-	(*pBundle).newMessage(BaseappmgrInterface::onBaseappInitProgress);
+	(*pBundle).newMessage(CellappmgrInterface::onCellappInitProgress);
 	(*pBundle) << g_componentID << v;
 	pChannel->send(pBundle);
 

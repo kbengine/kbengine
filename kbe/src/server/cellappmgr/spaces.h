@@ -37,7 +37,7 @@ public:
 	~Spaces();
 
 private:
-	std::map<SPACE_ID, Space> spaces_;
+	std::map<SPACE_ID, Space*> spaces_;
 };
 
 }

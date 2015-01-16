@@ -43,6 +43,9 @@ public:
 	
 	void destroy(){ isDestroyed_ = true; }
 	bool isDestroyed()const { return isDestroyed_; }
+
+	float initProgress()const{ return initProgress_; }
+	void initProgress(float v){ initProgress_ = v; }
 protected:
 	ENTITY_ID numEntities_;
 
@@ -53,6 +56,8 @@ protected:
 	Watchers watchers_;
 	
 	Spaces spaces_;
+
+	float initProgress_;
 };
 
 }
