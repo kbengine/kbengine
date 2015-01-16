@@ -159,6 +159,7 @@ bool Cellapp::initializeWatcher()
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
 	WATCH_OBJECT("load", this, &Cellapp::_getLoad);
+	WATCH_OBJECT("spaceSize", &KBEngine::getUsername);
 	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Entity>::initializeWatcher() && WatchObjectPool::initWatchPools();
 }

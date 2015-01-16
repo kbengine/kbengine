@@ -240,6 +240,8 @@ public:
 	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
 	GhostManager* pGhostManager()const{ return pGhostManager_; }
 
+	ArraySize spaceSize()const { return (ArraySize)Spaces::size(); }
+
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

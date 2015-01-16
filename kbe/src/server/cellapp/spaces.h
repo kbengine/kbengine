@@ -63,6 +63,9 @@ public:
 		更新所有的space 
 	*/
 	static void update();
+
+	static size_t size(){ return spaces_.size(); }
+
 protected:
 	static SPACES spaces_;
 };

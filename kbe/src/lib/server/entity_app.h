@@ -1318,7 +1318,7 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 }
 
 template<class E>
-int EntityApp<E>::tickPassedPercent(uint64 curr = timestamp())
+int EntityApp<E>::tickPassedPercent(uint64 curr)
 {
 	// 得到上一个tick到现在所流逝的时间
 	uint64 pass_stamps = (curr - lastTimestamp_) * uint64(1000) / stampsPerSecond();
