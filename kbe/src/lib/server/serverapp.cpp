@@ -322,7 +322,11 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 	}
 	else if(pInfos->componentType == DBMGR_TYPE)
 	{
-		if(g_componentType != MACHINE_TYPE)
+		if(g_componentType != MACHINE_TYPE && 
+			g_componentType != LOGGER_TYPE && 
+			g_componentType != INTERFACES_TYPE &&
+			g_componentType != BOTS_TYPE &&
+			g_componentType != WATCHER_TYPE)
 			this->shutDown(0.f);
 	}
 }
