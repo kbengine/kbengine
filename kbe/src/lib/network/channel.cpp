@@ -442,12 +442,6 @@ void Channel::send(Bundle * pBundle)
 		if(pBundle)
 			Network::Bundle::ObjPool().reclaimObject(pBundle);
 
-		if(pNetworkInterface_->findChannel(this->addr()))
-			pNetworkInterface_->deregisterChannel(this);
-
-		if(!isDestroyed())
-			destroy();
-
 		return;
 	}
 
