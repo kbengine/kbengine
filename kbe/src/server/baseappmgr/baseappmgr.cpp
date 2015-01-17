@@ -237,7 +237,7 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 	{
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
-			(minload > iter->second.load() || minload == iter->second.load() && numEntities > iter->second.numEntities()))
+			(minload > iter->second.load() || (minload == iter->second.load() && numEntities > iter->second.numEntities())))
 		{
 			cid = iter->first;
 
