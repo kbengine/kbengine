@@ -90,9 +90,11 @@ bool ForwardComponent_MessageBuffer::process()
 		}
 		else
 		{
+			int icount = 5;
+
 			std::vector<ForwardItem*>::iterator itervec = iter->second.begin();
 
-			for(; itervec != iter->second.end(); ++itervec)
+			for(; itervec != iter->second.end(); )
 			{
 				cinfos->pChannel->send((*itervec)->pBundle);
 				(*itervec)->pBundle = NULL;
@@ -104,6 +106,11 @@ bool ForwardComponent_MessageBuffer::process()
 				}
 				
 				SAFE_RELEASE((*itervec));
+
+				iter->second.erase(itervec++);
+
+				if(--icount <= 0)
+					return true;
 			}
 			
 			DEBUG_MSG(fmt::format("ForwardComponent_MessageBuffer::process(): size:{}.\n", iter->second.size()));
@@ -181,8 +188,11 @@ bool ForwardAnywhere_MessageBuffer::process()
 		if(!hasEnabled)
 			return true;
 
+		// 最多每个tick处理5个
+		int icount = 5;
+
 		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
-		for(; iter != pBundles_.end(); ++iter)
+		for(; iter != pBundles_.end(); )
 		{
 			Network::Channel* pChannel = NULL;
 			
@@ -220,10 +230,14 @@ bool ForwardAnywhere_MessageBuffer::process()
 			}
 			
 			SAFE_RELEASE((*iter));
+
+			pBundles_.erase(iter++);
+
+			if(--icount <= 0)
+				return true;
 		}
 		
 		DEBUG_MSG(fmt::format("ForwardAnywhere_MessageBuffer::process(): size:{}.\n", pBundles_.size()));
-		pBundles_.clear();
 		start_ = false;
 		return false;
 	}
