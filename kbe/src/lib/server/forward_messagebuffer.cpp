@@ -122,7 +122,7 @@ bool ForwardComponent_MessageBuffer::process()
 				
 				SAFE_RELEASE((*itervec));
 
-				iter->second.erase(itervec++);
+				itervec = iter->second.erase(itervec);
 
 				if(--icount <= 0)
 					return true;
@@ -136,8 +136,6 @@ bool ForwardComponent_MessageBuffer::process()
 
 	return true;
 }
-
-
 
 //-------------------------------------------------------------------------------------
 ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Network::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType) :
@@ -256,7 +254,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 			
 			SAFE_RELEASE((*iter));
 
-			pBundles_.erase(iter++);
+			iter = pBundles_.erase(iter);
 
 			if(--icount <= 0)
 				return true;
