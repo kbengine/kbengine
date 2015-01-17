@@ -237,7 +237,9 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 	{
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
-			(minload > iter->second.load() || (minload == iter->second.load() && numEntities > iter->second.numEntities())))
+			(iter->second.numEntities() == 0 || 
+			minload > iter->second.load() || 
+			(minload == iter->second.load() && numEntities > iter->second.numEntities())))
 		{
 			cid = iter->first;
 
@@ -259,8 +261,15 @@ void Baseappmgr::updateBestBaseapp()
 void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 
-		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+		Components::getSingleton().findComponent(pChannel);
 
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if(cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -291,8 +300,15 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 
-		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+		Components::getSingleton().findComponent(pChannel);
 
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if(cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
