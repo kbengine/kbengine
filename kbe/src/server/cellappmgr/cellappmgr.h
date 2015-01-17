@@ -85,7 +85,7 @@ public:
 	/** 网络接口
 		更新cellapp情况。
 	*/
-	void updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, float load);
+	void updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, ENTITY_ID numEntities, float load);
 
 	/** 网络接口
 		cellapp同步自己的初始化信息
@@ -93,6 +93,10 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress);
+
+	bool componentsReady();
+	bool componentReady(COMPONENT_ID cid);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;

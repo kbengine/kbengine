@@ -85,6 +85,7 @@ void Cellappmgr::onChannelDeregister(Network::Channel * pChannel)
 		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
 		if(cinfo)
 		{
+			cinfo->state = COMPONENT_STATE_STOP;
 			std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cinfo->cid);
 			if(iter != cellapps_.end())
 			{
@@ -110,7 +111,7 @@ void Cellappmgr::updateBestCellapp()
 void Cellappmgr::handleGameTick()
 {
 	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
@@ -166,19 +167,49 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 	COMPONENT_ID cid = 0;
 
 	float minload = 1.f;
+	ENTITY_ID numEntities = 0x7fffffff;
 
 	for(; iter != cellapps_.end(); ++iter)
 	{
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
-			minload > iter->second.load())
+			(minload > iter->second.load() || minload == iter->second.load() && numEntities > iter->second.numEntities()))
 		{
 			cid = iter->first;
+
+			numEntities = iter->second.numEntities();
 			minload = iter->second.load();
 		}
 	}
 
 	return cid;
+}
+
+//-------------------------------------------------------------------------------------
+bool Cellappmgr::componentsReady()
+{
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS::iterator ctiter = cts.begin();
+	for(; ctiter != cts.end(); ++ctiter)
+	{
+		if((*ctiter).pChannel == NULL)
+			return false;
+
+		if((*ctiter).state != COMPONENT_STATE_RUN)
+			return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Cellappmgr::componentReady(COMPONENT_ID cid)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, cid);
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+		return false;
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -207,12 +238,8 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={0}, entityID={1}, componentID={2}.\n",
 		entityType, id, componentID));
 
-	Components::ComponentInfos* cinfos = NULL;
-
-	if(bestCellappID_ > 0)
-		cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
-
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
 		ForwardItem* pFI = new ForwardItem();
@@ -253,12 +280,8 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	DEBUG_MSG(fmt::format("Cellappmgr::reqRestoreSpaceInCell: entityType={0}, entityID={1}, componentID={2}, spaceID={3}.\n",
 		entityType, id, componentID, spaceID));
 
-	Components::ComponentInfos* cinfos = NULL;
-
-	if(bestCellappID_ > 0)
-		cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
-
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqRestoreSpaceInCell: not found cellapp, message is buffered.\n");
 		ForwardItem* pFI = new ForwardItem();
@@ -274,11 +297,12 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, float load)
+void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, ENTITY_ID numEntities, float load)
 {
 	Cellapp& cellapp = cellapps_[componentID];
 	
 	cellapp.load(load);
+	cellapp.numEntities(numEntities);
 
 	updateBestCellapp();
 }
@@ -290,6 +314,10 @@ void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 	{
 		INFO_MSG(fmt::format("Cellappmgr::onCellappInitProgress: cid={0}, progress={1}.\n",
 			cid , (progress > 1.f ? 1.f : progress)));
+
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cid);
+		if(cinfos)
+			cinfos->state = COMPONENT_STATE_RUN;
 	}
 
 	KBE_ASSERT(cellapps_.find(cid) != cellapps_.end());

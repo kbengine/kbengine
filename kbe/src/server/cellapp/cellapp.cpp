@@ -407,8 +407,8 @@ void Cellapp::onUpdateLoad()
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappmgrInterface::updateCellapp);
-		CellappmgrInterface::updateCellappArgs2::staticAddToBundle((*pBundle), 
-			componentID_, getLoad());
+		CellappmgrInterface::updateCellappArgs3::staticAddToBundle((*pBundle), 
+			componentID_, pEntities_->getEntities().size(), getLoad());
 
 		pChannel->send(pBundle);
 	}

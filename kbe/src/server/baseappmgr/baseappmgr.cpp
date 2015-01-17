@@ -85,7 +85,7 @@ void Baseappmgr::handleTimeout(TimerHandle handle, void * arg)
 void Baseappmgr::handleGameTick()
 {
 	 //time_t t = ::time(NULL);
-	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 //DEBUG_MSG("Baseappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
@@ -101,6 +101,7 @@ void Baseappmgr::onChannelDeregister(Network::Channel * pChannel)
 		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
 		if(cinfo)
 		{
+			cinfo->state = COMPONENT_STATE_STOP;
 			std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.find(cinfo->cid);
 			if(iter != baseapps_.end())
 			{
@@ -184,6 +185,33 @@ void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+bool Baseappmgr::componentsReady()
+{
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPP_TYPE);
+	Components::COMPONENTS::iterator ctiter = cts.begin();
+	for(; ctiter != cts.end(); ++ctiter)
+	{
+		if((*ctiter).pChannel == NULL)
+			return false;
+
+		if((*ctiter).state != COMPONENT_STATE_RUN)
+			return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Baseappmgr::componentReady(COMPONENT_ID cid)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
 							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
 {
@@ -203,14 +231,17 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 	COMPONENT_ID cid = 0;
 
 	float minload = 1.f;
+	ENTITY_ID numEntities = 0x7fffffff;
 
 	for(; iter != baseapps_.end(); ++iter)
 	{
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
-			minload > iter->second.load())
+			(minload > iter->second.load() || minload == iter->second.load() && numEntities > iter->second.numEntities()))
 		{
 			cid = iter->first;
+
+			numEntities = iter->second.numEntities();
 			minload = iter->second.load();
 		}
 	}
@@ -230,7 +261,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	Components::ComponentInfos* cinfos = 
 		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
@@ -262,7 +293,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	Components::ComponentInfos* cinfos = 
 		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
@@ -304,10 +335,9 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel,
 	pending_logins_[loginName] = cinfos->cid;
 
 	ENTITY_ID eid = 0;
-	cinfos = 
-		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
@@ -418,7 +448,13 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 	for(; iter1 != baseapps_.end(); ++iter1)
 	{
 		if((*iter1).second.initProgress() > 1.f)
+		{
+			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cid);
+			if(cinfos)
+				cinfos->state = COMPONENT_STATE_RUN;
+
 			completedCount++;
+		}
 	}
 
 	if(completedCount >= baseapps_.size())

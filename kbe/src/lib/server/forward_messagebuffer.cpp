@@ -77,6 +77,13 @@ bool ForwardComponent_MessageBuffer::process()
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 			return true;
 
+		// 如果是mgr类组件需要判断是否已经初始化完成
+		if(g_componentType == CELLAPPMGR_TYPE || g_componentType == BASEAPPMGR_TYPE)
+		{
+			if(cinfos->state != COMPONENT_STATE_RUN)
+				return true;
+		}
+
 		if(iter->second.size() == 0)
 		{
 			pMap_.erase(iter++);
@@ -157,23 +164,54 @@ bool ForwardAnywhere_MessageBuffer::process()
 
 	if(cts.size() > 0)
 	{
-		// 必须所有的组件频道都被设置， 如果不是则等待。
+		bool hasEnabled = (g_componentType != CELLAPPMGR_TYPE && g_componentType != BASEAPPMGR_TYPE);
+
 		Components::COMPONENTS::iterator ctiter = cts.begin();
 		for(; ctiter != cts.end(); ++ctiter)
 		{
+			// 必须所有的组件频道都被设置，如果不是则等待。
 			if((*ctiter).pChannel == NULL)
 				return true;
+
+			if((*ctiter).state == COMPONENT_STATE_RUN)
+				hasEnabled = true;
 		}
+
+		// 必须有可用的进程
+		if(!hasEnabled)
+			return true;
 
 		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
 		for(; iter != pBundles_.end(); ++iter)
 		{
-			cts[idx].pChannel->send((*iter)->pBundle);
-			(*iter)->pBundle = NULL;
+			Network::Channel* pChannel = NULL;
+			
+			if(g_componentType != CELLAPPMGR_TYPE && g_componentType != BASEAPPMGR_TYPE)
+			{
+				pChannel = cts[idx++].pChannel;
+				if(idx >= cts.size())
+					idx = 0;
+			}
+			else
+			{
+				while(pChannel == NULL)
+				{
+					if(cts[idx].state != COMPONENT_STATE_RUN)
+					{
+						if(++idx >= cts.size())
+							idx = 0;
 
-			idx++;
-			if(idx >= cts.size())
-				idx = 0;
+						continue;
+					}
+
+					pChannel = cts[idx++].pChannel;
+					if(idx >= cts.size())
+						idx = 0;
+				}
+			}
+
+			pChannel->send((*iter)->pBundle);
+			(*iter)->pBundle = NULL;
 
 			if((*iter)->pHandler != NULL)
 			{
@@ -189,6 +227,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 		start_ = false;
 		return false;
 	}
+
 	return true;
 }
 

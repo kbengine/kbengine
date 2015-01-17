@@ -119,6 +119,51 @@ namespace KBEngine{
 				NAME##CellappmgrMessagehandler0, MSG_LENGTH)					\
 																				\
 
+
+/**
+	Cellappmgr消息宏，  只有一个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef CELLAPPMGR_MESSAGE_HANDLER_ARGS1
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPPMGR)
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
+	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			KBEngine::Cellappmgr::getSingleton().NAME(pChannel, ARG_NAME1);		\
+	}																			\
+
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
+	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
+	class NAME##CellappmgrMessagehandler1 : public Network::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Network::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define CELLAPPMGR_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)\
+	CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	NETWORK_MESSAGE_DECLARE_ARGS1(Cellappmgr, NAME,								\
+				NAME##CellappmgrMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+																				\
+
+
 /**
 	Cellappmgr消息宏，  只有二个参数的消息
 */
@@ -172,34 +217,46 @@ namespace KBEngine{
 
 
 /**
-	Cellappmgr消息宏，  只有一个参数的消息
+	Cellappmgr消息宏，  只有三个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef CELLAPPMGR_MESSAGE_HANDLER_ARGS1
+	#undef CELLAPPMGR_MESSAGE_HANDLER_ARGS3
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPPMGR)
-#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##CellappmgrMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			KBEngine::Cellappmgr::getSingleton().NAME(pChannel, ARG_NAME1);		\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			KBEngine::Cellappmgr::getSingleton().NAME(pChannel,					\
+				ARG_NAME1, ARG_NAME2,										 	\
+				ARG_NAME3);														\
 	}																			\
 
 #else
-#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	void NAME##CellappmgrMessagehandler1::handle(Network::Channel* pChannel,	\
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##CellappmgrMessagehandler3::handle(Network::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
 		
 #endif
 #else
-#define CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)			\
-	class NAME##CellappmgrMessagehandler1 : public Network::MessageHandler		\
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	class NAME##CellappmgrMessagehandler3 : public Network::MessageHandler		\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -208,12 +265,19 @@ namespace KBEngine{
 
 #endif
 
-#define CELLAPPMGR_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)\
-	CELLAPPMGR_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	NETWORK_MESSAGE_DECLARE_ARGS1(Cellappmgr, NAME,								\
-				NAME##CellappmgrMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
-																				\
-	
+#define CELLAPPMGR_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	CELLAPPMGR_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	NETWORK_MESSAGE_DECLARE_ARGS3(Cellappmgr, NAME,								\
+				NAME##CellappmgrMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+
+
+
 /**
 	Cellappmgr消息宏，  只有四个参数的消息
 */

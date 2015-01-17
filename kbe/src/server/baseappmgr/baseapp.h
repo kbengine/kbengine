@@ -47,6 +47,9 @@ public:
 
 	float initProgress()const{ return initProgress_; }
 	void initProgress(float v){ initProgress_ = v; }
+
+	ENTITY_ID numEntities()const { return numBases_ + numProxices_; }
+
 protected:
 	ENTITY_ID numBases_;
 	ENTITY_ID numProxices_;

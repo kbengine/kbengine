@@ -129,6 +129,10 @@ public:
 	void sendAllocatedBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
 								  const std::string& addr, uint16 port);
+
+	bool componentsReady();
+	bool componentReady(COMPONENT_ID cid);
+
 protected:
 	TimerHandle													gameTimer_;
 
