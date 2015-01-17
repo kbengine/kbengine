@@ -42,6 +42,19 @@ namespace script{
 //-------------------------------------------------------------------------------------
 static PyObject* __py_genUUID64(PyObject *self, void *closure)	
 {
+	static int8 check = -1;
+
+	if(check < 0)
+	{
+		if(g_componentGlobalOrder <= 0 || g_componentGlobalOrder > 65535)
+		{
+			WARNING_MSG(fmt::format("globalOrder({}) is not in the range of 0~65535, genUUID64 is not safe, "
+				"in the multi process may be repeated.\n", g_componentGlobalOrder));
+		}
+
+		check = 1;
+	}
+
 	return PyLong_FromUnsignedLongLong(genUUID64());
 }
 
