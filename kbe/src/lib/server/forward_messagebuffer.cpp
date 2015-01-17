@@ -41,6 +41,21 @@ ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Network::NetworkI
 ForwardComponent_MessageBuffer::~ForwardComponent_MessageBuffer()
 {
 	//dispatcher().cancelTask(this);
+
+	MSGMAP::iterator iter = pMap_.begin();
+	for(; iter != pMap_.end(); ++iter)
+	{
+		std::vector<ForwardItem*>::iterator itervec = iter->second.begin();
+
+		for(; itervec != iter->second.end(); ++itervec)
+		{
+			SAFE_RELEASE((*itervec)->pBundle);
+			SAFE_RELEASE((*itervec)->pHandler);
+			SAFE_RELEASE((*itervec));
+		}
+	}
+
+	pMap_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,6 +133,7 @@ bool ForwardComponent_MessageBuffer::process()
 			++iter;
 		}
 	}
+
 	return true;
 }
 
@@ -137,6 +153,15 @@ ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Network::NetworkInt
 ForwardAnywhere_MessageBuffer::~ForwardAnywhere_MessageBuffer()
 {
 	//dispatcher().cancelTask(this);
+
+	std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
+	for(; iter != pBundles_.end(); )
+	{
+		SAFE_RELEASE((*iter)->pBundle);
+		SAFE_RELEASE((*iter)->pHandler);
+	}
+
+	pBundles_.clear();
 }
 
 //-------------------------------------------------------------------------------------

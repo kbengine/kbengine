@@ -37,6 +37,7 @@ class FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp : public For
 {
 public:
 	FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params);
+	~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp();
 
 	virtual void process();
 private:
@@ -50,6 +51,7 @@ class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp : public For
 public:
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, 
 		ENTITY_ID entityID, MemoryStream* pCellData, bool hasClient, bool inRescore, COMPONENT_ID componentID, SPACE_ID spaceID);
+	~FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp();
 
 	virtual void process();
 private:

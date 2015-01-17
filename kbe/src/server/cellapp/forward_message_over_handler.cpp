@@ -38,6 +38,13 @@ params_(params)
 }
 
 //-------------------------------------------------------------------------------------
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp()
+{
+	if(params_)
+		Py_XDECREF(params_);
+}
+
+//-------------------------------------------------------------------------------------
 void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 {
 	KBE_ASSERT(_e != NULL);
@@ -55,6 +62,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	_e->spaceID(space->id());
 	_e->initializeEntity(params_);
 	Py_XDECREF(params_);
+	params_ = NULL;
 
 	// Ìí¼Óµ½space
 	space->addEntityAndEnterWorld(_e);
@@ -77,12 +85,19 @@ _inRescore(inRescore)
 }
 
 //-------------------------------------------------------------------------------------
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp()
+{
+	SAFE_RELEASE(_pCellData);
+}
+
+//-------------------------------------------------------------------------------------
 void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
 {
 	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, 
 		_pCellData, _hasClient, _inRescore, _componentID, _spaceID);
 
 	MemoryStream::ObjPool().reclaimObject(_pCellData);
+	_pCellData = NULL;
 }
 
 //-------------------------------------------------------------------------------------
