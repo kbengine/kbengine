@@ -82,7 +82,9 @@ bool FixedMessages::loadConfig(std::string fileName)
 
 		FixedMessages::MSGInfo info;
 		info.msgid = xml->getValInt(node);
-		_infomap[xml->getKey(rootNode)] = info;
+		info.msgname = xml->getKey(rootNode);
+
+		_infomap[info.msgname] = info;
 	}
 	XML_FOR_END(rootNode);
 

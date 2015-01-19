@@ -169,7 +169,6 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 			}
 		}
 
-
 		while(true)
 		{
 			if(syncTablesError_)

@@ -355,6 +355,9 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	}
 	catch(...)
 	{
+		ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): is error({}: {})\n lastQuery: {}.\n", 
+			dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
+
 		return false;
 	}
 

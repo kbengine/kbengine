@@ -36,10 +36,15 @@ namespace Network
 class FixedMessages : public Singleton<FixedMessages>
 {
 public:
+
+	// 固定的协议数据结构
 	struct MSGInfo
 	{
 		MessageID msgid;
+		std::string msgname;
+		//std::wstring descr;
 	};
+
 public:
 	FixedMessages();
 	~FixedMessages();
@@ -48,8 +53,10 @@ public:
 
 	FixedMessages::MSGInfo* isFixed(const char* msgName);
 	bool isFixed(MessageID msgid);
+
 public:
 	typedef KBEUnordered_map<std::string, MSGInfo> MSGINFO_MAP;
+
 private:
 	MSGINFO_MAP _infomap;
 	bool _loaded;
