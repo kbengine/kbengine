@@ -82,8 +82,10 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	currMsgLengthPos_(0),
 	packets_(),
 	isTCPPacket_(pt == PROTOCOL_TCP),
+	packetMaxSize_(0),
 	pCurrMsgHandler_(NULL)
 {
+	_calcPacketMaxSize();
 	 newPacket();
 }
 
@@ -117,6 +119,7 @@ Bundle::Bundle(const Bundle& bundle)
 	currMsgLength_ = bundle.currMsgLength_;
 	currMsgHandlerLength_ = bundle.currMsgHandlerLength_;
 	currMsgLengthPos_ = bundle.currMsgLengthPos_;
+	_calcPacketMaxSize();
 }
 
 //-------------------------------------------------------------------------------------
@@ -129,6 +132,24 @@ Bundle::~Bundle()
 void Bundle::onReclaimObject()
 {
 	clear(true);
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::_calcPacketMaxSize()
+{
+	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
+	// 这样我们在加密一个满载包时不需要额外填充字节
+	if(g_channelExternalEncryptType == 1)
+	{
+		packetMaxSize_ = isTCPPacket_ ? (PACKET_MAX_SIZE_TCP - ENCRYPTTION_WASTAGE_SIZE):
+			(PACKET_MAX_SIZE_UDP - ENCRYPTTION_WASTAGE_SIZE);
+
+		packetMaxSize_ -= packetMaxSize_ % KBEngine::KBEBlowfish::BLOCK_SIZE;
+	}
+	else
+	{
+		packetMaxSize_ = isTCPPacket_ ? PACKET_MAX_SIZE_TCP : PACKET_MAX_SIZE_UDP;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -156,20 +177,13 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 		newPacket();
 	}
 
-	int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
-
-	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
-	// 这样我们在加密一个满载包时不需要额外填充字节
-	if(g_channelExternalEncryptType == 1)
-		packetmaxsize -= packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
-
 	int32 totalsize = (int32)pCurrPacket_->length();
 	int32 fwpos = (int32)pCurrPacket_->wpos();
 
 	if(inseparable)
 		fwpos += addsize;
 
-	if(fwpos >= packetmaxsize)
+	if(fwpos >= packetMaxSize_)
 	{
 		packets_.push_back(pCurrPacket_);
 		currMsgPacketCount_++;
@@ -177,7 +191,7 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 		totalsize = 0;
 	}
 
-	int32 remainsize = packetmaxsize - totalsize;
+	int32 remainsize = packetMaxSize_ - totalsize;
 	int32 taddsize = addsize;
 
 	// 如果当前包剩余空间小于要添加的字节则本次填满此包
@@ -229,6 +243,7 @@ void Bundle::clear(bool isRecl)
 	currMsgLengthPos_ = 0;
 	currMsgHandlerLength_ = 0;
 	pCurrMsgHandler_ = NULL;
+	_calcPacketMaxSize();
 }
 
 //-------------------------------------------------------------------------------------

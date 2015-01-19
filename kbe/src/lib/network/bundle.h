@@ -39,9 +39,6 @@ namespace Network
 class NetworkInterface;
 class Channel;
 
-#define PACKET_MAX_CHUNK_SIZE() isTCPPacket_ ? (PACKET_MAX_SIZE_TCP - ENCRYPTTION_WASTAGE_SIZE):			\
-	(PACKET_MAX_SIZE_UDP - ENCRYPTTION_WASTAGE_SIZE);
-
 #define PACKET_OUT_VALUE(v)																					\
 	if(packets_.size() <= 0)																				\
 		return *this;																						\
@@ -109,8 +106,11 @@ public:
 	INLINE MessageID messageID() const { return currMsgID_; }
 
 protected:
+	void _calcPacketMaxSize();
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
+
 	void _debugMessages();
+
 public:
     Bundle &operator<<(uint8 value)
     {
@@ -394,6 +394,7 @@ private:
 	Packets packets_;
 	
 	bool isTCPPacket_;
+	int32 packetMaxSize_;
 
 	const Network::MessageHandler* pCurrMsgHandler_;
 
