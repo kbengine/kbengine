@@ -691,7 +691,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
 	{
-		ERROR_MSG("Components::checkComponentUsable: couldn't create a socket\n");
+		ERROR_MSG("Components::updateComponentInfos: couldn't create a socket\n");
 		return true;
 	}
 	
@@ -715,8 +715,9 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 				break;
 			}
 
-			ERROR_MSG(fmt::format("Components::checkComponentUsable: couldn't connect to:{}\n", 
+			WARNING_MSG(fmt::format("Components::updateComponentInfos: couldn't connect to:{}\n", 
 				info->pIntAddr->c_str()));
+
 			return false;
 		}
 	}
@@ -782,7 +783,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		
 		if(recvsize != len)
 		{
-			ERROR_MSG(fmt::format("Components::checkComponentUsable: packet invalid(recvsize({}) != ctype_cid_len({}).\n" 
+			WARNING_MSG(fmt::format("Components::updateComponentInfos: packet invalid(recvsize({}) != ctype_cid_len({}).\n" 
 				, len, recvsize));
 			
 			if(len == 0)
@@ -805,7 +806,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
-			ERROR_MSG(fmt::format("Components::checkComponentUsable: invalid component(ctype={}, cid={}).\n",
+			WARNING_MSG(fmt::format("Components::updateComponentInfos: invalid component(ctype={}, cid={}).\n",
 				ctype, cid));
 
 			return false;
