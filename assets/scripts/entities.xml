@@ -1,3 +1,6 @@
 <root>
-	<Account/>
+	<!-- http://www.kbengine.org/docs/programming/entitydef.html -->
+	<!-- http://www.kbengine.org/docs/configuration/entities.html -->
+	<!-- <Avatar/> -->
+	<Account hasClient="true"></Account><!-- <Account hasCell="true", hasBase="true", hasClient="true"></Account> -->
 </root>
