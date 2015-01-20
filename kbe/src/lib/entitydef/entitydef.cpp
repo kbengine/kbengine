@@ -613,6 +613,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				{
 					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n",
 						strFlags.c_str(), name.c_str()));
+
 					return false;
 				}
 			}
@@ -644,7 +645,14 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 						return false;
 				}
 				else
+				{
 					dataType = DataTypes::getDataType(strType);
+				}
+
+				if(dataType == NULL)
+				{
+					return false;
+				}
 			}
 
 			TiXmlNode* indexTypeNode = xml->enterNode(defPropertyNode->FirstChild(), "Index");
