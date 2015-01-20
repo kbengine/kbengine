@@ -1162,6 +1162,8 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		if(g_isReload)
 			pyModule = PyImport_ReloadModule(pyModule);
 
+		setScriptModuleHasComponentEntity(scriptModule, pyModule != NULL);
+
 		if (pyModule == NULL)
 		{
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
@@ -1175,11 +1177,8 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			}
 
 			PyErr_Clear();
-			setScriptModuleHasComponentEntity(scriptModule, false);
 			continue;
 		}
-
-		setScriptModuleHasComponentEntity(scriptModule, true);
 
 		PyObject* pyClass = 
 			PyObject_GetAttrString(pyModule, const_cast<char *>(moduleName.c_str()));
