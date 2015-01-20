@@ -128,7 +128,13 @@ def help():
 	OUT_MSG("--------------------------------------------------")
 
 def OUT_MSG(msg):
-	print(msg)
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        if sys.hexversion >= 0x03000000:
+            print(msg.encode('utf8').decode(sys.stdout.encoding))
+        else:
+            print(msg.encode('utf8'))
     
 def INFO_MSG(msg):
 	print(msg)
@@ -1141,7 +1147,13 @@ def get_sources_infos():
 	descrs = descrs.replace("\n", "")
 	descrs = descrs.replace("<p>", "\t- ")
 	descrs = descrs.replace("</p>", "\n")
-
+	
+	descrs = descrs.replace("<ul class=\"task-list\">", "")
+	descrs = descrs.replace("<li>", "\t- ")
+	descrs = descrs.replace("</li>", "\n")
+	descrs = descrs.replace("</ul>", "")
+	descrs.strip()
+	
 	# downloads
 	#print("\ndownloads:")
 	#print("found:" + src_zip_url)
