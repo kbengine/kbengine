@@ -406,12 +406,10 @@ void ScriptDefModule::autoMatchCompOwn()
 		if(assertionHasClient < 0)
 		{
 			// 如果用户不存在明确声明并设置为没有对应实体部分
-			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在客户端属性或者方法)
 			// 但如果脚本不存在仍然认为用户当前不需要该部分
-
-			// 如果client文件夹不存在某个实体模块时，不再强制设置为hasClient=false，如果用户觉得确实不包含该部分，需要通过强制标记来指明。
 			// http://www.kbengine.org/cn/docs/configuration/entities.html 
-			// setClient(false);
+			setClient(false);
 		}
 		else
 		{
