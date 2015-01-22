@@ -138,7 +138,7 @@ void ClientObjectBase::reset(void)
 	connectedGateway_ = false;
 	name_ = "";
 	password_ = "";
-	extradatas_ = "";
+	extradatas_ = "unknown";
 	bufferedCreateEntityMessage_.clear();
 	canReset_ = false;
 	locktime_ = 0;
