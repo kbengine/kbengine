@@ -459,8 +459,8 @@ void Bundle::_debugMessages()
 				
 				if(pPacket->length() >= totallen - pMemoryStream->length())
 				{
-					pPacket->rpos(pPacket->rpos() + totallen);
 					pMemoryStream->append(pPacket->data() + pPacket->rpos(), totallen);
+					pPacket->rpos(pPacket->rpos() + totallen);
 				}
 				else
 				{
