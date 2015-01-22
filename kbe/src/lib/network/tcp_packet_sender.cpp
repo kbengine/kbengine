@@ -105,57 +105,51 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 	Channel::Bundles& bundles = pChannel->bundles();
 	Reason reason = REASON_SUCCESS;
 
-	while(bundles.size() > 0 && reason == REASON_SUCCESS)
+	Channel::Bundles::iterator iter = bundles.begin();
+	for(; iter != bundles.end(); ++iter)
 	{
-		Channel::Bundles::iterator iter = bundles.begin();
-		for(; iter != bundles.end();)
+		Bundle::Packets& pakcets = (*iter)->packets();
+		Bundle::Packets::iterator iter1 = pakcets.begin();
+		for (; iter1 != pakcets.end(); ++iter1)
 		{
-			Bundle::Packets& pakcets = (*iter)->packets();
-			Bundle::Packets::iterator iter1 = pakcets.begin();
-			for (; iter1 != pakcets.end();)
-			{
-				reason = processPacket(pChannel, (*iter1));
-				if(reason != REASON_SUCCESS)
-				{
-					break; 
-				}
-				else
-				{
-					RECLAIM_PACKET((*iter)->isTCPPacket(), (*iter1));
-					iter1 = pakcets.erase(iter1);
-					continue;
-				}
+			reason = processPacket(pChannel, (*iter1));
+			if(reason != REASON_SUCCESS)
+				break; 
+			else
+				RECLAIM_PACKET((*iter)->isTCPPacket(), (*iter1));
+		}
 
-				++iter1;
-			}
+		if(reason == REASON_SUCCESS)
+		{
+			pakcets.clear();
+			Network::Bundle::ObjPool().reclaimObject((*iter));
+		}
+		else
+		{
+			pakcets.erase(pakcets.begin(), iter1);
+			bundles.erase(bundles.begin(), iter);
 
-			if(reason == REASON_SUCCESS)
+			if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
 			{
-				Network::Bundle::ObjPool().reclaimObject((*iter));
-				iter = bundles.erase(iter);
+				WARNING_MSG(fmt::format("TCPPacketSender::processSend: "
+					"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
+					(pChannel->isInternal() ? "internal" : "external")));
 			}
 			else
 			{
-				if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
-				{
-					WARNING_MSG(fmt::format("TCPPacketSender::processSend: "
-						"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
-						(pChannel->isInternal() ? "internal" : "external")));
-				}
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
+
+				if(noticed)
+					onGetError(pChannel);
 				else
-				{
-					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
-
-					if(noticed)
-						onGetError(pChannel);
-					else
-						pChannel->condemn();
-				}
-
-				return false;
+					pChannel->condemn();
 			}
+
+			return false;
 		}
-	};
+	}
+
+	bundles.clear();
 
 	if(noticed)
 		pChannel->onSendCompleted();
