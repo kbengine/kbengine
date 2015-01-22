@@ -129,7 +129,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 			pakcets.erase(pakcets.begin(), iter1);
 			bundles.erase(bundles.begin(), iter);
 
-			if (reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)
+			if (reason == REASON_RESOURCE_UNAVAILABLE)
 			{
 				WARNING_MSG(fmt::format("TCPPacketSender::processSend: "
 					"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
