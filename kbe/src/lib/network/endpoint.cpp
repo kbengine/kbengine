@@ -275,22 +275,19 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	if (spec == NULL || spec[0] == 0) 
 		return -1;
 
-	int netmaskbits = 32;
 	char iftemp[IFNAMSIZ+16];
 
 	strncpy(iftemp, spec, IFNAMSIZ); 
 	iftemp[IFNAMSIZ] = 0;
 	u_int32_t addr = 0;
 
+	// 尝试通过指定接口名称获得地址或尝试将接口名称转换为地址
 	if (this->getInterfaceAddress(iftemp, addr) == 0)
 	{
-		// specified name of interface
 		strncpy(name, iftemp, IFNAMSIZ);
 	}
 	else if (EndPoint::convertAddress(spec, addr) == 0)
 	{
-		// specified ip address
-		netmaskbits = 32; // redundant but instructive
 	}
 	else
 	{
@@ -300,15 +297,13 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 		return -1;
 	}
 
-	// if we haven't set a name yet then we're supposed to
-	// look up the ip address
+	// 如果没有指定接口名，那么查找地址
 	if (name[0] == 0)
 	{
-		int netmaskshift = 32-netmaskbits;
 		u_int32_t netmaskmatch = ntohl(addr);
-
 		std::vector< std::string > interfaceNames;
 
+		// 列举所有网络接口名称
 		struct if_nameindex* pIfInfo = if_nameindex();
 		if (pIfInfo)
 		{
@@ -332,7 +327,7 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 			{
 				u_int32_t htip = ntohl(tip);
 
-				if ((htip >> netmaskshift) == (netmaskmatch >> netmaskshift))
+				if (htip == netmaskmatch)
 				{
 					//DEBUG_MSG("EndPoint::bind(): found a match\n");
 					strncpy(name, currName, IFNAMSIZ);
@@ -348,8 +343,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 			uint8 * qik = (uint8*)&addr;
 			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
 				"No interface matching netmask spec '{}' found "
-				"(evals to {}.{}.{}.{}/{})\n", spec,
-				qik[0], qik[1], qik[2], qik[3], netmaskbits));
+				"(evals to {}.{}.{}.{})\n", spec,
+				qik[0], qik[1], qik[2], qik[3]));
 
 			return -2; // parsing ok, just didn't match
 		}
