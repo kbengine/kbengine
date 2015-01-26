@@ -165,18 +165,11 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	
 	char ifname[IFNAMSIZ];
 	u_int32_t ifaddr = INADDR_ANY;
+
 	bool listeningInterfaceEmpty =
 		(listeningInterface == NULL || listeningInterface[0] == 0);
 
-	if (listeningInterface &&
-		(strcmp(listeningInterface, USE_KBEMACHINED) == 0))
-	{
-		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Querying KBEMachined for interface\n", pEndPointName));
-		
-		// 没有实现, 向KBEMachined查询接口
-	}
-	else if (pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
+	if(pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
 	{
 		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
 				"Creating on interface '{}' (= {})\n",
