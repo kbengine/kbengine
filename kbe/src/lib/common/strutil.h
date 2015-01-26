@@ -31,7 +31,7 @@ namespace KBEngine{
 /*---------------------------------------------------------------------------------
 	跨平台接口定义
 ---------------------------------------------------------------------------------*/
-#if defined( unix ) || defined( PLAYSTATION3 )
+#if defined( unix )
 
 #define kbe_isnan isnan
 #define kbe_isinf isinf

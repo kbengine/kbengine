@@ -217,15 +217,6 @@ static uint64 calcStampsPerSecond()
 #endif // unix
 
 
-#if defined( PLAYSTATION3 )
-
-static uint64 calcStampsPerSecond()
-{
-	return sys_time_get_timebase_frequency();
-}
-
-#endif // PLAYSTATION3
-
 /**
  *	每秒cpu所耗时间
  */

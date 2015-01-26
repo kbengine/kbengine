@@ -126,9 +126,6 @@ INLINE int EndPoint::setnonblocking(bool nonblocking)
 #ifdef unix
 	int val = nonblocking ? O_NONBLOCK : 0;
 	return ::fcntl(socket_, F_SETFL, val);
-#elif defined(PLAYSTATION3)
-	int val = nonblocking ? 1 : 0;
-	return setsockopt(socket_, SOL_SOCKET, SO_NBIO, &val, sizeof(int));
 #else
 	u_long val = nonblocking ? 1 : 0;
 	return ::ioctlsocket(socket_, FIONBIO, &val);
@@ -220,22 +217,15 @@ INLINE int EndPoint::close()
 
 #ifdef unix
 	int ret = ::close(socket_);
-#elif defined(PLAYSTATION3)
-	int ret = ::socketclose(socket_);
 #else
 	int ret = ::closesocket(socket_);
 #endif
+
 	if (ret == 0)
 	{
 		this->setFileDescriptor(-1);
 	}
-	return ret;
-}
 
-INLINE int EndPoint::detach()
-{
-	int ret = socket_;
-	this->setFileDescriptor(-1);
 	return ret;
 }
 
@@ -387,7 +377,8 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
 	int ret = ::accept(socket_, (sockaddr*)&sin, &sinLen);
-#if defined(unix) || defined(PLAYSTATION3)
+
+#if defined(unix)
 	if (ret < 0) return NULL;
 #else
 	if (ret == INVALID_SOCKET) return NULL;
@@ -491,18 +482,10 @@ INLINE int EndPoint::getInterfaceFlags(char * name, int & flags)
 
 INLINE int EndPoint::getInterfaceAddress(const char * name, u_int32_t & address)
 {
-	if (!strcmp(name,"eth0"))
+	if (!strcmp(name, "eth0"))
 	{
-#if defined(PLAYSTATION3)
-		CellNetCtlInfo netInfo;
-		int ret = cellNetCtlGetInfo(CELL_NET_CTL_INFO_IP_ADDRESS, &netInfo);
-		MF_ASSERT(ret == 0);
-		int ip0, ip1, ip2, ip3;
-		sscanf(netInfo.ip_address, "%d.%d.%d.%d", &ip0, &ip1, &ip2, &ip3);
-		address = (ip0 << 24) | (ip1 << 16) | (ip2 << 8) | (ip3 << 0);
-#else
 		char	myname[256];
-		::gethostname(myname,sizeof(myname));
+		::gethostname(myname, sizeof(myname));
 
 		struct hostent * myhost = gethostbyname(myname);
 		if (!myhost)
@@ -511,10 +494,9 @@ INLINE int EndPoint::getInterfaceAddress(const char * name, u_int32_t & address)
 		}
 
 		address = ((struct in_addr*)(myhost->h_addr_list[0]))->s_addr;
-#endif
 		return 0;
 	}
-	else if (!strcmp(name,"lo"))
+	else if (!strcmp(name, "lo"))
 	{
 		address = htonl(0x7F000001);
 		return 0;

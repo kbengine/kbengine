@@ -416,7 +416,7 @@ void DebugHelper::pNetworkInterface(Network::NetworkInterface* networkInterface)
 //-------------------------------------------------------------------------------------
 void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 {
-#if !defined( _WIN32 ) && !defined( PLAYSTATION3 )
+#if !defined( _WIN32 )
 	if (g_shouldWriteToSyslog)
 	{
 		int lid = LOG_INFO;

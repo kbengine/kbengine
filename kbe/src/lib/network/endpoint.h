@@ -66,7 +66,6 @@ public:
 	int quitMulticastGroup(u_int32_t networkAddr);
 	
 	INLINE int close();
-	INLINE int detach();
 	
 	int setnonblocking(bool nonblocking);
 	int setbroadcast(bool broadcast);

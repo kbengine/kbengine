@@ -120,14 +120,12 @@ void NetworkInterface::closeSocket()
 	{
 		this->dispatcher().deregisterReadFileDescriptor(extEndpoint_);
 		extEndpoint_.close();
-		extEndpoint_.detach();
 	}
 
 	if (intEndpoint_.good())
 	{
 		this->dispatcher().deregisterReadFileDescriptor(intEndpoint_);
 		intEndpoint_.close();
-		intEndpoint_.detach();
 	}
 }
 
@@ -142,7 +140,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		this->dispatcher().deregisterReadFileDescriptor(*pEP);
 		pEP->close();
-		pEP->detach();
 	}
 
 	Address address;
@@ -232,7 +229,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEndPointName, inet_ntoa((struct in_addr&)ifaddr), ntohs(listeningPort), kbe_strerror()));
 		
 		pEP->close();
-		pEP->detach();
 		return false;
 	}
 
@@ -249,7 +245,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 				"Couldn't determine ip addr of default interface\n", pEndPointName));
 
 			pEP->close();
-			pEP->detach();
 			return false;
 		}
 
@@ -293,7 +288,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEndPointName, address.c_str(), kbe_strerror()));
 
 		pEP->close();
-		pEP->detach();
 		return false;
 	}
 	

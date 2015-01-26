@@ -120,15 +120,6 @@ inline uint64 timestamp()
 
 #endif // KBE_USE_RDTSC
 
-#elif defined( PLAYSTATION3 )
-
-inline uint64 timestamp()
-{
-	uint64 ts;
-	SYS_TIMEBASE_GET( ts );
-	return ts;
-}
-
 #else
 	#error Unsupported platform!
 #endif

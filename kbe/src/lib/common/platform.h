@@ -95,11 +95,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <linux/errqueue.h>
 #endif
 
-#if !defined( PLAYSTATION3 )
 #include <signal.h>
-#endif
 
-#if !defined( _WIN32 ) && !defined( PLAYSTATION3 )
+#if !defined( _WIN32 )
 # include <pwd.h>
 #else
 #define SIGHUP	1

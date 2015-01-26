@@ -169,12 +169,6 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)
 	{
-#if defined(PLAYSTATION3)
-		this->dispatcher().errorReporter().reportException(
-				REASON_NO_SUCH_PORT);
-
-		return RECV_STATE_CONTINUE;
-#else
 		Network::Address offender;
 
 		if (pEndpoint_->getClosedPort(offender))
@@ -198,7 +192,6 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 			WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
 				"getClosedPort() failed\n");
 		}
-#endif
 	}
 #else
 	if (wsaErr == WSAECONNRESET)

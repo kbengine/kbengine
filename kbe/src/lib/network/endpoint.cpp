@@ -270,38 +270,19 @@ int EndPoint::findDefaultInterface(char * name)
 //-------------------------------------------------------------------------------------
 int EndPoint::findIndicatedInterface(const char * spec, char * name)
 {
-	// start with it cleared
 	name[0] = 0;
 
-	// make sure there's something there
-	if (spec == NULL || spec[0] == 0) return -1;
+	if (spec == NULL || spec[0] == 0) 
+		return -1;
 
-	// set up some working vars
-	char * slash;
 	int netmaskbits = 32;
 	char iftemp[IFNAMSIZ+16];
-	strncpy(iftemp, spec, IFNAMSIZ); iftemp[IFNAMSIZ] = 0;
+
+	strncpy(iftemp, spec, IFNAMSIZ); 
+	iftemp[IFNAMSIZ] = 0;
 	u_int32_t addr = 0;
 
-	// see if it's a netmask
-	if ((slash = const_cast< char * >(strchr(spec, '/'))) && slash-spec <= 16)
-	{
-		// specified a netmask
-		KBE_ASSERT(IFNAMSIZ >= 16);
-		iftemp[slash-spec] = 0;
-		bool ok = EndPoint::convertAddress(iftemp, addr) == 0;
-
-		netmaskbits = atoi(slash+1);
-		ok &= netmaskbits > 0 && netmaskbits <= 32;
-
-		if (!ok)
-		{
-			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
-				"netmask match {} length {} is not valid.\n", iftemp, (slash+1)));
-			return -1;
-		}
-	}
-	else if (this->getInterfaceAddress(iftemp, addr) == 0)
+	if (this->getInterfaceAddress(iftemp, addr) == 0)
 	{
 		// specified name of interface
 		strncpy(name, iftemp, IFNAMSIZ);
@@ -315,6 +296,7 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	{
 		ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
 			"No interface matching interface spec '{}' found\n", spec));
+
 		return -1;
 	}
 
@@ -381,11 +363,11 @@ int EndPoint::convertAddress(const char * string, u_int32_t & address)
 {
 	u_int32_t	trial;
 
-	#ifdef unix
+#ifdef unix
 	if (inet_aton(string, (struct in_addr*)&trial) != 0)
-	#else
+#else
 	if ((trial = inet_addr(string)) != INADDR_NONE)
-	#endif
+#endif
 		{
 			address = trial;
 			return 0;

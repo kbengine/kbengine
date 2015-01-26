@@ -129,7 +129,6 @@ bool TelnetServer::stop()
 {
 	pDispatcher_->deregisterReadFileDescriptor(listener_);
 	listener_.close();
-	listener_.detach();
 	return true;
 }
 
@@ -148,8 +147,6 @@ void TelnetServer::closeHandler(int fd, TelnetHandler* pTelnetHandler)
 
 #ifdef unix
 	::close(fd);
-#elif defined(PLAYSTATION3)
-	::socketclose(fd);
 #else
 	::closesocket(fd);
 #endif
