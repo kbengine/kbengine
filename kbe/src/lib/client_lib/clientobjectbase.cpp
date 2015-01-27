@@ -134,7 +134,8 @@ void ClientObjectBase::reset(void)
 	dbid_ = 0;
 	ip_ = "";
 	port_ = 0;
-	lastSentActiveTickTime_ = 0;
+	lastSentActiveTickTime_ = timestamp();
+	lastSentUpdateDataTime_ = timestamp();
 	connectedGateway_ = false;
 	name_ = "";
 	password_ = "";
@@ -469,6 +470,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 
 	password_ = passwd;
 	name_ = accountName;
+	lastSentActiveTickTime_ = timestamp();
 	return pServerChannel_;
 }
 
@@ -505,6 +507,8 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	pEndpoint->setnodelay(true);
 
 	connectedGateway_ = true;
+	lastSentActiveTickTime_ = timestamp();
+	lastSentUpdateDataTime_ = timestamp();
 	return pServerChannel_;
 }
 
