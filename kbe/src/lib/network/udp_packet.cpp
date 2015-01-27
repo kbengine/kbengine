@@ -88,7 +88,9 @@ int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	int len = ep.recvfrom(data() + wpos(), size() - wpos(),
 		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
 
-	wpos(wpos() + len);
+	if(len > 0)
+		wpos(wpos() + len);
+
 	return len;
 }
 
