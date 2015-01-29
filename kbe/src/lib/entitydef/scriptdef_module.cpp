@@ -437,8 +437,9 @@ void ScriptDefModule::autoMatchCompOwn()
 		if(assertionHasBase < 0)
 		{
 			// 如果用户不存在明确声明并设置为没有对应实体部分
-			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在base属性或者方法)
 			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
 			setBase(false);
 		}
 		else
@@ -460,8 +461,9 @@ void ScriptDefModule::autoMatchCompOwn()
 		if(assertionHasCell < 0)
 		{
 			// 如果用户不存在明确声明并设置为没有对应实体部分
-			// 这样做的原因是允许用户在def文件定义这部分的内容
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在cell属性或者方法)
 			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
 			setCell(false);
 		}
 		else
