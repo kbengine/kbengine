@@ -147,7 +147,7 @@ void Base::onDestroy(bool callScript)
 
 	if(this->hasDB())
 	{
-		onCellWriteToDBCompleted(0);
+		onCellWriteToDBCompleted(0, -1);
 	}
 	
 	eraseEntityLog();
@@ -920,13 +920,17 @@ void Base::onBackup()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::writeToDB(void* data)
+void Base::writeToDB(void* data, void* extra)
 {
 	PyObject* pyCallback = NULL;
-	
+	int8 shouldAutoLoad = -1;
+
 	// data 是有可能会NULL的， 比如定时存档是不需要回调函数的
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
+
+	if(extra != NULL)
+		shouldAutoLoad = (*static_cast<int*>(extra)) ? 1 : 0;
 
 	if(isArchiveing_)
 	{
@@ -965,7 +969,7 @@ void Base::writeToDB(void* data)
 	// 写入数据库的是该entity的初始值， 并不影响
 	if(this->cellMailbox() == NULL) 
 	{
-		onCellWriteToDBCompleted(callbackID);
+		onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
 	}
 	else
 	{
@@ -973,6 +977,7 @@ void Base::writeToDB(void* data)
 		(*pBundle).newMessage(CellappInterface::reqWriteToDBFromBaseapp);
 		(*pBundle) << this->id();
 		(*pBundle) << callbackID;
+		(*pBundle) << shouldAutoLoad;
 		sendToCellapp(pBundle);
 	}
 }
@@ -981,6 +986,7 @@ void Base::writeToDB(void* data)
 void Base::onWriteToDBCallback(ENTITY_ID eid, 
 								DBID entityDBID, 
 								CALLBACK_ID callbackID, 
+								int8 shouldAutoLoad,
 								bool success)
 {
 	isArchiveing_ = false;
@@ -1024,7 +1030,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
+void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -1062,6 +1068,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	(*pBundle) << this->dbid();
 	(*pBundle) << this->scriptModule()->getUType();
 	(*pBundle) << callbackID;
+	(*pBundle) << shouldAutoLoad;
 
 	// 记录登录地址
 	if(this->dbid() == 0)

@@ -240,7 +240,7 @@ public:
 	/**
 		更新表
 	*/
-	virtual DBID writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual DBID writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity
@@ -252,7 +252,13 @@ public:
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
+	/**
+		设置是否自动加载
+	*/
+	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad){};
+
 	bool hasSync()const { return sync_; }
+
 protected:
 
 	// 表名称
@@ -297,7 +303,7 @@ public:
 	/**
 		写entity到数据库
 	*/
-	DBID writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeEntity(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity

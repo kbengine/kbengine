@@ -157,6 +157,7 @@ protected:
 	DBID entityDBID_;
 	ENTITY_SCRIPT_UID sid_;
 	CALLBACK_ID callbackID_;
+	int8 shouldAutoLoad_;
 	bool success_;
 };
 

@@ -3136,9 +3136,11 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 
 	ENTITY_ID baseID = 0;
 	CALLBACK_ID callbackID = 0;
+	int8 shouldAutoLoad = -1;
 
 	s >> baseID;
 	s >> callbackID;
+	s >> shouldAutoLoad;
 
 	Base* base = this->findEntity(baseID);
 
@@ -3148,7 +3150,7 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 		INFO_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: {}({}).\n",
 			base->scriptName(), baseID));
 
-		base->onCellWriteToDBCompleted(callbackID);
+		base->onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
 	}
 	else
 	{
@@ -3180,7 +3182,7 @@ void Baseapp::onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid,
 		return;
 	}
 
-	base->onWriteToDBCallback(eid, entityDBID, callbackID, success);
+	base->onWriteToDBCallback(eid, entityDBID, callbackID, -1, success);
 }
 
 //-------------------------------------------------------------------------------------

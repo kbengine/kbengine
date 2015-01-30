@@ -767,13 +767,17 @@ void Entity::backupCellData()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(void* data)
+void Entity::writeToDB(void* data, void* extra)
 {
 	CALLBACK_ID* pCallbackID = static_cast<CALLBACK_ID*>(data);
 	CALLBACK_ID callbackID = 0;
 
 	if(pCallbackID)
 		callbackID = *pCallbackID;
+
+	int8 shouldAutoLoad = -1;
+	if(extra)
+		shouldAutoLoad = *static_cast<int8*>(extra);
 
 	onWriteToDB();
 	backupCellData();
@@ -782,6 +786,7 @@ void Entity::writeToDB(void* data)
 	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
+	(*pBundle) << shouldAutoLoad;
 
 	if(this->baseMailbox())
 	{

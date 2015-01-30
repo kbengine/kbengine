@@ -518,7 +518,7 @@ public:
 	*/
 	virtual EntityTableItem* createItem(std::string type);
 
-	DBID writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity
@@ -529,6 +529,11 @@ public:
 		获取所有的数据放到流中
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		设置是否自动加载
+	*/
+	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad);
 
 	/**
 		获取某个表所有的数据放到流中

@@ -540,7 +540,19 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+void EntityTableMysql::entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad)
+{
+	if(dbid == 0)
+		return;
+
+	std::string sql = fmt::format("update "ENTITY_TABLE_PERFIX"_{} set "TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR"={} where id={};", 
+		tableName(), (shouldAutoLoad ? 1 : 0), dbid);
+
+	dbi->query(sql, false);
+}
+
+//-------------------------------------------------------------------------------------
+DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	DBContext context;
 	context.parentTableName = "";
@@ -574,6 +586,10 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 	// 如果dbid为0则存储失败返回
 	if(dbid <= 0)
 		return dbid;
+
+	// 设置实体是否自动加载
+	if(shouldAutoLoad > -1)
+		entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
 
 	return dbid;
 }

@@ -51,7 +51,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	while(s->length() > 0)
 	{
@@ -66,8 +66,18 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 		}
 
 		if(!pTableItem->writeItem(dbi, dbid, s, pModule))
+		{
+			// 设置实体是否自动加载
+			if(shouldAutoLoad > -1)
+				entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
+
 			return dbid;
+		}
 	};
+
+	// 设置实体是否自动加载
+	if(shouldAutoLoad > -1)
+		entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
 
 	return dbid;
 }
@@ -270,12 +280,12 @@ EntityTable* EntityTables::findKBETable(std::string name)
 };
 
 //-------------------------------------------------------------------------------------
-DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->writeTable(dbi, dbid, s, pModule);
+	return pTable->writeTable(dbi, dbid, shouldAutoLoad, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

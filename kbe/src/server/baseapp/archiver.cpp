@@ -73,7 +73,7 @@ void Archiver::tick()
 //-------------------------------------------------------------------------------------
 void Archiver::archive(Base& base)
 {
-	base.writeToDB(NULL);
+	base.writeToDB(NULL, NULL);
 
 	if(base.shouldAutoArchive() == KBE_NEXT_ONLY)
 		base.shouldAutoArchive(0);

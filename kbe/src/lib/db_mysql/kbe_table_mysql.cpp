@@ -633,7 +633,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	// 防止多线程问题， 这里做一个拷贝。
 	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-	info.dbid = EntityTables::getSingleton().writeEntity(dbi, 0, 
+	info.dbid = EntityTables::getSingleton().writeEntity(dbi, 0, -1,
 			&copyAccountDefMemoryStream, pModule);
 
 	KBE_ASSERT(info.dbid > 0);

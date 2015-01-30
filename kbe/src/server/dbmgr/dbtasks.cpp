@@ -285,6 +285,7 @@ eid_(eid),
 entityDBID_(entityDBID),
 sid_(0),
 callbackID_(0),
+shouldAutoLoad_(-1),
 success_(false)
 {
 }
@@ -297,7 +298,7 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskWriteEntity::db_thread_process()
 {
-	(*pDatas_) >> sid_ >> callbackID_;
+	(*pDatas_) >> sid_ >> callbackID_ >> shouldAutoLoad_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	bool writeEntityLog = (entityDBID_ == 0);
@@ -310,7 +311,7 @@ bool DBTaskWriteEntity::db_thread_process()
 		(*pDatas_) >> ip >> port;
 	}
 
-	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);
+	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, shouldAutoLoad_, pDatas_, pModule);
 	success_ = entityDBID_ > 0;
 
 	if(writeEntityLog && success_)
@@ -611,7 +612,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 		// 防止多线程问题， 这里做一个拷贝。
 		MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-		entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, 
+		entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, -1,
 				&copyAccountDefMemoryStream, pModule);
 	}
 

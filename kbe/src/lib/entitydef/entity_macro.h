@@ -646,7 +646,7 @@ public:																										\
 		CLASS* pobj = static_cast<CLASS*>(self);															\
 																											\
 		if((g_componentType == CELLAPP_TYPE && currargsSize > 0) ||											\
-			(g_componentType == BASEAPP_TYPE && currargsSize > 1))											\
+			(g_componentType == BASEAPP_TYPE && currargsSize > 2))											\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
 							"%s: args max require %d args, gived %d! is script[%s].\n",						\
@@ -667,6 +667,8 @@ public:																										\
 			}																								\
 		}																									\
 																											\
+		int extra = 0;																						\
+																											\
 		if(currargsSize == 1)																				\
 		{																									\
 			if(PyArg_ParseTuple(args, "O", &pycallback) == -1)												\
@@ -679,17 +681,48 @@ public:																										\
 																											\
 			if(!PyCallable_Check(pycallback))																\
 			{																								\
-				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");				\
+				if(pycallback != Py_None)																	\
+				{																							\
+					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");			\
+					PyErr_PrintEx(0);																		\
+					S_Return;																				\
+				}																							\
+				else																						\
+				{																							\
+					pycallback = NULL;																		\
+				}																							\
+			}																								\
+		}																									\
+		else if(currargsSize == 2)																			\
+		{																									\
+			if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)									\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");					\
 				PyErr_PrintEx(0);																			\
+				pycallback = NULL;																			\
 				S_Return;																					\
+			}																								\
+																											\
+			if(!PyCallable_Check(pycallback))																\
+			{																								\
+				if(pycallback != Py_None)																	\
+				{																							\
+					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");			\
+					PyErr_PrintEx(0);																		\
+					S_Return;																				\
+				}																							\
+				else																						\
+				{																							\
+					pycallback = NULL;																		\
+				}																							\
 			}																								\
 		}																									\
 																											\
-		pobj->writeToDB(pycallback);																		\
+		pobj->writeToDB(pycallback, (void*)&extra);															\
 		S_Return;																							\
 	}																										\
 																											\
-	void writeToDB(void* data);																				\
+	void writeToDB(void* data, void* extra);																\
 																											\
 	void destroy(bool callScript = true)																	\
 	{																										\

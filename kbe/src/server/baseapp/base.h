@@ -149,9 +149,9 @@ public:
 		将要保存到数据库之前的通知 
 	*/
 	void onWriteToDB();
-	void onCellWriteToDBCompleted(CALLBACK_ID callbackID);
+	void onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad);
 	void onWriteToDBCallback(ENTITY_ID eid, DBID entityDBID, 
-		CALLBACK_ID callbackID, bool success);
+		CALLBACK_ID callbackID, int8 shouldAutoLoad, bool success);
 
 	/** 网络接口
 		entity第一次写数据库由dbmgr返回的dbid

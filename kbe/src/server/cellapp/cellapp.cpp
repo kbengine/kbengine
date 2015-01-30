@@ -672,9 +672,11 @@ void Cellapp::reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::Memo
 {
 	ENTITY_ID entityID = 0;
 	CALLBACK_ID callbackID = 0;
+	int8 shouldAutoLoad = -1;
 
 	s >> entityID;
 	s >> callbackID;
+	s >> shouldAutoLoad;
 
 	Entity* e = this->findEntity(entityID);
 	if(!e)
@@ -683,7 +685,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::Memo
 		return;
 	}
 
-	e->writeToDB(&callbackID);
+	e->writeToDB(&callbackID, &shouldAutoLoad);
 }
 
 //-------------------------------------------------------------------------------------
