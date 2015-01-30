@@ -46,15 +46,18 @@ bool sync_item_to_db(DBInterface* dbi,
 					 unsigned int itemflags, 
 					 void* pData)	
 {
-	DBInterfaceMysql::TABLE_FIELDS* pTFData = static_cast<DBInterfaceMysql::TABLE_FIELDS*>(pData);
-	DBInterfaceMysql::TABLE_FIELDS::iterator iter = pTFData->find(itemname);
-	if(iter != pTFData->end())
+	if(pData)
 	{
-		TABLE_FIELD& tf = iter->second;
-		if(tf.type == sqlitemtype && ((tf.flags & itemflags) == itemflags))
+		DBInterfaceMysql::TABLE_FIELDS* pTFData = static_cast<DBInterfaceMysql::TABLE_FIELDS*>(pData);
+		DBInterfaceMysql::TABLE_FIELDS::iterator iter = pTFData->find(itemname);
+		if(iter != pTFData->end())
 		{
-			if((length == 0) || (int32)length == tf.length)
-				return true;
+			TABLE_FIELD& tf = iter->second;
+			if(tf.type == sqlitemtype && ((tf.flags & itemflags) == itemflags))
+			{
+				if((length == 0) || (int32)length == tf.length)
+					return true;
+			}
 		}
 	}
 
@@ -364,6 +367,9 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	DBInterfaceMysql::TABLE_FIELDS outs;
 	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
 
+	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR, 0, 
+			FIELD_TYPE_TINY, NOT_NULL_FLAG, NULL);
+
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); ++iter)
 	{
@@ -384,7 +390,9 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	{
 		std::string tname = (*iter0);
 		
-		if(tname == "id" || tname == TABLE_PARENTID_CONST_STR)
+		if(tname == TABLE_ID_CONST_STR || 
+			tname == TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR || 
+			tname == TABLE_PARENTID_CONST_STR)
 		{
 			continue;
 		}

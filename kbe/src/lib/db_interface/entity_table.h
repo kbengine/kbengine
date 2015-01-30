@@ -56,6 +56,7 @@ class MemoryStream;
 #define TABLE_ITEM_PERFIX						"sm"
 #define TABLE_ARRAY_ITEM_VALUE_CONST_STR		"value"
 #define TABLE_ARRAY_ITEM_VALUES_CONST_STR		"values"
+#define TABLE_AUTOLOAD_CONST_STR				"autoLoad"
 
 /**
 	db±í²Ù×÷
