@@ -368,7 +368,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
 
 	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR, 0, 
-			FIELD_TYPE_TINY, NOT_NULL_FLAG, NULL);
+			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs);
 
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); ++iter)
