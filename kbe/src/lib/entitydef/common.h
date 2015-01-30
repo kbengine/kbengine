@@ -134,6 +134,39 @@ enum ENTITY_BASE_PROPERTY_ALIASID
 	ENTITY_BASE_PROPERTY_ALIASID_MAX						= 3,
 };
 
+// 被限制的系统属性，def中不允许定义
+const char ENTITY_LIMITED_PROPERTYS[][32] =
+{
+	"id",
+	"position",
+	"direction",
+	"spaceID",
+	"autoLoad",
+	"cell",
+	"base",
+	"client",
+	"cell",
+	"className",
+	"databaseID",
+	"isDestroyed",
+	"shouldAutoArchive",
+	"shouldAutoBackup",
+	"__ACCOUNT_NAME__",
+	"__ACCOUNT_PASSWORD__",
+	"clientAddr",
+	"entitiesEnabled",
+	"hasClient",
+	"roundTripTime",
+	"timeSinceHeardFromClient",
+	"allClients",
+	"hasWitness",
+	"isWitnessed",
+	"otherClients",
+	"topSpeed",
+	"topSpeedY",
+	"",
+};
+
 }
 #endif // KBENGINE_DEF_COMMON_H
 

@@ -144,6 +144,11 @@ public:
 		const std::string& moduleName);
 	
 	/** 
+		检查脚本模块中被定义的属性是否合法 
+	*/
+	static bool validDefPropertyName(ScriptDefModule* scriptModule, const std::string& name);
+
+	/** 
 		通过标记来寻找到对应的脚本模块对象 
 	*/
 	static ScriptDefModule* findScriptModule(ENTITY_SCRIPT_UID utype);

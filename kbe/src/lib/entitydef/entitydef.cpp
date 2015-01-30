@@ -552,6 +552,26 @@ bool EntityDef::loadAllDefDescriptions(const std::string& moduleName,
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityDef::validDefPropertyName(ScriptDefModule* scriptModule, const std::string& name)
+{
+	int i = 0;
+	while(true)
+	{
+		std::string limited = ENTITY_LIMITED_PROPERTYS[i];
+
+		if(limited == "")
+			break;
+
+		if(name == limited)
+			return false;
+
+		++i;
+	};
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityDef::loadDefPropertys(const std::string& moduleName, 
 								 XML* xml, 
 								 TiXmlNode* defPropertyNode, 
@@ -581,6 +601,14 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			std::string					name = "";
 
 			name = xml->getKey(defPropertyNode);
+			if(!validDefPropertyName(scriptModule, name))
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: '{}' is limited, in module({}).\n", 
+					name, moduleName));
+
+				return false;
+			}
+
 			TiXmlNode* flagsNode = xml->enterNode(defPropertyNode->FirstChild(), "Flags");
 			if(flagsNode)
 			{
@@ -591,7 +619,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				if(iter == g_entityFlagMapping.end())
 				{
 					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n", 
-						strFlags.c_str(), name.c_str()));
+						strFlags, name));
 
 					return false;
 				}
