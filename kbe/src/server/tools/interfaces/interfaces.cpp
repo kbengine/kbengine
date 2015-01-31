@@ -176,7 +176,6 @@ bool Interfaces::inInitialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
-	this->dispatcher().addTask(&Components::getSingleton());
 	return true;
 }
 
