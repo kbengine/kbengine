@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+class EntityAutoLoader;
 class InitProgressHandler : public Task
 {
 public:
@@ -35,9 +36,13 @@ public:
 	
 	bool process();
 
+	void setAutoLoadState(int8 state);
+
 private:
 	Network::NetworkInterface & networkInterface_;
 	int delayTicks_;
+	EntityAutoLoader* pEntityAutoLoader_;
+	int8 autoLoadState_;
 };
 
 

@@ -666,9 +666,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 									intaddr, intport, extaddr, extport, extaddrEx);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
-
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	KBE_ASSERT(cts.size() >= 1);
+	KBE_ASSERT(Components::getSingleton().getDbmgr() != NULL);
 	
 	cinfos = 
 		Components::getSingleton().findComponent(tcomponentType, uid, componentID);
@@ -886,12 +884,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
 {
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: not found dbmgr!\n");
@@ -1140,12 +1133,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
 {
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: not found dbmgr!\n");
@@ -1885,12 +1873,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		ERROR_MSG("KBEngine::executeRawDatabaseCommand: not found dbmgr!\n");
@@ -2409,12 +2392,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 	INFO_MSG(fmt::format("Baseapp::loginGateway: new user[{0}], channel[{1}].\n", 
 		accountName, pChannel->c_str()));
 
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
@@ -3563,13 +3541,8 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 		PyErr_PrintEx(0);
 		return NULL;
 	}
-	
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
 
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		ERROR_MSG("KBEngine::deleteBaseByDBID({}): not found dbmgr!\n");
@@ -3703,12 +3676,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		ERROR_MSG("KBEngine::lookUpBaseByDBID({}): not found dbmgr!\n");
@@ -3837,12 +3805,7 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 
 	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) email={}!\n", accountName, entityID, email));
 
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName({}), not found dbmgr!\n", 
@@ -3943,12 +3906,7 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 	INFO_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({})!\n", 
 		accountName, entityID));
 
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::ComponentInfos* dbmgrinfos = NULL;
-
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
-
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
 		ERROR_MSG(fmt::format("Baseapp::reqAccountNewPassword: accountName({}), not found dbmgr!\n", 

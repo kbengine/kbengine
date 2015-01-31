@@ -121,6 +121,7 @@
     <ClCompile Include="baseapp_interface.cpp" />
     <ClCompile Include="data_download.cpp" />
     <ClCompile Include="data_downloads.cpp" />
+    <ClCompile Include="entity_autoloader.cpp" />
     <ClCompile Include="forward_message_over_handler.cpp" />
     <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c" />
     <ClCompile Include="initprogress_handler.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="baseapp_interface_macros.h" />
     <ClInclude Include="data_download.h" />
     <ClInclude Include="data_downloads.h" />
+    <ClInclude Include="entity_autoloader.h" />
     <ClInclude Include="forward_message_over_handler.h" />
     <ClInclude Include="initprogress_handler.h" />
     <ClInclude Include="profile.h" />

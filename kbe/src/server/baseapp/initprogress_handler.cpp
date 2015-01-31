@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.h"
 #include "initprogress_handler.h"
+#include "entity_autoloader.h"
 #include "network/bundle.h"
 #include "network/channel.h"
 
@@ -31,7 +32,9 @@ namespace KBEngine{
 InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
-delayTicks_(0)
+delayTicks_(0),
+pEntityAutoLoader_(NULL),
+autoLoadState_(-1)
 {
 	networkInterface.dispatcher().addTask(this);
 }
@@ -41,22 +44,27 @@ InitProgressHandler::~InitProgressHandler()
 {
 	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("InitProgressHandler::~InitProgressHandler()\n");
+
+	if(pEntityAutoLoader_)
+	{
+		pEntityAutoLoader_->pInitProgressHandler(NULL);
+		pEntityAutoLoader_ = NULL;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void InitProgressHandler::setAutoLoadState(int8 state)
+{ 
+	autoLoadState_ = state; 
+
+	if(state == 1)
+		pEntityAutoLoader_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
 bool InitProgressHandler::process()
 {
-	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	Network::Channel* pChannel = NULL;
-
-	if(cts.size() > 0)
-	{
-		Components::COMPONENTS::iterator ctiter = cts.begin();
-		if((*ctiter).pChannel == NULL)
-			return true;
-
-		pChannel = (*ctiter).pChannel;
-	}
+	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
 
 	if(pChannel == NULL)
 		return true;
@@ -66,6 +74,23 @@ bool InitProgressHandler::process()
 
 	if(delayTicks_++ < 1)
 		return true;
+
+	if(g_componentGroupOrder == 1)
+	{
+		if(autoLoadState_ == -1)
+		{
+			autoLoadState_ = 0;
+			pEntityAutoLoader_ = new EntityAutoLoader(networkInterface_, this);
+		}
+		else if(autoLoadState_ == 0)
+		{
+			// 必须等待EntityAutoLoader执行完毕
+			// EntityAutoLoader执行完毕会设置autoLoadState_ = 1
+			return true;
+		}
+	}
+
+	pEntityAutoLoader_ = NULL;
 
 	float v = 0.0f;
 	bool completed = false;
