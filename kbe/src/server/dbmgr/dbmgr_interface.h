@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "dbmgr_interface_macros.h"
 #include "network/interface_defs.h"
+
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -142,6 +143,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					entityType,
 									CALLBACK_ID,					callbackID,
 									ENTITY_ID,						entityID)
+
+	// 实体自动加载功能
+	DBMGR_MESSAGE_DECLARE_STREAM(entityAutoLoad,					NETWORK_VARIABLE_MESSAGE)
 
 	// 同步entity流模板
 	DBMGR_MESSAGE_DECLARE_STREAM(syncEntityStreamTemplate,			NETWORK_VARIABLE_MESSAGE)

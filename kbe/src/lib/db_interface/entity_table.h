@@ -259,6 +259,12 @@ public:
 
 	bool hasSync()const { return sync_; }
 
+	/**
+		查询自动加载的实体
+	*/
+	virtual void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
+
 protected:
 
 	// 表名称
@@ -316,6 +322,13 @@ public:
 	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	void onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTable, bool error);
+
+	/**
+		查询自动加载的实体
+	*/
+	void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
+
 protected:
 	// 所有的表
 	TABLES_MAP tables_;

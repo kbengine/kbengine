@@ -49,6 +49,7 @@ class Backuper;
 class Archiver;
 class TelnetServer;
 class RestoreEntityHandler;
+class InitProgressHandler;
 
 class Baseapp :	public EntityApp<Base>, 
 				public Singleton<Baseapp>
@@ -122,6 +123,11 @@ public:
 	*/
 	void onClientActiveTick(Network::Channel* pChannel);
 
+	/** 网络接口
+		数据库中查询的自动entity加载信息返回
+	*/
+	void onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s);
+
 	/** 
 		创建了一个entity回调
 	*/
@@ -177,8 +183,10 @@ public:
 	*/
 	// 从数据库来的回调
 	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	// 请求在这个进程上创建这个entity
 	void createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	// 创建完毕后的回调
 	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
@@ -451,6 +459,7 @@ public:
 
 	void onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 		SERVER_ERROR_CODE failedcode);
+
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
@@ -472,6 +481,8 @@ protected:
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >	pRestoreEntityHandlers_;
 
 	TimerHandle												pResmgrTimerHandle_;
+
+	InitProgressHandler*									pInitProgressHandler_;
 };
 
 }

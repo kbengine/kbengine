@@ -139,7 +139,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	numProxices_(0),
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_(),
-	pResmgrTimerHandle_()
+	pResmgrTimerHandle_(),
+	pInitProgressHandler_(NULL)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -153,6 +154,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Baseapp::~Baseapp()
 {
+	// 不需要主动释放
+	pInitProgressHandler_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -2229,7 +2232,7 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	else
 		SCRIPT_ERROR_CHECK();
 
-	new InitProgressHandler(this->networkInterface());
+	pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
 }
 
 //-------------------------------------------------------------------------------------
@@ -3138,15 +3141,6 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onClientActiveTick(Network::Channel* pChannel)
-{
-	if(!pChannel->isExternal())
-		return;
-
-	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
-}
-
-//-------------------------------------------------------------------------------------
 void Baseapp::onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid, 
 								  DBID entityDBID, CALLBACK_ID callbackID, bool success)
 {
@@ -3161,6 +3155,24 @@ void Baseapp::onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid,
 	}
 
 	base->onWriteToDBCallback(eid, entityDBID, callbackID, -1, success);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onClientActiveTick(Network::Channel* pChannel)
+{
+	if(!pChannel->isExternal())
+		return;
+
+	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+
+	pInitProgressHandler_->onEntityAutoLoadCBFromDBMgr(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------

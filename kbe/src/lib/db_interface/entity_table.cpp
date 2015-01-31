@@ -153,6 +153,16 @@ void EntityTables::onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTab
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTables::queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+	ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs)
+{
+	EntityTable* pTable = this->findTable(pModule->getName());
+	KBE_ASSERT(pTable != NULL);
+
+	pTable->queryAutoLoadEntities(dbi, pModule, start, end, outs);
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTables::syncToDB(DBInterface* dbi)
 {
 	DBThreadPool* pDBThreadPool = static_cast<DBThreadPool*>(DBUtil::pThreadPool());

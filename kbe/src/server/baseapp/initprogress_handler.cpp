@@ -62,6 +62,12 @@ void InitProgressHandler::setAutoLoadState(int8 state)
 }
 
 //-------------------------------------------------------------------------------------
+void InitProgressHandler::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s)
+{
+	pEntityAutoLoader_->onEntityAutoLoadCBFromDBMgr(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------
 bool InitProgressHandler::process()
 {
 	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
@@ -81,6 +87,7 @@ bool InitProgressHandler::process()
 		{
 			autoLoadState_ = 0;
 			pEntityAutoLoader_ = new EntityAutoLoader(networkInterface_, this);
+			return true;
 		}
 		else if(autoLoadState_ == 0)
 		{

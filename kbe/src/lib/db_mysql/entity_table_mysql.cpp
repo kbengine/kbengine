@@ -425,6 +425,36 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTableMysql::queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs)
+{
+	std::string sql = fmt::format("select id  from "ENTITY_TABLE_PERFIX"_{} where "TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR"=1 limit {}, {};", 
+		tableName(), start, (end - start));
+
+	bool result = dbi->query(sql, false);
+
+	if (!result)
+		return;
+
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			DBID dbid;
+			StringConv::str2value(dbid, arow[0]);
+			outs.push_back(dbid);
+		}
+
+		mysql_free_result(pResult);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
 	if(type == "INT8")

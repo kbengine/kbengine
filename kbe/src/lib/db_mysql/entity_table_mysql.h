@@ -536,6 +536,12 @@ public:
 	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad);
 
 	/**
+		查询自动加载的实体
+	*/
+	virtual void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
+
+	/**
 		获取某个表所有的数据放到流中
 	*/
 	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
@@ -547,6 +553,7 @@ public:
 	virtual void getReadSqlItem(DBContext& context);
 
 	void init_db_item_name();
+
 protected:
 	
 };

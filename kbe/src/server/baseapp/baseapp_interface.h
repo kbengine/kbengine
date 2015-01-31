@@ -155,6 +155,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									uint64,											deadline,
 									COMPONENT_TYPE,									componentType)
 
+	// 数据库中查询的自动entity加载信息返回 
+	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityAutoLoadCBFromDBMgr,						NETWORK_VARIABLE_MESSAGE)
+
 	// 前端请求登录到网关上。
 	BASEAPP_MESSAGE_EXPOSED(loginGateway)
 	BASEAPP_MESSAGE_DECLARE_ARGS2(loginGateway,										NETWORK_VARIABLE_MESSAGE,

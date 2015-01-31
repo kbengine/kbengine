@@ -467,6 +467,59 @@ thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+DBTaskEntityAutoLoad::DBTaskEntityAutoLoad(const Network::Address& addr, COMPONENT_ID componentID, 
+		ENTITY_SCRIPT_UID entityType, ENTITY_ID start, ENTITY_ID end):
+DBTask(addr),
+componentID_(componentID),
+entityType_(entityType),
+start_(start),
+end_(end),
+outs_()
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskEntityAutoLoad::~DBTaskEntityAutoLoad()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskEntityAutoLoad::db_thread_process()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
+	EntityTables::getSingleton().queryAutoLoadEntities(this->pdbi_, pModule, start_, end_, outs_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskEntityAutoLoad: {}, size({}).\n", 
+		pModule->getName(), outs_.size()));
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onEntityAutoLoadCBFromDBMgr);
+
+	int size = outs_.size();
+	(*pBundle) << size << entityType_;
+
+	std::vector<DBID>::iterator iter = outs_.begin();
+	for(; iter != outs_.end(); iter++)
+	{
+		(*pBundle) << (*iter);
+	}
+
+	if(!this->send(pBundle))
+	{
+		ERROR_MSG(fmt::format("DBTaskEntityAutoLoad::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
 DBTaskLookUpBaseByDBID::DBTaskLookUpBaseByDBID(const Network::Address& addr, COMPONENT_ID componentID, 
 		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid):
 DBTask(addr),

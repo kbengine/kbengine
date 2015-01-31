@@ -135,6 +135,11 @@ public:
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port);
 
 	/** 网络接口
+		实体自动加载功能
+	*/
+	void entityAutoLoad(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		账号从baseapp上线了
 	*/
 	void onAccountOnline(Network::Channel* pChannel, std::string& accountName, 
@@ -221,6 +226,7 @@ public:
 	
 	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

@@ -18,38 +18,44 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_BASEAPP_INIT_PROGRESS_HANDLER_H
-#define KBE_BASEAPP_INIT_PROGRESS_HANDLER_H
+#ifndef KBE_ENTITY_AUTOLOADER_H
+#define KBE_ENTITY_AUTOLOADER_H
 
-// common include
-#include "helper/debug_helper.h"
 #include "common/common.h"
 
 namespace KBEngine{
 
-class EntityAutoLoader;
-class InitProgressHandler : public Task
+class InitProgressHandler;
+class EntityAutoLoader : public Task
 {
 public:
-	InitProgressHandler(Network::NetworkInterface & networkInterface);
-	~InitProgressHandler();
+	EntityAutoLoader(Network::NetworkInterface & networkInterface, InitProgressHandler* pInitProgressHandler);
+	~EntityAutoLoader();
 	
 	bool process();
 
-	void setAutoLoadState(int8 state);
+	void pInitProgressHandler(InitProgressHandler* p)
+		{ pInitProgressHandler_ = p; }
 
 	/** 网络接口
 		数据库中查询的自动entity加载信息返回
 	*/
 	void onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s);
+
 private:
 	Network::NetworkInterface & networkInterface_;
-	int delayTicks_;
-	EntityAutoLoader* pEntityAutoLoader_;
-	int8 autoLoadState_;
+	InitProgressHandler* pInitProgressHandler_;
+
+	std::vector<ENTITY_SCRIPT_UID> entityTypes_;
+
+	// 每次取查询结果集的区段
+	ENTITY_ID start_;
+	ENTITY_ID end_;
+
+	bool querying_;
 };
 
 
 }
 
-#endif // KBE_BASEAPP_INIT_PROGRESS_HANDLER_H
+#endif // KBE_ENTITY_AUTOLOADER_H

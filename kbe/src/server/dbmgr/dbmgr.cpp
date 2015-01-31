@@ -618,6 +618,20 @@ void Dbmgr::removeEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::entityAutoLoad(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID componentID;
+	ENTITY_SCRIPT_UID entityType;
+	ENTITY_ID start;
+	ENTITY_ID end;
+
+	s >> componentID >> entityType >> start >> end;
+
+	DBUtil::pThreadPool()->addTask(new DBTaskEntityAutoLoad(pChannel->addr(), 
+		componentID, entityType, start, end));
+}
+
+//-------------------------------------------------------------------------------------
 void Dbmgr::deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	COMPONENT_ID componentID;

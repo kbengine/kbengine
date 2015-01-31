@@ -203,6 +203,27 @@ protected:
 };
 
 /**
+	从数据库中自动加载实体
+*/
+class DBTaskEntityAutoLoad : public DBTask
+{
+public:
+	DBTaskEntityAutoLoad(const Network::Address& addr, COMPONENT_ID componentID, 
+		ENTITY_SCRIPT_UID entityType, ENTITY_ID start, ENTITY_ID end);
+
+	virtual ~DBTaskEntityAutoLoad();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+protected:
+	COMPONENT_ID componentID_;
+	ENTITY_SCRIPT_UID entityType_;
+	ENTITY_ID start_;
+	ENTITY_ID end_;
+	std::vector<DBID> outs_;
+};
+
+/**
 	通过dbid查询一个实体是否从数据库检出
 */
 class DBTaskLookUpBaseByDBID : public DBTask
