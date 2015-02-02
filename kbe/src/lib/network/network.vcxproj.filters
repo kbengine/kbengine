@@ -221,9 +221,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="broadcast_handler.inl">
-      <Filter>Inline Files</Filter>
-    </None>
     <None Include="packet_sender.inl">
       <Filter>Inline Files</Filter>
     </None>

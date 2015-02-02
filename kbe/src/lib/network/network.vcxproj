@@ -161,7 +161,6 @@
     <ClInclude Include="websocket_protocol.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="broadcast_handler.inl" />
     <None Include="bundle.inl" />
     <None Include="bundle_broadcast.inl" />
     <None Include="channel.inl" />
