@@ -21,6 +21,8 @@ start %KBE_BIN_PATH%/interfaces.exe --cid=3000 --grouporder=1 --globalorder=3
 start %KBE_BIN_PATH%/dbmgr.exe --cid=4000 --grouporder=1 --globalorder=4
 start %KBE_BIN_PATH%/baseappmgr.exe --cid=5000 --grouporder=1  --globalorder=5
 start %KBE_BIN_PATH%/cellappmgr.exe --cid=6000 --grouporder=1  --globalorder=6
-start %KBE_BIN_PATH%/baseapp.exe --cid=7000 --grouporder=1  --globalorder=7
-start %KBE_BIN_PATH%/cellapp.exe --cid=8000 --grouporder=1  --globalorder=8
-start %KBE_BIN_PATH%/loginapp.exe --cid=9000 --grouporder=1  --globalorder=9
+start %KBE_BIN_PATH%/baseapp.exe --cid=7001 --grouporder=1  --globalorder=7
+start %KBE_BIN_PATH%/baseapp.exe --cid=7002 --grouporder=2  --globalorder=8
+start %KBE_BIN_PATH%/cellapp.exe --cid=8001 --grouporder=1  --globalorder=9
+start %KBE_BIN_PATH%/cellapp.exe --cid=8002 --grouporder=2  --globalorder=10
+start %KBE_BIN_PATH%/loginapp.exe --cid=9000 --grouporder=1  --globalorder=11
