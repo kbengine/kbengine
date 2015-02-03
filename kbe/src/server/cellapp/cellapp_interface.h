@@ -91,12 +91,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									ENTITY_ID,								endID)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS6(onDbmgrInitCompleted,						NETWORK_VARIABLE_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS7(onDbmgrInitCompleted,						NETWORK_VARIABLE_MESSAGE,
 									GAME_TIME,								gametime, 
 									ENTITY_ID,								startID,
 									ENTITY_ID,								endID,
 									COMPONENT_ORDER,						startGlobalOrder,
 									COMPONENT_ORDER,						startGroupOrder,
+									COMPONENT_ORDER,						machineGroupOrder,
 									std::string,							digest)
 
 	// global数据改变

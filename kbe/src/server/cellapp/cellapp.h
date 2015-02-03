@@ -106,9 +106,11 @@ public:
 		endID: 初始分配ENTITY_ID 段结束位置
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
+		machineGroupOrder: 在machine中真实的组顺序, 提供底层在某些时候判断是否为第一个cellapp时使用
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, GAME_TIME gametime, 
-		ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest);
+		ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
+		COMPONENT_ORDER machineGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变

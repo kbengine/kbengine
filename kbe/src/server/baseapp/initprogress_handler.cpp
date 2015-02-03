@@ -29,12 +29,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface):
+InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface, COMPONENT_ORDER machineGroupOrder):
 Task(),
 networkInterface_(networkInterface),
 delayTicks_(0),
 pEntityAutoLoader_(NULL),
-autoLoadState_(-1)
+autoLoadState_(-1),
+machineGroupOrder_(machineGroupOrder)
 {
 	networkInterface.dispatcher().addTask(this);
 }

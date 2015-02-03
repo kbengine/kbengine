@@ -155,7 +155,8 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest);
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, 
+		COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER machineGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
@@ -1202,10 +1203,12 @@ void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profile
 
 template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel, 
-						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
+						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, 
+						COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
+						COMPONENT_ORDER machineGroupOrder, const std::string& digest)
 {
-	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
-		startID, endID, startGlobalOrder, startGroupOrder, digest));
+	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, machineGroupOrder={}, digest={}.\n",
+		startID, endID, startGlobalOrder, startGroupOrder, machineGroupOrder, digest));
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;

@@ -162,13 +162,14 @@ void Loginapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
+void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, 
+	COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER machineGroupOrder, const std::string& digest)
 {
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG(fmt::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder={0}, startGroupOrder={1}, digest={2}.\n",
-		startGlobalOrder, startGroupOrder, digest));
+	INFO_MSG(fmt::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder={0}, startGroupOrder={1}, machineGroupOrder={2}, digest={3}.\n",
+		startGlobalOrder, startGroupOrder, machineGroupOrder, digest));
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;

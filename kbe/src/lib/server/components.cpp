@@ -235,14 +235,17 @@ void Components::addComponent(int32 uid, const char* username,
 	case BASEAPP_TYPE:
 		_baseappGrouplOrderLog[uid]++;
 		componentInfos.groupOrderid = _baseappGrouplOrderLog[uid];
+		componentInfos.machineGroupOrderid = _baseappGrouplOrderLog[uid];
 		break;
 	case CELLAPP_TYPE:
 		_cellappGrouplOrderLog[uid]++;
 		componentInfos.groupOrderid = _cellappGrouplOrderLog[uid];
+		componentInfos.machineGroupOrderid = _cellappGrouplOrderLog[uid];
 		break;
 	case LOGINAPP_TYPE:
 		_loginappGrouplOrderLog[uid]++;
 		componentInfos.groupOrderid = _loginappGrouplOrderLog[uid];
+		componentInfos.machineGroupOrderid = _loginappGrouplOrderLog[uid];
 		break;
 	default:
 		break;
@@ -262,14 +265,15 @@ void Components::addComponent(int32 uid, const char* username,
 		*cinfos = componentInfos;
 
 	INFO_MSG(fmt::format("Components::addComponent[{}], uid={}, "
-		"componentID={}, globalorderid={}, grouporderid={}, totalcount={}\n",
+		"componentID={}, globalorderid={}, grouporderid={}, machineGroupOrderid={}, totalcount={}\n",
 			COMPONENT_NAME_EX(componentType), 
 			uid,
 			componentID, 
 			((int32)componentInfos.globalOrderid),
 			((int32)componentInfos.groupOrderid),
+			((int32)componentInfos.machineGroupOrderid),
 			components.size()));
-
+	
 	if(_pHandler)
 		_pHandler->onAddComponent(&componentInfos);
 }

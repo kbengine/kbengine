@@ -500,6 +500,102 @@ namespace KBEngine{
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
 
+
+/**
+	Cellapp消息宏，只有七个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef CELLAPP_MESSAGE_HANDLER_ARGS7
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPP)
+#define CELLAPP_MESSAGE_HANDLER_ARGS7(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+	void NAME##CellAppMessagehandler7::handle(Network::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7);								\
+	}																			\
+
+#else
+#define CELLAPP_MESSAGE_HANDLER_ARGS7(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+	void NAME##CellAppMessagehandler7::handle(Network::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define CELLAPP_MESSAGE_HANDLER_ARGS7(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+	class NAME##CellAppMessagehandler7 : public Network::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Network::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define CELLAPP_MESSAGE_DECLARE_ARGS7(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+	CELLAPP_MESSAGE_HANDLER_ARGS7(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+	NETWORK_MESSAGE_DECLARE_ARGS7(Cellapp, NAME,								\
+				NAME##CellAppMessagehandler7, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7)				\
+
+
+
 /**
 	Cellapp消息宏，  只有八个参数的消息
 */

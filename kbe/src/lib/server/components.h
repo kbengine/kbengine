@@ -63,13 +63,18 @@ public:
 			uid = 0;
 			flags = COMPONENT_FLAG_NORMAL;
 			cid = 0;
+
 			groupOrderid = 0;
 			globalOrderid = 0;
+			machineGroupOrderid = 0;
+
 			pChannel = NULL;
 			state = COMPONENT_STATE_INIT;
 			mem = cpu = 0.f;
 			usedmem = 0;
+
 			extradata = extradata1 = extradata2 = 0;
+
 			pid = 0;
 			externalAddressEx[0] = '\0';
 			logTime = timestamp();
@@ -80,7 +85,7 @@ public:
 
 		int32 uid;
 		COMPONENT_ID cid;
-		COMPONENT_ORDER groupOrderid, globalOrderid;
+		COMPONENT_ORDER groupOrderid, globalOrderid, machineGroupOrderid;
 		char username[MAX_NAME + 1];
 		Network::Channel* pChannel;
 		COMPONENT_TYPE componentType;

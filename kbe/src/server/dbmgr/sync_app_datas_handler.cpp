@@ -140,8 +140,9 @@ bool SyncAppDatasHandler::process()
 
 					std::pair<ENTITY_ID, ENTITY_ID> idRange = Dbmgr::getSingleton().idServer().allocRange();
 					(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
-					BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+					BaseappInterface::onDbmgrInitCompletedArgs7::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, 
+						cinfos->machineGroupOrderid, digest);
 				}
 				break;
 			case CELLAPP_TYPE:
@@ -150,14 +151,16 @@ bool SyncAppDatasHandler::process()
 
 					std::pair<ENTITY_ID, ENTITY_ID> idRange = Dbmgr::getSingleton().idServer().allocRange();
 					(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
-					CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+					CellappInterface::onDbmgrInitCompletedArgs7::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+						idRange.second, cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, 
+						cinfos->machineGroupOrderid, digest);
 				}
 				break;
 			case LOGINAPP_TYPE:
 				(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
-				LoginappInterface::onDbmgrInitCompletedArgs3::staticAddToBundle((*pBundle), 
-					cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, digest);
+				LoginappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle((*pBundle), 
+						cInitInfo.startGlobalOrder, cInitInfo.startGroupOrder, 
+						cinfos->machineGroupOrderid, digest);
 
 				break;
 			default:

@@ -2201,13 +2201,15 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, 
+		COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
+		COMPONENT_ORDER machineGroupOrder, const std::string& digest)
 {
 	if(pChannel->isExternal())
 		return;
 
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
-		startGlobalOrder, startGroupOrder, digest);
+		startGlobalOrder, startGroupOrder, machineGroupOrder, digest);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -2232,7 +2234,7 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	else
 		SCRIPT_ERROR_CHECK();
 
-	pInitProgressHandler_ = new InitProgressHandler(this->networkInterface());
+	pInitProgressHandler_ = new InitProgressHandler(this->networkInterface(), machineGroupOrder);
 }
 
 //-------------------------------------------------------------------------------------

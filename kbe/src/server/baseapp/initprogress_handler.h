@@ -31,7 +31,7 @@ class EntityAutoLoader;
 class InitProgressHandler : public Task
 {
 public:
-	InitProgressHandler(Network::NetworkInterface & networkInterface);
+	InitProgressHandler(Network::NetworkInterface & networkInterface, COMPONENT_ORDER machineGroupOrder);
 	~InitProgressHandler();
 	
 	bool process();
@@ -47,6 +47,7 @@ private:
 	int delayTicks_;
 	EntityAutoLoader* pEntityAutoLoader_;
 	int8 autoLoadState_;
+	COMPONENT_ORDER machineGroupOrder_;
 };
 
 
