@@ -12,6 +12,16 @@ def onBaseAppReady(bootstrapIdx):
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
 
+def onReadyForLogin(bootstrapIdx):
+	"""
+	KBEngine method.
+	如果返回值大于等于1.0则初始化全部完成, 否则返回准备的进度值0.0~1.0。
+	在此可以确保脚本层全部初始化完成之后才开放登录。
+	@param bootstrapIdx: 当前baseapp的启动顺序
+	@type bootstrapIdx: INT32
+	"""
+	return 1.0
+
 def onBaseAppShutDown(state):
 	"""
 	KBEngine method.
