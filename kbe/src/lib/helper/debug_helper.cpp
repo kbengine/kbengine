@@ -198,7 +198,7 @@ canLogFile_(true)
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
-	finalise();
+	finalise(true);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -271,14 +271,39 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::finalise()
+void DebugHelper::finalise(bool destroy)
 {
+	if(!destroy)
+	{
+		while(DebugHelper::getSingleton().hasBufferedLogPackets() > 0)
+		{
+			size_t size = DebugHelper::getSingleton().hasBufferedLogPackets();
+			Network::Channel* pLoggerChannel = DebugHelper::getSingleton().pLoggerChannel();
+			if(pLoggerChannel)
+				DebugHelper::getSingleton().sync();
+
+			if(DebugHelper::getSingleton().hasBufferedLogPackets() == size)
+				break;
+
+			sleep(10);
+		}
+	}
+
 	DebugHelper::getSingleton().clearBufferedLog(true);
 
 	// SAFE_RELEASE(g_pDebugHelperSyncHandler);
 
 #ifndef NO_USE_LOG4CXX
 #endif
+}
+
+//-------------------------------------------------------------------------------------
+Network::Channel* DebugHelper::pLoggerChannel()
+{
+	if(Network::Address::NONE == loggerAddr_)
+		return NULL;
+
+	return pNetworkInterface_->findChannel(loggerAddr_);
 }
 
 //-------------------------------------------------------------------------------------

@@ -182,6 +182,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Components::getSingleton().finalise();
 	app.finalise();
 	INFO_MSG(fmt::format("{}({}) has shut down.\n", COMPONENT_NAME_EX(componentType), g_componentID));
+
+	// 如果还有日志未同步完成， 这里会继续同步完成才结束
+	DebugHelper::getSingleton().finalise();
 	return ret;
 }
 

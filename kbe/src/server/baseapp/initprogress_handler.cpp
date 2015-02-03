@@ -35,7 +35,8 @@ networkInterface_(networkInterface),
 delayTicks_(0),
 pEntityAutoLoader_(NULL),
 autoLoadState_(-1),
-machineGroupOrder_(machineGroupOrder)
+machineGroupOrder_(machineGroupOrder),
+error_(false)
 {
 	networkInterface.dispatcher().addTask(this);
 }
@@ -69,8 +70,20 @@ void InitProgressHandler::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel
 }
 
 //-------------------------------------------------------------------------------------
+void InitProgressHandler::setError()
+{
+	error_ = true;
+}
+
+//-------------------------------------------------------------------------------------
 bool InitProgressHandler::process()
 {
+	if(error_)
+	{
+		Baseapp::getSingleton().dispatcher().breakProcessing();
+		return false;
+	}
+
 	Network::Channel* pChannel = Components::getSingleton().getBaseappmgrChannel();
 
 	if(pChannel == NULL)

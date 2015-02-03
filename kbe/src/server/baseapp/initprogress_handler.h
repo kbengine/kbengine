@@ -42,12 +42,16 @@ public:
 		数据库中查询的自动entity加载信息返回
 	*/
 	void onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s);
+
+
+	void setError();
 private:
 	Network::NetworkInterface & networkInterface_;
 	int delayTicks_;
 	EntityAutoLoader* pEntityAutoLoader_;
 	int8 autoLoadState_;
 	COMPONENT_ORDER machineGroupOrder_;
+	bool error_;
 };
 
 

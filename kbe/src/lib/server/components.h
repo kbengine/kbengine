@@ -113,6 +113,7 @@ public:
 		virtual void onRemoveComponent(const Components::ComponentInfos*) = 0;
 		virtual void onIdentityillegal(COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 pid, const char* pAddr) = 0;
 	};
+
 public:
 	Components();
 	~Components();
@@ -223,6 +224,7 @@ private:
 	bool findInterfaces();
 
 	void onFoundAllComponents();
+
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;

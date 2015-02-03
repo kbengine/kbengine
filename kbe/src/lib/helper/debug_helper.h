@@ -131,7 +131,7 @@ public:
 	static bool isInit() { return getSingletonPtr() != 0; }
 
 	static void initialize(COMPONENT_TYPE componentType);
-	static void finalise();
+	static void finalise(bool destroy = false);
 
 	void setFile(std::string funcname, std::string file, uint32 line){
 		_currFile = file;
@@ -182,6 +182,11 @@ public:
 		同步日志到logger
 	*/
 	void sync();
+
+	size_t hasBufferedLogPackets()const{ return hasBufferedLogPackets_; }
+
+	Network::Channel* pLoggerChannel();
+
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;

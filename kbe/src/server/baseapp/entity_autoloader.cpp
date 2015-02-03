@@ -90,7 +90,30 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		DBID dbid;
 		s >> dbid;
 
-		Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL);
+		if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "onAutoLoadEntityCreate") > 0)
+		{
+			PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
+												const_cast<char*>("onAutoLoadEntityCreate"), 
+												const_cast<char*>("sK"), 
+												EntityDef::findScriptModule(entityType)->getName(),
+												dbid);
+
+			if(pyResult != NULL)
+			{
+				Py_DECREF(pyResult);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+
+				if(pInitProgressHandler_)
+					pInitProgressHandler_->setError();
+			}
+		}
+		else
+		{
+			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL);
+		}
 	}
 }
 
