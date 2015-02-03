@@ -108,7 +108,7 @@ bool InitProgressHandler::process()
 
 	if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "onReadyForLogin") > 0)
 	{
-		// 所有脚本都加载完毕
+		// 回调获得是否能够登录
 		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
 											const_cast<char*>("onReadyForLogin"), 
 											const_cast<char*>("i"), 
