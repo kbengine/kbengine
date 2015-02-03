@@ -45,6 +45,7 @@ public:
 
 
 	void setError();
+
 private:
 	Network::NetworkInterface & networkInterface_;
 	int delayTicks_;
@@ -52,6 +53,7 @@ private:
 	int8 autoLoadState_;
 	COMPONENT_ORDER machineGroupOrder_;
 	bool error_;
+	bool baseappReady_;
 };
 
 

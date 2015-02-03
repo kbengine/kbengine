@@ -287,6 +287,8 @@ void DebugHelper::finalise(bool destroy)
 
 			sleep(10);
 		}
+
+		sleep(1000);
 	}
 
 	DebugHelper::getSingleton().clearBufferedLog(true);

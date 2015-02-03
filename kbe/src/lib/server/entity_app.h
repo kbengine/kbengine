@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.h"
 #include "helper/script_loglevel.h"
 #include "helper/profile.h"
+#include "server/kbemain.h"	
 #include "server/script_timers.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
@@ -1217,6 +1218,8 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 
 	idClient_.onAddRange(startID, endID);
 	g_kbetime = gametime;
+
+	setEvns();
 
 	if(digest != EntityDef::md5().getDigestStr())
 	{

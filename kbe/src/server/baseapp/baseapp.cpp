@@ -2223,17 +2223,6 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	else
 		SCRIPT_ERROR_CHECK();
 
-	// 所有脚本都加载完毕
-	pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onBaseAppReady"), 
-										const_cast<char*>("i"), 
-										startGroupOrder);
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
-
 	pInitProgressHandler_ = new InitProgressHandler(this->networkInterface(), machineGroupOrder);
 }
 

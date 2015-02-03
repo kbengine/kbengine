@@ -36,7 +36,8 @@ delayTicks_(0),
 pEntityAutoLoader_(NULL),
 autoLoadState_(-1),
 machineGroupOrder_(machineGroupOrder),
-error_(false)
+error_(false),
+baseappReady_(false)
 {
 	networkInterface.dispatcher().addTask(this);
 }
@@ -116,6 +117,24 @@ bool InitProgressHandler::process()
 	}
 
 	pEntityAutoLoader_ = NULL;
+
+	if(!baseappReady_)
+	{
+		baseappReady_ = true;
+
+		// 所有脚本都加载完毕
+		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
+											const_cast<char*>("onBaseAppReady"), 
+											const_cast<char*>("i"), 
+											g_componentGroupOrder);
+
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+
+		return true;
+	}
 
 	float v = 0.0f;
 	bool completed = false;
