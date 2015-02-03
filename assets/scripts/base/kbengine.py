@@ -6,19 +6,20 @@ def onBaseAppReady(bootstrapIdx):
 	"""
 	KBEngine method.
 	baseapp已经准备好了
-	@param isBootstrap: 是否是第一个baseapp启动
-	@type isBootstrap: bool
+	@param bootstrapIdx: baseapp启动的顺序, 如果启动参数由用户填写，请确保第一个启动的baseappIdx等于1，
+						否则实体自动加载等功能将不正确。
+	@type bootstrapIdx: int
 	"""
 	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
-		
+
 def onBaseAppShutDown(state):
 	"""
 	KBEngine method.
 	这个baseapp被关闭前的回调函数
-	@param state:  0 : 在断开所有客户端之前
-						 1 : 在将所有entity写入数据库之前
-						 2 : 所有entity被写入数据库之后
-	@type state: int					 
+	@param state: 0 : 在断开所有客户端之前
+				  1 : 在将所有entity写入数据库之前
+				  2 : 所有entity被写入数据库之后
+	@type state: int
 	"""
 	INFO_MSG('onBaseAppShutDown: state=%i' % state)
 		
