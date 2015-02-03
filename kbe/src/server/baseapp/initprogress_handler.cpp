@@ -81,6 +81,10 @@ bool InitProgressHandler::process()
 	if(delayTicks_++ < 1)
 		return true;
 
+	// 只有第一个baseapp上会创建EntityAutoLoader来自动加载数据库实体
+	// baseapp启动顺序如果是用户设置的, 那么第一个baseapp必须为1
+	// 本来这个参数不是给用户手填的，应该由启动工具给出， 描述的是程序启动的顺序（1~N），但启动工具在没完善时，只提供了手填的办法。
+	// 底层认为 2~N是不对的，因为无法判断第一个启动的是不是baseapp2。
 	if(g_componentGroupOrder == 1)
 	{
 		if(autoLoadState_ == -1)
