@@ -214,7 +214,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				}
 				catch(...)
 				{
-					ERROR_MSG("parseCommandArgs: --cid=? invalid, no set!\n");
+					ERROR_MSG("parseCommandArgs: --cid=? invalid, no set! type is uint64\n");
 				}
 			}
 
@@ -238,7 +238,7 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				}
 				catch(...)
 				{
-					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set!\n");
+					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set! type is uint16\n");
 				}
 			}
 
