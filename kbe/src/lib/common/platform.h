@@ -685,14 +685,14 @@ inline uint64 genUUID64()
 inline bool isPlatformLittleEndian()
 {
    int n = 1;
-   return *((char*)&n)? true:false;
+   return *((char*)&n) ? true : false;
 }
 
 /** 设置环境变量 */
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline void setenv(const std::string& name, const std::string& value, int overwrite)
 	{
-		_putenv((name + "=" + value).c_str());
+		_putenv_s(name.c_str(), value.c_str());
 	}
 #else
 	// Linux下面直接使用setenv
