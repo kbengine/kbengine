@@ -147,7 +147,6 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	//bool isfixedMsg = false;
 
 	FixedMessages::MSGInfo* msgInfo = FixedMessages::getSingleton().isFixed(ihName.c_str());
-
 	if(msgInfo == NULL)
 	{
 		while(true)
@@ -158,7 +157,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 				//isfixedMsg = true;
 			}
 			else
+			{
 				break;
+			}
 		};
 
 		msgHandler->msgID = msgID_++;
@@ -201,7 +202,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	//if(isfixedMsg)
 	//	printf("\t\t!!!message is fixed.!!!\n");
 
-	return msgHandlers_[msgHandler->msgID];
+	return msgHandler;
 }
 
 //-------------------------------------------------------------------------------------
