@@ -345,6 +345,46 @@ int Script::unregisterToModule(const char* attrName)
 }
 
 //-------------------------------------------------------------------------------------
+void Script::setenv(const std::string& name, const std::string& value)
+{
+	PyObject* osModule = PyImport_ImportModule("os");
+
+	if(osModule)
+	{
+		PyObject* environ = PyObject_GetAttrString(osModule, "environ");
+		if (!environ)
+		{
+			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			PyErr_PrintEx(0);
+			return;
+		}
+
+		PyObject* environData = PyObject_GetAttrString(environ, "_data");
+		if (!environData)
+		{
+			ERROR_MSG("Script::setenv: os.environ._data not exist!\n");
+			PyErr_PrintEx(0);
+			Py_DECREF(environ);
+			return;
+		}
+
+		Py_DECREF(environ);
+
+		PyObject* py_value = PyUnicode_FromString(value.c_str());
+		int ret = PyDict_SetItemString(environData, name.c_str(), py_value);
+		Py_DECREF(py_value);
+		Py_DECREF(environData);
+
+		if(ret == -1)
+		{
+			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			PyErr_PrintEx(0);
+			return;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }
 }

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import KBEngine
 from KBEDebug import *
 
@@ -9,7 +10,8 @@ def onBaseAppReady(isBootstrap):
 	@param isBootstrap: 是否为第一个启动的baseapp
 	@type isBootstrap: BOOL
 	"""
-	INFO_MSG('onBaseAppReady: isBootstrap=%s' % isBootstrap)
+	INFO_MSG('onBaseAppReady: isBootstrap=%s, bootstrapGroupIndex=%s, , bootstrapGlobalIndex=%s' % \
+	 (isBootstrap, os.getenv("KBE_GROUPID"), os.getenv("KBE_GLOBALID")))
 
 def onReadyForLogin(isBootstrap):
 	"""

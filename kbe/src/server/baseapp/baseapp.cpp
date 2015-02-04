@@ -2211,6 +2211,10 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder, digest);
 
+	// 这里需要更新一下python的环境变量
+	this->getScript().setenv("KBE_GLOBALID", getenv("KBE_GLOBALID"));
+	this->getScript().setenv("KBE_GROUPID", getenv("KBE_GROUPID"));
+
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 

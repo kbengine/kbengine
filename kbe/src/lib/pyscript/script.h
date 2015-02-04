@@ -134,6 +134,8 @@ public:
 
 	INLINE void pyPrint(const std::string& str);
 
+	void setenv(const std::string& name, const std::string& value);
+
 protected:
 	PyObject* 					module_;
 	PyObject*					extraModule_;		// À©Õ¹½Å±¾Ä£¿é
