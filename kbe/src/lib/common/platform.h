@@ -642,7 +642,7 @@ inline uint64 genUUID64()
 	
 	if(g_genuuid_sections <= 0)
 	{
-		// 时间戳32位， 随机数16位，16位迭代数（最大为65535-1）
+		// 时间戳32位，随机数16位，16位迭代数（最大为65535-1）
 		static uint32 rnd = 0;
 		if(rnd == 0)
 		{
@@ -656,12 +656,12 @@ inline uint64 genUUID64()
 	}
 	else
 	{
-		// 时间戳32位， app组ID16位，16位迭代数（最大为65535-1）
-		static uint32 appGID = g_genuuid_sections << 16;
+		// 时间戳32位，app组ID16位，16位迭代数（最大为65535-1）
+		static uint32 sections = g_genuuid_sections << 16;
 		
 		assert(lastNum < 65535 && "genUUID64(): overflow!");
 		
-		return (tv << 32) | appGID | lastNum++;
+		return (tv << 32) | sections | lastNum++;
 	}
 }
 
