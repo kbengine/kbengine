@@ -47,6 +47,8 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = -1;
 COMPONENT_ORDER g_componentGroupOrder = -1;
+COMPONENT_ORDER g_serverID = -1;
+
 GAME_TIME g_kbetime = 0;
 
 //-------------------------------------------------------------------------------------

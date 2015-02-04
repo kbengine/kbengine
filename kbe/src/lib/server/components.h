@@ -66,7 +66,6 @@ public:
 
 			groupOrderid = 0;
 			globalOrderid = 0;
-			machineGroupOrderid = 0;
 
 			pChannel = NULL;
 			state = COMPONENT_STATE_INIT;
@@ -85,7 +84,7 @@ public:
 
 		int32 uid;
 		COMPONENT_ID cid;
-		COMPONENT_ORDER groupOrderid, globalOrderid, machineGroupOrderid;
+		COMPONENT_ORDER groupOrderid, globalOrderid;
 		char username[MAX_NAME + 1];
 		Network::Channel* pChannel;
 		COMPONENT_TYPE componentType;

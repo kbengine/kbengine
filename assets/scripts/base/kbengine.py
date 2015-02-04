@@ -2,23 +2,22 @@
 import KBEngine
 from KBEDebug import *
 
-def onBaseAppReady(bootstrapIdx):
+def onBaseAppReady(isBootstrap):
 	"""
 	KBEngine method.
 	baseapp已经准备好了
-	@param bootstrapIdx: baseapp启动的顺序, 如果启动参数由用户填写，请确保第一个启动的baseappIdx等于1，
-						否则实体自动加载等功能将不正确。
-	@type bootstrapIdx: int
+	@param isBootstrap: 是否为第一个启动的baseapp
+	@type isBootstrap: BOOL
 	"""
-	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
+	INFO_MSG('onBaseAppReady: isBootstrap=%s' % isBootstrap)
 
-def onReadyForLogin(bootstrapIdx):
+def onReadyForLogin(isBootstrap):
 	"""
 	KBEngine method.
 	如果返回值大于等于1.0则初始化全部完成, 否则返回准备的进度值0.0~1.0。
 	在此可以确保脚本层全部初始化完成之后才开放登录。
-	@param bootstrapIdx: 当前baseapp的启动顺序
-	@type bootstrapIdx: INT32
+	@param isBootstrap: 是否为第一个启动的baseapp
+	@type isBootstrap: BOOL
 	"""
 	return 1.0
 

@@ -29,13 +29,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface, COMPONENT_ORDER machineGroupOrder):
+InitProgressHandler::InitProgressHandler(Network::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
 delayTicks_(0),
 pEntityAutoLoader_(NULL),
 autoLoadState_(-1),
-machineGroupOrder_(machineGroupOrder),
 error_(false),
 baseappReady_(false)
 {
@@ -97,9 +96,6 @@ bool InitProgressHandler::process()
 		return true;
 
 	// 只有第一个baseapp上会创建EntityAutoLoader来自动加载数据库实体
-	// baseapp启动顺序如果是用户设置的, 那么第一个baseapp必须为1
-	// 本来这个参数不是给用户手填的，应该由启动工具给出， 描述的是程序启动的顺序（1~N），但启动工具在没完善时，只提供了手填的办法。
-	// 底层认为 2~N是不对的，因为无法判断第一个启动的是不是baseapp2。
 	if(g_componentGroupOrder == 1)
 	{
 		if(autoLoadState_ == -1)
@@ -122,11 +118,13 @@ bool InitProgressHandler::process()
 	{
 		baseappReady_ = true;
 
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		// 所有脚本都加载完毕
 		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
 											const_cast<char*>("onBaseAppReady"), 
-											const_cast<char*>("i"), 
-											g_componentGroupOrder);
+											const_cast<char*>("O"), 
+											PyBool_FromLong((g_componentGroupOrder == 1) ? 1 : 0));
 
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
@@ -141,11 +139,13 @@ bool InitProgressHandler::process()
 
 	if(PyObject_HasAttrString(Baseapp::getSingleton().getEntryScript().get(), "onReadyForLogin") > 0)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		// 回调获得是否能够登录
 		PyObject* pyResult = PyObject_CallMethod(Baseapp::getSingleton().getEntryScript().get(), 
 											const_cast<char*>("onReadyForLogin"), 
-											const_cast<char*>("i"), 
-											g_componentGroupOrder);
+											const_cast<char*>("O"), 
+											PyBool_FromLong((g_componentGroupOrder == 1) ? 1 : 0));
 
 		if(pyResult != NULL)
 		{

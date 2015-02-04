@@ -691,9 +691,9 @@ void Cellapp::reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::Memo
 //-------------------------------------------------------------------------------------
 void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER 
-		startGlobalOrder, COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER machineGroupOrder, const std::string& digest)
+		startGlobalOrder, COMPONENT_ORDER startGroupOrder, const std::string& digest)
 {
-	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder, machineGroupOrder, digest);
+	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder, digest);
 	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 

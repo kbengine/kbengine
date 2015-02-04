@@ -236,7 +236,7 @@ public:
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, 
-		COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER machineGroupOrder, const std::string& digest);
+		COMPONENT_ORDER startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变

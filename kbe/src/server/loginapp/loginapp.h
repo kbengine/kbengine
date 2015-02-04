@@ -153,7 +153,7 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER startGlobalOrder, 
-		COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER machineGroupOrder, const std::string& digest);
+		COMPONENT_ORDER startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		客户端协议导出
