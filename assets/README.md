@@ -6,10 +6,10 @@
 使用固定参数来启动：(参数的意义:http://www.kbengine.org/cn/docs/startup_shutdown.html)
 	
 	Linux:
-		start_server_fixed.sh
+		start_server.sh
 
 	Windows:
-		start_server_fixed.bat
+		start_server.bat
 
 
 ##关闭服务端
