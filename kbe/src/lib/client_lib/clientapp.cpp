@@ -45,7 +45,8 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = 1;
 COMPONENT_ORDER g_componentGroupOrder = 1;
-COMPONENT_ORDER g_serverID = -1;
+int32 g_genuuid_sections = -1;
+
 GAME_TIME g_kbetime = 0;
 
 KBE_SINGLETON_INIT(ClientApp);

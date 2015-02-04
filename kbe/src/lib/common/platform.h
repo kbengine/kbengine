@@ -625,7 +625,8 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 */
 extern COMPONENT_ORDER g_componentGlobalOrder;
 extern COMPONENT_ORDER g_componentGroupOrder;
-extern COMPONENT_ORDER g_serverID;
+
+extern int32 g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
@@ -639,7 +640,7 @@ inline uint64 genUUID64()
 		lastNum = 0;
 	}
 	
-	if(g_serverID <= 0)
+	if(g_genuuid_sections <= 0)
 	{
 		// 时间戳32位， 随机数16位，16位迭代数（最大为65535-1）
 		static uint32 rnd = 0;
@@ -656,7 +657,7 @@ inline uint64 genUUID64()
 	else
 	{
 		// 时间戳32位， app组ID16位，16位迭代数（最大为65535-1）
-		static uint32 appGID = g_serverID << 16;
+		static uint32 appGID = g_genuuid_sections << 16;
 		
 		assert(lastNum < 65535 && "genUUID64(): overflow!");
 		

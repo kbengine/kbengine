@@ -94,7 +94,6 @@ inline void setEvns()
 	std::string scomponentGroupOrder = "0";
 	std::string scomponentGlobalOrder = "0";
 	std::string scomponentID = "0";
-	std::string sserverID = "0";
 
 	if(g_componentGroupOrder > 0)
 	{
@@ -108,12 +107,6 @@ inline void setEvns()
 		scomponentGlobalOrder = KBEngine::StringConv::val2str(icomponentGlobalOrder);
 	}
 
-	if(g_serverID > 0)
-	{
-		int32 iserverID = g_serverID;
-		sserverID = KBEngine::StringConv::val2str(iserverID);
-	}
-
 	{
 		uint64 v = g_componentID;
 		scomponentID = KBEngine::StringConv::val2str(v);
@@ -122,7 +115,6 @@ inline void setEvns()
 	setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
 	setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
 	setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
-	setenv("KBE_SERVERID", sserverID.c_str(), 1);
 }
 
 template <class SERVER_APP>
@@ -229,24 +221,24 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			continue;
 		}
 
-		findcmd = "--sid=";
+		findcmd = "--gus=";
 		fi1 = cmd.find(findcmd);
 		if(fi1 != std::string::npos)
 		{
 			cmd.erase(fi1, findcmd.size());
 			if(cmd.size() > 0)
 			{
-				int sid = 0;
+				int32 gus = 0;
 				try
 				{
-					StringConv::str2value(sid, cmd.c_str());
+					StringConv::str2value(gus, cmd.c_str());
 
-					KBE_ASSERT(sid <= 65535);
-					g_serverID = sid;
+					KBE_ASSERT(gus <= 65535);
+					g_genuuid_sections = gus;
 				}
 				catch(...)
 				{
-					ERROR_MSG("parseCommandArgs: --sid=? invalid, no set!\n");
+					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set!\n");
 				}
 			}
 
