@@ -1119,6 +1119,22 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
+		if(mailtype == MAILBOX_TYPE_CELL)
+		{
+			GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+			COMPONENT_ID cellID = gm->getRoute(eid);
+			if(gm && cellID > 0)
+			{
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(CellappInterface::onEntityMail);
+				(*pBundle) << eid << mailtype;
+				(*pBundle).append(s);
+				gm->pushMessage(cellID, pBundle);
+				s.done();
+				return;
+			}
+		}
+
 		ERROR_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
 		s.done();
 		return;
@@ -1143,11 +1159,6 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 						bundle.append(s);
 						gm->pushMessage(entity->realCell(), pBundle);
 						reclaim = false;
-					}
-					else
-					{
-						ERROR_MSG(fmt::format("Cellapp::onEntityMail: not found entity in GhostManager! mailboxType={}, entityID={}.\n",
-							mailtype, eid));
 					}
 				}
 				else
