@@ -1130,9 +1130,32 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 
 	switch(mailtype)
 	{
-		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+		// 本组件是cellapp，那么确认邮件的目的地是这里， 那么执行最终操作
 		case MAILBOX_TYPE_CELL:	
-			entity->onRemoteMethodCall(pChannel, s);
+			{
+				if(!entity->isReal())
+				{
+					GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+					if(gm)
+					{
+						bundle.newMessage(CellappInterface::onEntityMail);
+						bundle << eid << mailtype;
+						bundle.append(s);
+						gm->pushMessage(entity->realCell(), pBundle);
+						reclaim = false;
+					}
+					else
+					{
+						ERROR_MSG(fmt::format("Cellapp::onEntityMail: not found entity in GhostManager! mailboxType={}, entityID={}.\n",
+							mailtype, eid));
+					}
+				}
+				else
+				{
+					entity->onRemoteMethodCall(pChannel, s);
+				}
+			}
+
 			break;
 
 		// entity.base.cell.xxx
