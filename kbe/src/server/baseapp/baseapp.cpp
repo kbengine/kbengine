@@ -2212,8 +2212,8 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 		startGlobalOrder, startGroupOrder, digest);
 
 	// 这里需要更新一下python的环境变量
-	this->getScript().setenv("KBE_GLOBALID", getenv("KBE_GLOBALID"));
-	this->getScript().setenv("KBE_GROUPID", getenv("KBE_GROUPID"));
+	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
+	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 

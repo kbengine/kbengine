@@ -184,44 +184,24 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 			continue;
 		}
 
-		findcmd = "--grouporder=";
+		findcmd = "--gus=";
 		fi1 = cmd.find(findcmd);
 		if(fi1 != std::string::npos)
 		{
 			cmd.erase(fi1, findcmd.size());
 			if(cmd.size() > 0)
 			{
-				COMPONENT_ORDER orderid = 0;
+				int32 gus = 0;
 				try
 				{
-					StringConv::str2value(orderid, cmd.c_str());
-					g_componentGroupOrder = orderid;
+					StringConv::str2value(gus, cmd.c_str());
+
+					KBE_ASSERT(gus <= 65535);
+					g_genuuid_sections = gus;
 				}
 				catch(...)
 				{
-					ERROR_MSG("parseCommandArgs: --grouporder=? invalid, no set!\n");
-				}
-			}
-
-			continue;
-		}
-
-		findcmd = "--globalorder=";
-		fi1 = cmd.find(findcmd);
-		if(fi1 != std::string::npos)
-		{
-			cmd.erase(fi1, findcmd.size());
-			if(cmd.size() > 0)
-			{
-				COMPONENT_ORDER orderid = 0;
-				try
-				{
-					StringConv::str2value(orderid, cmd.c_str());
-					g_componentGlobalOrder = orderid;
-				}
-				catch(...)
-				{
-					ERROR_MSG("parseCommandArgs: --globalorder=? invalid, no set!\n");
+					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set! type is uint16\n");
 				}
 			}
 
@@ -254,8 +234,8 @@ inline void setEvns()
 	}
 
 	setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
-	setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
-	setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
+	setenv("KBE_BOOTIDX_GLOBAL", scomponentGlobalOrder.c_str(), 1);
+	setenv("KBE_BOOTIDX_GROUP", scomponentGroupOrder.c_str(), 1);
 }
 
 template <class CLIENT_APP>

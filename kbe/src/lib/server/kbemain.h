@@ -113,8 +113,8 @@ inline void setEvns()
 	}
 
 	setenv("KBE_COMPONENTID", scomponentID.c_str(), 1);
-	setenv("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
-	setenv("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
+	setenv("KBE_BOOTIDX_GLOBAL", scomponentGlobalOrder.c_str(), 1);
+	setenv("KBE_BOOTIDX_GROUP", scomponentGroupOrder.c_str(), 1);
 }
 
 template <class SERVER_APP>
