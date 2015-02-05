@@ -47,11 +47,9 @@ namespace KBEngine{ namespace script{
 					L"../../res/scripts/common/Lib"
 #endif
 
-// 脚本编译后的后缀名和缓存文件夹
-#define SCRIPT_BIN_TAG "cpython-34"
-#define SCRIPT_BIN_CACHEDIR "__pycache__"
 
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v);
+
 template<class T>
 PyObject * PyTuple_FromIntVector(const std::vector< T > & v)
 {
@@ -61,6 +59,7 @@ PyObject * PyTuple_FromIntVector(const std::vector< T > & v)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromLong( v[i] ) );
 	}
+
 	return t;
 }
 
