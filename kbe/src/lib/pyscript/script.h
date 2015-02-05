@@ -72,6 +72,7 @@ inline PyObject * PyTuple_FromIntVector<int64>(const std::vector< int64 > & v)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromLongLong( v[i] ) );
 	}
+
 	return t;
 }
 
@@ -84,6 +85,7 @@ inline PyObject * PyTuple_FromIntVector<uint64>(const std::vector< uint64 > & v)
 	{
 		PyTuple_SetItem( t, i, PyLong_FromUnsignedLongLong( v[i] ) );
 	}
+
 	return t;
 }
 
