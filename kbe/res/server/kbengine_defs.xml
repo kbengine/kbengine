@@ -477,12 +477,13 @@
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
-		<!-- 外部IP地址或者域名，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
-			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
-			地址。
-			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
+		<!-- 强制指定外部IP地址或者域名，在某些网络环境下，可能会使用端口映射的方式来访问局域网内部的KBE服务器，那么KBE在当前
+			的机器上获得的外部地址是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调地址, 登录baseapp。
+			注意：服务端并不会检查这个地址的可用性，因为无法检查。
+			(Forced to specify an external IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
 			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
-			For example: account activation email address given callback.)
+			For example: account activation email address given callback.
+			Note: the availability of server does not check the address, because cannot check)
 		-->
 		<externalAddress>  </externalAddress>							<!-- Type: String -->
 		
@@ -613,12 +614,13 @@
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
 		
-		<!-- 外部IP地址或者域名，在某些机房的环境下，可能会使用端口映射的方式来访问内部kbe服务器，那么kbe在当前
-			的机器上获得的外部地址可能也是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调
-			地址。
-			(External IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
+		<!-- 强制指定外部IP地址或者域名，在某些网络环境下，可能会使用端口映射的方式来访问局域网内部的KBE服务器，那么KBE在当前
+			的机器上获得的外部地址是局域网地址，此时某些功能将会不正常。例如：账号激活邮件中给出的回调地址, 登录baseapp。
+			注意：服务端并不会检查这个地址的可用性，因为无法检查。
+			(Forced to specify an external IP-address or Domain-name, In some server environment, May use the port mapping to access KBE,
 			So KBE on current machines on the external IP address may be a LAN IP address, Then some functions will not normal.
-			For example: account activation email address given callback.)
+			For example: account activation email address given callback.
+			Note: the availability of server does not check the address, because cannot check)
 		-->
 		<externalAddress>  </externalAddress>							<!-- Type: String -->
 		
