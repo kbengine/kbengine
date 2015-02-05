@@ -494,14 +494,18 @@ bool DBTaskEntityAutoLoad::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
 {
+	int size = outs_.size();
 	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
-	DEBUG_MSG(fmt::format("Dbmgr::DBTaskEntityAutoLoad: {}, size({}).\n", 
-		pModule->getName(), outs_.size()));
+
+	if(size > 0)
+	{
+		DEBUG_MSG(fmt::format("Dbmgr::DBTaskEntityAutoLoad: {}, size({}).\n", 
+			pModule->getName(), size));
+	}
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onEntityAutoLoadCBFromDBMgr);
 
-	int size = outs_.size();
 	(*pBundle) << size << entityType_;
 
 	std::vector<DBID>::iterator iter = outs_.begin();

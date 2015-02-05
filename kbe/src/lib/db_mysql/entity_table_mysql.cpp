@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
+// 同步成功时回调
+typedef void (*onSyncItemToDBSuccessPtr)(DBInterface*, const char*, const char*);
 
 bool sync_item_to_db(DBInterface* dbi, 
 					 const char* datatype, 
@@ -44,7 +46,7 @@ bool sync_item_to_db(DBInterface* dbi,
 					 enum_field_types 
 					 sqlitemtype, 
 					 unsigned int itemflags, 
-					 void* pData)	
+					 void* pData, onSyncItemToDBSuccessPtr callback = NULL)	
 {
 	if(pData)
 	{
@@ -84,7 +86,12 @@ bool sync_item_to_db(DBInterface* dbi,
 		try
 		{
 			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
+			{
+				if(callback)
+					(*callback)(dbi, tablename, itemname);
+
 				return true;
+			}
 		}
 		catch(...)
 		{
@@ -95,8 +102,25 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 	}
 
+	if(callback)
+		(*callback)(dbi, tablename, itemname);
+
 	return true;
 }		
+
+void sync_autoload_item_index(DBInterface* dbi, const char* tablename, const char* itemname)
+{
+	// 创建sm_autoLoad的索引
+	std::string sql = fmt::format("ALTER TABLE "ENTITY_TABLE_PERFIX"_{} ADD INDEX ({})", tablename, itemname);
+
+	try
+	{
+		dbi->query(sql.c_str(), sql.size(), true);
+	}
+	catch(...)
+	{
+	}
+}
 
 //-------------------------------------------------------------------------------------
 EntityTableMysql::EntityTableMysql()
@@ -368,7 +392,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
 
 	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR, 0, 
-			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs);
+			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
 
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); ++iter)
