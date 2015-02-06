@@ -65,6 +65,7 @@ MessageHandlers::~MessageHandlers()
 //-------------------------------------------------------------------------------------
 MessageHandler::MessageHandler():
 pArgs(NULL),
+pMessageHandlers(NULL),
 send_size(0),
 send_count(0),
 recv_size(0),

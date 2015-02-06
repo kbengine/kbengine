@@ -418,6 +418,12 @@ void Bundle::_debugMessages()
 			}
 			else if(state == 1)
 			{
+				if(!pCurrMsgHandler_ || !pCurrMsgHandler_->pMessageHandlers)
+				{
+					pPacket->done();
+					continue;
+				}
+
 				pCurrMsgHandler = pCurrMsgHandler_->pMessageHandlers->find(msgid);
 
 				// 一些sendto操作的包导致找不到MsgHandler, 这类包也不需要追踪
