@@ -2785,7 +2785,8 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	// 必须放在前面
 	addToStream(s);
 
-	witnesses_.clear();
+	//witnesses_.clear();
+	//witnesses_count_ = 0;
 
 	if(pControllers_)
 	{
@@ -2942,17 +2943,18 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 	s >> size;
 
 	KBE_ASSERT(witnesses_count_ == 0);
-	witnesses_count_ = size;
 
 	for(uint32 i=0; i<size; ++i)
 	{
 		ENTITY_ID entityID;
 		s >> entityID;
 
-		if(Cellapp::getSingleton().findEntity(entityID) == NULL)
+		Entity* pEntity = Cellapp::getSingleton().findEntity(entityID);
+		if(pEntity == NULL || pEntity->spaceID() != spaceID())
 			continue;
 
 		witnesses_.push_back(entityID);
+		++witnesses_count_;
 	}
 
 	bool hasWitness;
