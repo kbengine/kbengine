@@ -5,7 +5,7 @@ CONFIG_ARGS = --with-apr=../apr
 
 config.status:  configure
 	@chmod -R 755 .
-	./configure $(CONFIG_ARGS)
+	$(SHELL) configure $(CONFIG_ARGS)
 	@make
 	@if ! test -e ../../../libs/libaprutil-1.a; then \cp -f ".libs/libaprutil-1.a" "../../../libs"; fi
 
