@@ -14,10 +14,6 @@ Include/Python.h
 pgupdate.props:
    <Import Project="$(SolutionDir)\lib\python\PCbuild\pginstrument.props" />
 
-script.h:
-	#define SCRIPT_BIN_TAG "cpython-34"
-	#define SCRIPT_BIN_CACHEDIR "__pycache__"
-
 common.mak:
 	PYTHONLIB = python
 
