@@ -370,6 +370,7 @@ void Script::setenv(const std::string& name, const std::string& value)
 		}
 
 		Py_DECREF(supports_bytes_environ);
+		Py_DECREF(osModule);
 
 		if (!environ)
 		{
