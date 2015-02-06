@@ -351,11 +351,32 @@ void Script::setenv(const std::string& name, const std::string& value)
 
 	if(osModule)
 	{
-		PyObject* environ = PyObject_GetAttrString(osModule, "environ");
+		PyObject* environ = NULL;
+		PyObject* py_name = NULL;
+		PyObject* py_value = NULL;
+
+		PyObject* supports_bytes_environ = PyObject_GetAttrString(osModule, "supports_bytes_environ");
+		if(Py_True == supports_bytes_environ)
+		{
+			environ = PyObject_GetAttrString(osModule, "environb");
+			py_name = PyBytes_FromString(name.c_str());
+			py_value = PyBytes_FromString(value.c_str());
+		}
+		else
+		{
+			environ = PyObject_GetAttrString(osModule, "environ");
+			py_name = PyUnicode_FromString(name.c_str());
+			py_value = PyUnicode_FromString(value.c_str());
+		}
+
+		Py_DECREF(supports_bytes_environ);
+
 		if (!environ)
 		{
 			ERROR_MSG("Script::setenv: get os.environ is error!\n");
 			PyErr_PrintEx(0);
+			Py_DECREF(py_value);
+			Py_DECREF(py_name);
 			return;
 		}
 
@@ -364,17 +385,19 @@ void Script::setenv(const std::string& name, const std::string& value)
 		{
 			ERROR_MSG("Script::setenv: os.environ._data not exist!\n");
 			PyErr_PrintEx(0);
+			Py_DECREF(py_value);
+			Py_DECREF(py_name);
 			Py_DECREF(environ);
 			return;
 		}
 
+		Py_DECREF(environData);
 		Py_DECREF(environ);
 
-		PyObject* py_value = PyUnicode_FromString(value.c_str());
-		int ret = PyDict_SetItemString(environData, name.c_str(), py_value);
+		int ret = PyDict_SetItem(environData, py_name, py_value);
 		Py_DECREF(py_value);
-		Py_DECREF(environData);
-
+		Py_DECREF(py_name);
+		
 		if(ret == -1)
 		{
 			ERROR_MSG("Script::setenv: get os.environ is error!\n");
