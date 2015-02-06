@@ -71,7 +71,8 @@ namespace ConsoleInterface{
 	class ConsoleExecCommandCBMessageHandler : public Network::MessageHandler
 	{
 	public:
-		ConsoleExecCommandCBMessageHandler()
+		ConsoleExecCommandCBMessageHandler():
+		  Network::MessageHandler()
 		{
 			onInstall();
 		}
@@ -128,7 +129,8 @@ namespace ConsoleInterface{
 	class ConsoleLogMessageHandler : public Network::MessageHandler
 	{
 	public:
-		ConsoleLogMessageHandler()
+		ConsoleLogMessageHandler():
+		  Network::MessageHandler()
 		{
 			onInstall();
 		}
@@ -179,7 +181,8 @@ namespace ConsoleInterface{
 	class ConsoleWatcherCBMessageHandler : public Network::MessageHandler
 	{
 	public:
-		ConsoleWatcherCBMessageHandler()
+		ConsoleWatcherCBMessageHandler():
+		  Network::MessageHandler()
 		{
 			onInstall();
 		}
@@ -230,7 +233,8 @@ namespace ConsoleInterface{
 	class ConsoleProfileHandler : public Network::MessageHandler
 	{
 	public:
-		ConsoleProfileHandler()
+		ConsoleProfileHandler():
+		  Network::MessageHandler()
 		{
 			onInstall();
 		}
