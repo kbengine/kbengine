@@ -1611,6 +1611,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
+		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1630,6 +1631,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
+		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1648,6 +1650,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
+		(*pBundle) << g_componentID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
