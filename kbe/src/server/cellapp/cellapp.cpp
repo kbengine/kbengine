@@ -1596,6 +1596,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;
 	SPACE_ID spaceID = 0;
+	COMPONENT_ID entityBaseappID = 0;
 
 	s >> teleportEntityID >> nearbyMBRefID >> spaceID;
 	s >> entityType;
@@ -1611,7 +1612,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID;
+		(*pBundle) << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1631,7 +1632,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID;
+		(*pBundle) << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1650,7 +1651,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID;
+		(*pBundle) << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1697,11 +1698,15 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	e->onTeleportSuccess(nearbyMBRef, space->id());
 	
 	success = true;
-	
+
+	// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
+	if(e->baseMailbox())
+		entityBaseappID = e->baseMailbox()->componentID();
+
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID;
+		(*pBundle) << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		pChannel->send(pBundle);
@@ -1711,42 +1716,50 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	bool success;
-	COMPONENT_ID targetCellappID;
+	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
+	COMPONENT_ID targetCellappID, entityBaseappID;
 
-	s >> targetCellappID >> teleportEntityID >> success;
+	s >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
 
-	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
-
-	if(entity == NULL)
+	if(entityBaseappID > 0)
 	{
-		if(!success)
+		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
+		if(pInfos && pInfos->pChannel)
 		{
-			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
-				teleportEntityID));
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
+			(*pBundle) << teleportEntityID;
 
-			s.done();
-			return;
+			if(success)
+				(*pBundle) << targetCellappID;
+			else
+				(*pBundle) << g_componentID;
+
+			pInfos->pChannel->send(pBundle);
 		}
-
-		s.done();
-	}
-
-	EntityMailbox* baseMB = entity->baseMailbox();
-	if(baseMB)
-	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
-		(*pBundle) << baseMB->id();
-		(*pBundle) << targetCellappID;
-		baseMB->postMail(pBundle);
+		else
+		{
+			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found baseapp({}), entity({})!\n", 
+				entityBaseappID, teleportEntityID));
+		}
 	}
 
 	// 传送成功， 我们销毁这个entity。
 	if(success)
 	{
 		destroyEntity(teleportEntityID, false);
+		return;
+	}
+
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+
+	if(entity == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
+			teleportEntityID));
+
+		s.done();
 		return;
 	}
 
