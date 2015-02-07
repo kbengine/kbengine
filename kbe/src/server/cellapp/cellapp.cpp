@@ -1664,7 +1664,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	
 	e->createFromStream(s);
 
-	// 有可能序列化过来的ghost内容包含移动控制器， 之所以序列化过来是为了
+	// 有可能序列化过来的ghost内容包含移动控制器，之所以序列化过来是为了
 	// 在传送失败时可以用于恢复现场, 那么传送成功了我们应该停止以前的移动行为
 	e->stopMove();
 
@@ -1722,6 +1722,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 
 	s >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
 
+	// 实体可能没有base部分，那么不需要通知baseapp
 	if(entityBaseappID > 0)
 	{
 		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
@@ -1745,15 +1746,15 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 		}
 	}
 
-	// 传送成功， 我们销毁这个entity。
+	// 传送成功，我们销毁这个entity
 	if(success)
 	{
 		destroyEntity(teleportEntityID, false);
 		return;
 	}
 
+	// 某些情况下实体可能此时找不到了，例如：副本销毁了
 	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
-
 	if(entity == NULL)
 	{
 		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found reqTeleportEntity({}), lose entity!\n", 
@@ -1763,7 +1764,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 		return;
 	}
 
-	// 传送失败了， 我们需要重恢复entity
+	// 传送失败了，我们需要重恢复entity
 	Position3D pos;
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;
