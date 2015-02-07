@@ -2502,7 +2502,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << spaceID();
 	(*pBundle) << scriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
-	(*pBundle) << dir.roll() << pos.pitch() << dir.yaw();
+	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	changeToGhost(nearbyMBRef->componentID(), *s);
