@@ -630,10 +630,10 @@ extern int32 g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
-	static uint64 tv = (uint64)getSystemTime();
+	static uint64 tv = (uint64)(getSystemTime() * 0.001f);
 	static uint16 lastNum = 0;
 	
-	uint64 now = (uint64)getSystemTime();	
+	uint64 now = (uint64)(getSystemTime() * 0.001f);	
 	if(now != tv)
 	{
 		tv = now;
