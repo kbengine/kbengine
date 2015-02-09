@@ -594,7 +594,7 @@ inline int32 getProcessPID()
 #endif
 }
 
-/** 获取系统时间 */
+/** 获取系统时间(精确到毫秒) */
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline uint32 getSystemTime() 
 	{ 
@@ -630,10 +630,16 @@ extern int32 g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	static uint64 tv = (uint64)(time(NULL));
+	uint64 now = (uint64)(time(NULL));
+#else
 	static uint64 tv = (uint64)(getSystemTime() * 0.001f);
+	uint64 now = (uint64)(getSystemTime() * 0.001f);
+#endif
+
 	static uint16 lastNum = 0;
-	
-	uint64 now = (uint64)(getSystemTime() * 0.001f);	
+
 	if(now != tv)
 	{
 		tv = now;
