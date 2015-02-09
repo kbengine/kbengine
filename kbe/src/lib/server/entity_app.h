@@ -979,6 +979,9 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 		return 0;
 	}
 
+	if(!Resmgr::getSingleton().hasRes(respath))
+		return PyUnicode_FromString("");
+
 	std::string fullpath = Resmgr::getSingleton().matchRes(respath);
 	return PyUnicode_FromString(fullpath.c_str());
 }
