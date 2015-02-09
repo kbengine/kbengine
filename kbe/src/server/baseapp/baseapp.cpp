@@ -205,6 +205,7 @@ void Baseapp::onShutdownBegin()
 	EntityApp<Base>::onShutdownBegin();
 
 	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 		const_cast<char*>("i"), 0);
 
@@ -219,6 +220,7 @@ void Baseapp::onShutdown(bool first)
 	if(first)
 	{
 		// 通知脚本
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 			const_cast<char*>("i"), 1);
 	}
@@ -258,6 +260,7 @@ void Baseapp::onShutdownEnd()
 	EntityApp<Base>::onShutdownEnd();
 
 	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 		const_cast<char*>("i"), 2);
 }
@@ -504,18 +507,21 @@ void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 	PyTuple_SetItem(pyarg, 0, pyobj);
 
 	SCRIPT_ERROR_CHECK();
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onCellAppDeath"), 
-										const_cast<char*>("O"), 
-										pyarg);
 
-	Py_DECREF(pyarg);
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+											const_cast<char*>("onCellAppDeath"), 
+											const_cast<char*>("O"), 
+											pyarg);
 
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		Py_DECREF(pyarg);
 
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 
 	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(pChannel->componentID(), this->networkInterface());
 	Entities<Base>::ENTITYS_MAP& entitiesMap = pEntities_->getEntities();
@@ -942,8 +948,6 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 	{
 		if(callbackID > 0)
 		{
-			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 			PyObject* baseRef = NULL;
 
 			if(wasActive && wasActiveCID > 0 && wasActiveEntityID > 0)
@@ -987,6 +991,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 			if(pyfunc != NULL)
 			{
+				SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 													const_cast<char*>("OKi"), 
 													baseRef, dbid, wasActive);
@@ -1023,12 +1028,11 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		//if(e != NULL)
 		//	Py_INCREF(e);
 
-		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 		// baseRef, dbid, wasActive
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("OKi"), 
 												e, dbid, wasActive);
@@ -1193,8 +1197,6 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	{
 		if(callbackID > 0)
 		{
-			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 			PyObject* baseRef = NULL;
 
 			if(wasActive && wasActiveCID > 0 && wasActiveEntityID > 0)
@@ -1238,6 +1240,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 			if(pyfunc != NULL)
 			{
+				SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 													const_cast<char*>("OKi"), 
 													baseRef, dbid, wasActive);
@@ -1356,8 +1359,6 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 			return;
 		}
 
-		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 		// baseRef, dbid, wasActive
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
@@ -1366,6 +1367,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 
 			PyObject* pyResult = NULL;
 			
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			if(pbase)
 			{
 				pyResult = PyObject_CallFunction(pyfunc.get(), 
@@ -2157,14 +2160,13 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	PyObject* pySuccess = PyBool_FromLong((retcode == SERVER_SUCCESS));
 	Blob* pBlob = new Blob(datas);
 
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 	if(callbackID > 0)
 	{
 		PyObjectPtr pycallback = callbackMgr().take(callbackID);
 
 		if(pycallback != NULL)
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
 												const_cast<char*>("OOOO"), 
 												pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
@@ -2182,6 +2184,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 	else
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onLoseChargeCB"), 
 										const_cast<char*>("OOOO"), 
@@ -3590,8 +3593,6 @@ void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 
 	if(callbackID > 0)
 	{
-		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 		// true or false or mailbox
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
@@ -3621,6 +3622,7 @@ void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 				Py_INCREF(pyval);
 			}
 
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("O"), 
 												pyval);
@@ -3724,8 +3726,6 @@ void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 
 	if(callbackID > 0)
 	{
-		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 		// true or false or mailbox
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
@@ -3756,6 +3756,7 @@ void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 				Py_INCREF(pyval);
 			}
 
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("O"), 
 												pyval);

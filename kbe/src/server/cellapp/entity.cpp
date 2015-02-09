@@ -841,6 +841,8 @@ void Entity::addWitnessed(Entity* entity)
 
 	if(witnesses_count_ == 1)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(1));
 	}
@@ -866,6 +868,8 @@ void Entity::onDelWitnessed()
 {
 	if(witnesses_count_ == 0)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(0));
 	}
@@ -1970,6 +1974,8 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 		return;
 
 	pMoveController_ = NULL;
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 }
@@ -1981,6 +1987,8 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 		return;
 
 	pMoveController_ = NULL;
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 }
@@ -2627,8 +2635,6 @@ void Entity::onTeleportFailure()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	
 	EntityMailbox* mb = this->baseMailbox();
 	if(mb)
 	{
@@ -2638,6 +2644,7 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 	// 如果身上有trap等触发器还得重新添加进去
 	restoreProximitys();
 
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);
 }

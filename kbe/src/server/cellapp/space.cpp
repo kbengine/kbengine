@@ -186,8 +186,11 @@ void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 			id(), getGeometryPath()));
 
 	// 通知脚本
-	SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
-		const_cast<char*>("Is"), this->id(), getGeometryPath().c_str());
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
+			const_cast<char*>("Is"), this->id(), getGeometryPath().c_str());
+	}
 
 	onAllSpaceGeometryLoaded();
 }
@@ -195,6 +198,8 @@ void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 //-------------------------------------------------------------------------------------
 void Space::onAllSpaceGeometryLoaded()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onAllSpaceGeometryLoaded"), 
 		const_cast<char*>("Iis"), this->id(), true, getGeometryPath().c_str());
@@ -436,11 +441,13 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 	// 通知脚本
 	if(!isdel)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceData"), 
 			const_cast<char*>("Iss"), this->id(), key.c_str(), value.c_str());
 	}
 	else
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceData"), 
 			const_cast<char*>("IsO"), this->id(), key.c_str(), Py_None);
 	}

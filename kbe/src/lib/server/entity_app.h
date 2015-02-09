@@ -1031,6 +1031,7 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 
 	PyObject *ioMod = PyImport_ImportModule("io");
 
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject *openedFile = PyObject_CallMethod(ioMod, const_cast<char*>("open"), 
 		const_cast<char*>("ss"), 
 		const_cast<char*>(sfullpath.c_str()), 
@@ -1258,6 +1259,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 		if(pGlobalData_->del(pyKey))
 		{
 			// 通知脚本
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalDataDel"), 
 				const_cast<char*>("O"), pyKey);
 		}
@@ -1277,6 +1279,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 		if(pGlobalData_->write(pyKey, pyValue))
 		{
 			// 通知脚本
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
@@ -1416,6 +1419,8 @@ void EntityApp<E>::reloadScript(bool fullReload)
 {
 	EntityDef::reload(fullReload);
 	onReloadScript(fullReload);
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	// 所有脚本都加载完毕
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
