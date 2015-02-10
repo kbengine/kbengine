@@ -535,6 +535,7 @@ void DebugHelper::registerLogger(Network::MessageID msgID, Network::Address* pAd
 void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* pAddr)
 {
 	loggerAddr_ = Network::Address::NONE;
+	canLogFile_ = true;
 	ALERT_LOG_TO("", true);
 }
 
