@@ -35,6 +35,7 @@ public:
 
 	virtual void reset();
 	virtual void processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
+
 protected:
 };
 

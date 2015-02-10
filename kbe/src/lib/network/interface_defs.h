@@ -28,14 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "network/bundle.h"
 #include "network/channel.h"
-//#define NDEBUG
-#include <assert.h>
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 
 #endif
 // KBE_INTERFACE_DEFS_H

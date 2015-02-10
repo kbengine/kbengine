@@ -142,6 +142,7 @@ public:
 	const MessageHandlerMap& msgHandlers(){ return msgHandlers_; }
 
 	static std::string getDigestStr();
+
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;

@@ -121,6 +121,7 @@ public:
 	void addr(u_int16_t port, u_int32_t newAddress);
 
 	bool waitSend();
+
 protected:
 	KBESOCKET	socket_;
 	Address address_;

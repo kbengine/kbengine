@@ -109,10 +109,12 @@ public:
 	void processAllChannelPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
 	INLINE int32 numExtChannels() const;
+
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	void closeSocket();
+
 private:
 	EndPoint								extEndpoint_, intEndpoint_;
 

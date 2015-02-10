@@ -46,6 +46,7 @@ public:
 private:
 	virtual int handleInputNotification(int fd);
 	EventDispatcher & dispatcher();
+
 private:
 	EndPoint & endpoint_;
 	Channel::Traits traits_;

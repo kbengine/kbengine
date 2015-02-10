@@ -48,6 +48,13 @@ public:
 		RECV_STATE_CONTINUE = 1
 	};
 
+	enum PACKET_RECEIVER_TYPE
+	{
+		TCP_PACKET_RECEIVER = 0,
+		UDP_PACKET_RECEIVER = 1
+	};
+
+public:
 	PacketReceiver();
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
@@ -62,6 +69,11 @@ public:
 		pNetworkInterface_ = NULL;
 	}
 
+	virtual PacketReceiver::PACKET_RECEIVER_TYPE type()const
+	{
+		return TCP_PACKET_RECEIVER;
+	}
+
 	void pEndPoint(EndPoint* pEndpoint){ 
 		pEndpoint_ = pEndpoint; 
 	}
@@ -73,6 +85,7 @@ public:
 	virtual int handleInputNotification(int fd);
 
 	virtual Channel* getChannel();
+
 protected:
 	virtual bool processRecv(bool expectingPacket) = 0;
 	virtual RecvState checkSocketErrors(int len, bool expectingPacket) = 0;

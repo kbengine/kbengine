@@ -17,15 +17,6 @@ same license as the rest of the engine.
 #include "common/objectpool.h"
 #include "common/smartpointer.h"	
 #include "network/common.h"
-
-//#define NDEBUG
-#include <assert.h>
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
 namespace Network
@@ -94,11 +85,13 @@ public:
 	bool encrypted()const { return encrypted_; }
 
 	void encrypted(bool v) { encrypted_ = v; }
+
 protected:
 	MessageID msgID_;
 	bool isTCPPacket_;
 	bool encrypted_;
 	Bundle* pBundle_;
+
 public:
 	uint32 sentSize;
 

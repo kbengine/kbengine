@@ -71,6 +71,7 @@ public:
 
 	void addHandler(NetworkStatsHandler* pHandler);
 	void removeHandler(NetworkStatsHandler* pHandler);
+
 private:
 	STATS stats_;
 

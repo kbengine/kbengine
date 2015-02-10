@@ -63,6 +63,7 @@ public:
 	char * c_str() const;
 	const char * ipAsString() const;
 	bool isNone() const	{ return this->ip == 0; }
+
 private:
 	static char s_stringBuf[2][32];
 	static int s_currStringBuf;

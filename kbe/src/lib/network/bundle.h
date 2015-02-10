@@ -380,6 +380,7 @@ public:
     {
         PACKET_OUT_VALUE(value);
     }
+
 private:
 	Channel * pChannel_;
 	int		numMessages_;

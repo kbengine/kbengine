@@ -24,14 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "network/packet.h"
 #include "common/objectpool.h"
-//#define NDEBUG
-#include <assert.h>
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
 namespace Network

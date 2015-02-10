@@ -53,9 +53,15 @@ public:
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 	
+	virtual PacketReceiver::PACKET_RECEIVER_TYPE type()const
+	{
+		return UDP_PACKET_RECEIVER;
+	}
+
 protected:
 	bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
+
 protected:
 
 };

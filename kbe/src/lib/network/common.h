@@ -24,11 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "common/common.h"
 #include "helper/debug_option.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 
 namespace KBEngine { 
 namespace Network
