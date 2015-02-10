@@ -33,7 +33,7 @@ WATCHER_TYPE			= 12
 INTERFACES_TYPE			= 13
 COMPONENT_END_TYPE		= 16
 
-# 组件名称转换为类别
+# ComponentName to type
 COMPONENT_NAME2TYPE = {
 	"unknown"		: UNKNOWN_COMPONENT_TYPE,
 	"dbmgr"			: DBMGR_TYPE,
@@ -51,7 +51,7 @@ COMPONENT_NAME2TYPE = {
 	"interfaces" 	: INTERFACES_TYPE,
 }
 
-#  
+# Component name
 COMPONENT_NAME = (
 	"unknown",
 	"dbmgr",
@@ -69,7 +69,16 @@ COMPONENT_NAME = (
 	"interfaces",
 )
 
-
+# No shutdown
+NO_SHUTDOWN_COMPONENTS = (
+	"interfaces",
+	"watcher",
+	"bots",
+	"logger",
+	"console",
+	"machine",
+	"client",
+)
 
 class ClusterControllerHandler:
 	def __init__(self):
@@ -469,9 +478,10 @@ class ClusterStopHandler(ClusterControllerHandler):
 		print("online-components:")
 		printed = []
 		for ctype in self.startTemplate:
-			if ctype not in COMPONENT_NAME2TYPE or ctype == "machine":
-				if(ctype != "machine"):
+			if ctype not in COMPONENT_NAME2TYPE or ctype in NO_SHUTDOWN_COMPONENTS:
+				if(ctype not in NO_SHUTDOWN_COMPONENTS):
 					print("not found %s, stop failed!" % ctype)
+					
 				continue
 			
 			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
