@@ -1786,7 +1786,7 @@ bool Entity::canNavigate()
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::navigate(const Position3D& destination, float velocity, float range, float maxMoveDistance, float maxDistance, 
+uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
 	bool faceMovement, float girth, PyObject* userData)
 {
 	stopMove();
@@ -1796,7 +1796,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 	MoveController* p = new MoveController(this, NULL);
 	
 	new NavigateHandler(p, destination, velocity, 
-		range, faceMovement, maxMoveDistance, maxDistance, girth, userData);
+		distance, faceMovement, maxMoveDistance, maxDistance, girth, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1806,7 +1806,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float ran
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float range, float maxMoveDistance, float maxDistance,
+PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float distance, float maxMoveDistance, float maxDistance,
 								 int8 faceMovement, float layer, PyObject_ptr userData)
 {
 	if(!isReal())
@@ -1845,12 +1845,12 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float r
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	Py_INCREF(userData);
 
-	return PyLong_FromLong(navigate(destination, velocity, range, maxMoveDistance, 
+	return PyLong_FromLong(navigate(destination, velocity, distance, maxMoveDistance, 
 		maxDistance, faceMovement > 0, layer, userData));
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObject* userData, 
+uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float distance, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
 	stopMove();
@@ -1860,7 +1860,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 	MoveController* p = new MoveController(this, NULL);
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
-		0.0f, faceMovement, moveVertically, userData);
+		distance, faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1870,7 +1870,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
+PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, float distance, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
 	if(!isReal())
@@ -1909,11 +1909,11 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	Py_INCREF(userData);
 
-	return PyLong_FromLong(moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0));
+	return PyLong_FromLong(moveToPoint(destination, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject* userData, 
+uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
 	stopMove();
@@ -1922,7 +1922,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	MoveController* p = new MoveController(this, NULL);
 
-	new MoveToEntityHandler(p, targetID, velocity, range,
+	new MoveToEntityHandler(p, targetID, velocity, distance,
 		faceMovement, moveVertically, userData);
 
 	bool ret = pControllers_->add(p);
@@ -1933,7 +1933,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject_ptr userData,
+PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
 	if(!isReal())
@@ -1953,7 +1953,7 @@ PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range
 	}
 
 	Py_INCREF(userData);
-	return PyLong_FromLong(moveToEntity(targetID, velocity, range, userData, faceMovement > 0, moveVertically > 0));
+	return PyLong_FromLong(moveToEntity(targetID, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------

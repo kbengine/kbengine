@@ -30,7 +30,7 @@ namespace KBEngine{
 class NavigateHandler : public MoveToPointHandler
 {
 public:
-	NavigateHandler(Controller* pController, const Position3D& destPos, float velocity, float range, bool faceMovement, 
+	NavigateHandler(Controller* pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		float maxMoveDistance, float maxDistance, float girth,
 		PyObject* userarg);
 

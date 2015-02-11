@@ -296,7 +296,7 @@ public:
 		entity移动导航 
 	*/
 	bool canNavigate();
-	uint32 navigate(const Position3D& destination, float velocity, float range,
+	uint32 navigate(const Position3D& destination, float velocity, float distance,
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, float girth, PyObject* userData);
 
@@ -307,15 +307,15 @@ public:
 	/** 
 		entity移动到某个点 
 	*/
-	uint32 moveToPoint(const Position3D& destination, float velocity, 
+	uint32 moveToPoint(const Position3D& destination, float velocity, float distance,
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
-	DECLARE_PY_MOTHOD_ARG5(pyMoveToPoint, PyObject_ptr, float, PyObject_ptr, int32, int32);
+	DECLARE_PY_MOTHOD_ARG6(pyMoveToPoint, PyObject_ptr, float, float, PyObject_ptr, int32, int32);
 
 	/** 
 		entity移动到某个entity 
 	*/
-	uint32 moveToEntity(ENTITY_ID targetID, float velocity, float range,
+	uint32 moveToEntity(ENTITY_ID targetID, float velocity, float distance,
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
 	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);

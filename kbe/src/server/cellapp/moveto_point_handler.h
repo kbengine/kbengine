@@ -43,7 +43,7 @@ public:
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
-	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float range, bool faceMovement, 
+	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 
 	MoveToPointHandler();
@@ -65,7 +65,7 @@ protected:
 	bool faceMovement_;			// 是否不改变面向移动
 	bool moveVertically_;		// true则可以飞起来移动否则贴地
 	PyObject* pyuserarg_;
-	float range_;
+	float distance_;
 	Controller* pController_;
 	int layer_;
 };

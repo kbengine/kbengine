@@ -28,14 +28,14 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 MoveToPointHandler::MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, 
-											 float velocity, float range, bool faceMovement, 
+											 float velocity, float distance, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
 velocity_(velocity),
 faceMovement_(faceMovement),
 moveVertically_(moveVertically),
 pyuserarg_(userarg),
-range_(range),
+distance_(distance),
 pController_(pController),
 layer_(layer)
 {
@@ -50,7 +50,7 @@ velocity_(0.f),
 faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
-range_(0.f),
+distance_(0.f),
 pController_(NULL),
 layer_(0)
 {
@@ -74,7 +74,7 @@ void MoveToPointHandler::addToStream(KBEngine::MemoryStream& s)
 	// uint8 utype = type();
 
 	s << /*utype <<*/ destPos_.x << destPos_.y << destPos_.z << velocity_ << faceMovement_ << moveVertically_ <<
-		range_ << layer_;
+		distance_ << layer_;
 
 	s.appendBlob(script::Pickler::pickle(pyuserarg_));
 }
@@ -83,7 +83,7 @@ void MoveToPointHandler::addToStream(KBEngine::MemoryStream& s)
 void MoveToPointHandler::createFromStream(KBEngine::MemoryStream& s)
 {
 	s >> /*utype <<*/ destPos_.x >> destPos_.y >> destPos_.z >> velocity_ >> faceMovement_ >> moveVertically_ >>
-		range_ >> layer_;
+		distance_ >> layer_;
 
 	std::string val = "";
 	s.readBlob(val);
@@ -124,16 +124,16 @@ bool MoveToPointHandler::update()
 	
 	bool ret = true;
 
-	if(KBEVec3Length(&movement) < velocity_ + range_)
+	if(KBEVec3Length(&movement) < velocity_ + distance_)
 	{
 		float y = currpos.y;
 		currpos = dstPos;
 
-		if(range_ > 0.0f)
+		if(distance_ > 0.0f)
 		{
 			// 单位化向量
 			KBEVec3Normalize(&movement, &movement); 
-			movement *= range_;
+			movement *= distance_;
 			currpos -= movement;
 		}
 
