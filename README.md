@@ -24,8 +24,8 @@ http://www.kbengine.org
 	Email		: kbesrv?gmail.com
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
-## QQ交流群
-	16535321
+##中文
+	[中文论坛](http://bbs.kbengine.org), QQ交流群：16535321
 
 ##What is KBEngine?
 An open source MMOG server engine, the clients and server communications can through a simple protocol.
