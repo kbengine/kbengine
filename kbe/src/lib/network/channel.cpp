@@ -85,12 +85,6 @@ void Channel::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-bool Channel::destructorPoolObject()
-{
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * pEndPoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
