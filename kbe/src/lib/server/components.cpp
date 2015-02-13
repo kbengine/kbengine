@@ -381,7 +381,19 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		pComponentInfos->pChannel = new Network::Channel(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
+		Network::Channel* pChannel = Network::Channel::ObjPool().createObject();
+		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
+		if(!ret)
+		{
+			ERROR_MSG(fmt::format("Components::connectComponent: initialize({}) is failed!\n",
+				pChannel->c_str()));
+
+			pChannel->destroy();
+			Network::Channel::ObjPool().reclaimObject(pChannel);
+			return -1;
+		}
+
+		pComponentInfos->pChannel = pChannel;
 		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
@@ -389,7 +401,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				pComponentInfos->pChannel->c_str()));
 
 			pComponentInfos->pChannel->destroy();
-			
+			Network::Channel::ObjPool().reclaimObject(pComponentInfos->pChannel);
 
 			// 此时不可强制释放内存，destroy中已经对其减引用
 			// SAFE_RELEASE(pComponentInfos->pChannel);

@@ -80,7 +80,10 @@ void TCPPacketSender::onGetError(Channel* pChannel)
 	pNetworkInterface_->deregisterChannel(pChannel);
 
 	if(!pChannel->isDestroyed())
+	{
 		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

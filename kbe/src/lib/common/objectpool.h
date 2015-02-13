@@ -162,9 +162,6 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 
-				// 先重置状态
-				t->onReclaimObject();
-
 				mutex_.unlockMutex();
 				return t;
 			}
@@ -269,6 +266,9 @@ protected:
 	{
 		if(obj != NULL)
 		{
+			// 先重置状态
+			obj->onReclaimObject();
+
 			if(size() >= max_ || isDestroyed_)
 			{
 				delete obj;

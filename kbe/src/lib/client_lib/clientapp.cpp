@@ -557,6 +557,7 @@ void ClientApp::onChannelTimeOut(Network::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
+	Network::Channel::ObjPool().reclaimObject(pChannel);
 }
 
 //-------------------------------------------------------------------------------------	

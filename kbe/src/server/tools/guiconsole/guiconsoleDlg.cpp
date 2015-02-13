@@ -1371,14 +1371,29 @@ bool CguiconsoleDlg::connectTo()
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
 	}
 
-	pChannel = new Network::Channel(_networkInterface, endpoint, Network::Channel::INTERNAL);
+	pChannel = Network::Channel::ObjPool().createObject();
+	bool ret = pChannel->initialize(_networkInterface, endpoint, Network::Channel::INTERNAL);
+	if(!ret)
+	{
+		ERROR_MSG(fmt::format("CguiconsoleDlg::connectTo: initialize({}) is failed!\n",
+			pChannel->c_str()));
+
+		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
+		return 0;
+	}
+
 	pChannel->proxyID(getTreeItemComponent(m_tree.GetSelectedItem()));
 	if(!_networkInterface.registerChannel(pChannel))
 	{
+		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
+
 		CString err;
-		err.Format(L"ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",
+		err.Format(L"CguiconsoleDlg::connectTo: registerChannel(%s) is failed!\n",
 			pChannel->c_str());
 		AfxMessageBox(err);
 		return false;
@@ -1402,6 +1417,7 @@ void CguiconsoleDlg::closeCurrTreeSelChannel()
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
 	}
 }
 

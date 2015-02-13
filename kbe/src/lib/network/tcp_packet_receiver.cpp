@@ -77,7 +77,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 {
 	Channel* pChannel = getChannel();
 	KBE_ASSERT(pChannel != NULL);
-	
+
 	if(pChannel->isCondemn())
 	{
 		onGetError(pChannel);
@@ -122,7 +122,10 @@ void TCPPacketReceiver::onGetError(Channel* pChannel)
 	pNetworkInterface_->deregisterChannel(pChannel);
 
 	if(!pChannel->isDestroyed())
+	{
 		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

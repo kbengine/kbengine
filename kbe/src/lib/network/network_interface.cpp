@@ -96,6 +96,7 @@ NetworkInterface::~NetworkInterface()
 		ChannelMap::iterator oldIter = iter++;
 		Channel * pChannel = oldIter->second;
 		pChannel->destroy();
+		delete pChannel;
 	}
 
 	channelMap_.clear();
@@ -367,6 +368,7 @@ bool NetworkInterface::deregisterAllChannels()
 		ChannelMap::iterator oldIter = iter++;
 		Channel * pChannel = oldIter->second;
 		pChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pChannel);
 	}
 
 	channelMap_.clear();
@@ -384,8 +386,6 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 	if(pChannel->isExternal())
 		numExtChannels_--;
 
-	pChannel->incRef();
-
 	//INFO_MSG(fmt::format("NetworkInterface::deregisterChannel: del channel: {}\n",
 	//	pChannel->c_str()));
 
@@ -395,7 +395,6 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 				"Channel not found {}!\n",
 			pChannel->c_str()));
 
-		pChannel->decRef();
 		return false;
 	}
 
@@ -404,7 +403,6 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
 	}	
 
-	pChannel->decRef();
 	return true;
 }
 
@@ -436,11 +434,16 @@ void NetworkInterface::processAllChannelPackets(KBEngine::Network::MessageHandle
 	{
 		Network::Channel* pChannel = iter->second;
 
-		if(pChannel->isDestroyed() || pChannel->isCondemn())
+		if(pChannel->isDestroyed())
+		{
+			++iter;
+		}
+		else if(pChannel->isCondemn())
 		{
 			++iter;
 			deregisterChannel(pChannel);
 			pChannel->destroy();
+			Network::Channel::ObjPool().reclaimObject(pChannel);
 		}
 		else
 		{

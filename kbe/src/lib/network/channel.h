@@ -25,7 +25,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/timer.h"
 #include "common/smartpointer.h"
 #include "common/timestamp.h"
-#include "common/refcountable.h"
 #include "common/objectpool.h"
 #include "helper/debug_helper.h"
 #include "network/address.h"
@@ -47,11 +46,16 @@ class MessageHandlers;
 class PacketReader;
 class PacketSender;
 
-class Channel : public TimerHandler, public RefCountable, public PoolObject
+class Channel : public TimerHandler, public PoolObject
 {
 public:
+	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
+	static ObjectPool<Channel>& ObjPool();
+	static void destroyObjPool();
 	void onReclaimObject();
 	bool destructorPoolObject();
+	virtual size_t getPoolObjectBytes();
 
 	enum Traits
 	{
@@ -72,6 +76,7 @@ public:
 	};
 
 	typedef std::vector<Packet*> BufferedReceives;
+
 public:
 	Channel();
 
@@ -135,8 +140,6 @@ public:
 
 	void delayedSend();
 
-	void reset(const EndPoint* pEndPoint, bool warnOnDiscard = true);
-
 
 	INLINE PacketReader* pPacketReader()const;
 	INLINE PacketSender* pPacketSender()const;
@@ -187,7 +190,17 @@ public:
 
 	bool waitSend();
 
+	bool initialize(NetworkInterface & networkInterface, 
+		const EndPoint * pEndPoint, 
+		Traits traits, 
+		ProtocolType pt = PROTOCOL_TCP, 
+		PacketFilterPtr pFilter = NULL, 
+		ChannelID id = CHANNEL_ID_NULL);
+
+	bool finalise();
+
 private:
+
 	enum TimeOutType
 	{
 		TIMEOUT_INACTIVITY_CHECK
@@ -197,8 +210,6 @@ private:
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
 
-	bool initialize();
-	bool finalise();
 private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
@@ -254,7 +265,6 @@ private:
 	KBEngine::Network::MessageHandlers* pMsgHandlers_;
 };
 
-typedef SmartPointer<Channel> ChannelPtr;
 }
 }
 

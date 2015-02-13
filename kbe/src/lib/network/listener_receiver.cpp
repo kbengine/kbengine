@@ -73,11 +73,25 @@ int ListenerReceiver::handleInputNotification(int fd)
 		}
 		else
 		{
-			Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
-			if(!networkInterface_.registerChannel(pchannel))
+			Channel* pChannel = Network::Channel::ObjPool().createObject();
+			bool ret = pChannel->initialize(networkInterface_, pNewEndPoint, traits_);
+			if(!ret)
 			{
-				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification:registerChannel({}) is failed!\n",
-					pchannel->c_str()));
+				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: initialize({}) is failed!\n",
+					pChannel->c_str()));
+
+				pChannel->destroy();
+				Network::Channel::ObjPool().reclaimObject(pChannel);
+				return 0;
+			}
+
+			if(!networkInterface_.registerChannel(pChannel))
+			{
+				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: registerChannel({}) is failed!\n",
+					pChannel->c_str()));
+
+				pChannel->destroy();
+				Network::Channel::ObjPool().reclaimObject(pChannel);
 			}
 		}
 	}

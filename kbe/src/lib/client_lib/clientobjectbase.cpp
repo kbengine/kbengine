@@ -59,7 +59,7 @@ static int32 g_appID = 1;
 ClientObjectBase::ClientObjectBase(Network::NetworkInterface& ninterface, PyTypeObject* pyType):
 ScriptObject(pyType != NULL ? pyType : getScriptType(), false),
 appID_(0),
-pServerChannel_(new Network::Channel()),
+pServerChannel_(NULL),
 pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
@@ -89,9 +89,9 @@ timers_(),
 scriptCallbacks_(timers_),
 locktime_(0)
 {
-	pServerChannel_->incRef();
 	appID_ = g_appID++;
 
+	pServerChannel_ = Network::Channel::ObjPool().createObject();
 	pServerChannel_->pNetworkInterface(&ninterface);
 }
 
@@ -119,7 +119,7 @@ void ClientObjectBase::finalise(void)
 	if(pServerChannel_)
 	{
 		pServerChannel_->destroy();
-		pServerChannel_->decRef();
+		delete pServerChannel_;
 		pServerChannel_ = NULL;
 	}
 }
@@ -147,13 +147,12 @@ void ClientObjectBase::reset(void)
 	if(pServerChannel_ && !pServerChannel_->isDestroyed())
 	{
 		pServerChannel_->destroy();
-		pServerChannel_->decRef();
+		Network::Channel::ObjPool().reclaimObject(pServerChannel_);
 		pServerChannel_ = NULL;
 	}
 
-	pServerChannel_ = new Network::Channel();
+	pServerChannel_ = Network::Channel::ObjPool().createObject();
 	pServerChannel_->pNetworkInterface(&ninterface_);
-	pServerChannel_->incRef();
 }
 
 //-------------------------------------------------------------------------------------

@@ -43,6 +43,42 @@ namespace Network
 {
 
 //-------------------------------------------------------------------------------------
+static ObjectPool<Channel> _g_objPool("Channel");
+ObjectPool<Channel>& Channel::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Channel::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+size_t Channel::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
+		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
+		sizeof(lastReceivedTime_) + sizeof(bufferedReceivesIdx_) + (bufferedReceives_[0].size() + bufferedReceives_[1].size() * sizeof(Packet*)) + sizeof(pPacketReader_)
+		+ sizeof(isDestroyed_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
+		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
+		+ sizeof(sending_) + sizeof(isCondemn_) + sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
+		+ sizeof(componentID_) + sizeof(pMsgHandlers_);
+
+	return bytes;
+}
+
+//-------------------------------------------------------------------------------------
+Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
 {
 	this->clearState();
@@ -51,7 +87,6 @@ void Channel::onReclaimObject()
 //-------------------------------------------------------------------------------------
 bool Channel::destructorPoolObject()
 {
-	this->decRef();
 	return true;
 }
 
@@ -59,7 +94,7 @@ bool Channel::destructorPoolObject()
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * pEndPoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
-	pNetworkInterface_(&networkInterface),
+	pNetworkInterface_(NULL),
 	traits_(traits),
 	protocoltype_(pt),
 	id_(id),
@@ -88,10 +123,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL)
 {
-	this->incRef();
 	this->clearBundle();
-	this->pEndPoint(pEndPoint);
-	initialize();
+	initialize(networkInterface, pEndPoint, traits, pt, pFilter, id);
 }
 
 //-------------------------------------------------------------------------------------
@@ -126,36 +159,80 @@ Channel::Channel():
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL)
 {
-	this->incRef();
 	this->clearBundle();
-	this->pEndPoint(NULL);
 }
 
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
-	//DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
+	// DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
 	finalise();
 }
 
 //-------------------------------------------------------------------------------------
-bool Channel::initialize()
+bool Channel::initialize(NetworkInterface & networkInterface, 
+		const EndPoint * pEndPoint, 
+		Traits traits, 
+		ProtocolType pt, 
+		PacketFilterPtr pFilter, 
+		ChannelID id)
 {
+	id_ = id;
+	protocoltype_ = pt;
+	traits_ = traits;
+	pFilter_ = pFilter;
+	pNetworkInterface_ = &networkInterface;
+	this->pEndPoint(pEndPoint);
+
+	KBE_ASSERT(pNetworkInterface_ != NULL);
+	KBE_ASSERT(pEndPoint_ != NULL);
+
+
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
-		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		if(pPacketReceiver_)
+		{
+			if(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER)
+			{
+				SAFE_RELEASE(pPacketReceiver_);
+				pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+			}
+		}
+		else
+		{
+			pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		}
+
+		KBE_ASSERT(pPacketReceiver_->type() == PacketReceiver::TCP_PACKET_RECEIVER);
 
 		// UDP不需要注册描述符
 		pNetworkInterface_->dispatcher().registerReadFileDescriptor(*pEndPoint_, pPacketReceiver_);
 
 		// 需要发送数据时再注册
-		// pPacketSender_ =  new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+		// pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
 		// pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
 	}
 	else
 	{
-		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		if(pPacketReceiver_)
+		{
+			if(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER)
+			{
+				SAFE_RELEASE(pPacketReceiver_);
+				pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+			}
+		}
+		else
+		{
+			pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		}
+
+		KBE_ASSERT(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER);
 	}
+
+	pPacketReceiver_->pEndPoint(pEndPoint_);
+	if(pPacketSender_)
+		pPacketSender_->pEndPoint(pEndPoint_);
 
 	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
 													g_channelExternalTimeout);
@@ -166,11 +243,6 @@ bool Channel::initialize()
 //-------------------------------------------------------------------------------------
 bool Channel::finalise()
 {
-	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL && !isDestroyed_)
-	{
-		pNetworkInterface_->onChannelGone(this);
-	}
-
 	this->clearState();
 	
 	SAFE_RELEASE(pPacketReceiver_);
@@ -238,21 +310,8 @@ void Channel::destroy()
 		return;
 	}
 
-	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL)
-	{
-		pNetworkInterface_->onChannelGone(this);
-
-		if(protocoltype_ == PROTOCOL_TCP)
-		{
-			this->stopSend();
-			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
-			pEndPoint_->close();
-		}
-	}
-
-	stopInactivityDetection();
+	clearState();
 	isDestroyed_ = true;
-	this->decRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -290,6 +349,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 	lastReceivedTime_ = timestamp();
 
+	isDestroyed_ = false;
 	isCondemn_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
@@ -301,21 +361,29 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	channelType_ = CHANNEL_NORMAL;
 	bufferedReceivesIdx_ = 0;
 
-	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP)
+	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP && !this->isDestroyed())
 	{
 		this->stopSend();
 
-		if(!this->isDestroyed())
-			pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
+		if(pNetworkInterface_)
+		{
+			pNetworkInterface_->onChannelGone(this);
+
+			if(!this->isDestroyed())
+				pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
+		}
 	}
 
-	SAFE_RELEASE(pPacketReader_);
-	SAFE_RELEASE(pPacketSender_);
+	// 这里只清空状态，不释放
+	//SAFE_RELEASE(pPacketReader_);
+	//SAFE_RELEASE(pPacketSender_);
+
 	sending_ = false;
 	pFilter_ = NULL;
 
 	stopInactivityDetection();
 
+	// 由于pEndPoint通常由外部给入，必须释放，频道重新激活时会重新赋值
 	if(pEndPoint_)
 	{
 		pEndPoint_->close();
@@ -397,23 +465,6 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 		default:
 			break;
 	}
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::reset(const EndPoint* pEndPoint, bool warnOnDiscard)
-{
-	// 如果地址没有改变则不重置
-	if (pEndPoint == pEndPoint_)
-	{
-		return;
-	}
-
-	// 让网络接口下一个tick处理自己
-	if(pNetworkInterface_)
-		pNetworkInterface_->sendIfDelayed(*this);
-
-	this->clearState(warnOnDiscard);
-	this->pEndPoint(pEndPoint);
 }
 
 //-------------------------------------------------------------------------------------

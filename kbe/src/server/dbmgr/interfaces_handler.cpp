@@ -178,7 +178,10 @@ pInterfacesChannel_(NULL)
 InterfacesHandler_ThirdParty::~InterfacesHandler_ThirdParty()
 {
 	if(pInterfacesChannel_)
-		pInterfacesChannel_->decRef();
+	{
+		pInterfacesChannel_->destroy();
+		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+	}
 
 	pInterfacesChannel_ = NULL;
 }
@@ -299,7 +302,8 @@ bool InterfacesHandler_ThirdParty::reconnect()
 		if(!pInterfacesChannel_->isDestroyed())
 			Dbmgr::getSingleton().networkInterface().deregisterChannel(pInterfacesChannel_);
 
-		pInterfacesChannel_->decRef();
+		pInterfacesChannel_->destroy();
+		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
 	}
 
 	Network::Address addr = g_kbeSrvConfig.interfacesAddr();
@@ -315,8 +319,17 @@ bool InterfacesHandler_ThirdParty::reconnect()
 	pEndPoint->setnonblocking(true);
 	pEndPoint->setnodelay(true);
 
-	pInterfacesChannel_ = new Network::Channel(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
-	pInterfacesChannel_->incRef();
+	pInterfacesChannel_ = Network::Channel::ObjPool().createObject();
+	bool ret = pInterfacesChannel_->initialize(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
+	if(!ret)
+	{
+		ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::initialize: initialize({}) is failed!\n",
+			pInterfacesChannel_->c_str()));
+
+		pInterfacesChannel_->destroy();
+		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+		return 0;
+	}
 
 	if(pInterfacesChannel_->pEndPoint()->connect() == -1)
 	{
@@ -346,6 +359,7 @@ bool InterfacesHandler_ThirdParty::reconnect()
 				pInterfacesChannel_->pEndPoint()->addr().c_str()));
 
 			pInterfacesChannel_->destroy();
+			Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
 			return false;
 		}
 	}

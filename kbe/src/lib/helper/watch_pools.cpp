@@ -303,6 +303,40 @@ uint32 watchEndPointPool_bytes()
 }
 
 //-------------------------------------------------------------------------------------
+int32 watchChannelPool_size()
+{
+	return (int)Network::Channel::ObjPool().objects().size();
+}
+
+int32 watchChannelPool_max()
+{
+	return (int)Network::Channel::ObjPool().max();
+}
+
+int32 watchChannelPool_totalAllocs()
+{
+	return (int)Network::Channel::ObjPool().totalAllocs();
+}
+
+bool watchChannelPool_isDestroyed()
+{
+	return Network::Channel::ObjPool().isDestroyed();
+}
+
+uint32 watchChannelPool_bytes()
+{
+	size_t bytes = 0;
+
+	ObjectPool<Network::Channel>::OBJECTS::const_iterator iter = Network::Channel::ObjPool().objects().begin();
+	for(; iter != Network::Channel::ObjPool().objects().end(); ++iter)
+	{
+		bytes += static_cast<PoolObject*>((*iter))->getPoolObjectBytes();
+	}
+
+	return (uint32)bytes;
+}
+
+//-------------------------------------------------------------------------------------
 bool WatchPool::initWatchPools()
 {
 	WATCH_OBJECT("objectPools/Bundle/size", &watchBundlePool_size);
@@ -352,6 +386,12 @@ bool WatchPool::initWatchPools()
 	WATCH_OBJECT("objectPools/EndPoint/isDestroyed", &watchEndPointPool_isDestroyed);
 	WATCH_OBJECT("objectPools/EndPoint/memory", &watchEndPointPool_bytes);
 	WATCH_OBJECT("objectPools/EndPoint/totalAllocs", &watchEndPointPool_totalAllocs);
+
+	WATCH_OBJECT("objectPools/Channel/size", &watchChannelPool_size);
+	WATCH_OBJECT("objectPools/Channel/max", &watchChannelPool_max);
+	WATCH_OBJECT("objectPools/Channel/isDestroyed", &watchChannelPool_isDestroyed);
+	WATCH_OBJECT("objectPools/Channel/memory", &watchChannelPool_bytes);
+	WATCH_OBJECT("objectPools/Channel/totalAllocs", &watchChannelPool_totalAllocs);
 	return true;
 }
 

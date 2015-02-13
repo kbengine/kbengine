@@ -85,7 +85,9 @@ bool initializeWatcher()
 void destroyObjPool()
 {
 	Bundle::destroyObjPool();
+	Channel::destroyObjPool();
 	TCPPacket::destroyObjPool();
+	UDPPacket::destroyObjPool();
 	EndPoint::destroyObjPool();
 	Address::destroyObjPool();
 	TCPPacketReceiver::destroyObjPool();

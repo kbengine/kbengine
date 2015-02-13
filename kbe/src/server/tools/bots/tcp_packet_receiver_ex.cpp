@@ -60,6 +60,8 @@ Channel* TCPPacketReceiverEx::getChannel()
 void TCPPacketReceiverEx::onGetError(Channel* pChannel)
 {
 	pClientObject_->pServerChannel()->destroy();
+	//Network::Channel::ObjPool().reclaimObject(pClientObject_->pServerChannel());
+	//pClientObject_->pServerChannel(NULL);
 	Bots::getSingleton().delClient(pClientObject_);
 }
 

@@ -59,6 +59,7 @@ public:
 	virtual ~ClientObjectBase();
 
 	Network::Channel* pServerChannel()const{ return pServerChannel_; }
+	void pServerChannel(Network::Channel* pChannel){ pServerChannel_ = pChannel; }
 
 	void finalise(void);
 	virtual void reset(void);
