@@ -24,8 +24,6 @@ http://www.kbengine.org
 	Email		: kbesrv?gmail.com
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
-##中文
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：16535321
 
 ##What is KBEngine?
 An open source MMOG server engine, the clients and server communications can through a simple protocol.
@@ -38,6 +36,13 @@ allows developers to concentrate on the game logic development, quickly create a
 (Frequently asked load-limit, KBEngine is designed to be multi-process distributed dynamic load balancing scheme, 
 in theory only need to expand hardware can increase load-limit, the single machine load-limit 
 depends on complexity of logic of the game itself.)
+
+
+
+##中文
+
+[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：16535321
+
 
 ##什么是KBEngine?
 一款开源的游戏服务端引擎，客户端通过简单的约定协议就能与服务端通讯，
