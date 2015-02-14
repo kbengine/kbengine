@@ -1104,7 +1104,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			tick_max_buffered_logs_ = (uint32)xml->getValInt(node);
 		}
 
-		node = xml->enterNode(rootNode, "tick_max_sync_logs");
+		node = xml->enterNode(rootNode, "tick_sync_logs");
 		if(node != NULL){
 			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
 		}
