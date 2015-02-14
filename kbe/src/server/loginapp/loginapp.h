@@ -177,6 +177,7 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onBaseappInitProgress(Network::Channel* pChannel, float progress);
+
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 

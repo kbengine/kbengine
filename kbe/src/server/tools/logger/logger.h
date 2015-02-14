@@ -110,6 +110,7 @@ public:
 	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
 
 	void sendInitLogs(LogWatcher& logWatcher);
+
 protected:
 	LOG_WATCHERS logWatchers_;
 	std::deque<LOG_ITEM*> buffered_logs_;
