@@ -43,7 +43,6 @@ Logger::Logger(Network::EventDispatcher& dispatcher,
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 logWatchers_(),
 buffered_logs_()
-
 {
 }
 
@@ -60,9 +59,11 @@ bool Logger::run()
 	while(!this->dispatcher().hasBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->dispatcher().processOnce(false);
+		this->dispatcher().processOnce(true);
 		networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
-		KBEngine::sleep(10);
+
+		// 不能休眠，否则数据量大的情况下处理不过来
+		// KBEngine::sleep(10);
 	};
 
 	return ret;

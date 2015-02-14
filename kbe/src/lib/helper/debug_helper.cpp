@@ -405,18 +405,15 @@ void DebugHelper::sync()
 	Network::g_trace_packet = 0;
 
 	uint32 i = 0;
-	size_t totalLen = 0;
 
 	while(!bufferedLogPackets_.empty())
 	{
-		if((g_kbeSrvConfig.tickMaxSyncLogs() > 0 && i++ >= g_kbeSrvConfig.tickMaxSyncLogs()) || 
-			totalLen > (PACKET_MAX_SIZE_TCP * 10))
+		if((g_kbeSrvConfig.tickMaxSyncLogs() > 0 && i++ >= g_kbeSrvConfig.tickMaxSyncLogs()))
 			break;
 		
 		Network::Bundle* pBundle = bufferedLogPackets_.front();
 		bufferedLogPackets_.pop();
 
-		totalLen += pBundle->currMsgLength();
 		pLoggerChannel->send(pBundle);
 		
 		--hasBufferedLogPackets_;
