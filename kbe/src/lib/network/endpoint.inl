@@ -23,15 +23,6 @@ namespace KBEngine {
 namespace Network
 {
 
-INLINE EndPoint::EndPoint(int fd):
-socket_(fd)
-{
-	if(socket_ > 0)
-	{
-		address_ = this->getLocalAddress();
-	}
-}
-
 INLINE EndPoint::EndPoint(u_int32_t networkAddr, u_int16_t networkPort):
 #if KBE_PLATFORM == PLATFORM_WIN32
 socket_(INVALID_SOCKET)
