@@ -603,7 +603,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			name = xml->getKey(defPropertyNode);
 			if(!validDefPropertyName(scriptModule, name))
 			{
-				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: '{}' is limited, in module({}).\n", 
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: '{}' is limited, in module({})!\n", 
 					name, moduleName));
 
 				return false;
@@ -618,8 +618,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
-					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n", 
-						strFlags, name));
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flags[{}], is {}.{}!\n", 
+						strFlags, moduleName, name));
 
 					return false;
 				}
@@ -639,8 +639,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
 				{
-					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: can't fount flags[{}] in {}.\n",
-						strFlags.c_str(), name.c_str()));
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flags[{}], is {}.{}!\n",
+						strFlags.c_str(), moduleName, name.c_str()));
 
 					return false;
 				}
@@ -741,7 +741,14 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			{
 				int iUtype = xml->getValInt(utypeValNode);
 				futype = iUtype;
-				KBE_ASSERT(iUtype == int(futype) && "EntityDef::loadDefPropertys: Utype overflow!\n");
+
+				if (iUtype != int(futype))
+				{
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+						iUtype, moduleName, name.c_str()));
+
+					return false;
+				}
 
 				puids.push_back(futype);
 			}
@@ -850,7 +857,14 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefCellMethods: Utype overflow!\n");
+						
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
@@ -941,7 +955,14 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefBaseMethods: Utype overflow!\n");
+
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
@@ -1028,7 +1049,14 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefClientMethods: Utype overflow!\n");
+
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
