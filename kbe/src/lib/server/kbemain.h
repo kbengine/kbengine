@@ -168,6 +168,12 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		ERROR_MSG("app::initialize() is error!\n");
 		Components::getSingleton().finalise();
 		app.finalise();
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		// 等待几秒，让用户能够在窗口上看到信息
+		Beep(587, 500);
+		KBEngine::sleep(5000);
+#endif
 		return -1;
 	}
 	
