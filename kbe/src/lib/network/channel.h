@@ -134,9 +134,6 @@ public:
 	void stopSend();
 
 	void send(Bundle * pBundle = NULL);
-	static void send(EndPoint& ep, Bundle * pBundle);
-	static void sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
-
 	void delayedSend();
 
 

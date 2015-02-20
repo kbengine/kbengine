@@ -147,7 +147,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		KBEngine::MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
 			CONSOLE_TYPE, g_componentID, (COMPONENT_TYPE)findComponentType, 0, 0);
 
-		KBEngine::Network::Channel::send(*endpoint, &bhandler);
+		endpoint->send(&bhandler);
 
 		KBEngine::Network::TCPPacket packet;
 		packet.resize(65535);

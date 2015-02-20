@@ -285,14 +285,19 @@ const char * reasonToString(Reason reason)
 
 
 #define SEND_BUNDLE(ENDPOINT, BUNDLE)																		\
+{																											\
+	EndPoint& ep = ENDPOINT;																				\
 	SEND_BUNDLE_COMMON(ENDPOINT.send(pPacket->data() + pPacket->sentSize,									\
-		pPacket->length() - pPacket->sentSize), BUNDLE);
+	pPacket->length() - pPacket->sentSize), BUNDLE);														\
+}																											\
 
 
 #define SENDTO_BUNDLE(ENDPOINT, ADDR, PORT, BUNDLE)															\
+{																											\
+	EndPoint& ep = ENDPOINT;																				\
 	SEND_BUNDLE_COMMON(ENDPOINT.sendto(pPacket->data() + pPacket->sentSize,									\
-		pPacket->length() - pPacket->sentSize, PORT, ADDR), BUNDLE);
-
+	pPacket->length() - pPacket->sentSize, PORT, ADDR), BUNDLE);											\
+}																											\
 
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\

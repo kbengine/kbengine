@@ -111,7 +111,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 					return;
 				}
 
-				Network::Channel::sendto(ep, pBundle, backRecvPort, backRecvAddr);
+				ep.sendto(pBundle, backRecvPort, backRecvAddr);
 				Network::Bundle::ObjPool().reclaimObject(pBundle);
 			}
 			else
@@ -275,7 +275,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 
 	if(finderAddr != 0 && finderRecvPort != 0)
 	{
-		Network::Channel::sendto(ep, pBundle, finderRecvPort, finderAddr);
+		ep.sendto(pBundle, finderRecvPort, finderAddr);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else
@@ -343,7 +343,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 
 		if(finderRecvPort != 0)
 		{
-			Network::Channel::sendto(ep, pBundle, finderRecvPort, pChannel->addr().ip);
+			ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
 			Network::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 		else
@@ -390,7 +390,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 
 					if(finderRecvPort != 0)
 					{
-						Network::Channel::sendto(ep, pBundle, finderRecvPort, pChannel->addr().ip);
+						ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
 						Network::Bundle::ObjPool().reclaimObject(pBundle);
 					}
 					else
@@ -706,7 +706,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			return;
 		}
 	
-		Network::Channel::sendto(ep, pBundle, htons(finderRecvPort), pChannel->addr().ip);
+		ep.sendto(pBundle, htons(finderRecvPort), pChannel->addr().ip);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else
@@ -805,7 +805,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 
 		ep1.setnonblocking(false);
-		Network::Channel::send(ep1, &closebundle);
+		ep1.send(&closebundle);
 
 		Network::TCPPacket recvpacket;
 		recvpacket.resize(255);
@@ -833,7 +833,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			return;
 		}
 	
-		Network::Channel::sendto(ep, pBundle, finderRecvPort, pChannel->addr().ip);
+		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else

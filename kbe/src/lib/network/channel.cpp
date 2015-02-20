@@ -551,20 +551,6 @@ void Channel::send(Bundle * pBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::send(EndPoint& ep, Bundle * pBundle)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	SEND_BUNDLE(ep, (*pBundle));
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::sendto(EndPoint& ep, Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
-{
-	//AUTO_SCOPED_PROFILE("sendBundle");
-	SENDTO_BUNDLE(ep, networkAddr, networkPort, (*pBundle));
-}
-
-//-------------------------------------------------------------------------------------
 void Channel::stopSend()
 {
 	if(!sending_)

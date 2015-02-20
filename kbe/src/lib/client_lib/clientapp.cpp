@@ -389,7 +389,7 @@ void ClientApp::handleGameTick()
 						(*pBundle).appendBlob(key);
 					}
 
-					Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
+					pServerChannel_->pEndPoint()->send(pBundle);
 					Network::Bundle::ObjPool().reclaimObject(pBundle);
 					// ret = ClientObjectBase::loginGateWay();
 				}
@@ -621,7 +621,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 			(*pBundle).appendBlob(key);
 		}
 
-		Network::Channel::send(*pServerChannel_->pEndPoint(), pBundle);
+		pServerChannel_->pEndPoint()->send(pBundle);
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		//ret = ClientObjectBase::login();
 	}

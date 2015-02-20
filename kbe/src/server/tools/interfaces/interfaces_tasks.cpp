@@ -134,7 +134,7 @@ bool CreateAccountTask::process()
 
 	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(postDatas.data(), postDatas.size());
-	Network::Channel::send(endpoint, bundle->get());
+	endpoint.send(bundle->get());
 
 	Network::TCPPacket packet;
 	packet.resize(1024);
@@ -432,7 +432,7 @@ bool ChargeTask::process()
 	endpoint.setnodelay(true);
 
 	Network::Bundle::SmartPoolObjectPtr bundle = Network::Bundle::createSmartPoolObj();
-	Network::Channel::send(endpoint, bundle->get());
+	endpoint.send(bundle->get());
 
 	Network::TCPPacket packet;
 	packet.resize(1024);

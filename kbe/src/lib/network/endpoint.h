@@ -31,6 +31,7 @@ namespace KBEngine {
 namespace Network
 {
 
+class Bundle;
 class EndPoint : public PoolObject
 {
 public:
@@ -82,6 +83,8 @@ public:
 	EndPoint* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL, bool autosetflags = true);
 	
 	INLINE int send(const void * gramData, int gramSize);
+	void send(Bundle * pBundle);
+	void sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 
 	int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);

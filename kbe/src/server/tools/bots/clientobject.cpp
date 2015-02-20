@@ -157,7 +157,7 @@ bool ClientObject::initCreate()
 		(*pBundle).appendBlob(key);
 	}
 
-	KBEngine::Network::Channel::send(*pEndpoint, pBundle);
+	pEndpoint->send(pBundle);
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return true;
 }
@@ -228,7 +228,7 @@ bool ClientObject::initLoginGateWay()
 		(*pBundle).appendBlob(key);
 	}
 
-	Network::Channel::send(*pEndpoint, pBundle);
+	pEndpoint->send(pBundle);
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return true;
 }

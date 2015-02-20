@@ -24,6 +24,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "endpoint.inl"
 #endif
 
+#include "network/bundle.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/tcp_packet_sender.h"
+#include "network/udp_packet_receiver.h"
+
 namespace KBEngine { 
 namespace Network
 {
@@ -487,6 +492,20 @@ bool EndPoint::waitSend()
 	FD_SET(socket_, &fds);
 
 	return select(socket_+1, NULL, &fds, NULL, &tv) > 0;
+}
+
+//-------------------------------------------------------------------------------------
+void EndPoint::send(Bundle * pBundle)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SEND_BUNDLE((*this), (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+void EndPoint::sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SENDTO_BUNDLE((*this), networkAddr, networkPort, (*pBundle));
 }
 
 //-------------------------------------------------------------------------------------
