@@ -63,7 +63,7 @@ size_t Channel::getPoolObjectBytes()
 {
 	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
 		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
-		sizeof(lastReceivedTime_) + sizeof(bufferedReceivesIdx_) + (bufferedReceives_[0].size() + bufferedReceives_[1].size() * sizeof(Packet*)) + sizeof(pPacketReader_)
+		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_)
 		+ sizeof(isDestroyed_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(sending_) + sizeof(isCondemn_) + sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
@@ -96,7 +96,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
 	isDestroyed_(false),
 	numPacketsSent_(0),
@@ -131,7 +130,6 @@ Channel::Channel():
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
 	isDestroyed_(false),
 	// Stats
@@ -312,31 +310,28 @@ void Channel::destroy()
 void Channel::clearState( bool warnOnDiscard /*=false*/ )
 {
 	// 清空未处理的接受包缓存
-	for(uint8 i=0; i<2; ++i)
+	if (bufferedReceives_.size() > 0)
 	{
-		if (bufferedReceives_[i].size() > 0)
-		{
-			BufferedReceives::iterator iter = bufferedReceives_[i].begin();
-			int hasDiscard = 0;
+		BufferedReceives::iterator iter = bufferedReceives_.begin();
+		int hasDiscard = 0;
 			
-			for(; iter != bufferedReceives_[i].end(); ++iter)
-			{
-				Packet* pPacket = (*iter);
-				if(pPacket->length() > 0)
-					hasDiscard++;
+		for(; iter != bufferedReceives_.end(); ++iter)
+		{
+			Packet* pPacket = (*iter);
+			if(pPacket->length() > 0)
+				hasDiscard++;
 
-				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
-			}
-
-			if (hasDiscard > 0 && warnOnDiscard)
-			{
-				WARNING_MSG(fmt::format("Channel::clearState( {} ): "
-					"Discarding {} buffered packet(s)\n",
-					this->c_str(), hasDiscard));
-			}
-
-			bufferedReceives_[i].clear();
+			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
+
+		if (hasDiscard > 0 && warnOnDiscard)
+		{
+			WARNING_MSG(fmt::format("Channel::clearState( {} ): "
+				"Discarding {} buffered packet(s)\n",
+				this->c_str(), hasDiscard));
+		}
+
+		bufferedReceives_.clear();
 	}
 
 	clearBundle();
@@ -353,7 +348,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	proxyID_ = 0;
 	strextra_ = "";
 	channelType_ = CHANNEL_NORMAL;
-	bufferedReceivesIdx_ = 0;
 
 	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP && !this->isDestroyed())
 	{
@@ -638,8 +632,8 @@ void Channel::onPacketReceived(int bytes)
 //-------------------------------------------------------------------------------------
 void Channel::addReceiveWindow(Packet* pPacket)
 {
-	bufferedReceives_[bufferedReceivesIdx_].push_back(pPacket);
-	uint32 size = (uint32)bufferedReceives_[bufferedReceivesIdx_].size();
+	bufferedReceives_.push_back(pPacket);
+	uint32 size = (uint32)bufferedReceives_.size();
 
 	if(Network::g_receiveWindowMessagesOverflowCritical > 0 && size > Network::g_receiveWindowMessagesOverflowCritical)
 	{
@@ -681,9 +675,9 @@ void Channel::condemn()
 //-------------------------------------------------------------------------------------
 void Channel::handshake()
 {
-	if(bufferedReceives_[bufferedReceivesIdx_].size() > 0)
+	if(bufferedReceives_.size() > 0)
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_[bufferedReceivesIdx_].begin();
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		Packet* pPacket = (*packetIter);
 		
 		// 此处判定是否为websocket或者其他协议的握手
@@ -694,7 +688,7 @@ void Channel::handshake()
 			{
 				if(pPacket->length() == 0)
 				{
-					bufferedReceives_[bufferedReceivesIdx_].erase(packetIter);
+					bufferedReceives_.erase(packetIter);
 				}
 
 				pPacketReader_ = new HTML5PacketReader(this);
@@ -744,14 +738,11 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 	{
 		handshake();
 	}
-	
-	uint8 idx = bufferedReceivesIdx_;
-	bufferedReceivesIdx_ = 1 - bufferedReceivesIdx_;
 
 	try
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_[idx].begin();
-		for(; packetIter != bufferedReceives_[idx].end(); ++packetIter)
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+		for(; packetIter != bufferedReceives_.end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);
 			pPacketReader_->processMessages(pMsgHandlers, pPacket);
@@ -772,7 +763,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		condemn();
 	}
 
-	bufferedReceives_[idx].clear();
+	bufferedReceives_.clear();
 }
 
 //-------------------------------------------------------------------------------------

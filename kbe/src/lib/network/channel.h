@@ -163,7 +163,7 @@ public:
 		
 	void addReceiveWindow(Packet* pPacket);
 	
-	BufferedReceives& bufferedReceives(){ return bufferedReceives_[bufferedReceivesIdx_]; }
+	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
@@ -221,8 +221,7 @@ private:
 	
 	Bundles						bundles_;
 	
-	uint8						bufferedReceivesIdx_;
-	BufferedReceives			bufferedReceives_[2];
+	BufferedReceives			bufferedReceives_;
 
 	PacketReader*				pPacketReader_;
 
