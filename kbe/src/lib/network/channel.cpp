@@ -208,7 +208,7 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 	{
 		if(pPacketReceiver_)
 		{
-			if(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER)
+			if(pPacketReceiver_->type() == PacketReceiver::TCP_PACKET_RECEIVER)
 			{
 				SAFE_RELEASE(pPacketReceiver_);
 				pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
