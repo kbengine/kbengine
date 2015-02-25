@@ -134,9 +134,13 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 
 			if (reason == REASON_RESOURCE_UNAVAILABLE)
 			{
-				WARNING_MSG(fmt::format("TCPPacketSender::processSend: "
-					"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
-					(pChannel->isInternal() ? "internal" : "external")));
+				/* 此处输出可能会造成debugHelper处死锁
+					WARNING_MSG(fmt::format("TCPPacketSender::processSend: "
+						"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
+						(pChannel->isInternal() ? "internal" : "external")));
+				*/
+
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
 			}
 			else
 			{
