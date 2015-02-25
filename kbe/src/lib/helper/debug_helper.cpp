@@ -406,6 +406,8 @@ void DebugHelper::sync()
 
 	uint32 i = 0;
 
+	Network::Channel::Bundles& bundles = pLoggerChannel->bundles();
+
 	while(!bufferedLogPackets_.empty())
 	{
 		if((g_kbeSrvConfig.tickMaxSyncLogs() > 0 && i++ >= g_kbeSrvConfig.tickMaxSyncLogs()))
@@ -414,10 +416,14 @@ void DebugHelper::sync()
 		Network::Bundle* pBundle = bufferedLogPackets_.front();
 		bufferedLogPackets_.pop();
 
-		pLoggerChannel->send(pBundle);
-		
+		pBundle->finiMessage(true);
+		bundles.push_back(pBundle);
 		--hasBufferedLogPackets_;
 	}
+
+	// 这里需要延时发送，否则在发送过程中产生错误，导致日志输出会出现死锁
+	if(bundles.size() > 0 && !pLoggerChannel->sending())
+		pLoggerChannel->delayedSend();
 
 	Network::g_trace_packet = v;
 	canLogFile_ = false;
