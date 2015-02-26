@@ -336,6 +336,13 @@ void Proxy::giveClientTo(Proxy* proxy)
 			sendToCellapp(pBundle);
 		}
 
+		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
+		(*pBundle) << this->id();
+		sendToClient(ClientInterface::onEntityDestroyed, pBundle);
+
+		// 将控制权交换
 		entitiesEnabled_ = false;
 		clientMailbox()->addr(Network::Address::NONE);
 		Py_DECREF(clientMailbox());
@@ -344,15 +351,6 @@ void Proxy::giveClientTo(Proxy* proxy)
 		clientMailbox(NULL);
 		proxy->onGiveClientTo(lpChannel);
 		addr(Network::Address::NONE);
-		
-		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
-		if(proxy->clientMailbox() != NULL)
-		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-			(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
-			(*pBundle) << this->id();
-			proxy->sendToClient(ClientInterface::onEntityDestroyed, pBundle);
-		}
 	}
 }
 
