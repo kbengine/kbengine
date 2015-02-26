@@ -624,6 +624,20 @@ if __name__ == "__main__":
 				uid = getDefaultUID()
 				
 			clusterHandler = ClusterStopHandler(uid, templatestr)
+		elif cmdType == "shutdown":
+			templatestr = ""
+			uid = -1
+			
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+
+			uid = int(uid)
+			if uid < 0:
+				uid = getDefaultUID()
+			
+			NO_SHUTDOWN_COMPONENTS = []
+			clusterHandler = ClusterStopHandler(uid, templatestr)
 		elif cmdType == "console":
 			consoleType = ""
 			uid = -1
