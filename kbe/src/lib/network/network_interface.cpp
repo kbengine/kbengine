@@ -439,9 +439,14 @@ void NetworkInterface::processAllChannelPackets(KBEngine::Network::MessageHandle
 		else if(pChannel->isCondemn())
 		{
 			++iter;
-			deregisterChannel(pChannel);
-			pChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pChannel);
+
+			// 延时0.2s执行, Condemn()时会设置lastReceivedTime
+			if(timestamp() - pChannel->lastReceivedTime() > uint64( 0.2f * stampsPerSecond()))
+			{
+				deregisterChannel(pChannel);
+				pChannel->destroy();
+				Network::Channel::ObjPool().reclaimObject(pChannel);
+			}
 		}
 		else
 		{
