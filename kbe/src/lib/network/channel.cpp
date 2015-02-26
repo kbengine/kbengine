@@ -420,7 +420,7 @@ const char * Channel::c_str() const
 		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
 
 	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d/%d/%d", tdodgyString, id_, 
-		this->isCondemn(), this->isDead());
+		this->isCondemn(), this->isDestroyed());
 
 	return dodgyString;
 }

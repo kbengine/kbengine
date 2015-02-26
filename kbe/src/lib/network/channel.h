@@ -105,14 +105,6 @@ public:
 	void destroy();
 	bool isDestroyed() const { return isDestroyed_; }
 
-	bool isDead() const
-	{
-		return this->isDestroyed();
-	}
-	
-	bool isOwnedByInterface() const
-		{ return !isDestroyed_; }
-
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
 	NetworkInterface* pNetworkInterface()			{ return pNetworkInterface_; }
 	void pNetworkInterface(NetworkInterface* pNetworkInterface) { pNetworkInterface_ = pNetworkInterface; }

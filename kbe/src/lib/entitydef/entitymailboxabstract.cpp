@@ -134,7 +134,7 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
 	Network::Channel* pChannel = getChannel();
 
-	if(pChannel && !pChannel->isDead())
+	if(pChannel && !pChannel->isDestroyed())
 	{
 		pChannel->send(pBundle);
 		return true;

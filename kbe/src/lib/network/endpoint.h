@@ -60,20 +60,21 @@ public:
 	void socket(int type);
 	KBESOCKET socket() const;
 	
-	void setFileDescriptor(int fd);
+	INLINE void setFileDescriptor(int fd);
 
-	int joinMulticastGroup(u_int32_t networkAddr);
-	int quitMulticastGroup(u_int32_t networkAddr);
+	INLINE int joinMulticastGroup(u_int32_t networkAddr);
+	INLINE int quitMulticastGroup(u_int32_t networkAddr);
 	
 	INLINE int close();
 	
-	int setnonblocking(bool nonblocking);
-	int setbroadcast(bool broadcast);
-	int setreuseaddr(bool reuseaddr);
-	int setkeepalive(bool keepalive);
-	int setnodelay(bool nodelay = true);
-	
-	int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
+	INLINE int setnonblocking(bool nonblocking);
+	INLINE int setbroadcast(bool broadcast);
+	INLINE int setreuseaddr(bool reuseaddr);
+	INLINE int setkeepalive(bool keepalive);
+	INLINE int setnodelay(bool nodelay = true);
+	INLINE int setlinger(uint16 onoff, uint16 linger);
+
+	INLINE int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
 
 	int listen(int backlog = 5);
 

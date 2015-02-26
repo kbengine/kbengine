@@ -157,9 +157,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	}
 	
 	/*
-	int val = 1;
-	setsockopt((*pEP), SOL_SOCKET, SO_REUSEADDR,
-			(const char*)&val, sizeof(val));
+		pEP->setreuseaddr(true);
 	*/
 	
 	this->dispatcher().registerReadFileDescriptor(*pEP, pLR);

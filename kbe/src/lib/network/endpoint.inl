@@ -151,6 +151,14 @@ INLINE int EndPoint::setreuseaddr(bool reuseaddr)
 		(char*)&val, sizeof(val));
 }
 
+INLINE int EndPoint::setlinger(uint16 onoff, uint16 linger)
+{
+	struct linger l = { 0 };
+	l.l_onoff = onoff;
+	l.l_linger = linger;
+	return setsockopt(socket_, SOL_SOCKET, SO_LINGER, (const char *) &l, sizeof(l));
+}
+
 INLINE int EndPoint::setkeepalive(bool keepalive)
 {
 #ifdef unix

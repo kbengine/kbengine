@@ -79,7 +79,7 @@ Proxy::~Proxy()
 
 	// 如果被销毁频道仍然存活则将其关闭
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
-	if(pChannel && !pChannel->isDead())
+	if(pChannel && !pChannel->isDestroyed())
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
