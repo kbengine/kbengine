@@ -668,6 +668,9 @@ void Channel::addReceiveWindow(Packet* pPacket)
 //-------------------------------------------------------------------------------------
 void Channel::condemn()
 { 
+	if(isCondemn_)
+		return;
+
 	isCondemn_ = true; 
 	lastReceivedTime_ = timestamp();
 	ERROR_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
