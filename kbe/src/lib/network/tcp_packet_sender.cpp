@@ -93,7 +93,6 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 	
 	if(pChannel->isCondemn())
 	{
-		onGetError(pChannel);
 		return false;
 	}
 	

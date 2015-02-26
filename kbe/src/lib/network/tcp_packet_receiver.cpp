@@ -80,7 +80,6 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 
 	if(pChannel->isCondemn())
 	{
-		onGetError(pChannel);
 		return false;
 	}
 

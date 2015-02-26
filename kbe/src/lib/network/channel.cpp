@@ -473,7 +473,7 @@ void Channel::send(Bundle * pBundle)
 
 	if(isCondemn())
 	{
-		ERROR_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+		WARNING_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
 			c_str()));
 
 		this->clearBundle();
@@ -673,7 +673,7 @@ void Channel::condemn()
 
 	isCondemn_ = true; 
 	lastReceivedTime_ = timestamp();
-	ERROR_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
+	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
 
 //-------------------------------------------------------------------------------------
