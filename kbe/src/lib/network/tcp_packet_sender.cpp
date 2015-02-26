@@ -77,13 +77,7 @@ TCPPacketSender::~TCPPacketSender()
 //-------------------------------------------------------------------------------------
 void TCPPacketSender::onGetError(Channel* pChannel)
 {
-	pNetworkInterface_->deregisterChannel(pChannel);
-
-	if(!pChannel->isDestroyed())
-	{
-		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
-	}
+	pChannel->condemn();
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,9 +93,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 	
 	if(pChannel->isCondemn())
 	{
-		if(noticed)
-			onGetError(pChannel);
-
+		onGetError(pChannel);
 		return false;
 	}
 	
@@ -145,11 +137,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 			else
 			{
 				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
-
-				if(noticed)
-					onGetError(pChannel);
-				else
-					pChannel->condemn();
+				onGetError(pChannel);
 			}
 
 			return false;

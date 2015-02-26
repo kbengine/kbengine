@@ -119,13 +119,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 void TCPPacketReceiver::onGetError(Channel* pChannel)
 {
-	pNetworkInterface_->deregisterChannel(pChannel);
-
-	if(!pChannel->isDestroyed())
-	{
-		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
-	}
+	pChannel->condemn();
 }
 
 //-------------------------------------------------------------------------------------
