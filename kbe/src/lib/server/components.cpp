@@ -372,7 +372,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
 	}
 
@@ -484,7 +484,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
 			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
 
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
 	}
 

@@ -90,7 +90,7 @@ bool AnonymousChannel::process()
 		{
 			ERROR_MSG("AnonymousChannel::process: recv timeout.\n");
 			pEndpoint->close();
-			delete pEndpoint;
+			Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 			continue;
 		}
 		
@@ -100,14 +100,14 @@ bool AnonymousChannel::process()
 		{
 			ERROR_MSG(fmt::format("AnonymousChannel::process: recv is error({}).\n", KBEngine::kbe_strerror()));
 			pEndpoint->close();
-			delete pEndpoint;
+			Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 			continue;
 		}
 
 		std::string retstr = "HTTP/1.1 200 OK\r\nServer: unknown\r\nCache-Control: private\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 8\r\n\r\nretocde:1";
 		pEndpoint->send(retstr.data(), retstr.size());
 		pEndpoint->close();
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 
 		packet.wpos(len);
 

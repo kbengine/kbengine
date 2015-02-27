@@ -82,7 +82,9 @@ HTTPCBHandler::~HTTPCBHandler()
 {
 	clients_.clear();
 	Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
-	SAFE_RELEASE(pEndPoint_);
+
+	Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+	pEndPoint_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

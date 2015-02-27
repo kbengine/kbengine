@@ -105,7 +105,7 @@ bool ClientObject::initCreate()
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initNetwork: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
@@ -119,7 +119,7 @@ bool ClientObject::initCreate()
 		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
 			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		state_ = C_STATE_INIT;
 		return false;
@@ -177,7 +177,7 @@ bool ClientObject::initLoginGateWay()
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initLogin: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
@@ -190,7 +190,7 @@ bool ClientObject::initLoginGateWay()
 		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
 			kbe_strerror(), name_));
 
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 		return false;

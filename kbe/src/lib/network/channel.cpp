@@ -238,9 +238,12 @@ bool Channel::finalise()
 	this->clearState();
 	
 	SAFE_RELEASE(pPacketReceiver_);
-	SAFE_RELEASE(pEndPoint_);
 	SAFE_RELEASE(pPacketReader_);
 	SAFE_RELEASE(pPacketSender_);
+
+	Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+	pEndPoint_ = NULL;
+
 	return true;
 }
 
@@ -286,7 +289,7 @@ void Channel::pEndPoint(const EndPoint* pEndPoint)
 {
 	if (pEndPoint_ != pEndPoint)
 	{
-		delete pEndPoint_;
+		Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
 		pEndPoint_ = const_cast<EndPoint*>(pEndPoint);
 	}
 	

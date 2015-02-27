@@ -445,7 +445,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initLoginappChannel: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return NULL;
 	}
 	
@@ -456,7 +456,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
 			kbe_strerror()));
 
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return NULL;
 	}
 
@@ -482,7 +482,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initBaseappChannel: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return NULL;
 	}
 	
@@ -494,7 +494,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
 			kbe_strerror()));
 
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return NULL;
 	}
 
