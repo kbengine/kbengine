@@ -271,10 +271,10 @@ INLINE void EndPoint::addr(const Address& newAddress)
 	address_ = newAddress;
 }
 
-INLINE void EndPoint::addr(u_int16_t port, u_int32_t newAddress)
+INLINE void EndPoint::addr(u_int16_t newNetworkPort, u_int32_t newNetworkAddress)
 {
-	address_.port = port;
-	address_.ip = newAddress;
+	address_.port = newNetworkPort;
+	address_.ip = newNetworkAddress;
 }
 
 INLINE int EndPoint::getremotehostname(std::string * host) const

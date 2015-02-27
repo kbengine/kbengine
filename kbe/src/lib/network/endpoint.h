@@ -122,7 +122,7 @@ public:
 	
 	INLINE const Address& addr() const;
 	void addr(const Address& newAddress);
-	void addr(u_int16_t port, u_int32_t newAddress);
+	void addr(u_int16_t newNetworkPort, u_int32_t newNetworkAddress);
 
 	bool waitSend();
 
