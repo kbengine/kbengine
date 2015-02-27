@@ -69,6 +69,8 @@ pTCPPacketReceiverEx_(NULL)
 ClientObject::~ClientObject()
 {
 	SAFE_RELEASE(pBlowfishFilter_);
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
 }
 
 //-------------------------------------------------------------------------------------		
