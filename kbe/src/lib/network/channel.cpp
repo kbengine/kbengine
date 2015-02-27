@@ -672,7 +672,6 @@ void Channel::condemn()
 		return;
 
 	isCondemn_ = true; 
-	lastReceivedTime_ = timestamp();
 	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
 
