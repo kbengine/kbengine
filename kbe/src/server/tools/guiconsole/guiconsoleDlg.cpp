@@ -1347,7 +1347,7 @@ bool CguiconsoleDlg::connectTo()
 		return false;
 	}
 	
-	Network::EndPoint* endpoint = new Network::EndPoint();
+	Network::EndPoint* endpoint = Network::EndPoint::ObjPool().createObject();
 	endpoint->socket(SOCK_STREAM);
 	if (!endpoint->good())
 	{

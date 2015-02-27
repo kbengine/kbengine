@@ -367,7 +367,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
 	KBE_ASSERT(pComponentInfos != NULL);
 
-	Network::EndPoint * pEndpoint = new Network::EndPoint;
+	Network::EndPoint * pEndpoint = Network::EndPoint::ObjPool().createObject();
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{

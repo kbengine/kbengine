@@ -90,7 +90,8 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 
 	if(pSrcChannel == NULL) 
 	{
-		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
+		EndPoint* pNewEndPoint = EndPoint::ObjPool().createObject();
+		pNewEndPoint->addr(srcAddr.port, srcAddr.ip);
 
 		pSrcChannel = Network::Channel::ObjPool().createObject();
 		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);

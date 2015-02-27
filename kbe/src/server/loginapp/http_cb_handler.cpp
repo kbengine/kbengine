@@ -37,7 +37,7 @@ HTTPCBHandler::HTTPCBHandler():
 pEndPoint_(NULL),
 clients_()
 {
-	pEndPoint_ = new Network::EndPoint();
+	pEndPoint_ = Network::EndPoint::ObjPool().createObject();
 
 	pEndPoint_->socket(SOCK_STREAM);
 

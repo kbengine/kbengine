@@ -307,7 +307,8 @@ bool InterfacesHandler_ThirdParty::reconnect()
 	}
 
 	Network::Address addr = g_kbeSrvConfig.interfacesAddr();
-	Network::EndPoint* pEndPoint = new Network::EndPoint(addr);
+	Network::EndPoint* pEndPoint = Network::EndPoint::ObjPool().createObject();
+	pEndPoint->addr(addr);
 
 	pEndPoint->socket(SOCK_STREAM);
 	if (!pEndPoint->good())

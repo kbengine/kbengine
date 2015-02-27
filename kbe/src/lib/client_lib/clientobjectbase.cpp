@@ -439,7 +439,7 @@ bool ClientObjectBase::createAccount()
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
 {
-	Network::EndPoint* pEndpoint = new Network::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -476,7 +476,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initBaseappChannel()
 {
-	Network::EndPoint* pEndpoint = new Network::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())

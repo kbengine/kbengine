@@ -52,6 +52,7 @@ public:
 	EndPoint(Address address);
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();
+
 	operator KBESOCKET() const;
 	
 	static void initNetwork();

@@ -99,7 +99,7 @@ void ClientObject::reset(void)
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
-	Network::EndPoint* pEndpoint = new Network::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -171,7 +171,7 @@ bool ClientObject::initLoginGateWay()
 	SAFE_RELEASE(pTCPPacketSenderEx_);
 	SAFE_RELEASE(pTCPPacketReceiverEx_);
 
-	Network::EndPoint* pEndpoint = new Network::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
