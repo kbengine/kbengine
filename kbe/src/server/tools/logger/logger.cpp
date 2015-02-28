@@ -36,16 +36,17 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Logger);
 
 static uint64 g_totalNumlogs = 0;
-static uint32 g_tickNumlogs = 0;
+static uint32 g_secsNumlogs = 0;
+static uint64 g_lastCalcsecsNumlogsTime = 0;
 
 uint64 totalNumlogs()
 {
 	return g_totalNumlogs;
 }
 
-uint64 tickNumlogs()
+uint64 secsNumlogs()
 {
-	return g_tickNumlogs;
+	return g_secsNumlogs;
 }
 
 //-------------------------------------------------------------------------------------
@@ -71,7 +72,7 @@ bool Logger::initializeWatcher()
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
 	WATCH_OBJECT("stats/totalNumlogs", &totalNumlogs);
-	WATCH_OBJECT("stats/tickNumlogs", &tickNumlogs);
+	WATCH_OBJECT("stats/secsNumlogs", &secsNumlogs);
 	WATCH_OBJECT("stats/bufferedLogsSize", this, &Logger::bufferedLogsSize);
 	return true;
 }
@@ -101,7 +102,12 @@ void Logger::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Logger::handleTick()
 {
-	g_tickNumlogs = 0;
+	if(timestamp() - g_lastCalcsecsNumlogsTime > uint64( stampsPerSecond() ))
+	{
+		g_lastCalcsecsNumlogsTime = timestamp();
+		g_secsNumlogs = 0;
+	}
+
 	threadPool_.onMainThreadTick();
 	networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
 }
@@ -153,7 +159,7 @@ bool Logger::canShutdown()
 //-------------------------------------------------------------------------------------
 void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	++g_tickNumlogs;
+	++g_secsNumlogs;
 	++g_totalNumlogs;
 
 	LOG_ITEM* pLogItem = new LOG_ITEM();
