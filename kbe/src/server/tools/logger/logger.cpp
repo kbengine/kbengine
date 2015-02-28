@@ -42,7 +42,8 @@ Logger::Logger(Network::EventDispatcher& dispatcher,
 				 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 logWatchers_(),
-buffered_logs_()
+buffered_logs_(),
+timer_()
 {
 }
 
@@ -54,25 +55,30 @@ Logger::~Logger()
 //-------------------------------------------------------------------------------------
 bool Logger::run()
 {
-	bool ret = true;
-
-	while(!this->dispatcher().hasBreakProcessing())
-	{
-		threadPool_.onMainThreadTick();
-		this->dispatcher().processOnce(true);
-		networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
-
-		// 不能休眠，否则数据量大的情况下处理不过来
-		// KBEngine::sleep(10);
-	};
-
-	return ret;
+	dispatcher_.processUntilBreak();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Logger::handleTimeout(TimerHandle handle, void * arg)
 {
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_TICK:
+			this->handleTick();
+			break;
+		default:
+			break;
+	}
+
 	ServerApp::handleTimeout(handle, arg);
+}
+
+//-------------------------------------------------------------------------------------
+void Logger::handleTick()
+{
+	threadPool_.onMainThreadTick();
+	networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,12 +98,16 @@ bool Logger::initializeEnd()
 {
 	// 由于logger接收其他app的log，如果跟踪包输出将会非常卡。
 	Network::g_trace_packet = 0;
+
+	timer_ = this->dispatcher().addTimer(1000000 / 50, this,
+							reinterpret_cast<void *>(TIMEOUT_TICK));
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Logger::finalise()
 {
+	timer_.cancel();
 	ServerApp::finalise();
 }
 

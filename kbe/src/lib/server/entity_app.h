@@ -71,6 +71,7 @@ public:
 		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1,
 		TIMEOUT_ENTITYAPP_MAX
 	};
+
 public:
 	EntityApp(Network::EventDispatcher& dispatcher, 
 		Network::NetworkInterface& ninterface, 

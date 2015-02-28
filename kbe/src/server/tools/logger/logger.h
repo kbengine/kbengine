@@ -64,7 +64,7 @@ public:
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
+		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 
 	Logger(Network::EventDispatcher& dispatcher, 
@@ -78,6 +78,7 @@ public:
 	
 
 	void handleTimeout(TimerHandle handle, void * arg);
+	void handleTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
@@ -114,6 +115,7 @@ public:
 protected:
 	LOG_WATCHERS logWatchers_;
 	std::deque<LOG_ITEM*> buffered_logs_;
+	TimerHandle	timer_;
 };
 
 }
