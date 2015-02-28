@@ -180,7 +180,7 @@ InterfacesHandler_ThirdParty::~InterfacesHandler_ThirdParty()
 	if(pInterfacesChannel_)
 	{
 		pInterfacesChannel_->destroy();
-		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+		delete pInterfacesChannel_;
 	}
 
 	pInterfacesChannel_ = NULL;
