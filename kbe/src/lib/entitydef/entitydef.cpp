@@ -1365,6 +1365,9 @@ ScriptDefModule* EntityDef::findOldScriptModule(const char* scriptName)
 //-------------------------------------------------------------------------------------
 bool EntityDef::installScript(PyObject* mod)
 {
+	if(_isInit)
+		return true;
+
 	Blob::installScript(NULL);
 	APPEND_SCRIPT_MODULE_METHOD(mod, Blob, Blob::py_new, METH_VARARGS, 0);
 
