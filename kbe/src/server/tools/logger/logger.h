@@ -76,6 +76,7 @@ public:
 	
 	bool run();
 	
+	virtual bool initializeWatcher();
 
 	void handleTimeout(TimerHandle handle, void * arg);
 	void handleTick();
@@ -87,6 +88,10 @@ public:
 	void finalise();
 
 	virtual bool canShutdown();
+
+	int bufferedLogsSize(){
+		return buffered_logs_.size();
+	}
 
 	/** 网络接口
 		写日志

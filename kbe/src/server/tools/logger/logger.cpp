@@ -35,6 +35,9 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Logger);
 
+static uint64 g_totalNumlogs = 0;
+static uint32 g_tickNumlogs = 0;
+
 //-------------------------------------------------------------------------------------
 Logger::Logger(Network::EventDispatcher& dispatcher, 
 				 Network::NetworkInterface& ninterface, 
@@ -50,6 +53,17 @@ timer_()
 //-------------------------------------------------------------------------------------
 Logger::~Logger()
 {
+}
+
+//-------------------------------------------------------------------------------------		
+bool Logger::initializeWatcher()
+{
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
+
+	WATCH_OBJECT("stats/totalNumlogs", &g_totalNumlogs);
+	WATCH_OBJECT("stats/tickNumlogs", &g_tickNumlogs);
+	WATCH_OBJECT("stats/bufferedLogsSize", this, &Logger::bufferedLogsSize);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,6 +91,7 @@ void Logger::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Logger::handleTick()
 {
+	g_tickNumlogs = 0;
 	threadPool_.onMainThreadTick();
 	networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
 }
@@ -128,6 +143,8 @@ bool Logger::canShutdown()
 //-------------------------------------------------------------------------------------
 void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	++g_tickNumlogs;
+
 	LOG_ITEM* pLogItem = new LOG_ITEM();
 	std::string str;
 
