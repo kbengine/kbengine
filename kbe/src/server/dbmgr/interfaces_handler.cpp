@@ -179,8 +179,7 @@ InterfacesHandler_ThirdParty::~InterfacesHandler_ThirdParty()
 {
 	if(pInterfacesChannel_)
 	{
-		pInterfacesChannel_->destroy();
-		delete pInterfacesChannel_;
+		pInterfacesChannel_->condemn();
 	}
 
 	pInterfacesChannel_ = NULL;
