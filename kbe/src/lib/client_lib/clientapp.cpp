@@ -305,6 +305,7 @@ void ClientApp::finalise(void)
 	gameTimer_.cancel();
 	threadPool_.finalise();
 	ClientObjectBase::finalise();
+	Network::finalise();
 
 	uninstallPyModules();
 	uninstallPyScript();
