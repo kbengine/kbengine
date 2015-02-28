@@ -131,6 +131,7 @@ void Bots::finalise()
 	SAFE_RELEASE(pTelnetServer_);
 
 	ClientApp::finalise();
+	Network::finalise();
 }
 
 //-------------------------------------------------------------------------------------
