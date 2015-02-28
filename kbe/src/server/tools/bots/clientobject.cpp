@@ -72,6 +72,13 @@ ClientObject::~ClientObject()
 }
 
 //-------------------------------------------------------------------------------------		
+void ClientObject::finalise(void)
+{
+	reset();
+	ClientObjectBase::finalise();
+}
+
+//-------------------------------------------------------------------------------------		
 void ClientObject::reset(void)
 {
 	if(pServerChannel_ && pServerChannel_->pEndPoint())

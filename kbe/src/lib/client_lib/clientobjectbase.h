@@ -61,9 +61,9 @@ public:
 	Network::Channel* pServerChannel()const{ return pServerChannel_; }
 	void pServerChannel(Network::Channel* pChannel){ pServerChannel_ = pChannel; }
 
-	void finalise(void);
+	virtual void finalise(void);
 	virtual void reset(void);
-	void canReset(bool v){ canReset_ = v; }
+	virtual void canReset(bool v){ canReset_ = v; }
 
 	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 

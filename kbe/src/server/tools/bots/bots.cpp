@@ -118,7 +118,7 @@ void Bots::finalise()
 	CLIENTS::iterator iter = clients_.begin();
 	for(; iter != clients_.end(); ++iter)
 	{
-		iter->second->reset();
+		iter->second->finalise();
 	}
 
 	clients_.clear();

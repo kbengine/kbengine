@@ -62,7 +62,8 @@ public:
 	ClientObject(std::string name, Network::NetworkInterface& ninterface);
 	virtual ~ClientObject();
 	
-	void reset(void);
+	virtual void finalise();
+	virtual void reset(void);
 
 	bool initCreate();
 	bool initLoginGateWay();
