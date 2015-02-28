@@ -97,8 +97,8 @@ void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({})!\n",
-					componentID_));
+				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({}), entityID({})!\n",
+					componentID_, id_));
 			}
 		}
 
@@ -141,8 +141,8 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({})!\n",
-			addr_.c_str()));
+		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({}), entityID({})!\n",
+			addr_.c_str(), id_));
 	}
 
 	Network::Bundle::ObjPool().reclaimObject(pBundle);
