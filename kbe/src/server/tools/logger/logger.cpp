@@ -154,6 +154,7 @@ bool Logger::canShutdown()
 void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	++g_tickNumlogs;
+	++g_totalNumlogs;
 
 	LOG_ITEM* pLogItem = new LOG_ITEM();
 	std::string str;

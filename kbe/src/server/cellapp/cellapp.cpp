@@ -77,6 +77,8 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Cellapp::~Cellapp()
 {
+	EntityMailbox::setFindChannelFunc(NULL);
+	EntityMailbox::setMailboxCallHookFunc(NULL);
 }
 
 //-------------------------------------------------------------------------------------	

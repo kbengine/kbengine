@@ -292,6 +292,9 @@ void EntityMailbox::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 Network::Channel* EntityMailbox::getChannel(void)
 {
+	if(__findChannelFunc == NULL)
+		return NULL;
+
 	return __findChannelFunc(*this);
 }
 
