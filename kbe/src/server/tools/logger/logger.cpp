@@ -38,6 +38,16 @@ KBE_SINGLETON_INIT(Logger);
 static uint64 g_totalNumlogs = 0;
 static uint32 g_tickNumlogs = 0;
 
+uint64 totalNumlogs()
+{
+	return g_totalNumlogs;
+}
+
+uint64 tickNumlogs()
+{
+	return g_tickNumlogs;
+}
+
 //-------------------------------------------------------------------------------------
 Logger::Logger(Network::EventDispatcher& dispatcher, 
 				 Network::NetworkInterface& ninterface, 
@@ -60,8 +70,8 @@ bool Logger::initializeWatcher()
 {
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
-	WATCH_OBJECT("stats/totalNumlogs", &g_totalNumlogs);
-	WATCH_OBJECT("stats/tickNumlogs", &g_tickNumlogs);
+	WATCH_OBJECT("stats/totalNumlogs", &totalNumlogs);
+	WATCH_OBJECT("stats/tickNumlogs", &tickNumlogs);
 	WATCH_OBJECT("stats/bufferedLogsSize", this, &Logger::bufferedLogsSize);
 	return true;
 }
