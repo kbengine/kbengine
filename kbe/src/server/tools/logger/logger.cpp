@@ -109,7 +109,7 @@ void Logger::handleTick()
 	}
 
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&LoggerInterface::messageHandlers);
+	networkInterface().processChannels(&LoggerInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

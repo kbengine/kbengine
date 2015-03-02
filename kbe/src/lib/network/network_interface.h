@@ -101,9 +101,9 @@ public:
 	void onChannelTimeOut(Channel * pChannel);
 	
 	/* 
-		处理所有消息包  
+		处理所有channels  
 	*/
-	void processAllChannelPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void processChannels(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
 	INLINE int32 numExtChannels() const;
 

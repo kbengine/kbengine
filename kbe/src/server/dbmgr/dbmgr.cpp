@@ -175,7 +175,7 @@ void Dbmgr::handleMainTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	DBUtil::pThreadPool()->onMainThreadTick();
-	networkInterface().processAllChannelPackets(&DbmgrInterface::messageHandlers);
+	networkInterface().processChannels(&DbmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

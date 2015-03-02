@@ -89,7 +89,7 @@ void Baseappmgr::handleGameTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&BaseappmgrInterface::messageHandlers);
+	networkInterface().processChannels(&BaseappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

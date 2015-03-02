@@ -162,7 +162,7 @@ void Interfaces::handleMainTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&InterfacesInterface::messageHandlers);
+	networkInterface().processChannels(&InterfacesInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

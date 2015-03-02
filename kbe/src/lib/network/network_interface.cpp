@@ -418,7 +418,7 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void NetworkInterface::processAllChannelPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
+void NetworkInterface::processChannels(KBEngine::Network::MessageHandlers* pMsgHandlers)
 {
 	ChannelMap::iterator iter = channelMap_.begin();
 	for(; iter != channelMap_.end(); )

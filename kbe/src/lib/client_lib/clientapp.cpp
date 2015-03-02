@@ -344,7 +344,7 @@ void ClientApp::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	
-	networkInterface().processAllChannelPackets(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
 	tickSend();
 
 	switch(state_)

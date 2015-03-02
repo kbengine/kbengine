@@ -94,7 +94,7 @@ void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 void Loginapp::handleCheckStatusTick()
 {
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&LoginappInterface::messageHandlers);
+	networkInterface().processChannels(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
 	pendingCreateMgr_.process();
 }

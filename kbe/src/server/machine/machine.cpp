@@ -589,7 +589,7 @@ bool Machine::run()
 	{
 		threadPool_.onMainThreadTick();
 		this->dispatcher().processOnce(false);
-		networkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
+		networkInterface().processChannels(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 

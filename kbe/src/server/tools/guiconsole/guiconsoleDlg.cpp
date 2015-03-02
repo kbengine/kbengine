@@ -417,7 +417,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	_dispatcher.breakProcessing(false);
 
-	::SetTimer(m_hWnd, 1, 100, NULL);
+	::SetTimer(m_hWnd, 1, 10, NULL);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 	::SetTimer(m_hWnd, 3, 1000 * 20, NULL);
 
@@ -823,7 +823,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 	case 1:
 		threadPool_.onMainThreadTick();
 		_dispatcher.processOnce(false);
-		_networkInterface.processAllChannelPackets(&KBEngine::ConsoleInterface::messageHandlers);
+		_networkInterface.processChannels(&KBEngine::ConsoleInterface::messageHandlers);
 		break;
 	case 2:
 		{

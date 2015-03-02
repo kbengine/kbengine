@@ -115,7 +115,7 @@ void Cellappmgr::handleGameTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	networkInterface().processAllChannelPackets(&CellappmgrInterface::messageHandlers);
+	networkInterface().processChannels(&CellappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

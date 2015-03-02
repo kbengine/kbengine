@@ -726,7 +726,7 @@ void EntityApp<E>::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processAllChannelPackets(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
 }
 
 template<class E>
