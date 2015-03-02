@@ -258,6 +258,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	Network::EventDispatcher dispatcher;
+	DebugHelper::getSingleton().pDispatcher(&dispatcher);
+
 	Network::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
