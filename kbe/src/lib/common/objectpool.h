@@ -367,6 +367,7 @@ public:
 	{
 		return *pPoolObject_;
 	}
+
 private:
 	T* pPoolObject_;
 	ObjectPool<T>& objectPool_;
