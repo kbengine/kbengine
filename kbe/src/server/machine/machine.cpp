@@ -124,7 +124,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 	}
 
 	// 只记录本机启动的进程
-	if(ep_.addr().ip == intaddr || this->networkInterface().intaddr().ip == intaddr ||
+	if(this->networkInterface().intaddr().ip == intaddr ||
 				this->networkInterface().extaddr().ip == intaddr)
 	{
 		pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
@@ -229,7 +229,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 
 		if(usable)
 		{
-			if(ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+			if(this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
 				this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
@@ -370,7 +370,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 
 			const Components::ComponentInfos* pinfos = &(*iter);
 			
-			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+			bool islocal = this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
 					this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip;
 
 			bool usable = checkComponentUsable(pinfos, true, false);
