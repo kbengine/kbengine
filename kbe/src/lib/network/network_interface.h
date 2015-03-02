@@ -110,7 +110,7 @@ public:
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
-	void closeSocket();
+	void closeSocket();processAllChannelPackets
 
 private:
 	EndPoint								extEndpoint_, intEndpoint_;
