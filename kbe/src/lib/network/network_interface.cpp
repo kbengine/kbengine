@@ -37,8 +37,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Network
 {
-const int NetworkInterface::RECV_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB
-const char * NetworkInterface::USE_KBEMACHINED = "kbemachine";
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
@@ -402,11 +400,6 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 	}	
 
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void NetworkInterface::onChannelGone(Channel * pChannel)
-{
 }
 
 //-------------------------------------------------------------------------------------

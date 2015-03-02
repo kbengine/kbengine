@@ -45,8 +45,6 @@ class MessageHandlers;
 class NetworkInterface : public TimerHandler
 {
 public:
-	static const int RECV_BUFFER_SIZE;
-	static const char * USE_KBEMACHINED;
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
 	NetworkInterface(EventDispatcher * pDispatcher,
@@ -100,7 +98,6 @@ public:
 	
 	bool good() const{ return (!isExternal() || extEndpoint_.good()) && (intEndpoint_.good()); }
 
-	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);
 	
 	/* 

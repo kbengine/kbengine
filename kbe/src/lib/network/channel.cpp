@@ -358,8 +358,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 		if(pNetworkInterface_)
 		{
-			pNetworkInterface_->onChannelGone(this);
-
 			if(!this->isDestroyed())
 				pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 		}
