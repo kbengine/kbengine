@@ -134,6 +134,7 @@ public:
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
+				t->onEabledPoolObject();
 				mutex_.unlockMutex();
 				return t;
 			}
@@ -161,7 +162,7 @@ public:
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
-
+				t->onEabledPoolObject();
 				mutex_.unlockMutex();
 				return t;
 			}
@@ -310,7 +311,8 @@ class PoolObject
 public:
 	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
-	
+	virtual void onEabledPoolObject(){}
+
 	virtual size_t getPoolObjectBytes(){ return 0; }
 
 	/**

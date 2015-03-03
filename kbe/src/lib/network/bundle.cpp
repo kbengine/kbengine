@@ -141,14 +141,14 @@ void Bundle::_calcPacketMaxSize()
 	// 这样我们在加密一个满载包时不需要额外填充字节
 	if(g_channelExternalEncryptType == 1)
 	{
-		packetMaxSize_ = isTCPPacket_ ? (PACKET_MAX_SIZE_TCP - ENCRYPTTION_WASTAGE_SIZE):
+		packetMaxSize_ = isTCPPacket_ ? (TCPPacket::maxBufferSize() - ENCRYPTTION_WASTAGE_SIZE):
 			(PACKET_MAX_SIZE_UDP - ENCRYPTTION_WASTAGE_SIZE);
 
 		packetMaxSize_ -= packetMaxSize_ % KBEngine::KBEBlowfish::BLOCK_SIZE;
 	}
 	else
 	{
-		packetMaxSize_ = isTCPPacket_ ? PACKET_MAX_SIZE_TCP : PACKET_MAX_SIZE_UDP;
+		packetMaxSize_ = isTCPPacket_ ? TCPPacket::maxBufferSize() : PACKET_MAX_SIZE_UDP;
 	}
 }
 
@@ -183,6 +183,7 @@ int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 	if(inseparable)
 		fwpos += addsize;
 
+	// 如果当前包装不下本次append的数据，将其填充到新包中
 	if(fwpos >= packetMaxSize_)
 	{
 		packets_.push_back(pCurrPacket_);
