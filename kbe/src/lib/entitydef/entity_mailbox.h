@@ -112,6 +112,12 @@ public:
 		__hookCallFuncPtr = pFunc; 
 	};
 
+	static void resetCallHooks(){
+		__hookCallFuncPtr = NULL;
+		__findChannelFunc = FindChannelFunc();
+		__getEntityFunc = GetEntityFunc();
+	}
+
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
 
 	virtual Network::Channel* getChannel(void);

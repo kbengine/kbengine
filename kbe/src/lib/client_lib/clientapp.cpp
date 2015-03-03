@@ -87,7 +87,7 @@ state_(C_STATE_INIT)
 //-------------------------------------------------------------------------------------
 ClientApp::~ClientApp()
 {
-	EntityMailbox::setFindChannelFunc(NULL);
+	EntityMailbox::resetCallHooks();
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 

@@ -157,8 +157,7 @@ Baseapp::~Baseapp()
 	// 不需要主动释放
 	pInitProgressHandler_ = NULL;
 
-	EntityMailbox::setFindChannelFunc(NULL);
-	EntityMailbox::setMailboxCallHookFunc(NULL);
+	EntityMailbox::resetCallHooks();
 }
 
 //-------------------------------------------------------------------------------------	
