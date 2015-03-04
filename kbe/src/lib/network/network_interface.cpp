@@ -166,6 +166,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	bool listeningInterfaceEmpty =
 		(listeningInterface == NULL || listeningInterface[0] == 0);
 
+	// 查找指定接口名 NIP、MAC、IP是否可用
 	if(pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
 	{
 		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
@@ -179,6 +180,8 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 				pEndPointName, ifname));
 		}
 	}
+
+	// 如果不为空又找不到那么警告用户错误的设置，同时我们采用默认的方式(绑定到INADDR_ANY)
 	else if (!listeningInterfaceEmpty)
 	{
 		WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
@@ -186,6 +189,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEndPointName, listeningInterface));
 	}
 	
+	// 尝试绑定到端口，如果被占用向后递增
 	bool foundport = false;
 	uint32 listeningPort = listeningPort_min;
 	if(listeningPort_min != listeningPort_max)
@@ -212,6 +216,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		}
 	}
 
+	// 如果无法绑定到合适的端口那么报错返回，进程将退出
 	if(!foundport)
 	{
 		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
@@ -222,11 +227,13 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		return false;
 	}
 
+	// 获得当前绑定的地址，如果是INADDR_ANY这里获得的IP是0
 	pEP->getlocaladdress( (u_int16_t*)&address.port,
 		(u_int32_t*)&address.ip );
 
 	if (address.ip == 0)
 	{
+		// 寻找默认的接口
 		if (pEP->findDefaultInterface(ifname) != 0 ||
 			pEP->getInterfaceAddress(ifname,
 				(u_int32_t&)address.ip) != 0)

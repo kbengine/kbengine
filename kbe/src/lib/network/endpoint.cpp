@@ -210,7 +210,6 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 		return false;
 	}
 
-	// Iterate through the list of interfaces.
 	struct ifreq * ifr         = ifc.ifc_req;
 	int nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
 	for (int i = 0; i < nInterfaces; ++i)
@@ -239,6 +238,7 @@ int EndPoint::findDefaultInterface(char * name)
 	{
 		int		flags = 0;
 		struct if_nameindex* pIfInfoCur = pIfInfo;
+
 		while (pIfInfoCur->if_name)
 		{
 			flags = 0;
@@ -252,13 +252,15 @@ int EndPoint::findDefaultInterface(char * name)
 					strcpy(name, pIfInfoCur->if_name);
 					ret = 0;
 
-					// we only stop if it's not a loopback address,
-					// otherwise we continue, hoping to find a better one
+					// 如果不是回路地址我们就停止
+					// 否则我们期望找到更好的
 					if (!(flags & IFF_LOOPBACK)) break;
 				}
 			}
+
 			++pIfInfoCur;
 		}
+
 		if_freenameindex(pIfInfo);
 	}
 	else
