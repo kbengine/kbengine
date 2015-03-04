@@ -445,7 +445,7 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 	{
 		case TIMEOUT_INACTIVITY_CHECK:
 		{
-			if (timestamp() - lastReceivedTime_ > inactivityExceptionPeriod_)
+			if (timestamp() - lastReceivedTime_ >= inactivityExceptionPeriod_)
 			{
 				this->networkInterface().onChannelTimeOut(this);
 			}
