@@ -1888,8 +1888,8 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", 
-		(eid > 0 ? (fmt::format("(entityID={})", eid)) : ""), datas));
+	//INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", 
+	//	(eid > 0 ? (fmt::format("(entityID={})", eid)) : ""), datas));
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
@@ -1990,8 +1990,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 	s.done();
 
-	DEBUG_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
-		nrows, nfields, err.c_str()));
+	//DEBUG_MSG(fmt::format("Baseapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
+	//	nrows, nfields, err.c_str()));
 
 	if(callbackID > 0)
 	{
