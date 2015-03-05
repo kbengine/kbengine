@@ -227,6 +227,8 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 		pPacketSender_->pEndPoint(pEndPoint_);
 
 	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
+													g_channelExternalTimeout,
+							(traits_ == INTERNAL) ? g_channelInternalTimeout : 
 													g_channelExternalTimeout);
 
 	return true;
@@ -269,7 +271,8 @@ void Channel::startInactivityDetection( float period, float checkPeriod )
 	// 如果周期为负数则不检查
 	if(period > 0.f)
 	{
-		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() );
+		checkPeriod = std::max(1.f, checkPeriod);
+		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() ) - uint64( 0.05f * stampsPerSecond() );
 		lastReceivedTime_ = timestamp();
 
 		inactivityTimerHandle_ =
