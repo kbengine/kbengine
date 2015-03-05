@@ -153,7 +153,7 @@ bool SelectPoller::doRegisterForRead(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG(fmt::format("EventDispatcher::registerFileDescriptor: "
+		ERROR_MSG(fmt::format("SelectPoller::doRegisterForRead: "
 			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
 			fd, FD_SETSIZE));
 
@@ -162,7 +162,7 @@ bool SelectPoller::doRegisterForRead(int fd)
 #else
 	if (fdReadSet_.fd_count >= FD_SETSIZE)
 	{
-		ERROR_MSG(fmt::format("EventDispatcher::registerFileDescriptor: "
+		ERROR_MSG(fmt::format("SelectPoller::doRegisterForRead: "
 			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
 			fd, FD_SETSIZE));
 
@@ -190,7 +190,7 @@ bool SelectPoller::doRegisterForWrite(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG(fmt::format("EventDispatcher::registerWriteFileDescriptor: "
+		ERROR_MSG(fmt::format("SelectPoller::doRegisterForWrite: "
 			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
 			fd, FD_SETSIZE));
 
@@ -199,7 +199,7 @@ bool SelectPoller::doRegisterForWrite(int fd)
 #else
 	if (fdWriteSet_.fd_count >= FD_SETSIZE)
 	{
-		ERROR_MSG(fmt::format("EventDispatcher::registerWriteFileDescriptor: "
+		ERROR_MSG(fmt::format("SelectPoller::doRegisterForWrite: "
 			"Tried to register invalid fd {}. FD_SETSIZE ({})\n",
 			fd, FD_SETSIZE));
 
