@@ -138,6 +138,14 @@ bool Logger::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Logger::finalise()
 {
+	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
+	for(; iter != buffered_logs_.end(); ++iter)
+	{
+		delete (*iter);
+	}
+
+	buffered_logs_.clear();
+
 	timer_.cancel();
 	ServerApp::finalise();
 }
@@ -187,6 +195,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	if(aTm == NULL)
 	{
 		ERROR_MSG("Logger::writeLog: log is error!\n");
+		delete pLogItem;
 		return;
 	}
 
