@@ -228,8 +228,8 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 
 	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
 													g_channelExternalTimeout,
-							(traits_ == INTERNAL) ? g_channelInternalTimeout : 
-													g_channelExternalTimeout);
+							(traits_ == INTERNAL) ? g_channelInternalTimeout  / 2.f: 
+													g_channelExternalTimeout / 2.f);
 
 	return true;
 }
