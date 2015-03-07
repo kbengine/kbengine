@@ -118,7 +118,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 		
 		KBEngine::u_int32_t address;
-		endpoint->convertAddress(vec[0].c_str(), address);
+		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
 		KBEngine::Network::Address addr(address, htons(atoi(vec[1].c_str())));
 
 		if(addr.ip == 0)
@@ -250,7 +250,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 		
 		KBEngine::u_int32_t address;
-		endpoint->convertAddress(vec[0].c_str(), address);
+		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
 		KBEngine::Network::Address addr(address, htons(atoi(vec[1].c_str())));
 
 		if(addr.ip == 0)

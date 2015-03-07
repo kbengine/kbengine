@@ -118,7 +118,7 @@ bool CreateAccountTask::process()
 	}
 
 	u_int32_t addr;
-	KBEngine::Network::EndPoint::convertAddress(serviceAddr(), addr);
+	KBEngine::Network::Address::string2ip(serviceAddr(), addr);
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
@@ -416,7 +416,7 @@ bool ChargeTask::process()
 	}
 
 	u_int32_t addr;
-	KBEngine::Network::EndPoint::convertAddress(serviceAddr(), addr);
+	KBEngine::Network::Address::string2ip(serviceAddr(), addr);
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{

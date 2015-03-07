@@ -99,7 +99,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 
 	KBEngine::u_int32_t address;
-	endpoint->convertAddress(strip, address);
+	Network::Address::string2ip(strip, address);
 	KBEngine::Network::Address addr(address, htons(port));
 
 	if(addr.ip == 0)

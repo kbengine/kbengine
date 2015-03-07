@@ -67,7 +67,7 @@ ip(0),
 	port(htons(portArg))
 {
 	u_int32_t addr;
-	Network::EndPoint::convertAddress(ipArg.c_str(), addr);
+	Network::Address::string2ip(ipArg.c_str(), addr);
 	ip = (uint32)addr;
 } 
 
@@ -114,6 +114,45 @@ char * Address::nextStringBuf()
 {
 	s_currStringBuf = (s_currStringBuf + 1) % 2;
 	return s_stringBuf[ s_currStringBuf ];
+}
+
+//-------------------------------------------------------------------------------------
+int Address::string2ip(const char * string, u_int32_t & address)
+{
+	u_int32_t	trial;
+
+#ifdef unix
+	if (inet_aton(string, (struct in_addr*)&trial) != 0)
+#else
+	if ((trial = inet_addr(string)) != INADDR_NONE)
+#endif
+		{
+			address = trial;
+			return 0;
+		}
+
+	struct hostent * hosts = gethostbyname(string);
+	if (hosts != NULL)
+	{
+		address = *(u_int32_t*)(hosts->h_addr_list[0]);
+		return 0;
+	}
+
+	return -1;
+}
+
+//-------------------------------------------------------------------------------------
+int Address::ip2string(u_int32_t address, char * string)
+{
+	address = ntohl(address);
+
+	int p1, p2, p3, p4;
+	p1 = address >> 24;
+	p2 = (address & 0xffffff) >> 16;
+	p3 = (address & 0xffff) >> 8;
+	p4 = (address & 0xff);
+	
+	return sprintf(string, "%d.%d.%d.%d", p1, p2, p3, p4);
 }
 
 }

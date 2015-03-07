@@ -449,7 +449,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	}
 	
 	u_int32_t address;
-	pEndpoint->convertAddress(ip.c_str(), address);
+	Network::Address::string2ip(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
@@ -487,7 +487,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	
 	u_int32_t address;
 
-	pEndpoint->convertAddress(ip_.c_str(), address);
+	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",

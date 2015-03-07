@@ -64,6 +64,9 @@ public:
 	const char * ipAsString() const;
 	bool isNone() const	{ return this->ip == 0; }
 
+	static int string2ip(const char * string, u_int32_t & address);
+	static int ip2string(u_int32_t address, char * string);
+
 private:
 	static char s_stringBuf[2][32];
 	static int s_currStringBuf;

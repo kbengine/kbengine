@@ -1331,7 +1331,7 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 
 	Network::EndPoint endpoint;
 	u_int32_t address;
-	endpoint.convertAddress(sip.c_str(), address);
+	Network::Address::string2ip(sip.c_str(), address);
 	KBEngine::Network::Address addr(address, htons(atoi(sport.c_str())));
 	return addr;
 }

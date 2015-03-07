@@ -120,7 +120,7 @@ bool ClientObject::initCreate()
 	ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
 	u_int32_t address;
 
-	pEndpoint->convertAddress(infos.login_ip, address);
+	Network::Address::string2ip(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
@@ -191,7 +191,7 @@ bool ClientObject::initLoginGateWay()
 	
 	u_int32_t address;
 
-	pEndpoint->convertAddress(ip_.c_str(), address);
+	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",

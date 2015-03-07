@@ -293,7 +293,7 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	{
 		strncpy(name, iftemp, IFNAMSIZ);
 	}
-	else if (EndPoint::convertAddress(spec, addr) == 0)
+	else if (Address::string2ip(spec, addr) == 0)
 	{
 	}
 	else
@@ -358,31 +358,6 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	}
 
 	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-int EndPoint::convertAddress(const char * string, u_int32_t & address)
-{
-	u_int32_t	trial;
-
-#ifdef unix
-	if (inet_aton(string, (struct in_addr*)&trial) != 0)
-#else
-	if ((trial = inet_addr(string)) != INADDR_NONE)
-#endif
-		{
-			address = trial;
-			return 0;
-		}
-
-	struct hostent * hosts = gethostbyname(string);
-	if (hosts != NULL)
-	{
-		address = *(u_int32_t*)(hosts->h_addr_list[0]);
-		return 0;
-	}
-
-	return -1;
 }
 
 //-------------------------------------------------------------------------------------
