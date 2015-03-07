@@ -113,7 +113,7 @@ PyObject* PyBots::pyKeys()
 	Bots::CLIENTS::const_iterator iter = refclients.begin();
 	while (iter != refclients.end())
 	{
-		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
+		PyObject* clientID = PyLong_FromLong(iter->second->appID());
 		PyList_SET_ITEM(pyList, i, clientID);
 
 		i++;
@@ -133,8 +133,8 @@ PyObject* PyBots::pyValues()
 	Bots::CLIENTS::const_iterator iter = refclients.begin();
 	while (iter != refclients.end())
 	{
-		Py_INCREF(iter->second.get());
-		PyList_SET_ITEM(pyList, i, iter->second.get());
+		Py_INCREF(iter->second);
+		PyList_SET_ITEM(pyList, i, iter->second);
 
 		i++;
 		iter++;
@@ -154,11 +154,11 @@ PyObject* PyBots::pyItems()
 	while (iter != refclients.end())
 	{
 		PyObject * pTuple = PyTuple_New(2);
-		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
-		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+		PyObject* clientID = PyLong_FromLong(iter->second->appID());
+		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
 
 		PyTuple_SET_ITEM(pTuple, 0, clientID);
-		PyTuple_SET_ITEM(pTuple, 1, iter->second.get());
+		PyTuple_SET_ITEM(pTuple, 1, iter->second);
 		PyList_SET_ITEM(pyList, i, pTuple);
 		i++;
 		iter++;

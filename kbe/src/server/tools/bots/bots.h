@@ -54,7 +54,7 @@ namespace KBEngine{
 class ClientObject;
 class PyBots;
 class TelnetServer;
-typedef SmartPointer<ClientObject> ClientObjectPtr;
+typedef ClientObject* ClientObjectPtr;
 
 class Bots  : public ClientApp
 {

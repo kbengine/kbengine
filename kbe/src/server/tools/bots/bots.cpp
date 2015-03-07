@@ -228,8 +228,22 @@ void Bots::handleGameTick()
 	{
 		AUTO_SCOPED_PROFILE("updateBots");
 		CLIENTS::iterator iter = clients().begin();
-		for(;iter != clients().end(); ++iter)
-			iter->second.get()->gameTick();
+		for(;iter != clients().end();)
+		{
+			Network::Channel* pChannel = iter->first;
+			ClientObjectPtr pClientObject = iter->second;
+			++iter;
+
+			if(!pClientObject->pServerChannel())
+			{
+				clients().erase(pChannel);
+
+				pClientObject->finalise();
+				Py_DECREF(pClientObject);
+			}
+
+			pClientObject->gameTick();
+		}
 	}
 }
 
@@ -448,7 +462,7 @@ ClientObject* Bots::findClient(Network::Channel * pChannel)
 	CLIENTS::iterator iter = clients().find(pChannel);
 	if(iter != clients().end())
 	{
-		return iter->second.get();
+		return iter->second;
 	}
 
 	return NULL;
@@ -460,8 +474,8 @@ ClientObject* Bots::findClientByAppID(int32 appID)
 	CLIENTS::iterator iter = clients().begin();
 	for(; iter != clients().end(); ++iter)
 	{
-		if(iter->second.get()->appID() == appID)
-			return iter->second.get();
+		if(iter->second->appID() == appID)
+			return iter->second;
 	}
 
 	return NULL;

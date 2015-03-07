@@ -76,7 +76,6 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 			Bots::getSingleton().networkInterface());
 
 		Bots::getSingleton().addClient(pClient);
-		Py_DECREF(pClient);
 	}
 
 }
