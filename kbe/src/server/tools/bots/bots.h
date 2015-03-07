@@ -54,7 +54,6 @@ namespace KBEngine{
 class ClientObject;
 class PyBots;
 class TelnetServer;
-typedef ClientObject* ClientObjectPtr;
 
 class Bots  : public ClientApp
 {
@@ -114,7 +113,7 @@ public:
 
 	void onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
-	typedef std::map< Network::Channel*, ClientObjectPtr > CLIENTS;
+	typedef std::map< Network::Channel*, ClientObject* > CLIENTS;
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }

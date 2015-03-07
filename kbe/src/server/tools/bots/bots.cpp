@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pybots.h"
 #include "bots.h"
+#include "clientobject.h"
 #include "server/telnet_server.h"
 #include "server/components.h"
 #include "client_lib/entity.h"
@@ -231,7 +232,7 @@ void Bots::handleGameTick()
 		for(;iter != clients().end();)
 		{
 			Network::Channel* pChannel = iter->first;
-			ClientObjectPtr pClientObject = iter->second;
+			ClientObject* pClientObject = iter->second;
 			++iter;
 
 			if(!pClientObject->pServerChannel())
@@ -442,8 +443,8 @@ void Bots::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStrea
 //-------------------------------------------------------------------------------------
 bool Bots::addClient(ClientObject* pClient)
 {
-	clients().insert(std::make_pair< Network::Channel*, ClientObjectPtr >(pClient->pServerChannel(), 
-		ClientObjectPtr(pClient)));
+	clients().insert(std::make_pair(pClient->pServerChannel(),
+		pClient));
 
 	return true;
 }
