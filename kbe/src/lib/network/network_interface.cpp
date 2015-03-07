@@ -78,7 +78,6 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
 	}
 
-	
 	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
 		"please check for kbengine_defs.xml!\n");
 
