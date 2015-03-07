@@ -81,11 +81,11 @@ void ClientObject::finalise(void)
 //-------------------------------------------------------------------------------------		
 void ClientObject::reset(void)
 {
+	if(pTCPPacketReceiverEx_)
+		Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+
 	if(pServerChannel_ && pServerChannel_->pEndPoint())
 	{
-		if(pTCPPacketReceiverEx_)
-			Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
-
 		pServerChannel_->stopSend();
 		pServerChannel_->pPacketSender(NULL);
 	}

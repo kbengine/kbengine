@@ -240,6 +240,7 @@ void Bots::handleGameTick()
 
 				pClientObject->finalise();
 				Py_DECREF(pClientObject);
+				continue;
 			}
 
 			pClientObject->gameTick();
