@@ -88,10 +88,10 @@ void ClientObject::reset(void)
 
 		pServerChannel_->stopSend();
 		pServerChannel_->pPacketSender(NULL);
-
-		SAFE_RELEASE(pTCPPacketSenderEx_);
-		SAFE_RELEASE(pTCPPacketReceiverEx_);
 	}
+
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
 
 	std::string name = name_;
 	std::string passwd = password_;
