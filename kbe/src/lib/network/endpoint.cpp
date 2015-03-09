@@ -270,7 +270,7 @@ int EndPoint::getInterfaceAddressByName(const char * name, u_int32_t & address)
 			{
 				if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
 				{
-					ret = convertAddress((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+					ret = Address::string2ip((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
 				}
 
 				break;
@@ -378,7 +378,7 @@ int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
 				{
 					if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
 					{
-						ret = convertAddress((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+						ret = Address::string2ip((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
 					}
 
 					break;
