@@ -269,7 +269,7 @@ void Channel::startInactivityDetection( float period, float checkPeriod )
 	stopInactivityDetection();
 
 	// 如果周期为负数则不检查
-	if(period > 0.f)
+	if(period > 0.001f)
 	{
 		checkPeriod = std::max(1.f, checkPeriod);
 		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() ) - uint64( 0.05f * stampsPerSecond() );

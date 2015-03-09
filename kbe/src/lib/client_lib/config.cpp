@@ -142,14 +142,14 @@ bool Config::loadConfig(std::string fileName)
 			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
 			if(childnode1)
 			{
-				channelInternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
+				channelInternalTimeout_ = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
 				Network::g_channelInternalTimeout = channelInternalTimeout_;
 			}
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode)
 			{
-				channelExternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
+				channelExternalTimeout_ = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
 				Network::g_channelExternalTimeout = channelExternalTimeout_;
 			}
 		}
