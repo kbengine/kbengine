@@ -159,25 +159,20 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	
 	this->dispatcher().registerReadFileDescriptor(*pEP, pLR);
 	
-	char ifname[IFNAMSIZ];
-	u_int32_t ifaddr = INADDR_ANY;
+	u_int32_t ifIPAddr = INADDR_ANY;
 
 	bool listeningInterfaceEmpty =
 		(listeningInterface == NULL || listeningInterface[0] == 0);
 
 	// 查找指定接口名 NIP、MAC、IP是否可用
-	if(pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
+	if(pEP->findIndicatedInterface(listeningInterface, ifIPAddr) == 0)
 	{
+		char szIp[MAX_IP] = {0};
+		Address::ip2string(ifIPAddr, szIp);
+
 		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
 				"Creating on interface '{}' (= {})\n",
-			pEndPointName, listeningInterface, ifname));
-
-		if (pEP->getInterfaceAddress( ifname, ifaddr ) != 0)
-		{
-			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't get addr of interface {} so using all interfaces\n",
-				pEndPointName, ifname));
-		}
+			pEndPointName, listeningInterface, szIp));
 	}
 
 	// 如果不为空又找不到那么警告用户错误的设置，同时我们采用默认的方式(绑定到INADDR_ANY)
@@ -196,7 +191,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		for(int lpIdx=ntohs(listeningPort_min); lpIdx<ntohs(listeningPort_max); ++lpIdx)
 		{
 			listeningPort = htons(lpIdx);
-			if (pEP->bind(listeningPort, ifaddr) != 0)
+			if (pEP->bind(listeningPort, ifIPAddr) != 0)
 			{
 				continue;
 			}
@@ -209,7 +204,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	}
 	else
 	{
-		if (pEP->bind(listeningPort, ifaddr) == 0)
+		if (pEP->bind(listeningPort, ifIPAddr) == 0)
 		{
 			foundport = true;
 		}
@@ -220,7 +215,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
 				"Couldn't bind the socket to {}:{} ({})\n",
-			pEndPointName, inet_ntoa((struct in_addr&)ifaddr), ntohs(listeningPort), kbe_strerror()));
+			pEndPointName, inet_ntoa((struct in_addr&)ifIPAddr), ntohs(listeningPort), kbe_strerror()));
 		
 		pEP->close();
 		return false;
@@ -230,12 +225,21 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->getlocaladdress( (u_int16_t*)&address.port,
 		(u_int32_t*)&address.ip );
 
-	if (address.ip == 0)
+	if (0 == address.ip)
 	{
-		// 寻找默认的接口
-		if (pEP->findDefaultInterface(ifname) != 0 ||
-			pEP->getInterfaceAddress(ifname,
-				(u_int32_t&)address.ip) != 0)
+		u_int32_t addr;
+		if(0 == pEP->getDefaultInterfaceAddress(addr))
+		{
+			address.ip = addr;
+
+			char szIp[MAX_IP] = {0};
+			Address::ip2string(address.ip, szIp);
+			INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
+					"bound to all interfaces with default route "
+					"interface on {} ( {} )\n",
+				pEndPointName, szIp, address.c_str()));
+		}
+		else
 		{
 			ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
 				"Couldn't determine ip addr of default interface\n", pEndPointName));
@@ -243,11 +247,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEP->close();
 			return false;
 		}
-
-		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"bound to all interfaces with default route "
-				"interface on {} ( {} )\n",
-			pEndPointName, ifname, address.c_str()));
 	}
 	
 	pEP->setnonblocking(true);

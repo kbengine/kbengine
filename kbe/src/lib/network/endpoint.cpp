@@ -29,6 +29,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet_sender.h"
 #include "network/udp_packet_receiver.h"
 
+#ifdef WIN32
+#include <Iphlpapi.h>
+#pragma comment (lib,"iphlpapi.lib") 
+#else
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#endif
+
 namespace KBEngine { 
 namespace Network
 {
@@ -96,82 +105,27 @@ void EndPoint::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-bool EndPoint::getClosedPort(Network::Address & closedPort)
+int EndPoint::getBufferSize(int optname) const
 {
-	bool isResultSet = false;
+	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
 
-#ifdef unix
-//	KBE_ASSERT(errno == ECONNREFUSED);
+	int recvbuf = -1;
+	socklen_t rbargsize = sizeof(int);
 
-	struct sockaddr_in	offender;
-	offender.sin_family = 0;
-	offender.sin_port = 0;
-	offender.sin_addr.s_addr = 0;
+	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
+		(char*)&recvbuf, &rbargsize);
 
-	struct msghdr	errHeader;
-	struct iovec	errPacket;
+	if (rberr == 0 && rbargsize == sizeof(int))
+		return recvbuf;
 
-	char data[ 256 ];
-	char control[ 256 ];
+	ERROR_MSG(fmt::format("EndPoint::getBufferSize: "
+		"Failed to read option {}: {}\n",
+		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF"),
+		kbe_strerror()));
 
-	errHeader.msg_name = &offender;
-	errHeader.msg_namelen = sizeof(offender);
-	errHeader.msg_iov = &errPacket;
-	errHeader.msg_iovlen = 1;
-	errHeader.msg_control = control;
-	errHeader.msg_controllen = sizeof(control);
-	errHeader.msg_flags = 0;	// result only
-
-	errPacket.iov_base = data;
-	errPacket.iov_len = sizeof(data);
-
-	int errMsgErr = recvmsg(*this, &errHeader, MSG_ERRQUEUE);
-	if (errMsgErr < 0)
-	{
-		return false;
-	}
-
-	struct cmsghdr * ctlHeader;
-
-	for (ctlHeader = CMSG_FIRSTHDR(&errHeader);
-		ctlHeader != NULL;
-		ctlHeader = CMSG_NXTHDR(&errHeader,ctlHeader))
-	{
-		if (ctlHeader->cmsg_level == SOL_IP &&
-			ctlHeader->cmsg_type == IP_RECVERR) break;
-	}
-
-	// Was there an IP_RECVERR error.
-
-	if (ctlHeader != NULL)
-	{
-		struct sock_extended_err * extError =
-			(struct sock_extended_err*)CMSG_DATA(ctlHeader);
-
-		// Only use this address if the kernel has the bug where it does not
-		// report the packet details.
-
-		if (errHeader.msg_namelen == 0)
-		{
-			// Finally we figure out whose fault it is except that this is the
-			// generator of the error (possibly a machine on the path to the
-			// destination), and we are interested in the actual destination.
-			offender = *(sockaddr_in*)SO_EE_OFFENDER(extError);
-			offender.sin_port = 0;
-
-			ERROR_MSG("EndPoint::getClosedPort: "
-				"Kernel has a bug: recv_msg did not set msg_name.\n");
-		}
-
-		closedPort.ip = offender.sin_addr.s_addr;
-		closedPort.port = offender.sin_port;
-
-		isResultSet = true;
-	}
-#endif // unix
-
-	return isResultSet;
+	return -1;
 }
+
 //-------------------------------------------------------------------------------------
 bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
@@ -225,6 +179,226 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 }
 
 //-------------------------------------------------------------------------------------
+int EndPoint::findIndicatedInterface(const char * spec, u_int32_t & address)
+{
+	address = 0;
+
+	if(spec == NULL || spec[0] == 0) 
+	{
+		return -1;
+	}
+
+	// 是否指定地址
+	if(0 != Address::string2ip(spec, address))
+	{
+		return -1;
+	}
+	else if(0 != this->getInterfaceAddressByMAC(spec, address))
+	{
+		return -1;
+	}
+	else if(0 != this->getInterfaceAddressByName(spec, address))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int EndPoint::getInterfaceAddressByName(const char * name, u_int32_t & address)
+{
+	int ret = -1;
+
+#ifdef WIN32
+
+    PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+    unsigned long size = sizeof(IP_ADAPTER_INFO);
+
+    int ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+
+    if (ERROR_BUFFER_OVERFLOW == ret_info)
+    {
+        delete pIpAdapterInfo;
+        pIpAdapterInfo = (PIP_ADAPTER_INFO)new unsigned char[size];
+        ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);    
+    }
+
+    if (ERROR_SUCCESS == ret_info)
+    {
+		PIP_ADAPTER_INFO _pIpAdapterInfo = pIpAdapterInfo;
+		while (_pIpAdapterInfo)
+		{
+			if(!strcmp(_pIpAdapterInfo->AdapterName, name))
+			{
+				IP_ADDR_STRING* pIpAddrString = &(_pIpAdapterInfo->IpAddressList);
+				ret = Address::string2ip(pIpAddrString->IpAddress.String, address);
+				break;
+			}
+
+			_pIpAdapterInfo = _pIpAdapterInfo->Next;
+		}
+    }
+
+    if (pIpAdapterInfo)
+    {
+        delete pIpAdapterInfo;
+    }
+
+#else
+	
+	int fd;
+	int interfaceNum = 0;
+	struct ifreq buf[16];
+	struct ifconf ifc;
+
+	if((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		::close(fd);
+		return -1;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = (caddr_t)buf;
+
+	if(!ioctl(fd, SIOCGIFCONF, (char *)&ifc))
+	{
+		interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+		while(interfaceNum-- > 0)
+		{
+			if(!strcmp((char*)buf[interfaceNum].ifr_name, (char*)name))
+			{
+				if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
+				{
+					ret = convertAddress((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+				}
+
+				break;
+			}
+		}
+	}
+
+	::close(fd);
+
+#endif
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
+{
+	int ret = -1;
+
+	if(!mac)
+	{
+		return ret;
+	}
+
+	// mac地址转换
+	unsigned char macAddress[16] = {0};
+	unsigned char macAddressIdx = 0;
+	char szTemp[2] = {0};
+	char szTempIdx = 0;
+	char* pMac = (char*)mac;
+	while(*pMac && macAddressIdx < sizeof(macAddress))
+	{
+		if(('a' <= *pMac && *pMac <= 'f') || ('A' <= *pMac && *pMac <= 'F') || ('0' <= *pMac && *pMac <= '9'))
+		{
+			szTemp[szTempIdx++] = *pMac;
+			if(szTempIdx > 1)
+			{
+				macAddress[macAddressIdx++] = (unsigned char)::strtol(szTemp, NULL, 16);
+				szTempIdx = 0;
+			}
+		}
+
+		++pMac;
+	}
+
+#ifdef WIN32
+
+	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+	unsigned long size = sizeof(IP_ADAPTER_INFO);
+
+	int ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+
+	if (ERROR_BUFFER_OVERFLOW == ret_info)
+	{
+		delete pIpAdapterInfo;
+		pIpAdapterInfo = (PIP_ADAPTER_INFO)new unsigned char[size];
+		ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);    
+	}
+
+	if (ERROR_SUCCESS == ret_info)
+	{
+		PIP_ADAPTER_INFO _pIpAdapterInfo = pIpAdapterInfo;
+		while (_pIpAdapterInfo)
+		{
+			if(!strcmp((char*)_pIpAdapterInfo->Address, (char*)macAddress))
+			{
+				IP_ADDR_STRING* pIpAddrString = &(_pIpAdapterInfo->IpAddressList);
+				ret = Address::string2ip(pIpAddrString->IpAddress.String, address);
+				break;
+			}
+
+			_pIpAdapterInfo = _pIpAdapterInfo->Next;
+		}
+	}
+
+	if (pIpAdapterInfo)
+	{
+		delete pIpAdapterInfo;
+	}
+
+#else
+
+	int fd;
+	int interfaceNum = 0;
+	struct ifreq buf[16];
+	struct ifconf ifc;
+
+	if((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		::close(fd);
+		return -1;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = (caddr_t)buf;
+
+	if(!ioctl(fd, SIOCGIFCONF, (char *)&ifc))
+	{
+		interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+		while(interfaceNum-- > 0)
+		{
+			if(!ioctl(fd, SIOCGIFHWADDR, (char *)(&buf[interfaceNum])))
+			{
+				if(!strcmp((char*)buf[interfaceNum].ifr_hwaddr.sa_data, (char*)macAddress))
+				{
+					if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
+					{
+						ret = convertAddress((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+					}
+
+					break;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	::close(fd);
+
+#endif
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 int EndPoint::findDefaultInterface(char * name)
 {
 #ifndef unix
@@ -238,7 +412,6 @@ int EndPoint::findDefaultInterface(char * name)
 	{
 		int		flags = 0;
 		struct if_nameindex* pIfInfoCur = pIfInfo;
-
 		while (pIfInfoCur->if_name)
 		{
 			flags = 0;
@@ -252,15 +425,13 @@ int EndPoint::findDefaultInterface(char * name)
 					strcpy(name, pIfInfoCur->if_name);
 					ret = 0;
 
-					// 如果不是回路地址我们就停止
-					// 否则我们期望找到更好的
+					// we only stop if it's not a loopback address,
+					// otherwise we continue, hoping to find a better one
 					if (!(flags & IFF_LOOPBACK)) break;
 				}
 			}
-
 			++pIfInfoCur;
 		}
-
 		if_freenameindex(pIfInfo);
 	}
 	else
@@ -275,111 +446,33 @@ int EndPoint::findDefaultInterface(char * name)
 }
 
 //-------------------------------------------------------------------------------------
-int EndPoint::findIndicatedInterface(const char * spec, char * name)
+int EndPoint::getDefaultInterfaceAddress(u_int32_t & address)
 {
-	name[0] = 0;
+	int ret = -1;
 
-	if (spec == NULL || spec[0] == 0) 
-		return -1;
-
-	char iftemp[IFNAMSIZ+16];
-
-	strncpy(iftemp, spec, IFNAMSIZ); 
-	iftemp[IFNAMSIZ] = 0;
-	u_int32_t addr = 0;
-
-	// 尝试通过指定接口名称获得地址或尝试将接口名称转换为地址
-	if (this->getInterfaceAddress(iftemp, addr) == 0)
+	char interfaceName[256] = {0};
+	ret = findDefaultInterface(interfaceName);
+	if(0 == ret)
 	{
-		strncpy(name, iftemp, IFNAMSIZ);
-	}
-	else if (Address::string2ip(spec, addr) == 0)
-	{
-	}
-	else
-	{
-		ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
-			"No interface matching interface spec '{}' found\n", spec));
-
-		return -1;
+		ret = getInterfaceAddressByName(interfaceName, address);
 	}
 
-	// 如果没有指定接口名，那么查找地址
-	if (name[0] == 0)
+	if(0 != ret)
 	{
-		u_int32_t netmaskmatch = ntohl(addr);
-		std::vector< std::string > interfaceNames;
-
-		// 列举所有网络接口名称
-		struct if_nameindex* pIfInfo = if_nameindex();
-		if (pIfInfo)
+		char hostname[256] = {0};
+		::gethostname(hostname, sizeof(hostname));
+		struct hostent * host = gethostbyname(hostname);
+		if(host)
 		{
-			struct if_nameindex* pIfInfoCur = pIfInfo;
-			while (pIfInfoCur->if_name)
+			if(host->h_addr_list[0] < host->h_name)
 			{
-				interfaceNames.push_back(pIfInfoCur->if_name);
-				++pIfInfoCur;
+				address = ((struct in_addr*)(host->h_addr_list[0]))->s_addr;
+				ret = 0;
 			}
-			if_freenameindex(pIfInfo);
-		}
-
-		std::vector< std::string >::iterator iter = interfaceNames.begin();
-
-		while (iter != interfaceNames.end())
-		{
-			u_int32_t tip = 0;
-			char * currName = (char *)iter->c_str();
-
-			if (this->getInterfaceAddress(currName, tip) == 0)
-			{
-				u_int32_t htip = ntohl(tip);
-
-				if (htip == netmaskmatch)
-				{
-					//DEBUG_MSG("EndPoint::bind(): found a match\n");
-					strncpy(name, currName, IFNAMSIZ);
-					break;
-				}
-			}
-
-			++iter;
-		}
-
-		if (name[0] == 0)
-		{
-			uint8 * qik = (uint8*)&addr;
-			ERROR_MSG(fmt::format("EndPoint::findIndicatedInterface: "
-				"No interface matching netmask spec '{}' found "
-				"(evals to {}.{}.{}.{})\n", spec,
-				qik[0], qik[1], qik[2], qik[3]));
-
-			return -2; // parsing ok, just didn't match
 		}
 	}
 
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-int EndPoint::getBufferSize(int optname) const
-{
-	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
-
-	int recvbuf = -1;
-	socklen_t rbargsize = sizeof(int);
-
-	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
-		(char*)&recvbuf, &rbargsize);
-
-	if (rberr == 0 && rbargsize == sizeof(int))
-		return recvbuf;
-
-	ERROR_MSG(fmt::format("EndPoint::getBufferSize: "
-		"Failed to read option {}: {}\n",
-		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF"),
-		kbe_strerror()));
-
-	return -1;
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------

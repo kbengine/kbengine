@@ -126,10 +126,10 @@ int Address::string2ip(const char * string, u_int32_t & address)
 #else
 	if ((trial = inet_addr(string)) != INADDR_NONE)
 #endif
-		{
-			address = trial;
-			return 0;
-		}
+	{
+		address = trial;
+		return 0;
+	}
 
 	struct hostent * hosts = gethostbyname(string);
 	if (hosts != NULL)

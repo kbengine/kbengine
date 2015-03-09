@@ -93,12 +93,12 @@ public:
 	
 	INLINE uint32 getRTT();
 
-	int getInterfaceFlags(char * name, int & flags);
-	int getInterfaceAddress(const char * name, u_int32_t & address);
-	int getInterfaceNetmask(const char * name, u_int32_t & netmask);
 	bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
+	int findIndicatedInterface(const char * spec, u_int32_t & address);
 	int findDefaultInterface(char * name);
-	int findIndicatedInterface(const char * spec, char * name);
+	int getInterfaceAddressByName(const char * name, u_int32_t & address);
+	int getInterfaceAddressByMAC(const char * mac, u_int32_t & address);
+	int getDefaultInterfaceAddress(u_int32_t & address);
 
 	int getBufferSize(int optname) const;
 	bool setBufferSize(int optname, int size);
@@ -111,8 +111,6 @@ public:
 
 	const char * c_str() const;
 	int getremotehostname(std::string * name)const;
-
-	bool getClosedPort(Network::Address & closedPort);
 	
 	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
