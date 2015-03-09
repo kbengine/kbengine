@@ -105,6 +105,84 @@ void EndPoint::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
+bool EndPoint::getClosedPort(Network::Address & closedPort)
+{
+	bool isResultSet = false;
+
+#ifdef unix
+//	KBE_ASSERT(errno == ECONNREFUSED);
+
+	struct sockaddr_in	offender;
+	offender.sin_family = 0;
+	offender.sin_port = 0;
+	offender.sin_addr.s_addr = 0;
+
+	struct msghdr	errHeader;
+	struct iovec	errPacket;
+
+	char data[ 256 ];
+	char control[ 256 ];
+
+	errHeader.msg_name = &offender;
+	errHeader.msg_namelen = sizeof(offender);
+	errHeader.msg_iov = &errPacket;
+	errHeader.msg_iovlen = 1;
+	errHeader.msg_control = control;
+	errHeader.msg_controllen = sizeof(control);
+	errHeader.msg_flags = 0;	// result only
+
+	errPacket.iov_base = data;
+	errPacket.iov_len = sizeof(data);
+
+	int errMsgErr = recvmsg(*this, &errHeader, MSG_ERRQUEUE);
+	if (errMsgErr < 0)
+	{
+		return false;
+	}
+
+	struct cmsghdr * ctlHeader;
+
+	for (ctlHeader = CMSG_FIRSTHDR(&errHeader);
+		ctlHeader != NULL;
+		ctlHeader = CMSG_NXTHDR(&errHeader,ctlHeader))
+	{
+		if (ctlHeader->cmsg_level == SOL_IP &&
+			ctlHeader->cmsg_type == IP_RECVERR) break;
+	}
+
+	// Was there an IP_RECVERR error.
+
+	if (ctlHeader != NULL)
+	{
+		struct sock_extended_err * extError =
+			(struct sock_extended_err*)CMSG_DATA(ctlHeader);
+
+		// Only use this address if the kernel has the bug where it does not
+		// report the packet details.
+
+		if (errHeader.msg_namelen == 0)
+		{
+			// Finally we figure out whose fault it is except that this is the
+			// generator of the error (possibly a machine on the path to the
+			// destination), and we are interested in the actual destination.
+			offender = *(sockaddr_in*)SO_EE_OFFENDER(extError);
+			offender.sin_port = 0;
+
+			ERROR_MSG("EndPoint::getClosedPort: "
+				"Kernel has a bug: recv_msg did not set msg_name.\n");
+		}
+
+		closedPort.ip = offender.sin_addr.s_addr;
+		closedPort.port = offender.sin_port;
+
+		isResultSet = true;
+	}
+#endif // unix
+
+	return isResultSet;
+}
+
+//-------------------------------------------------------------------------------------
 int EndPoint::getBufferSize(int optname) const
 {
 	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);

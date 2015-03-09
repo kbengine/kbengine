@@ -114,6 +114,8 @@ public:
 	Network::Address getLocalAddress() const;
 	Network::Address getRemoteAddress() const;
 
+	bool getClosedPort(Network::Address & closedPort);
+
 	const char * c_str() const;
 	int getremotehostname(std::string * name)const;
 	
