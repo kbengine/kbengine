@@ -16,7 +16,7 @@
 	What of data packet length information does not? All packages can be calculated in advance 
 	and never change the size of the package with no length information.) 
 	-->
-	<packetAlwaysContainLength>0</packetAlwaysContainLength>
+	<packetAlwaysContainLength> 0 </packetAlwaysContainLength>
 	
 	<!-- 是否需要将任何接收和发送的包以文本输出到log中提供调试
 		(Whether the contents of the log output packet)
@@ -35,8 +35,8 @@
 			(Some messages are not output)
 	-->
 	<trace_packet>
-		<debug_type>0</debug_type>
-		<use_logfile>false</use_logfile>
+		<debug_type> 0 </debug_type>
+		<use_logfile> false </use_logfile>
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
 			<item>Baseappmgr::onBaseappInitProgress</item>
@@ -79,7 +79,7 @@
 		(Whether the output the logs: create the entity, Script get attributes, 
 			Initialization attributes information, Def information.)
 	-->
-	<debugEntity>0</debugEntity>
+	<debugEntity> 0 </debugEntity>
 
 	<publish>
 		<!-- 发布状态, 可在脚本中获取该值。 KBEngine.publish()
@@ -89,7 +89,7 @@
 			1 : release
 			其他自定义(Other custom)
 		-->
-		<state>0</state>
+		<state> 0 </state>
 
 		<!-- 脚本层发布的版本号
 			(Script layer released version number)
@@ -253,8 +253,8 @@
 		-->
 		<allowEmptyDigest> false </allowEmptyDigest>					<!-- Type: Boolean -->
 		
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		
@@ -365,8 +365,8 @@
 		-->
 		<entitydefAliasID>true</entitydefAliasID>
 	
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		
@@ -471,8 +471,8 @@
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
 
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
@@ -594,22 +594,22 @@
 	</baseapp>
 	
 	<cellappmgr>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 	</cellappmgr>
 	
 	<baseappmgr>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 	</baseappmgr>
 	
 	<loginapp>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		<externalInterface>  </externalInterface>						<!-- Type: String -->
@@ -668,8 +668,8 @@
 	</machine>
 	
 	<bots>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		
@@ -721,8 +721,8 @@
 	</bots>
 	
 	<logger>
-		<!-- 接口网卡的名称
-			（Name of the interface(NIC)） 
+		<!-- 指定接口地址，可配置网卡名、MAC、IP
+			（Interface address specified, configurable NIC/MAC/IP） 
 		-->
 		<internalInterface>  </internalInterface>
 		
