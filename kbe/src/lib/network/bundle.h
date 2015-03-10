@@ -96,14 +96,15 @@ public:
 	int packetsSize() const;
 	
 	INLINE Packets& packets();
-	INLINE Packet* pCurrPacket()const;
+	INLINE Packet* pCurrPacket() const;
 	INLINE void pCurrPacket(Packet* p);
 
 	INLINE void finiCurrPacket();
 
 	Packet* newPacket();
 	
-	INLINE MessageID messageID() const { return currMsgID_; }
+	INLINE MessageID messageID() const;
+	INLINE int32 numMessages() const;
 
 protected:
 	void _calcPacketMaxSize();
@@ -382,8 +383,8 @@ public:
     }
 
 private:
-	Channel * pChannel_;
-	int		numMessages_;
+	Channel* pChannel_;
+	int32 numMessages_;
 	
 	Packet* pCurrPacket_;
 	MessageID currMsgID_;

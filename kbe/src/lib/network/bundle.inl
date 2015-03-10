@@ -59,6 +59,16 @@ INLINE void Bundle::pCurrPacket(Packet* p)
 	pCurrPacket_ = p; 
 }
 
+INLINE MessageID Bundle::messageID() const 
+{ 
+	return currMsgID_; 
+}
+
+INLINE int32 Bundle::numMessages() const
+{ 
+	return numMessages_; 
+}
+
 INLINE void Bundle::finiCurrPacket(){ 
 	packets_.push_back(pCurrPacket_); 
 	pCurrPacket_ = NULL; 
