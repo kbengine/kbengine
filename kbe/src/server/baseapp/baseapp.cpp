@@ -62,7 +62,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 	PyObject* pyDict = PyDict_New();
 	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
 
-	// ÏÈ½«celldataÖĞµÄ´æ´¢ÊôĞÔÈ¡³ö
+	// å…ˆå°†celldataä¸­çš„å­˜å‚¨å±æ€§å–å‡º
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
@@ -154,7 +154,7 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Baseapp::~Baseapp()
 {
-	// ²»ĞèÒªÖ÷¶¯ÊÍ·Å
+	// ä¸éœ€è¦ä¸»åŠ¨é‡Šæ”¾
 	pInitProgressHandler_ = NULL;
 
 	EntityMailbox::resetCallHooks();
@@ -206,7 +206,7 @@ void Baseapp::onShutdownBegin()
 {
 	EntityApp<Base>::onShutdownBegin();
 
-	// Í¨Öª½Å±¾
+	// é€šçŸ¥è„šæœ¬
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 		const_cast<char*>("i"), 0);
@@ -221,7 +221,7 @@ void Baseapp::onShutdown(bool first)
 
 	if(first)
 	{
-		// Í¨Öª½Å±¾
+		// é€šçŸ¥è„šæœ¬
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 			const_cast<char*>("i"), 1);
@@ -261,7 +261,7 @@ void Baseapp::onShutdownEnd()
 {
 	EntityApp<Base>::onShutdownEnd();
 
-	// Í¨Öª½Å±¾
+	// é€šçŸ¥è„šæœ¬
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
 		const_cast<char*>("i"), 2);
@@ -289,7 +289,7 @@ bool Baseapp::installPyModules()
 	registerScript(Base::getScriptType());
 	registerScript(Proxy::getScriptType());
 
-	// ×¢²á´´½¨entityµÄ·½·¨µ½py
+	// æ³¨å†Œåˆ›å»ºentityçš„æ–¹æ³•åˆ°py
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,												METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBase,						__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,				__py_createBase,											METH_VARARGS,			0);
@@ -315,7 +315,7 @@ bool Baseapp::installPyModules()
 //-------------------------------------------------------------------------------------
 void Baseapp::onInstallPyModules()
 {
-	// Ìí¼ÓglobalData, globalBasesÖ§³Ö
+	// æ·»åŠ globalData, globalBasesæ”¯æŒ
 	pBaseAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::BASEAPP_DATA);
 	registerPyObjectToScript("baseAppData", pBaseAppData_);
 
@@ -415,7 +415,7 @@ void Baseapp::handleGameTick()
 {
 	AUTO_SCOPED_PROFILE("gameTick");
 
-	// Ò»¶¨ÒªÔÚ×îÇ°Ãæ
+	// ä¸€å®šè¦åœ¨æœ€å‰é¢
 	updateLoad();
 
 	EntityApp<Base>::handleGameTick();
@@ -445,7 +445,7 @@ bool Baseapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Baseapp::initializeEnd()
 {
-	// Ìí¼ÓÒ»¸ötimer£¬ Ã¿Ãë¼ì²éÒ»Ğ©×´Ì¬
+	// æ·»åŠ ä¸€ä¸ªtimerï¼Œ æ¯ç§’æ£€æŸ¥ä¸€äº›çŠ¶æ€
 	loopCheckTimerHandle_ = this->dispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
@@ -463,8 +463,8 @@ bool Baseapp::initializeEnd()
 
 	new SyncEntityStreamTemplateHandler(this->networkInterface());
 
-	// Èç¹ûĞèÒªpyprofileÔòÔÚ´Ë´¦°²×°
-	// ½áÊøÊ±Ğ¶ÔØ²¢Êä³ö½á¹û
+	// å¦‚æœéœ€è¦pyprofileåˆ™åœ¨æ­¤å¤„å®‰è£…
+	// ç»“æŸæ—¶å¸è½½å¹¶è¾“å‡ºç»“æœ
 	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
 	{
 		script::PyProfile::start("kbengine");
@@ -611,7 +611,7 @@ void Baseapp::onChannelDeregister(Network::Channel * pChannel)
 {
 	ENTITY_ID pid = pChannel->proxyID();
 
-	// Èç¹ûÊÇcellappËÀÍöÁË
+	// å¦‚æœæ˜¯cellappæ­»äº¡äº†
 	if(pChannel->isInternal())
 	{
 		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
@@ -626,7 +626,7 @@ void Baseapp::onChannelDeregister(Network::Channel * pChannel)
 
 	EntityApp<Base>::onChannelDeregister(pChannel);
 	
-	// ÓĞ¹ØÁªentityµÄ¿Í»§¶ËÍË³öÔòĞèÒªÉèÖÃentityµÄclient
+	// æœ‰å…³è”entityçš„å®¢æˆ·ç«¯é€€å‡ºåˆ™éœ€è¦è®¾ç½®entityçš„client
 	if(pid > 0)
 	{
 		Proxy* proxy = static_cast<Proxy*>(this->findEntity(pid));
@@ -962,8 +962,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 				}
 				else
 				{
-					// Èç¹ûcreateBaseFromDBIDÀà½Ó¿Ú·µ»ØÊµÌåÒÑ¾­¼ì³öÇÒÔÚµ±Ç°½ø³ÌÉÏ£¬µ«ÊÇµ±Ç°½ø³ÌÉÏÎŞ·¨ÕÒµ½ÊµÌåÊ±Ó¦¸Ã¸ø³ö´íÎó
-					// ÕâÖÖÇé¿öÍ¨³£ÊÇÒì²½µÄ»·¾³ÖĞ´Ódb²éÑ¯µ½ÒÑ¾­¼ì³ö£¬µ«µÈ»Øµ÷Ê±¿ÉÄÜÊµÌåÒÑ¾­Ïú»ÙÁË¶øÔì³ÉµÄ
+					// å¦‚æœcreateBaseFromDBIDç±»æ¥å£è¿”å›å®ä½“å·²ç»æ£€å‡ºä¸”åœ¨å½“å‰è¿›ç¨‹ä¸Šï¼Œä½†æ˜¯å½“å‰è¿›ç¨‹ä¸Šæ— æ³•æ‰¾åˆ°å®ä½“æ—¶åº”è¯¥ç»™å‡ºé”™è¯¯
+					// è¿™ç§æƒ…å†µé€šå¸¸æ˜¯å¼‚æ­¥çš„ç¯å¢ƒä¸­ä»dbæŸ¥è¯¢åˆ°å·²ç»æ£€å‡ºï¼Œä½†ç­‰å›è°ƒæ—¶å¯èƒ½å®ä½“å·²ç»é”€æ¯äº†è€Œé€ æˆçš„
 					if(wasActiveCID != g_componentID)
 					{
 						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
@@ -1211,8 +1211,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 				}
 				else
 				{
-					// Èç¹ûcreateBaseFromDBIDÀà½Ó¿Ú·µ»ØÊµÌåÒÑ¾­¼ì³öÇÒÔÚµ±Ç°½ø³ÌÉÏ£¬µ«ÊÇµ±Ç°½ø³ÌÉÏÎŞ·¨ÕÒµ½ÊµÌåÊ±Ó¦¸Ã¸ø³ö´íÎó
-					// ÕâÖÖÇé¿öÍ¨³£ÊÇÒì²½µÄ»·¾³ÖĞ´Ódb²éÑ¯µ½ÒÑ¾­¼ì³ö£¬µ«µÈ»Øµ÷Ê±¿ÉÄÜÊµÌåÒÑ¾­Ïú»ÙÁË¶øÔì³ÉµÄ
+					// å¦‚æœcreateBaseFromDBIDç±»æ¥å£è¿”å›å®ä½“å·²ç»æ£€å‡ºä¸”åœ¨å½“å‰è¿›ç¨‹ä¸Šï¼Œä½†æ˜¯å½“å‰è¿›ç¨‹ä¸Šæ— æ³•æ‰¾åˆ°å®ä½“æ—¶åº”è¯¥ç»™å‡ºé”™è¯¯
+					// è¿™ç§æƒ…å†µé€šå¸¸æ˜¯å¼‚æ­¥çš„ç¯å¢ƒä¸­ä»dbæŸ¥è¯¢åˆ°å·²ç»æ£€å‡ºï¼Œä½†ç­‰å›è°ƒæ—¶å¯èƒ½å®ä½“å·²ç»é”€æ¯äº†è€Œé€ æˆçš„
 					if(wasActiveCID != g_componentID)
 					{
 						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
@@ -1280,7 +1280,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	stream->append(s);
 	s.done();
 
-	// Í¨ÖªbaseappmgrÔÚÆäËûbaseappÉÏ´´½¨entity
+	// é€šçŸ¥baseappmgråœ¨å…¶ä»–baseappä¸Šåˆ›å»ºentity
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBID);
 	pBundle->append((*stream));
@@ -1309,21 +1309,23 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
-	if(e)
+	if(e == NULL)
 	{
-		static_cast<Base*>(e)->dbid(dbid);
-		static_cast<Base*>(e)->initializeEntity(pyDict);
-		Py_DECREF(pyDict);
+		return;
 	}
+	
+	static_cast<Base*>(e)->dbid(dbid);
+	static_cast<Base*>(e)->initializeEntity(pyDict);
+	Py_DECREF(pyDict);
 
-	// ÊÇ·ñ±¾µØ×é¼ş¾ÍÊÇ·¢ÆğÔ´£¬ Èç¹ûÊÇÖ±½ÓÔÚ±¾µØµ÷ÓÃ»Øµ÷
+	// æ˜¯å¦æœ¬åœ°ç»„ä»¶å°±æ˜¯å‘èµ·æºï¼Œ å¦‚æœæ˜¯ç›´æ¥åœ¨æœ¬åœ°è°ƒç”¨å›è°ƒ
 	if(g_componentID == sourceBaseappID)
 	{
 		onCreateBaseAnywhereFromDBIDOtherBaseappCallback(pChannel, g_componentID, entityType, static_cast<Base*>(e)->id(), callbackID, dbid);
 	}
 	else
 	{
-		// Í¨Öªbaseapp, ´´½¨ºÃÁË
+		// é€šçŸ¥baseapp, åˆ›å»ºå¥½äº†
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDOtherBaseappCallback);
 
@@ -1559,7 +1561,7 @@ void Baseapp::onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	// Èç¹û²»ÊÇÔÚ·¢Æğ´´½¨entityµÄbaseappÉÏ´´½¨ÔòĞèÒª×ª·¢»Øµ÷µ½·¢Æğ·½
+	// å¦‚æœä¸æ˜¯åœ¨å‘èµ·åˆ›å»ºentityçš„baseappä¸Šåˆ›å»ºåˆ™éœ€è¦è½¬å‘å›è°ƒåˆ°å‘èµ·æ–¹
 	if(componentID != componentID_)
 	{
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
@@ -1582,7 +1584,7 @@ void Baseapp::onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Channel* lpChannel = cinfos->pChannel;
 
-		// ĞèÒªbaseappmgr×ª·¢¸øÄ¿µÄbaseapp
+		// éœ€è¦baseappmgrè½¬å‘ç»™ç›®çš„baseapp
 		Network::Bundle* pForwardbundle = Network::Bundle::ObjPool().createObject();
 		(*pForwardbundle).newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
 		(*pForwardbundle) << callbackID;
@@ -1622,7 +1624,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 {
 	if(callbackID == 0)
 	{
-		// Ã»ÓĞÉè¶¨»Øµ÷
+		// æ²¡æœ‰è®¾å®šå›è°ƒ
 		//ERROR_MSG(fmt::format("Baseapp::_onCreateBaseAnywhereCallback: is error(callbackID == 0)! entityType={}, componentID={}\n", 
 		//	entityType, componentID));
 
@@ -1644,7 +1646,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 			return;
 		}
 		
-		// Èç¹ûentityÊôÓÚÁíÒ»¸öbaseapp´´½¨ÔòÉèÖÃËüµÄmailbox
+		// å¦‚æœentityå±äºå¦ä¸€ä¸ªbaseappåˆ›å»ºåˆ™è®¾ç½®å®ƒçš„mailbox
 		Network::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
 		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
@@ -1728,7 +1730,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	EntityMailbox* clientMailbox = base->clientMailbox();
 	bool hasClient = (clientMailbox != NULL);
 	
-	(*pBundle) << createToCellMailbox->id();				// ÔÚÕâ¸ömailboxËùÔÚµÄcellspaceÉÏ´´½¨
+	(*pBundle) << createToCellMailbox->id();				// åœ¨è¿™ä¸ªmailboxæ‰€åœ¨çš„cellspaceä¸Šåˆ›å»º
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
@@ -1762,7 +1764,7 @@ void Baseapp::onCreateCellFailure(Network::Channel* pChannel, ENTITY_ID entityID
 
 	Base* base = pEntities_->find(entityID);
 
-	// ¿ÉÄÜ¿Í»§¶ËÔÚÆÚ¼äµôÏßÁË
+	// å¯èƒ½å®¢æˆ·ç«¯åœ¨æœŸé—´æ‰çº¿äº†
 	if(base == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onCreateCellFailure: not found entity({})!\n", entityID));
@@ -1783,7 +1785,7 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	
-	// ¿ÉÄÜ¿Í»§¶ËÔÚÆÚ¼äµôÏßÁË
+	// å¯èƒ½å®¢æˆ·ç«¯åœ¨æœŸé—´æ‰çº¿äº†
 	if(base == NULL)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -1798,7 +1800,7 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 	if(base->spaceID() != spaceID)
 		base->spaceID(spaceID);
 
-	// Èç¹ûÊÇÓĞ¿Í»§¶ËµÄentityÔòĞèÒª¸æÖª¿Í»§¶Ë£¬ ×ÔÉíentityÒÑ¾­½øÈëÊÀ½çÁË¡£
+	// å¦‚æœæ˜¯æœ‰å®¢æˆ·ç«¯çš„entityåˆ™éœ€è¦å‘ŠçŸ¥å®¢æˆ·ç«¯ï¼Œ è‡ªèº«entityå·²ç»è¿›å…¥ä¸–ç•Œäº†ã€‚
 	if(base->clientMailbox() != NULL)
 	{
 		onClientEntityEnterWorld(static_cast<Proxy*>(base), componentID);
@@ -1817,16 +1819,16 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID)
 //-------------------------------------------------------------------------------------
 bool Baseapp::createClientProxies(Proxy* base, bool reload)
 {
-	// ½«Í¨µÀ´úÀíµÄ¹ØÏµÓë¸Ãentity°ó¶¨£¬ ÔÚºóÃæÍ¨ĞÅÖĞ¿ÉÌá¹©Éí·İºÏ·¨ĞÔÊ¶±ğ
+	// å°†é€šé“ä»£ç†çš„å…³ç³»ä¸è¯¥entityç»‘å®šï¼Œ åœ¨åé¢é€šä¿¡ä¸­å¯æä¾›èº«ä»½åˆæ³•æ€§è¯†åˆ«
 	Network::Channel* pChannel = base->clientMailbox()->getChannel();
 	pChannel->proxyID(base->id());
 	base->addr(pChannel->addr());
 
-	// ÖØĞÂÉú³ÉÒ»¸öID
+	// é‡æ–°ç”Ÿæˆä¸€ä¸ªID
 	if(reload)
 		base->rndUUID(genUUID64());
 
-	// ÈÃ¿Í»§¶ËÖªµÀÒÑ¾­´´½¨ÁËproxices, ²¢³õÊ¼»¯Ò»²¿·ÖÊôĞÔ
+	// è®©å®¢æˆ·ç«¯çŸ¥é“å·²ç»åˆ›å»ºäº†proxices, å¹¶åˆå§‹åŒ–ä¸€éƒ¨åˆ†å±æ€§
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onCreatedProxies);
 	(*pBundle) << base->rndUUID();
@@ -1837,7 +1839,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 
 	base->initClientBasePropertys();
 
-	// ±¾Ó¦¸ÃÓÉ¿Í»§¶Ë¸æÖªÒÑ¾­´´½¨ºÃentityºóµ÷ÓÃÕâ¸ö½Ó¿Ú¡£
+	// æœ¬åº”è¯¥ç”±å®¢æˆ·ç«¯å‘ŠçŸ¥å·²ç»åˆ›å»ºå¥½entityåè°ƒç”¨è¿™ä¸ªæ¥å£ã€‚
 	//if(!reload)
 	base->onEntitiesEnabled();
 
@@ -2216,7 +2218,7 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder, digest);
 
-	// ÕâÀïĞèÒª¸üĞÂÒ»ÏÂpythonµÄ»·¾³±äÁ¿
+	// è¿™é‡Œéœ€è¦æ›´æ–°ä¸€ä¸‹pythonçš„ç¯å¢ƒå˜é‡
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
 	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
 
@@ -2268,7 +2270,7 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			// Í¨Öª½Å±¾
+			// é€šçŸ¥è„šæœ¬
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppDataDel"), 
 				const_cast<char*>("O"), pyKey);
 		}
@@ -2289,7 +2291,7 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 		{
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			// Í¨Öª½Å±¾
+			// é€šçŸ¥è„šæœ¬
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onBaseAppData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
@@ -2440,7 +2442,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 		return;
 	}
 
-	// Èç¹ûentityID´óÓÚ0ÔòËµÃ÷´ËentityÊÇ´æ»î×´Ì¬µÇÂ¼
+	// å¦‚æœentityIDå¤§äº0åˆ™è¯´æ˜æ­¤entityæ˜¯å­˜æ´»çŠ¶æ€ç™»å½•
 	if(ptinfos->entityID > 0)
 	{
 		INFO_MSG(fmt::format("Baseapp::loginGateway: user[{}] has entity({}).\n",
@@ -2453,7 +2455,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 			return;
 		}
 		
-		// Í¨Öª½Å±¾Òì³£µÇÂ¼ÇëÇóÓĞ½Å±¾¾ö¶¨ÊÇ·ñÔÊĞíÕâ¸öÍ¨µÀÇ¿ÖÆµÇÂ¼
+		// é€šçŸ¥è„šæœ¬å¼‚å¸¸ç™»å½•è¯·æ±‚æœ‰è„šæœ¬å†³å®šæ˜¯å¦å…è®¸è¿™ä¸ªé€šé“å¼ºåˆ¶ç™»å½•
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
 
@@ -2462,7 +2464,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 		case LOG_ON_ACCEPT:
 			if(base->clientMailbox() != NULL)
 			{
-				// Í¨¸æÔÚ±ğ´¦µÇÂ¼
+				// é€šå‘Šåœ¨åˆ«å¤„ç™»å½•
 				Network::Channel* pOldClientChannel = base->clientMailbox()->getChannel();
 				if(pOldClientChannel != NULL)
 				{
@@ -2483,7 +2485,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 			}
 			else
 			{
-				// ´´½¨entityµÄ¿Í»§¶Ëmailbox
+				// åˆ›å»ºentityçš„å®¢æˆ·ç«¯mailbox
 				EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
 					&pChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
@@ -2491,7 +2493,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
 
-				// ½«Í¨µÀ´úÀíµÄ¹ØÏµÓë¸Ãentity°ó¶¨£¬ ÔÚºóÃæÍ¨ĞÅÖĞ¿ÉÌá¹©Éí·İºÏ·¨ĞÔÊ¶±ğ
+				// å°†é€šé“ä»£ç†çš„å…³ç³»ä¸è¯¥entityç»‘å®šï¼Œ åœ¨åé¢é€šä¿¡ä¸­å¯æä¾›èº«ä»½åˆæ³•æ€§è¯†åˆ«
 				entityClientMailbox->getChannel()->proxyID(base->id());
 				createClientProxies(base, true);
 			}
@@ -2517,7 +2519,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 		dbmgrinfos->pChannel->send(pBundle);
 	}
 
-	// ¼ÇÂ¼¿Í»§¶ËµØÖ·
+	// è®°å½•å®¢æˆ·ç«¯åœ°å€
 	ptinfos->addr = pChannel->addr();
 }
 
@@ -2564,21 +2566,21 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	}
 	else
 	{
-		// ´´½¨entityµÄ¿Í»§¶Ëmailbox
+		// åˆ›å»ºentityçš„å®¢æˆ·ç«¯mailbox
 		entityClientMailbox = new EntityMailbox(proxy->scriptModule(), 
 			&pChannel->addr(), 0, proxy->id(), MAILBOX_TYPE_CLIENT);
 
 		proxy->clientMailbox(entityClientMailbox);
 	}
 
-	// ½«Í¨µÀ´úÀíµÄ¹ØÏµÓë¸Ãentity°ó¶¨£¬ ÔÚºóÃæÍ¨ĞÅÖĞ¿ÉÌá¹©Éí·İºÏ·¨ĞÔÊ¶±ğ
+	// å°†é€šé“ä»£ç†çš„å…³ç³»ä¸è¯¥entityç»‘å®šï¼Œ åœ¨åé¢é€šä¿¡ä¸­å¯æä¾›èº«ä»½åˆæ³•æ€§è¯†åˆ«
 	proxy->addr(pChannel->addr());
 	pChannel->proxyID(proxy->id());
 	proxy->rndUUID(KBEngine::genUUID64());
 
-	// ¿Í»§¶ËÖØÁ¬Ò²ĞèÒª½«ÍêÕûµÄÊı¾İÖØ·¢¸ø¿Í»§¶Ë£¬ Ïàµ±ÓÚµÇÂ¼Ö®ºó»ñµÃµÄÊı¾İ¡£
-	// ÒòÎª¶ÏÏßÆÚ¼ä²»ÄÜÈ·±£°üÀ¨³¡¾°µÈÊı¾İÒÑ·¢Éú±ä»¯
-	// ¿Í»§¶ËĞèÒªÖØ½¨ËùÓĞÊı¾İ
+	// å®¢æˆ·ç«¯é‡è¿ä¹Ÿéœ€è¦å°†å®Œæ•´çš„æ•°æ®é‡å‘ç»™å®¢æˆ·ç«¯ï¼Œ ç›¸å½“äºç™»å½•ä¹‹åè·å¾—çš„æ•°æ®ã€‚
+	// å› ä¸ºæ–­çº¿æœŸé—´ä¸èƒ½ç¡®ä¿åŒ…æ‹¬åœºæ™¯ç­‰æ•°æ®å·²å‘ç”Ÿå˜åŒ–
+	// å®¢æˆ·ç«¯éœ€è¦é‡å»ºæ‰€æœ‰æ•°æ®
 	createClientProxies(proxy, true);
 	proxy->onGetWitness();
 	// proxy->onEntitiesEnabled();
@@ -2673,7 +2675,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(pClientChannel != NULL)
 	{
-		// ´´½¨entityµÄ¿Í»§¶Ëmailbox
+		// åˆ›å»ºentityçš„å®¢æˆ·ç«¯mailbox
 		EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
 			&pClientChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
@@ -2926,7 +2928,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ENTITY_MAILBOX_TYPE	mailtype;
 	s >> mailtype;
 
-	// ÔÚ±¾µØÇø³¢ÊÔ²éÕÒ¸ÃÊÕ¼şÈËĞÅÏ¢£¬ ¿´ÊÕ¼şÈËÊÇ·ñÊôÓÚ±¾ÇøÓò
+	// åœ¨æœ¬åœ°åŒºå°è¯•æŸ¥æ‰¾è¯¥æ”¶ä»¶äººä¿¡æ¯ï¼Œ çœ‹æ”¶ä»¶äººæ˜¯å¦å±äºæœ¬åŒºåŸŸ
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
@@ -2941,7 +2943,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 
 	switch(mailtype)
 	{
-		// ±¾×é¼şÊÇbaseapp£¬ÄÇÃ´È·ÈÏÓÊ¼şµÄÄ¿µÄµØÊÇÕâÀï£¬ ÄÇÃ´Ö´ĞĞ×îÖÕ²Ù×÷
+		// æœ¬ç»„ä»¶æ˜¯baseappï¼Œé‚£ä¹ˆç¡®è®¤é‚®ä»¶çš„ç›®çš„åœ°æ˜¯è¿™é‡Œï¼Œ é‚£ä¹ˆæ‰§è¡Œæœ€ç»ˆæ“ä½œ
 		case MAILBOX_TYPE_BASE:		
 			base->onRemoteMethodCall(pChannel, s);
 			break;
@@ -3195,7 +3197,7 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	{
 		if(encryptedKey.size() > 3)
 		{
-			// Ìæ»»ÎªÒ»¸ö¼ÓÃÜµÄ¹ıÂËÆ÷
+			// æ›¿æ¢ä¸ºä¸€ä¸ªåŠ å¯†çš„è¿‡æ»¤å™¨
 			pChannel->pFilter(Network::createEncryptionFilter(Network::g_channelExternalEncryptType, encryptedKey));
 		}
 		else
