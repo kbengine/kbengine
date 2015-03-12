@@ -811,7 +811,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		recvpacket.resize(255);
 
 		fd_set	fds;
-		struct timeval tv = { 0, 300000 }; // 100ms
+		struct timeval tv = { 0, 1000000 }; // 1000ms
 
 		FD_ZERO( &fds );
 		FD_SET((int)ep1, &fds);
