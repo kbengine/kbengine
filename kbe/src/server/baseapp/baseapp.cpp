@@ -1029,6 +1029,15 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed, e == NULL!\n", 
 			entityType.c_str(), dbid));
 
+		if(callbackID > 0)
+		{
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if(pyfunc)
+			{
+				// 不需要通知脚本
+			}
+		}
+
 		return;
 	}
 
@@ -1326,6 +1335,15 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	{
 		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBIDOtherBaseapp: create {}({}) is failed, e == NULL!\n", 
 			entityType.c_str(), dbid));
+
+		if(callbackID > 0 && g_componentID == sourceBaseappID)
+		{
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if(pyfunc)
+			{
+				// 不需要通知脚本
+			}
+		}
 
 		return;
 	}
