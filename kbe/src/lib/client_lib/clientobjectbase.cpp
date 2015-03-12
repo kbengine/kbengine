@@ -787,6 +787,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
 			entity = createEntity(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+			KBE_ASSERT(entity != NULL);
 
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);

@@ -1024,6 +1024,13 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		static_cast<Base*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
 	}
+	else
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed, e == NULL!\n", 
+			entityType.c_str(), dbid));
+
+		return;
+	}
 
 	if(callbackID > 0)
 	{
@@ -1314,6 +1321,13 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 		static_cast<Base*>(e)->dbid(dbid);
 		static_cast<Base*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+	}
+	else
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBIDOtherBaseapp: create {}({}) is failed, e == NULL!\n", 
+			entityType.c_str(), dbid));
+
+		return;
 	}
 
 	// 是否本地组件就是发起源， 如果是直接在本地调用回调
@@ -2639,6 +2653,17 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		NULL, false, entityID));
 
 	Network::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
+
+	if(!base)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: create {} is failed! error(base == NULL)\n",
+			accountName.c_str()));
+		
+		s.done();
+		
+		loginGatewayFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
 
 	if(!success)
 	{
