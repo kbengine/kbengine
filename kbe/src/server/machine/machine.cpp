@@ -809,6 +809,30 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 		Network::TCPPacket recvpacket;
 		recvpacket.resize(255);
+
+		fd_set	fds;
+		struct timeval tv = { 0, 300000 }; // 100ms
+
+		FD_ZERO( &fds );
+		FD_SET((int)ep1, &fds);
+
+		int selgot = select(ep1+1, &fds, NULL, NULL, &tv);
+		if(selgot == 0)
+		{
+			// 超时, 可能对方繁忙
+			ERROR_MSG(fmt::format("--> stop {}({}), addr={}, timeout!\n", 
+				(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+				cinfos->pIntAddr->c_str() : "unknown")));
+
+			iter++;
+			continue;
+		}
+		else if(selgot == -1)
+		{
+			iter++;
+			continue;
+		}
+
 		int len = ep1.recv(recvpacket.data(), 1);
 		if(len != 1)
 		{
