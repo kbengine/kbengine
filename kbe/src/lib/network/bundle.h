@@ -39,17 +39,43 @@ namespace Network
 class NetworkInterface;
 class Channel;
 
-#define PACKET_OUT_VALUE(v)																					\
-	if(packets_.size() <= 0)																				\
-		return *this;																						\
+#define PACKET_OUT_VALUE(v, expectSize)																		\
+	KBE_ASSERT(packetsLength() >= (int32)expectSize);														\
 																											\
-	Packet* pPacket = packets_[0];																			\
-    (*pPacket) >> v;																						\
-	if(pPacket->length() == 0)																				\
+	size_t currSize = 0;																					\
+	size_t reclaimCount = 0;																				\
+																											\
+	Packets::iterator iter = packets_.begin();																\
+	for (; iter != packets_.end(); ++iter)																	\
 	{																										\
-		RECLAIM_PACKET(isTCPPacket_, pPacket);																\
-		packets_.erase(packets_.begin());																	\
+		Packet* pPacket = (*iter);																			\
+		size_t remainSize = (size_t)expectSize - currSize;													\
+																											\
+		if(pPacket->length() >= remainSize)																	\
+		{																									\
+			memcpy(((uint8*)&v) + currSize, pPacket->data() + pPacket->rpos(), remainSize);					\
+			pPacket->rpos(pPacket->rpos() + remainSize);													\
+																											\
+			if(pPacket->length() == 0)																		\
+			{																								\
+				RECLAIM_PACKET(isTCPPacket_, pPacket);														\
+				++reclaimCount;																				\
+			}																								\
+																											\
+			break;																							\
+		}																									\
+		else																								\
+		{																									\
+			memcpy(((uint8*)&v) + currSize, pPacket->data() + pPacket->rpos(), pPacket->length());			\
+			pPacket->done();																				\
+			currSize += pPacket->length();																	\
+			RECLAIM_PACKET(isTCPPacket_, pPacket);															\
+			++reclaimCount;																					\
+		}																									\
 	}																										\
+																											\
+	if(reclaimCount > 0)																					\
+		packets_.erase(packets_.begin(), packets_.begin() + reclaimCount);									\
 																											\
 	return *this;																							\
 
@@ -314,72 +340,111 @@ public:
 
     Bundle &operator>>(bool &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(bool));
     }
 
     Bundle &operator>>(uint8 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(uint8));
     }
 
     Bundle &operator>>(uint16 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(uint16));
     }
 
     Bundle &operator>>(uint32 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(uint32));
     }
 
     Bundle &operator>>(uint64 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(uint64));
     }
 
     Bundle &operator>>(int8 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int8));
     }
 
     Bundle &operator>>(int16 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int16));
     }
 
     Bundle &operator>>(int32 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int32));
     }
 
     Bundle &operator>>(int64 &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int64));
     }
 
     Bundle &operator>>(float &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(float));
     }
 
     Bundle &operator>>(double &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(double));
     }
 
     Bundle &operator>>(COMPONENT_TYPE &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int32/*²Î¿¼MemoryStream*/));
     }
 
     Bundle &operator>>(ENTITY_MAILBOX_TYPE &value)
     {
-        PACKET_OUT_VALUE(value);
+        PACKET_OUT_VALUE(value, sizeof(int32/*²Î¿¼MemoryStream*/));
     }
 
     Bundle &operator>>(std::string& value)
     {
-        PACKET_OUT_VALUE(value);
+		KBE_ASSERT(packetsLength() > 0);
+		size_t reclaimCount = 0;
+		value.clear();
+
+		Packets::iterator iter = packets_.begin();
+		for (; iter != packets_.end(); ++iter)
+		{
+			Packet* pPacket = (*iter);
+
+			while (pPacket->length() > 0)
+			{
+				char c = pPacket->read<char>();
+				if (c == 0)
+					break;
+
+				value += c;
+			}
+
+			if(pPacket->data()[pPacket->rpos() - 1] == 0)
+			{
+				if(pPacket->length() == 0)
+				{
+					RECLAIM_PACKET(isTCPPacket_, pPacket);
+					++reclaimCount;
+				}
+
+				break;
+			}
+			else
+			{
+				KBE_ASSERT(pPacket->length() == 0);
+				++reclaimCount;
+				RECLAIM_PACKET(isTCPPacket_, pPacket);
+			}
+		}
+
+		if(reclaimCount > 0)
+			packets_.erase(packets_.begin(), packets_.begin() + reclaimCount);
+
+		return *this;
     }
 
 private:
