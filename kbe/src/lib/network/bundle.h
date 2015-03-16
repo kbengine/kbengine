@@ -67,8 +67,8 @@ class Channel;
 		else																								\
 		{																									\
 			memcpy(((uint8*)&v) + currSize, pPacket->data() + pPacket->rpos(), pPacket->length());			\
-			pPacket->done();																				\
 			currSize += pPacket->length();																	\
+			pPacket->done();																				\
 			RECLAIM_PACKET(isTCPPacket_, pPacket);															\
 			++reclaimCount;																					\
 		}																									\
