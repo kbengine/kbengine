@@ -115,12 +115,13 @@ public:
 	*/
 	int32 packetsLength(bool calccurr = true);
 
-	INLINE bool isTCPPacket()const{ return isTCPPacket_; }
+	INLINE bool isTCPPacket() const{ return isTCPPacket_; }
+	INLINE void isTCPPacket(bool v){ isTCPPacket_ = v; }
 
 	void clear(bool isRecl);
 	bool empty() const;
-	int packetsSize() const;
 	
+	int packetsSize() const;
 	INLINE Packets& packets();
 	INLINE Packet* pCurrPacket() const;
 	INLINE void pCurrPacket(Packet* p);
