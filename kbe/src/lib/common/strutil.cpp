@@ -135,7 +135,7 @@ namespace strutil {
 		const size_t psize = pattern.size(); 
 
 		for(size_t pos = str.find(pattern, 0);  
-			pos != std::string::npos; 
+			pos != std::wstring::npos; 
 			pos = str.find(pattern,pos + nsize)) 
 		{ 
 			str.replace(pos, psize, newpat); 
