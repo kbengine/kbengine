@@ -23,12 +23,12 @@ namespace KBEngine {
 namespace Network
 {
 
-INLINE bool Bundle::empty()const
+INLINE bool Bundle::empty() const
 {
 	return packetsSize() == 0;
 }
 
-INLINE int Bundle::packetsSize()const
+INLINE int Bundle::packetsSize() const
 {
 	size_t i = packets_.size();
 	if(pCurrPacket_ && !pCurrPacket_->empty())
@@ -37,11 +37,19 @@ INLINE int Bundle::packetsSize()const
 	return i;
 }
 
-INLINE MessageLength Bundle::currMsgLength()const { return currMsgLength_; }
+INLINE MessageLength Bundle::currMsgLength() const 
+{ 
+	return currMsgLength_; 
+}
 	
 INLINE void Bundle::pCurrMsgHandler(const Network::MessageHandler* pMsgHandler)
 { 
 	pCurrMsgHandler_ = pMsgHandler; 
+}
+
+INLINE const Network::MessageHandler* Bundle::pCurrMsgHandler() const
+{
+	return pCurrMsgHandler_;
 }
 
 INLINE Bundle::Packets& Bundle::packets() 

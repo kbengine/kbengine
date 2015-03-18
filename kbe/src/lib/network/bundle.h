@@ -58,7 +58,7 @@ class Channel;
 																											\
 			if(pPacket->length() == 0)																		\
 			{																								\
-				RECLAIM_PACKET(isTCPPacket_, pPacket);														\
+				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);											\
 				++reclaimCount;																				\
 			}																								\
 																											\
@@ -69,7 +69,7 @@ class Channel;
 			memcpy(((uint8*)&v) + currSize, pPacket->data() + pPacket->rpos(), pPacket->length());			\
 			currSize += pPacket->length();																	\
 			pPacket->done();																				\
-			RECLAIM_PACKET(isTCPPacket_, pPacket);															\
+			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);												\
 			++reclaimCount;																					\
 		}																									\
 	}																										\
@@ -106,9 +106,10 @@ public:
 
 	void clearPackets();
 
-	INLINE MessageLength currMsgLength()const;
+	INLINE MessageLength currMsgLength() const;
 	
 	INLINE void pCurrMsgHandler(const Network::MessageHandler* pMsgHandler);
+	INLINE const Network::MessageHandler* pCurrMsgHandler() const;
 
 	/**
 		计算所有包包括当前还未写完的包的总长度
@@ -428,7 +429,7 @@ public:
 			{
 				if(pPacket->length() == 0)
 				{
-					RECLAIM_PACKET(isTCPPacket_, pPacket);
+					RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 					++reclaimCount;
 				}
 
@@ -438,7 +439,7 @@ public:
 			{
 				KBE_ASSERT(pPacket->length() == 0);
 				++reclaimCount;
-				RECLAIM_PACKET(isTCPPacket_, pPacket);
+				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 			}
 		}
 
@@ -447,6 +448,51 @@ public:
 
 		return *this;
     }
+
+	ArraySize readBlob(std::string& datas)
+	{
+		datas.clear();
+
+		ArraySize rsize = 0;
+		(*this) >> rsize;
+
+		if((int32)rsize > packetsLength())
+			return 0;
+
+		size_t reclaimCount = 0;
+		datas.reserve(rsize);
+
+		Packets::iterator iter = packets_.begin();
+		for (; iter != packets_.end(); ++iter)
+		{
+			Packet* pPacket = (*iter);
+
+			if(pPacket->length() > rsize - datas.size())
+			{
+				datas.append((char*)pPacket->data() + pPacket->rpos(), rsize - datas.size());
+				pPacket->rpos(pPacket->rpos() + rsize - datas.size());
+				if(pPacket->length() == 0)
+				{
+					RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
+					++reclaimCount;
+				}
+
+				break;
+			}
+			else
+			{
+				datas.append((char*)pPacket->data() + pPacket->rpos(), pPacket->length());
+				pPacket->done();
+				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
+				++reclaimCount;
+			}
+		}
+
+		if(reclaimCount > 0)
+			packets_.erase(packets_.begin(), packets_.begin() + reclaimCount);
+
+		return rsize;
+	}
 
 private:
 	Channel* pChannel_;

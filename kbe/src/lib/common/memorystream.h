@@ -90,6 +90,7 @@ class MemoryStream : public PoolObject
 		uint32	uv;
 		int		iv;
 	};
+
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
 	static void destroyObjPool();
@@ -109,10 +110,8 @@ public:
 
     MemoryStream(size_t res): rpos_(0), wpos_(0)
     {
-		if(res <= 0)
-			res = DEFAULT_SIZE;
-
-        data_.reserve(res);
+		if(res > 0)
+		  data_.reserve(res);
     }
 
     MemoryStream(const MemoryStream &buf): rpos_(buf.rpos_), wpos_(buf.wpos_), data_(buf.data_) { }
@@ -504,7 +503,7 @@ public:
     virtual bool empty() const { return data_.empty(); }
 
 	// 读索引到与写索引之间的长度
-	size_t length()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
+	virtual size_t length()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 
 	// 剩余可填充的大小
 	virtual size_t space() const { return wpos() >= size() ? 0 : size() - wpos(); }
