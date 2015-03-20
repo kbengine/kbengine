@@ -70,6 +70,7 @@ public:
 		脚本调用
 	*/
 	static PyObject* __py_debugTracing(PyObject* self, PyObject* args);
+
 private:
 	static PyObject* collectMethod_;							// cPicket.dumps方法指针
 	static PyObject* set_debugMethod_;							// cPicket.loads方法指针

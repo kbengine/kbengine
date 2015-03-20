@@ -129,8 +129,8 @@ public:
 
 	virtual void onSignalled(int sigNum);
 	
-	Entities<E>* pEntities()const{ return pEntities_; }
-	ArraySize entitiesSize()const { return pEntities_->size(); }
+	Entities<E>* pEntities() const{ return pEntities_; }
+	ArraySize entitiesSize() const { return pEntities_->size(); }
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
@@ -227,7 +227,7 @@ public:
 		更新负载情况
 	*/
 	int tickPassedPercent(uint64 curr = timestamp());
-	float getLoad()const { return load_; }
+	float getLoad() const { return load_; }
 	void updateLoad();
 	virtual void onUpdateLoad(){}
 	virtual void calcLoad(float spareTime);

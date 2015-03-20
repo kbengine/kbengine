@@ -59,19 +59,19 @@ INLINE void ScriptDefModule::setClient(bool have)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::hasCell(void)const
+INLINE bool ScriptDefModule::hasCell(void) const
 { 
 	return hasCell_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::hasBase(void)const
+INLINE bool ScriptDefModule::hasBase(void) const
 { 
 	return hasBase_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::hasClient(void)const
+INLINE bool ScriptDefModule::hasClient(void) const
 { 
 	return hasClient_; 
 }
@@ -167,19 +167,19 @@ INLINE const char* ScriptDefModule::getName()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::isPersistent()const
+INLINE bool ScriptDefModule::isPersistent() const
 {
 	return persistentPropertyDescr_uidmap_.size() > 0;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::usePropertyDescrAlias()const
+INLINE bool ScriptDefModule::usePropertyDescrAlias() const
 {
 	return usePropertyDescrAlias_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool ScriptDefModule::useMethodDescrAlias()const
+INLINE bool ScriptDefModule::useMethodDescrAlias() const
 {
 	return useMethodDescrAlias_;
 }

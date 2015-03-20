@@ -107,7 +107,7 @@ public:
 	virtual void processTask(TPTask* pTask){ pTask->process(); }
 	virtual void onProcessTaskEnd(TPTask* pTask){}
 
-	INLINE THREAD_ID id(void)const;
+	INLINE THREAD_ID id(void) const;
 	
 	INLINE void id(THREAD_ID tidp);
 	
@@ -166,14 +166,14 @@ public:
 	/**
 		获取本线程要处理的任务
 	*/
-	INLINE TPTask* task(void)const;
+	INLINE TPTask* task(void) const;
 
 	/**
 		设置本线程要处理的任务
 	*/
 	INLINE void task(TPTask* tpt);
 
-	INLINE int state(void)const;
+	INLINE int state(void) const;
 	
 	/**
 		本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务
@@ -243,12 +243,12 @@ public:
 	/**
 		获取当前线程总数
 	*/	
-	INLINE uint32 currentThreadCount(void)const;
+	INLINE uint32 currentThreadCount(void) const;
 	
 	/**
 		获取当前空闲线程总数
 	*/		
-	INLINE uint32 currentFreeThreadCount(void)const;
+	INLINE uint32 currentFreeThreadCount(void) const;
 	
 	/**
 		创建线程池
@@ -269,23 +269,23 @@ public:
 	/**
 		线程数量是否到达最大个数
 	*/
-	INLINE bool isThreadCountMax(void)const;
+	INLINE bool isThreadCountMax(void) const;
 	
 	/**
 		线程池是否处于繁忙状态
 		未处理任务是否非常多   说明线程很繁忙
 	*/
-	INLINE bool isBusy(void)const;
+	INLINE bool isBusy(void) const;
 	
 	/** 
 		线程池是否已经被初始化 
 	*/
-	INLINE bool isInitialize(void)const;
+	INLINE bool isInitialize(void) const;
 
 	/**
 		返回是否已经销毁
 	*/
-	INLINE bool isDestroyed()const;
+	INLINE bool isDestroyed() const;
 
 	/**
 		返回是否已经销毁
@@ -295,7 +295,7 @@ public:
 	/** 
 		获得缓存的任务数量
 	*/
-	INLINE uint32 bufferTaskSize()const;
+	INLINE uint32 bufferTaskSize() const;
 
 	/** 
 		获得缓存的任务
@@ -311,9 +311,10 @@ public:
 	/** 
 		获得已经完成的任务数量
 	*/
-	INLINE uint32 finiTaskSize()const;
+	INLINE uint32 finiTaskSize() const;
 
-	virtual std::string name()const{ return "ThreadPool"; }
+	virtual std::string name() const{ return "ThreadPool"; }
+
 public:
 	static int timeout;
 
@@ -353,6 +354,7 @@ public:
 	bool removeHangThread(TPThread* tptd);
 
 	bool initializeWatcher();
+
 protected:
 	bool isInitialize_;												// 线程池是否被初始化过
 	

@@ -60,6 +60,7 @@ public:
 	void attachApp(ServerApp* app);
 
 	ServerApp* getApp(){ return papp_; }
+
 private:
 	typedef std::map<int, SignalHandler*> SignalHandlerMap;
 	SignalHandlerMap singnalHandlerMap_;

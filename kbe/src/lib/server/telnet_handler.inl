@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-INLINE Network::EndPoint* TelnetHandler::pEndPoint()const
+INLINE Network::EndPoint* TelnetHandler::pEndPoint() const
 {
 	return pEndPoint_;
 }

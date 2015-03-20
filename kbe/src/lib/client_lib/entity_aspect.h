@@ -38,9 +38,9 @@ public:
 	void modelres(const std::string& modelres){ modelres_ = modelres; }
 	const std::string& modelres(){ return modelres_; }
 
-	ENTITY_ID aspectID()const{ return aspectID_; }
+	ENTITY_ID aspectID() const{ return aspectID_; }
 
-	float modelScale()const{ return modelScale_; }
+	float modelScale() const{ return modelScale_; }
 protected:
 	ENTITY_ID aspectID_;
 	std::string modelres_;

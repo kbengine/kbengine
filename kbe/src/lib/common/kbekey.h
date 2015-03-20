@@ -40,7 +40,7 @@ public:
 	KBEKey();
 	virtual ~KBEKey();
 
-	virtual bool isGood()const;
+	virtual bool isGood() const;
 };
 
 

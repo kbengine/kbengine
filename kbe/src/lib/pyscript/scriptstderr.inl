@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine {
 namespace script{
 
-INLINE ScriptStdOutErr* ScriptStdErr::pScriptStdOutErr()const
+INLINE ScriptStdOutErr* ScriptStdErr::pScriptStdOutErr() const
 { 
 	return pScriptStdOutErr_; 
 }

@@ -118,12 +118,12 @@ public:
 	/** 
 		获取脚本基础模块 
 	*/
-	INLINE PyObject* getModule(void)const;
+	INLINE PyObject* getModule(void) const;
 
 	/** 
 		获取脚本扩展模块 
 	*/
-	INLINE PyObject* getExtraModule(void)const;
+	INLINE PyObject* getExtraModule(void) const;
 
 	int run_simpleString(const char* command, std::string* retBufferPtr);
 	INLINE int run_simpleString(std::string command, std::string* retBufferPtr);
@@ -131,7 +131,7 @@ public:
 	int registerToModule(const char* attrName, PyObject* pyObj);
 	int unregisterToModule(const char* attrName);
 
-	INLINE ScriptStdOutErr* pyStdouterr()const;
+	INLINE ScriptStdOutErr* pyStdouterr() const;
 
 	INLINE void pyPrint(const std::string& str);
 

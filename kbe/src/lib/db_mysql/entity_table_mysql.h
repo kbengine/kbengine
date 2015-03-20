@@ -51,7 +51,7 @@ public:
 	{
 	};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_UNKONWN; }
 
 	/**
 		初始化
@@ -106,7 +106,7 @@ public:
 
 	virtual ~EntityTableItemMysql_DIGIT(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_DIGIT; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_DIGIT; }
 
 	/**
 		同步entity表到数据库中
@@ -138,7 +138,7 @@ public:
 
 	virtual ~EntityTableItemMysql_STRING(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_STRING; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_STRING; }
 
 	/**
 		同步entity表到数据库中
@@ -168,7 +168,7 @@ public:
 
 	virtual ~EntityTableItemMysql_UNICODE(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_UNICODE; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_UNICODE; }
 
 	/**
 		同步entity表到数据库中
@@ -198,7 +198,7 @@ public:
 
 	virtual ~EntityTableItemMysql_PYTHON(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_PYTHON; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_PYTHON; }
 
 	/**
 		同步entity表到数据库中
@@ -228,7 +228,7 @@ public:
 
 	virtual ~EntityTableItemMysql_BLOB(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_BLOB; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_BLOB; }
 
 	/**
 		同步entity表到数据库中
@@ -258,7 +258,7 @@ public:
 
 	virtual ~EntityTableItemMysql_VECTOR2(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR2; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR2; }
 	
 	virtual bool isSameKey(std::string key);
 
@@ -299,7 +299,7 @@ public:
 
 	virtual ~EntityTableItemMysql_VECTOR3(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR3; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR3; }
 
 	virtual bool isSameKey(std::string key);
 
@@ -340,7 +340,7 @@ public:
 
 	virtual ~EntityTableItemMysql_VECTOR4(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR4; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR4; }
 
 	virtual bool isSameKey(std::string key);
 
@@ -381,7 +381,7 @@ public:
 
 	virtual ~EntityTableItemMysql_MAILBOX(){};
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_MAILBOX; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_MAILBOX; }
 
 	/**
 		同步entity表到数据库中
@@ -420,7 +420,7 @@ public:
 	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string name);
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
 
 	/**
 		同步entity表到数据库中
@@ -457,7 +457,7 @@ public:
 
 	typedef std::vector< std::pair< std::string, KBEShared_ptr<EntityTableItem> > > FIXEDDICT_KEYTYPES;
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
 
 	virtual bool isSameKey(std::string key);
 

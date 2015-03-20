@@ -140,7 +140,7 @@ public:
 	/**
 		获取最后一次查询的sql语句
 	*/
-	virtual const std::string& lastquery()const{ return lastquery_; }
+	virtual const std::string& lastquery() const{ return lastquery_; }
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口

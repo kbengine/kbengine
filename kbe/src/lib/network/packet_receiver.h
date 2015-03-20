@@ -69,7 +69,7 @@ public:
 		pNetworkInterface_ = NULL;
 	}
 
-	virtual PacketReceiver::PACKET_RECEIVER_TYPE type()const
+	virtual PacketReceiver::PACKET_RECEIVER_TYPE type() const
 	{
 		return TCP_PACKET_RECEIVER;
 	}
@@ -78,7 +78,7 @@ public:
 		pEndpoint_ = pEndpoint; 
 	}
 
-	EndPoint* pEndPoint()const { 
+	EndPoint* pEndPoint() const { 
 		return pEndpoint_; 
 	}
 

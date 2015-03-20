@@ -39,7 +39,7 @@ public:
 	*/
 	bool install(void);
 	bool uninstall(void);
-	bool isInstall(void)const{ return isInstall_; }
+	bool isInstall(void) const{ return isInstall_; }
 
 	virtual void error_msg(const wchar_t* msg, uint32 msglen);
 	virtual void info_msg(const wchar_t* msg, uint32 msglen);
@@ -47,6 +47,7 @@ public:
 	void pyPrint(const std::string& str);
 
 	INLINE std::wstring& buffer();
+
 protected:
 	ScriptStdErr* pStderr_;
 	ScriptStdOut* pStdout_;

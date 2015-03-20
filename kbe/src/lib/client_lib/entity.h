@@ -73,11 +73,11 @@ public:
 	/** 
 		mailbox section
 	*/
-	INLINE EntityMailbox* baseMailbox()const;
+	INLINE EntityMailbox* baseMailbox() const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
 	INLINE void baseMailbox(EntityMailbox* mailbox);
 	
-	INLINE EntityMailbox* cellMailbox()const;
+	INLINE EntityMailbox* cellMailbox() const;
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
 	INLINE void cellMailbox(EntityMailbox* mailbox);
 
@@ -103,7 +103,7 @@ public:
 		移动速度
 	*/
 	INLINE void moveSpeed(float speed);
-	INLINE float moveSpeed()const;
+	INLINE float moveSpeed() const;
 	void onMoveSpeedChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetMoveSpeed, pySetMoveSpeed);
 
@@ -112,9 +112,9 @@ public:
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
 	void pClientApp(ClientObjectBase* p);
-	INLINE ClientObjectBase* pClientApp()const;
+	INLINE ClientObjectBase* pClientApp() const;
 	
-	const EntityAspect* getAspect()const{ return &aspect_; }
+	const EntityAspect* getAspect() const{ return &aspect_; }
 	/** 
 		销毁这个entity 
 	*/
@@ -136,12 +136,12 @@ public:
 	*/
 	void onUpdatePropertys(MemoryStream& s);
 
-	bool inWorld()const{ return enterworld_; }
+	bool inWorld() const{ return enterworld_; }
 
 	void onBecomePlayer();
 	void onBecomeNonPlayer();
 	
-	bool isOnGound()const { return isOnGound_;}
+	bool isOnGound() const { return isOnGound_;}
 	void isOnGound(bool v) { isOnGound_ = v;}
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox

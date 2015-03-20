@@ -60,7 +60,7 @@ public:
 	/** 
 		获取字典对象 
 	*/
-	INLINE PyObject* getDictObject(void)const;
+	INLINE PyObject* getDictObject(void) const;
 	
 	/** 
 		数据改变通知 

@@ -45,7 +45,7 @@ public:
 	virtual void onEnter(CoordinateNode * pNode);
 	virtual void onLeave(CoordinateNode * pNode);
 
-	INLINE Witness* pWitness()const;
+	INLINE Witness* pWitness() const;
 protected:
 	Witness* pWitness_;
 };

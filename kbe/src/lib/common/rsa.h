@@ -53,7 +53,8 @@ public:
 	bool loadPublic(const std::string& keyname);
 	bool loadPrivate(const std::string& keyname);
 
-	virtual bool isGood()const { return rsa_public != NULL && rsa_private != NULL; }
+	virtual bool isGood() const { return rsa_public != NULL && rsa_private != NULL; }
+
 protected:
 	void* rsa_public, *rsa_private;
 };

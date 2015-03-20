@@ -39,10 +39,10 @@ public:
 	bool reinstall(CoordinateNode* pCoordinateNode);
 
 	INLINE void range(float xz, float y);
-	INLINE float range_xz()const;
-	INLINE float range_y()const;
+	INLINE float range_xz() const;
+	INLINE float range_y() const;
 
-	INLINE CoordinateNode* origin()const;
+	INLINE CoordinateNode* origin() const;
 	INLINE void origin(CoordinateNode* pCoordinateNode);
 
 	/**

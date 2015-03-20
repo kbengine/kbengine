@@ -149,6 +149,7 @@ public:
 		INFO_MSG(fmt::format("CallbackMgr::processTimeout: {} timeout!\n", cbID));
 		return true;
 	}
+
 protected:
 	CALLBACKS cbMap_;	// 所有的回调都存储在这个map中
 	IDAllocate<CALLBACK_ID> idAlloc_;									// 回调的id分配器

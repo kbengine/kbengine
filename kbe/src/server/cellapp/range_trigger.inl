@@ -29,19 +29,19 @@ INLINE void RangeTrigger::range(float xz, float y)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTrigger::range_xz()const
+INLINE float RangeTrigger::range_xz() const
 {
 	return range_xz_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTrigger::range_y()const
+INLINE float RangeTrigger::range_y() const
 {
 	return range_y_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE CoordinateNode* RangeTrigger::origin()const
+INLINE CoordinateNode* RangeTrigger::origin() const
 {
 	return origin_;
 }

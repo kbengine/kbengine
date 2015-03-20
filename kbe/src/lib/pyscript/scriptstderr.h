@@ -44,9 +44,10 @@ public:
 
 	bool install(void);
 	bool uninstall(void);
-	bool isInstall(void)const{ return isInstall_; }
+	bool isInstall(void) const{ return isInstall_; }
 
-	INLINE ScriptStdOutErr* pScriptStdOutErr()const;
+	INLINE ScriptStdOutErr* pScriptStdOutErr() const;
+
 protected:
 	bool softspace_;
 	PyObject* old_stdobj_;

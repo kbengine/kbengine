@@ -38,6 +38,7 @@ public:
 		BASEAPP_DATA,
 		CELLAPP_DATA
 	};
+
 public:	
 	GlobalDataServer(DATA_TYPE dataType);
 	~GlobalDataServer();
@@ -57,6 +58,7 @@ public:
 	
 	/** 一个新的客户端登陆 */
 	void onGlobalDataClientLogon(Network::Channel* client, COMPONENT_TYPE componentType);
+
 private:
 	DATA_TYPE dataType_;
 

@@ -69,7 +69,7 @@ public:
 	/** 
 		获取entityID 
 	*/
-	INLINE ENTITY_ID id()const;
+	INLINE ENTITY_ID id() const;
 
 	INLINE void id(int v);
 
@@ -78,7 +78,7 @@ public:
 	/** 
 		获得组件ID 
 	*/
-	INLINE COMPONENT_ID componentID(void)const;
+	INLINE COMPONENT_ID componentID(void) const;
 
 	/** 
 		设置组件的ID 
@@ -88,12 +88,12 @@ public:
 	/** 
 		获得utype 
 	*/
-	INLINE ENTITY_SCRIPT_UID utype(void)const;
+	INLINE ENTITY_SCRIPT_UID utype(void) const;
 
 	/** 
 		获得type 
 	*/
-	INLINE ENTITY_MAILBOX_TYPE type(void)const;
+	INLINE ENTITY_MAILBOX_TYPE type(void) const;
 
 	/** 
 		支持pickler 方法 
@@ -106,16 +106,16 @@ public:
 
 	virtual void newMail(Network::Bundle& bundle);
 	
-	const Network::Address& addr()const{ return addr_; }
+	const Network::Address& addr() const{ return addr_; }
 	void addr(const Network::Address& saddr){ addr_ = saddr; }
 
-	INLINE bool isClient()const;
-	INLINE bool isCell()const;
-	INLINE bool isCellReal()const;
-	INLINE bool isCellViaBase()const;
-	INLINE bool isBase()const;
-	INLINE bool isBaseReal()const;
-	INLINE bool isBaseViaCell()const;
+	INLINE bool isClient() const;
+	INLINE bool isCell() const;
+	INLINE bool isCellReal() const;
+	INLINE bool isCellViaBase() const;
+	INLINE bool isBase() const;
+	INLINE bool isBaseReal() const;
+	INLINE bool isBaseViaCell() const;
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Network::Address						addr_;					// 频道地址

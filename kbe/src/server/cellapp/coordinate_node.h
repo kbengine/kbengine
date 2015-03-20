@@ -44,15 +44,15 @@ public:
 	virtual ~CoordinateNode();
 	
 	INLINE void flags(uint32 v);
-	INLINE uint32 flags()const;
+	INLINE uint32 flags() const;
 
 	/**
 		(节点本身的坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
-	virtual float x()const { return x_; }
-	virtual float y()const { return y_; }
-	virtual float z()const { return z_; }
+	virtual float x() const { return x_; }
+	virtual float y() const { return y_; }
+	virtual float z() const { return z_; }
 
 	virtual void x(float v){ x_ = v; }
 	virtual void y(float v){ y_ = v; }
@@ -62,17 +62,17 @@ public:
 		(扩展坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
-	virtual float xx()const { return 0.f; }
-	virtual float yy()const { return 0.f; }
-	virtual float zz()const { return 0.f; }
+	virtual float xx() const { return 0.f; }
+	virtual float yy() const { return 0.f; }
+	virtual float zz() const { return 0.f; }
 
 	void old_xx(float v) { old_xx_ = v; }
 	void old_yy(float v) { old_yy_ = v; }
 	void old_zz(float v) { old_zz_ = v; }
 
-	float old_xx()const { return old_xx_; }
-	float old_yy()const { return old_yy_; }
-	float old_zz()const { return old_zz_; }
+	float old_xx() const { return old_xx_; }
+	float old_yy() const { return old_yy_; }
+	float old_zz() const { return old_zz_; }
 
 	virtual void resetOld(){ 
 		old_xx_ = xx();
@@ -87,17 +87,17 @@ public:
 	void debugZ();
 
 	INLINE void pCoordinateSystem(CoordinateSystem* p);
-	INLINE CoordinateSystem* pCoordinateSystem()const;
+	INLINE CoordinateSystem* pCoordinateSystem() const;
 
 	/**
 		获取链表的前后端指针
 	*/
-	INLINE CoordinateNode* pPrevX()const;
-	INLINE CoordinateNode* pNextX()const;
-	INLINE CoordinateNode* pPrevY()const;
-	INLINE CoordinateNode* pNextY()const;
-	INLINE CoordinateNode* pPrevZ()const;
-	INLINE CoordinateNode* pNextZ()const;
+	INLINE CoordinateNode* pPrevX() const;
+	INLINE CoordinateNode* pNextX() const;
+	INLINE CoordinateNode* pPrevY() const;
+	INLINE CoordinateNode* pNextY() const;
+	INLINE CoordinateNode* pPrevZ() const;
+	INLINE CoordinateNode* pNextZ() const;
 
 	/**
 		设置链表的前后端指针

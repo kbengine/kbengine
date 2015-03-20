@@ -34,11 +34,12 @@ public:
 	virtual ~ResourceObject();
 	
 	const std::string& resName(){ return resName_; }
-	uint32 flags()const{ return flags_; }
+	uint32 flags() const{ return flags_; }
 
-	bool valid()const;
+	bool valid() const;
 
 	void update();
+
 protected:
 	std::string resName_;
 	uint32 flags_;
@@ -58,6 +59,7 @@ public:
 	bool seek(uint32 idx, int flags = SEEK_SET);
 	uint32 read(char* buf, uint32 limit);
 	uint32 tell();
+
 protected:
 	FILE* fd_;
 };

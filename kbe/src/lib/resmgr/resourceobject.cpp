@@ -50,7 +50,7 @@ void ResourceObject::update()
 }
 
 //-------------------------------------------------------------------------------------
-bool ResourceObject::valid()const
+bool ResourceObject::valid() const
 {
 	return invalid_ || timestamp() < timeout_;
 }

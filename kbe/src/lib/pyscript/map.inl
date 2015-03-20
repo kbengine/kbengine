@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine {
 namespace script{
 
-INLINE PyObject* Map::getDictObject(void)const
+INLINE PyObject* Map::getDictObject(void) const
 { 
 	return pyDict_;
 }

@@ -22,13 +22,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isWitnessed(void)const
+INLINE bool Entity::isWitnessed(void) const
 { 
 	return witnesses_count_ > 0; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::hasWitness(void)const
+INLINE bool Entity::hasWitness(void) const
 { 
 	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
 }
@@ -40,7 +40,7 @@ INLINE const std::list<ENTITY_ID>&	Entity::witnesses()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE size_t Entity::witnessesSize()const
+INLINE size_t Entity::witnessesSize() const
 {
 	return witnesses_count_;
 }
@@ -52,7 +52,7 @@ INLINE void Entity::topSpeedY(float speed)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Entity::topSpeedY()const
+INLINE float Entity::topSpeedY() const
 { 
 	return topSpeedY_; 
 }
@@ -98,7 +98,7 @@ INLINE Position3D& Entity::position()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox()const
+INLINE EntityMailbox* Entity::baseMailbox() const
 { 
 	return baseMailbox_; 
 }
@@ -116,19 +116,19 @@ INLINE void Entity::clientMailbox(EntityMailbox* mailbox)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::clientMailbox()const
+INLINE EntityMailbox* Entity::clientMailbox() const
 { 
 	return clientMailbox_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AllClients* Entity::allClients()const
+INLINE AllClients* Entity::allClients() const
 { 
 	return allClients_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AllClients* Entity::otherClients()const
+INLINE AllClients* Entity::otherClients() const
 { 
 	return otherClients_; 
 }
@@ -146,25 +146,25 @@ INLINE void Entity::otherClients(AllClients* clients)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isReal(void)const
+INLINE bool Entity::isReal(void) const
 { 
 	return realCell_ == 0; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::hasGhost(void)const
+INLINE bool Entity::hasGhost(void) const
 { 
 	return ghostCell_ > 0; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE COMPONENT_ID Entity::realCell(void)const
+INLINE COMPONENT_ID Entity::realCell(void) const
 { 
 	return realCell_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE COMPONENT_ID Entity::ghostCell(void)const
+INLINE COMPONENT_ID Entity::ghostCell(void) const
 { 
 	return ghostCell_; 
 }
@@ -182,7 +182,7 @@ INLINE void Entity::ghostCell(COMPONENT_ID cellID)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE SPACE_ENTITIES::size_type Entity::spaceEntityIdx()const
+INLINE SPACE_ENTITIES::size_type Entity::spaceEntityIdx() const
 {
 	return spaceEntityIdx_;
 }
@@ -194,7 +194,7 @@ INLINE void Entity::spaceEntityIdx(SPACE_ENTITIES::size_type idx)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Witness* Entity::pWitness()const
+INLINE Witness* Entity::pWitness() const
 {
 	return pWitness_;
 }
@@ -206,13 +206,13 @@ INLINE void Entity::pWitness(Witness* w)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Controllers*	Entity::pControllers()const
+INLINE Controllers*	Entity::pControllers() const
 {
 	return pControllers_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode()const
+INLINE EntityCoordinateNode* Entity::pEntityCoordinateNode() const
 {
 	return pEntityCoordinateNode_;
 }
@@ -230,25 +230,25 @@ INLINE void Entity::isOnGround(bool v)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isOnGround()const
+INLINE bool Entity::isOnGround() const
 {
 	return isOnGround_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE GAME_TIME Entity::posChangedTime()const
+INLINE GAME_TIME Entity::posChangedTime() const
 {
 	return posChangedTime_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE GAME_TIME Entity::dirChangedTime()const
+INLINE GAME_TIME Entity::dirChangedTime() const
 {
 	return dirChangedTime_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Entity::layer()const
+INLINE int8 Entity::layer() const
 {
 	return layer_;
 }

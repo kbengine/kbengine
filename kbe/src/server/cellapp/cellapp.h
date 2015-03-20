@@ -75,7 +75,7 @@ public:
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
 
-	float _getLoad()const { return getLoad(); }
+	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
 
 	/**  网络接口
@@ -240,9 +240,9 @@ public:
 		获取和设置ghost管理器
 	*/
 	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
-	GhostManager* pGhostManager()const{ return pGhostManager_; }
+	GhostManager* pGhostManager() const{ return pGhostManager_; }
 
-	ArraySize spaceSize()const { return (ArraySize)Spaces::size(); }
+	ArraySize spaceSize() const { return (ArraySize)Spaces::size(); }
 
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData

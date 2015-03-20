@@ -33,22 +33,22 @@ public:
 	Baseapp();
 	virtual ~Baseapp();
 	
-	ENTITY_ID numBases()const { return numBases_; }
+	ENTITY_ID numBases() const { return numBases_; }
 	void numBases(ENTITY_ID num) { numBases_ = num; }
 	
-	ENTITY_ID numProxices()const { return numProxices_; }
+	ENTITY_ID numProxices() const { return numProxices_; }
 	void numProxices(ENTITY_ID num) { numProxices_ = num; }
 	
-	float load()const { return load_; }
+	float load() const { return load_; }
 	void load(float v) { load_ = v; }
 	
 	void destroy(){ isDestroyed_ = true; }
-	bool isDestroyed()const { return isDestroyed_; }
+	bool isDestroyed() const { return isDestroyed_; }
 
-	float initProgress()const{ return initProgress_; }
+	float initProgress() const{ return initProgress_; }
 	void initProgress(float v){ initProgress_ = v; }
 
-	ENTITY_ID numEntities()const { return numBases_ + numProxices_; }
+	ENTITY_ID numEntities() const { return numBases_ + numProxices_; }
 
 protected:
 	ENTITY_ID numBases_;

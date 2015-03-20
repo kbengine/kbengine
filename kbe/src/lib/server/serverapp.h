@@ -77,6 +77,7 @@ public:
 	{
 		TIMEOUT_SERVERAPP_MAX
 	};
+
 public:
 	ServerApp(Network::EventDispatcher& dispatcher, 
 			Network::NetworkInterface& ninterface, 
@@ -113,8 +114,8 @@ public:
 	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
 	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
 
-	COMPONENT_ID componentID()const	{ return componentID_; }
-	COMPONENT_TYPE componentType()const	{ return componentType_; }
+	COMPONENT_ID componentID() const	{ return componentID_; }
+	COMPONENT_TYPE componentType() const	{ return componentType_; }
 		
 	virtual void onSignalled(int sigNum);
 	virtual void onChannelTimeOut(Network::Channel * pChannel);
@@ -134,8 +135,8 @@ public:
 
 	void shutDown(float shutdowntime = -FLT_MAX);
 
-	COMPONENT_ORDER globalOrder()const{ return startGlobalOrder_; }
-	COMPONENT_ORDER groupOrder()const{ return startGroupOrder_; }
+	COMPONENT_ORDER globalOrder() const{ return startGlobalOrder_; }
+	COMPONENT_ORDER groupOrder() const{ return startGroupOrder_; }
 
 	/** 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr
@@ -198,6 +199,7 @@ public:
 	*/
 	void startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
+
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

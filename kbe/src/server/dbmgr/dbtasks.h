@@ -87,8 +87,8 @@ public:
 	
 	virtual ~EntityDBTask(){}
 	
-	ENTITY_ID EntityDBTask_entityID()const { return _entityID; }
-	DBID EntityDBTask_entityDBID()const { return _entityDBID; }
+	ENTITY_ID EntityDBTask_entityID() const { return _entityID; }
+	DBID EntityDBTask_entityDBID() const { return _entityDBID; }
 	
 	void pBuffered_DBTasks(Buffered_DBTasks* v){ _pBuffered_DBTasks = v; }
 	virtual thread::TPTask::TPTaskState presentMainThread();

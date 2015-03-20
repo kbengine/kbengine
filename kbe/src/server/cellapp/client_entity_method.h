@@ -51,12 +51,12 @@ public:
 	
 	virtual ~ClientEntityMethod();
 
-	const char* getName(void)const
+	const char* getName(void) const
 	{ 
 		return methodDescription_->getName(); 
 	};
 
-	MethodDescription* getDescription(void)const
+	MethodDescription* getDescription(void) const
 	{ 
 		return methodDescription_; 
 	}

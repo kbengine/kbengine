@@ -111,8 +111,9 @@ public:
 	{
 	}
 
-	T lastID()const{ return lastID_; }
+	T lastID() const{ return lastID_; }
 	void lastID(T v){ lastID_ = v; }
+
 protected:
 	T lastID_;													// 最后一次申请到的ID
 };
@@ -156,6 +157,7 @@ public:
 	{
 		idList_.push(id);
 	}
+
 protected:
 	typename std::queue< T > idList_;							// id列表， 所有ID都存在这个列表里
 };
@@ -210,7 +212,7 @@ public:
 	{
 	}	
 	
-	bool hasReqServerAlloc()const { 
+	bool hasReqServerAlloc() const { 
 		return requestedIDServerAlloc_; 
 	}
 

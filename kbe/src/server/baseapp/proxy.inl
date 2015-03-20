@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-INLINE uint64 Proxy::rndUUID()const
+INLINE uint64 Proxy::rndUUID() const
 {
 	return rndUUID_;
 }
@@ -46,12 +46,12 @@ INLINE void Proxy::addr(const Network::Address& address)
 	addr_ = address; 
 }
 
-INLINE const Network::Address& Proxy::addr()const
+INLINE const Network::Address& Proxy::addr() const
 { 
 	return addr_; 
 }
 
-INLINE bool Proxy::entitiesEnabled()const
+INLINE bool Proxy::entitiesEnabled() const
 { 
 	return entitiesEnabled_;
 }

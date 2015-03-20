@@ -56,7 +56,7 @@ public:
 		pEndpoint_ = pEndpoint; 
 	}
 
-	EndPoint* pEndPoint()const { 
+	EndPoint* pEndPoint() const { 
 		return pEndpoint_; 
 	}
 

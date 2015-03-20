@@ -45,7 +45,7 @@ public:
 	void loadSpaceGeometry();
 
 	void creatorID(ENTITY_ID id){ creatorID_ = id; }
-	ENTITY_ID creatorID()const { return creatorID_; }
+	ENTITY_ID creatorID() const { return creatorID_; }
 
 	/** 
 		更新space中的内容 
@@ -67,9 +67,9 @@ public:
 
 	void onEntityAttachWitness(Entity* pEntity);
 
-	SPACE_ID id()const{ return id_; }
+	SPACE_ID id() const{ return id_; }
 
-	const SPACE_ENTITIES& entities()const{ return entities_; }
+	const SPACE_ENTITIES& entities() const{ return entities_; }
 
 	/**
 		销毁
@@ -93,7 +93,7 @@ public:
 	void onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle);
 	void onAllSpaceGeometryLoaded();
 	
-	NavigationHandlePtr pNavHandle()const{ return pNavHandle_; }
+	NavigationHandlePtr pNavHandle() const{ return pNavHandle_; }
 
 	/**
 		spaceData相关操作接口
@@ -109,7 +109,7 @@ public:
 
 	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
 
-	bool isDestroyed()const{ return destroyed_; }
+	bool isDestroyed() const{ return destroyed_; }
 
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);

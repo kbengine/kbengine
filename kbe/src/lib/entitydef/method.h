@@ -52,15 +52,15 @@ public:
 
 	virtual ~MethodDescription();
 	
-	INLINE const char* getName(void)const;
+	INLINE const char* getName(void) const;
 
-	INLINE ENTITY_METHOD_UID getUType(void)const;
+	INLINE ENTITY_METHOD_UID getUType(void) const;
 	INLINE void setUType(ENTITY_METHOD_UID muid);
 
 	static uint32 getDescriptionCount(void){ return methodDescriptionCount_; }
 	static void resetDescriptionCount(void){ methodDescriptionCount_ = 0; }
 
-	INLINE bool isExposed(void)const;
+	INLINE bool isExposed(void) const;
 
 	void setExposed(void);
 
@@ -93,18 +93,18 @@ public:
 
 	INLINE void currCallerID(ENTITY_ID eid);
 
-	INLINE COMPONENT_ID domain()const;
+	INLINE COMPONENT_ID domain() const;
 
-	INLINE bool isClient()const;
-	INLINE bool isCell()const;
-	INLINE bool isBase()const;
+	INLINE bool isClient() const;
+	INLINE bool isCell() const;
+	INLINE bool isBase() const;
 
 	/** 
 		别名id， 当暴露的方法或者广播的属性总个数小于255时
 		我们不使用utype而使用1字节的aliasID来传输
 	*/
-	INLINE int16 aliasID()const;
-	INLINE uint8 aliasIDAsUint8()const;
+	INLINE int16 aliasID() const;
+	INLINE uint8 aliasIDAsUint8() const;
 	INLINE void aliasID(int16 v);
 protected:
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量

@@ -34,13 +34,13 @@ INLINE void Witness::pEntity(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Witness::aoiRadius()const
+INLINE float Witness::aoiRadius() const
 { 
 	return aoiRadius_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Witness::aoiHysteresisArea()const
+INLINE float Witness::aoiHysteresisArea() const
 { 
 	return aoiHysteresisArea_; 
 }

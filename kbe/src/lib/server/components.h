@@ -205,9 +205,9 @@ public:
 	size_t getGameSrvComponentsSize();
 
 	void componentID(COMPONENT_ID id){ componentID_ = id; }
-	COMPONENT_ID componentID()const { return componentID_; }
+	COMPONENT_ID componentID() const { return componentID_; }
 	void componentType(COMPONENT_TYPE t){ componentType_ = t; }
-	COMPONENT_TYPE componentType()const { return componentType_; }
+	COMPONENT_TYPE componentType() const { return componentType_; }
 	
 	Network::EventDispatcher & dispatcher();
 

@@ -52,9 +52,9 @@ public:
 	bool send(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
 
 	void id(int16 i){ id_ = i; }
-	int16 id()const{ return id_; }
+	int16 id() const{ return id_; }
 
-	uint32 totalBytes()const{ return totalBytes_; }
+	uint32 totalBytes() const{ return totalBytes_; }
 
 	virtual char* getOutStream(){ return stream_; }
 

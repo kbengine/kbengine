@@ -46,7 +46,7 @@ public:
 	static PyObject* seq_inplace_concat(PyObject* self, PyObject* oterSeq);
 	static PyObject* seq_inplace_repeat(PyObject * self, Py_ssize_t n);
 	
-	INLINE int length(void)const;
+	INLINE int length(void) const;
 	INLINE std::vector<PyObject*>& getValues(void);
 
 	int findFrom(uint32 startIndex, PyObject* value);
@@ -54,6 +54,7 @@ public:
 	virtual bool isSameType(PyObject* pyValue);
 	virtual bool isSameItemType(PyObject* pyValue);
 	virtual PyObject* createNewItemFromObj(PyObject* pyItem);
+
 protected:
 	std::vector<PyObject*>				values_;
 } ;

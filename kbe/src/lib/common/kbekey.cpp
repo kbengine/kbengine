@@ -72,7 +72,7 @@ KBEKey::~KBEKey()
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEKey::isGood()const
+bool KBEKey::isGood() const
 {
 	if(g_componentType == CLIENT_TYPE)
 	{

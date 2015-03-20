@@ -71,6 +71,7 @@ public:
 	
 	static MapSearchNode nodeGoal, nodeStart;
 	static AStarSearch<NavTileHandle::MapSearchNode> astarsearch;
+
 public:
 	NavTileHandle(bool dir);
 	NavTileHandle(const KBEngine::NavTileHandle & navTileHandle);
@@ -89,9 +90,10 @@ public:
 	void bresenhamLine(const MapSearchNode& p0, const MapSearchNode& p1, std::vector<MapSearchNode>& results);
 	void bresenhamLine(int x0, int y0, int x1, int y1, std::vector<MapSearchNode>& results);
 
-	bool direction8()const{ return direction8_; }
+	bool direction8() const{ return direction8_; }
 	
-	bool validTile(int x, int y)const;
+	bool validTile(int x, int y) const;
+
 public:
 	Tmx::Map *pTilemap;
 	bool direction8_;

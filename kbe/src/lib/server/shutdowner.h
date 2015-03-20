@@ -46,6 +46,7 @@ public:
 	
 	void shutdown(float period, float tickPeriod, Network::EventDispatcher& dispatcher);
 	void cancel();
+
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 

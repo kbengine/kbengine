@@ -119,8 +119,8 @@ public:
 	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
 	Network::NetworkInterface & networkInterface()		{ return networkInterface_; }
 
-	COMPONENT_ID componentID()const	{ return componentID_; }
-	COMPONENT_TYPE componentType()const	{ return componentType_; }
+	COMPONENT_ID componentID() const	{ return componentID_; }
+	COMPONENT_TYPE componentType() const	{ return componentType_; }
 		
 	KBEngine::script::Script& getScript(){ return *pScript_; }
 	void setScript(KBEngine::script::Script* p){ pScript_ = p; }

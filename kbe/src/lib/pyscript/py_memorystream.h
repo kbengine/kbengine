@@ -43,7 +43,7 @@ public:
 
 	INLINE PyObject* pyBytes();
 
-	INLINE bool readonly()const;
+	INLINE bool readonly() const;
 
 	void addToStream(MemoryStream* mstream);
 
@@ -58,7 +58,8 @@ public:
 	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static Py_ssize_t seq_length(PyObject* self);
-	INLINE int length(void)const;
+	INLINE int length(void) const;
+
 protected:
 	MemoryStream stream_;
 	bool readonly_;

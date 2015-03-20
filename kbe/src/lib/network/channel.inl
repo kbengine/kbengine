@@ -33,17 +33,17 @@ INLINE EndPoint * Channel::pEndPoint() const
 	return pEndPoint_;
 }
 
-INLINE PacketReader* Channel::pPacketReader()const
+INLINE PacketReader* Channel::pPacketReader() const
 {
 	return pPacketReader_;
 }
 
-INLINE PacketReceiver* Channel::pPacketReceiver()const
+INLINE PacketReceiver* Channel::pPacketReceiver() const
 {
 	return pPacketReceiver_;
 }
 
-INLINE PacketSender* Channel::pPacketSender()const
+INLINE PacketSender* Channel::pPacketSender() const
 {
 	return pPacketSender_;
 }

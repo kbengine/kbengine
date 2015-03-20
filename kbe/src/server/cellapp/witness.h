@@ -113,8 +113,8 @@ public:
 
 	void setAoiRadius(float radius, float hyst = 5.0f);
 	
-	INLINE float aoiRadius()const;
-	INLINE float aoiHysteresisArea()const;
+	INLINE float aoiRadius() const;
+	INLINE float aoiHysteresisArea() const;
 
 	typedef std::vector<Network::Bundle*> Bundles;
 	bool pushBundle(Network::Bundle* pBundle);
@@ -142,7 +142,7 @@ public:
 	void addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
 		const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
 
-	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID)const;
+	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID) const;
 
 	/**
 		使用何种协议来更新客户端

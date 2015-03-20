@@ -55,7 +55,7 @@ public:
 
 	EventHistoryStats::STATS& stats(){ return stats_; }
 
-	const char* name()const { return name_.c_str(); }
+	const char* name() const { return name_.c_str(); }
 private:
 	STATS stats_;
 

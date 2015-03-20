@@ -40,12 +40,12 @@ INLINE void EventDispatcher::setWaitBreakProcessing()
 	breakProcessing_ = EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING;
 }
 
-INLINE bool EventDispatcher::hasBreakProcessing()const 
+INLINE bool EventDispatcher::hasBreakProcessing() const 
 { 
 	return breakProcessing_ == EVENT_DISPATCHER_STATUS_BREAK_PROCESSING; 
 }
 
-INLINE bool EventDispatcher::waitingBreakProcessing()const 
+INLINE bool EventDispatcher::waitingBreakProcessing() const 
 { 
 	return breakProcessing_ == EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING; 
 }

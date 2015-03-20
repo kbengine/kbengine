@@ -570,7 +570,7 @@ void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const N
 }
 
 //-------------------------------------------------------------------------------------
-bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)const
+bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID) const
 {
 	aliasID = 0;
 	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();

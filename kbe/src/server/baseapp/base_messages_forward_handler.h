@@ -40,7 +40,7 @@ public:
 	void startForward();
 	void stopForward(){ startForward_ = false; }
 
-	bool isStop()const{ return !startForward_; }
+	bool isStop() const{ return !startForward_; }
 private:
 	Base* pBase_;
 	bool completed_;

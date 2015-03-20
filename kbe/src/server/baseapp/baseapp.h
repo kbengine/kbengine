@@ -98,7 +98,7 @@ public:
 	virtual bool initializeWatcher();
 
 	static PyObject* __py_quantumPassedPercent(PyObject* self, PyObject* args);
-	float _getLoad()const { return getLoad(); }
+	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
 
 	virtual void onChannelDeregister(Network::Channel * pChannel);
@@ -345,7 +345,7 @@ public:
 	/**
 		获得proxices计数
 	*/
-	int32 numProxices()const{ return numProxices_; }
+	int32 numProxices() const{ return numProxices_; }
 
 	/**
 		获得numClients计数

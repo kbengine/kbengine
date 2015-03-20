@@ -117,7 +117,7 @@ public:
 		}
 	}
 
-	bool isGood()const{ return isGood_; }
+	bool isGood() const{ return isGood_; }
 
 	bool openSection(const char* xmlFile)
 	{
@@ -193,7 +193,7 @@ public:
 		return false;	
 	}
 	
-	TiXmlDocument* getTxdoc()const { return txdoc_; }
+	TiXmlDocument* getTxdoc() const { return txdoc_; }
 
 	std::string getKey(const TiXmlNode* node)
 	{
@@ -238,6 +238,7 @@ public:
 
 		return atof(strutil::kbe_trim(ptext->Value()).c_str());
 	}
+
 protected:
 	TiXmlDocument* txdoc_;
 	TiXmlElement* rootElement_;

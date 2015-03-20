@@ -112,7 +112,7 @@ public:
 
 	virtual bool isSameKey(std::string key){ return itemName() == key; }
 
-	virtual uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
+	virtual uint8 type() const{ return TABLE_ITEM_TYPE_UNKONWN; }
 
 	void itemName(std::string name){ itemName_ = name; }
 	const char* itemName(){ return itemName_.c_str(); }
@@ -136,9 +136,9 @@ public:
 
 	const DataType* pDataType(){ return pDataType_; }
 
-	uint32 datalength()const{ return datalength_; }
+	uint32 datalength() const{ return datalength_; }
 
-	const PropertyDescription* pPropertyDescription()const{ return pPropertyDescription_; }
+	const PropertyDescription* pPropertyDescription() const{ return pPropertyDescription_; }
 
 	/**
 		初始化
@@ -227,12 +227,12 @@ public:
 	/** 
 		获得所有表字段
 	*/
-	const EntityTable::TABLEITEM_MAP& tableItems()const { return tableItems_; }
-	const std::vector<EntityTableItem*>& tableFixedOrderItems()const{ return tableFixedOrderItems_; }
+	const EntityTable::TABLEITEM_MAP& tableItems() const { return tableItems_; }
+	const std::vector<EntityTableItem*>& tableFixedOrderItems() const{ return tableFixedOrderItems_; }
 
 	void addItem(EntityTableItem* pItem);
 
-	bool isChild()const{ return isChild_; }
+	bool isChild() const{ return isChild_; }
 	void isChild(bool b){ isChild_ = b; }
 
 	EntityTableItem* findItem(int32/*ENTITY_PROPERTY_UID*/ utype);
@@ -257,7 +257,7 @@ public:
 	*/
 	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad){};
 
-	bool hasSync()const { return sync_; }
+	bool hasSync() const { return sync_; }
 
 	/**
 		查询自动加载的实体
@@ -296,7 +296,7 @@ public:
 	/** 
 		获得所有表
 	*/
-	const EntityTables::TABLES_MAP& tables()const { return tables_; }
+	const EntityTables::TABLES_MAP& tables() const { return tables_; }
 
 	void addTable(EntityTable* pTable);
 

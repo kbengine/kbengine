@@ -65,7 +65,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type()const	\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type() const	\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -76,7 +76,7 @@ namespace KBEngine{
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type()const	\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type() const	\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -89,7 +89,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif
@@ -128,7 +128,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -139,7 +139,7 @@ namespace KBEngine{
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -152,7 +152,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif
@@ -193,7 +193,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -204,7 +204,7 @@ namespace KBEngine{
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -217,7 +217,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif
@@ -260,7 +260,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -272,7 +272,7 @@ namespace KBEngine{
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -286,7 +286,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif
@@ -336,7 +336,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -349,7 +349,7 @@ namespace KBEngine{
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -364,7 +364,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif
@@ -417,7 +417,7 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -431,7 +431,7 @@ namespace KBEngine{
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type()const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
@@ -447,7 +447,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
-		virtual Network::NETWORK_MESSAGE_TYPE type()const;						\
+		virtual Network::NETWORK_MESSAGE_TYPE type() const;						\
 	};																			\
 
 #endif

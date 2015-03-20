@@ -494,7 +494,7 @@ public:
 	}
 
     uint8 *data() { return &data_[0]; }
-	const uint8 *data()const { return &data_[0]; }
+	const uint8 *data() const { return &data_[0]; }
 	
 	// vector的大小
     virtual size_t size() const { return data_.size(); }
@@ -503,7 +503,7 @@ public:
     virtual bool empty() const { return data_.empty(); }
 
 	// 读索引到与写索引之间的长度
-	virtual size_t length()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
+	virtual size_t length() const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 
 	// 剩余可填充的大小
 	virtual size_t space() const { return wpos() >= size() ? 0 : size() - wpos(); }
@@ -818,6 +818,7 @@ public:
 
 		rpos_ = trpos;
     }
+
 protected:
 	mutable size_t rpos_, wpos_;
 	std::vector<uint8> data_;

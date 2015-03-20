@@ -45,7 +45,6 @@ public:
 	static bool initialize(void);
 	static void finalise(void);
 	
-
 private:
 	static PyObject* pack_;									// struct.pack方法指针
 	static PyObject* unpack_;								// struct.unpack方法指针

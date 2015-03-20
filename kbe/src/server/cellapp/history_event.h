@@ -41,8 +41,8 @@ public:
 	HistoryEvent(HistoryEventID id, const Network::MessageHandler& msgHandler, uint32 msglen);
 	virtual ~HistoryEvent();
 
-	HistoryEventID id()const{ return id_; }
-	uint32 msglen()const { return msglen_; }
+	HistoryEventID id() const{ return id_; }
+	uint32 msglen() const { return msglen_; }
 
 	void addMsgLen(uint32 v){ msglen_ += v; }
 protected:

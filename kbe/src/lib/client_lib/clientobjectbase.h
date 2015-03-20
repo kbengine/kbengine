@@ -58,14 +58,14 @@ public:
 	ClientObjectBase(Network::NetworkInterface& ninterface, PyTypeObject* pyType = NULL);
 	virtual ~ClientObjectBase();
 
-	Network::Channel* pServerChannel()const{ return pServerChannel_; }
+	Network::Channel* pServerChannel() const{ return pServerChannel_; }
 	void pServerChannel(Network::Channel* pChannel){ pServerChannel_ = pChannel; }
 
 	virtual void finalise(void);
 	virtual void reset(void);
 	virtual void canReset(bool v){ canReset_ = v; }
 
-	Entities<client::Entity>* pEntities()const{ return pEntities_; }
+	Entities<client::Entity>* pEntities() const{ return pEntities_; }
 
 	/**
 		创建一个entity 
@@ -93,7 +93,7 @@ public:
 	bool loginGateWay();
 	bool reLoginGateWay();
 
-	int32 appID()const{ return appID_; }
+	int32 appID() const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
 
 	ENTITY_ID entityID(){ return entityID_; }
@@ -357,7 +357,7 @@ public:
 		targetID_ = id; 
 		onTargetChanged();
 	}
-	ENTITY_ID getTargetID()const{ return targetID_; }
+	ENTITY_ID getTargetID() const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
 	ENTITY_ID getAoiEntityID(ENTITY_ID id);
@@ -390,11 +390,11 @@ public:
 	ScriptCallbacks & scriptCallbacks() { return scriptCallbacks_; }
 
 	void locktime(uint64 t){ locktime_ = t; }
-	uint64 locktime()const{ return locktime_; }
+	uint64 locktime() const{ return locktime_; }
 
 	virtual void onServerClosed();
 
-	uint64 rndUUID()const{ return rndUUID_; }
+	uint64 rndUUID() const{ return rndUUID_; }
 protected:				
 	int32													appID_;
 

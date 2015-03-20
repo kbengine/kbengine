@@ -78,7 +78,7 @@ public:
 		obj_ = 0;
 	}
 	
-	const T* get()const
+	const T* get() const
 	{
 		return obj_;
 	}
@@ -246,7 +246,7 @@ public:
 		return const_cast<T *>( this->obj_ );
 	}
 
-	T* operator->()const
+	T* operator->() const
 	{
 		return const_cast<T *>( this->obj_ );
 	}

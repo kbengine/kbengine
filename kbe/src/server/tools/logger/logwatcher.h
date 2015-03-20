@@ -68,7 +68,7 @@ public:
 	
 	void onMessage(LOG_ITEM* pLogItem);
 
-	STATES state()const{ return state_; }
+	STATES state() const{ return state_; }
 
 protected:
 	bool validDate_(const std::string& log);

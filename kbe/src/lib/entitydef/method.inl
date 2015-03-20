@@ -21,12 +21,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-INLINE const char* MethodDescription::getName(void)const
+INLINE const char* MethodDescription::getName(void) const
 { 
 	return name_.c_str(); 
 };
 
-INLINE ENTITY_METHOD_UID MethodDescription::getUType(void)const
+INLINE ENTITY_METHOD_UID MethodDescription::getUType(void) const
 { 
 	return utype_; 
 }
@@ -36,7 +36,7 @@ INLINE void MethodDescription::setUType(ENTITY_METHOD_UID muid)
 	utype_ = muid; 
 }
 
-INLINE bool MethodDescription::isExposed(void)const
+INLINE bool MethodDescription::isExposed(void) const
 { 
 	return isExposed_; 
 }
@@ -51,12 +51,12 @@ INLINE void MethodDescription::currCallerID(ENTITY_ID eid)
 	currCallerID_ = eid; 
 }
 
-INLINE int16 MethodDescription::aliasID()const 
+INLINE int16 MethodDescription::aliasID() const 
 { 
 	return aliasID_; 
 }
 
-INLINE uint8 MethodDescription::aliasIDAsUint8()const 
+INLINE uint8 MethodDescription::aliasIDAsUint8() const 
 { 
 	return (uint8)aliasID_; 
 }
@@ -66,22 +66,22 @@ INLINE void MethodDescription::aliasID(int16 v)
 	aliasID_ = v; 
 }
 
-INLINE COMPONENT_ID MethodDescription::domain()const
+INLINE COMPONENT_ID MethodDescription::domain() const
 { 
 	return methodDomain_; 
 }
 
-INLINE bool MethodDescription::isClient()const
+INLINE bool MethodDescription::isClient() const
 { 
 	return !isCell() && !isBase(); 
 }
 
-INLINE bool MethodDescription::isCell()const
+INLINE bool MethodDescription::isCell() const
 { 
 	return methodDomain_ == CELLAPP_TYPE; 
 }
 
-INLINE bool MethodDescription::isBase()const
+INLINE bool MethodDescription::isBase() const
 { 
 	return methodDomain_ == BASEAPP_TYPE; 
 }

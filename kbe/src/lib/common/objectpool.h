@@ -107,7 +107,7 @@ public:
 		mutex_.unlockMutex();
 	}
 
-	const OBJECTS& objects(void)const { return objects_; }
+	const OBJECTS& objects(void) const { return objects_; }
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
@@ -238,7 +238,7 @@ public:
 		mutex_.unlockMutex();
 	}
 
-	size_t size(void)const{ return obj_count_; }
+	size_t size(void) const{ return obj_count_; }
 	
 	std::string c_str()
 	{
@@ -254,10 +254,10 @@ public:
 		return buf;
 	}
 
-	size_t max()const{ return max_; }
-	size_t totalAllocs()const{ return total_allocs_; }
+	size_t max() const{ return max_; }
+	size_t totalAllocs() const{ return total_allocs_; }
 
-	bool isDestroyed()const{ return isDestroyed_; }
+	bool isDestroyed() const{ return isDestroyed_; }
 
 protected:
 	/**

@@ -45,6 +45,7 @@ public:
 	void startActiveTick(float period);
 
 	void cancel();
+
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 

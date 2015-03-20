@@ -61,6 +61,7 @@ public:
 	void readVal(PyObject* pyVal, T& v)
 	{
 	}
+
 private:
 	PyObject* pyCallable_;
 };

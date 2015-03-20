@@ -53,7 +53,8 @@ public:
 
 	static std::string getDigest(const void * data, int numBytes);
 
-	bool isFinal()const{ return isFinal_; }
+	bool isFinal() const{ return isFinal_; }
+
 private:
 	MD5_CTX state_;
 	unsigned char bytes_[16];

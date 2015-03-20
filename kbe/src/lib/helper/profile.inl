@@ -21,12 +21,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
-INLINE const char* ProfileGroup::name()const
+INLINE const char* ProfileGroup::name() const
 { 
 	return name_.c_str(); 
 }
 
-INLINE const ProfileGroup::PROFILEVALS& ProfileGroup::profiles()const
+INLINE const ProfileGroup::PROFILEVALS& ProfileGroup::profiles() const
 {
 	return profiles_;
 }
@@ -86,7 +86,7 @@ INLINE bool ProfileVal::isTooLong() const
 	return !this->running() && (lastTime_ > warningPeriod_);
 }
 
-INLINE const char* ProfileVal::name()const
+INLINE const char* ProfileVal::name() const
 { 
 	return name_.c_str(); 
 }

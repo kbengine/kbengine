@@ -243,12 +243,12 @@ public:
 			ptr_->decRef();
 	}
 
-	T& operator*()const 
+	T& operator*() const 
 	{ 
 		return *ptr_; 
 	}
 
-	T* operator->()const 
+	T* operator->() const 
 	{ 
 		return (&**this); 
 	}
@@ -257,6 +257,7 @@ public:
 	{ 
 		return ptr_; 
 	}
+
 private:
 	T* ptr_;
 };

@@ -53,7 +53,7 @@ public:
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 	
-	virtual PacketReceiver::PACKET_RECEIVER_TYPE type()const
+	virtual PacketReceiver::PACKET_RECEIVER_TYPE type() const
 	{
 		return UDP_PACKET_RECEIVER;
 	}

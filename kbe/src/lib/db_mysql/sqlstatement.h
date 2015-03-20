@@ -73,7 +73,8 @@ public:
 		return ret;
 	}
 
-	DBID dbid()const{ return dbid_; }
+	DBID dbid() const{ return dbid_; }
+
 protected:
 	DBContext::DB_ITEM_DATAS& tableItemDatas_;
 	std::string sqlstr_;
@@ -213,6 +214,7 @@ public:
 	virtual ~SqlStatementUpdate()
 	{
 	}
+
 protected:
 };
 
@@ -282,6 +284,7 @@ public:
 	virtual ~SqlStatementQuery()
 	{
 	}
+
 protected:
 	std::string sqlstr1_;
 };

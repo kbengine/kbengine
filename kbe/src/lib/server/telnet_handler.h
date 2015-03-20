@@ -46,6 +46,7 @@ public:
 	virtual ~TelnetProfileHandler(){}
 
 	void destroy(){ isDestroyed_ = true; }
+
 protected:
 	TelnetHandler* pTelnetHandler_;
 	bool isDestroyed_;
@@ -69,7 +70,7 @@ public:
 
 	virtual ~TelnetHandler(void);
 	
-	INLINE Network::EndPoint* pEndPoint()const;
+	INLINE Network::EndPoint* pEndPoint() const;
 	
 	void setReadWrite();
 	void readonly();
@@ -83,6 +84,7 @@ public:
 	void resetStartPosition();
 
 	void onProfileEnd(const std::string& datas);
+
 private:
 	void checkAfterStr();
 

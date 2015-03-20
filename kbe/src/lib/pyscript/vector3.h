@@ -142,6 +142,7 @@ public:
 	void onPyPositionChanged();
 
 	void onLoseRef();
+
 private:
 	Vector3*						val_;
 	bool							isRef_;

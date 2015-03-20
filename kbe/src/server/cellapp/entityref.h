@@ -48,10 +48,10 @@ public:
 	void removeflags(uint32 v){ flags_ &= ~v; }
 	uint32 flags(){ return flags_; }
 	
-	Entity* pEntity()const { return pEntity_; }
+	Entity* pEntity() const { return pEntity_; }
 	void pEntity(Entity* e);
 
-	ENTITY_ID id()const{ return id_; }
+	ENTITY_ID id() const{ return id_; }
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);

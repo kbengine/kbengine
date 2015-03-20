@@ -67,13 +67,13 @@ public:
 	/** 
 		是否存储数据库 
 	*/
-	INLINE bool hasDB()const;
+	INLINE bool hasDB() const;
 	INLINE void hasDB(bool has);
 
 	/** 
 		数据库关联ID
 	*/
-	INLINE DBID dbid()const;
+	INLINE DBID dbid() const;
 	INLINE void dbid(DBID id);
 	DECLARE_PY_GET_MOTHOD(pyGetDBID);
 
@@ -94,7 +94,7 @@ public:
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
 
-	EntityMailbox* cellMailbox(void)const;
+	EntityMailbox* cellMailbox(void) const;
 
 	void cellMailbox(EntityMailbox* mailbox);
 	
@@ -103,7 +103,7 @@ public:
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
 
-	EntityMailbox* clientMailbox()const;
+	EntityMailbox* clientMailbox() const;
 
 	void clientMailbox(EntityMailbox* mailbox);
 
@@ -125,9 +125,9 @@ public:
 
 	PyObject* createCellDataDict(uint32 flags);
 
-	INLINE PyObject* getCellData(void)const;
+	INLINE PyObject* getCellData(void) const;
 	
-	INLINE bool creatingCell(void)const;
+	INLINE bool creatingCell(void) const;
 
 	/**
 		请求cell部分将entity的celldata更新一份过来
@@ -258,14 +258,14 @@ public:
 	/**
 		设置获取是否自动存档
 	*/
-	INLINE int8 shouldAutoArchive()const;
+	INLINE int8 shouldAutoArchive() const;
 	INLINE void shouldAutoArchive(int8 v);
 	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoArchive, pySetShouldAutoArchive);
 
 	/**
 		设置获取是否自动备份
 	*/
-	INLINE int8 shouldAutoBackup()const;
+	INLINE int8 shouldAutoBackup() const;
 	INLINE void shouldAutoBackup(int8 v);
 	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoBackup, pySetShouldAutoBackup);
 

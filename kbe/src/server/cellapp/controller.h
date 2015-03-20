@@ -52,9 +52,9 @@ public:
 	uint32 id(){ return id_; }
 	void id(uint32 v){ id_ = v; }
 	
-	int32 userarg()const{ return userarg_; }
+	int32 userarg() const{ return userarg_; }
 	
-	Entity* pEntity()const{ return pEntity_; }
+	Entity* pEntity() const{ return pEntity_; }
 	
 	void pControllers(Controllers* v){ pControllers_ = v; }
 

@@ -54,7 +54,7 @@ public:
 
 	virtual void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 
-	uint64 initTime()const{ return initTime_; }
+	uint64 initTime() const{ return initTime_; }
 protected:
 	DBInterface* pdbi_;
 	uint64 initTime_;

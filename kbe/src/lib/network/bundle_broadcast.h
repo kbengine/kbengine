@@ -53,7 +53,7 @@ public:
 
 	void close();
 
-	bool good()const { return epListen_.good() && good_; }
+	bool good() const { return epListen_.good() && good_; }
 
 	void itry(int8 i){ itry_ = i; }
 protected:

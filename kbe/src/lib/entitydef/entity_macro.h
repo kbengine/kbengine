@@ -287,7 +287,7 @@ protected:																									\
 	bool isDestroyed_;																						\
 	bool initing_;																							\
 public:																										\
-	bool initing()const{ return initing_; }																	\
+	bool initing() const{ return initing_; }																	\
 																											\
 	void initializeScript()																					\
 	{																										\
@@ -516,7 +516,7 @@ public:																										\
 		return PyLong_FromLong(self->id());																	\
 	}																										\
 																											\
-	INLINE ENTITY_ID id()const																				\
+	INLINE ENTITY_ID id() const																				\
 	{																										\
 		return id_;																							\
 	}																										\
@@ -526,7 +526,7 @@ public:																										\
 		id_ = v; 																							\
 	}																										\
 																											\
-	INLINE SPACE_ID spaceID()const																			\
+	INLINE SPACE_ID spaceID() const																			\
 	{																										\
 		return spaceID_;																					\
 	}																										\
@@ -539,7 +539,7 @@ public:																										\
 		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* scriptModule(void)const															\
+	INLINE ScriptDefModule* scriptModule(void) const															\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
@@ -734,7 +734,7 @@ public:																										\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\
-	INLINE bool isDestroyed()const																			\
+	INLINE bool isDestroyed() const																			\
 	{																										\
 		return isDestroyed_;																				\
 	}																										\

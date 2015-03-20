@@ -86,19 +86,19 @@ INLINE void RangeTriggerNode::old_range(float xz, float y)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTriggerNode::range_xz()const
+INLINE float RangeTriggerNode::range_xz() const
 {
 	return range_xz_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float RangeTriggerNode::range_y()const
+INLINE float RangeTriggerNode::range_y() const
 {
 	return range_y_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger()const
+INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger() const
 {
 	return pRangeTrigger_;
 }

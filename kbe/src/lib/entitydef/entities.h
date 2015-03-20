@@ -88,7 +88,7 @@ public:
 
 	T* find(ENTITY_ID id);
 
-	size_t size()const { return _entities.size(); }
+	size_t size() const { return _entities.size(); }
 
 	EntityGarbages<T>* pGetbages(){ return _pGarbages; }
 	DECLARE_PY_GET_MOTHOD(pyGarbages);

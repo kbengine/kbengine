@@ -74,6 +74,7 @@ public:
 	void push(COMPONENT_ID componentID, ForwardItem* pHandler);
 	
 	bool process();
+
 private:
 	Network::NetworkInterface & networkInterface_;
 	bool start_;
@@ -99,6 +100,7 @@ public:
 	void push(ForwardItem* pHandler);
 	
 	bool process();
+
 private:
 	Network::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE forwardComponentType_;

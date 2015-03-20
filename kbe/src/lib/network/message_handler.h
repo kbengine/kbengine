@@ -84,18 +84,18 @@ public:
 	volatile mutable uint32 recv_size;
 	volatile mutable uint32 recv_count;
 
-	uint32 sendsize()const  { return send_size; }
-	uint32 sendcount()const  { return send_count; }
-	uint32 sendavgsize()const  { return (send_count <= 0) ? 0 : send_size / send_count; }
+	uint32 sendsize() const  { return send_size; }
+	uint32 sendcount() const  { return send_count; }
+	uint32 sendavgsize() const  { return (send_count <= 0) ? 0 : send_size / send_count; }
 
-	uint32 recvsize()const  { return recv_size; }
-	uint32 recvcount()const  { return recv_count; }
-	uint32 recvavgsize()const  { return (recv_count <= 0) ? 0 : recv_size / recv_count; }
+	uint32 recvsize() const  { return recv_size; }
+	uint32 recvcount() const  { return recv_count; }
+	uint32 recvavgsize() const  { return (recv_count <= 0) ? 0 : recv_size / recv_count; }
 
 	/**
 		默认返回类别为组件消息
 	*/
-	virtual NETWORK_MESSAGE_TYPE type()const
+	virtual NETWORK_MESSAGE_TYPE type() const
 	{ 
 		return NETWORK_MESSAGE_TYPE_COMPONENT; 
 	}

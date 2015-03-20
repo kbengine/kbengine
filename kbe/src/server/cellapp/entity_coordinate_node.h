@@ -38,13 +38,13 @@ public:
 		(扩展坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
-	virtual float xx()const;
-	virtual float yy()const;
-	virtual float zz()const;
+	virtual float xx() const;
+	virtual float yy() const;
+	virtual float zz() const;
 
 	virtual void update();
 
-	Entity* pEntity()const { return pEntity_; }
+	Entity* pEntity() const { return pEntity_; }
 	void pEntity(Entity* pEntity) { pEntity_ = pEntity; }
 
 	bool addWatcherNode(CoordinateNode* pNode);

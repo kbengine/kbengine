@@ -59,7 +59,7 @@ void RangeTriggerNode::onParentRemove(CoordinateNode* pParentNode)
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::xx()const 
+float RangeTriggerNode::xx() const 
 {
 	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
@@ -68,7 +68,7 @@ float RangeTriggerNode::xx()const
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::yy()const 
+float RangeTriggerNode::yy() const 
 {
 	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
@@ -77,7 +77,7 @@ float RangeTriggerNode::yy()const
 }
 
 //-------------------------------------------------------------------------------------
-float RangeTriggerNode::zz()const 
+float RangeTriggerNode::zz() const 
 {
 	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
 		return -FLT_MAX;

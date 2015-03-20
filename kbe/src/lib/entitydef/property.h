@@ -63,54 +63,54 @@ public:
 	/** 
 		获取这个属性的detailLevel 
 	*/
-	INLINE int8 getDetailLevel(void)const;
+	INLINE int8 getDetailLevel(void) const;
 	
 	/** 
 		是否是一个保存到数据库中的属性 
 	*/
-	INLINE bool isPersistent(void)const;
+	INLINE bool isPersistent(void) const;
 	
 	/** 
 		获取这个属性的数据类别 
 	*/
-	INLINE DataType* getDataType(void)const;
+	INLINE DataType* getDataType(void) const;
 	
 	/** 
 		获取属性的标志 cell_public等 
 	*/
-	INLINE uint32 getFlags(void)const;
+	INLINE uint32 getFlags(void) const;
 	
 	/** 
 		获取属性名称 
 	*/
-	INLINE const char* getName(void)const;
+	INLINE const char* getName(void) const;
 	
 	/** 
 		获取字符串数据类别名 UINT32, BAG..
 	*/
-	INLINE const char* getDataTypeName(void)const;
+	INLINE const char* getDataTypeName(void) const;
 	
 	/** 
 		获取初始值字符串
 	*/
-	INLINE const char* getDefaultValStr(void)const;
+	INLINE const char* getDefaultValStr(void) const;
 
 	/** 
 		属性的数字类别， 用于网络上传输识别 
 	*/
-	INLINE ENTITY_PROPERTY_UID getUType(void)const;
+	INLINE ENTITY_PROPERTY_UID getUType(void) const;
 	
 	/** 
 		获取属性索引类别
 	*/
-	INLINE const char* indexType(void)const;
+	INLINE const char* indexType(void) const;
 
 	/** 
 		别名id， 当暴露的方法或者广播的属性总个数小于255时
 		我们不使用utype而使用1字节的aliasID来传输
 	*/
-	INLINE int16 aliasID()const;
-	INLINE uint8 aliasIDAsUint8()const;
+	INLINE int16 aliasID() const;
+	INLINE uint8 aliasIDAsUint8() const;
 	INLINE void aliasID(int16 v);
 
 	/** 
@@ -122,7 +122,7 @@ public:
 		设置这个属性在数据库中的长度 
 	*/
 	INLINE void setDatabaseLength(uint32 databaseLength);
-	INLINE uint32 getDatabaseLength()const;
+	INLINE uint32 getDatabaseLength() const;
 
 	/** 
 		获取这个属性描述在def文件中被定义的默认值 
@@ -161,9 +161,9 @@ public:
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
-	INLINE bool hasCell(void)const;
-	INLINE bool hasBase(void)const;
-	INLINE bool hasClient(void)const;
+	INLINE bool hasCell(void) const;
+	INLINE bool hasBase(void) const;
+	INLINE bool hasClient(void) const;
 protected:	
 	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 	std::string					name_;											// 这个属性的名称

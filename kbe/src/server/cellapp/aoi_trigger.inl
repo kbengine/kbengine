@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE Witness* AOITrigger::pWitness()const
+INLINE Witness* AOITrigger::pWitness() const
 {
 	return pWitness_;
 }

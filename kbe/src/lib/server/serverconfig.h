@@ -238,19 +238,19 @@ public:
  	
 	void updateExternalAddress(char* buf);
 
-	INLINE int16 gameUpdateHertz(void)const;
-	INLINE Network::Address interfacesAddr(void)const;
+	INLINE int16 gameUpdateHertz(void) const;
+	INLINE Network::Address interfacesAddr(void) const;
 	
-	INLINE const char* interfacesAccountType()const;
-	INLINE const char* interfacesChargeType()const;
+	INLINE const char* interfacesAccountType() const;
+	INLINE const char* interfacesChargeType() const;
 
-	INLINE const char* interfacesThirdpartyAccountServiceAddr()const;
-	INLINE uint16 interfacesThirdpartyAccountServicePort()const;
+	INLINE const char* interfacesThirdpartyAccountServiceAddr() const;
+	INLINE uint16 interfacesThirdpartyAccountServicePort() const;
 
-	INLINE const char* interfacesThirdpartyChargeServiceAddr()const;
-	INLINE uint16 interfacesThirdpartyChargeServicePort()const;
+	INLINE const char* interfacesThirdpartyChargeServiceAddr() const;
+	INLINE uint16 interfacesThirdpartyChargeServicePort() const;
 
-	INLINE uint16 interfacesThirdpartyServiceCBPort()const;
+	INLINE uint16 interfacesThirdpartyServiceCBPort() const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -259,8 +259,8 @@ public:
 	float shutdowntime(){ return shutdown_time_; }
 	float shutdownWaitTickTime(){ return shutdown_waitTickTime_; }
 
-	uint32 tickMaxBufferedLogs()const { return tick_max_buffered_logs_; }
-	uint32 tickMaxSyncLogs()const { return tick_max_sync_logs_; }
+	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
+	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 private:
 	void _updateEmailInfos();
 
@@ -275,6 +275,7 @@ private:
 	ENGINE_COMPONENT_INFO _botsInfo;
 	ENGINE_COMPONENT_INFO _loggerInfo;
 	ENGINE_COMPONENT_INFO _interfacesInfo;
+
 public:
 	int16 gameUpdateHertz_;
 	uint32 tick_max_buffered_logs_;

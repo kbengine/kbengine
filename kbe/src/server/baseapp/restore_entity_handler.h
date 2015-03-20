@@ -57,10 +57,10 @@ public:
 	/** 
 		是否允许进行恢复
 	*/
-	bool canRestore()const{ return canRestore_; }
+	bool canRestore() const{ return canRestore_; }
 	void canRestore(bool v){ canRestore_ = v; }
 
-	COMPONENT_ID cellappID()const{ return cellappID_; }
+	COMPONENT_ID cellappID() const{ return cellappID_; }
 private:
 	Network::NetworkInterface & networkInterface_;
 	std::vector<RestoreData> entities_;

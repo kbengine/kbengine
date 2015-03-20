@@ -224,7 +224,7 @@ public:
 	void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
 		std::string& password, std::string& newpassword);
 	
-	SyncAppDatasHandler* pSyncAppDatasHandler()const { return pSyncAppDatasHandler_; }
+	SyncAppDatasHandler* pSyncAppDatasHandler() const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 
 protected:

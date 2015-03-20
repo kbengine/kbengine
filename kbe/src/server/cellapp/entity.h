@@ -90,23 +90,23 @@ public:
 	/** 
 		判断自身是否是一个realEntity 
 	*/
-	INLINE bool isReal(void)const;
+	INLINE bool isReal(void) const;
 
 	/** 
 		判断自身是否有ghostEntity 
 	*/
-	INLINE bool hasGhost(void)const;
+	INLINE bool hasGhost(void) const;
 
 	/** 
 		判断自身是否是一个realEntity 
 	*/
-	INLINE COMPONENT_ID realCell(void)const;
+	INLINE COMPONENT_ID realCell(void) const;
 	INLINE void realCell(COMPONENT_ID cellID);
 
 	/** 
 		判断自身是否有ghostEntity 
 	*/
-	INLINE COMPONENT_ID ghostCell(void)const;
+	INLINE COMPONENT_ID ghostCell(void) const;
 	INLINE void ghostCell(COMPONENT_ID cellID);
 
 	/** 
@@ -119,30 +119,30 @@ public:
 		该entity通信通道
 	*/
 	INLINE void pChannel(Network::Channel* pchannel);
-	INLINE Network::Channel* pChannel(void)const ;
+	INLINE Network::Channel* pChannel(void) const ;
 public:
 	/** 
 		mailbox section
 	*/
-	INLINE EntityMailbox* baseMailbox()const;
+	INLINE EntityMailbox* baseMailbox() const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
 	INLINE void baseMailbox(EntityMailbox* mailbox);
 	
-	INLINE EntityMailbox* clientMailbox()const;
+	INLINE EntityMailbox* clientMailbox() const;
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
 	INLINE void clientMailbox(EntityMailbox* mailbox);
 
 	/**
 		all_clients
 	*/
-	INLINE AllClients* allClients()const;
+	INLINE AllClients* allClients() const;
 	DECLARE_PY_GET_MOTHOD(pyGetAllClients);
 	INLINE void allClients(AllClients* clients);
 
 	/**
 		other_clients
 	*/
-	INLINE AllClients* otherClients()const;
+	INLINE AllClients* otherClients() const;
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
 	INLINE void otherClients(AllClients* clients);
 
@@ -165,7 +165,7 @@ public:
 		是否在地面上
 	*/
 	INLINE void isOnGround(bool v);
-	INLINE bool isOnGround()const;
+	INLINE bool isOnGround() const;
 	DECLARE_PY_GET_MOTHOD(pyGetIsOnGround);
 
 	/** 
@@ -261,8 +261,8 @@ public:
 		当前entity设置自身的Aoi半径范围 
 	*/
 	int32 setAoiRadius(float radius, float hyst);
-	float getAoiRadius(void)const;
-	float getAoiHystArea(void)const;
+	float getAoiRadius(void) const;
+	float getAoiHystArea(void) const;
 	DECLARE_PY_MOTHOD_ARG2(pySetAoiRadius, float, float);
 	
 	/** 
@@ -283,7 +283,7 @@ public:
 	/** 
 		脚本获取和设置entity的position 
 	*/
-	INLINE int8 layer()const;
+	INLINE int8 layer() const;
 	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
 
 	/** 
@@ -323,14 +323,14 @@ public:
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/
-	float topSpeed()const{ return topSpeed_; }
+	float topSpeed() const{ return topSpeed_; }
 	INLINE void topSpeed(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeed, pySetTopSpeed);
 	
 	/** 
 		脚本获取和设置entity的最高y移动速度 
 	*/
-	INLINE float topSpeedY()const;
+	INLINE float topSpeedY() const;
 	INLINE void topSpeedY(float speed);
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeedY, pySetTopSpeedY);
 	
@@ -347,7 +347,7 @@ public:
 	/**
 		设置获取是否自动备份
 	*/
-	INLINE int8 shouldAutoBackup()const;
+	INLINE int8 shouldAutoBackup() const;
 	INLINE void shouldAutoBackup(int8 v);
 	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoBackup, pySetShouldAutoBackup);
 
@@ -361,19 +361,19 @@ public:
 	/**
 		观察者
 	*/
-	INLINE Witness* pWitness()const;
+	INLINE Witness* pWitness() const;
 	INLINE void pWitness(Witness* w);
 
 	/** 
 		是否被任何proxy监视到, 如果这个entity没有客户端， 则这个值有效 
 	*/
-	INLINE bool isWitnessed(void)const;
+	INLINE bool isWitnessed(void) const;
 	DECLARE_PY_GET_MOTHOD(pyIsWitnessed);
 
 	/** 
 		entity是否是一个观察者 
 	*/
-	INLINE bool hasWitness(void)const;
+	INLINE bool hasWitness(void) const;
 	DECLARE_PY_GET_MOTHOD(pyHasWitness);
 
 	/** 
@@ -388,7 +388,7 @@ public:
 	void onDelWitnessed();
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
-	INLINE size_t witnessesSize()const;
+	INLINE size_t witnessesSize() const;
 
 	/** 网络接口
 		entity绑定了一个观察者(客户端)
@@ -479,13 +479,13 @@ public:
 	/**
 		获取自身在space的entities中的位置
 	*/
-	INLINE SPACE_ENTITIES::size_type spaceEntityIdx()const;
+	INLINE SPACE_ENTITIES::size_type spaceEntityIdx() const;
 	INLINE void spaceEntityIdx(SPACE_ENTITIES::size_type idx);
 
 	/**
 		获取entity所在节点
 	*/
-	INLINE EntityCoordinateNode* pEntityCoordinateNode()const;
+	INLINE EntityCoordinateNode* pEntityCoordinateNode() const;
 	INLINE void pEntityCoordinateNode(EntityCoordinateNode* pNode);
 
 	/**
@@ -497,8 +497,8 @@ public:
 	/**
 		获取entity位置朝向在某时间是否改变过
 	*/
-	INLINE GAME_TIME posChangedTime()const;
-	INLINE GAME_TIME dirChangedTime()const;
+	INLINE GAME_TIME posChangedTime() const;
+	INLINE GAME_TIME dirChangedTime() const;
 
 	/** 
 		real请求更新属性到ghost
@@ -543,7 +543,7 @@ public:
 	/** 
 		获得实体控制器管理器
 	*/
-	INLINE Controllers*	pControllers()const;
+	INLINE Controllers*	pControllers() const;
 private:
 	/** 
 		发送teleport结果到base端

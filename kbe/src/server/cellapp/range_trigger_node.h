@@ -36,19 +36,19 @@ public:
 
 	INLINE void range(float xz, float y);
 	INLINE void old_range(float xz, float y);
-	INLINE float range_xz()const;
-	INLINE float range_y()const;
+	INLINE float range_xz() const;
+	INLINE float range_y() const;
 
-	INLINE RangeTrigger* pRangeTrigger()const;
+	INLINE RangeTrigger* pRangeTrigger() const;
 	INLINE void pRangeTrigger(RangeTrigger* pRangeTrigger);
 
 	/**
 		(扩展坐标)
 		x && z由不同的应用实现(从不同处获取)
 	*/
-	virtual float xx()const;
-	virtual float yy()const;
-	virtual float zz()const;
+	virtual float xx() const;
+	virtual float yy() const;
+	virtual float zz() const;
 
 	INLINE bool isInXRange(CoordinateNode * pNode);
 	INLINE bool isInYRange(CoordinateNode * pNode);

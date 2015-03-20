@@ -122,17 +122,17 @@ public:
 
 	void clearBundle();
 
-	bool sending()const { return sending_;}
+	bool sending() const { return sending_;}
 	void stopSend();
 
 	void send(Bundle * pBundle = NULL);
 	void delayedSend();
 
 
-	INLINE PacketReader* pPacketReader()const;
-	INLINE PacketSender* pPacketSender()const;
+	INLINE PacketReader* pPacketReader() const;
+	INLINE PacketSender* pPacketSender() const;
 	INLINE void pPacketSender(PacketSender* pPacketSender);
-	INLINE PacketReceiver* pPacketReceiver()const;
+	INLINE PacketReceiver* pPacketReceiver() const;
 
 	Traits traits() const { return traits_; }
 	bool isExternal() const { return traits_ == EXTERNAL; }
@@ -150,7 +150,7 @@ public:
 	uint32	numBytesSent() const		{ return numBytesSent_; }
 	uint32	numBytesReceived() const	{ return numBytesReceived_; }
 		
-	uint64 lastReceivedTime()const		{ return lastReceivedTime_; }
+	uint64 lastReceivedTime() const		{ return lastReceivedTime_; }
 	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
 		
 	void addReceiveWindow(Packet* pPacket);
@@ -159,21 +159,21 @@ public:
 		
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
-	bool isCondemn()const { return isCondemn_; }
+	bool isCondemn() const { return isCondemn_; }
 	void condemn();
 
-	ENTITY_ID proxyID()const { return proxyID_; }
+	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
-	const std::string& extra()const { return strextra_; }
+	const std::string& extra() const { return strextra_; }
 	void extra(const std::string& s){ strextra_ = s; }
 
-	COMPONENT_ID componentID()const{ return componentID_; }
+	COMPONENT_ID componentID() const{ return componentID_; }
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
 	virtual void handshake();
 
-	KBEngine::Network::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
+	KBEngine::Network::MessageHandlers* pMsgHandlers() const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
 
 	bool waitSend();

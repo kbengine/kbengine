@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine {
 namespace script{
 
-INLINE int Sequence::length(void)const
+INLINE int Sequence::length(void) const
 { 
 	return values_.size(); 
 }

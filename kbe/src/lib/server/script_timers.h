@@ -55,9 +55,9 @@ public:
 	ScriptTimers::Map& map(){ return map_; }
 
 	void directAddTimer(ScriptID tid, TimerHandle handle);
+
 private:
 	
-
 	ScriptID getNewID();
 	Map::const_iterator findTimer(TimerHandle handle) const;
 	Map::iterator findTimer(TimerHandle handle);

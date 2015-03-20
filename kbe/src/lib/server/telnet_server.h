@@ -50,17 +50,18 @@ public:
 
 	void onTelnetHandlerClosed(int fd, TelnetHandler* pTelnetHandler);
 
-	INLINE script::Script* pScript()const;
+	INLINE script::Script* pScript() const;
 	INLINE void pScript(script::Script* p);
 
 	INLINE std::string passwd();
 	INLINE int deflayer();
 
-	INLINE Network::NetworkInterface* pNetworkInterface()const;
+	INLINE Network::NetworkInterface* pNetworkInterface() const;
 
 	void closeHandler(int fd, TelnetHandler* pTelnetHandler);
 
 	INLINE uint32 port();
+
 private:
 	int	handleInputNotification(int fd);
 

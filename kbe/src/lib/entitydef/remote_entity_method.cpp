@@ -53,7 +53,7 @@ RemoteEntityMethod::~RemoteEntityMethod()
 }
 
 //-------------------------------------------------------------------------------------
-const char* RemoteEntityMethod::getName(void)const
+const char* RemoteEntityMethod::getName(void) const
 { 
 	return methodDescription_->getName(); 
 };

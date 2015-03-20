@@ -84,9 +84,9 @@ public:
 	INLINE void setBase(bool have);
 	INLINE void setClient(bool have);
 
-	INLINE bool hasCell(void)const;
-	INLINE bool hasBase(void)const;
-	INLINE bool hasClient(void)const;
+	INLINE bool hasCell(void) const;
+	INLINE bool hasBase(void) const;
+	INLINE bool hasClient(void) const;
 
 	PropertyDescription* findCellPropertyDescription(const char* attrName);
 	PropertyDescription* findBasePropertyDescription(const char* attrName);
@@ -146,12 +146,12 @@ public:
 
 	void autoMatchCompOwn();
 
-	INLINE bool isPersistent()const;
+	INLINE bool isPersistent() const;
 
 	void c_str();
 
-	INLINE bool usePropertyDescrAlias()const;
-	INLINE bool	useMethodDescrAlias()const;
+	INLINE bool usePropertyDescrAlias() const;
+	INLINE bool	useMethodDescrAlias() const;
 protected:
 	// ½Å±¾Àà±ð
 	PyTypeObject*						scriptType_;	

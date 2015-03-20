@@ -333,7 +333,7 @@ NavigationHandle* NavTileHandle::create(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool NavTileHandle::validTile(int x, int y)const
+bool NavTileHandle::validTile(int x, int y) const
 {
 	if( x < 0 ||
 	    x >= pTilemap->GetWidth() ||

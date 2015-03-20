@@ -22,50 +22,50 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isClient()const
+INLINE bool EntityMailboxAbstract::isClient() const
 {
 	return type_ == MAILBOX_TYPE_CLIENT || type_ == MAILBOX_TYPE_CLIENT_VIA_CELL
 		|| type_ == MAILBOX_TYPE_CLIENT_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isCell()const
+INLINE bool EntityMailboxAbstract::isCell() const
 {
 	return type_ == MAILBOX_TYPE_CELL || type_ == MAILBOX_TYPE_CELL_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isCellReal()const
+INLINE bool EntityMailboxAbstract::isCellReal() const
 {
 	return type_ == MAILBOX_TYPE_CELL;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isBase()const
+INLINE bool EntityMailboxAbstract::isBase() const
 {
 	return type_ == MAILBOX_TYPE_BASE || type_ == MAILBOX_TYPE_BASE_VIA_CELL;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isBaseReal()const
+INLINE bool EntityMailboxAbstract::isBaseReal() const
 {
 	return type_ == MAILBOX_TYPE_BASE;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isCellViaBase()const
+INLINE bool EntityMailboxAbstract::isCellViaBase() const
 {
 	return type_ == MAILBOX_TYPE_CELL_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool EntityMailboxAbstract::isBaseViaCell()const
+INLINE bool EntityMailboxAbstract::isBaseViaCell() const
 {
 	return type_ == MAILBOX_TYPE_BASE_VIA_CELL;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_ID EntityMailboxAbstract::id()const{ 
+INLINE ENTITY_ID EntityMailboxAbstract::id() const{ 
 	return id_; 
 }
 
@@ -75,7 +75,7 @@ INLINE void EntityMailboxAbstract::id(int v){
 }
 
 //-------------------------------------------------------------------------------------
-INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void)const{ 
+INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void) const{ 
 	return componentID_; 
 }
 
@@ -86,12 +86,12 @@ void EntityMailboxAbstract::componentID(COMPONENT_ID cid)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::utype(void)const{ 
+INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::utype(void) const{ 
 	return utype_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::type(void)const{
+INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::type(void) const{
 	return type_; 
 }
 	

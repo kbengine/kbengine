@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-INLINE DATATYPE_UID DataType::id()const 
+INLINE DATATYPE_UID DataType::id() const 
 { 
 	return id_; 
 }
@@ -31,7 +31,7 @@ INLINE void DataType::aliasName(std::string aliasName)
 	aliasName_ = aliasName; 
 }
 
-INLINE const char* DataType::aliasName(void)const
+INLINE const char* DataType::aliasName(void) const
 { 
 	return aliasName_.c_str(); 
 }

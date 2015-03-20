@@ -147,8 +147,8 @@ public:
 	void pNetworkInterface(Network::NetworkInterface* networkInterface);
 	void pDispatcher(Network::EventDispatcher* dispatcher);
 	
-	Network::EventDispatcher* pDispatcher()const{ return pDispatcher_; }
-	Network::NetworkInterface* pNetworkInterface()const{ return pNetworkInterface_; }
+	Network::EventDispatcher* pDispatcher() const{ return pDispatcher_; }
+	Network::NetworkInterface* pNetworkInterface() const{ return pNetworkInterface_; }
 
 	void print_msg(const std::string& s);
 	void debug_msg(const std::string& s);
@@ -183,7 +183,7 @@ public:
 	*/
 	void sync();
 
-	size_t hasBufferedLogPackets()const{ return hasBufferedLogPackets_; }
+	size_t hasBufferedLogPackets() const{ return hasBufferedLogPackets_; }
 
 	Network::Channel* pLoggerChannel();
 

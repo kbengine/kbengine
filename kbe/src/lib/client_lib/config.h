@@ -42,22 +42,22 @@ public:
 	
 	bool loadConfig(std::string fileName);
 	
-	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
+	inline int16 gameUpdateHertz(void) const { return gameUpdateHertz_;}
 
 	uint32 tcp_SOMAXCONN();
 
-	const char* entryScriptFile()const{ return &entryScriptFile_[0]; }
+	const char* entryScriptFile() const{ return &entryScriptFile_[0]; }
 
-	const char* accountName()const{ return &accountName_[0]; }
+	const char* accountName() const{ return &accountName_[0]; }
 
-	const char* ip()const{ return &ip_[0]; }
-	uint32 port()const{ return port_; }
+	const char* ip() const{ return &ip_[0]; }
+	uint32 port() const{ return port_; }
 
 	void writeAccountName(const char* name);
 
-	bool useLastAccountName()const{ return useLastAccountName_; }
+	bool useLastAccountName() const{ return useLastAccountName_; }
 
-	int8 encryptLogin()const { return encrypt_login_; }
+	int8 encryptLogin() const { return encrypt_login_; }
 public:
 	int16 gameUpdateHertz_;
 

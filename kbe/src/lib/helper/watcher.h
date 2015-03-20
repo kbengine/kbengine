@@ -74,7 +74,7 @@ public:
 	const char* name(){ return name_.c_str(); }
 
 	template <class T>
-	WATCHER_VALUE_TYPE type()const{ return WATCHER_VALUE_TYPE_UNKNOWN; }
+	WATCHER_VALUE_TYPE type() const{ return WATCHER_VALUE_TYPE_UNKNOWN; }
 
 	template <class T>
 	void updateStream(MemoryStream* s){
@@ -86,9 +86,9 @@ public:
 	void addWitness(){ numWitness_++; }
 	void delWitness(){ numWitness_--; }
 
-	int32 numWitness()const{ return numWitness_; }
+	int32 numWitness() const{ return numWitness_; }
 
-	const char* str()const{ return strval_.c_str(); }
+	const char* str() const{ return strval_.c_str(); }
 	
 	const char* getValue(){ return strval_.c_str(); }
 
@@ -100,103 +100,103 @@ protected:
 };
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<uint8>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint8>() const
 {
 	return WATCHER_VALUE_TYPE_UINT8;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<uint16>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint16>() const
 {
 	return WATCHER_VALUE_TYPE_UINT16;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<uint32>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint32>() const
 {
 	return WATCHER_VALUE_TYPE_UINT32;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<uint64>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<uint64>() const
 {
 	return WATCHER_VALUE_TYPE_UINT64;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<int8>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int8>() const
 {
 	return WATCHER_VALUE_TYPE_INT8;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<int16>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int16>() const
 {
 	return WATCHER_VALUE_TYPE_INT16;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<int32>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int32>() const
 {
 	return WATCHER_VALUE_TYPE_INT32;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<int64>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<int64>() const
 {
 	return WATCHER_VALUE_TYPE_INT64;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<float>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<float>() const
 {
 	return WATCHER_VALUE_TYPE_FLOAT;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<double>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<double>() const
 {
 	return WATCHER_VALUE_TYPE_DOUBLE;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<bool>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<bool>() const
 {
 	return WATCHER_VALUE_TYPE_BOOL;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<char*>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<char*>() const
 {
 	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<const char*>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<const char*>() const
 {
 	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<std::string>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<std::string>() const
 {
 	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<std::string&>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<std::string&>() const
 {
 	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<const std::string&>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<const std::string&>() const
 {
 	return WATCHER_VALUE_TYPE_STRING;
 }
 
 template <>
-inline WATCHER_VALUE_TYPE WatcherObject::type<COMPONENT_TYPE>()const
+inline WATCHER_VALUE_TYPE WatcherObject::type<COMPONENT_TYPE>() const
 {
 	return WATCHER_VALUE_TYPE_COMPONENT_TYPE;
 }
@@ -344,9 +344,9 @@ template <class RETURN_TYPE, class OBJ_TYPE>
 class WatcherMethodConst : public WatcherObject
 {
 public:
-	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)()const;
+	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)() const;
 
-	WatcherMethodConst(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)()const):
+	WatcherMethodConst(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)() const):
 	WatcherObject(path),
 	func_(func),
 	obj_(obj)
@@ -494,7 +494,7 @@ inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (O
 };
 
 template <class RETURN_TYPE, class OBJ_TYPE> 
-inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)()const)
+inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (OBJ_TYPE::*func)() const)
 {
 	path = std::string("root/") + path;
 	WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(path, obj, func);

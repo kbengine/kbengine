@@ -35,19 +35,19 @@ public:
 	Cellapp();
 	virtual ~Cellapp();
 	
-	ENTITY_ID numEntitis()const { return numEntities_; }
+	ENTITY_ID numEntitis() const { return numEntities_; }
 	void numEntitis(ENTITY_ID num) { numEntities_ = num; }
 	
-	float load()const { return load_; }
+	float load() const { return load_; }
 	void load(float v) { load_ = v; }
 	
 	void destroy(){ isDestroyed_ = true; }
-	bool isDestroyed()const { return isDestroyed_; }
+	bool isDestroyed() const { return isDestroyed_; }
 
-	float initProgress()const{ return initProgress_; }
+	float initProgress() const{ return initProgress_; }
 	void initProgress(float v){ initProgress_ = v; }
 
-	ENTITY_ID numEntities()const { return numEntities_; }
+	ENTITY_ID numEntities() const { return numEntities_; }
 	void numEntities(ENTITY_ID num) { numEntities_ = num; }
 
 protected:

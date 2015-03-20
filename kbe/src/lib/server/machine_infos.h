@@ -35,6 +35,7 @@ public:
 	const uint64 memTotal() const { return memTotal_; }
 	const uint64 memUsed() const { return memUsed_; }
 	void updateMem();
+
 private:
 
 #if KBE_PLATFORM != PLATFORM_WIN32

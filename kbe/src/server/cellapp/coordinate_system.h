@@ -60,13 +60,13 @@ public:
 	void moveNodeY(CoordinateNode* pNode, float py, CoordinateNode* pCurrNode);
 	void moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode* pCurrNode);
 
-	INLINE CoordinateNode * pFirstXNode()const;
-	INLINE CoordinateNode * pFirstYNode()const;
-	INLINE CoordinateNode * pFirstZNode()const;
+	INLINE CoordinateNode * pFirstXNode() const;
+	INLINE CoordinateNode * pFirstYNode() const;
+	INLINE CoordinateNode * pFirstZNode() const;
 
-	INLINE bool isEmpty()const;
+	INLINE bool isEmpty() const;
 
-	INLINE uint32 size()const;
+	INLINE uint32 size() const;
 
 	static bool hasY;
 private:

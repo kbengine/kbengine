@@ -124,6 +124,7 @@ public:
 		将某个经过check检查过的python对象转换为vector2 
 	*/
 	static void convertPyObjectToVector2(Vector2& v, PyObject* obj);
+
 private:
 	Vector2*			val_;
 	bool				isCopy_;

@@ -45,7 +45,7 @@ public:
 
 	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
 
-	virtual std::string name()const{ return "DBThreadPool"; }
+	virtual std::string name() const{ return "DBThreadPool"; }
 protected:
 
 };

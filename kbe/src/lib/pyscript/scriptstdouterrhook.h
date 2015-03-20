@@ -39,6 +39,7 @@ public:
 	INLINE void setHookBuffer(std::string* buffer);
 
 	INLINE void setPrint(bool v);
+
 protected:
 	std::string* buffer_;
 	std::wstring wbuffer_;

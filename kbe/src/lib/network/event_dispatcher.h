@@ -50,8 +50,8 @@ public:
 	int  processOnce(bool shouldIdle = false);
 	void processUntilBreak();
 
-	INLINE bool hasBreakProcessing()const;
-	INLINE bool waitingBreakProcessing()const;
+	INLINE bool hasBreakProcessing() const;
+	INLINE bool waitingBreakProcessing() const;
 
 	void breakProcessing(bool breakState = true);
 	INLINE void setWaitBreakProcessing();

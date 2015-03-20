@@ -89,14 +89,14 @@ public:
 
 	virtual PyObject* parseDefaultStr(std::string defaultVal) = 0;
 
-	virtual const char* getName(void)const = 0;
+	virtual const char* getName(void) const = 0;
 
-	INLINE DATATYPE_UID id()const;
+	INLINE DATATYPE_UID id() const;
 
 	INLINE void aliasName(std::string aliasName);
-	INLINE const char* aliasName(void)const;
+	INLINE const char* aliasName(void) const;
 
-	virtual DATATYPE type()const{ return DATA_TYPE_UNKONWN; }
+	virtual DATATYPE type() const{ return DATA_TYPE_UNKONWN; }
 protected:
 	DATATYPE_UID id_;
 	std::string aliasName_;
@@ -114,48 +114,48 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* parseDefaultStr(std::string defaultVal);
-	const char* getName(void)const{ return "INT";}
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	const char* getName(void) const{ return "INT";}
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<uint8>::getName(void)const
+inline const char* IntType<uint8>::getName(void) const
 {
         return "UINT8";
 }
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<uint16>::getName(void)const
+inline const char* IntType<uint16>::getName(void) const
 {
         return "UINT16";
 }
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<uint32>::getName(void)const
+inline const char* IntType<uint32>::getName(void) const
 {
         return "UINT32";
 }
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<int8>::getName(void)const
+inline const char* IntType<int8>::getName(void) const
 {
         return "INT8";
 }
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<int16>::getName(void)const
+inline const char* IntType<int16>::getName(void) const
 {
         return "INT16";
 }
 
 //-------------------------------------------------------------------------------------
 template <>
-inline const char* IntType<int32>::getName(void)const
+inline const char* IntType<int32>::getName(void) const
 {
         return "INT32";
 }
@@ -351,9 +351,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "UINT64";}
+	const char* getName(void) const{ return "UINT64";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 class UInt32Type : public DataType
@@ -371,9 +371,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "UINT32";}
+	const char* getName(void) const{ return "UINT32";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 class Int64Type : public DataType
@@ -391,9 +391,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "INT64";}
+	const char* getName(void) const{ return "INT64";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 class FloatType : public DataType
@@ -411,9 +411,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "FLOAT";}
+	const char* getName(void) const{ return "FLOAT";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 class DoubleType : public DataType
@@ -431,9 +431,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "DOUBLE";}
+	const char* getName(void) const{ return "DOUBLE";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
 class VectorType : public DataType
@@ -450,9 +450,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return name_.c_str();}
+	const char* getName(void) const{ return name_.c_str();}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_VECTOR; }
+	virtual DATATYPE type() const{ return DATA_TYPE_VECTOR; }
 protected:
 	std::string name_;
 	ArraySize elemCount_;
@@ -473,9 +473,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "STRING";}
+	const char* getName(void) const{ return "STRING";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_STRING; }
+	virtual DATATYPE type() const{ return DATA_TYPE_STRING; }
 };
 
 class UnicodeType : public DataType
@@ -493,9 +493,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "UNICODE";}
+	const char* getName(void) const{ return "UNICODE";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_UNICODE; }
+	virtual DATATYPE type() const{ return DATA_TYPE_UNICODE; }
 };
 
 class PythonType : public DataType
@@ -512,9 +512,9 @@ public:
 
 	virtual PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "PYTHON";}
+	const char* getName(void) const{ return "PYTHON";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_PYTHON; }
+	virtual DATATYPE type() const{ return DATA_TYPE_PYTHON; }
 };
 
 class PyDictType : public PythonType
@@ -528,9 +528,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "PY_DICT";}
+	const char* getName(void) const{ return "PY_DICT";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_PYDICT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_PYDICT; }
 };
 
 class PyTupleType : public PythonType
@@ -544,9 +544,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "PY_TUPLE";}
+	const char* getName(void) const{ return "PY_TUPLE";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_PYTUPLE; }
+	virtual DATATYPE type() const{ return DATA_TYPE_PYTUPLE; }
 };
 
 class PyListType : public PythonType
@@ -560,9 +560,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "PY_LIST";}
+	const char* getName(void) const{ return "PY_LIST";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_PYLIST; }
+	virtual DATATYPE type() const{ return DATA_TYPE_PYLIST; }
 };
 
 class BlobType : public DataType
@@ -580,9 +580,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "BLOB";}
+	const char* getName(void) const{ return "BLOB";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_BLOB; }
+	virtual DATATYPE type() const{ return DATA_TYPE_BLOB; }
 };
 
 class MailboxType : public DataType
@@ -600,9 +600,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "MAILBOX";}
+	const char* getName(void) const{ return "MAILBOX";}
 
-	virtual DATATYPE type()const{ return DATA_TYPE_MAILBOX; }
+	virtual DATATYPE type() const{ return DATA_TYPE_MAILBOX; }
 };
 
 class FixedArrayType : public DataType
@@ -626,7 +626,7 @@ public:
 
 	bool initialize(XML* xml, TiXmlNode* node);
 
-	const char* getName(void)const{ return "ARRAY";}
+	const char* getName(void) const{ return "ARRAY";}
 
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
@@ -636,7 +636,7 @@ public:
 	virtual PyObject* createNewItemFromObj(PyObject* pyobj);
 	virtual PyObject* createNewFromObj(PyObject* pyobj);
 
-	virtual DATATYPE type()const{ return DATA_TYPE_FIXEDARRAY; }
+	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDARRAY; }
 protected:
 	DataType*			dataType_;		// 这个数组所处理的类别
 };
@@ -663,7 +663,7 @@ public:
 	*/	
 	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return keyTypes_; }
 
-	const char* getName(void)const{ return "FIXED_DICT";}
+	const char* getName(void) const{ return "FIXED_DICT";}
 
 	bool isSameType(PyObject* pyValue);
 	DataType* isSameItemType(const char* keyName, PyObject* pyValue);
@@ -707,9 +707,9 @@ public:
 	PyObject* impl_getDictFromObj(PyObject* pyobj);
 	bool impl_isSameType(PyObject* pyobj);
 
-	bool hasImpl()const { return implObj_ != NULL; }
+	bool hasImpl() const { return implObj_ != NULL; }
 
-	virtual DATATYPE type()const{ return DATA_TYPE_FIXEDDICT; }
+	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDDICT; }
 
 	std::string& moduleName(){ return moduleName_; }
 protected:

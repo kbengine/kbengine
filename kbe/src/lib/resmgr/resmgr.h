@@ -53,6 +53,7 @@ public:
 	static uint64 respool_timeout;
 	static uint32 respool_buffersize;
 	static uint32 respool_checktick;
+
 public:
 	Resmgr();
 	~Resmgr();
@@ -119,6 +120,7 @@ public:
 	bool initializeWatcher();
 
 	void update();
+
 private:
 
 	virtual void handleTimeout(TimerHandle handle, void * arg);

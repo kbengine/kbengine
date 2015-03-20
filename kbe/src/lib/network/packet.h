@@ -56,7 +56,7 @@ public:
 		return MemoryStream::getPoolObjectBytes() + bytes;
 	}
 
-	Bundle* pBundle()const{ return pBundle_; }
+	Bundle* pBundle() const{ return pBundle_; }
 	void pBundle(Bundle* v){ pBundle_ = v; }
 
 	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
@@ -80,9 +80,9 @@ public:
 	inline MessageID messageID() const { return msgID_; }
 
 	void isTCPPacket(bool v) { isTCPPacket_ = v; }
-	bool isTCPPacket()const { return isTCPPacket_; }
+	bool isTCPPacket() const { return isTCPPacket_; }
 
-	bool encrypted()const { return encrypted_; }
+	bool encrypted() const { return encrypted_; }
 
 	void encrypted(bool v) { encrypted_ = v; }
 

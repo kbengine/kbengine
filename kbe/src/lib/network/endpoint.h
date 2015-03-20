@@ -117,7 +117,7 @@ public:
 	bool getClosedPort(Network::Address & closedPort);
 
 	const char * c_str() const;
-	int getremotehostname(std::string * name)const;
+	int getremotehostname(std::string * name) const;
 	
 	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);

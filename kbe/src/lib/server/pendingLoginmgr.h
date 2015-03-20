@@ -68,6 +68,7 @@ public:
 	};
 
 	typedef KBEUnordered_map<std::string, PLInfos*> PTINFO_MAP;
+
 public:
 	PendingLoginMgr(Network::NetworkInterface & networkInterface);
 	~PendingLoginMgr();
@@ -80,6 +81,7 @@ public:
 	
 	PendingLoginMgr::PLInfos* remove(std::string& accountName);
 	PendingLoginMgr::PLInfos* find(std::string& accountName);
+
 private:
 	Network::NetworkInterface & networkInterface_;
 

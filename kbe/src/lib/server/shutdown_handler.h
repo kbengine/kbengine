@@ -51,9 +51,10 @@ public:
 	virtual bool canShutdown(){ return true; }
 	
 	void setShuttingdown(SHUTDOWN_STATE state){ shuttingdown_ = state; }
-	bool isShuttingdown()const{ return shuttingdown_ != SHUTDOWN_STATE_STOP; }
-	SHUTDOWN_STATE shuttingdown()const{ return shuttingdown_; }
+	bool isShuttingdown() const{ return shuttingdown_ != SHUTDOWN_STATE_STOP; }
+	SHUTDOWN_STATE shuttingdown() const{ return shuttingdown_; }
 	const std::string& lastShutdownFailReason(){ return lastShutdownFailReason_; }
+
 protected:
 	std::string lastShutdownFailReason_; // 最后一次关机失败的原因
 	SHUTDOWN_STATE shuttingdown_;

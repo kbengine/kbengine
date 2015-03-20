@@ -49,9 +49,9 @@ public:
 	
 	virtual ~RemoteEntityMethod();
 
-	const char* getName(void)const;
+	const char* getName(void) const;
 
-	MethodDescription* getDescription(void)const
+	MethodDescription* getDescription(void) const
 	{ 
 		return methodDescription_; 
 	}
@@ -59,7 +59,7 @@ public:
 	static PyObject* tp_call(PyObject* self, 
 			PyObject* args, PyObject* kwds);
 
-	EntityMailboxAbstract* getMailbox(void)const 
+	EntityMailboxAbstract* getMailbox(void) const 
 	{
 		return pMailbox_; 
 	}

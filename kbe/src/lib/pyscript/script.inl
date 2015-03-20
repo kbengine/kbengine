@@ -27,17 +27,17 @@ INLINE int Script::run_simpleString(std::string command, std::string* retBufferP
 	return run_simpleString(command.c_str(), retBufferPtr);
 }
 
-INLINE PyObject* Script::getModule(void)const 
+INLINE PyObject* Script::getModule(void) const 
 { 
 	return module_; 
 }
 
-INLINE PyObject* Script::getExtraModule(void)const 
+INLINE PyObject* Script::getExtraModule(void) const 
 { 
 	return extraModule_; 
 }
 
-INLINE ScriptStdOutErr* Script::pyStdouterr()const
+INLINE ScriptStdOutErr* Script::pyStdouterr() const
 {
 	return pyStdouterr_;
 }

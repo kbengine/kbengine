@@ -44,7 +44,7 @@ EntityCoordinateNode::~EntityCoordinateNode()
 }
 
 //-------------------------------------------------------------------------------------
-float EntityCoordinateNode::xx()const
+float EntityCoordinateNode::xx() const
 {
 	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
 		return -FLT_MAX;
@@ -53,7 +53,7 @@ float EntityCoordinateNode::xx()const
 }
 
 //-------------------------------------------------------------------------------------
-float EntityCoordinateNode::yy()const
+float EntityCoordinateNode::yy() const
 {
 	if(pEntity_ == NULL)
 		return -FLT_MAX;
@@ -62,7 +62,7 @@ float EntityCoordinateNode::yy()const
 }
 
 //-------------------------------------------------------------------------------------
-float EntityCoordinateNode::zz()const
+float EntityCoordinateNode::zz() const
 {
 	if(pEntity_ == NULL)
 		return -FLT_MAX;

@@ -94,10 +94,10 @@ public:
 
 	void cancel();
 
-	void * getUserData()const	{ return pUserData_; }
+	void * getUserData() const	{ return pUserData_; }
 
-	bool isCancelled()const{ return state_ == TIME_CANCELLED; }
-	bool isExecuting()const{ return state_ == TIME_EXECUTING; }
+	bool isCancelled() const{ return state_ == TIME_CANCELLED; }
+	bool isExecuting() const{ return state_ == TIME_EXECUTING; }
 protected:
 	enum TimeState
 	{

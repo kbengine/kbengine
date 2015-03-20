@@ -51,7 +51,7 @@ INLINE void Entity::moveSpeed(float speed)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Entity::moveSpeed()const
+INLINE float Entity::moveSpeed() const
 {
 	return velocity_;
 }
@@ -75,13 +75,13 @@ INLINE Position3D& Entity::serverPosition()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ClientObjectBase* Entity::pClientApp()const
+INLINE ClientObjectBase* Entity::pClientApp() const
 {
 	return pClientApp_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox()const
+INLINE EntityMailbox* Entity::baseMailbox() const
 { 
 	return baseMailbox_; 
 }
@@ -93,7 +93,7 @@ INLINE void Entity::cellMailbox(EntityMailbox* mailbox)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::cellMailbox()const
+INLINE EntityMailbox* Entity::cellMailbox() const
 { 
 	return cellMailbox_; 
 }

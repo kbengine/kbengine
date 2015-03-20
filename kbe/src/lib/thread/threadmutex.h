@@ -76,6 +76,7 @@ public:
 	{
 		THREAD_MUTEX_UNLOCK(mutex_);
 	}
+
 protected:
 	THREAD_MUTEX mutex_;
 };

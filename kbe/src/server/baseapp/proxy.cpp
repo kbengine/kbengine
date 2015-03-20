@@ -382,7 +382,7 @@ void Proxy::onGetWitness()
 }
 
 //-------------------------------------------------------------------------------------
-double Proxy::getRoundTripTime()const
+double Proxy::getRoundTripTime() const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
 		clientMailbox()->getChannel()->pEndPoint() == NULL)
@@ -406,7 +406,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 }
 
 //-------------------------------------------------------------------------------------
-double Proxy::getTimeSinceHeardFromClient()const
+double Proxy::getTimeSinceHeardFromClient() const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
 		clientMailbox()->getChannel()->pEndPoint() == NULL)
@@ -430,7 +430,7 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 }
 
 //-------------------------------------------------------------------------------------
-bool Proxy::hasClient()const
+bool Proxy::hasClient() const
 {
 	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
 		clientMailbox()->getChannel()->pEndPoint() == NULL)

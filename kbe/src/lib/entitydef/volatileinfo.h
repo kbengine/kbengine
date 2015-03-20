@@ -46,10 +46,10 @@ public:
 	virtual ~VolatileInfo(){
 	}
 	
-	float position()const{ return position_; };
-	float yaw()const{ return yaw_; };
-	float roll()const{ return roll_; };
-	float pitch()const{ return pitch_; };
+	float position() const{ return position_; };
+	float yaw() const{ return yaw_; };
+	float roll() const{ return roll_; };
+	float pitch() const{ return pitch_; };
 
 	void position(float v){ 
 		position_ = v; 

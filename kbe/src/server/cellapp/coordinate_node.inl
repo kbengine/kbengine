@@ -22,12 +22,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE CoordinateNode* CoordinateNode::pPrevX()const { return pPrevX_; }
-INLINE CoordinateNode* CoordinateNode::pNextX()const { return pNextX_; }
-INLINE CoordinateNode* CoordinateNode::pPrevY()const { return pPrevY_; }
-INLINE CoordinateNode* CoordinateNode::pNextY()const { return pNextY_; }
-INLINE CoordinateNode* CoordinateNode::pPrevZ()const { return pPrevZ_; }
-INLINE CoordinateNode* CoordinateNode::pNextZ()const { return pNextZ_; }
+INLINE CoordinateNode* CoordinateNode::pPrevX() const { return pPrevX_; }
+INLINE CoordinateNode* CoordinateNode::pNextX() const { return pNextX_; }
+INLINE CoordinateNode* CoordinateNode::pPrevY() const { return pPrevY_; }
+INLINE CoordinateNode* CoordinateNode::pNextY() const { return pNextY_; }
+INLINE CoordinateNode* CoordinateNode::pPrevZ() const { return pPrevZ_; }
+INLINE CoordinateNode* CoordinateNode::pNextZ() const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
 INLINE void CoordinateNode::pPrevX(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevX_ != pNode); pPrevX_ = pNode; }
@@ -44,10 +44,10 @@ INLINE void CoordinateNode::pCoordinateSystem(CoordinateSystem* p){ pCoordinateS
 INLINE void CoordinateNode::flags(uint32 v){ flags_ = v; }
 	
 //-------------------------------------------------------------------------------------
-INLINE uint32 CoordinateNode::flags()const{ return flags_; }
+INLINE uint32 CoordinateNode::flags() const{ return flags_; }
 	
 //-------------------------------------------------------------------------------------
-INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem()const{ return pCoordinateSystem_; }
+INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const{ return pCoordinateSystem_; }
 
 //-------------------------------------------------------------------------------------
 }

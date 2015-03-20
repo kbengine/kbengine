@@ -45,6 +45,7 @@ public:
 	virtual const char* getopkey() = 0;
 	virtual const char* subject() = 0;
 	virtual const char* message() = 0;
+
 protected:
 	std::string emailaddr_, code_, cbaddr_;
 	uint32 cbport_;
