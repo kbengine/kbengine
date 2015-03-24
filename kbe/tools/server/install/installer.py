@@ -234,7 +234,7 @@ def resetKBEEnvironment():
 			ret = findKBEngine(os.getcwd())
 			if len(ret) > 0:
 				x_KBE_ROOT = ret[0]
-			x_KBE_ROOT.replace("\\", "/").replace("//", "/")
+			x_KBE_ROOT = x_KBE_ROOT.replace("\\", "/").replace("//", "/")
 		
 		if platform.system() == 'Windows':
 			x_KBE_RES_PATH = "%KBE_ROOT%/kbe/res/;%KBE_ROOT%/assets/;%KBE_ROOT%/assets/scripts/;%KBE_ROOT%/assets/res/"
@@ -249,8 +249,8 @@ def resetKBEEnvironment():
 			x_KBE_BIN_PATH = "%KBE_ROOT%/kbe/bin/server/"
 	
 	if platform.system() != 'Windows':
-		x_KBE_BIN_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
-		x_KBE_BIN_PATH.replace("\\", "/").replace("//", "/")
+		x_KBE_BIN_PATH = x_KBE_BIN_PATH.replace("%KBE_ROOT%", "$KBE_ROOT")
+		x_KBE_BIN_PATH = x_KBE_BIN_PATH.replace("\\", "/").replace("//", "/")
 		
 	if len(KBE_UID) == 0:
 		x_KBE_UID = str(random.randint(1, 65535))
