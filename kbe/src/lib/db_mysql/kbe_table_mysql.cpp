@@ -361,7 +361,7 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline, regtime, lasttime) values(";
 
-	char* tbuf = new char[MAX_BUF * 3];
+	char* tbuf = new char[MAX_BUF > info.datas.size() ? MAX_BUF * 3 : info.datas.size() * 3];
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, info.name.c_str(), info.name.size());
@@ -486,7 +486,8 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 {
 	std::string sqlstr = "insert into kbe_email_verification (accountName, type, datas, code, logtime) values(";
 
-	char* tbuf = new char[MAX_BUF * 3];
+	char* tbuf = new char[MAX_BUF > datas.size() ? MAX_BUF * 3 : 
+		(code.size() > datas.size() ? code.size() * 3 : datas.size() * 3)];
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
