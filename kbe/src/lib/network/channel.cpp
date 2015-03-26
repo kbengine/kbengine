@@ -646,7 +646,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
 				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->receiveWindowOverflow.\n", 
+				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive->messages->external.\n", 
 					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
