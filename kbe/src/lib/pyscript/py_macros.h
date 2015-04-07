@@ -293,7 +293,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE1##_ARG arg1;																						\
 		PY_METHOD_ARG_##ARG_TYPE2##_ARG arg2;																						\
 		PY_METHOD_ARG_##ARG_TYPE3##_ARG arg3;																						\
-		PY_METHOD_ARG_##ARG_TYPE5##_ARG arg4;																						\
+		PY_METHOD_ARG_##ARG_TYPE4##_ARG arg4;																						\
 																																	\
 		const uint8 argsSize = 4;																									\
 		uint16 currargsSize = PyTuple_Size(args);																					\
