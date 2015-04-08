@@ -179,6 +179,7 @@ public:
 		SQL命令最长大小
 	*/
 	static size_t sql_max_allowed_packet(){ return sql_max_allowed_packet_; }
+
 protected:
 	MYSQL* pMysql_;
 
