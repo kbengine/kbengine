@@ -34,17 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #endif // _MSC_VER > 1000
 
-// common include
 #include "common/platform.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 
 namespace KBEngine{
 	

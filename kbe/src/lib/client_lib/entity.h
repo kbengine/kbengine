@@ -35,13 +35,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/entity_macro.h"	
 #include "server/script_timers.h"	
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 class EntityMailbox;
@@ -57,7 +50,7 @@ namespace client
 
 class Entity : public script::ScriptObject
 {
-	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
+	/** å­ç±»åŒ– å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
 	ENTITY_HEADER(Entity)
 public:
@@ -65,7 +58,7 @@ public:
 	~Entity();
 	
 	/** 
-		¶¨ÒåÊôĞÔÊı¾İ±»¸Ä±äÁË 
+		å®šä¹‰å±æ€§æ•°æ®è¢«æ”¹å˜äº† 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
@@ -82,7 +75,7 @@ public:
 	INLINE void cellMailbox(EntityMailbox* mailbox);
 
 	/** 
-		½Å±¾»ñÈ¡ºÍÉèÖÃentityµÄposition 
+		è„šæœ¬è·å–å’Œè®¾ç½®entityçš„position 
 	*/
 	INLINE Position3D& position();
 	INLINE Position3D& serverPosition();
@@ -92,7 +85,7 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
-		½Å±¾»ñÈ¡ºÍÉèÖÃentityµÄ·½Ïò 
+		è„šæœ¬è·å–å’Œè®¾ç½®entityçš„æ–¹å‘ 
 	*/
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
@@ -100,7 +93,7 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
-		ÒÆ¶¯ËÙ¶È
+		ç§»åŠ¨é€Ÿåº¦
 	*/
 	INLINE void moveSpeed(float speed);
 	INLINE float moveSpeed() const;
@@ -116,7 +109,7 @@ public:
 	
 	const EntityAspect* getAspect() const{ return &aspect_; }
 	/** 
-		Ïú»ÙÕâ¸öentity 
+		é”€æ¯è¿™ä¸ªentity 
 	*/
 	void onDestroy(bool callScript){};
 
@@ -127,12 +120,12 @@ public:
 	void onLeaveSpace();
 
 	/**
-		Ô¶³Ìºô½Ğ±¾entityµÄ·½·¨ 
+		è¿œç¨‹å‘¼å«æœ¬entityçš„æ–¹æ³• 
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
-		·şÎñÆ÷¸üĞÂentityÊôĞÔ
+		æœåŠ¡å™¨æ›´æ–°entityå±æ€§
 	*/
 	void onUpdatePropertys(MemoryStream& s);
 
@@ -144,11 +137,11 @@ public:
 	bool isOnGound() const { return isOnGound_;}
 	void isOnGound(bool v) { isOnGound_ = v;}
 protected:
-	EntityMailbox*							cellMailbox_;						// Õâ¸öentityµÄcell-mailbox
-	EntityMailbox*							baseMailbox_;						// Õâ¸öentityµÄbase-mailbox
+	EntityMailbox*							cellMailbox_;						// è¿™ä¸ªentityçš„cell-mailbox
+	EntityMailbox*							baseMailbox_;						// è¿™ä¸ªentityçš„base-mailbox
 
-	Position3D								position_, serverPosition_;			// entityµÄµ±Ç°Î»ÖÃ
-	Direction3D								direction_;							// entityµÄµ±Ç°·½Ïò
+	Position3D								position_, serverPosition_;			// entityçš„å½“å‰ä½ç½®
+	Direction3D								direction_;							// entityçš„å½“å‰æ–¹å‘
 
 	ClientObjectBase*						pClientApp_;
 
@@ -156,7 +149,7 @@ protected:
 
 	float									velocity_;
 
-	bool									enterworld_;						// ÊÇ·ñÒÑ¾­enterworldÁË£¬ restoreÊ±ÓĞÓÃ
+	bool									enterworld_;						// æ˜¯å¦å·²ç»enterworldäº†ï¼Œ restoreæ—¶æœ‰ç”¨
 	
 	bool									isOnGound_;
 };																										

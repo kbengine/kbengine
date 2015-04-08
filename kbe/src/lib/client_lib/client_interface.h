@@ -35,89 +35,82 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/server_errors.h"
 #include "entitydef/common.h"
 #include "common.h"
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 
 /**
-	CLIENTËùÓÐÏûÏ¢½Ó¿ÚÔÚ´Ë¶¨Òå
+	CLIENTæ‰€æœ‰æ¶ˆæ¯æŽ¥å£åœ¨æ­¤å®šä¹‰
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
-	// ·þÎñ¶Ëhello·µ»Ø¡£
+	// æœåŠ¡ç«¯helloè¿”å›žã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,								NETWORK_VARIABLE_MESSAGE)
 
-	// ºÍ·þÎñ¶ËµÄ°æ±¾²»Æ¥Åä
+	// å’ŒæœåŠ¡ç«¯çš„ç‰ˆæœ¬ä¸åŒ¹é…
 	CLIENT_MESSAGE_DECLARE_STREAM(onVersionNotMatch,						NETWORK_VARIABLE_MESSAGE)
 
-	// ºÍ·þÎñ¶ËµÄ½Å±¾²ã°æ±¾²»Æ¥Åä
+	// å’ŒæœåŠ¡ç«¯çš„è„šæœ¬å±‚ç‰ˆæœ¬ä¸åŒ¹é…
 	CLIENT_MESSAGE_DECLARE_STREAM(onScriptVersionNotMatch,					NETWORK_VARIABLE_MESSAGE)
 
-	// ´´½¨ÕËºÅÊ§°Ü¡£
+	// åˆ›å»ºè´¦å·å¤±è´¥ã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,					NETWORK_VARIABLE_MESSAGE)
 
-	// µÇÂ¼³É¹¦¡£
+	// ç™»å½•æˆåŠŸã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,						NETWORK_VARIABLE_MESSAGE)
 
-	// µÇÂ¼Ê§°Ü¡£
+	// ç™»å½•å¤±è´¥ã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginFailed,							NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñÆ÷¶ËÒÑ¾­´´½¨ÁËÒ»¸öÓë¿Í»§¶Ë¹ØÁªµÄ´úÀíEntity || µÇÂ¼Íø¹Ø³É¹¦¡£
+	// æœåŠ¡å™¨ç«¯å·²ç»åˆ›å»ºäº†ä¸€ä¸ªä¸Žå®¢æˆ·ç«¯å…³è”çš„ä»£ç†Entity || ç™»å½•ç½‘å…³æˆåŠŸã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,							NETWORK_VARIABLE_MESSAGE,
 									uint64,									rndUUID,
 									ENTITY_ID,								eid,
 									std::string,							entityType)
 
-	// µÇÂ¼Íø¹ØÊ§°Ü¡£
+	// ç™»å½•ç½‘å…³å¤±è´¥ã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,						NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// µÇÂ¼Íø¹ØÊ§°Ü¡£
+	// ç™»å½•ç½‘å…³å¤±è´¥ã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginGatewayFailed,					NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// ·þÎñÆ÷ÉÏµÄentityÒÑ¾­½øÈëÓÎÏ·ÊÀ½çÁË¡£
+	// æœåŠ¡å™¨ä¸Šçš„entityå·²ç»è¿›å…¥æ¸¸æˆä¸–ç•Œäº†ã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterWorld,						NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñÆ÷ÉÏµÄentityÒÑ¾­Àë¿ªÓÎÏ·ÊÀ½çÁË¡£
+	// æœåŠ¡å™¨ä¸Šçš„entityå·²ç»ç¦»å¼€æ¸¸æˆä¸–ç•Œäº†ã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,						NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,								eid)
 
-	// ·þÎñÆ÷ÉÏµÄentityÒÑ¾­Àë¿ªÓÎÏ·ÊÀ½çÁË¡£
+	// æœåŠ¡å™¨ä¸Šçš„entityå·²ç»ç¦»å¼€æ¸¸æˆä¸–ç•Œäº†ã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityLeaveWorldOptimized,				NETWORK_VARIABLE_MESSAGE)
 
-	// ¸æËß¿Í»§¶ËÄ³¸öentityÏú»ÙÁË£¬ ´ËÀàentityÍ¨³£ÊÇ»¹Î´onEntityEnterWorld¡£
+	// å‘Šè¯‰å®¢æˆ·ç«¯æŸä¸ªentityé”€æ¯äº†ï¼Œ æ­¤ç±»entityé€šå¸¸æ˜¯è¿˜æœªonEntityEnterWorldã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,							NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,								eid)
 
-	// ·þÎñÆ÷ÉÏµÄentityÒÑ¾­½øÈëspaceÁË¡£
+	// æœåŠ¡å™¨ä¸Šçš„entityå·²ç»è¿›å…¥spaceäº†ã€‚
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterSpace,						NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñÆ÷ÉÏµÄentityÒÑ¾­Àë¿ªspaceÁË¡£
+	// æœåŠ¡å™¨ä¸Šçš„entityå·²ç»ç¦»å¼€spaceäº†ã€‚
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveSpace,						NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,								eid)
 
-	// Ô¶³Ìºô½Ðentity·½·¨
+	// è¿œç¨‹å‘¼å«entityæ–¹æ³•
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						NETWORK_VARIABLE_MESSAGE)
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCallOptimized,				NETWORK_VARIABLE_MESSAGE)
 
-	// ±»Ìß³ö·þÎñÆ÷
+	// è¢«è¸¢å‡ºæœåŠ¡å™¨
 	CLIENT_MESSAGE_DECLARE_ARGS1(onKicked,									NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// ·þÎñÆ÷¸üÐÂentityÊôÐÔ
+	// æœåŠ¡å™¨æ›´æ–°entityå±žæ€§
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,						NETWORK_VARIABLE_MESSAGE)
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertysOptimized,				NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñÆ÷Ç¿ÖÆÉèÖÃentityµÄÎ»ÖÃÓë³¯Ïò
+	// æœåŠ¡å™¨å¼ºåˆ¶è®¾ç½®entityçš„ä½ç½®ä¸Žæœå‘
 	CLIENT_MESSAGE_DECLARE_STREAM(onSetEntityPosAndDir,						NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñÆ÷¸üÐÂ°ü
+	// æœåŠ¡å™¨æ›´æ–°åŒ…
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePos,							NETWORK_VARIABLE_MESSAGE)
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePosXZ,						NETWORK_VARIABLE_MESSAGE)
 
@@ -149,55 +142,55 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateData_xyz_p,						NETWORK_VARIABLE_MESSAGE)
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateData_xyz_r,						NETWORK_VARIABLE_MESSAGE)
 
-	// download stream¿ªÊ¼ÁË 
+	// download streamå¼€å§‹äº† 
 	CLIENT_MESSAGE_DECLARE_ARGS3(onStreamDataStarted,						NETWORK_VARIABLE_MESSAGE,
 									int16,									id,
 									uint32,									datasize,
 									std::string,							descr)
 
-	// ½ÓÊÕµ½streamData
+	// æŽ¥æ”¶åˆ°streamData
 	CLIENT_MESSAGE_DECLARE_STREAM(onStreamDataRecv,							NETWORK_VARIABLE_MESSAGE)
 
-	// download streamÍê³ÉÁË 
+	// download streamå®Œæˆäº† 
 	CLIENT_MESSAGE_DECLARE_ARGS1(onStreamDataCompleted,						NETWORK_FIXED_MESSAGE,
 									int16,									id)
 
-	// µ¼ÈëÐ­Òé
+	// å¯¼å…¥åè®®
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientMessages,					NETWORK_VARIABLE_MESSAGE)
 	
-	// µ¼Èëentitydef
+	// å¯¼å…¥entitydef
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientEntityDef,					NETWORK_VARIABLE_MESSAGE)
 
-	// ´íÎóÂëÃèÊöµ¼³ö
+	// é”™è¯¯ç æè¿°å¯¼å‡º
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportServerErrorsDescr,				NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñ¶Ë³õÊ¼»¯spacedata
+	// æœåŠ¡ç«¯åˆå§‹åŒ–spacedata
 	CLIENT_MESSAGE_DECLARE_STREAM(initSpaceData,							NETWORK_VARIABLE_MESSAGE)
 
-	// ·þÎñ¶ËÉèÖÃÁËspacedata
+	// æœåŠ¡ç«¯è®¾ç½®äº†spacedata
 	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								NETWORK_VARIABLE_MESSAGE,
 									SPACE_ID,								spaceID,
 									std::string,							key,
 									std::string,							valye)
 
-	// ·þÎñ¶ËÉ¾³ýÁËspacedata
+	// æœåŠ¡ç«¯åˆ é™¤äº†spacedata
 	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								NETWORK_VARIABLE_MESSAGE,
 									SPACE_ID,								spaceID,
 									std::string,							key)
 
-	// ÖØÖÃÕËºÅÃÜÂëÇëÇó·µ»Ø
+	// é‡ç½®è´¦å·å¯†ç è¯·æ±‚è¿”å›ž
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountResetPasswordCB,				NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// ÖØÖÃÕËºÅÃÜÂëÇëÇó·µ»Ø
+	// é‡ç½®è´¦å·å¯†ç è¯·æ±‚è¿”å›ž
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountBindEmailCB,					NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// ÖØÖÃÕËºÅÃÜÂëÇëÇó·µ»Ø
+	// é‡ç½®è´¦å·å¯†ç è¯·æ±‚è¿”å›ž
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountNewPasswordCB,					NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
-	// ÖØµÇÂ½Íø¹Ø³É¹¦ 
+	// é‡ç™»é™†ç½‘å…³æˆåŠŸ 
 	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginGatewaySuccessfully,				NETWORK_VARIABLE_MESSAGE)
 									
 NETWORK_INTERFACE_DECLARE_END()

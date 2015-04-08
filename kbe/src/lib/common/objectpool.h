@@ -32,13 +32,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <queue> 
 
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
-
 #include "thread/threadmutex.h"
 
 namespace KBEngine{
@@ -50,9 +43,9 @@ template< typename T >
 class SmartPoolObject;
 
 /*
-	Ò»Ğ©¶ÔÏó»á·Ç³£Æµ·±µÄ±»´´½¨£¬ ÀıÈç£ºMemoryStream, Bundle, TCPPacketµÈµÈ
-	Õâ¸ö¶ÔÏó³Ø¶ÔÍ¨¹ı·şÎñ¶Ë·åÖµÓĞĞ§µÄÔ¤¹ÀÌáÇ°´´½¨³öÒ»Ğ©¶ÔÏó»º´æÆğÀ´£¬ÔÚÓÃµ½µÄÊ±ºòÖ±½Ó´Ó¶ÔÏó³ØÖĞ
-	»ñÈ¡Ò»¸öÎ´±»Ê¹ÓÃµÄ¶ÔÏó¼´¿É¡£
+	ä¸€äº›å¯¹è±¡ä¼šéå¸¸é¢‘ç¹çš„è¢«åˆ›å»ºï¼Œ ä¾‹å¦‚ï¼šMemoryStream, Bundle, TCPPacketç­‰ç­‰
+	è¿™ä¸ªå¯¹è±¡æ± å¯¹é€šè¿‡æœåŠ¡ç«¯å³°å€¼æœ‰æ•ˆçš„é¢„ä¼°æå‰åˆ›å»ºå‡ºä¸€äº›å¯¹è±¡ç¼“å­˜èµ·æ¥ï¼Œåœ¨ç”¨åˆ°çš„æ—¶å€™ç›´æ¥ä»å¯¹è±¡æ± ä¸­
+	è·å–ä¸€ä¸ªæœªè¢«ä½¿ç”¨çš„å¯¹è±¡å³å¯ã€‚
 */
 template< typename T >
 class ObjectPool
@@ -119,8 +112,8 @@ public:
 	}
 
 	/** 
-		Ç¿ÖÆ´´½¨Ò»¸öÖ¸¶¨ÀàĞÍµÄ¶ÔÏó¡£ Èç¹û»º³åÀïÒÑ¾­´´½¨Ôò·µ»ØÏÖÓĞµÄ£¬·ñÔò
-		´´½¨Ò»¸öĞÂµÄ£¬ Õâ¸ö¶ÔÏó±ØĞëÊÇ¼Ì³Ğ×ÔTµÄ¡£
+		å¼ºåˆ¶åˆ›å»ºä¸€ä¸ªæŒ‡å®šç±»å‹çš„å¯¹è±¡ã€‚ å¦‚æœç¼“å†²é‡Œå·²ç»åˆ›å»ºåˆ™è¿”å›ç°æœ‰çš„ï¼Œå¦åˆ™
+		åˆ›å»ºä¸€ä¸ªæ–°çš„ï¼Œ è¿™ä¸ªå¯¹è±¡å¿…é¡»æ˜¯ç»§æ‰¿è‡ªTçš„ã€‚
 	*/
 	template<typename T1>
 	T* createObject(void)
@@ -148,8 +141,8 @@ public:
 	}
 
 	/** 
-		´´½¨Ò»¸ö¶ÔÏó¡£ Èç¹û»º³åÀïÒÑ¾­´´½¨Ôò·µ»ØÏÖÓĞµÄ£¬·ñÔò
-		´´½¨Ò»¸öĞÂµÄ¡£
+		åˆ›å»ºä¸€ä¸ªå¯¹è±¡ã€‚ å¦‚æœç¼“å†²é‡Œå·²ç»åˆ›å»ºåˆ™è¿”å›ç°æœ‰çš„ï¼Œå¦åˆ™
+		åˆ›å»ºä¸€ä¸ªæ–°çš„ã€‚
 	*/
 	T* createObject(void)
 	{
@@ -176,7 +169,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏó
+		å›æ”¶ä¸€ä¸ªå¯¹è±¡
 	*/
 	void reclaimObject(T* obj)
 	{
@@ -186,7 +179,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈİÆ÷
+		å›æ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
@@ -204,7 +197,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈİÆ÷
+		å›æ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
@@ -222,7 +215,7 @@ public:
 	}
 
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏóÈİÆ÷
+		å›æ”¶ä¸€ä¸ªå¯¹è±¡å®¹å™¨
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
@@ -261,13 +254,13 @@ public:
 
 protected:
 	/**
-		»ØÊÕÒ»¸ö¶ÔÏó
+		å›æ”¶ä¸€ä¸ªå¯¹è±¡
 	*/
 	void reclaimObject_(T* obj)
 	{
 		if(obj != NULL)
 		{
-			// ÏÈÖØÖÃ×´Ì¬
+			// å…ˆé‡ç½®çŠ¶æ€
 			obj->onReclaimObject();
 
 			if(size() >= max_ || isDestroyed_)
@@ -290,21 +283,21 @@ protected:
 
 	bool isDestroyed_;
 
-	// Ò»Ğ©Ô­Òòµ¼ÖÂËø»¹ÊÇÓĞ±ØÒªµÄ
-	// ÀıÈç£ºdbmgrÈÎÎñÏß³ÌÖĞÊä³ölog£¬cellappÖĞ¼ÓÔØnavmeshºóµÄÏß³Ì»Øµ÷µ¼ÖÂµÄlogÊä³ö
+	// ä¸€äº›åŸå› å¯¼è‡´é”è¿˜æ˜¯æœ‰å¿…è¦çš„
+	// ä¾‹å¦‚ï¼šdbmgrä»»åŠ¡çº¿ç¨‹ä¸­è¾“å‡ºlogï¼Œcellappä¸­åŠ è½½navmeshåçš„çº¿ç¨‹å›è°ƒå¯¼è‡´çš„logè¾“å‡º
 	KBEngine::thread::ThreadMutex mutex_;
 
 	std::string name_;
 
 	size_t total_allocs_;
 
-	// Linux»·¾³ÖĞ£¬list.size()Ê¹ÓÃµÄÊÇstd::distance(begin(), end())·½Ê½À´»ñµÃ
-	// »á¶ÔĞÔÄÜÓĞÓ°Ïì£¬ÕâÀïÎÒÃÇ×Ô¼º¶Ôsize×öÒ»¸ö¼ÇÂ¼
+	// Linuxç¯å¢ƒä¸­ï¼Œlist.size()ä½¿ç”¨çš„æ˜¯std::distance(begin(), end())æ–¹å¼æ¥è·å¾—
+	// ä¼šå¯¹æ€§èƒ½æœ‰å½±å“ï¼Œè¿™é‡Œæˆ‘ä»¬è‡ªå·±å¯¹sizeåšä¸€ä¸ªè®°å½•
 	size_t obj_count_;
 };
 
 /*
-	³Ø¶ÔÏó£¬ ËùÓĞÊ¹ÓÃ³ØµÄ¶ÔÏó±ØĞëÊµÏÖ»ØÊÕ¹¦ÄÜ¡£
+	æ± å¯¹è±¡ï¼Œ æ‰€æœ‰ä½¿ç”¨æ± çš„å¯¹è±¡å¿…é¡»å®ç°å›æ”¶åŠŸèƒ½ã€‚
 */
 class PoolObject
 {
@@ -316,8 +309,8 @@ public:
 	virtual size_t getPoolObjectBytes(){ return 0; }
 
 	/**
-		³Ø¶ÔÏó±»Îö¹¹Ç°µÄÍ¨Öª
-		Ä³Ğ©¶ÔÏó¿ÉÒÔÔÚ´Ë×öÒ»Ğ©¹¤×÷
+		æ± å¯¹è±¡è¢«ææ„å‰çš„é€šçŸ¥
+		æŸäº›å¯¹è±¡å¯ä»¥åœ¨æ­¤åšä¸€äº›å·¥ä½œ
 	*/
 	virtual bool destructorPoolObject()
 	{

@@ -61,12 +61,12 @@ public:
 public:
 	int16 gameUpdateHertz_;
 
-	uint32 tcp_SOMAXCONN_;									// listen¼àÌı¶ÓÁĞ×î´óÖµ
+	uint32 tcp_SOMAXCONN_;									// listenç›‘å¬é˜Ÿåˆ—æœ€å¤§å€¼
 	
-	uint32 port_;											// ×é¼şµÄÔËĞĞºó¼àÌıµÄ¶Ë¿Ú
-	char ip_[MAX_BUF];										// ×é¼şµÄÔËĞĞÆÚipµØÖ·
+	uint32 port_;											// ç»„ä»¶çš„è¿è¡Œåç›‘å¬çš„ç«¯å£
+	char ip_[MAX_BUF];										// ç»„ä»¶çš„è¿è¡ŒæœŸipåœ°å€
 
-	char entryScriptFile_[MAX_NAME];						// ×é¼şµÄÈë¿Ú½Å±¾ÎÄ¼ş
+	char entryScriptFile_[MAX_NAME];						// ç»„ä»¶çš„å…¥å£è„šæœ¬æ–‡ä»¶
 
 	float channelInternalTimeout_;
 	float channelExternalTimeout_;

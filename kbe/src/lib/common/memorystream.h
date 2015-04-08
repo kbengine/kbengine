@@ -20,23 +20,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_MEMORYSTREAM_H
 #define KBE_MEMORYSTREAM_H
-// common include	
-#include <iostream>
-#include <vector>
-#include <list>
-#include <map>
-#include <assert.h>
 #include "common/common.h"
 #include "common/objectpool.h"
 #include "helper/debug_helper.h"
 #include "common/memorystream_converter.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#include <windows.h>
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
 
@@ -62,11 +49,11 @@ class MemoryStreamException
 };
 
 /*
-	½«³£ÓÃÊı¾İÀàĞÍ¶ş½øÖÆĞòÁĞ»¯Óë·´ĞòÁĞ»¯
-	×¢Òâ£º¶ËÓë¶ËÖ®¼ä´«Êä¿ÉÄÜÉæ¼°´óĞ¡¶ËÎÊÌâ£¬¿ÉÒÔÍ¨¹ıÈçÏÂ½øĞĞ×ª»»½øĞĞ×ª»»:
-	¾ßÌå¿´ MemoryStreamConverter.h
+	å°†å¸¸ç”¨æ•°æ®ç±»å‹äºŒè¿›åˆ¶åºåˆ—åŒ–ä¸ååºåˆ—åŒ–
+	æ³¨æ„ï¼šç«¯ä¸ç«¯ä¹‹é—´ä¼ è¾“å¯èƒ½æ¶‰åŠå¤§å°ç«¯é—®é¢˜ï¼Œå¯ä»¥é€šè¿‡å¦‚ä¸‹è¿›è¡Œè½¬æ¢è¿›è¡Œè½¬æ¢:
+	å…·ä½“çœ‹ MemoryStreamConverter.h
 
-	Ê¹ÓÃ·½·¨:
+	ä½¿ç”¨æ–¹æ³•:
 			MemoryStream stream; 
 			stream << (int64)100000000;
 			stream << (uint8)1;
@@ -80,7 +67,7 @@ class MemoryStreamException
 			stream >> n;
 			stream >> n1;
 			stream >> a;
-			printf("»¹Ô­: %lld, %d, %d, %s", x, n, n1, a.c_str());
+			printf("è¿˜åŸ: %lld, %d, %d, %s", x, n, n1, a.c_str());
 */
 class MemoryStream : public PoolObject
 {
@@ -468,14 +455,14 @@ public:
 		(*this) >> tv;
 		data |= tv;
 
-		// ¸´ÖÆÖ¸ÊıºÍÎ²Êı
+		// å¤åˆ¶æŒ‡æ•°å’Œå°¾æ•°
 		xPackData.uv |= (data & 0x7ff000) << 3;
 		zPackData.uv |= (data & 0x0007ff) << 15;
 
 		xPackData.fv -= 2.0f;
 		zPackData.fv -= 2.0f;
 
-		// ÉèÖÃ±ê¼ÇÎ»
+		// è®¾ç½®æ ‡è®°ä½
 		xPackData.uv |= (data & 0x800000) << 8;
 		zPackData.uv |= (data & 0x000800) << 20;
 	}
@@ -496,19 +483,19 @@ public:
     uint8 *data() { return &data_[0]; }
 	const uint8 *data() const { return &data_[0]; }
 	
-	// vectorµÄ´óĞ¡
+	// vectorçš„å¤§å°
     virtual size_t size() const { return data_.size(); }
 
-	// vectorÊÇ·ñÎª¿Õ
+	// vectoræ˜¯å¦ä¸ºç©º
     virtual bool empty() const { return data_.empty(); }
 
-	// ¶ÁË÷Òıµ½ÓëĞ´Ë÷ÒıÖ®¼äµÄ³¤¶È
+	// è¯»ç´¢å¼•åˆ°ä¸å†™ç´¢å¼•ä¹‹é—´çš„é•¿åº¦
 	virtual size_t length() const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 
-	// Ê£Óà¿ÉÌî³äµÄ´óĞ¡
+	// å‰©ä½™å¯å¡«å……çš„å¤§å°
 	virtual size_t space() const { return wpos() >= size() ? 0 : size() - wpos(); }
 
-	// ½«¶ÁË÷ÒıÇ¿ÖÆÉèÖÃµ½Ğ´Ë÷Òı£¬±íÊ¾²Ù×÷½áÊø
+	// å°†è¯»ç´¢å¼•å¼ºåˆ¶è®¾ç½®åˆ°å†™ç´¢å¼•ï¼Œè¡¨ç¤ºæ“ä½œç»“æŸ
 	void done(){ read_skip(length()); }
 
     void resize(size_t newsize)
@@ -617,8 +604,8 @@ public:
 		y -= minf / 2.f;
 		z -= minf;
 
-		// ×î´óÖµ²»Òª³¬¹ı-256~256
-		// y ²»Òª³¬¹ı-128~128
+		// æœ€å¤§å€¼ä¸è¦è¶…è¿‡-256~256
+		// y ä¸è¦è¶…è¿‡-128~128
         uint32 packed = 0;
         packed |= ((int)(x / 0.25f) & 0x7FF);
         packed |= ((int)(z / 0.25f) & 0x7FF) << 11;
@@ -634,11 +621,11 @@ public:
 		PackFloatXType zPackData; 
 		zPackData.fv = z;
 		
-		// 0-7Î»´æ·ÅÎ²Êı, 8-10Î»´æ·ÅÖ¸Êı, 11Î»´æ·Å±êÖ¾
-		// ÓÉÓÚÊ¹ÓÃÁË24Î»À´´æ´¢2¸öfloat£¬ ²¢ÇÒÒªÇóÄÜ¹»´ïµ½-512~512Ö®¼äµÄÊı
-		// 8Î»Î²ÊıÖ»ÄÜ·Å×î´óÖµ256, Ö¸ÊıÖ»ÓĞ3Î»(¾ö¶¨¸¡µãÊı×î´óÖµÎª2^(2^3)=256) 
-		// ÎÒÃÇÉáÈ¥µÚÒ»Î»Ê¹·¶Î§´ïµ½(-512~-2), (2~512)Ö®¼ä
-		// Òò´ËÕâÀïÎÒÃÇ±£Ö¤×îĞ¡ÊıÎª-2.f»òÕß2.f
+		// 0-7ä½å­˜æ”¾å°¾æ•°, 8-10ä½å­˜æ”¾æŒ‡æ•°, 11ä½å­˜æ”¾æ ‡å¿—
+		// ç”±äºä½¿ç”¨äº†24ä½æ¥å­˜å‚¨2ä¸ªfloatï¼Œ å¹¶ä¸”è¦æ±‚èƒ½å¤Ÿè¾¾åˆ°-512~512ä¹‹é—´çš„æ•°
+		// 8ä½å°¾æ•°åªèƒ½æ”¾æœ€å¤§å€¼256, æŒ‡æ•°åªæœ‰3ä½(å†³å®šæµ®ç‚¹æ•°æœ€å¤§å€¼ä¸º2^(2^3)=256) 
+		// æˆ‘ä»¬èˆå»ç¬¬ä¸€ä½ä½¿èŒƒå›´è¾¾åˆ°(-512~-2), (2~512)ä¹‹é—´
+		// å› æ­¤è¿™é‡Œæˆ‘ä»¬ä¿è¯æœ€å°æ•°ä¸º-2.fæˆ–è€…2.f
 		xPackData.fv += xPackData.iv < 0 ? -2.f : 2.f;
 		zPackData.fv += zPackData.iv < 0 ? -2.f : 2.f;
 
@@ -649,26 +636,26 @@ public:
 		const uint32 xCeilingValues[] = { 0, 0x7ff000 };
 		const uint32 zCeilingValues[] = { 0, 0x0007ff };
 
-		// ÕâÀïÈç¹ûÕâ¸ö¸¡µãÊıÒç³öÁËÔòÉèÖÃ¸¡µãÊıÎª×î´óÊı
-		// ÕâÀï¼ì²éÁËÖ¸Êı¸ß4Î»ºÍ±ê¼ÇÎ»£¬ Èç¹û¸ßËÄÎ»²»Îª0Ôò¿Ï¶¨Òç³ö£¬ Èç¹ûµÍ4Î»ºÍ8Î»Î²Êı²»Îª0ÔòÒç³ö
+		// è¿™é‡Œå¦‚æœè¿™ä¸ªæµ®ç‚¹æ•°æº¢å‡ºäº†åˆ™è®¾ç½®æµ®ç‚¹æ•°ä¸ºæœ€å¤§æ•°
+		// è¿™é‡Œæ£€æŸ¥äº†æŒ‡æ•°é«˜4ä½å’Œæ ‡è®°ä½ï¼Œ å¦‚æœé«˜å››ä½ä¸ä¸º0åˆ™è‚¯å®šæº¢å‡ºï¼Œ å¦‚æœä½4ä½å’Œ8ä½å°¾æ•°ä¸ä¸º0åˆ™æº¢å‡º
 		// 0x7c000000 = 1111100000000000000000000000000
 		// 0x40000000 = 1000000000000000000000000000000
 		// 0x3ffc000  = 0000011111111111100000000000000
 		data |= xCeilingValues[((xPackData.uv & 0x7c000000) != 0x40000000) || ((xPackData.uv & 0x3ffc000) == 0x3ffc000)];
 		data |= zCeilingValues[((zPackData.uv & 0x7c000000) != 0x40000000) || ((zPackData.uv & 0x3ffc000) == 0x3ffc000)];
 		
-		// ¸´ÖÆ8Î»Î²ÊıºÍ3Î»Ö¸Êı£¬ Èç¹û¸¡µãÊıÊ£ÓàÎ²Êı×î¸ßÎ»ÊÇ1Ôò+1ËÄÉáÎåÈë, ²¢ÇÒ´æ·Åµ½dataÖĞ
+		// å¤åˆ¶8ä½å°¾æ•°å’Œ3ä½æŒ‡æ•°ï¼Œ å¦‚æœæµ®ç‚¹æ•°å‰©ä½™å°¾æ•°æœ€é«˜ä½æ˜¯1åˆ™+1å››èˆäº”å…¥, å¹¶ä¸”å­˜æ”¾åˆ°dataä¸­
 		// 0x7ff000 = 11111111111000000000000
 		// 0x0007ff = 00000000000011111111111
 		// 0x4000	= 00000000100000000000000
 		data |= ((xPackData.uv >>  3) & 0x7ff000) + ((xPackData.uv & 0x4000) >> 2);
 		data |= ((zPackData.uv >> 15) & 0x0007ff) + ((zPackData.uv & 0x4000) >> 14);
 		
-		// È·±£ÖµÔÚ·¶Î§ÄÚ
+		// ç¡®ä¿å€¼åœ¨èŒƒå›´å†…
 		// 0x7ff7ff = 11111111111011111111111
 		data &= 0x7ff7ff;
 
-		// ¸´ÖÆ±ê¼ÇÎ»
+		// å¤åˆ¶æ ‡è®°ä½
 		// 0x800000 = 100000000000000000000000
 		// 0x000800 = 000000000000100000000000
 		data |=  (xPackData.uv >>  8) & 0x800000;
@@ -709,7 +696,7 @@ public:
         memcpy(&data_[pos], src, cnt);
     }
 
-	/** Êä³öÁ÷Êı¾İ */
+	/** è¾“å‡ºæµæ•°æ® */
     void print_storage() const
     {
 		char buf[1024];
@@ -731,7 +718,7 @@ public:
 		rpos_ = trpos;
     }
 
-	/** Êä³öÁ÷Êı¾İ×Ö·û´® */
+	/** è¾“å‡ºæµæ•°æ®å­—ç¬¦ä¸² */
     void textlike() const
     {
 		char buf[1024];
@@ -926,7 +913,7 @@ inline void MemoryStream::read_skip<std::string>()
     read_skip<char*>();
 }
 
-// ´Ó¶ÔÏó³ØÖĞ´´½¨Óë»ØÊÕ
+// ä»å¯¹è±¡æ± ä¸­åˆ›å»ºä¸å›æ”¶ 
 #define NEW_MEMORY_STREAM() MemoryStream::ObjPool().createObject()
 #define DELETE_MEMORY_STREAM(obj) { MemoryStream::ObjPool().reclaimObject(obj); obj = NULL; }
 

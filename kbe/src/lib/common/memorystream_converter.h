@@ -19,22 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	×Ö½ÚĞò½»»»´¦ÀíÄ£¿é£º
-		 ÓÉÓÚÍøÂçÍ¨ĞÅÒ»°ã²ÉÓÃBIG×Ö½ÚĞò\Ò²½Ğ×öÍøÂç×Ö½ÚĞò.
- 		 ÎÒÃÇÊ¹ÓÃµÄPC»ú»òÕßÇ¶ÈëÊ½ÏµÍ³¿ÉÄÜÊ¹ÓÃBIG×Ö½ÚĞòÒ²¿ÉÄÜÊ¹ÓÃLITTEN(Ğ¡×Ö½ÚĞò)
- 		 ËùÒÔÎÒÃÇ±ØĞëÔÚ´ËÖ®¼ä×öÒ»¸ö×Ö½ÚĞòµÄ×ª»»¡£
+	å­—èŠ‚åºäº¤æ¢å¤„ç†æ¨¡å—ï¼š
+		 ç”±äºç½‘ç»œé€šä¿¡ä¸€èˆ¬é‡‡ç”¨BIGå­—èŠ‚åº\ä¹Ÿå«åšç½‘ç»œå­—èŠ‚åº.
+ 		 æˆ‘ä»¬ä½¿ç”¨çš„PCæœºæˆ–è€…åµŒå…¥å¼ç³»ç»Ÿå¯èƒ½ä½¿ç”¨BIGå­—èŠ‚åºä¹Ÿå¯èƒ½ä½¿ç”¨LITTEN(å°å­—èŠ‚åº)
+ 		 æ‰€ä»¥æˆ‘ä»¬å¿…é¡»åœ¨æ­¤ä¹‹é—´åšä¸€ä¸ªå­—èŠ‚åºçš„è½¬æ¢ã€‚
 */
 #ifndef KBE_MEMORYSTREAMCONVERTER_H
 #define KBE_MEMORYSTREAMCONVERTER_H
 // common include
 #include "common/common.h"
 #include <algorithm>
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
 
@@ -65,7 +59,7 @@ namespace MemoryStreamConverter
 	}
 }
 
-#if KBENGINE_ENDIAN == KBENGINE_BIG_ENDIAN			// ¿ÉÒÔÊ¹ÓÃsys.isPlatformLittleEndian() ½øĞĞ²âÊÔ
+#if KBENGINE_ENDIAN == KBENGINE_BIG_ENDIAN			// å¯ä»¥ä½¿ç”¨sys.isPlatformLittleEndian() è¿›è¡Œæµ‹è¯•
 template<typename T> inline void EndianConvert(T& val) { MemoryStreamConverter::apply<T>(&val); }
 template<typename T> inline void EndianConvertReverse(T&) { }
 #else
