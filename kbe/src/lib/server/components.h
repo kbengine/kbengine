@@ -21,8 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENGINE_COMPONENT_MGR_H
 #define KBE_ENGINE_COMPONENT_MGR_H
 	
-// common include
-//#define NDEBUG
 #include "common/timer.h"
 #include "common/tasks.h"
 #include "common/common.h"
@@ -30,13 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadmutex.h"
 #include "thread/threadguard.h"
 #include "server/common.h"
-
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
 
@@ -47,7 +38,7 @@ class Address;
 class NetworkInterface;
 }
 
-// ComponentInfos.flags±êÖ¾
+// ComponentInfos.flagsæ ‡å¿—
 #define COMPONENT_FLAG_NORMAL 0x00000000
 #define COMPONENT_FLAG_SHUTTINGDOWN 0x00000001
 
@@ -79,8 +70,8 @@ public:
 			logTime = timestamp();
 		}
 
-		KBEShared_ptr<Network::Address> pIntAddr, pExtAddr;		// ÄÚ²¿ºÍÍâ²¿µØÖ·
-		char externalAddressEx[MAX_NAME + 1];					// Ç¿ÖÆ±©Â¶¸øÍâ²¿µÄ¹«ÍøµØÖ·, Ïê¼ûÅäÖÃÖĞµÄexternalAddressEx
+		KBEShared_ptr<Network::Address> pIntAddr, pExtAddr;		// å†…éƒ¨å’Œå¤–éƒ¨åœ°å€
+		char externalAddressEx[MAX_NAME + 1];					// å¼ºåˆ¶æš´éœ²ç»™å¤–éƒ¨çš„å…¬ç½‘åœ°å€, è¯¦è§é…ç½®ä¸­çš„externalAddressEx
 
 		int32 uid;
 		COMPONENT_ID cid;
@@ -90,7 +81,7 @@ public:
 		COMPONENT_TYPE componentType;
 		uint32 flags;
 
-		// ½ø³Ì×´Ì¬
+		// è¿›ç¨‹çŠ¶æ€
 		COMPONENT_STATE state;
 
 		float cpu;
@@ -103,7 +94,7 @@ public:
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
 
-	/** ×é¼şÌí¼ÓÉ¾³ıhandler */
+	/** ç»„ä»¶æ·»åŠ åˆ é™¤handler */
 	class ComponentsNotificationHandler
 	{
 	public:
@@ -142,7 +133,7 @@ public:
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 
 	/** 
-		²éÕÒ×é¼ş
+		æŸ¥æ‰¾ç»„ä»¶
 	*/
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
@@ -151,7 +142,7 @@ public:
 	Components::ComponentInfos* findComponent(Network::Address* pAddress);
 
 	/** 
-		Í¨¹ı½ø³ÌidÑ°ÕÒ±¾µØ×é¼ş
+		é€šè¿‡è¿›ç¨‹idå¯»æ‰¾æœ¬åœ°ç»„ä»¶
 	*/
 	Components::ComponentInfos* findLocalComponent(uint32 pid);
 
@@ -164,27 +155,27 @@ public:
 	ORDER_LOG& getLoginappGroupOrderLog(){ return _loginappGrouplOrderLog; }
 	
 	/** 
-		¼ì²éËùÓĞµÄ×é¼ş£¬ ·ÀÖ¹ÓĞÖØ¸´µÄuuid£¬ ´ËÊ±Ó¦¸Ã±¨´í.
+		æ£€æŸ¥æ‰€æœ‰çš„ç»„ä»¶ï¼Œ é˜²æ­¢æœ‰é‡å¤çš„uuidï¼Œ æ­¤æ—¶åº”è¯¥æŠ¥é”™.
 	*/
 	bool checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid);
 
 	/** 
-		ÉèÖÃÓÃÓÚ½ÓÊÕ×é¼şÍ¨ÖªµÄ´¦ÀíÆ÷ÊµÀı
+		è®¾ç½®ç”¨äºæ¥æ”¶ç»„ä»¶é€šçŸ¥çš„å¤„ç†å™¨å®ä¾‹
 	*/
 	void pHandler(ComponentsNotificationHandler* ph){ _pHandler = ph; };
 
 	/** 
-		¼ì²éÄ³¸ö×é¼ş¶Ë¿ÚÊÇ·ñÓĞĞ§.
+		æ£€æŸ¥æŸä¸ªç»„ä»¶ç«¯å£æ˜¯å¦æœ‰æ•ˆ.
 	*/
 	bool updateComponentInfos(const Components::ComponentInfos* info);
 
 	/** 
-		ÊÇ·ñÊÇ±¾µØ×é¼ş.
+		æ˜¯å¦æ˜¯æœ¬åœ°ç»„ä»¶.
 	*/
 	bool isLocalComponent(const Components::ComponentInfos* info);
 
 	/** 
-		ÊÇ·ñ±¾µØ×é¼şÊÇ·ñÔÚÔËĞĞÖĞ.
+		æ˜¯å¦æœ¬åœ°ç»„ä»¶æ˜¯å¦åœ¨è¿è¡Œä¸­.
 	*/
 	const Components::ComponentInfos* lookupLocalComponentRunning(uint32 pid);
 
@@ -200,7 +191,7 @@ public:
 	Network::Channel* getLoggerChannel();
 
 	/** 
-		»ñÈ¡ÓÎÏ··şÎñ¶Ë±ØÒª×é¼şµÄ×¢²áÊıÁ¿¡£
+		è·å–æ¸¸æˆæœåŠ¡ç«¯å¿…è¦ç»„ä»¶çš„æ³¨å†Œæ•°é‡ã€‚
 	*/
 	size_t getGameSrvComponentsSize();
 
@@ -239,8 +230,8 @@ private:
 
 	Network::NetworkInterface*				_pNetworkInterface;
 	
-	// ×é¼şµÄÈ«¾ÖÆô¶¯´ÎĞòlogºÍ×é(ÏàÍ¬µÄ×é¼şÎªÒ»×é£¬ Èç£ºËùÓĞbaseappÎªÒ»¸ö×é)Æô¶¯´ÎĞòlog
-	// ×¢Òâ:ÖĞÍ¾ÓĞËÀµôµÄapp×é¼şÕâÀïlog²¢²»È¥×ö¼õ²Ù×÷, ´ÓÊ¹ÓÃÒâÍ¼À´¿´Ò²Ã»ÓĞ±ØÒª×öÕâ¸öÆ¥Åä¡£
+	// ç»„ä»¶çš„å…¨å±€å¯åŠ¨æ¬¡åºlogå’Œç»„(ç›¸åŒçš„ç»„ä»¶ä¸ºä¸€ç»„ï¼Œ å¦‚ï¼šæ‰€æœ‰baseappä¸ºä¸€ä¸ªç»„)å¯åŠ¨æ¬¡åºlog
+	// æ³¨æ„:ä¸­é€”æœ‰æ­»æ‰çš„appç»„ä»¶è¿™é‡Œlogå¹¶ä¸å»åšå‡æ“ä½œ, ä»ä½¿ç”¨æ„å›¾æ¥çœ‹ä¹Ÿæ²¡æœ‰å¿…è¦åšè¿™ä¸ªåŒ¹é…ã€‚
 	ORDER_LOG								_globalOrderLog;
 	ORDER_LOG								_baseappGrouplOrderLog;
 	ORDER_LOG								_cellappGrouplOrderLog;
@@ -248,10 +239,10 @@ private:
 
 	ComponentsNotificationHandler*			_pHandler;
 
-	// ±¾×é¼şµÄÀà±ğ
+	// æœ¬ç»„ä»¶çš„ç±»åˆ«
 	COMPONENT_TYPE							componentType_;
 
-	// ±¾×é¼şµÄID
+	// æœ¬ç»„ä»¶çš„ID
 	COMPONENT_ID							componentID_;	
 
 	uint8									state_;

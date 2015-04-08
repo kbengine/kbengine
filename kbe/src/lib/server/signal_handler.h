@@ -21,15 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SIGNAL_HANDLER_H
 #define KBE_SIGNAL_HANDLER_H
 
-// common include
 #include "common/common.h"
 #include "common/tasks.h"
 #include "common/singleton.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 	
 namespace KBEngine{
 class ServerApp;

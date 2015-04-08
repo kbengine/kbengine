@@ -21,48 +21,42 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SERVER_ERRORS_H
 #define KBE_SERVER_ERRORS_H
 
-// common include
 #include "common/common.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 
 namespace KBEngine { 
 
 /**
-	���������� ��Ҫ�Ƿ��������ظ��ͻ����õġ�
+	服务器错误， 主要是服务器返回给客户端用的。
 */
 	
-typedef uint16 SERVER_ERROR_CODE;								// ���������
+typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 
 
-#define SERVER_SUCCESS								0			// �ɹ���
-#define SERVER_ERR_SRV_NO_READY						1			// ������û��׼���á�
-#define SERVER_ERR_SRV_OVERLOAD						2			// ���������ع��ء�
-#define SERVER_ERR_ILLEGAL_LOGIN					3			// �Ƿ���¼��
-#define SERVER_ERR_NAME_PASSWORD					4			// �û����������벻��ȷ��
-#define SERVER_ERR_NAME								5			// �û�������ȷ��
-#define SERVER_ERR_PASSWORD							6			// ���벻��ȷ��
-#define SERVER_ERR_ACCOUNT_CREATE_FAILED			7			// �����˺�ʧ�ܣ��Ѿ�����һ����ͬ���˺ţ���
-#define SERVER_ERR_BUSY								8			// �������ڷ�æ(���磺�ڷ�����ǰһ������δִ����ϵ����������N�δ����˺�)��
-#define SERVER_ERR_ACCOUNT_LOGIN_ANOTHER			9			// ��ǰ�˺�����һ����¼�ˡ�
-#define SERVER_ERR_ACCOUNT_IS_ONLINE				10			// ���Ѿ���¼�ˣ��������ܾ��ٴε�¼��
-#define SERVER_ERR_PROXY_DESTROYED					11			// ��ͻ��˹�����proxy�ڷ��������Ѿ����١�
-#define SERVER_ERR_ENTITYDEFS_NOT_MATCH				12			// entityDefs��ƥ�䡣
-#define SERVER_ERR_IN_SHUTTINGDOWN					13			// ���������ڹر���
-#define SERVER_ERR_NAME_MAIL						14			// email��ַ����
-#define SERVER_ERR_ACCOUNT_LOCK						15			// �˺ű����ᡣ
-#define SERVER_ERR_ACCOUNT_DEADLINE					16			// �˺��ѹ��ڡ�
-#define SERVER_ERR_ACCOUNT_NOT_ACTIVATED			17			// �˺�δ���
-#define SERVER_ERR_VERSION_NOT_MATCH				18			// �����˵İ汾��ƥ�䡣
-#define SERVER_ERR_OP_FAILED						19			// ����ʧ�ܡ�
-#define SERVER_ERR_SRV_STARTING						20			// ���������������С�
-#define SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE	21			// δ�����˺�ע�Ṧ�ܡ�
-#define SERVER_ERR_CANNOT_USE_MAIL					22			// ����ʹ��email��ַ��
-#define SERVER_ERR_NOT_FOUND_ACCOUNT				23			// �Ҳ������˺š�
-#define SERVER_ERR_DB								24			// ���ݿ����(����dbmgr��־��DB)��
+#define SERVER_SUCCESS								0			// 成功。
+#define SERVER_ERR_SRV_NO_READY						1			// 服务器没有准备好。
+#define SERVER_ERR_SRV_OVERLOAD						2			// 服务器负载过重。
+#define SERVER_ERR_ILLEGAL_LOGIN					3			// 非法登录。
+#define SERVER_ERR_NAME_PASSWORD					4			// 用户名或者密码不正确。
+#define SERVER_ERR_NAME								5			// 用户名不正确。
+#define SERVER_ERR_PASSWORD							6			// 密码不正确。
+#define SERVER_ERR_ACCOUNT_CREATE_FAILED			7			// 创建账号失败（已经存在一个相同的账号）。
+#define SERVER_ERR_BUSY								8			// 操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。
+#define SERVER_ERR_ACCOUNT_LOGIN_ANOTHER			9			// 当前账号在另一处登录了。
+#define SERVER_ERR_ACCOUNT_IS_ONLINE				10			// 你已经登录了，服务器拒绝再次登录。
+#define SERVER_ERR_PROXY_DESTROYED					11			// 与客户端关联的proxy在服务器上已经销毁。
+#define SERVER_ERR_ENTITYDEFS_NOT_MATCH				12			// entityDefs不匹配。
+#define SERVER_ERR_IN_SHUTTINGDOWN					13			// 服务器正在关闭中
+#define SERVER_ERR_NAME_MAIL						14			// email地址错误。
+#define SERVER_ERR_ACCOUNT_LOCK						15			// 账号被冻结。
+#define SERVER_ERR_ACCOUNT_DEADLINE					16			// 账号已过期。
+#define SERVER_ERR_ACCOUNT_NOT_ACTIVATED			17			// 账号未激活。
+#define SERVER_ERR_VERSION_NOT_MATCH				18			// 与服务端的版本不匹配。
+#define SERVER_ERR_OP_FAILED						19			// 操作失败。
+#define SERVER_ERR_SRV_STARTING						20			// 服务器正在启动中。
+#define SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE	21			// 未开放账号注册功能。
+#define SERVER_ERR_CANNOT_USE_MAIL					22			// 不能使用email地址。
+#define SERVER_ERR_NOT_FOUND_ACCOUNT				23			// 找不到此账号。
+#define SERVER_ERR_DB								24			// 数据库错误(请检查dbmgr日志和DB)。
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",

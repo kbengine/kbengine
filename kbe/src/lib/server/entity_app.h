@@ -48,17 +48,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "resmgr/resmgr.h"
 #include "helper/console_helper.h"
+#include "server/serverapp.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
-//#define NDEBUG
-#include "server/serverapp.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 	
 namespace KBEngine{
 
@@ -81,29 +76,29 @@ public:
 	~EntityApp();
 	
 	/** 
-		Ïà¹Ø´¦Àí½Ó¿Ú 
+		ç›¸å…³å¤„ç†æ¥å£ 
 	*/
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
 
 	/**
-		Í¨¹ıentityIDÑ°ÕÒµ½¶ÔÓ¦µÄÊµÀı 
+		é€šè¿‡entityIDå¯»æ‰¾åˆ°å¯¹åº”çš„å®ä¾‹ 
 	*/
 	E* findEntity(ENTITY_ID entityID);
 
 	/** 
-		Í¨¹ıentityIDÏú»ÙÒ»¸öentity 
+		é€šè¿‡entityIDé”€æ¯ä¸€ä¸ªentity 
 	*/
 	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript);
 
 	/**
-		ÓÉmailboxÀ´³¢ÊÔ»ñÈ¡Ò»¸öentityµÄÊµÀı
-		ÒòÎªÕâ¸ö×é¼şÉÏ²»Ò»¶¨´æÔÚÕâ¸öentity¡£
+		ç”±mailboxæ¥å°è¯•è·å–ä¸€ä¸ªentityçš„å®ä¾‹
+		å› ä¸ºè¿™ä¸ªç»„ä»¶ä¸Šä¸ä¸€å®šå­˜åœ¨è¿™ä¸ªentityã€‚
 	*/
 	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
 
 	/**
-		ÓÉmailboxÀ´³¢ÊÔ»ñÈ¡Ò»¸öchannelµÄÊµÀı
+		ç”±mailboxæ¥å°è¯•è·å–ä¸€ä¸ªchannelçš„å®ä¾‹
 	*/
 	Network::Channel* findChannelByMailbox(EntityMailbox& mailbox);
 
@@ -137,94 +132,94 @@ public:
 	EntityIDClient& idClient(){ return idClient_; }
 
 	/**
-		´´½¨Ò»¸öentity 
+		åˆ›å»ºä¸€ä¸ªentity 
 	*/
 	E* createEntity(const char* entityType, PyObject* params,
 		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
 
 	virtual E* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
-	/** ÍøÂç½Ó¿Ú
-		ÇëÇó·ÖÅäÒ»¸öENTITY_ID¶ÎµÄ»Øµ÷
+	/** ç½‘ç»œæ¥å£
+		è¯·æ±‚åˆ†é…ä¸€ä¸ªENTITY_IDæ®µçš„å›è°ƒ
 	*/
 	void onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
 
-	/** ÍøÂç½Ó¿Ú
-		dbmgr·¢ËÍ³õÊ¼ĞÅÏ¢
-		startID: ³õÊ¼·ÖÅäENTITY_ID ¶ÎÆğÊ¼Î»ÖÃ
-		endID: ³õÊ¼·ÖÅäENTITY_ID ¶Î½áÊøÎ»ÖÃ
-		startGlobalOrder: È«¾ÖÆô¶¯Ë³Ğò °üÀ¨¸÷ÖÖ²»Í¬×é¼ş
-		startGroupOrder: ×éÄÚÆô¶¯Ë³Ğò£¬ ±ÈÈçÔÚËùÓĞbaseappÖĞµÚ¼¸¸öÆô¶¯¡£
+	/** ç½‘ç»œæ¥å£
+		dbmgrå‘é€åˆå§‹ä¿¡æ¯
+		startID: åˆå§‹åˆ†é…ENTITY_ID æ®µèµ·å§‹ä½ç½®
+		endID: åˆå§‹åˆ†é…ENTITY_ID æ®µç»“æŸä½ç½®
+		startGlobalOrder: å…¨å±€å¯åŠ¨é¡ºåº åŒ…æ‹¬å„ç§ä¸åŒç»„ä»¶
+		startGroupOrder: ç»„å†…å¯åŠ¨é¡ºåºï¼Œ æ¯”å¦‚åœ¨æ‰€æœ‰baseappä¸­ç¬¬å‡ ä¸ªå¯åŠ¨ã€‚
 	*/
 	void onDbmgrInitCompleted(Network::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, COMPONENT_ORDER startGlobalOrder, 
 		COMPONENT_ORDER startGroupOrder, const std::string& digest);
 
-	/** ÍøÂç½Ó¿Ú
-		dbmgr¹ã²¥globalÊı¾İµÄ¸Ä±ä
+	/** ç½‘ç»œæ¥å£
+		dbmgrå¹¿æ’­globalæ•°æ®çš„æ”¹å˜
 	*/
 	void onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
-	/** ÍøÂç½Ó¿Ú
-		ÇëÇóÖ´ĞĞÒ»¶ÎpythonÖ¸Áî
+	/** ç½‘ç»œæ¥å£
+		è¯·æ±‚æ‰§è¡Œä¸€æ®µpythonæŒ‡ä»¤
 	*/
 	void onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 
-		consoleÇëÇó¿ªÊ¼profile
+		consoleè¯·æ±‚å¼€å§‹profile
 	*/
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
 	/**
-		»ñÈ¡apps·¢²¼×´Ì¬, ¿ÉÔÚ½Å±¾ÖĞ»ñÈ¡¸ÃÖµ
+		è·å–appså‘å¸ƒçŠ¶æ€, å¯åœ¨è„šæœ¬ä¸­è·å–è¯¥å€¼
 	*/
 	static PyObject* __py_getAppPublish(PyObject* self, PyObject* args);
 
 	/**
-		ÉèÖÃ½Å±¾Êä³öÀàĞÍÇ°×º
+		è®¾ç½®è„šæœ¬è¾“å‡ºç±»å‹å‰ç¼€
 	*/
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
 	/**
-		»ñÈ¡watcherÖµ
+		è·å–watcherå€¼
 	*/
 	static PyObject* __py_getWatcher(PyObject* self, PyObject* args);
 	static PyObject* __py_getWatcherDir(PyObject* self, PyObject* args);
 
 	/**
-		ÖØĞÂµ¼ÈëËùÓĞµÄ½Å±¾
+		é‡æ–°å¯¼å…¥æ‰€æœ‰çš„è„šæœ¬
 	*/
 	virtual void reloadScript(bool fullReload);
 	virtual void onReloadScript(bool fullReload);
 
 	/**
-		Í¨¹ıÏà¶ÔÂ·¾¶»ñÈ¡×ÊÔ´µÄÈ«Â·¾¶
+		é€šè¿‡ç›¸å¯¹è·¯å¾„è·å–èµ„æºçš„å…¨è·¯å¾„
 	*/
 	static PyObject* __py_getResFullPath(PyObject* self, PyObject* args);
 
 	/**
-		Í¨¹ıÏà¶ÔÂ·¾¶ÅĞ¶Ï×ÊÔ´ÊÇ·ñ´æÔÚ
+		é€šè¿‡ç›¸å¯¹è·¯å¾„åˆ¤æ–­èµ„æºæ˜¯å¦å­˜åœ¨
 	*/
 	static PyObject* __py_hasRes(PyObject* self, PyObject* args);
 
 	/**
-		openÎÄ¼ş
+		openæ–‡ä»¶
 	*/
 	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
 
 	/**
-		ÁĞ³öÄ¿Â¼ÏÂËùÓĞÎÄ¼ş
+		åˆ—å‡ºç›®å½•ä¸‹æ‰€æœ‰æ–‡ä»¶
 	*/
 	static PyObject* __py_listPathRes(PyObject* self, PyObject* args);
 
 	/**
-		Æ¥ÅäÏà¶ÔÂ·¾¶»ñµÃÈ«Â·¾¶ 
+		åŒ¹é…ç›¸å¯¹è·¯å¾„è·å¾—å…¨è·¯å¾„ 
 	*/
 	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
 
 	/**
-		¸üĞÂ¸ºÔØÇé¿ö
+		æ›´æ–°è´Ÿè½½æƒ…å†µ
 	*/
 	int tickPassedPercent(uint64 curr = timestamp());
 	float getLoad() const { return load_; }
@@ -241,7 +236,7 @@ protected:
 
 	EntityIDClient											idClient_;
 
-	// ´æ´¢ËùÓĞµÄentityµÄÈİÆ÷
+	// å­˜å‚¨æ‰€æœ‰çš„entityçš„å®¹å™¨
 	Entities<E>*											pEntities_;										
 
 	TimerHandle												gameTimer_;
@@ -253,7 +248,7 @@ protected:
 
 	uint64													lastTimestamp_;
 
-	// ½ø³Ìµ±Ç°¸ºÔØ
+	// è¿›ç¨‹å½“å‰è´Ÿè½½
 	float													load_;
 };
 
@@ -278,11 +273,11 @@ load_(0.f)
 	ScriptTimers::initialize(*this);
 	idClient_.pApp(this);
 
-	// ³õÊ¼»¯mailboxÄ£¿é»ñÈ¡entityÊµÌåº¯ÊıµØÖ·
+	// åˆå§‹åŒ–mailboxæ¨¡å—è·å–entityå®ä½“å‡½æ•°åœ°å€
 	EntityMailbox::setGetEntityFunc(std::tr1::bind(&EntityApp<E>::tryGetEntityByMailbox, this, 
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
-	// ³õÊ¼»¯mailboxÄ£¿é»ñÈ¡channelº¯ÊıµØÖ·
+	// åˆå§‹åŒ–mailboxæ¨¡å—è·å–channelå‡½æ•°åœ°å€
 	EntityMailbox::setFindChannelFunc(std::tr1::bind(&EntityApp<E>::findChannelByMailbox, this, 
 		std::tr1::placeholders::_1));
 }
@@ -352,7 +347,7 @@ bool EntityApp<E>::installEntityDef()
 	if(!EntityDef::installScript(this->getScript().getModule()))
 		return false;
 
-	// ³õÊ¼»¯ËùÓĞÀ©Õ¹Ä£¿é
+	// åˆå§‹åŒ–æ‰€æœ‰æ‰©å±•æ¨¡å—
 	// assets/scripts/
 	if(!EntityDef::initialize(scriptBaseTypes_, componentType_)){
 		return false;
@@ -462,7 +457,7 @@ bool EntityApp<E>::installPyModules()
 	pEntities_ = new Entities<E>();
 	registerPyObjectToScript("entities", pEntities_);
 
-	// °²×°Èë¿ÚÄ£¿é
+	// å®‰è£…å…¥å£æ¨¡å—
 	PyObject *entryScriptFileName = NULL;
 	if(componentType() == BASEAPP_TYPE)
 	{
@@ -475,43 +470,43 @@ bool EntityApp<E>::installPyModules()
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
 
-	// Ìí¼ÓpywatcherÖ§³Ö
+	// æ·»åŠ pywatcheræ”¯æŒ
 	if(!initializePyWatcher(&this->getScript()))
 		return false;
 
-	// Ìí¼ÓglobalData, globalBasesÖ§³Ö
+	// æ·»åŠ globalData, globalBasesæ”¯æŒ
 	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
 
-	// ×¢²á´´½¨entityµÄ·½·¨µ½py
-	// Ïò½Å±¾×¢²áapp·¢²¼×´Ì¬
+	// æ³¨å†Œåˆ›å»ºentityçš„æ–¹æ³•åˆ°py
+	// å‘è„šæœ¬æ³¨å†Œappå‘å¸ƒçŠ¶æ€
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,						METH_VARARGS,	0);
 
-	// ×¢²áÉèÖÃ½Å±¾Êä³öÀàĞÍ
+	// æ³¨å†Œè®¾ç½®è„šæœ¬è¾“å‡ºç±»å‹
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,		__py_setScriptLogType,					METH_VARARGS,	0);
 	
-	// »ñµÃ×ÊÔ´È«Â·¾¶
+	// è·å¾—èµ„æºå…¨è·¯å¾„
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,					METH_VARARGS,	0);
 
-	// ÊÇ·ñ´æÔÚÄ³¸ö×ÊÔ´
+	// æ˜¯å¦å­˜åœ¨æŸä¸ªèµ„æº
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,							METH_VARARGS,	0);
 
-	// ´ò¿ªÒ»¸öÎÄ¼ş
+	// æ‰“å¼€ä¸€ä¸ªæ–‡ä»¶
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,							METH_VARARGS,	0);
 
-	// ÁĞ³öÄ¿Â¼ÏÂËùÓĞÎÄ¼ş
+	// åˆ—å‡ºç›®å½•ä¸‹æ‰€æœ‰æ–‡ä»¶
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	listPathRes,		__py_listPathRes,						METH_VARARGS,	0);
 
-	// Æ¥ÅäÏà¶ÔÂ·¾¶»ñµÃÈ«Â·¾¶
+	// åŒ¹é…ç›¸å¯¹è·¯å¾„è·å¾—å…¨è·¯å¾„
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,							METH_VARARGS,	0);
 
-	// »ñÈ¡watcherÖµ
+	// è·å–watcherå€¼
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcher,			__py_getWatcher,						METH_VARARGS,	0);
 
-	// »ñÈ¡watcherÄ¿Â¼
+	// è·å–watcherç›®å½•
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getWatcherDir,		__py_getWatcherDir,						METH_VARARGS,	0);
 
-	// debug×·×Ùkbe·â×°µÄpy¶ÔÏó¼ÆÊı
+	// debugè¿½è¸ªkbeå°è£…çš„pyå¯¹è±¡è®¡æ•°
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	debugTracing,		script::PyGC::__py_debugTracing,		METH_VARARGS,	0);
 
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
@@ -584,7 +579,7 @@ template<class E>
 E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 										 bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
-	// ¼ì²éIDÊÇ·ñ×ã¹», ²»×ã·µ»ØNULL
+	// æ£€æŸ¥IDæ˜¯å¦è¶³å¤Ÿ, ä¸è¶³è¿”å›NULL
 	if(eid <= 0 && idClient_.getSize() == 0)
 	{
 		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntity: is Failed. not enough entityIDs.");
@@ -608,7 +603,7 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 
 	PyObject* obj = sm->createObject();
 
-	// ÅĞ¶ÏÊÇ·ñÒª·ÖÅäÒ»¸öĞÂµÄid
+	// åˆ¤æ–­æ˜¯å¦è¦åˆ†é…ä¸€ä¸ªæ–°çš„id
 	ENTITY_ID id = eid;
 	if(id <= 0)
 		id = idClient_.alloc();
@@ -618,10 +613,10 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	if(initProperty)
 		entity->initProperty();
 
-	// ½«entity¼ÓÈëentities
+	// å°†entityåŠ å…¥entities
 	pEntities_->add(id, entity); 
 
-	// ³õÊ¼»¯½Å±¾
+	// åˆå§‹åŒ–è„šæœ¬
 	if(isInitializeScript)
 		entity->initializeEntity(params);
 
@@ -642,7 +637,7 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 template<class E>
 E* EntityApp<E>::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
 {
-	// Ö´ĞĞEntityµÄ¹¹Ôìº¯Êı
+	// æ‰§è¡ŒEntityçš„æ„é€ å‡½æ•°
 	return new(pyEntity) E(eid, sm);
 }
 
@@ -685,7 +680,7 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 template<class E>
 Network::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
 {
-	// Èç¹û×é¼şID´óÓÚ0Ôò²éÕÒ×é¼ş
+	// å¦‚æœç»„ä»¶IDå¤§äº0åˆ™æŸ¥æ‰¾ç»„ä»¶
 	if(mailbox.componentID() > 0)
 	{
 		Components::ComponentInfos* cinfos = 
@@ -1262,7 +1257,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 	{
 		if(pGlobalData_->del(pyKey))
 		{
-			// Í¨Öª½Å±¾
+			// é€šçŸ¥è„šæœ¬
 			// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalDataDel"), 
 				const_cast<char*>("O"), pyKey);
@@ -1282,7 +1277,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 
 		if(pGlobalData_->write(pyKey, pyValue))
 		{
-			// Í¨Öª½Å±¾
+			// é€šçŸ¥è„šæœ¬
 			// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
@@ -1319,7 +1314,7 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 		retbuf = "\r\n";
 	}
 
-	// ½«½á¹û·µ»Ø¸ø¿Í»§¶Ë
+	// å°†ç»“æœè¿”å›ç»™å®¢æˆ·ç«¯
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
@@ -1333,13 +1328,13 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 template<class E>
 int EntityApp<E>::tickPassedPercent(uint64 curr)
 {
-	// µÃµ½ÉÏÒ»¸ötickµ½ÏÖÔÚËùÁ÷ÊÅµÄÊ±¼ä
+	// å¾—åˆ°ä¸Šä¸€ä¸ªtickåˆ°ç°åœ¨æ‰€æµé€çš„æ—¶é—´
 	uint64 pass_stamps = (curr - lastTimestamp_) * uint64(1000) / stampsPerSecond();
 
-	// µÃµ½Ã¿HertzµÄºÁÃëÊı
+	// å¾—åˆ°æ¯Hertzçš„æ¯«ç§’æ•°
 	static int expected = (1000 / g_kbeSrvConfig.gameUpdateHertz());
 
-	// µÃµ½µ±Ç°Á÷ÊÅµÄÊ±¼äÕ¼Ò»¸öÊ±ÖÓÖÜÆÚµÄµÄ°Ù·Ö±È
+	// å¾—åˆ°å½“å‰æµé€çš„æ—¶é—´å ä¸€ä¸ªæ—¶é’Ÿå‘¨æœŸçš„çš„ç™¾åˆ†æ¯”
 	return int(pass_stamps) * 100 / expected;
 }
 
@@ -1366,7 +1361,7 @@ void EntityApp<E>::updateLoad()
 {
 	uint64 lastTickInStamps = checkTickPeriod();
 
-	// »ñµÃ¿ÕÏĞÊ±¼ä±ÈÀı
+	// è·å¾—ç©ºé—²æ—¶é—´æ¯”ä¾‹
 	double spareTime = 1.0;
 	if (lastTickInStamps != 0)
 	{
@@ -1375,7 +1370,7 @@ void EntityApp<E>::updateLoad()
 
 	dispatcher_.clearSpareTime();
 
-	// Èç¹û¿ÕÏĞÊ±¼ä±ÈÀıĞ¡ÓÚ0 »òÕß´óÓÚ1Ôò±íÃ÷¼ÆÊ±²»×¼È·
+	// å¦‚æœç©ºé—²æ—¶é—´æ¯”ä¾‹å°äº0 æˆ–è€…å¤§äº1åˆ™è¡¨æ˜è®¡æ—¶ä¸å‡†ç¡®
 	if ((spareTime < 0.f) || (1.f < spareTime))
 	{
 		if (g_timingMethod == RDTSC_TIMING_METHOD)
@@ -1399,11 +1394,11 @@ void EntityApp<E>::updateLoad()
 template<class E>
 void EntityApp<E>::calcLoad(float spareTime)
 {
-	// ¸ºÔØµÄÖµÎª1.0 - ¿ÕÏĞÊ±¼ä±ÈÀı, ±ØĞëÔÚ0-1.fÖ®¼ä
+	// è´Ÿè½½çš„å€¼ä¸º1.0 - ç©ºé—²æ—¶é—´æ¯”ä¾‹, å¿…é¡»åœ¨0-1.fä¹‹é—´
 	float load = KBEClamp(1.f - spareTime, 0.f, 1.f);
 
-	// ´Ë´¦Ëã·¨¿´server_operations_guide.pdf½éÉÜloadSmoothingBias´¦
-	// loadSmoothingBias ¾ö¶¨±¾´Î¸ºÔØÈ¡×îºóÒ»´Î¸ºÔØµÄloadSmoothingBiasÊ£Óà±ÈÀı + µ±Ç°¸ºÔØµÄloadSmoothingBias±ÈÀı
+	// æ­¤å¤„ç®—æ³•çœ‹server_operations_guide.pdfä»‹ç»loadSmoothingBiaså¤„
+	// loadSmoothingBias å†³å®šæœ¬æ¬¡è´Ÿè½½å–æœ€åä¸€æ¬¡è´Ÿè½½çš„loadSmoothingBiaså‰©ä½™æ¯”ä¾‹ + å½“å‰è´Ÿè½½çš„loadSmoothingBiasæ¯”ä¾‹
 	static float loadSmoothingBias = g_kbeSrvConfig.getConfig().loadSmoothingBias;
 	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
 }
@@ -1426,7 +1421,7 @@ void EntityApp<E>::reloadScript(bool fullReload)
 
 	// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	// ËùÓĞ½Å±¾¶¼¼ÓÔØÍê±Ï
+	// æ‰€æœ‰è„šæœ¬éƒ½åŠ è½½å®Œæ¯•
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onInit"), 
 										const_cast<char*>("i"), 

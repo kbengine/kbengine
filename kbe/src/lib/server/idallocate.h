@@ -19,67 +19,61 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	IDAllocate(·ÖÅäÆ÷)
-		ÓÃÀ´·ÖÅäÒ»¸ö±¾·ÖÅäÆ÷Ëù¹ÜÀíµÄÎ¨Ò»id¡£ Ê¹ÓÃÕâ¸ö·ÖÅäÆ÷±ØĞë×Ô¼º±£Ö¤£¬ Ò»¸öÓ¦ÓÃÖ»ÄÜÊ¹ÓÃ
-		Í¬Ò»¸öid·ÖÅäÆ÷À´»ñÈ¡id²ÅÊÇÎ¨Ò»µÄ¡£
+	IDAllocate(åˆ†é…å™¨)
+		ç”¨æ¥åˆ†é…ä¸€ä¸ªæœ¬åˆ†é…å™¨æ‰€ç®¡ç†çš„å”¯ä¸€idã€‚ ä½¿ç”¨è¿™ä¸ªåˆ†é…å™¨å¿…é¡»è‡ªå·±ä¿è¯ï¼Œ ä¸€ä¸ªåº”ç”¨åªèƒ½ä½¿ç”¨
+		åŒä¸€ä¸ªidåˆ†é…å™¨æ¥è·å–idæ‰æ˜¯å”¯ä¸€çš„ã€‚
 		
-		Èç¹ûÊÇÒ»¸ö unsigned intÀàĞÍ£¬ Õâ¸ö·ÖÅäÆ÷»áÒ»Ö±ÏòÉÏ·ÖÅä£¬ µ±´ïµ½ÀàĞÍµÄ×î´óÖµÖ®ºó»á
-		´Ó×ªÍ·ÓÖ´Ó0¿ªÊ¼ÏòÉÏÀÛ¼Ó·ÖÅä£¬ Ëü»á´ÓlistÖĞÑ°ÕÒ£¬ Èç¹ûµ±Ç°Òª·ÖÅäµÄIDÃ»ÓĞÔÚlistÖĞÕÒµ½
-		ÄÇÃ´Õâ¸öid½«±»·ÖÅä¡£
+		å¦‚æœæ˜¯ä¸€ä¸ª unsigned intç±»å‹ï¼Œ è¿™ä¸ªåˆ†é…å™¨ä¼šä¸€ç›´å‘ä¸Šåˆ†é…ï¼Œ å½“è¾¾åˆ°ç±»å‹çš„æœ€å¤§å€¼ä¹‹åä¼š
+		ä»è½¬å¤´åˆä»0å¼€å§‹å‘ä¸Šç´¯åŠ åˆ†é…ï¼Œ å®ƒä¼šä»listä¸­å¯»æ‰¾ï¼Œ å¦‚æœå½“å‰è¦åˆ†é…çš„IDæ²¡æœ‰åœ¨listä¸­æ‰¾åˆ°
+		é‚£ä¹ˆè¿™ä¸ªidå°†è¢«åˆ†é…ã€‚
 
-		ÓÃ·¨:
+		ç”¨æ³•:
 		IDAllocate<ENTITY_ID>* m_IDAllocPtr = new IDAllocate<ENTITY_ID>;
-		// ·ÖÅäÒ»¸öid 
+		// åˆ†é…ä¸€ä¸ªid 
 		m_IDAllocPtr->alloc()
-		// »ØÊÕÒ»¸öid
+		// å›æ”¶ä¸€ä¸ªid
 		m_IDAllocPtr->reclaim()
 		
-	IDServer(·şÎñÆ÷)
-		Õâ¸öÖ÷ÒªÊÇÌá¹©Õû¸ö·şÎñÆ÷×éÖ®¼äµÄentityIDµÄ·ÖÅä£¬ ËûÖ÷Òª±»baseappmgrÊ¹ÓÃ£¬ Ã¿¸öIDserver
-		ÇëÇó»ñÈ¡IDµÄÊ±ºò£¬ Õâ¸ö·şÎñÆ÷¾Í»á·ÖÅäÒ»¸öÎ¨Ò»id¶Î¸ø¿Í»§¶Ë£¬ ÄÇÃ´¿Í»§¶Ë¾Í¿ÉÒÔ¸ù¾İÕâ¸ö¶Î
-		²úÉúËùÓĞµÄÎ¨Ò»id²¢½øĞĞ×ÔÓÉµÄ·ÖÅÉ¡£
+	IDServer(æœåŠ¡å™¨)
+		è¿™ä¸ªä¸»è¦æ˜¯æä¾›æ•´ä¸ªæœåŠ¡å™¨ç»„ä¹‹é—´çš„entityIDçš„åˆ†é…ï¼Œ ä»–ä¸»è¦è¢«baseappmgrä½¿ç”¨ï¼Œ æ¯ä¸ªIDserver
+		è¯·æ±‚è·å–IDçš„æ—¶å€™ï¼Œ è¿™ä¸ªæœåŠ¡å™¨å°±ä¼šåˆ†é…ä¸€ä¸ªå”¯ä¸€idæ®µç»™å®¢æˆ·ç«¯ï¼Œ é‚£ä¹ˆå®¢æˆ·ç«¯å°±å¯ä»¥æ ¹æ®è¿™ä¸ªæ®µ
+		äº§ç”Ÿæ‰€æœ‰çš„å”¯ä¸€idå¹¶è¿›è¡Œè‡ªç”±çš„åˆ†æ´¾ã€‚
 		
-		ÓÃ·¨:
+		ç”¨æ³•:
 		IDServer<ENTITY_ID>* m_idServer = new IDServer<ENTITY_ID>(1, 400);
-		// »ñÈ¡Ò»¸öid¶Î ²¢´«Êä¸øIDClient
+		// è·å–ä¸€ä¸ªidæ®µ å¹¶ä¼ è¾“ç»™IDClient
 		std::pair< unsigned int, unsigned int > idRange = m_idServer->allocRange();
 		g_socketStreamIDClient->send(idRange.first, idRange.second);
 		
-	IDClient(¿Í»§¶Ë)
-		Õâ¸öÄ£¿éÊÇÅäºÏIDServer½øĞĞidÉêÇëºÍ½ÓÊÕµÄ£¬ ¡£
+	IDClient(å®¢æˆ·ç«¯)
+		è¿™ä¸ªæ¨¡å—æ˜¯é…åˆIDServerè¿›è¡Œidç”³è¯·å’Œæ¥æ”¶çš„ï¼Œ ã€‚
 		
-		ÓÃ·¨:
+		ç”¨æ³•:
 		IDClient<ENTITY_ID>* m_idClient = new IDClient<ENTITY_ID>;
-		// Ìí¼ÓIDServer·¢ËÍ¹ıÀ´µÄid¶Î
+		// æ·»åŠ IDServerå‘é€è¿‡æ¥çš„idæ®µ
 		m_idClient->onAddRange(idBegin, idEnd);
-		// ·ÖÅäÒ»¸öid 
+		// åˆ†é…ä¸€ä¸ªid 
 		m_idClient->alloc()
 */
 #ifndef KBE_IDALLOCATE_H
 #define KBE_IDALLOCATE_H
 
-// common include	
 #include "helper/debug_helper.h"
 #include "common/common.h"
-//#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>	
 #include <queue>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
+
 	
 namespace KBEngine{
 
 class ServerApp;
 
-// Ö±½ÓÊ¹ÓÃÒ»¸öµü´úÊı£¬ Èç¹ûÊıÒç³öÁËÀàĞÍ´óĞ¡¾Í¹éÁãËùÒÔĞèÒªÊ¹ÓÃÎŞ·ûºÅÀàĞÍ
-// ÊÊÓÃÓÚÁÙÊ±·ÖÅäid£¬ ²¢ÇÒºÜ¿ì¹é»¹£¬ ÕâÑù²Å²»»áID³åÍ»
+// ç›´æ¥ä½¿ç”¨ä¸€ä¸ªè¿­ä»£æ•°ï¼Œ å¦‚æœæ•°æº¢å‡ºäº†ç±»å‹å¤§å°å°±å½’é›¶æ‰€ä»¥éœ€è¦ä½¿ç”¨æ— ç¬¦å·ç±»å‹
+// é€‚ç”¨äºä¸´æ—¶åˆ†é…idï¼Œ å¹¶ä¸”å¾ˆå¿«å½’è¿˜ï¼Œ è¿™æ ·æ‰ä¸ä¼šIDå†²çª
 template<typename T>
 class IDAllocate
 {
@@ -93,7 +87,7 @@ public:
 	}	
 	
 	/** 
-		·ÖÅäÒ»¸öid 
+		åˆ†é…ä¸€ä¸ªid 
 	*/
 	T alloc(void)
 	{
@@ -105,7 +99,7 @@ public:
 	}
 	
 	/** 
-		»ØÊÕÒ»¸öid 
+		å›æ”¶ä¸€ä¸ªid 
 	*/
 	virtual void reclaim(T id)
 	{
@@ -115,10 +109,10 @@ public:
 	void lastID(T v){ lastID_ = v; }
 
 protected:
-	T lastID_;													// ×îºóÒ»´ÎÉêÇëµ½µÄID
+	T lastID_;													// æœ€åä¸€æ¬¡ç”³è¯·åˆ°çš„ID
 };
 
-// ·ÖÅäµÄidÓÃÍê»á´æ´¢ÔÚÁĞ±íÖĞ£¬ ÏÂ´ÎÊ¹ÓÃ»á´ÓÖĞ»ñÈ¡
+// åˆ†é…çš„idç”¨å®Œä¼šå­˜å‚¨åœ¨åˆ—è¡¨ä¸­ï¼Œ ä¸‹æ¬¡ä½¿ç”¨ä¼šä»ä¸­è·å–
 template< typename T >
 class IDAllocateFromList : public IDAllocate<T>
 {
@@ -132,7 +126,7 @@ public:
 	}	
 	
 	/** 
-		·ÖÅäÒ»¸öid 
+		åˆ†é…ä¸€ä¸ªid 
 	*/
 	T alloc(void)
 	{
@@ -151,7 +145,7 @@ public:
 	}
 	
 	/** 
-		»ØÊÕÒ»¸öid 
+		å›æ”¶ä¸€ä¸ªid 
 	*/
 	void reclaim(T id)
 	{
@@ -159,7 +153,7 @@ public:
 	}
 
 protected:
-	typename std::queue< T > idList_;							// idÁĞ±í£¬ ËùÓĞID¶¼´æÔÚÕâ¸öÁĞ±íÀï
+	typename std::queue< T > idList_;							// idåˆ—è¡¨ï¼Œ æ‰€æœ‰IDéƒ½å­˜åœ¨è¿™ä¸ªåˆ—è¡¨é‡Œ
 };
 
 
@@ -167,8 +161,8 @@ template< typename T >
 class IDServer
 {
 protected:
-	T lastIDRange_begin_;										// ×îºóÒ»´ÎÉêÇëµ½µÄID¶ÎµÄÆğÊ¼Î»ÖÃ
-	T rangeStep_;												// id¶ÎµÄÒ»¸ö¶Î³¤¶È
+	T lastIDRange_begin_;										// æœ€åä¸€æ¬¡ç”³è¯·åˆ°çš„IDæ®µçš„èµ·å§‹ä½ç½®
+	T rangeStep_;												// idæ®µçš„ä¸€ä¸ªæ®µé•¿åº¦
 public:
 	IDServer(T idBegin, T rangeStep): 
 	lastIDRange_begin_(idBegin), 
@@ -181,7 +175,7 @@ public:
 	}	
 	
 	/** 
-		·ÖÅäÒ»¸öid¶Î 
+		åˆ†é…ä¸€ä¸ªidæ®µ 
 	*/
 	std::pair< T, T > allocRange(void)
 	{
@@ -206,7 +200,7 @@ public:
 	}
 	
 	/** 
-		Îö¹¹Ê±²»»áÍ¨ÖªIDServer½øĞĞ»ØÊÕ£¬ ÇëÊ¹ÓÃÕß×Ô¼º½øĞĞÕâ·½ÃæµÄÎ¬»¤ 
+		ææ„æ—¶ä¸ä¼šé€šçŸ¥IDServerè¿›è¡Œå›æ”¶ï¼Œ è¯·ä½¿ç”¨è€…è‡ªå·±è¿›è¡Œè¿™æ–¹é¢çš„ç»´æŠ¤ 
 	*/
 	virtual ~IDClient()
 	{
@@ -225,7 +219,7 @@ public:
 		size_t ncount = lastIDRange_end_ - lastIDRange_begin_; 
 		if(ncount <= 0)
 		{
-			// ¿´¿´ÊÇ·ñÓĞ»º´æµÄID¶Î£¨»áÔÚid¿ìÓÃ¾¡Ê±Ïò·şÎñÆ÷ÉêÇë»º´æµ½ÕâÀï£©
+			// çœ‹çœ‹æ˜¯å¦æœ‰ç¼“å­˜çš„IDæ®µï¼ˆä¼šåœ¨idå¿«ç”¨å°½æ—¶å‘æœåŠ¡å™¨ç”³è¯·ç¼“å­˜åˆ°è¿™é‡Œï¼‰
 			if(idList_.size() > 0)
 			{
 				std::pair< T, T > n = idList_.front();
@@ -240,14 +234,14 @@ public:
 	}
 	
 	/**
-		¼ì²éentityIDÊÇ·ñ¹»ÓÃ 
-		×¢Òâ£ºÒ»¸ötickÄÚÊ¹ÓÃIDÊıÁ¿²»Òª³¬¹ıID_ENOUGH_LIMIT
+		æ£€æŸ¥entityIDæ˜¯å¦å¤Ÿç”¨ 
+		æ³¨æ„ï¼šä¸€ä¸ªtickå†…ä½¿ç”¨IDæ•°é‡ä¸è¦è¶…è¿‡ID_ENOUGH_LIMIT
 	*/
 	virtual void onAlloc(void) {
 	};
 	
 	/** 
-		idserver ·ÖÅä¹ıÀ´µÄÒ»¸öid¶Î 
+		idserver åˆ†é…è¿‡æ¥çš„ä¸€ä¸ªidæ®µ 
 	*/
 	void onAddRange(T idBegin, T idEnd)
 	{
@@ -264,7 +258,7 @@ public:
 	}
 	
 	/** 
-		·ÖÅäÒ»¸öid 
+		åˆ†é…ä¸€ä¸ªid 
 	*/
 	T alloc(void)
 	{
@@ -275,7 +269,7 @@ public:
 
 		if(lastIDRange_begin_ > lastIDRange_end_)
 		{
-			// ¿´¿´ÊÇ·ñÓĞ»º´æµÄID¶Î£¨»áÔÚid¿ìÓÃ¾¡Ê±Ïò·şÎñÆ÷ÉêÇë»º´æµ½ÕâÀï£©
+			// çœ‹çœ‹æ˜¯å¦æœ‰ç¼“å­˜çš„IDæ®µï¼ˆä¼šåœ¨idå¿«ç”¨å°½æ—¶å‘æœåŠ¡å™¨ç”³è¯·ç¼“å­˜åˆ°è¿™é‡Œï¼‰
 			if(idList_.size() > 0)
 			{
 				std::pair< T, T > n = idList_.front();
@@ -294,19 +288,19 @@ public:
 	}
 	
 	/** 
-		»ØÊÕÒ»¸öid
+		å›æ”¶ä¸€ä¸ªid
 	*/
 	void onReclaim(T id)
 	{
 	}
 	
 protected:
-	typename std::queue< std::pair< T, T > > idList_;					// idÁĞ±í£¬ ËùÓĞID¶Î¶¼´æÔÚÕâ¸öÁĞ±íÀï
+	typename std::queue< std::pair< T, T > > idList_;					// idåˆ—è¡¨ï¼Œ æ‰€æœ‰IDæ®µéƒ½å­˜åœ¨è¿™ä¸ªåˆ—è¡¨é‡Œ
 
-	T lastIDRange_begin_;												// ×îºóÒ»´ÎÉêÇëµ½µÄID¶ÎµÄÆğÊ¼Î»ÖÃ
+	T lastIDRange_begin_;												// æœ€åä¸€æ¬¡ç”³è¯·åˆ°çš„IDæ®µçš„èµ·å§‹ä½ç½®
 	T lastIDRange_end_;	
 
-	bool requestedIDServerAlloc_;										// ÊÇ·ñÒÑ¾­ÇëÇóID·şÎñ¶Ë·ÖÅäID
+	bool requestedIDServerAlloc_;										// æ˜¯å¦å·²ç»è¯·æ±‚IDæœåŠ¡ç«¯åˆ†é…ID
 };
 
 class EntityIDClient : public IDClient<ENTITY_ID>

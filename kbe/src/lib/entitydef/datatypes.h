@@ -31,13 +31,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatype.h"
 #include "xml/xml.h"	
 #include "common/smartpointer.h"
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 
 namespace KBEngine{
 typedef SmartPointer<DataType> DataTypePtr;

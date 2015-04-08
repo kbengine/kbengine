@@ -334,8 +334,8 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 
 		currentFreeThreadCount_++;	
 		currentThreadCount_++;
-		freeThreadList_.push_back(tptd);										// ÏÐÖÃµÄÏß³ÌÁÐ±í
-		allThreadList_.push_back(tptd);											// ËùÓÐµÄÏß³ÌÁÐ±í
+		freeThreadList_.push_back(tptd);										// é—²ç½®çš„çº¿ç¨‹åˆ—è¡¨
+		allThreadList_.push_back(tptd);											// æ‰€æœ‰çš„çº¿ç¨‹åˆ—è¡¨
 	}
 	
 	INFO_MSG(fmt::format("ThreadPool::createThreadPool: successfully({0}), "
@@ -527,7 +527,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
 		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
 		
-		tptd->task(tptask);												// ¸øÏß³ÌÉèÖÃÐÂÈÎÎñ	
+		tptd->task(tptask);												// ç»™çº¿ç¨‹è®¾ç½®æ–°ä»»åŠ¡	
 		
 #if KBE_PLATFORM == PLATFORM_WIN32
 		if(tptd->sendCondSignal()== 0){
@@ -557,7 +557,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 
 	for(uint32 i=0; i<extraNewAddThreadCount_; ++i)
 	{
-		TPThread* tptd = createThread(300);									// Éè¶¨5·ÖÖÓÎ´Ê¹ÓÃÔòÍË³öµÄÏß³Ì
+		TPThread* tptd = createThread(300);									// è®¾å®š5åˆ†é’Ÿæœªä½¿ç”¨åˆ™é€€å‡ºçš„çº¿ç¨‹
 		if(!tptd)
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32		
@@ -568,8 +568,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 #endif				
 		}
 
-		allThreadList_.push_back(tptd);										// ËùÓÐµÄÏß³ÌÁÐ±í
-		freeThreadList_.push_back(tptd);									// ÏÐÖÃµÄÏß³ÌÁÐ±í
+		allThreadList_.push_back(tptd);										// æ‰€æœ‰çš„çº¿ç¨‹åˆ—è¡¨
+		freeThreadList_.push_back(tptd);									// é—²ç½®çš„çº¿ç¨‹åˆ—è¡¨
 		++currentThreadCount_;
 		++currentFreeThreadCount_;	
 		
@@ -648,10 +648,10 @@ void* TPThread::threadFunc(void* arg)
 		{
 			tptd->inc_done_tasks();
 			tptd->onProcessTaskStart(task);
-			tptd->processTask(task);							// ´¦Àí¸ÃÈÎÎñ								
+			tptd->processTask(task);							// å¤„ç†è¯¥ä»»åŠ¡								
 			tptd->onProcessTaskEnd(task);
 
-			TPTask * task1 = tptd->tryGetTask();				// ³¢ÊÔ¼ÌÐø´ÓÈÎÎñ¶ÓÁÐÀïÈ¡³öÒ»¸ö·±Ã¦µÄÎ´´¦ÀíµÄÈÎÎñ
+			TPTask * task1 = tptd->tryGetTask();				// å°è¯•ç»§ç»­ä»Žä»»åŠ¡é˜Ÿåˆ—é‡Œå–å‡ºä¸€ä¸ªç¹å¿™çš„æœªå¤„ç†çš„ä»»åŠ¡
 
 			if(!task1)
 			{
@@ -708,8 +708,8 @@ bool TPThread::onWaitCondSignal(void)
 		DWORD ret = WaitForSingleObject(cond_, threadWaitSecond_ * 1000);
 		ResetEvent(cond_);
 
-		// Èç¹ûÊÇÒòÎª³¬Ê±ÁË£¬ ËµÃ÷Õâ¸öÏß³ÌºÜ¾ÃÃ»ÓÐ±»ÓÃµ½£¬ ÎÒÃÇÓ¦¸Ã×¢ÏúÕâ¸öÏß³Ì¡£
-		// Í¨ÖªThreadPool×¢Ïú×Ô¼º
+		// å¦‚æžœæ˜¯å› ä¸ºè¶…æ—¶äº†ï¼Œ è¯´æ˜Žè¿™ä¸ªçº¿ç¨‹å¾ˆä¹…æ²¡æœ‰è¢«ç”¨åˆ°ï¼Œ æˆ‘ä»¬åº”è¯¥æ³¨é”€è¿™ä¸ªçº¿ç¨‹ã€‚
+		// é€šçŸ¥ThreadPoolæ³¨é”€è‡ªå·±
 		if (ret == WAIT_TIMEOUT)
 		{																	
 			threadPool_->removeHangThread(this);							
@@ -742,10 +742,10 @@ bool TPThread::onWaitCondSignal(void)
 		int ret = pthread_cond_timedwait(&cond_, &mutex_, &timeout);
 		unlock();
 		
-		// Èç¹ûÊÇÒòÎª³¬Ê±ÁË£¬ ËµÃ÷Õâ¸öÏß³ÌºÜ¾ÃÃ»ÓÐ±»ÓÃµ½£¬ ÎÒÃÇÓ¦¸Ã×¢ÏúÕâ¸öÏß³Ì¡£
+		// å¦‚æžœæ˜¯å› ä¸ºè¶…æ—¶äº†ï¼Œ è¯´æ˜Žè¿™ä¸ªçº¿ç¨‹å¾ˆä¹…æ²¡æœ‰è¢«ç”¨åˆ°ï¼Œ æˆ‘ä»¬åº”è¯¥æ³¨é”€è¿™ä¸ªçº¿ç¨‹ã€‚
 		if (ret == ETIMEDOUT)
 		{
-			// Í¨ÖªThreadPool×¢Ïú×Ô¼º
+			// é€šçŸ¥ThreadPoolæ³¨é”€è‡ªå·±
 			threadPool_->removeHangThread(this);
 			return false;
 		}

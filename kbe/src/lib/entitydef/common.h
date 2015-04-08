@@ -27,28 +27,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
 #endif
-// common include	
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 
 namespace KBEngine{
 
-/** entity�����ݴ������Ա�� */
+/** entity的数据传输特性标记 */
 enum EntityDataFlags
 {
-	ED_FLAG_UNKOWN													= 0x00000000, // δ����
-	ED_FLAG_CELL_PUBLIC												= 0x00000001, // �������cell�㲥
-	ED_FLAG_CELL_PRIVATE											= 0x00000002, // ��ǰcell
-	ED_FLAG_ALL_CLIENTS												= 0x00000004, // cell�㲥�����пͻ���
-	ED_FLAG_CELL_PUBLIC_AND_OWN										= 0x00000008, // cell�㲥���Լ��Ŀͻ���
-	ED_FLAG_OWN_CLIENT												= 0x00000010, // ��ǰcell�Ϳͻ���
-	ED_FLAG_BASE_AND_CLIENT											= 0x00000020, // base�Ϳͻ���
-	ED_FLAG_BASE													= 0x00000040, // ��ǰbase
-	ED_FLAG_OTHER_CLIENTS											= 0x00000080, // cell�㲥�������ͻ���
+	ED_FLAG_UNKOWN													= 0x00000000, // 未定义
+	ED_FLAG_CELL_PUBLIC												= 0x00000001, // 相关所有cell广播
+	ED_FLAG_CELL_PRIVATE											= 0x00000002, // 当前cell
+	ED_FLAG_ALL_CLIENTS												= 0x00000004, // cell广播与所有客户端
+	ED_FLAG_CELL_PUBLIC_AND_OWN										= 0x00000008, // cell广播与自己的客户端
+	ED_FLAG_OWN_CLIENT												= 0x00000010, // 当前cell和客户端
+	ED_FLAG_BASE_AND_CLIENT											= 0x00000020, // base和客户端
+	ED_FLAG_BASE													= 0x00000040, // 当前base
+	ED_FLAG_OTHER_CLIENTS											= 0x00000080, // cell广播和其他客户端
 };
 
 std::string entityDataFlagsToString(uint32 flags);
@@ -57,24 +51,24 @@ std::string entityDataFlagsToString(uint32 flags);
 	| ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT |	\
 	ED_FLAG_BASE_AND_CLIENT | ED_FLAG_BASE | ED_FLAG_OTHER_CLIENTS
 
-/** �൱�ڶ�entity���ݴ�������һ������Ķ��� */
+/** 相当于对entity数据传输类别的一个总体的定义 */
 enum EntityDataFlagRelation
 {
-	// ������baseapp�й�ϵ�ı�־
+	// 所有与baseapp有关系的标志
 	ENTITY_BASE_DATA_FLAGS											= ED_FLAG_BASE | ED_FLAG_BASE_AND_CLIENT,
-	// ������cellapp�й�ϵ�ı�־
+	// 所有与cellapp有关系的标志
 	ENTITY_CELL_DATA_FLAGS											= ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT,
-	// ������client�й�ϵ�ı�־
+	// 所有与client有关系的标志
 	ENTITY_CLIENT_DATA_FLAGS										= ED_FLAG_BASE_AND_CLIENT | ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT,
-	// ������Ҫ�㲥������cellapp�ı�־
+	// 所有需要广播给其他cellapp的标志
 	ENTITY_BROADCAST_CELL_FLAGS										= ED_FLAG_CELL_PUBLIC | ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS,
-	// ������Ҫ�㲥�������ͻ���(�������Լ���)�ı�־
+	// 所有需要广播给其他客户端(不包括自己的)的标志
 	ENTITY_BROADCAST_OTHER_CLIENT_FLAGS								= ED_FLAG_OTHER_CLIENTS | ED_FLAG_ALL_CLIENTS,
-	// ������Ҫ�㲥���Լ��Ŀͻ��˵ı�־
+	// 所有需要广播给自己的客户端的标志
 	ENTITY_BROADCAST_OWN_CLIENT_FLAGS								= ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT | ED_FLAG_BASE_AND_CLIENT,
 };
 
-/** mailbox�������Ӧ��������ӳ�䣬  ��������������ϸ�ƥ��ENTITY_MAILBOX_TYPE��ֵ */
+/** mailbox类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITY_MAILBOX_TYPE的值 */
 const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] = 
 {
 	CELLAPP_TYPE,
@@ -86,16 +80,16 @@ const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] =
 	BASEAPP_TYPE,
 };
 
-/** ���Ե�lod�㲥����Χ�Ķ��� */
+/** 属性的lod广播级别范围的定义 */
 typedef uint8 DETAIL_TYPE;
-#define DETAIL_LEVEL_NEAR													0	// lod���𣺽�						
-#define DETAIL_LEVEL_MEDIUM													1	// lod������
-#define DETAIL_LEVEL_FAR													2	// lod����Զ	
+#define DETAIL_LEVEL_NEAR													0	// lod级别：近						
+#define DETAIL_LEVEL_MEDIUM													1	// lod级别：中
+#define DETAIL_LEVEL_FAR													2	// lod级别：远	
 
 typedef std::map<std::string, EntityDataFlags> ENTITYFLAGMAP;
-extern ENTITYFLAGMAP g_entityFlagMapping;										// entity ��flag�ַ���ӳ���
+extern ENTITYFLAGMAP g_entityFlagMapping;										// entity 的flag字符串映射表
 
-// ���Ժͷ�����UID���
+// 属性和方法的UID类别
 typedef uint16 ENTITY_PROPERTY_UID;
 typedef uint16 ENTITY_METHOD_UID;
 typedef uint16 ENTITY_SCRIPT_UID;
@@ -117,7 +111,7 @@ typedef uint8  ENTITY_DEF_ALIASID;
 #define DATA_TYPE_PYTUPLE		11
 #define DATA_TYPE_PYLIST		12
 
-// ��entity��һЩϵͳ����Ŀɱ����Խ��б���Ա����紫��ʱ���б��
+// 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE
 {
 	ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ					= 1,
@@ -125,7 +119,7 @@ enum ENTITY_BASE_PROPERTY_UTYPE
 	ENTITY_BASE_PROPERTY_UTYPE_SPACEID						= 3,
 };
 
-// ��entity��һЩϵͳ����Ŀɱ����Խ��б���Ա����紫��ʱ���б��
+// 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_ALIASID
 {
 	ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ				= 0,
@@ -134,7 +128,7 @@ enum ENTITY_BASE_PROPERTY_ALIASID
 	ENTITY_BASE_PROPERTY_ALIASID_MAX						= 3,
 };
 
-// �����Ƶ�ϵͳ���ԣ�def�в���������
+// 被限制的系统属性，def中不允许定义
 const char ENTITY_LIMITED_PROPERTYS[][32] =
 {
 	"id",

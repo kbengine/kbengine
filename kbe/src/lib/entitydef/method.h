@@ -34,12 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet.h"
 #include "entitymailboxabstract.h"
 #include "pyscript/scriptobject.h"	
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 
 namespace KBEngine{
 
@@ -71,23 +66,23 @@ public:
 	size_t getArgSize(void);
 	
 	/** 
-		¼ì²éÒ»¸öcallÊÇ·ñºÏ·¨ 
+		æ£€æŸ¥ä¸€ä¸ªcallæ˜¯å¦åˆæ³• 
 	*/
 	bool checkArgs(PyObject* args);		
 	
 	/** 
-		½«Ã¿¸ö²ÎÊı´ò°üÌí¼Óµ½Á÷£¬ 
-		Õâ¸öÁ÷Àï°üº¬µÄĞÅÏ¢ÊÇÕâ¸ö·½·¨ÔÚ½Å±¾±»µ÷ÓÃÊ±Àï´«ÈëµÄ²ÎÊı 
+		å°†æ¯ä¸ªå‚æ•°æ‰“åŒ…æ·»åŠ åˆ°æµï¼Œ 
+		è¿™ä¸ªæµé‡ŒåŒ…å«çš„ä¿¡æ¯æ˜¯è¿™ä¸ªæ–¹æ³•åœ¨è„šæœ¬è¢«è°ƒç”¨æ—¶é‡Œä¼ å…¥çš„å‚æ•° 
 	*/
 	void addToStream(MemoryStream* mstream, PyObject* args);
 
 	/** 
-		½«Ò»¸öcallÁ÷½â°ü ²¢·µ»ØÒ»¸öPyObjectÀàĞÍµÄargs 
+		å°†ä¸€ä¸ªcallæµè§£åŒ… å¹¶è¿”å›ä¸€ä¸ªPyObjectç±»å‹çš„args 
 	*/
 	PyObject* createFromStream(MemoryStream* mstream);
 	
 	/** 
-		ºô½ĞÒ»¸ö·½·¨ 
+		å‘¼å«ä¸€ä¸ªæ–¹æ³• 
 	*/
 	PyObject* call(PyObject* func, PyObject* args);	
 
@@ -100,27 +95,27 @@ public:
 	INLINE bool isBase() const;
 
 	/** 
-		±ğÃûid£¬ µ±±©Â¶µÄ·½·¨»òÕß¹ã²¥µÄÊôĞÔ×Ü¸öÊıĞ¡ÓÚ255Ê±
-		ÎÒÃÇ²»Ê¹ÓÃutype¶øÊ¹ÓÃ1×Ö½ÚµÄaliasIDÀ´´«Êä
+		åˆ«åidï¼Œ å½“æš´éœ²çš„æ–¹æ³•æˆ–è€…å¹¿æ’­çš„å±æ€§æ€»ä¸ªæ•°å°äº255æ—¶
+		æˆ‘ä»¬ä¸ä½¿ç”¨utypeè€Œä½¿ç”¨1å­—èŠ‚çš„aliasIDæ¥ä¼ è¾“
 	*/
 	INLINE int16 aliasID() const;
 	INLINE uint8 aliasIDAsUint8() const;
 	INLINE void aliasID(int16 v);
 protected:
-	static uint32							methodDescriptionCount_;					// ËùÓĞµÄÊôĞÔÃèÊöµÄÊıÁ¿
+	static uint32							methodDescriptionCount_;					// æ‰€æœ‰çš„å±æ€§æè¿°çš„æ•°é‡
 
 	COMPONENT_ID							methodDomain_;
 
-	std::string								name_;										// Õâ¸ö·½·¨µÄÃû³Æ
-	ENTITY_METHOD_UID						utype_;										// Õâ¸ö·½·¨µÄÊı×ÖÀà±ğ£¬ ÓÃÓÚÍøÂçÉÏ´«ÊäÊ¶±ğ
+	std::string								name_;										// è¿™ä¸ªæ–¹æ³•çš„åç§°
+	ENTITY_METHOD_UID						utype_;										// è¿™ä¸ªæ–¹æ³•çš„æ•°å­—ç±»åˆ«ï¼Œ ç”¨äºç½‘ç»œä¸Šä¼ è¾“è¯†åˆ«
 
-	std::vector<DataType*>					argTypes_;									// Õâ¸öÊôĞÔµÄ²ÎÊıÀà±ğÁĞ±í
+	std::vector<DataType*>					argTypes_;									// è¿™ä¸ªå±æ€§çš„å‚æ•°ç±»åˆ«åˆ—è¡¨
 
-	bool									isExposed_;									// ÊÇ·ñÊÇÒ»¸ö±©Â¶·½·¨
+	bool									isExposed_;									// æ˜¯å¦æ˜¯ä¸€ä¸ªæš´éœ²æ–¹æ³•
 
-	ENTITY_ID								currCallerID_;								// µ±Ç°µ÷ÓÃÕâ¸ö·½·¨µÄµ÷ÓÃÕßID, Ìá¹©±©Â¶·½·¨µ÷ÓÃÊ±¸ø½Å±¾ÅĞ¶Ïµ÷ÓÃÔ´·ÀÖ¹×÷±×
+	ENTITY_ID								currCallerID_;								// å½“å‰è°ƒç”¨è¿™ä¸ªæ–¹æ³•çš„è°ƒç”¨è€…ID, æä¾›æš´éœ²æ–¹æ³•è°ƒç”¨æ—¶ç»™è„šæœ¬åˆ¤æ–­è°ƒç”¨æºé˜²æ­¢ä½œå¼Š
 
-	int16									aliasID_;									// ±ğÃûid£¬ µ±±©Â¶µÄ·½·¨»òÕß¹ã²¥µÄÊôĞÔ×Ü¸öÊıĞ¡ÓÚ255Ê±£¬ ÎÒÃÇ²»Ê¹ÓÃutype¶øÊ¹ÓÃ1×Ö½ÚµÄaliasIDÀ´´«Êä
+	int16									aliasID_;									// åˆ«åidï¼Œ å½“æš´éœ²çš„æ–¹æ³•æˆ–è€…å¹¿æ’­çš„å±æ€§æ€»ä¸ªæ•°å°äº255æ—¶ï¼Œ æˆ‘ä»¬ä¸ä½¿ç”¨utypeè€Œä½¿ç”¨1å­—èŠ‚çš„aliasIDæ¥ä¼ è¾“
 };
 
 }

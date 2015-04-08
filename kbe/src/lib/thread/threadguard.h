@@ -19,33 +19,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	Ïß³ÌÊØ»¤Ìå£º
-		±ÜÃâÏß³ÌÖ®¼ä¶ñÒâ¾ºÕù²úÉúËÀËøÎÊÌâ¡£
-	ÓÃ·¨:
-		ÔÚÒ»¸öÀàÖĞ¶¨Òå»¥ËßÌå³ÉÔ±
+	çº¿ç¨‹å®ˆæŠ¤ä½“ï¼š
+		é¿å…çº¿ç¨‹ä¹‹é—´æ¶æ„ç«äº‰äº§ç”Ÿæ­»é”é—®é¢˜ã€‚
+	ç”¨æ³•:
+		åœ¨ä¸€ä¸ªç±»ä¸­å®šä¹‰äº’è¯‰ä½“æˆå‘˜
 		ThreadMutex tm;
-		ÔÚĞèÒª±£»¤µÄµØ·½:
+		åœ¨éœ€è¦ä¿æŠ¤çš„åœ°æ–¹:
 		void XXCLASS::foo(void)
 		{
 			ThreadGuard tg(this->tm);
-			ÏÂÃæµÄ´úÂë¶¼ÊÇ°²È«µÄ
+			ä¸‹é¢çš„ä»£ç éƒ½æ˜¯å®‰å…¨çš„
 			...
 		}
 */
 #ifndef KBE_THREADGUARD_H
 #define KBE_THREADGUARD_H
 	
-// common include
 #include "thread/threadmutex.h"
-//#define NDEBUG
 #include <assert.h>
-
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{ namespace thread{
 

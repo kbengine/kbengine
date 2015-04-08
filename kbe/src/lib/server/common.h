@@ -21,50 +21,45 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SERVER_COMMON_H
 #define KBE_SERVER_COMMON_H
 
-// common include
 #include "common/timer.h"
 #include "common/common.h"
 #include "server/server_errors.h"
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 
 namespace KBEngine { 
 
-// ÏûÏ¢×ª·¢µ½Ä³¸ö×é¼ş
+// æ¶ˆæ¯è½¬å‘åˆ°æŸä¸ªç»„ä»¶
 #define NETWORK_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)						\
 	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																				\
 	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																				\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// cellapp×ª·¢ÏûÏ¢¸ø¿Í»§¶Ë
+// cellappè½¬å‘æ¶ˆæ¯ç»™å®¢æˆ·ç«¯
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// cellapp×ª·¢ÏûÏ¢¸øcellapp
+// cellappè½¬å‘æ¶ˆæ¯ç»™cellapp
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CELLAPP(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);														\
 	SENDBUNDLE << ENTITYID;																												\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);	
 
-// cellapp×ª·¢ÏûÏ¢¸ø¿Í»§¶Ë¿ªÊ¼
+// cellappè½¬å‘æ¶ˆæ¯ç»™å®¢æˆ·ç«¯å¼€å§‹
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(ENTITYID, SENDBUNDLE)																\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
 
-// cellapp×ª·¢ÏûÏ¢¸ø¿Í»§¶ËÏûÏ¢°ü×·¼ÓÏûÏ¢
+// cellappè½¬å‘æ¶ˆæ¯ç»™å®¢æˆ·ç«¯æ¶ˆæ¯åŒ…è¿½åŠ æ¶ˆæ¯
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND(SENDBUNDLE, FORWARDBUNDLE)															\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// ¹«¹²ÏûÏ¢
+// å…¬å…±æ¶ˆæ¯
 #define COMMON_NETWORK_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)											\
 		switch(COMPONENTTYPE)																				\
 		{																									\
@@ -137,13 +132,13 @@ namespace KBEngine {
 		};																									\
 
 /**
-½«Ãë×ª»»Îªtick
-@lowerBound: ×îÉÙ²»µÍÓÚNtick
+å°†ç§’è½¬æ¢ä¸ºtick
+@lowerBound: æœ€å°‘ä¸ä½äºNtick
 */
 int32 secondsToTicks(float seconds, int lowerBound);
 
 /**
-	½«ÃëÎªµ¥Î»µÄÊ±¼ä×ª»»ÎªÃ¿ÃëËùºÄµÄstamps
+	å°†ç§’ä¸ºå•ä½çš„æ—¶é—´è½¬æ¢ä¸ºæ¯ç§’æ‰€è€—çš„stamps
 */
 inline uint64 secondsToStamps(float seconds)
 {
@@ -151,18 +146,18 @@ inline uint64 secondsToStamps(float seconds)
 }
 
 /*
- ÕËºÅºÍÃÜÂë×î´ó³¤¶È
+ è´¦å·å’Œå¯†ç æœ€å¤§é•¿åº¦
 */
 #define ACCOUNT_NAME_MAX_LENGTH 64
 #define ACCOUNT_PASSWD_MAX_LENGTH 64
 
-// µÇÂ¼×¢²áÊ±¸½´øµÄĞÅÏ¢×î´ó³¤¶È
+// ç™»å½•æ³¨å†Œæ—¶é™„å¸¦çš„ä¿¡æ¯æœ€å¤§é•¿åº¦
 #define ACCOUNT_DATA_MAX_LENGTH 1024
 
-// ±»ÓÃÀ´ÃèÊöÈÎºÎÖ»×öÒ»´Îºó×Ô¶¯ÉèÖÃÎª²»×öµÄÑ¡Ïî
+// è¢«ç”¨æ¥æè¿°ä»»ä½•åªåšä¸€æ¬¡åè‡ªåŠ¨è®¾ç½®ä¸ºä¸åšçš„é€‰é¡¹
 #define KBE_NEXT_ONLY 2
 
-/** c/c++Êı¾İÀà±ğ×ª»»³ÉKBEDataTypeID */
+/** c/c++æ•°æ®ç±»åˆ«è½¬æ¢æˆKBEDataTypeID */
 uint16 datatype2id(std::string datatype);
 
 }
