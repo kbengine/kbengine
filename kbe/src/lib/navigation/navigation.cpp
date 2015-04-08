@@ -122,6 +122,9 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name)
 	else 	
 	{
 		path = Resmgr::getSingleton().matchPath(path);
+		if(path.size() == 0)
+			return NULL;
+
 		wchar_t* wpath = strutil::char2wchar(path.c_str());
 		std::wstring wspath = wpath;
 		free(wpath);

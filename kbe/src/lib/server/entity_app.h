@@ -1143,6 +1143,13 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 		return 0;
 	}
 
+	if(PyUnicode_GET_LENGTH(pathobj) == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(wExtendName.size() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is NULL!");
