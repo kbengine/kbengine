@@ -41,9 +41,9 @@ template< typename T >
 class SmartPoolObject;
 
 /*
-	一些对象会非常频繁的被创建， 例如：MemoryStream, Bundle, TCPPacket等等
-	这个对象池对通过服务端峰值有效的预估提前创建出一些对象缓存起来，在用到的时候直接从对象池中
-	获取一个未被使用的对象即可。
+	һЩ�����ǳ�Ƶ���ı������� ���磺MemoryStream, Bundle, TCPPacket�ȵ�
+	�������ض�ͨ������˷�ֵ��Ч��Ԥ����ǰ������һЩ���󻺴����������õ���ʱ��ֱ�ӴӶ������
+	��ȡһ��δ��ʹ�õĶ��󼴿ɡ�
 */
 template< typename T >
 class ObjectPool
@@ -110,8 +110,8 @@ public:
 	}
 
 	/** 
-		强制创建一个指定类型的对象。 如果缓冲里已经创建则返回现有的，否则
-		创建一个新的， 这个对象必须是继承自T的。
+		ǿ�ƴ���һ��ָ�����͵Ķ��� ����������Ѿ������򷵻����еģ�����
+		����һ���µģ� �����������Ǽ̳���T�ġ�
 	*/
 	template<typename T1>
 	T* createObject(void)
@@ -139,8 +139,8 @@ public:
 	}
 
 	/** 
-		创建一个对象。 如果缓冲里已经创建则返回现有的，否则
-		创建一个新的。
+		����һ������ ����������Ѿ������򷵻����еģ�����
+		����һ���µġ�
 	*/
 	T* createObject(void)
 	{
@@ -167,7 +167,7 @@ public:
 	}
 
 	/**
-		回收一个对象
+		����һ������
 	*/
 	void reclaimObject(T* obj)
 	{
@@ -177,7 +177,7 @@ public:
 	}
 
 	/**
-		回收一个对象容器
+		����һ����������
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
@@ -195,7 +195,7 @@ public:
 	}
 
 	/**
-		回收一个对象容器
+		����һ����������
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
@@ -213,7 +213,7 @@ public:
 	}
 
 	/**
-		回收一个对象容器
+		����һ����������
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
@@ -252,13 +252,13 @@ public:
 
 protected:
 	/**
-		回收一个对象
+		����һ������
 	*/
 	void reclaimObject_(T* obj)
 	{
 		if(obj != NULL)
 		{
-			// 先重置状态
+			// ������״̬
 			obj->onReclaimObject();
 
 			if(size() >= max_ || isDestroyed_)
@@ -281,21 +281,21 @@ protected:
 
 	bool isDestroyed_;
 
-	// 一些原因导致锁还是有必要的
-	// 例如：dbmgr任务线程中输出log，cellapp中加载navmesh后的线程回调导致的log输出
+	// һЩԭ�����������б�Ҫ��
+	// ���磺dbmgr�����߳������log��cellapp�м���navmesh����̻߳ص����µ�log���
 	KBEngine::thread::ThreadMutex mutex_;
 
 	std::string name_;
 
 	size_t total_allocs_;
 
-	// Linux环境中，list.size()使用的是std::distance(begin(), end())方式来获得
-	// 会对性能有影响，这里我们自己对size做一个记录
+	// Linux�����У�list.size()ʹ�õ���std::distance(begin(), end())��ʽ�����
+	// ���������Ӱ�죬���������Լ���size��һ����¼
 	size_t obj_count_;
 };
 
 /*
-	池对象， 所有使用池的对象必须实现回收功能。
+	�ض��� ����ʹ�óصĶ������ʵ�ֻ��չ��ܡ�
 */
 class PoolObject
 {
@@ -307,8 +307,8 @@ public:
 	virtual size_t getPoolObjectBytes(){ return 0; }
 
 	/**
-		池对象被析构前的通知
-		某些对象可以在此做一些工作
+		�ض�������ǰ��֪ͨ
+		ĳЩ��������ڴ���һЩ����
 	*/
 	virtual bool destructorPoolObject()
 	{
