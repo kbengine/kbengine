@@ -20,9 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_OBJECTPOOL_H
 #define KBE_OBJECTPOOL_H
-	
-// common include	
-//#define NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

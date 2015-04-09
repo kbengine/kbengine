@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_CLIENT_CONFIG_H
 #define KBE_CLIENT_CONFIG_H
-// common include
+
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
