@@ -28,38 +28,38 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-// 消息转发到某个组件
+// ��Ϣת����ĳ�����
 #define NETWORK_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)						\
 	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																				\
 	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																				\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// cellapp转发消息给客户端
+// cellappת����Ϣ���ͻ���
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// cellapp转发消息给cellapp
+// cellappת����Ϣ��cellapp
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CELLAPP(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToCellappFromCellapp);														\
 	SENDBUNDLE << ENTITYID;																												\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);	
 
-// cellapp转发消息给客户端开始
+// cellappת����Ϣ���ͻ��˿�ʼ
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(ENTITYID, SENDBUNDLE)																\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
 
-// cellapp转发消息给客户端消息包追加消息
+// cellappת����Ϣ���ͻ�����Ϣ��׷����Ϣ
 #define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND(SENDBUNDLE, FORWARDBUNDLE)															\
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
-// 公共消息
+// ������Ϣ
 #define COMMON_NETWORK_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)											\
 		switch(COMPONENTTYPE)																				\
 		{																									\
@@ -132,13 +132,13 @@ namespace KBEngine {
 		};																									\
 
 /**
-将秒转换为tick
-@lowerBound: 最少不低于Ntick
+����ת��Ϊtick
+@lowerBound: ���ٲ�����Ntick
 */
 int32 secondsToTicks(float seconds, int lowerBound);
 
 /**
-	将秒为单位的时间转换为每秒所耗的stamps
+	����Ϊ��λ��ʱ��ת��Ϊÿ�����ĵ�stamps
 */
 inline uint64 secondsToStamps(float seconds)
 {
@@ -146,18 +146,18 @@ inline uint64 secondsToStamps(float seconds)
 }
 
 /*
- 账号和密码最大长度
+ �˺ź�������󳤶�
 */
 #define ACCOUNT_NAME_MAX_LENGTH 64
 #define ACCOUNT_PASSWD_MAX_LENGTH 64
 
-// 登录注册时附带的信息最大长度
+// ��¼ע��ʱ��������Ϣ��󳤶�
 #define ACCOUNT_DATA_MAX_LENGTH 1024
 
-// 被用来描述任何只做一次后自动设置为不做的选项
+// �����������κ�ֻ��һ�κ��Զ�����Ϊ������ѡ��
 #define KBE_NEXT_ONLY 2
 
-/** c/c++数据类别转换成KBEDataTypeID */
+/** c/c++�������ת����KBEDataTypeID */
 uint16 datatype2id(std::string datatype);
 
 }

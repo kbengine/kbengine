@@ -19,21 +19,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	çº¿ç¨‹äº’è¯‰ä½“ï¼š
-	ç”¨æ³•:
+	Ïß³Ì»¥ËßÌå£º
+	ÓÃ·¨:
 		ThreadMutex tm;
 		tm.lockMutex();
-		....å®‰å…¨ä»£ç 
+		....°²È«´úÂë
 		tm.unlockMutex();
 		
-		æœ€å¥½æ˜¯é…åˆThreadGuardæ¥ä½¿ç”¨
-		åœ¨ä¸€ä¸ªç±»ä¸­å®šä¹‰äº’è¯‰ä½“æˆå‘˜
+		×îºÃÊÇÅäºÏThreadGuardÀ´Ê¹ÓÃ
+		ÔÚÒ»¸öÀàÖĞ¶¨Òå»¥ËßÌå³ÉÔ±
 		ThreadMutex tm;
-		åœ¨éœ€è¦ä¿æŠ¤çš„åœ°æ–¹:
+		ÔÚĞèÒª±£»¤µÄµØ·½:
 		void XXCLASS::func(void)
 		{
 			ThreadGuard tg(this->tm);
-			ä¸‹é¢çš„ä»£ç éƒ½æ˜¯å®‰å…¨çš„
+			ÏÂÃæµÄ´úÂë¶¼ÊÇ°²È«µÄ
 			...
 		}
 */
@@ -41,7 +41,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __THREADMUTEX_H__
 	
 #include "common/common.h"
-#include <assert.h>
 
 
 namespace KBEngine{ namespace thread{

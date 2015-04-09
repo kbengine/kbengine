@@ -20,11 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /*
-	ç”¨æ³•:
+	ÓÃ·¨:
 		class A:public Singleton<A>
 		{
 		};
-		åœ¨cppæ–‡ä»¶ä¸­:
+		ÔÚcppÎÄ¼þÖÐ:
 		template<> A* Singleton<A>::singleton_ = 0;
 */
 #ifndef KBE_SINGLETON_H

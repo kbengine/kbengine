@@ -52,7 +52,7 @@ struct TABLE_FIELD
 };
 
 /*
-	æ•°æ®åº“æ¥å£
+	Êı¾İ¿â½Ó¿Ú
 */
 class DBInterfaceMysql : public DBInterface
 {
@@ -61,7 +61,7 @@ public:
 	virtual ~DBInterfaceMysql();
 
 	/**
-		ä¸æŸä¸ªæ•°æ®åº“å…³è”
+		ÓëÄ³¸öÊı¾İ¿â¹ØÁª
 	*/
 	virtual bool attach(const char* databaseName = NULL);
 	virtual bool detach();
@@ -82,13 +82,13 @@ public:
 	void hasLostConnection( bool v )	{ hasLostConnection_ = v; }
 
 	/**
-		æ£€æŸ¥ç¯å¢ƒ
+		¼ì²é»·¾³
 	*/
 	virtual bool checkEnvironment();
 	
 	/**
-		æ£€æŸ¥é”™è¯¯ï¼Œ å¯¹é”™è¯¯çš„å†…å®¹è¿›è¡Œçº æ­£
-		å¦‚æœçº æ­£ä¸æˆåŠŸè¿”å›å¤±è´¥
+		¼ì²é´íÎó£¬ ¶Ô´íÎóµÄÄÚÈİ½øĞĞ¾ÀÕı
+		Èç¹û¾ÀÕı²»³É¹¦·µ»ØÊ§°Ü
 	*/
 	virtual bool checkErrors();
 
@@ -97,17 +97,17 @@ public:
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
 
 	/**
-		è·å–æ•°æ®åº“æ‰€æœ‰çš„è¡¨å
+		»ñÈ¡Êı¾İ¿âËùÓĞµÄ±íÃû
 	*/
 	virtual bool getTableNames( std::vector<std::string>& tableNames, const char * pattern);
 
 	/**
-		è·å–æ•°æ®åº“æŸä¸ªè¡¨æ‰€æœ‰çš„å­—æ®µåç§°
+		»ñÈ¡Êı¾İ¿âÄ³¸ö±íËùÓĞµÄ×Ö¶ÎÃû³Æ
 	*/
 	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames);
 
 	/** 
-		ä»æ•°æ®åº“åˆ é™¤entityè¡¨å­—æ®µ
+		´ÓÊı¾İ¿âÉ¾³ıentity±í×Ö¶Î
 	*/
 	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName);
 
@@ -135,48 +135,48 @@ public:
 	void getFields(TABLE_FIELDS& outs, const char* tablename);
 
 	/**
-		è¿”å›è¿™ä¸ªæ¥å£çš„æè¿°
+		·µ»ØÕâ¸ö½Ó¿ÚµÄÃèÊö
 	*/
 	virtual const char* c_str();
 
 	/** 
-		è·å–é”™è¯¯
+		»ñÈ¡´íÎó
 	*/
 	virtual const char* getstrerror();
 
 	/** 
-		è·å–é”™è¯¯ç¼–å·
+		»ñÈ¡´íÎó±àºÅ
 	*/
 	virtual int getlasterror();
 
 	/**
-		å¦‚æœæ•°æ®åº“ä¸å­˜åœ¨åˆ™åˆ›å»ºä¸€ä¸ªæ•°æ®åº“
+		Èç¹ûÊı¾İ¿â²»´æÔÚÔò´´½¨Ò»¸öÊı¾İ¿â
 	*/
 	virtual bool createDatabaseIfNotExist();
 	
 	/**
-		åˆ›å»ºä¸€ä¸ªentityå­˜å‚¨è¡¨
+		´´½¨Ò»¸öentity´æ´¢±í
 	*/
 	virtual EntityTable* createEntityTable();
 
 	/** 
-		ä»æ•°æ®åº“åˆ é™¤entityè¡¨
+		´ÓÊı¾İ¿âÉ¾³ıentity±í
 	*/
 	virtual bool dropEntityTableFromDB(const char* tablename);
 
 	/**
-		é”ä½æ¥å£æ“ä½œ
+		Ëø×¡½Ó¿Ú²Ù×÷
 	*/
 	virtual bool lock();
 	virtual bool unlock();
 
 	/**
-		å¤„ç†å¼‚å¸¸
+		´¦ÀíÒì³£
 	*/
 	bool processException(std::exception & e);
 
 	/**
-		SQLå‘½ä»¤æœ€é•¿å¤§å°
+		SQLÃüÁî×î³¤´óĞ¡
 	*/
 	static size_t sql_max_allowed_packet(){ return sql_max_allowed_packet_; }
 

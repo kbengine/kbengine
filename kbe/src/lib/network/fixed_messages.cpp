@@ -72,7 +72,7 @@ bool FixedMessages::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode();
 	if(rootNode == NULL)
 	{
-		// rootХ┼┌Г┌╧Д╦▀Ф╡║Ф°┴Е╜░Х┼┌Г┌╧Д╨├
+		// root╫з╣Цобц╩спвс╫з╣Цак
 		return true;
 	}
 

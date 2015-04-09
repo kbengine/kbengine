@@ -421,7 +421,7 @@ void DebugHelper::sync()
 		--hasBufferedLogPackets_;
 	}
 
-	// 杩欓噷闇�瑕佸欢鏃跺彂閫侊紝鍚﹀垯鍦ㄥ彂閫佽繃绋嬩腑浜х敓閿欒锛屽鑷存棩蹇楄緭鍑轰細鍑虹幇姝婚攣
+	// 这里需要延时发送，否则在发送过程中产生错误，导致日志输出会出现死锁
 	if(bundles.size() > 0 && !pLoggerChannel->sending())
 		pLoggerChannel->delayedSend();
 
@@ -630,7 +630,7 @@ void DebugHelper::script_info_msg(const std::string& s)
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
 
-	// 濡傛灉鏄敤鎴锋墜鍔ㄨ缃殑涔熻緭鍑轰负閿欒淇℃伅
+	// 如果是用户手动设置的也输出为错误信息
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
 		printf("[S_ERROR]: %s", s.c_str());
 

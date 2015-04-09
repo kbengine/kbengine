@@ -19,16 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	线程守护体：
-		避免线程之间恶意竞争产生死锁问题。
-	用法:
-		在一个类中定义互诉体成员
+	�߳��ػ��壺
+		�����߳�֮����⾺�������������⡣
+	�÷�:
+		��һ�����ж��廥�����Ա
 		ThreadMutex tm;
-		在需要保护的地方:
+		����Ҫ�����ĵط�:
 		void XXCLASS::foo(void)
 		{
 			ThreadGuard tg(this->tm);
-			下面的代码都是安全的
+			����Ĵ��붼�ǰ�ȫ��
 			...
 		}
 */

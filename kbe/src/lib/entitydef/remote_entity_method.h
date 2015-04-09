@@ -41,8 +41,9 @@ class MethodDescription;
 
 class RemoteEntityMethod : public script::ScriptObject
 {
-	/** å­ç±»åŒ– å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
+	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
 	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	
+		
 public:	
 	RemoteEntityMethod(MethodDescription* methodDescription, 
 						EntityMailboxAbstract* mailbox, PyTypeObject* pyType = NULL);
@@ -63,9 +64,10 @@ public:
 	{
 		return pMailbox_; 
 	}
+	
 protected:	
-	MethodDescription*		methodDescription_;					// è¿™ä¸ªæ–¹æ³•çš„æè¿°
-	EntityMailboxAbstract*	pMailbox_;							// è¿™ä¸ªæ–¹æ³•æ‰€å±çš„mailbox
+	MethodDescription*		methodDescription_;					// Õâ¸ö·½·¨µÄÃèÊö
+	EntityMailboxAbstract*	pMailbox_;							// Õâ¸ö·½·¨ËùÊôµÄmailbox
 };
 }
 

@@ -21,7 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_SOCKETUDPPACKET_H
 #define KBE_SOCKETUDPPACKET_H
 	
-// common include
 #include "network/packet.h"
 #include "common/objectpool.h"
 	

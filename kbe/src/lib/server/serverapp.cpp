@@ -79,7 +79,7 @@ threadPool_()
 	pActiveTimerHandle_ = new ComponentActiveReportHandler(this);
 	pActiveTimerHandle_->startActiveTick(KBE_MAX(1.f, Network::g_channelInternalTimeout / 2.0f));
 
-	// é»˜è®¤æ‰€æœ‰appéƒ½è®¾ç½®ä¸ºè¿™ä¸ªå€¼ï¼Œ å¦‚æžœéœ€è¦è°ƒæ•´åˆ™å„è‡ªåœ¨æ´¾ç”Ÿç±»é‡æ–°èµ‹å€¼
+	// Ä¬ÈÏËùÓÐapp¶¼ÉèÖÃÎªÕâ¸öÖµ£¬ Èç¹ûÐèÒªµ÷ÕûÔò¸÷×ÔÔÚÅÉÉúÀàÖØÐÂ¸³Öµ
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 }
 
@@ -155,8 +155,8 @@ bool ServerApp::initialize()
 	if(!inInitialize())
 		return false;
 	
-	// å¹¿æ’­è‡ªå·±çš„åœ°å€ç»™ç½‘ä¸Šä¸Šçš„æ‰€æœ‰kbemachine
-	// å¹¶ä¸”ä»ŽkbemachineèŽ·å–basappmgrå’Œcellappmgrä»¥åŠdbmgråœ°å€
+	// ¹ã²¥×Ô¼ºµÄµØÖ·¸øÍøÉÏÉÏµÄËùÓÐkbemachine
+	// ²¢ÇÒ´Ókbemachine»ñÈ¡basappmgrºÍcellappmgrÒÔ¼°dbmgrµØÖ·
 	Components::getSingleton().pHandler(this);
 	this->dispatcher().addTask(&Components::getSingleton());
 

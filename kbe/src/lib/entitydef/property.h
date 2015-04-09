@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
 #endif
-// common include
+
 #include "fixedarray.h"
 #include "fixeddict.h"
 #include "datatype.h"
@@ -56,82 +56,82 @@ public:
 	virtual ~PropertyDescription();
 	
 	/** 
-		è·å–è¿™ä¸ªå±æ€§çš„detailLevel 
+		»ñÈ¡Õâ¸öÊôĞÔµÄdetailLevel 
 	*/
 	INLINE int8 getDetailLevel(void) const;
 	
 	/** 
-		æ˜¯å¦æ˜¯ä¸€ä¸ªä¿å­˜åˆ°æ•°æ®åº“ä¸­çš„å±æ€§ 
+		ÊÇ·ñÊÇÒ»¸ö±£´æµ½Êı¾İ¿âÖĞµÄÊôĞÔ 
 	*/
 	INLINE bool isPersistent(void) const;
 	
 	/** 
-		è·å–è¿™ä¸ªå±æ€§çš„æ•°æ®ç±»åˆ« 
+		»ñÈ¡Õâ¸öÊôĞÔµÄÊı¾İÀà±ğ 
 	*/
 	INLINE DataType* getDataType(void) const;
 	
 	/** 
-		è·å–å±æ€§çš„æ ‡å¿— cell_publicç­‰ 
+		»ñÈ¡ÊôĞÔµÄ±êÖ¾ cell_publicµÈ 
 	*/
 	INLINE uint32 getFlags(void) const;
 	
 	/** 
-		è·å–å±æ€§åç§° 
+		»ñÈ¡ÊôĞÔÃû³Æ 
 	*/
 	INLINE const char* getName(void) const;
 	
 	/** 
-		è·å–å­—ç¬¦ä¸²æ•°æ®ç±»åˆ«å UINT32, BAG..
+		»ñÈ¡×Ö·û´®Êı¾İÀà±ğÃû UINT32, BAG..
 	*/
 	INLINE const char* getDataTypeName(void) const;
 	
 	/** 
-		è·å–åˆå§‹å€¼å­—ç¬¦ä¸²
+		»ñÈ¡³õÊ¼Öµ×Ö·û´®
 	*/
 	INLINE const char* getDefaultValStr(void) const;
 
 	/** 
-		å±æ€§çš„æ•°å­—ç±»åˆ«ï¼Œ ç”¨äºç½‘ç»œä¸Šä¼ è¾“è¯†åˆ« 
+		ÊôĞÔµÄÊı×ÖÀà±ğ£¬ ÓÃÓÚÍøÂçÉÏ´«ÊäÊ¶±ğ 
 	*/
 	INLINE ENTITY_PROPERTY_UID getUType(void) const;
 	
 	/** 
-		è·å–å±æ€§ç´¢å¼•ç±»åˆ«
+		»ñÈ¡ÊôĞÔË÷ÒıÀà±ğ
 	*/
 	INLINE const char* indexType(void) const;
 
 	/** 
-		åˆ«åidï¼Œ å½“æš´éœ²çš„æ–¹æ³•æˆ–è€…å¹¿æ’­çš„å±æ€§æ€»ä¸ªæ•°å°äº255æ—¶
-		æˆ‘ä»¬ä¸ä½¿ç”¨utypeè€Œä½¿ç”¨1å­—èŠ‚çš„aliasIDæ¥ä¼ è¾“
+		±ğÃûid£¬ µ±±©Â¶µÄ·½·¨»òÕß¹ã²¥µÄÊôĞÔ×Ü¸öÊıĞ¡ÓÚ255Ê±
+		ÎÒÃÇ²»Ê¹ÓÃutype¶øÊ¹ÓÃ1×Ö½ÚµÄaliasIDÀ´´«Êä
 	*/
 	INLINE int16 aliasID() const;
 	INLINE uint8 aliasIDAsUint8() const;
 	INLINE void aliasID(int16 v);
 
 	/** 
-		è®¾ç½®è¿™ä¸ªå±æ€§ä¸ºç´¢å¼•é”® 
+		ÉèÖÃÕâ¸öÊôĞÔÎªË÷Òı¼ü 
 	*/
 	INLINE void setIdentifier(bool isIdentifier);
 	
 	/** 
-		è®¾ç½®è¿™ä¸ªå±æ€§åœ¨æ•°æ®åº“ä¸­çš„é•¿åº¦ 
+		ÉèÖÃÕâ¸öÊôĞÔÔÚÊı¾İ¿âÖĞµÄ³¤¶È 
 	*/
 	INLINE void setDatabaseLength(uint32 databaseLength);
 	INLINE uint32 getDatabaseLength() const;
 
 	/** 
-		è·å–è¿™ä¸ªå±æ€§æè¿°åœ¨defæ–‡ä»¶ä¸­è¢«å®šä¹‰çš„é»˜è®¤å€¼ 
+		»ñÈ¡Õâ¸öÊôĞÔÃèÊöÔÚdefÎÄ¼şÖĞ±»¶¨ÒåµÄÄ¬ÈÏÖµ 
 	*/
 	PyObject* newDefaultVal(void);
 	
 	/** 
-		è·å¾—å±æ€§æè¿°çš„æ€»æ•°é‡ 
+		»ñµÃÊôĞÔÃèÊöµÄ×ÜÊıÁ¿ 
 	*/
 	static uint32 getDescriptionCount(void){ return propertyDescriptionCount_; }
 	static void resetDescriptionCount(void){ propertyDescriptionCount_ = 0; }
 
 	/** 
-		æ ¹æ®ç±»å‹äº§ç”Ÿä¸€ä¸ªæè¿°å®ä¾‹ 
+		¸ù¾İÀàĞÍ²úÉúÒ»¸öÃèÊöÊµÀı 
 	*/
 	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, 
 		std::string& dataTypeName, 
@@ -146,7 +146,7 @@ public:
 		DETAIL_TYPE detailLevel);
 	
 	/** 
-		è„šæœ¬è¯·æ±‚è®¾ç½®è¿™ä¸ªå±æ€§çš„å€¼ 
+		½Å±¾ÇëÇóÉèÖÃÕâ¸öÊôĞÔµÄÖµ 
 	*/
 	virtual PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
@@ -159,20 +159,21 @@ public:
 	INLINE bool hasCell(void) const;
 	INLINE bool hasBase(void) const;
 	INLINE bool hasClient(void) const;
+	
 protected:	
-	static uint32				propertyDescriptionCount_;						// æ‰€æœ‰çš„å±æ€§æè¿°çš„æ•°é‡	
-	std::string					name_;											// è¿™ä¸ªå±æ€§çš„åç§°
-	std::string					dataTypeName_;									// è¿™ä¸ªå±æ€§çš„å­—ç¬¦ä¸²æ•°æ®ç±»åˆ«å
-	uint32						flags_;											// è¿™ä¸ªå±æ€§çš„ä¸€äº›æ ‡å¿—  æ¯”å¦‚ cell_public
-	bool						isPersistent_;									// æ˜¯å¦æ˜¯ä¸€ä¸ªå­˜å‚¨åˆ°æ•°æ®åº“çš„å±æ€§
-	DataType*					dataType_;										// è¿™ä¸ªå±æ€§çš„æ•°æ®ç±»åˆ«
-	bool						isIdentifier_;									// æ˜¯å¦æ˜¯ä¸€ä¸ªç´¢å¼•é”®
-	uint32						databaseLength_;								// è¿™ä¸ªå±æ€§åœ¨æ•°æ®åº“ä¸­çš„é•¿åº¦
-	ENTITY_PROPERTY_UID			utype_;											// è¿™ä¸ªå±æ€§çš„æ•°å­—ç±»åˆ«ï¼Œ ç”¨äºç½‘ç»œä¸Šä¼ è¾“è¯†åˆ«
-	std::string					defaultValStr_;									// è¿™ä¸ªå±æ€§çš„é»˜è®¤å€¼
-	DETAIL_TYPE					detailLevel_;									// è¿™ä¸ªå±æ€§çš„lodè¯¦æƒ…çº§åˆ« çœ‹commonä¸­çš„:å±æ€§çš„lodå¹¿æ’­çº§åˆ«èŒƒå›´çš„å®šä¹‰
-	int16						aliasID_;										// åˆ«åidï¼Œ å½“æš´éœ²çš„æ–¹æ³•æˆ–è€…å¹¿æ’­çš„å±æ€§æ€»ä¸ªæ•°å°äº255æ—¶ï¼Œ æˆ‘ä»¬ä¸ä½¿ç”¨utypeè€Œä½¿ç”¨1å­—èŠ‚çš„aliasIDæ¥ä¼ è¾“
-	std::string					indexType_;										// å±æ€§çš„ç´¢å¼•ç±»åˆ«ï¼ŒUNIQUE, INDEXï¼Œåˆ†åˆ«å¯¹åº”æ— è®¾ç½®ã€å”¯ä¸€ç´¢å¼•ã€æ™®é€šç´¢å¼•
+	static uint32				propertyDescriptionCount_;						// ËùÓĞµÄÊôĞÔÃèÊöµÄÊıÁ¿	
+	std::string					name_;											// Õâ¸öÊôĞÔµÄÃû³Æ
+	std::string					dataTypeName_;									// Õâ¸öÊôĞÔµÄ×Ö·û´®Êı¾İÀà±ğÃû
+	uint32						flags_;											// Õâ¸öÊôĞÔµÄÒ»Ğ©±êÖ¾  ±ÈÈç cell_public
+	bool						isPersistent_;									// ÊÇ·ñÊÇÒ»¸ö´æ´¢µ½Êı¾İ¿âµÄÊôĞÔ
+	DataType*					dataType_;										// Õâ¸öÊôĞÔµÄÊı¾İÀà±ğ
+	bool						isIdentifier_;									// ÊÇ·ñÊÇÒ»¸öË÷Òı¼ü
+	uint32						databaseLength_;								// Õâ¸öÊôĞÔÔÚÊı¾İ¿âÖĞµÄ³¤¶È
+	ENTITY_PROPERTY_UID			utype_;											// Õâ¸öÊôĞÔµÄÊı×ÖÀà±ğ£¬ ÓÃÓÚÍøÂçÉÏ´«ÊäÊ¶±ğ
+	std::string					defaultValStr_;									// Õâ¸öÊôĞÔµÄÄ¬ÈÏÖµ
+	DETAIL_TYPE					detailLevel_;									// Õâ¸öÊôĞÔµÄlodÏêÇé¼¶±ğ ¿´commonÖĞµÄ:ÊôĞÔµÄlod¹ã²¥¼¶±ğ·¶Î§µÄ¶¨Òå
+	int16						aliasID_;										// ±ğÃûid£¬ µ±±©Â¶µÄ·½·¨»òÕß¹ã²¥µÄÊôĞÔ×Ü¸öÊıĞ¡ÓÚ255Ê±£¬ ÎÒÃÇ²»Ê¹ÓÃutype¶øÊ¹ÓÃ1×Ö½ÚµÄaliasIDÀ´´«Êä
+	std::string					indexType_;										// ÊôĞÔµÄË÷ÒıÀà±ğ£¬UNIQUE, INDEX£¬·Ö±ğ¶ÔÓ¦ÎŞÉèÖÃ¡¢Î¨Ò»Ë÷Òı¡¢ÆÕÍ¨Ë÷Òı
 };
 
 class FixedDictDescription : public PropertyDescription
@@ -193,7 +194,7 @@ public:
 	virtual ~FixedDictDescription();
 	
 	/** 
-		è„šæœ¬è¯·æ±‚è®¾ç½®è¿™ä¸ªå±æ€§çš„å€¼ 
+		½Å±¾ÇëÇóÉèÖÃÕâ¸öÊôĞÔµÄÖµ 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
@@ -201,6 +202,7 @@ public:
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
 
 	typedef std::vector<std::pair<std::string, KBEShared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
+	
 protected:
 	CHILD_PROPERTYS childPropertys_;
 };
@@ -223,12 +225,13 @@ public:
 	virtual ~ArrayDescription();
 	
 	/** 
-		è„šæœ¬è¯·æ±‚è®¾ç½®è¿™ä¸ªå±æ€§çš„å€¼ 
+		½Å±¾ÇëÇóÉèÖÃÕâ¸öÊôĞÔµÄÖµ 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+	
 protected:	
 };
 
@@ -251,9 +254,10 @@ public:
 	virtual ~VectorDescription();
 	
 	/** 
-		è„šæœ¬è¯·æ±‚è®¾ç½®è¿™ä¸ªå±æ€§çš„å€¼ 
+		½Å±¾ÇëÇóÉèÖÃÕâ¸öÊôĞÔµÄÖµ 
 	*/
 	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+	
 protected:	
 	uint8 elemCount_;
 };

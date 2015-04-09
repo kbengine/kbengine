@@ -49,15 +49,16 @@ namespace client
 
 class Entity : public script::ScriptObject
 {
-	/** å­ç±»åŒ– å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
+	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
 	ENTITY_HEADER(Entity)
+		
 public:
 	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell);
 	~Entity();
 	
 	/** 
-		å®šä¹‰å±æ€§æ•°æ®è¢«æ”¹å˜äº† 
+		¶¨ÒåÊôĞÔÊı¾İ±»¸Ä±äÁË 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
@@ -74,7 +75,7 @@ public:
 	INLINE void cellMailbox(EntityMailbox* mailbox);
 
 	/** 
-		è„šæœ¬è·å–å’Œè®¾ç½®entityçš„position 
+		½Å±¾»ñÈ¡ºÍÉèÖÃentityµÄposition 
 	*/
 	INLINE Position3D& position();
 	INLINE Position3D& serverPosition();
@@ -84,7 +85,7 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
-		è„šæœ¬è·å–å’Œè®¾ç½®entityçš„æ–¹å‘ 
+		½Å±¾»ñÈ¡ºÍÉèÖÃentityµÄ·½Ïò 
 	*/
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
@@ -92,7 +93,7 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
-		ç§»åŠ¨é€Ÿåº¦
+		ÒÆ¶¯ËÙ¶È
 	*/
 	INLINE void moveSpeed(float speed);
 	INLINE float moveSpeed() const;
@@ -108,7 +109,7 @@ public:
 	
 	const EntityAspect* getAspect() const{ return &aspect_; }
 	/** 
-		é”€æ¯è¿™ä¸ªentity 
+		Ïú»ÙÕâ¸öentity 
 	*/
 	void onDestroy(bool callScript){};
 
@@ -119,12 +120,12 @@ public:
 	void onLeaveSpace();
 
 	/**
-		è¿œç¨‹å‘¼å«æœ¬entityçš„æ–¹æ³• 
+		Ô¶³Ìºô½Ğ±¾entityµÄ·½·¨ 
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
-		æœåŠ¡å™¨æ›´æ–°entityå±æ€§
+		·şÎñÆ÷¸üĞÂentityÊôĞÔ
 	*/
 	void onUpdatePropertys(MemoryStream& s);
 
@@ -137,11 +138,11 @@ public:
 	void isOnGound(bool v) { isOnGound_ = v;}
 
 protected:
-	EntityMailbox*							cellMailbox_;						// è¿™ä¸ªentityçš„cell-mailbox
-	EntityMailbox*							baseMailbox_;						// è¿™ä¸ªentityçš„base-mailbox
+	EntityMailbox*							cellMailbox_;						// Õâ¸öentityµÄcell-mailbox
+	EntityMailbox*							baseMailbox_;						// Õâ¸öentityµÄbase-mailbox
 
-	Position3D								position_, serverPosition_;			// entityçš„å½“å‰ä½ç½®
-	Direction3D								direction_;							// entityçš„å½“å‰æ–¹å‘
+	Position3D								position_, serverPosition_;			// entityµÄµ±Ç°Î»ÖÃ
+	Direction3D								direction_;							// entityµÄµ±Ç°·½Ïò
 
 	ClientObjectBase*						pClientApp_;
 
@@ -149,7 +150,7 @@ protected:
 
 	float									velocity_;
 
-	bool									enterworld_;						// æ˜¯å¦å·²ç»enterworldäº†ï¼Œ restoreæ—¶æœ‰ç”¨
+	bool									enterworld_;						// ÊÇ·ñÒÑ¾­enterworldÁË£¬ restoreÊ±ÓĞÓÃ
 	
 	bool									isOnGound_;
 };																										

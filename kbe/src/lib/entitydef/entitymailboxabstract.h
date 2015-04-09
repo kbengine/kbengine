@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENTITY_MAILBOX_BASE_H
 #define KBE_ENTITY_MAILBOX_BASE_H
 	
-// common include	
 #include "common/common.h"
 //#include "network/channel.h"
 #include "pyscript/scriptobject.h"
@@ -39,7 +38,7 @@ class Bundle;
 
 class EntityMailboxAbstract : public script::ScriptObject
 {
-	/** å­ç±»åŒ– å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
+	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
 	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
 public:
 	EntityMailboxAbstract(PyTypeObject* scriptType, 
@@ -52,7 +51,7 @@ public:
 	virtual ~EntityMailboxAbstract();
 
 	/** 
-		è·å–entityID 
+		»ñÈ¡entityID 
 	*/
 	INLINE ENTITY_ID id() const;
 
@@ -61,27 +60,27 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
 	/** 
-		è·å¾—ç»„ä»¶ID 
+		»ñµÃ×é¼şID 
 	*/
 	INLINE COMPONENT_ID componentID(void) const;
 
 	/** 
-		è®¾ç½®ç»„ä»¶çš„ID 
+		ÉèÖÃ×é¼şµÄID 
 	*/
 	INLINE void componentID(COMPONENT_ID cid);
 
 	/** 
-		è·å¾—utype 
+		»ñµÃutype 
 	*/
 	INLINE ENTITY_SCRIPT_UID utype(void) const;
 
 	/** 
-		è·å¾—type 
+		»ñµÃtype 
 	*/
 	INLINE ENTITY_MAILBOX_TYPE type(void) const;
 
 	/** 
-		æ”¯æŒpickler æ–¹æ³• 
+		Ö§³Öpickler ·½·¨ 
 	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
@@ -101,12 +100,13 @@ public:
 	INLINE bool isBase() const;
 	INLINE bool isBaseReal() const;
 	INLINE bool isBaseViaCell() const;
+	
 protected:
-	COMPONENT_ID							componentID_;			// è¿œç«¯æœºå™¨ç»„ä»¶çš„ID
-	Network::Address						addr_;					// é¢‘é“åœ°å€
-	ENTITY_MAILBOX_TYPE						type_;					// è¯¥mailboxçš„ç±»å‹
+	COMPONENT_ID							componentID_;			// Ô¶¶Ë»úÆ÷×é¼şµÄID
+	Network::Address						addr_;					// ÆµµÀµØÖ·
+	ENTITY_MAILBOX_TYPE						type_;					// ¸ÃmailboxµÄÀàĞÍ
 	ENTITY_ID								id_;					// entityID
-	ENTITY_SCRIPT_UID						utype_;					// entityçš„utype  æŒ‰ç…§entities.xmlä¸­çš„å®šä¹‰é¡ºåº
+	ENTITY_SCRIPT_UID						utype_;					// entityµÄutype  °´ÕÕentities.xmlÖĞµÄ¶¨ÒåË³Ğò
 };
 
 }

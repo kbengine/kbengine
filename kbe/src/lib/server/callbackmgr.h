@@ -20,21 +20,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 	
 /*
-	CallbackMgr( å›è°ƒç®¡ç†å™¨ )
-		ç”±äºä¸€äº›å›è°ƒæ“ä½œéƒ½æ˜¯å¼‚æ­¥çš„ï¼Œ æˆ‘ä»¬é€šè¿‡ä¸€ä¸ªç®¡ç†å™¨å°†è¿™äº›å›è°ƒç®¡ç†èµ·æ¥ï¼Œ å¹¶å¯¹å¤–è¿”å›ä¸€ä¸ª
-		æ ‡è¯†è¯¥å›è°ƒçš„å”¯ä¸€idï¼Œ å¤–éƒ¨å¯ä»¥é€šè¿‡è¯¥idæ¥è§¦å‘è¿™ä¸ªå›è°ƒã€‚
+	CallbackMgr( »Øµ÷¹ÜÀíÆ÷ )
+		ÓÉÓÚÒ»Ğ©»Øµ÷²Ù×÷¶¼ÊÇÒì²½µÄ£¬ ÎÒÃÇÍ¨¹ıÒ»¸ö¹ÜÀíÆ÷½«ÕâĞ©»Øµ÷¹ÜÀíÆğÀ´£¬ ²¢¶ÔÍâ·µ»ØÒ»¸ö
+		±êÊ¶¸Ã»Øµ÷µÄÎ¨Ò»id£¬ Íâ²¿¿ÉÒÔÍ¨¹ı¸ÃidÀ´´¥·¢Õâ¸ö»Øµ÷¡£
 		
-	ç”¨æ³•:
+	ÓÃ·¨:
 	typedef CallbackMgr<std::tr1::function<void(Base*, int64, bool)>> CALLBACK_MGR;
 	CALLBACK_MGR callbackMgr;
 	void xxx(Base*, int64, bool){}
-	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // å¯ä»¥ä½¿ç”¨bindæ¥ç»‘å®šä¸€ä¸ªç±»æˆå‘˜å‡½æ•°
+	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // ¿ÉÒÔÊ¹ÓÃbindÀ´°ó¶¨Ò»¸öÀà³ÉÔ±º¯Êı
 */
 
 #ifndef KBE_CALLBACKMGR_H
 #define KBE_CALLBACKMGR_H
-
-// common include	
+	
 #include "Python.h"
 #include "idallocate.h"
 #include "serverconfig.h"
@@ -76,7 +75,7 @@ public:
 	void createFromStream(KBEngine::MemoryStream& s);
 
 	/** 
-		å‘ç®¡ç†å™¨æ·»åŠ ä¸€ä¸ªå›è°ƒ 
+		Ïò¹ÜÀíÆ÷Ìí¼ÓÒ»¸ö»Øµ÷ 
 	*/
 	CALLBACK_ID save(T callback, uint64 timeout = 0/*secs*/)
 	{
@@ -92,7 +91,7 @@ public:
 	}
 	
 	/** 
-		é€šè¿‡callbackIDå–èµ°å›è°ƒ 
+		Í¨¹ıcallbackIDÈ¡×ß»Øµ÷ 
 	*/
 	T take(CALLBACK_ID cbID)
 	{
@@ -135,7 +134,7 @@ public:
 	}
 
 	/**
-		è¶…æ—¶çš„callback
+		³¬Ê±µÄcallback
 	*/
 	bool processTimeout(CALLBACK_ID cbID, T callback)
 	{
@@ -144,8 +143,8 @@ public:
 	}
 
 protected:
-	CALLBACKS cbMap_;									// æ‰€æœ‰çš„å›è°ƒéƒ½å­˜å‚¨åœ¨è¿™ä¸ªmapä¸­
-	IDAllocate<CALLBACK_ID> idAlloc_;					// å›è°ƒçš„idåˆ†é…å™¨
+	CALLBACKS cbMap_;									// ËùÓĞµÄ»Øµ÷¶¼´æ´¢ÔÚÕâ¸ömapÖĞ
+	IDAllocate<CALLBACK_ID> idAlloc_;					// »Øµ÷µÄid·ÖÅäÆ÷
 	uint64 lastTimestamp_;
 };
 

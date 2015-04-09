@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DATA_TYPE_H
 #define KBE_DATA_TYPE_H
 
-// common include
 #include "common/common.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
@@ -64,9 +63,9 @@ public:
 	static bool finalise();
 
 	/**	
-		å½“ä¼ å…¥çš„è¿™ä¸ªpyobjå¹¶ä¸æ˜¯å½“å‰ç±»å‹æ—¶åˆ™æŒ‰ç…§å½“å‰ç±»å‹åˆ›å»ºå‡ºä¸€ä¸ªobj
-		å‰ææ˜¯å³ä½¿è¿™ä¸ªPyObjectä¸æ˜¯å½“å‰ç±»å‹ï¼Œ ä½†å¿…é¡»æ‹¥æœ‰è½¬æ¢çš„å…±æ€§
-		æ—¢ä¸€ä¸ªpythonå­—å…¸è½¬æ¢ä¸ºä¸€ä¸ªå›ºå®šå­—å…¸ï¼Œ å­—å…¸ä¸­çš„keyéƒ½åŒ¹é…
+		µ±´«ÈëµÄÕâ¸öpyobj²¢²»ÊÇµ±Ç°ÀàĞÍÊ±Ôò°´ÕÕµ±Ç°ÀàĞÍ´´½¨³öÒ»¸öobj
+		Ç°ÌáÊÇ¼´Ê¹Õâ¸öPyObject²»ÊÇµ±Ç°ÀàĞÍ£¬ µ«±ØĞëÓµÓĞ×ª»»µÄ¹²ĞÔ
+		¼ÈÒ»¸öpython×Öµä×ª»»ÎªÒ»¸ö¹Ì¶¨×Öµä£¬ ×ÖµäÖĞµÄkey¶¼Æ¥Åä
 	*/
 	virtual PyObject* createNewItemFromObj(PyObject* pyobj)
 	{
@@ -624,16 +623,16 @@ public:
 	const char* getName(void) const{ return "ARRAY";}
 
 	/**	
-		å½“ä¼ å…¥çš„è¿™ä¸ªpyobjå¹¶ä¸æ˜¯å½“å‰ç±»å‹æ—¶åˆ™æŒ‰ç…§å½“å‰ç±»å‹åˆ›å»ºå‡ºä¸€ä¸ªobj
-		å‰ææ˜¯å³ä½¿è¿™ä¸ªPyObjectä¸æ˜¯å½“å‰ç±»å‹ï¼Œ ä½†å¿…é¡»æ‹¥æœ‰è½¬æ¢çš„å…±æ€§
-		æ—¢ä¸€ä¸ªpythonå­—å…¸è½¬æ¢ä¸ºä¸€ä¸ªå›ºå®šå­—å…¸ï¼Œ å­—å…¸ä¸­çš„keyéƒ½åŒ¹é…
+		µ±´«ÈëµÄÕâ¸öpyobj²¢²»ÊÇµ±Ç°ÀàĞÍÊ±Ôò°´ÕÕµ±Ç°ÀàĞÍ´´½¨³öÒ»¸öobj
+		Ç°ÌáÊÇ¼´Ê¹Õâ¸öPyObject²»ÊÇµ±Ç°ÀàĞÍ£¬ µ«±ØĞëÓµÓĞ×ª»»µÄ¹²ĞÔ
+		¼ÈÒ»¸öpython×Öµä×ª»»ÎªÒ»¸ö¹Ì¶¨×Öµä£¬ ×ÖµäÖĞµÄkey¶¼Æ¥Åä
 	*/
 	virtual PyObject* createNewItemFromObj(PyObject* pyobj);
 	virtual PyObject* createNewFromObj(PyObject* pyobj);
 
 	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDARRAY; }
 protected:
-	DataType*			dataType_;		// è¿™ä¸ªæ•°ç»„æ‰€å¤„ç†çš„ç±»åˆ«
+	DataType*			dataType_;		// Õâ¸öÊı×éËù´¦ÀíµÄÀà±ğ
 };
 
 class FixedDictType : public DataType
@@ -643,7 +642,7 @@ public:
 	{
 		DataType* dataType;
 
-		// ä½œä¸ºä¸€ä¸ªæ•°æ®ç±»åˆ«åœ¨aliasä¸­å¯å¯¹dictä¸­çš„æŸä¸ªé¡¹æŒ‡å®šæ˜¯å¦æŒä¹…åŒ–
+		// ×÷ÎªÒ»¸öÊı¾İÀà±ğÔÚaliasÖĞ¿É¶ÔdictÖĞµÄÄ³¸öÏîÖ¸¶¨ÊÇ·ñ³Ö¾Ã»¯
 		bool persistent;
 	};
 
@@ -654,7 +653,7 @@ public:
 	virtual ~FixedDictType();
 	
 	/** 
-		è·å¾—è¿™ä¸ªå›ºå®šå­—å…¸çš„keyç±»åˆ« 
+		»ñµÃÕâ¸ö¹Ì¶¨×ÖµäµÄkeyÀà±ğ 
 	*/	
 	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return keyTypes_; }
 
@@ -673,30 +672,30 @@ public:
 	bool initialize(XML* xml, TiXmlNode* node);
 	
 	/**	
-		å½“ä¼ å…¥çš„è¿™ä¸ªpyobjå¹¶ä¸æ˜¯å½“å‰ç±»å‹æ—¶åˆ™æŒ‰ç…§å½“å‰ç±»å‹åˆ›å»ºå‡ºä¸€ä¸ªobj
-		å‰ææ˜¯å³ä½¿è¿™ä¸ªPyObjectä¸æ˜¯å½“å‰ç±»å‹ï¼Œ ä½†å¿…é¡»æ‹¥æœ‰è½¬æ¢çš„å…±æ€§
-		æ—¢ä¸€ä¸ªpythonå­—å…¸è½¬æ¢ä¸ºä¸€ä¸ªå›ºå®šå­—å…¸ï¼Œ å­—å…¸ä¸­çš„keyéƒ½åŒ¹é…
+		µ±´«ÈëµÄÕâ¸öpyobj²¢²»ÊÇµ±Ç°ÀàĞÍÊ±Ôò°´ÕÕµ±Ç°ÀàĞÍ´´½¨³öÒ»¸öobj
+		Ç°ÌáÊÇ¼´Ê¹Õâ¸öPyObject²»ÊÇµ±Ç°ÀàĞÍ£¬ µ«±ØĞëÓµÓĞ×ª»»µÄ¹²ĞÔ
+		¼ÈÒ»¸öpython×Öµä×ª»»ÎªÒ»¸ö¹Ì¶¨×Öµä£¬ ×ÖµäÖĞµÄkey¶¼Æ¥Åä
 	*/
 	virtual PyObject* createNewItemFromObj(const char* keyName, PyObject* pyobj);
 	virtual PyObject* createNewFromObj(PyObject* pyobj);
 
 	/** 
-		è·å¾—å›ºå®šå­—å…¸æ‰€æœ‰çš„keyåç§° 
+		»ñµÃ¹Ì¶¨×ÖµäËùÓĞµÄkeyÃû³Æ 
 	*/
 	std::string getKeyNames(void);
 
 	/** 
-		è·å¾—debugä¿¡æ¯ï¼Œè¿”å›å›ºå®šå­—å…¸æ‰€æœ‰çš„keyåç§°å’Œç±»å‹
+		»ñµÃdebugĞÅÏ¢£¬·µ»Ø¹Ì¶¨×ÖµäËùÓĞµÄkeyÃû³ÆºÍÀàĞÍ
 	*/
 	std::string debugInfos(void);
 
 	/** 
-		åŠ è½½implæ¨¡å—
+		¼ÓÔØimplÄ£¿é
 	*/
 	bool loadImplModule(std::string moduleName);
 
 	/** 
-		implç›¸å…³å®ç°
+		implÏà¹ØÊµÏÖ
 	*/
 	PyObject* impl_createObjFromDict(PyObject* dictData);
 	PyObject* impl_getDictFromObj(PyObject* pyobj);
@@ -707,11 +706,12 @@ public:
 	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDDICT; }
 
 	std::string& moduleName(){ return moduleName_; }
+	
 protected:
-	// è¿™ä¸ªå›ºå®šå­—å…¸é‡Œçš„å„ä¸ªkeyçš„ç±»å‹
+	// Õâ¸ö¹Ì¶¨×ÖµäÀïµÄ¸÷¸ökeyµÄÀàĞÍ
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				
 
-	// å®ç°è„šæœ¬æ¨¡å—
+	// ÊµÏÖ½Å±¾Ä£¿é
 	PyObject*						implObj_;				
 
 	PyObject*						pycreateObjFromDict_;

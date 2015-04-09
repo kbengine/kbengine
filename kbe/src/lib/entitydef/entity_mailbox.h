@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_H
 #define KBE_ENTITY_CELL_BASE_CLIENT__MAILBOX_H
 	
-// common include
 #include "common/common.h"
 #include "entitydef/entitymailboxabstract.h"
 #include "pyscript/scriptobject.h"
@@ -46,7 +45,7 @@ class MethodDescription;
 
 class EntityMailbox : public EntityMailboxAbstract
 {
-	/** å­ç±»åŒ– å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
+	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
 public:
 	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* md, EntityMailbox* pMailbox)> MailboxCallHookFunc;
@@ -59,12 +58,12 @@ public:
 	~EntityMailbox();
 	
 	/** 
-		è„šæœ¬è¯·æ±‚è·å–å±æ€§æˆ–è€…æ–¹æ³• 
+		½Å±¾ÇëÇó»ñÈ¡ÊôĞÔ»òÕß·½·¨ 
 	*/
 	PyObject* onScriptGetAttribute(PyObject* attr);						
 			
 	/** 
-		è·å¾—å¯¹è±¡çš„æè¿° 
+		»ñµÃ¶ÔÏóµÄÃèÊö 
 	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
@@ -72,36 +71,36 @@ public:
 	void c_str(char* s, size_t size);
 
 	/** 
-		unpickleæ–¹æ³• 
+		unpickle·½·¨ 
 	*/
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 
 	/** 
-		è„šæœ¬è¢«å®‰è£…æ—¶è¢«è°ƒç”¨ 
+		½Å±¾±»°²×°Ê±±»µ÷ÓÃ 
 	*/
 	static void onInstallScript(PyObject* mod);
 
 	/** 
-		é€šè¿‡entityçš„IDå°è¯•å¯»æ‰¾å®ƒçš„å®ä¾‹
+		Í¨¹ıentityµÄID³¢ÊÔÑ°ÕÒËüµÄÊµÀı
 	*/
 	static PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 
-		è®¾ç½®mailboxçš„__getEntityFuncå‡½æ•°åœ°å€ 
+		ÉèÖÃmailboxµÄ__getEntityFuncº¯ÊıµØÖ· 
 	*/
 	static void setGetEntityFunc(GetEntityFunc func){ 
 		__getEntityFunc = func; 
 	};
 
 	/** 
-		è®¾ç½®mailboxçš„__getEntityFuncå‡½æ•°åœ°å€ 
+		ÉèÖÃmailboxµÄ__getEntityFuncº¯ÊıµØÖ· 
 	*/
 	static void setFindChannelFunc(FindChannelFunc func){ 
 		__findChannelFunc = func; 
 	};
 
 	/** 
-		è®¾ç½®mailboxçš„__hookCallFuncå‡½æ•°åœ°å€ 
+		ÉèÖÃmailboxµÄ__hookCallFuncº¯ÊıµØÖ· 
 	*/
 	static void setMailboxCallHookFunc(MailboxCallHookFunc* pFunc){ 
 		__hookCallFuncPtr = pFunc; 
@@ -121,13 +120,15 @@ public:
 
 	typedef std::vector<EntityMailbox*> MAILBOXS;
 	static MAILBOXS mailboxs;
+	
 private:
-	static GetEntityFunc					__getEntityFunc;		// è·å¾—ä¸€ä¸ªentityçš„å®ä½“çš„å‡½æ•°åœ°å€
+	static GetEntityFunc					__getEntityFunc;		// »ñµÃÒ»¸öentityµÄÊµÌåµÄº¯ÊıµØÖ·
 	static MailboxCallHookFunc*				__hookCallFuncPtr;
 	static FindChannelFunc					__findChannelFunc;
+	
 protected:
 	std::string								scriptModuleName_;
-	ScriptDefModule*						scriptModule_;			// è¯¥entityæ‰€ä½¿ç”¨çš„è„šæœ¬æ¨¡å—å¯¹è±¡
+	ScriptDefModule*						scriptModule_;			// ¸ÃentityËùÊ¹ÓÃµÄ½Å±¾Ä£¿é¶ÔÏó
 
 	void _setATIdx(MAILBOXS::size_type idx){ atIdx_ = idx; }
 	MAILBOXS::size_type	atIdx_;

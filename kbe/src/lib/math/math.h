@@ -156,7 +156,7 @@ typedef G3D::Vector4							Vector4;
 #define KBEClamp								G3D::clamp
 #endif
 
-// ä»2ä¸ª3då‘é‡å¿½ç•¥yè®¡ç®—å‡º2dé•¿åº¦
+// ´Ó2¸ö3dÏòÁ¿ºöÂÔy¼ÆËã³ö2d³¤¶È
 inline float KBEVec3CalcVec2Length(const Vector3& v1, const Vector3& v2)
 {
 	float x = v1.x - v2.x;
@@ -184,9 +184,9 @@ inline KBEngine::int8 angle2int8(float v, bool half = false)
 	return angle;
 }
 
-typedef Vector3													Position3D;												// è¡¨ç¤º3Dä½ç½®å˜é‡ç±»å‹																						// mailbox æ‰€æŠ•é€’çš„mailç±»åˆ«çš„ç±»åˆ«
+typedef Vector3													Position3D;												// ±íÊ¾3DÎ»ÖÃ±äÁ¿ÀàĞÍ																						// mailbox ËùÍ¶µİµÄmailÀà±ğµÄÀà±ğ
 
-struct Direction3D																										// è¡¨ç¤ºæ–¹å‘ä½ç½®å˜é‡ç±»å‹
+struct Direction3D																										// ±íÊ¾·½ÏòÎ»ÖÃ±äÁ¿ÀàĞÍ
 {
 	Direction3D():dir(0.f, 0.f, 0.f) {};
 	Direction3D(const Vector3 & v):dir(v){}
@@ -204,7 +204,7 @@ struct Direction3D																										// è¡¨ç¤ºæ–¹å‘ä½ç½®å˜é‡ç±»å‹
 	Vector3 dir;
 };
 
-/** æµ®ç‚¹æ•°æ¯”è¾ƒ */
+/** ¸¡µãÊı±È½Ï */
 #define floatEqual(v1, v3) (abs(v1 - v2) < std::numeric_limits<float>::epsilon())
 inline bool almostEqual(const float f1, const float f2, const float epsilon = 0.0004f)
 {
