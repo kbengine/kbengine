@@ -20,11 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /*
-	ÓÃ·¨:
+	ç”¨æ³•:
 		class A:public Singleton<A>
 		{
 		};
-		ÔÚcppÎÄ¼þÖÐ:
+		åœ¨cppæ–‡ä»¶ä¸­:
 		template<> A* Singleton<A>::singleton_ = 0;
 */
 #ifndef KBE_SINGLETON_H
@@ -43,6 +43,7 @@ class Singleton
 {
 protected:
 	static T* singleton_;
+
 public:
 	Singleton(void)
 	{
@@ -57,6 +58,7 @@ public:
 	
 	
 	~Singleton(void){  assert(singleton_);  singleton_ = 0; }
+	
 	static T& getSingleton(void) { assert(singleton_);  return (*singleton_); }
 	static T* getSingletonPtr(void){ return singleton_; }
 };

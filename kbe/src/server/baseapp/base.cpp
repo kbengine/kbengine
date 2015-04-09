@@ -79,7 +79,7 @@ pBufferedSendToCellappMessages_(NULL)
 	script::PyGC::incTracing("Base");
 	ENTITY_INIT_PROPERTYS(Base);
 
-	// ´´½¨²¢³õÊ¼»¯cellData
+	// åˆ›å»ºå¹¶åˆå§‹åŒ–cellData
 	createCellData();
 }
 
@@ -110,7 +110,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
 		return;
 
-	// ´´½¨Ò»¸öĞèÒª¹ã²¥µÄÄ£°åÁ÷
+	// åˆ›å»ºä¸€ä¸ªéœ€è¦å¹¿æ’­çš„æ¨¡æ¿æµ
 	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
@@ -130,8 +130,8 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 		propertyDescription->getName(), 
 		pBundle->currMsgLength());
 
-	// °´ÕÕµ±Ç°µÄÉè¼ÆÀ´Ëµ£¬ÓĞclientMailbox_±Ø¶¨ÊÇproxy
-	// ÖÁÓÚÎªºÎÅÜµ½baseÀïÀ´ºÍpython±¾ÉíÊÇCÓïÑÔÊµÏÖÓĞ¹Ø
+	// æŒ‰ç…§å½“å‰çš„è®¾è®¡æ¥è¯´ï¼Œæœ‰clientMailbox_å¿…å®šæ˜¯proxy
+	// è‡³äºä¸ºä½•è·‘åˆ°baseé‡Œæ¥å’Œpythonæœ¬èº«æ˜¯Cè¯­è¨€å®ç°æœ‰å…³
 	static_cast<Proxy*>(this)->sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 	MemoryStream::ObjPool().reclaimObject(mstream);
 }
@@ -156,9 +156,9 @@ void Base::onDestroy(bool callScript)
 //-------------------------------------------------------------------------------------
 void Base::eraseEntityLog()
 {
-	// ÕâÀïÃ»ÓĞÊ¹ÓÃhasDB()À´½øĞĞÅĞ¶Ï
-	// ÓÃ»§¿ÉÄÜdestroy( writeToDB = False ), Õâ¸ö²Ù×÷»áµ¼ÖÂhasDBÎªfalse£¬ Òò´ËÕâÀï
-	// ĞèÒªÅĞ¶ÏdbidÊÇ·ñ´óÓÚ0£¬ Èç¹û´óÓÚ0ÔòÓ¦¸ÃÒªÈ¥²Á³ıÔÚÏßµÈ¼ÇÂ¼Çé¿ö.
+	// è¿™é‡Œæ²¡æœ‰ä½¿ç”¨hasDB()æ¥è¿›è¡Œåˆ¤æ–­
+	// ç”¨æˆ·å¯èƒ½destroy( writeToDB = False ), è¿™ä¸ªæ“ä½œä¼šå¯¼è‡´hasDBä¸ºfalseï¼Œ å› æ­¤è¿™é‡Œ
+	// éœ€è¦åˆ¤æ–­dbidæ˜¯å¦å¤§äº0ï¼Œ å¦‚æœå¤§äº0åˆ™åº”è¯¥è¦å»æ“¦é™¤åœ¨çº¿ç­‰è®°å½•æƒ…å†µ.
 	if(this->dbid() > 0)
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -255,7 +255,7 @@ void Base::createCellData(void)
 		SCRIPT_ERROR_CHECK();
 	}
 	
-	// ³õÊ¼»¯cellEntityµÄÎ»ÖÃºÍ·½Ïò±äÁ¿
+	// åˆå§‹åŒ–cellEntityçš„ä½ç½®å’Œæ–¹å‘å˜é‡
 	PyObject* position = PyTuple_New(3);
 	PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble(0.0));
 	PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble(0.0));
@@ -328,10 +328,10 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 {
 	std::vector<ENTITY_PROPERTY_UID> log;
 
-	// ÔÙ½«baseÖĞ´æ´¢ÊôĞÔÈ¡³ö
+	// å†å°†baseä¸­å­˜å‚¨å±æ€§å–å‡º
 	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
 
-	// ÏÈ½«celldataÖĞµÄ´æ´¢ÊôĞÔÈ¡³ö
+	// å…ˆå°†celldataä¸­çš„å­˜å‚¨å±æ€§å–å‡º
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
@@ -447,7 +447,7 @@ void Base::sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle)
 //-------------------------------------------------------------------------------------
 void Base::destroyCellData(void)
 {
-	// cellDataDict_ ¼ÌĞø±£Áô£¬ ÒÔ¹©±¸·İÊ±Ê¹ÓÃ£¬ ÕâÀï½ö½öÈÃ½Å²½²ãÎŞ·¨·ÃÎÊµ½¼´¿É
+	// cellDataDict_ ç»§ç»­ä¿ç•™ï¼Œ ä»¥ä¾›å¤‡ä»½æ—¶ä½¿ç”¨ï¼Œ è¿™é‡Œä»…ä»…è®©è„šæ­¥å±‚æ— æ³•è®¿é—®åˆ°å³å¯
 	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
@@ -553,8 +553,8 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 
 	if(deleteFromDB || writeToDB)
 	{
-		// ÓĞ¿ÉÄÜÒÑ¾­ÇëÇóÁËwriteToDBµ«»¹Î´·µ»ØĞ´ÈëµÄdbid
-		// ÕâÖÖÇé¿öĞèÒª·µ»Ø¸øÓÃ»§Ò»¸ö´íÎó£¬ ÓÃ»§¿ÉÒÔ¼ÌĞø³¢ÊÔÕâ¸ö²Ù×÷
+		// æœ‰å¯èƒ½å·²ç»è¯·æ±‚äº†writeToDBä½†è¿˜æœªè¿”å›å†™å…¥çš„dbid
+		// è¿™ç§æƒ…å†µéœ€è¦è¿”å›ç»™ç”¨æˆ·ä¸€ä¸ªé”™è¯¯ï¼Œ ç”¨æˆ·å¯ä»¥ç»§ç»­å°è¯•è¿™ä¸ªæ“ä½œ
 		if(pobj->hasDB() && pobj->dbid() == 0)
 		{
 			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, current dbid is 0. "
@@ -603,7 +603,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 	if(writeToDB)
 	{
-		// Õâ¸öĞĞÎªÄ¬ÈÏ»á´¦Àí
+		// è¿™ä¸ªè¡Œä¸ºé»˜è®¤ä¼šå¤„ç†
 		// this->writeToDB(NULL);
 	}
 	else
@@ -770,7 +770,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	// Èç¹ûÊÇÍâ²¿Í¨µÀµ÷ÓÃÔòÅĞ¶ÏÀ´Ô´ĞÔ
+	// å¦‚æœæ˜¯å¤–éƒ¨é€šé“è°ƒç”¨åˆ™åˆ¤æ–­æ¥æºæ€§
 	if (pChannel->isExternal())
 	{
 		ENTITY_ID srcEntityID = pChannel->proxyID();
@@ -834,10 +834,10 @@ void Base::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 
 	creatingCell_ = false;
 
-	// É¾³ıcellDataÊôĞÔ
+	// åˆ é™¤cellDataå±æ€§
 	destroyCellData();
 	
-	// »Øµ÷¸ø½Å±¾£¬»ñµÃÁËcell
+	// å›è°ƒç»™è„šæœ¬ï¼Œè·å¾—äº†cell
 	if(cellMailbox_ == NULL)
 		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
@@ -925,7 +925,7 @@ void Base::writeToDB(void* data, void* extra)
 	PyObject* pyCallback = NULL;
 	int8 shouldAutoLoad = -1;
 
-	// data ÊÇÓĞ¿ÉÄÜ»áNULLµÄ£¬ ±ÈÈç¶¨Ê±´æµµÊÇ²»ĞèÒª»Øµ÷º¯ÊıµÄ
+	// data æ˜¯æœ‰å¯èƒ½ä¼šNULLçš„ï¼Œ æ¯”å¦‚å®šæ—¶å­˜æ¡£æ˜¯ä¸éœ€è¦å›è°ƒå‡½æ•°çš„
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
 
@@ -934,7 +934,7 @@ void Base::writeToDB(void* data, void* extra)
 
 	if(isArchiveing_)
 	{
-		// __py_pyWriteToDBÃ»ÓĞÔö¼ÓÒıÓÃ
+		// __py_pyWriteToDBæ²¡æœ‰å¢åŠ å¼•ç”¨
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
 
@@ -948,7 +948,7 @@ void Base::writeToDB(void* data, void* extra)
 
 	if(isDestroyed())																				
 	{	
-		// __py_pyWriteToDBÃ»ÓĞÔö¼ÓÒıÓÃ
+		// __py_pyWriteToDBæ²¡æœ‰å¢åŠ å¼•ç”¨
 		//if(pyCallback != NULL)
 		//	Py_DECREF(pyCallback);
 
@@ -964,9 +964,9 @@ void Base::writeToDB(void* data, void* extra)
 		callbackID = callbackMgr().save(pyCallback);
 	}
 
-	// creatingCell_ ´ËÊ±¿ÉÄÜÕıÔÚ´´½¨cell
-	// ²»¹ıÎÒÃÇÔÚ´Ë¼ÙÉèÔÚcellÎ´´´½¨Íê³ÉµÄÊ±ºòbaseÕâ¸ö½Ó¿Ú±»µ÷ÓÃ
-	// Ğ´ÈëÊı¾İ¿âµÄÊÇ¸ÃentityµÄ³õÊ¼Öµ£¬ ²¢²»Ó°Ïì
+	// creatingCell_ æ­¤æ—¶å¯èƒ½æ­£åœ¨åˆ›å»ºcell
+	// ä¸è¿‡æˆ‘ä»¬åœ¨æ­¤å‡è®¾åœ¨cellæœªåˆ›å»ºå®Œæˆçš„æ—¶å€™baseè¿™ä¸ªæ¥å£è¢«è°ƒç”¨
+	// å†™å…¥æ•°æ®åº“çš„æ˜¯è¯¥entityçš„åˆå§‹å€¼ï¼Œ å¹¶ä¸å½±å“
 	if(this->cellMailbox() == NULL) 
 	{
 		onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
@@ -1040,7 +1040,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	
 	onWriteToDB();
 	
-	// Èç¹ûÔÚÊı¾İ¿âÖĞÒÑ¾­´æÔÚ¸ÃentityÔòÔÊĞíÓ¦ÓÃ²ã¶à´Îµ÷ÓÃĞ´¿â½øĞĞÊı¾İ¼°Ê±¸²¸ÇĞèÇó
+	// å¦‚æœåœ¨æ•°æ®åº“ä¸­å·²ç»å­˜åœ¨è¯¥entityåˆ™å…è®¸åº”ç”¨å±‚å¤šæ¬¡è°ƒç”¨å†™åº“è¿›è¡Œæ•°æ®åŠæ—¶è¦†ç›–éœ€æ±‚
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
 
@@ -1070,7 +1070,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	(*pBundle) << callbackID;
 	(*pBundle) << shouldAutoLoad;
 
-	// ¼ÇÂ¼µÇÂ¼µØÖ·
+	// è®°å½•ç™»å½•åœ°å€
 	if(this->dbid() == 0)
 	{
 		uint32 ip = 0;
@@ -1219,8 +1219,8 @@ void Base::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, M
 	if(mb == NULL)
 		return;
 
-	// ½«Õâ¸öÏûÏ¢ÔÙ´ò°ü×ª¼Ä¸øcellapp£¬ cellapp»á¶ÔÕâ¸ö°üÖĞµÄÃ¿¸öÏûÏ¢½øĞĞÅĞ¶Ï
-	// ¼ì²éÊÇ·ñÊÇentityÏûÏ¢£¬ ·ñÔò²»ºÏ·¨.
+	// å°†è¿™ä¸ªæ¶ˆæ¯å†æ‰“åŒ…è½¬å¯„ç»™cellappï¼Œ cellappä¼šå¯¹è¿™ä¸ªåŒ…ä¸­çš„æ¯ä¸ªæ¶ˆæ¯è¿›è¡Œåˆ¤æ–­
+	// æ£€æŸ¥æ˜¯å¦æ˜¯entityæ¶ˆæ¯ï¼Œ å¦åˆ™ä¸åˆæ³•.
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
 	(*pBundle) << this->id();
@@ -1272,7 +1272,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	ENTITY_ID eid = 0;
 
-	// Èç¹û²»ÊÇmailboxÔòÊÇ±¾µØbase
+	// å¦‚æœä¸æ˜¯mailboxåˆ™æ˜¯æœ¬åœ°base
 	if(isMailbox)
 	{
 		EntityMailbox* mb = static_cast<EntityMailbox*>(baseEntityMB);
@@ -1402,8 +1402,8 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cell
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",											
 		scriptName(), id(), cellappID));
 
-	// cell²¿·Ö¿ªÊ¼¿çcellappÇ¨ÒÆÁË£¬ ´ËÊ±baseapp·¢ÍùcellappµÄ°ü¶¼Ó¦¸Ã»º´æ
-	// µ±onTeleportCellappEnd±»µ÷ÓÃÊ±½«»º´æµÄ°ü·¢Íùcell
+	// celléƒ¨åˆ†å¼€å§‹è·¨cellappè¿ç§»äº†ï¼Œ æ­¤æ—¶baseappå‘å¾€cellappçš„åŒ…éƒ½åº”è¯¥ç¼“å­˜
+	// å½“onTeleportCellappEndè¢«è°ƒç”¨æ—¶å°†ç¼“å­˜çš„åŒ…å‘å¾€cell
 
 	if(pBufferedSendToCellappMessages_ == NULL)
 		pBufferedSendToCellappMessages_ = new BaseMessagesForwardHandler(this);
@@ -1417,7 +1417,7 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellap
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",											
 		scriptName(), id(), cellappID));
 
-	// ¸Ä±äcellµÄÖ¸Ïòµ½ĞÂµÄcellapp
+	// æ”¹å˜cellçš„æŒ‡å‘åˆ°æ–°çš„cellapp
 	this->cellMailbox()->componentID(cellappID);
 
 	KBE_ASSERT(pBufferedSendToCellappMessages_);

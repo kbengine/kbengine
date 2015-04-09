@@ -41,6 +41,16 @@ INLINE void Proxy::setClientType(COMPONENT_CLIENT_TYPE ctype)
 	clientComponentType_ = ctype;
 }
 
+INLINE const std::string& Proxy::getClientDatas()
+{
+	return clientDatas_;
+}
+
+INLINE void Proxy::setClientDatas(const std::string& datas)
+{
+	clientDatas_ = datas;
+}
+
 INLINE void Proxy::addr(const Network::Address& address)
 { 
 	addr_ = address; 

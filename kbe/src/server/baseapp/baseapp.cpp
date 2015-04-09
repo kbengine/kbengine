@@ -2333,12 +2333,26 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::registerPendingLogin(Network::Channel* pChannel, std::string& loginName, std::string& accountName, 
-								   std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
-								   COMPONENT_TYPE componentType)
+void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
+	{
+		s.done();
 		return;
+	}
+
+	std::string									loginName; 
+	std::string									accountName;
+	std::string									password;
+	std::string									datas;
+	ENTITY_ID									entityID;
+	DBID										entityDBID;
+	uint32										flags;
+	uint64										deadline;
+	COMPONENT_TYPE								componentType;
+
+	s >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType;
+	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
@@ -2366,6 +2380,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, std::string& logi
 	ptinfos->flags = flags;
 	ptinfos->deadline = deadline;
 	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
+	ptinfos->datas = datas;
 	pendingLoginMgr_.add(ptinfos);
 }
 
@@ -2511,6 +2526,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 				base->clientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
+				base->setClientDatas(ptinfos->datas);
 				createClientProxies(base, true);
 			}
 			else
@@ -2522,6 +2538,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 				base->clientMailbox(entityClientMailbox);
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
+				base->setClientDatas(ptinfos->datas);
 
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 				entityClientMailbox->getChannel()->proxyID(base->id());
@@ -2700,6 +2717,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	base->hasDB(true);
 	base->dbid(dbid);
 	base->setClientType(ptinfos->ctype);
+	base->setClientDatas(ptinfos->datas);
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 

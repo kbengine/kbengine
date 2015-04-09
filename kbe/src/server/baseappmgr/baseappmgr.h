@@ -89,19 +89,13 @@ public:
 		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给baseapp
 		使其允许在此baseapp上登录。
 	*/
-	void registerPendingAccountToBaseapp(Network::Channel* pChannel, 
-								std::string& loginName, std::string& accountName, 
-								std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,
-								COMPONENT_TYPE componentType);
+	void registerPendingAccountToBaseapp(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
 		使其允许在此baseapp上登录。
 	*/
-	void registerPendingAccountToBaseappAddr(Network::Channel* pChannel, COMPONENT_ID componentID,
-								std::string& loginName, std::string& accountName, std::string& password, 
-								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
-								COMPONENT_TYPE componentType);
+	void registerPendingAccountToBaseappAddr(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		baseapp将自己的地址发送给loginapp并转发给客户端。

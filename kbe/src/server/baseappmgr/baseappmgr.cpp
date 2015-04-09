@@ -336,11 +336,20 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, 
-												 std::string& loginName, std::string& accountName, 
-												 std::string& password, DBID entityDBID, uint32 flags, uint64 deadline,
-												 COMPONENT_TYPE componentType)
+void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, MemoryStream& s)
 {
+	std::string loginName;
+	std::string accountName;
+	std::string password;
+	std::string datas;
+	DBID entityDBID;
+	uint32 flags;
+	uint64 deadline;
+	COMPONENT_TYPE componentType;
+
+	s >> loginName >> accountName >> password >> entityDBID >> flags >> deadline >> componentType;
+	s.readBlob(datas);
+
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
@@ -361,6 +370,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel,
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
+		pBundle->appendBlob(datas);
 
 		WARNING_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
@@ -375,15 +385,27 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
+	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel, COMPONENT_ID componentID,
-								std::string& loginName, std::string& accountName, std::string& password, 
-								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline,
-								COMPONENT_TYPE componentType)
+void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel, MemoryStream& s)
 {
+	COMPONENT_ID componentID;
+	std::string loginName;
+	std::string accountName;
+	std::string password;
+	std::string datas;
+	ENTITY_ID entityID;
+	DBID entityDBID;
+	uint32 flags;
+	uint64 deadline;
+	COMPONENT_TYPE componentType;
+
+	s >> componentID >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType;
+	s.readBlob(datas);
+
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
 		accountName, componentID, entityID));
 
@@ -407,6 +429,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
+	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 }
 

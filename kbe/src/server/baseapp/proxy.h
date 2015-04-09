@@ -22,20 +22,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PROXY_H
 #define KBE_PROXY_H
 	
-// common include
 #include "base.h"
 #include "data_downloads.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
 #include "network/address.h"
 #include "network/message_handler.h"
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 
@@ -53,8 +45,9 @@ class ProxyForwarder;
 
 class Proxy : public Base
 {
-	/** ×ÓÀà»¯ ½«Ò»Ğ©py²Ù×÷Ìî³ä½øÅÉÉúÀà */
+	/** å­ç±»åŒ–å°†ä¸€äº›pyæ“ä½œå¡«å……è¿›æ´¾ç”Ÿç±» */
 	BASE_SCRIPT_HREADER(Proxy, Base)	
+
 public:
 	Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule);
 	~Proxy();
@@ -66,14 +59,14 @@ public:
 	bool pushBundle(Network::Bundle* pBundle);
 
 	/**
-		Ïòwitness¿Í»§¶ËÍÆËÍÒ»ÌõÏûÏ¢
+		å‘witnesså®¢æˆ·ç«¯æ¨é€ä¸€æ¡æ¶ˆæ¯
 	*/
 	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
 	bool sendToClient(Network::Bundle* pBundle);
 	bool sendToClient(bool expectData = true);
 
 	/** 
-		½Å±¾ÇëÇó»ñÈ¡Á¬½ÓµÄrttÖµ
+		è„šæœ¬è¯·æ±‚è·å–è¿æ¥çš„rttå€¼
 	*/
 	double getRoundTripTime() const;
 	DECLARE_PY_GET_MOTHOD(pyGetRoundTripTime);
@@ -85,68 +78,75 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetTimeSinceHeardFromClient);
 
 	/** 
-		½Å±¾ÇëÇó»ñÈ¡ÊÇ·ñÓĞclient°ó¶¨µ½proxyÉÏ
+		è„šæœ¬è¯·æ±‚è·å–æ˜¯å¦æœ‰clientç»‘å®šåˆ°proxyä¸Š
 	*/
 	bool hasClient() const;
 	DECLARE_PY_GET_MOTHOD(pyHasClient);
 
 	/** 
-		½Å±¾ÇëÇó»ñÈ¡clientµØÖ·
+		è„šæœ¬è¯·æ±‚è·å–clientåœ°å€
 	*/
 	DECLARE_PY_GET_MOTHOD(pyClientAddr);
 
 	/** 
-		½Å±¾ÇëÇó»ñÈ¡Á¬½ÓµÄrttÖµ
+		å®ä½“æ˜¯å¦å¯ç”¨
 	*/
 	INLINE bool entitiesEnabled() const;
 	DECLARE_PY_GET_MOTHOD(pyGetEntitiesEnabled);
 
 	/**
-		Õâ¸öentity±»¼¤»îÁË, ÔÚ¿Í»§¶Ë³õÊ¼»¯ºÃ¶ÔÓ¦µÄentityºó£¬ Õâ¸ö·½·¨±»µ÷ÓÃ
+		è¿™ä¸ªentityè¢«æ¿€æ´»äº†, åœ¨å®¢æˆ·ç«¯åˆå§‹åŒ–å¥½å¯¹åº”çš„entityåï¼Œ è¿™ä¸ªæ–¹æ³•è¢«è°ƒç”¨
 	*/
 	void onEntitiesEnabled(void);
 	
 	/**
-		Ò»¸öÊı¾İÏÂÔØÈÎÎñÍê³É
+		ä¸€ä¸ªæ•°æ®ä¸‹è½½ä»»åŠ¡å®Œæˆ
 	*/
 	void onStreamComplete(int16 id, bool success);
 
 	/**
-		µÇÂ½³¢ÊÔ£¬ µ±Õı³£µÄµÇÂ½Ê§°ÜÖ®ºó£¬ µ÷ÓÃÕâ¸ö½Ó¿ÚÔÙ½øĞĞ³¢ÊÔ 
+		ç™»é™†å°è¯•ï¼Œ å½“æ­£å¸¸çš„ç™»é™†å¤±è´¥ä¹‹åï¼Œ è°ƒç”¨è¿™ä¸ªæ¥å£å†è¿›è¡Œå°è¯• 
 	*/
 	int32 onLogOnAttempt(const char* addr, uint32 port, const char* password);
 	
 	/**
-		³õÊ¼»¯¿Í»§¶ËproxyµÄÊôĞÔ
+		åˆå§‹åŒ–å®¢æˆ·ç«¯proxyçš„å±æ€§
 	*/
 	void initClientBasePropertys();
 	void initClientCellPropertys();
 
 	/** 
-		µ±²ì¾õÕâ¸öentity¶ÔÓ¦µÄ¿Í»§¶Ësocket¶Ï¿ªÊ±±»µ÷ÓÃ 
+		å½“å¯Ÿè§‰è¿™ä¸ªentityå¯¹åº”çš„å®¢æˆ·ç«¯socketæ–­å¼€æ—¶è¢«è°ƒç”¨ 
 	*/
 	void onClientDeath(void);
 	
-	/** ÍøÂç½Ó¿Ú
-		µ±¿Í»§¶ËËù¹ØÁªµÄÕâ¸öentityµÄcell±»´´½¨Ê±£¬±»µ÷ÓÃ 
+	/** ç½‘ç»œæ¥å£
+		å½“å®¢æˆ·ç«¯æ‰€å…³è”çš„è¿™ä¸ªentityçš„cellè¢«åˆ›å»ºæ—¶ï¼Œè¢«è°ƒç”¨ 
 	*/
 	void onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID);
 
 	/**
-		»ñÈ¡Ç°¶ËÀà±ğ
+		è·å–å‰ç«¯ç±»åˆ«
 	*/
 	INLINE COMPONENT_CLIENT_TYPE getClientType() const;
 	INLINE void setClientType(COMPONENT_CLIENT_TYPE ctype);
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientType);
 
 	/**
-		Ã¿¸öproxy´´½¨Ö®ºó¶¼»áÓÉÏµÍ³²úÉúÒ»¸öuuid£¬ Ìá¹©Ç°¶ËÖØµÇÂ½Ê±ÓÃ×÷Éí·İÊ¶±ğ
+		è·å–å‰ç«¯é™„å¸¦æ•°æ®
+	*/
+	INLINE const std::string& getClientDatas();
+	INLINE void setClientDatas(const std::string& datas);
+	DECLARE_PY_MOTHOD_ARG0(pyGetClientDatas);
+
+	/**
+		æ¯ä¸ªproxyåˆ›å»ºä¹‹åéƒ½ä¼šç”±ç³»ç»Ÿäº§ç”Ÿä¸€ä¸ªuuidï¼Œ æä¾›å‰ç«¯é‡ç™»é™†æ—¶ç”¨ä½œèº«ä»½è¯†åˆ«
 	*/
 	INLINE uint64 rndUUID() const;
 	INLINE void rndUUID(uint64 uid);
 
 	/** 
-		½«Æä×ÔÉíËù¹ØÁªµÄ¿Í»§¶Ë×ª¸øÁíÒ»¸öproxyÈ¥¹ØÁª 
+		å°†å…¶è‡ªèº«æ‰€å…³è”çš„å®¢æˆ·ç«¯è½¬ç»™å¦ä¸€ä¸ªproxyå»å…³è” 
 	*/
 	void giveClientTo(Proxy* proxy);
 	void onGiveClientTo(Network::Channel* lpChannel);
@@ -154,21 +154,21 @@ public:
 	DECLARE_PY_MOTHOD_ARG1(pyGiveClientTo, PyObject_ptr);
 
 	/**
-		ÎÄ¼şÁ÷Êı¾İÏÂÔØ
+		æ–‡ä»¶æµæ•°æ®ä¸‹è½½
 	*/
 	static PyObject* __py_pyStreamFileToClient(PyObject* self, PyObject* args);
 	int16 streamFileToClient(PyObjectPtr objptr, 
 		const std::string& descr = "", int16 id = -1);
 
 	/**
-		×Ö·û´®Á÷Êı¾İÏÂÔØ
+		å­—ç¬¦ä¸²æµæ•°æ®ä¸‹è½½
 	*/
 	static PyObject* __py_pyStreamStringToClient(PyObject* self, PyObject* args);
 	int16 streamStringToClient(PyObjectPtr objptr, 
 		const std::string& descr = "", int16 id = -1);
 
 	/**
-		°ó¶¨ÁËwitness
+		ç»‘å®šäº†witness
 	*/
 	void onGetWitness();
 
@@ -179,15 +179,16 @@ protected:
 
 	bool entitiesEnabled_;
 
-	// ÏŞÖÆ¿Í»§¶ËÃ¿ÃëËùÄÜÊ¹ÓÃµÄ´ø¿í
+	// é™åˆ¶å®¢æˆ·ç«¯æ¯ç§’æ‰€èƒ½ä½¿ç”¨çš„å¸¦å®½
 	int32 bandwidthPerSecond_;
 
-	// Í¨ĞÅ¼ÓÃÜkey Ä¬ÈÏblowfish
+	// é€šä¿¡åŠ å¯†key é»˜è®¤blowfish
 	std::string encryptionKey;
 
 	ProxyForwarder* pProxyForwarder_;
 
 	COMPONENT_CLIENT_TYPE clientComponentType_;
+	std::string clientDatas_;
 };
 
 }

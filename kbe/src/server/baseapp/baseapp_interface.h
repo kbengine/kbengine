@@ -145,15 +145,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									ENTITY_ID,										entityID)
 
 	// loginapp向自己注册一个将要登录的账号, 由baseappmgr转发。
-	BASEAPP_MESSAGE_DECLARE_ARGS8(registerPendingLogin,								NETWORK_VARIABLE_MESSAGE,
-									std::string,									loginName, 
-									std::string,									accountName,
-									std::string,									password,
-									ENTITY_ID,										entityID,
-									DBID,											entityDBID,
-									uint32,											flags,
-									uint64,											deadline,
-									COMPONENT_TYPE,									componentType)
+	BASEAPP_MESSAGE_DECLARE_STREAM(registerPendingLogin,							NETWORK_VARIABLE_MESSAGE)
 
 	// 数据库中查询的自动entity加载信息返回 
 	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityAutoLoadCBFromDBMgr,						NETWORK_VARIABLE_MESSAGE)
