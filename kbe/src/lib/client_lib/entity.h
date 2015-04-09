@@ -20,8 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_CLIENTAPP_ENTITY_H
 #define KBE_CLIENTAPP_ENTITY_H
-	
-// common include
+
 #include "entity_aspect.h"
 #include "client_lib/profile.h"
 #include "common/timer.h"
@@ -136,6 +135,7 @@ public:
 	
 	bool isOnGound() const { return isOnGound_;}
 	void isOnGound(bool v) { isOnGound_ = v;}
+
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的base-mailbox

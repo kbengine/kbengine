@@ -58,6 +58,7 @@ public:
 	bool useLastAccountName() const{ return useLastAccountName_; }
 
 	int8 encryptLogin() const { return encrypt_login_; }
+	
 public:
 	int16 gameUpdateHertz_;
 
