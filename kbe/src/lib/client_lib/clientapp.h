@@ -107,7 +107,7 @@ public:
 
 	void shutDown();
 
-	bool login(std::string accountName, std::string passwd, 
+	bool login(std::string accountName, std::string passwd, std::string datas,
 		std::string ip, KBEngine::uint32 port);
 
 	bool updateChannel(bool loginapp, std::string accountName, std::string passwd, 

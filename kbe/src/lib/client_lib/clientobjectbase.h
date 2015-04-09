@@ -429,7 +429,9 @@ protected:
 
 	std::string												name_;
 	std::string												password_;
-	std::string												extradatas_;
+
+	std::string												clientDatas_;
+	std::string												serverDatas_;
 
 	CLIENT_CTYPE											typeClient_;
 

@@ -78,7 +78,8 @@ connectedGateway_(false),
 canReset_(false),
 name_(),
 password_(),
-extradatas_("unknown"),
+clientDatas_(""),
+serverDatas_(""),
 typeClient_(CLIENT_TYPE_PC),
 bufferedCreateEntityMessage_(),
 eventHandler_(),
@@ -130,16 +131,22 @@ void ClientObjectBase::reset(void)
 	pEntities_->finalise();
 	pEntityIDAliasIDList_.clear();
 	pyCallbackMgr_.finalise();
+
 	entityID_ = 0;
 	dbid_ = 0;
+
 	ip_ = "";
 	port_ = 0;
+
 	lastSentActiveTickTime_ = timestamp();
 	lastSentUpdateDataTime_ = timestamp();
 	connectedGateway_ = false;
+
 	name_ = "";
 	password_ = "";
-	extradatas_ = "unknown";
+	clientDatas_ = "";
+	serverDatas_ = "";
+
 	bufferedCreateEntityMessage_.clear();
 	canReset_ = false;
 	locktime_ = 0;
@@ -586,7 +593,7 @@ bool ClientObjectBase::login()
 	// Ã·Ωª’À∫≈√‹¬Î«Î«Ûµ«¬º
 	(*pBundle).newMessage(LoginappInterface::login);
 	(*pBundle) << typeClient_;
-	(*pBundle).appendBlob(extradatas_);
+	(*pBundle).appendBlob(clientDatas_);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << EntityDef::md5().getDigestStr();
@@ -631,7 +638,7 @@ void ClientObjectBase::onCreateAccountResult(Network::Channel * pChannel, Memory
 	SERVER_ERROR_CODE retcode;
 
 	s >> retcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	if(retcode != 0)
 	{
@@ -652,7 +659,7 @@ void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemorySt
 	s >> accountName;
 	s >> ip_;
 	s >> port_;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 	
 	connectedGateway_ = false;
 	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
@@ -670,7 +677,7 @@ void ClientObjectBase::onLoginFailed(Network::Channel * pChannel, MemoryStream& 
 	SERVER_ERROR_CODE failedcode;
 
 	s >> failedcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 	
 	connectedGateway_ = false;
 	INFO_MSG(fmt::format("ClientObjectBase::onLoginFailed: {} failedcode={}!\n", name_, failedcode));

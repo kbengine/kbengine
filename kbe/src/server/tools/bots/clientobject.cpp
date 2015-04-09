@@ -62,7 +62,7 @@ pTCPPacketReceiverEx_(NULL)
 {
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
-	extradatas_ = "bots";
+	clientDatas_ = "bots";
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ void ClientObject::reset(void)
 	
 	name_ = name;
 	password_ = passwd;
-	extradatas_ = "bots";
+	clientDatas_ = "bots";
 	state_ = C_STATE_INIT;
 }
 
@@ -346,7 +346,7 @@ void ClientObject::onCreateAccountResult(Network::Channel * pChannel, MemoryStre
 	SERVER_ERROR_CODE retcode;
 
 	s >> retcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	if(retcode != 0)
 	{
@@ -373,7 +373,7 @@ void ClientObject::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream
 	s >> accountName;
 	s >> ip_;
 	s >> port_;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	INFO_MSG(fmt::format("ClientObject::onLoginSuccessfully: {} addr={}:{}!\n", 
 		name_, ip_, port_));
@@ -387,7 +387,7 @@ void ClientObject::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 	SERVER_ERROR_CODE failedcode;
 
 	s >> failedcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	INFO_MSG(fmt::format("ClientObject::onLoginFailed: {} failedcode={}!\n", 
 		name_, SERVER_ERR_STR[failedcode]));
