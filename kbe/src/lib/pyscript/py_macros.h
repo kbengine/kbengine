@@ -28,7 +28,7 @@ namespace KBEngine{ namespace script{
 
 #define PY_METHOD_ARG_char								char
 #define PY_METHOD_ARG_char_ARG							char
-#define PY_METHOD_ARG_char__PYARGTYPE					"b"
+#define PY_METHOD_ARG_char_PYARGTYPE					"b"
 
 #define PY_METHOD_ARG_charptr							char *
 #define PY_METHOD_ARG_charptr_ARG						char *
