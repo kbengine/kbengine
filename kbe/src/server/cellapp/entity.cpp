@@ -56,6 +56,8 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(Cellapp, Entity)
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getAoiRadius",				pyGetAoiRadius,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getAoiHystArea",				pyGetAoiHystArea,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
@@ -1609,12 +1611,24 @@ float Entity::getAoiRadius(void) const
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetAoiRadius()
+{
+	return PyFloat_FromDouble(getAoiRadius());
+}
+
+//-------------------------------------------------------------------------------------
 float Entity::getAoiHystArea(void) const
 {
 	if(pWitness_)
 		return pWitness_->aoiHysteresisArea();
 		
 	return 0.0; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetAoiHystArea()
+{
+	return PyFloat_FromDouble(getAoiHystArea());
 }
 
 //-------------------------------------------------------------------------------------

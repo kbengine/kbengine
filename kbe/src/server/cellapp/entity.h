@@ -264,7 +264,9 @@ public:
 	float getAoiRadius(void) const;
 	float getAoiHystArea(void) const;
 	DECLARE_PY_MOTHOD_ARG2(pySetAoiRadius, float, float);
-	
+	DECLARE_PY_MOTHOD_ARG0(pyGetAoiRadius);
+	DECLARE_PY_MOTHOD_ARG0(pyGetAoiHystArea);
+
 	/** 
 		当前entity是否为real 
 	*/
