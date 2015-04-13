@@ -738,6 +738,9 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 		eventHandler_.fire(&eventdata);
 	}
 
+	BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
+	bool hasBufferedMessage = (iter != bufferedCreateEntityMessage_.end());
+
 	// 能走到这里来一定是连接了网关
 	connectedGateway_ = true;
 
@@ -751,7 +754,17 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
 		NULL, appID(), eid, MAILBOX_TYPE_BASE);
 
-	createEntity(entityType.c_str(), NULL, true, eid, true, mailbox, NULL);
+	client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
+	KBE_ASSERT(pEntity != NULL);
+
+	if(hasBufferedMessage)
+	{
+		// 先更新属性再初始化脚本
+		this->onUpdatePropertys(pChannel, *iter->second.get());
+		bufferedCreateEntityMessage_.erase(iter);
+		pEntity->initializeEntity(NULL);
+		SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------	
@@ -793,12 +806,16 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
 				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-			entity = createEntity(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, mailbox);
 			KBE_ASSERT(entity != NULL);
 
+			// 先更新属性再初始化脚本
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
 			entity->isOnGound(isOnGound > 0);
+
+			entity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
 
 			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}), appID({}).\n", 
 				entity->scriptName(), eid, (int)isOnGound, appID()));
