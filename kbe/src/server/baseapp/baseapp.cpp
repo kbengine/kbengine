@@ -1858,6 +1858,9 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	if(reload)
 		base->rndUUID(genUUID64());
 
+	// 一些数据必须在实体创建后立即访问
+	base->initClientBasePropertys();
+
 	// 让客户端知道已经创建了proxices, 并初始化一部分属性
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(ClientInterface::onCreatedProxies);
@@ -1866,8 +1869,6 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	(*pBundle) << base->ob_type->tp_name;
 	//base->clientMailbox()->postMail((*pBundle));
 	base->sendToClient(ClientInterface::onCreatedProxies, pBundle);
-
-	base->initClientBasePropertys();
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
 	//if(!reload)
