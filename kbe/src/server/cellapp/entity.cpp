@@ -1521,7 +1521,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 	float yaw, pitch, roll;
 	SPACE_ID currspace;
 
-	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll >> isOnGround >> currspace;
+	s >> pos.x >> pos.y >> pos.z >> roll >> pitch >> yaw >> isOnGround >> currspace;
 	isOnGround_ = isOnGround > 0;
 
 	if(spaceID_ != currspace)
@@ -1565,7 +1565,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << id();
 		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
-		(*pForwardBundle) << direction().yaw() << direction().pitch() << direction().roll();
+		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);

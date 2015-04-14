@@ -1138,9 +1138,9 @@ void ClientObjectBase::updatePlayerToServer()
 	(*pBundle) << pos.y;
 	(*pBundle) << pos.z;
 
-	(*pBundle) << dir.yaw();
-	(*pBundle) << dir.pitch();
 	(*pBundle) << dir.roll();
+	(*pBundle) << dir.pitch();
+	(*pBundle) << dir.yaw();
 
 	(*pBundle) << pEntity->isOnGound();
 	(*pBundle) << spaceID_;
@@ -1190,7 +1190,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemorySt
 	Position3D pos;
 	Direction3D dir;
 	float yaw, pitch, roll;
-	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll;
+	s >> pos.x >> pos.y >> pos.z >> roll >> pitch >> yaw;
 	
 	dir.yaw(yaw);
 	dir.pitch(pitch);
