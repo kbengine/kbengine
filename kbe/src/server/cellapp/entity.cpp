@@ -590,11 +590,11 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	onRemoteMethodCall_(md, s);
+	onRemoteMethodCall_(md, id(), s);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStream& s)
+void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
@@ -619,11 +619,11 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStre
 		return;
 	}
 
-	onRemoteMethodCall_(md, s);
+	onRemoteMethodCall_(md, srcEntityID, s);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
+void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -650,7 +650,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, MemoryStream& s)
 			id_, md->getName(), md->getUType(), this->scriptName()));
 	}
 
-	md->currCallerID(this->id());
+	md->currCallerID(srcEntityID);
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName()));
@@ -2771,7 +2771,7 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 		return;
 	}
 
-	onRemoteMethodCall_(pMethodDescription, s);
+	onRemoteMethodCall_(pMethodDescription, id(), s);
 }
 
 //-------------------------------------------------------------------------------------

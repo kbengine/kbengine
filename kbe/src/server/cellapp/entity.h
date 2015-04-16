@@ -357,8 +357,8 @@ public:
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
-	void onRemoteCallMethodFromClient(Network::Channel* pChannel, MemoryStream& s);
-	void onRemoteMethodCall_(MethodDescription* md, MemoryStream& s);
+	void onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s);
 
 	/**
 		观察者
