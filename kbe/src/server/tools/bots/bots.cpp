@@ -110,12 +110,42 @@ bool Bots::initializeEnd()
 		return false;
 	}
 
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInit"), 
+										const_cast<char*>("i"), 
+										0);
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Bots::finalise()
 {
+	// 结束通知脚本
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onFinish"),
+										const_cast<char*>(""));
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	CLIENTS::iterator iter = clients_.begin();
 	for(; iter != clients_.end(); ++iter)
 	{
@@ -188,6 +218,21 @@ bool Bots::installPyModules()
 	}
 
 	registerScript(client::Entity::getScriptType());
+
+	// 安装入口模块
+	PyObject *entryScriptFileName = PyUnicode_FromString(g_kbeSrvConfig.getBots().entryScriptFile);
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	onInstallPyModules();
 
 	return true;

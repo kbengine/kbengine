@@ -668,6 +668,11 @@
 	</machine>
 	
 	<bots>
+		<!-- 入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
+		<entryScriptFile> kbengine </entryScriptFile>
+			
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
 		-->

@@ -291,6 +291,20 @@ bool ClientApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------		
 void ClientApp::finalise(void)
 {
+	// 结束通知脚本
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onFinish"),
+										const_cast<char*>(""));
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	if(pServerChannel_ && pServerChannel_->pEndPoint())
 	{
 		pServerChannel_->stopSend();

@@ -1009,7 +1009,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("bots");
 	if(rootNode != NULL)
 	{
-		node = xml->enterNode(rootNode, "bots");	
+		node = xml->enterNode(rootNode, "entryScriptFile");	
+		if(node != NULL)
+			strncpy((char*)&_botsInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
