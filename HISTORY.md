@@ -1,3 +1,21 @@
+###v0.5.0
+
+	2015/4/18
+
+	新增与改善：
+		优化部分代码结构
+		增加新的API（getClientDatas），用于在脚本中读取客户端登陆时所附带的数据
+		增加API，getAoiRadius、getAoiHystArea
+		统一向服务端同步方向的顺序是roll、pitch、yaw
+		bots增加entryScriptFile配置 
+
+	BUG修正：
+		Cellapp上的Exposed方法，第一个参数得到的并非是调用者的ID
+		修正BASE_AND_CLIENT类属性在客户端实体创建之后才同步过来
+		修复客户端注册账号时上报的数据过长导致dbmgr出错的问题
+
+
+
 ###v0.4.20
 
 	2015/3/13
