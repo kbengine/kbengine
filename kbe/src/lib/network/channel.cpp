@@ -25,8 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "network/websocket_protocol.h"
-#include "network/html5_packet_filter.h"
-#include "network/html5_packet_reader.h"
+#include "network/websocket_packet_filter.h"
+#include "network/websocket_packet_reader.h"
 #include "network/bundle.h"
 #include "network/packet_reader.h"
 #include "network/network_interface.h"
@@ -688,18 +688,18 @@ void Channel::handshake()
 		Packet* pPacket = (*packetIter);
 		
 		// 此处判定是否为websocket或者其他协议的握手
-		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
+		if(websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 		{
 			channelType_ = CHANNEL_WEB;
-			if(html5::WebSocketProtocol::handshake(this, pPacket))
+			if(websocket::WebSocketProtocol::handshake(this, pPacket))
 			{
 				if(pPacket->length() == 0)
 				{
 					bufferedReceives_.erase(packetIter);
 				}
 
-				pPacketReader_ = new HTML5PacketReader(this);
-				pFilter_ = new HTML5PacketFilter(this);
+				pPacketReader_ = new WebSocketPacketReader(this);
+				pFilter_ = new WebSocketPacketFilter(this);
 				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) successfully!\n", this->c_str()));
 				return;
 			}

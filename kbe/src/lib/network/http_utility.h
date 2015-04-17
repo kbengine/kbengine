@@ -39,10 +39,12 @@ namespace HttpUtility
     inline std::string URLEncode(const std::string &sIn)
     {
         std::string sOut;
+        
         for( size_t ix = 0; ix < sIn.size(); ix++ )
         {      
             uint8 buf[4];
             memset( buf, 0, 4 );
+            
             if( isalnum( (uint8)sIn[ix] ) )
             {      
                 buf[0] = sIn[ix];
@@ -57,14 +59,17 @@ namespace HttpUtility
                 buf[1] = toHex( (uint8)sIn[ix] >> 4 );
                 buf[2] = toHex( (uint8)sIn[ix] % 16);
             }
+            
             sOut += (char *)buf;
         }
+        
         return sOut;
     };
 
     inline std::string URLDecode(const std::string &sIn)
     {
         std::string sOut;
+        
         for( size_t ix = 0; ix < sIn.size(); ix++ )
         {
             uint8 ch = 0;
@@ -82,8 +87,10 @@ namespace HttpUtility
             {
                 ch = sIn[ix];
             }
+            
             sOut += (char)ch;
         }
+        
         return sOut;
     }
 }

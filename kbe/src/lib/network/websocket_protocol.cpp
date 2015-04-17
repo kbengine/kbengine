@@ -35,7 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
-namespace html5{
+namespace websocket{
 
 //-------------------------------------------------------------------------------------
 bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
