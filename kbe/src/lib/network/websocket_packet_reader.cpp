@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "html5_packet_reader.h"
+#include "websocket_packet_reader.h"
 #include "network/channel.h"
 #include "network/message_handler.h"
 #include "network/network_stats.h"
@@ -29,24 +29,24 @@ namespace Network
 
 
 //-------------------------------------------------------------------------------------
-HTML5PacketReader::HTML5PacketReader(Channel* pChannel):
+WebSocketPacketReader::WebSocketPacketReader(Channel* pChannel):
 	PacketReader(pChannel)
 {
 }
 
 //-------------------------------------------------------------------------------------
-HTML5PacketReader::~HTML5PacketReader()
+WebSocketPacketReader::~WebSocketPacketReader()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void HTML5PacketReader::reset()
+void WebSocketPacketReader::reset()
 {
 	PacketReader::reset();
 }
 
 //-------------------------------------------------------------------------------------
-void HTML5PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket)
+void WebSocketPacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket)
 {
 	PacketReader::processMessages(pMsgHandlers, pPacket);
 }

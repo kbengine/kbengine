@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "html5_packet_filter.h"
+#include "websocket_packet_filter.h"
 
 #include "network/bundle.h"
 #include "network/channel.h"
@@ -63,7 +63,7 @@ uint64 ntohl64(uint64 host)
 }
 
 //-------------------------------------------------------------------------------------
-HTML5PacketFilter::HTML5PacketFilter(Channel* pChannel):
+WebSocketPacketFilter::WebSocketPacketFilter(Channel* pChannel):
 	web_pFragmentDatasRemain_(2),
 	web_fragmentDatasFlag_(FRAGMENT_DATA_BASIC_LENGTH),
 	basicSize_(0),
@@ -76,14 +76,14 @@ HTML5PacketFilter::HTML5PacketFilter(Channel* pChannel):
 }
 
 //-------------------------------------------------------------------------------------
-HTML5PacketFilter::~HTML5PacketFilter()
+WebSocketPacketFilter::~WebSocketPacketFilter()
 {
 	TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
 	pTCPPacket_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
-Reason HTML5PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
+Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
 	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 
@@ -140,7 +140,7 @@ Reason HTML5PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet 
 	int space = pPacket->length() - pRetTCPPacket->space();
 	if(space > 0)
 	{
-		WARNING_MSG(fmt::format("HTML5PacketFilter::send: no free space, buffer added:{}, total={}.\n",
+		WARNING_MSG(fmt::format("WebSocketPacketFilter::send: no free space, buffer added:{}, total={}.\n",
 			space, pRetTCPPacket->size()));
 
 		pRetTCPPacket->data_resize(pRetTCPPacket->size() + space);
@@ -154,7 +154,7 @@ Reason HTML5PacketFilter::send(Channel * pChannel, PacketSender& sender, Packet 
 }
 
 //-------------------------------------------------------------------------------------
-Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
+Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
 	TCPPacket* pRetTCPPacket = NULL;
 
@@ -180,11 +180,11 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 						(*pPacket) >> basicSize_;
 						if(basicSize_ != BINARY_FRAME)
 						{
-							ERROR_MSG(fmt::format("HTML5PacketFilter::recv: frame_opcode({}) != {}, addr={}\n", 
+							ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: frame_opcode({}) != {}, addr={}\n", 
 								basicSize_, BINARY_FRAME, pChannel->c_str()));
 
 							this->pChannel_->condemn();
-							return REASON_HTML5_ERROR;
+							return REASON_WEBSOCKET_ERROR;
 						}
 					}
 				}
@@ -206,9 +206,11 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					if(basicSize_ > 127)
 					{
 						this->pChannel_->condemn();
-						ERROR_MSG(fmt::format("HTML5PacketReader::processMessages: basicSize({}) is error! addr={}!\n",
+
+						ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: basicSize({}) is error! addr={}!\n",
 							basicSize_, pChannel_->c_str()));
-						return REASON_HTML5_ERROR;
+
+						return REASON_WEBSOCKET_ERROR;
 					}
 
 					web_pFragmentDatasRemain_ = 4;

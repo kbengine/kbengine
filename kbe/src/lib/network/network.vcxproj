@@ -103,8 +103,6 @@
     <ClCompile Include="event_dispatcher.cpp" />
     <ClCompile Include="event_poller.cpp" />
     <ClCompile Include="fixed_messages.cpp" />
-    <ClCompile Include="html5_packet_filter.cpp" />
-    <ClCompile Include="html5_packet_reader.cpp" />
     <ClCompile Include="interface_defs.cpp" />
     <ClCompile Include="listener_receiver.cpp" />
     <ClCompile Include="network_stats.cpp" />
@@ -121,6 +119,8 @@
     <ClCompile Include="tcp_packet_sender.cpp" />
     <ClCompile Include="udp_packet.cpp" />
     <ClCompile Include="udp_packet_receiver.cpp" />
+    <ClCompile Include="websocket_packet_filter.cpp" />
+    <ClCompile Include="websocket_packet_reader.cpp" />
     <ClCompile Include="websocket_protocol.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -136,8 +136,6 @@
     <ClInclude Include="event_dispatcher.h" />
     <ClInclude Include="event_poller.h" />
     <ClInclude Include="fixed_messages.h" />
-    <ClInclude Include="html5_packet_filter.h" />
-    <ClInclude Include="html5_packet_reader.h" />
     <ClInclude Include="http_utility.h" />
     <ClInclude Include="interface_defs.h" />
     <ClInclude Include="interfaces.h" />
@@ -158,6 +156,8 @@
     <ClInclude Include="tcp_packet_sender.h" />
     <ClInclude Include="udp_packet.h" />
     <ClInclude Include="udp_packet_receiver.h" />
+    <ClInclude Include="websocket_packet_filter.h" />
+    <ClInclude Include="websocket_packet_reader.h" />
     <ClInclude Include="websocket_protocol.h" />
   </ItemGroup>
   <ItemGroup>

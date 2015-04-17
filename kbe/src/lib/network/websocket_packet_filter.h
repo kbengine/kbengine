@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_HTML5_PACKET_FILTER_H
-#define KBE_HTML5_PACKET_FILTER_H
+#ifndef KBE_WEBSOCKET_PACKET_FILTER_H
+#define KBE_WEBSOCKET_PACKET_FILTER_H
 
 #include "network/packet_filter.h"
 
@@ -29,7 +29,7 @@ namespace Network
 {
 class TCPPacket;
 
-class HTML5PacketFilter : public PacketFilter
+class WebSocketPacketFilter : public PacketFilter
 {
 public:
 	enum WebSocketFrameType 
@@ -47,8 +47,8 @@ public:
 		PONG_FRAME = 0x1A
 	};
 
-	HTML5PacketFilter(Channel* pChannel);
-	virtual ~HTML5PacketFilter();
+	WebSocketPacketFilter(Channel* pChannel);
+	virtual ~WebSocketPacketFilter();
 
 	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
 
@@ -81,4 +81,4 @@ protected:
 }
 }
 
-#endif // KBE_HTML5_PACKET_FILTER_H
+#endif // KBE_WEBSOCKET_PACKET_FILTER_H

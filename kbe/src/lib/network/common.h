@@ -128,21 +128,21 @@ enum ProtocolType
 
 enum Reason
 {
-	REASON_SUCCESS = 0,				 ///< No reason.
-	REASON_TIMER_EXPIRED = -1,		 ///< Timer expired.
-	REASON_NO_SUCH_PORT = -2,		 ///< Destination port is not open.
-	REASON_GENERAL_NETWORK = -3,	 ///< The network is stuffed.
-	REASON_CORRUPTED_PACKET = -4,	 ///< Got a bad packet.
-	REASON_NONEXISTENT_ENTRY = -5,	 ///< Wanted to call a null function.
-	REASON_WINDOW_OVERFLOW = -6,	 ///< Channel send window overflowed.
-	REASON_INACTIVITY = -7,			 ///< Channel inactivity timeout.
-	REASON_RESOURCE_UNAVAILABLE = -8,///< Corresponds to EAGAIN
-	REASON_CLIENT_DISCONNECTED = -9, ///< Client disconnected voluntarily.
-	REASON_TRANSMIT_QUEUE_FULL = -10,///< Corresponds to ENOBUFS
-	REASON_CHANNEL_LOST = -11,		 ///< Corresponds to channel lost
-	REASON_SHUTTING_DOWN = -12,		 ///< Corresponds to shutting down app.
-	REASON_HTML5_ERROR = -13,		 ///< html5 error.
-	REASON_CHANNEL_CONDEMN = -14,	 ///< condemn error.
+	REASON_SUCCESS = 0,				 // No reason.
+	REASON_TIMER_EXPIRED = -1,		 // Timer expired.
+	REASON_NO_SUCH_PORT = -2,		 // Destination port is not open.
+	REASON_GENERAL_NETWORK = -3,	 // The network is stuffed.
+	REASON_CORRUPTED_PACKET = -4,	 // Got a bad packet.
+	REASON_NONEXISTENT_ENTRY = -5,	 // Wanted to call a null function.
+	REASON_WINDOW_OVERFLOW = -6,	 // Channel send window overflowed.
+	REASON_INACTIVITY = -7,			 // Channel inactivity timeout.
+	REASON_RESOURCE_UNAVAILABLE = -8,// Corresponds to EAGAIN
+	REASON_CLIENT_DISCONNECTED = -9, // Client disconnected voluntarily.
+	REASON_TRANSMIT_QUEUE_FULL = -10,// Corresponds to ENOBUFS
+	REASON_CHANNEL_LOST = -11,		 // Corresponds to channel lost
+	REASON_SHUTTING_DOWN = -12,		 // Corresponds to shutting down app.
+	REASON_WEBSOCKET_ERROR = -13,    // html5 error.
+	REASON_CHANNEL_CONDEMN = -14,	 // condemn error.
 };
 
 inline
@@ -163,7 +163,7 @@ const char * reasonToString(Reason reason)
 		"REASON_TRANSMIT_QUEUE_FULL",
 		"REASON_CHANNEL_LOST",
 		"REASON_SHUTTING_DOWN",
-		"REASON_HTML5_ERROR",
+		"REASON_WEBSOCKET_ERROR",
 		"REASON_CHANNEL_CONDEMN"
 	};
 
