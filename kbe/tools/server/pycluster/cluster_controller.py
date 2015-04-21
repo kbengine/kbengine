@@ -573,6 +573,10 @@ def getDefaultUID():
 	except:
 		pass
 	
+	if uid == -1:
+		print("[ERROR]: UID is not set, The current is -1.")
+		print("[ERROR]: Please refer to the http://kbengine.org/docs/installation.html environment variable settings, about UID!")
+		
 	return uid
 	
 if __name__ == "__main__":
