@@ -574,9 +574,9 @@ def getDefaultUID():
 		pass
 	
 	if uid == -1:
-		print("[ERROR]: UID is not set, The current is -1.")
-		print("[ERROR]: Please refer to the http://kbengine.org/docs/installation.html environment variable settings, about UID!")
-		
+		print("\n[ERROR]: UID is not set, The current is -1. Please refer to the http://kbengine.org/docs/installation.html " \
+			"environment variable settings, about UID!\n Or using \"cluster_controller.py stop [UID]\" to stop the servers.\n")
+
 	return uid
 	
 if __name__ == "__main__":
