@@ -189,7 +189,6 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 int WebSocketProtocol::makeFrame(WebSocketProtocol::FrameType frame_type, 
 	Packet * pInPacket, Packet * pOutPacket)
 {
-	int pos = 0;
 	uint64 size = pInPacket->length(); 
 
 	// –¥»Îframe¿‡–Õ
