@@ -99,12 +99,23 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
 	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
-	if(websocket::WebSocketProtocol::ERROR_FRAME == websocket::WebSocketProtocol::getFrame(pPacket, pRetTCPPacket))
+	websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::getFrame(pPacket, pRetTCPPacket);
+	if(websocket::WebSocketProtocol::ERROR_FRAME == frameType)
 	{
 		ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: frame is error! addr={}!\n",
 			pChannel_->c_str()));
 
 		this->pChannel_->condemn();
+		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+		return REASON_WEBSOCKET_ERROR;
+	}
+	else if(frameType == websocket::WebSocketProtocol::TEXT_FRAME || frameType == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME)
+	{
+		ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: Does not support TEXT_FRAME! addr={}!\n",
+			pChannel_->c_str()));
+
+		this->pChannel_->condemn();
+		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
 		return REASON_WEBSOCKET_ERROR;
 	}
 

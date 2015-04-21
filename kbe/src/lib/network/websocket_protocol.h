@@ -38,7 +38,6 @@ namespace websocket{
 class WebSocketProtocol
 {
 public:
-
 	enum FrameType 
 	{
 		// 下一帧与结束
@@ -60,7 +59,10 @@ public:
 		BINARY_FRAME = 0x82,
 
 		PING_FRAME = 0x19,
-		PONG_FRAME = 0x1A
+		PONG_FRAME = 0x1A,
+
+		// 关闭连接
+		CLOSE_FRAME = 0x08
 	};
 
 	/**
