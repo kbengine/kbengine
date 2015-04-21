@@ -64,7 +64,7 @@ size_t Channel::getPoolObjectBytes()
 	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
 		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
 		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_)
-		+ sizeof(isDestroyed_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
+		+ sizeof(isDestroyed_) + sizeof(hasHandshake_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(sending_) + sizeof(isCondemn_) + sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
 		+ sizeof(componentID_) + sizeof(pMsgHandlers_);
@@ -98,6 +98,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	bundles_(),
 	pPacketReader_(0),
 	isDestroyed_(false),
+	hasHandshake_(false),
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
 	numBytesSent_(0),
@@ -132,6 +133,7 @@ Channel::Channel():
 	bundles_(),
 	pPacketReader_(0),
 	isDestroyed_(false),
+	hasHandshake_(false),
 	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
@@ -345,6 +347,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	lastReceivedTime_ = timestamp();
 
 	isDestroyed_ = false;
+	hasHandshake_ = false;
 	isCondemn_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
@@ -741,7 +744,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		return;
 	}
 	
-	if(pPacketReader_ == NULL)
+	if(!hasHandshake_)
 	{
 		handshake();
 	}

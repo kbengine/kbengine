@@ -218,6 +218,7 @@ private:
 	PacketReader*				pPacketReader_;
 
 	bool						isDestroyed_;
+	bool						hasHandshake_;
 
 	// Statistics
 	uint32						numPacketsSent_;
