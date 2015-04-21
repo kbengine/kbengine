@@ -20,7 +20,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "websocket_protocol.h"
 #include "common/memorystream.h"
+#include "common/memorystream_converter.h"
 #include "network/channel.h"
+#include "network/packet.h"
 #include "common/base64.h"
 #include "common/sha1.h"
 
@@ -35,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+namespace Network{
 namespace websocket{
 
 //-------------------------------------------------------------------------------------
@@ -183,6 +186,151 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-}
+int WebSocketProtocol::makeFrame(WebSocketProtocol::FrameType frame_type, 
+	Packet * pInPacket, Packet * pOutPacket)
+{
+	int pos = 0;
+	uint64 size = pInPacket->length(); 
+
+	// 写入frame类型
+	(*pOutPacket) << ((uint8)frame_type); 
+
+	if(size <= 125)
+	{
+		(*pOutPacket) << ((uint8)size);
+	}
+	else if (size <= 65535)
+	{
+		uint8 bytelength = 126;
+		(*pOutPacket) << bytelength; 
+
+		(*pOutPacket) << ((uint8)(( size >> 8 ) & 0xff));
+		(*pOutPacket) << ((uint8)(( size ) & 0xff));
+	}
+	else
+	{
+		uint8 bytelength = 127;
+		(*pOutPacket) << bytelength; 
+
+		MemoryStreamConverter::apply<uint64>(&size);
+		(*pOutPacket) << size;
+	}
+
+	return pOutPacket->length();
 }
 
+//-------------------------------------------------------------------------------------
+WebSocketProtocol::FrameType WebSocketProtocol::getFrame(Packet * pInPacket, Packet * pOutPacket)
+{
+	/*
+	 	0                   1                   2                   3
+	 	0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		+-+-+-+-+-------+-+-------------+-------------------------------+
+		|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+		|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+		|N|V|V|V|       |S|             |   (if payload len==126/127)   |
+		| |1|2|3|       |K|             |                               |
+		+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+		|     Extended payload length continued, if payload len == 127  |
+		+ - - - - - - - - - - - - - - - +-------------------------------+
+		|                               |Masking-key, if MASK set to 1  |
+		+-------------------------------+-------------------------------+
+		| Masking-key (continued)       |          Payload Data         |
+		+-------------------------------- - - - - - - - - - - - - - - - +
+		:                     Payload Data continued ...                :
+		+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+		|                     Payload Data continued ...                |
+		+---------------------------------------------------------------+
+	*/
+
+	// 不足3字节，需要继续等待
+	if(pInPacket->length() < 3) 
+		return INCOMPLETE_FRAME;
+
+	// 第一个字节, 最高位用于描述消息是否结束, 最低4位用于描述消息类型
+	uint8 bytedata;
+	(*pInPacket) >> bytedata;
+
+	uint8 msg_opcode = bytedata & 0x0F;
+	uint8 msg_fin = (bytedata >> 7) & 0x01;
+
+	// 第二个字节, 消息的第二个字节主要用一描述掩码和消息长度,最高位用0或1来描述是否有掩码处理
+	(*pInPacket) >> bytedata;
+	unsigned char msg_masked = (bytedata >> 7) & 0x01;
+
+	// 消息解码
+	uint64 payload_length = 0;
+	int length_field = bytedata & (~0x80);
+	unsigned int mask = 0;
+
+	// 剩下的后面7位用来描述消息长度, 由于7位最多只能描述127所以这个值会代表三种情况
+	// 一种是消息内容少于126存储消息长度, 如果消息长度少于UINT16的情况此值为126
+	// 当消息长度大于UINT16的情况下此值为127;
+	// 这两种情况的消息长度存储到紧随后面的byte[], 分别是UINT16(2位byte)和UINT64(4位byte)
+	if(length_field <= 125) 
+	{
+		payload_length = length_field;
+	}
+	else if(length_field == 126) 
+	{ 
+		uint8 bytedata1, bytedata2;
+		(*pInPacket) >> bytedata1 >> bytedata2;
+		payload_length = (bytedata1 << 8) | bytedata2;
+	}
+	else if(length_field == 127) 
+	{ 
+		payload_length = ((uint64)(pInPacket->data() + pInPacket->rpos() + 0) << 56) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 1) << 48) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 2) << 40) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 3) << 32) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 4) << 24) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 5) << 16) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 6) << 8) |
+                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 7));
+
+		pInPacket->read_skip(8);
+	}
+
+	// 缓冲可读长度不够
+	if(pInPacket->length() < (size_t)payload_length) {
+		return INCOMPLETE_FRAME;
+	}
+
+	// 如果存在掩码的情况下获取4字节掩码值
+	if(msg_masked) 
+	{
+		(*pInPacket) >> mask;
+	}
+	
+	if((size_t)payload_length > pOutPacket->space()) 
+	{
+		ERROR_MSG(fmt::format("WebSocketProtocol::getFrame: pOutPacket->space({}) < payload_length({})", pOutPacket->space(), payload_length));
+		return ERROR_FRAME;
+	}
+
+	memcpy((void*)(pOutPacket->data() + pOutPacket->rpos()), (void*)(pInPacket->data() + pInPacket->rpos()), (size_t)payload_length);
+	pOutPacket->wpos(pOutPacket->wpos() + (size_t)payload_length);
+	pInPacket->read_skip((size_t)payload_length);
+
+	// 解码内容
+	if(msg_masked) 
+	{
+		uint8* c = pOutPacket->data() + pOutPacket->rpos();
+		for(int i=0; i<(int)pOutPacket->length(); i++) {
+			c[i] = c[i] ^ ((uint8*)(&mask))[i % 4];
+		}
+	}
+
+	if(msg_opcode == 0x0) return (msg_fin) ? TEXT_FRAME : INCOMPLETE_TEXT_FRAME; // continuation frame ?
+	if(msg_opcode == 0x1) return (msg_fin) ? TEXT_FRAME : INCOMPLETE_TEXT_FRAME;
+	if(msg_opcode == 0x2) return (msg_fin) ? BINARY_FRAME : INCOMPLETE_BINARY_FRAME;
+	if(msg_opcode == 0x9) return PING_FRAME;
+	if(msg_opcode == 0xA) return PONG_FRAME;
+
+	return ERROR_FRAME;
+}
+
+//-------------------------------------------------------------------------------------
+}
+}
+}

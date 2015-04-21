@@ -27,30 +27,12 @@ class MemoryStream;
 namespace Network
 {
 	class Channel;
-}
+	class Packet;
 
 namespace websocket{
 
 
-/*		WebSocket FRC6544
-	 	0                   1                   2                   3
-	 	0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-		+-+-+-+-+-------+-+-------------+-------------------------------+
-		|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
-		|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
-		|N|V|V|V|       |S|             |   (if payload len==126/127)   |
-		| |1|2|3|       |K|             |                               |
-		+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
-		|     Extended payload length continued, if payload len == 127  |
-		+ - - - - - - - - - - - - - - - +-------------------------------+
-		|                               |Masking-key, if MASK set to 1  |
-		+-------------------------------+-------------------------------+
-		| Masking-key (continued)       |          Payload Data         |
-		+-------------------------------- - - - - - - - - - - - - - - - +
-		:                     Payload Data continued ...                :
-		+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
-		|                     Payload Data continued ...                |
-		+---------------------------------------------------------------+
+/*	WebSocket FRC6544
 */
 
 class WebSocketProtocol
@@ -59,15 +41,21 @@ public:
 
 	enum FrameType 
 	{
+		// 下一帧与结束
+		NEXT_FRAME = 0x0,
+		END_FRAME = 0x80,
+
 		ERROR_FRAME = 0xFF00,
 		INCOMPLETE_FRAME = 0xFE00,
 
 		OPENING_FRAME = 0x3300,
 		CLOSING_FRAME = 0x3400,
 
+		// 未完成的帧
 		INCOMPLETE_TEXT_FRAME = 0x01,
 		INCOMPLETE_BINARY_FRAME = 0x02,
 
+		// 文本帧与二进制帧
 		TEXT_FRAME = 0x81,
 		BINARY_FRAME = 0x82,
 
@@ -84,8 +72,15 @@ public:
 		websocket协议握手
 	*/
 	static bool handshake(Network::Channel* pChannel, MemoryStream* s);
+
+	/**
+		帧解析相关
+	*/
+	static int makeFrame(FrameType frame_type, Packet * pInPacket, Packet * pOutPacket);
+	static FrameType getFrame(Packet * pInPacket, Packet * pOutPacket);
 };
 
+}
 }
 }
 

@@ -32,21 +32,6 @@ class TCPPacket;
 class WebSocketPacketFilter : public PacketFilter
 {
 public:
-	enum WebSocketFrameType 
-	{
-		NEXT_FRAME = 0x0,
-		END_FRAME = 0x80,
-
-		BEGIN_TEXT_FRAME = 0x01,
-		BEGIN_BINARY_FRAME = 0x02,
-
-		TEXT_FRAME = 0x81,
-		BINARY_FRAME = 0x82,
-
-		PING_FRAME = 0x19,
-		PONG_FRAME = 0x1A
-	};
-
 	WebSocketPacketFilter(Channel* pChannel);
 	virtual ~WebSocketPacketFilter();
 
