@@ -682,6 +682,8 @@ void Channel::handshake()
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		Packet* pPacket = (*packetIter);
 		
+		flags_ |= FLAG_HANDSHAKE;
+
 		// 此处判定是否为websocket或者其他协议的握手
 		if(websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 		{
