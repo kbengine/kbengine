@@ -466,8 +466,9 @@ void Bundle::_debugMessages()
 				
 				if(pPacket->length() >= totallen - pMemoryStream->length())
 				{
-					pMemoryStream->append(pPacket->data() + pPacket->rpos(), totallen);
-					pPacket->rpos(pPacket->rpos() + totallen);
+					MessageLength1 len  = totallen - pMemoryStream->length();
+					pMemoryStream->append(pPacket->data() + pPacket->rpos(), len);
+					pPacket->rpos(pPacket->rpos() + len);
 				}
 				else
 				{
@@ -475,7 +476,7 @@ void Bundle::_debugMessages()
 					pPacket->done();
 				}
 
-				if(pMemoryStream->length() - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE == totallen)
+				if(pMemoryStream->length() == totallen)
 				{
 					state = 0;
 					msglen1 = 0;
