@@ -303,7 +303,7 @@ public:
         while (length() > 0)
         {
             char c = read<char>();
-            if (c == 0)
+            if (c == 0 || !isascii(c))
                 break;
 
             value += c;
@@ -317,7 +317,7 @@ public:
         while (length() > 0)
         {
             char c = read<char>();
-            if (c == 0)
+            if (c == 0 || !isascii(c))
                 break;
 
             *(value++) = c;
