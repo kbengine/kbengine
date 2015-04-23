@@ -118,6 +118,12 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
 		return REASON_WEBSOCKET_ERROR;
 	}
+	else if(frameType == websocket::WebSocketProtocol::CLOSE_FRAME)
+	{
+		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+		this->pChannel_->condemn();
+		pRetTCPPacket = NULL;
+	}
 
 	return PacketFilter::recv(pChannel, receiver, pRetTCPPacket);
 }
