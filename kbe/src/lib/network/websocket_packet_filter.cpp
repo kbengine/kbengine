@@ -106,6 +106,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 	{
 		TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 		websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::getFrame(pPacket, pRetTCPPacket);
+
 		if(websocket::WebSocketProtocol::ERROR_FRAME == frameType)
 		{
 			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: frame is error! addr={}!\n",
@@ -113,15 +114,20 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			this->pChannel_->condemn();
 			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+
 			return REASON_WEBSOCKET_ERROR;
 		}
-		else if(frameType == websocket::WebSocketProtocol::TEXT_FRAME || frameType == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME)
+		else if(frameType == websocket::WebSocketProtocol::TEXT_FRAME || 
+				frameType == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
+				frameType == websocket::WebSocketProtocol::PING_FRAME ||
+				frameType == websocket::WebSocketProtocol::PONG_FRAME)
 		{
-			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: Does not support TEXT_FRAME! addr={}!\n",
-				pChannel_->c_str()));
+			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: Does not support FRAME_TYPE()! addr={}!\n",
+				(int)frameType, pChannel_->c_str()));
 
 			this->pChannel_->condemn();
 			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+
 			return REASON_WEBSOCKET_ERROR;
 		}
 		else if(frameType == websocket::WebSocketProtocol::CLOSE_FRAME)
