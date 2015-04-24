@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef KBE_WEBSOCKET_PROTOCOL_H
 #define KBE_WEBSOCKET_PROTOCOL_H
 
@@ -84,7 +83,8 @@ public:
 		÷°Ω‚Œˆœ‡πÿ
 	*/
 	static int makeFrame(FrameType frame_type, Packet * pInPacket, Packet * pOutPacket);
-	static FrameType getFrame(Packet * pInPacket, Packet * pOutPacket);
+	static int getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& msg_fin, uint8& msg_masked, uint32& msg_mask, 
+		int32& msg_length_field, uint64& msg_payload_length, FrameType& frameType, Packet * pOutPacket);
 };
 
 }
@@ -92,5 +92,4 @@ public:
 }
 
 #endif // KBE_WEBSOCKET_PROTOCOL_H
-
 

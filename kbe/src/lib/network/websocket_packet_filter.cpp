@@ -41,6 +41,8 @@ WebSocketPacketFilter::WebSocketPacketFilter(Channel* pChannel):
 	msg_masked_(0),
 	msg_mask_(0),
 	msg_length_field_(0),
+	msg_payload_length_(0),
+	msg_frameType_(websocket::WebSocketProtocol::ERROR_FRAME),
 	pChannel_(pChannel),
 	pTCPPacket_(NULL)
 {
@@ -61,6 +63,7 @@ void WebSocketPacketFilter::resetFrame()
 	msg_masked_ = 0;
 	msg_mask_ = 0;
 	msg_length_field_ = 0;
+	msg_payload_length_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -120,9 +123,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 	while(pPacket->length() > 0)
 	{
 		TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
-		websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::getFrame(pPacket, pRetTCPPacket);
 
-		if(websocket::WebSocketProtocol::ERROR_FRAME == frameType)
+		int remainSize = websocket::WebSocketProtocol::getFrame(pPacket, msg_opcode_, msg_fin_, msg_masked_, msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_, pRetTCPPacket);
+		
+		if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
 		{
 			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: frame is error! addr={}!\n",
 				pChannel_->c_str()));
@@ -132,29 +136,39 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			return REASON_WEBSOCKET_ERROR;
 		}
-		else if(frameType == websocket::WebSocketProtocol::TEXT_FRAME || 
-				frameType == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
-				frameType == websocket::WebSocketProtocol::PING_FRAME ||
-				frameType == websocket::WebSocketProtocol::PONG_FRAME)
+		else if(msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME || 
+				msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
+				msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
+				msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 		{
 			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: Does not support FRAME_TYPE()! addr={}!\n",
-				(int)frameType, pChannel_->c_str()));
+				(int)msg_frameType_, pChannel_->c_str()));
 
 			this->pChannel_->condemn();
 			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
 
 			return REASON_WEBSOCKET_ERROR;
 		}
-		else if(frameType == websocket::WebSocketProtocol::CLOSE_FRAME)
+		else if(msg_frameType_ == websocket::WebSocketProtocol::CLOSE_FRAME)
 		{
 			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
 			this->pChannel_->condemn();
 			pRetTCPPacket = NULL;
+
+			return REASON_SUCCESS;
 		}
+		else if(msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_FRAME)
+		{
+			KBE_ASSERT(false);
+		}
+
+		KBE_ASSERT(remainSize == 0);
+		resetFrame();
 
 		Reason reason = PacketFilter::recv(pChannel, receiver, pRetTCPPacket);
 		if(reason != REASON_SUCCESS)
 			return reason;
+
 	}
 
 	return REASON_SUCCESS;

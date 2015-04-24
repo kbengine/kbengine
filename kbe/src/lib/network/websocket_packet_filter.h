@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_WEBSOCKET_PACKET_FILTER_H
 
 #include "network/packet_filter.h"
+#include "network/websocket_protocol.h"
 
 namespace KBEngine { 
 namespace Network
@@ -51,20 +52,21 @@ protected:
 		FRAGMENT_DATA_MESSAGE_BODY
 	};
 
-	uint32						web_pFragmentDatasRemain_;
-	FragmentDataTypes			web_fragmentDatasFlag_;
+	uint32										web_pFragmentDatasRemain_;
+	FragmentDataTypes							web_fragmentDatasFlag_;
 
-	uint8						msg_opcode_;
-	uint8						msg_fin_;
-	uint8						msg_masked_;
-	uint8						msg_mask_;
-	int32						msg_length_field_;
+	uint8										msg_opcode_;
+	uint8										msg_fin_;
+	uint8										msg_masked_;
+	uint32										msg_mask_;
+	int32										msg_length_field_;
+	uint64										msg_payload_length_;
+	websocket::WebSocketProtocol::FrameType		msg_frameType_;
 
-
-	Channel*					pChannel_;
+	Channel*									pChannel_;
 
 	// 解析出来的干净的数据包
-	TCPPacket*					pTCPPacket_;
+	TCPPacket*									pTCPPacket_;
 };
 
 
