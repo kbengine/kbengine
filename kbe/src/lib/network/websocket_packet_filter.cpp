@@ -55,6 +55,9 @@ WebSocketPacketFilter::~WebSocketPacketFilter()
 //-------------------------------------------------------------------------------------
 Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
+	if(pPacket->encrypted())
+		return PacketFilter::send(pChannel, sender, pPacket);
+
 	Bundle* pBundle = pPacket->pBundle();
 	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 	websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::BINARY_FRAME;
@@ -92,6 +95,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
 	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
 
+	pPacket->encrypted(true);
 	return PacketFilter::send(pChannel, sender, pPacket);
 }
 
