@@ -124,7 +124,8 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 	{
 		TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 
-		int remainSize = websocket::WebSocketProtocol::getFrame(pPacket, msg_opcode_, msg_fin_, msg_masked_, msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_, pRetTCPPacket);
+		int remainSize = websocket::WebSocketProtocol::getFrame(pPacket, msg_opcode_, msg_fin_, msg_masked_, 
+			msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_, pRetTCPPacket);
 		
 		if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
 		{
