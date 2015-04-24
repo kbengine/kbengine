@@ -36,7 +36,6 @@ public:
 	virtual ~WebSocketPacketFilter();
 
 	virtual Reason send(Channel * pChannel, PacketSender& sender, Packet * pPacket);
-
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 
 protected:
@@ -57,7 +56,7 @@ protected:
 	uint8						masks_[16];
 	std::pair<uint8, uint8>		data_xy_;
 	
-	Channel* pChannel_;
+	Channel*					pChannel_;
 
 	TCPPacket*					pTCPPacket_;
 };
