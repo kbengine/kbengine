@@ -17,6 +17,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+
+#ifndef KBE_WEBSOCKET_PROTOCOL_H
+#define KBE_WEBSOCKET_PROTOCOL_H
+
 #include "common/common.h"
 #include "helper/debug_helper.h"
 
@@ -85,4 +90,7 @@ public:
 }
 }
 }
+
+#endif // KBE_WEBSOCKET_PROTOCOL_H
+
 
