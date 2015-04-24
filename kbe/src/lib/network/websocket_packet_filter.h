@@ -51,13 +51,16 @@ protected:
 	uint32						web_pFragmentDatasRemain_;
 	FragmentDataTypes			web_fragmentDatasFlag_;
 
-	uint8						basicSize_;
-	uint64						payloadSize_, payloadTotalSize_;
-	uint8						masks_[16];
-	std::pair<uint8, uint8>		data_xy_;
-	
+	uint8						msg_opcode_;
+	uint8						msg_fin_;
+	uint8						msg_masked_;
+	uint8						msg_mask_;
+	int32						msg_length_field_;
+
+
 	Channel*					pChannel_;
 
+	// 解析出来的干净的数据包
 	TCPPacket*					pTCPPacket_;
 };
 

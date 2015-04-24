@@ -36,10 +36,11 @@ namespace Network
 WebSocketPacketFilter::WebSocketPacketFilter(Channel* pChannel):
 	web_pFragmentDatasRemain_(2),
 	web_fragmentDatasFlag_(FRAGMENT_DATA_BASIC_LENGTH),
-	basicSize_(0),
-	payloadSize_(0),
-	payloadTotalSize_(0),
-	data_xy_(),
+	msg_opcode_(0),
+	msg_fin_(0),
+	msg_masked_(0),
+	msg_mask_(0),
+	msg_length_field_(0),
 	pChannel_(pChannel),
 	pTCPPacket_(NULL)
 {
