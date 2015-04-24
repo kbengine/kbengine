@@ -54,6 +54,16 @@ WebSocketPacketFilter::~WebSocketPacketFilter()
 }
 
 //-------------------------------------------------------------------------------------
+void WebSocketPacketFilter::resetFrame()
+{
+	msg_opcode_ = 0;
+	msg_fin_ = 0;
+	msg_masked_ = 0;
+	msg_mask_ = 0;
+	msg_length_field_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
 Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
 {
 	if(pPacket->encrypted())
@@ -75,9 +85,13 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 		else
 		{
 			if(!isEnd)
+			{
 				frameType = websocket::WebSocketProtocol::INCOMPLETE_BINARY_FRAME;
+			}
 			else
+			{
 				frameType = websocket::WebSocketProtocol::END_FRAME;
+			}
 		}
 	}
 

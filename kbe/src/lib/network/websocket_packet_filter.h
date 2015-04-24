@@ -39,6 +39,9 @@ public:
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 
 protected:
+	void resetFrame();
+
+protected:
 	enum FragmentDataTypes
 	{
 		FRAGMENT_DATA_UNKNOW,
