@@ -47,8 +47,8 @@ public:
 	static bool initialize(std::string file);
 	static void finalise(void);
 
-	static bool addDateType(std::string name, DataType* dataType);
-	static bool addDateType(DATATYPE_UID uid, DataType* dataType);
+	static bool addDataType(std::string name, DataType* dataType);
+	static bool addDataType(DATATYPE_UID uid, DataType* dataType);
 	static void delDataType(std::string name);
 
 	static DataType* getDataType(std::string name);
@@ -59,6 +59,7 @@ public:
 
 	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
 	static const UID_DATATYPE_MAP& uid_dataTypes(){ return uid_dataTypes_; }
+
 protected:
 	static DATATYPE_MAP dataTypes_;
 	static DATATYPE_MAP dataTypesLowerName_;

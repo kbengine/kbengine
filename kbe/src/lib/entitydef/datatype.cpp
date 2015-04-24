@@ -46,7 +46,7 @@ aliasName_()
 	if(id_ == 0)
 		id_ = _g_dataTypeUID++;
 
-	DataTypes::addDateType(id_, this);
+	DataTypes::addDataType(id_, this);
 
 	EntityDef::md5().append((void*)this->aliasName(), strlen(this->aliasName()));
 	EntityDef::md5().append((void*)&id_, sizeof(DATATYPE_UID));
@@ -1371,7 +1371,7 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 			dataType_ = dataType;
 			dataType_->incRef();
 
-			DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + 
+			DataTypes::addDataType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + 
 				dataType->aliasName(), dataType);
 		}
 		else
@@ -1695,7 +1695,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					}
 
 					pDictItemDataType->persistent = persistent;
-					DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
+					DataTypes::addDataType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
 				}
 				else
 				{

@@ -55,30 +55,30 @@ void DataTypes::finalise(void)
 bool DataTypes::initialize(std::string file)
 {
 	// 初始化一些基础类别
-	addDateType("UINT8",	new IntType<uint8>);
-	addDateType("UINT16",	new IntType<uint16>);
-	addDateType("UINT64",	new UInt64Type);
-	addDateType("UINT32",	new UInt32Type);
+	addDataType("UINT8",	new IntType<uint8>);
+	addDataType("UINT16",	new IntType<uint16>);
+	addDataType("UINT64",	new UInt64Type);
+	addDataType("UINT32",	new UInt32Type);
 
-	addDateType("INT8",		new IntType<int8>);
-	addDateType("INT16",	new IntType<int16>);
-	addDateType("INT32",	new IntType<int32>);
-	addDateType("INT64",	new Int64Type);
+	addDataType("INT8",		new IntType<int8>);
+	addDataType("INT16",	new IntType<int16>);
+	addDataType("INT32",	new IntType<int32>);
+	addDataType("INT64",	new Int64Type);
 
-	addDateType("STRING",	new StringType);
-	addDateType("UNICODE",	new UnicodeType);
-	addDateType("FLOAT",	new FloatType);
-	addDateType("DOUBLE",	new DoubleType);
-	addDateType("PYTHON",	new PythonType);
-	addDateType("PY_DICT",	new PyDictType);
-	addDateType("PY_TUPLE",	new PyTupleType);
-	addDateType("PY_LIST",	new PyListType);
-	addDateType("MAILBOX",	new MailboxType);
-	addDateType("BLOB",		new BlobType);
+	addDataType("STRING",	new StringType);
+	addDataType("UNICODE",	new UnicodeType);
+	addDataType("FLOAT",	new FloatType);
+	addDataType("DOUBLE",	new DoubleType);
+	addDataType("PYTHON",	new PythonType);
+	addDataType("PY_DICT",	new PyDictType);
+	addDataType("PY_TUPLE",	new PyTupleType);
+	addDataType("PY_LIST",	new PyListType);
+	addDataType("MAILBOX",	new MailboxType);
+	addDataType("BLOB",		new BlobType);
 
-	addDateType("VECTOR2",	new VectorType(2));
-	addDateType("VECTOR3",	new VectorType(3));
-	addDateType("VECTOR4",	new VectorType(4));
+	addDataType("VECTOR2",	new VectorType(2));
+	addDataType("VECTOR3",	new VectorType(3));
+	addDataType("VECTOR4",	new VectorType(4));
 	return loadAlias(file);
 }
 
@@ -114,7 +114,7 @@ bool DataTypes::loadAlias(std::string& file)
 				
 				if(fixedDict->initialize(xml.get(), childNode))
 				{
-					addDateType(aliasName, fixedDict);
+					addDataType(aliasName, fixedDict);
 				}
 				else
 				{
@@ -131,7 +131,7 @@ bool DataTypes::loadAlias(std::string& file)
 				
 				if(fixedArray->initialize(xml.get(), childNode))
 				{
-					addDateType(aliasName, fixedArray);
+					addDataType(aliasName, fixedArray);
 				}
 				else
 				{
@@ -153,7 +153,7 @@ bool DataTypes::loadAlias(std::string& file)
 					return false;
 				}
 
-				addDateType(aliasName, dataType);
+				addDataType(aliasName, dataType);
 			}
 		}
 	}
@@ -163,7 +163,7 @@ bool DataTypes::loadAlias(std::string& file)
 }
 
 //-------------------------------------------------------------------------------------
-bool DataTypes::addDateType(std::string name, DataType* dataType)
+bool DataTypes::addDataType(std::string name, DataType* dataType)
 {
 	dataType->aliasName(name);
 	std::string lowername = name;
@@ -172,7 +172,7 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
 	if (iter != dataTypesLowerName_.end())
 	{ 
-		ERROR_MSG(fmt::format("DataTypes::addDateType(name): name {} exist.\n", name.c_str()));
+		ERROR_MSG(fmt::format("DataTypes::addDataType(name): name {} exist.\n", name.c_str()));
 		return false;
 	}
 
@@ -184,7 +184,7 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("DataTypes::addDateType(name): {:p} name={}, aliasName={}, uid={}.\n", 
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(name): {:p} name={}, aliasName={}, uid={}.\n", 
 			(void*)dataType, name, dataType->aliasName(), dataType->id()));
 	}
 
@@ -192,12 +192,12 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 }
 
 //-------------------------------------------------------------------------------------
-bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
+bool DataTypes::addDataType(DATATYPE_UID uid, DataType* dataType)
 {
 	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
 	if (iter != uid_dataTypes_.end())
 	{
-		ERROR_MSG(fmt::format("DataTypes(uid)::addDateType: utype {} exist.\n", uid));
+		ERROR_MSG(fmt::format("DataTypes(uid)::addDataType: utype {} exist.\n", uid));
 		return false;
 	}
 
@@ -205,7 +205,7 @@ bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("DataTypes::addDateType(uid): {:p} aliasName={}, uid={}.\n", 
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(uid): {:p} aliasName={}, uid={}.\n", 
 			(void*)dataType, dataType->aliasName(), uid));
 	}
 
