@@ -260,7 +260,7 @@ WebSocketProtocol::FrameType WebSocketProtocol::getFrame(Packet * pInPacket, Pac
 	// 消息解码
 	uint64 payload_length = 0;
 	int32 length_field = bytedata & (~0x80);
-	uint8 mask = 0;
+	uint32 mask = 0;
 
 	// 剩下的后面7位用来描述消息长度, 由于7位最多只能描述127所以这个值会代表三种情况
 	// 一种是消息内容少于126存储消息长度, 如果消息长度少于UINT16的情况此值为126
