@@ -304,6 +304,15 @@ int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& ms
 		(*pInPacket) >> msg_mask;
 	}
 	
+	if(NETWORK_MESSAGE_MAX_SIZE < (msg_payload_length - (NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE)))
+	{
+		WARNING_MSG(fmt::format("WebSocketProtocol::getFrame: msglen exceeds the limit! msglen=({}), maxlen={}.\n", 
+			msg_payload_length, NETWORK_MESSAGE_MAX_SIZE));
+
+		frameType = ERROR_FRAME;
+		return 0;
+	}
+
 	if((size_t)msg_payload_length > pOutPacket->space()) 
 	{
 		ERROR_MSG(fmt::format("WebSocketProtocol::getFrame: pOutPacket->space({}) < payload_length({})", pOutPacket->space(), msg_payload_length));
