@@ -34,8 +34,8 @@ namespace Network
 
 //-------------------------------------------------------------------------------------
 WebSocketPacketFilter::WebSocketPacketFilter(Channel* pChannel):
-	web_pFragmentDatasRemain_(2),
-	web_fragmentDatasFlag_(FRAGMENT_DATA_BASIC_LENGTH),
+	pFragmentDatasRemain_(0),
+	fragmentDatasFlag_(FRAGMENT_MESSAGE_HREAD),
 	msg_opcode_(0),
 	msg_fin_(0),
 	msg_masked_(0),
@@ -51,12 +51,11 @@ WebSocketPacketFilter::WebSocketPacketFilter(Channel* pChannel):
 //-------------------------------------------------------------------------------------
 WebSocketPacketFilter::~WebSocketPacketFilter()
 {
-	TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
-	pTCPPacket_ = NULL;
+	reset();
 }
 
 //-------------------------------------------------------------------------------------
-void WebSocketPacketFilter::resetFrame()
+void WebSocketPacketFilter::reset()
 {
 	msg_opcode_ = 0;
 	msg_fin_ = 0;
@@ -64,6 +63,11 @@ void WebSocketPacketFilter::resetFrame()
 	msg_mask_ = 0;
 	msg_length_field_ = 0;
 	msg_payload_length_ = 0;
+	pFragmentDatasRemain_ = 0;
+	fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
+
+	TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
+	pTCPPacket_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -122,54 +126,147 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 {
 	while(pPacket->length() > 0)
 	{
-		TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
-
-		int remainSize = websocket::WebSocketProtocol::getFrame(pPacket, msg_opcode_, msg_fin_, msg_masked_, 
-			msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_, pRetTCPPacket);
-		
-		if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
+		if(fragmentDatasFlag_ == FRAGMENT_MESSAGE_HREAD)
 		{
-			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: frame is error! addr={}!\n",
-				pChannel_->c_str()));
+			if(pFragmentDatasRemain_ == 0)
+			{
+				KBE_ASSERT(pTCPPacket_ == NULL);
 
-			this->pChannel_->condemn();
-			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+				size_t rpos = pPacket->rpos();
 
-			return REASON_WEBSOCKET_ERROR;
+				reset();
+
+				// 如果没有创建过缓存，先尝试直接解析包头，如果信息足够成功解析则继续到下一步
+				pFragmentDatasRemain_ = websocket::WebSocketProtocol::getFrame(pPacket, msg_opcode_, msg_fin_, msg_masked_, 
+					msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_);
+
+				if(pFragmentDatasRemain_ > 0)
+				{
+					pPacket->rpos(rpos);
+					pTCPPacket_ = TCPPacket::ObjPool().createObject();
+					pTCPPacket_->append(*pPacket);
+					pPacket->done();
+				}
+				else
+				{
+					fragmentDatasFlag_ = FRAGMENT_MESSAGE_DATAS;
+					pFragmentDatasRemain_ = (int32)msg_payload_length_;
+				}
+			}
+			else
+			{
+				KBE_ASSERT(pTCPPacket_ != NULL);
+
+				// 长度如果大于剩余读取长度，那么可以开始解析了
+				// 否则将包内存继续缓存
+				if((int32)pPacket->length() >= pFragmentDatasRemain_)
+				{
+					pFragmentDatasRemain_ = websocket::WebSocketProtocol::getFrame(pTCPPacket_, msg_opcode_, msg_fin_, msg_masked_, 
+						msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_);
+
+					KBE_ASSERT(pFragmentDatasRemain_ == 0);
+
+					// frame解析完毕，将对象回收
+					TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
+					pTCPPacket_ = NULL;
+
+					// 是否有数据携带？如果没有则不进入data解析
+					if(msg_payload_length_ > 0)
+					{
+						fragmentDatasFlag_ = FRAGMENT_MESSAGE_DATAS;
+						pFragmentDatasRemain_ = (int32)msg_payload_length_;
+					}
+				}
+				else
+				{
+					pTCPPacket_->append(*pPacket);
+					pFragmentDatasRemain_ -= pPacket->length();
+
+					pPacket->done();
+				}
+			}
+
+			if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
+			{
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: frame is error! addr={}!\n",
+					pChannel_->c_str()));
+
+				this->pChannel_->condemn();
+				reset();
+
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				return REASON_WEBSOCKET_ERROR;
+			}
+			else if(msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME || 
+					msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
+					msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
+					msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
+			{
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE()! addr={}!\n",
+					(int)msg_frameType_, pChannel_->c_str()));
+
+				this->pChannel_->condemn();
+				reset();
+
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				return REASON_WEBSOCKET_ERROR;
+			}
+			else if(msg_frameType_ == websocket::WebSocketProtocol::CLOSE_FRAME)
+			{
+				this->pChannel_->condemn();
+				reset();
+
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				return REASON_SUCCESS;
+			}
+			else if(msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_FRAME)
+			{
+				// 继续等待后续内容到达
+			}
 		}
-		else if(msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME || 
-				msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
-				msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
-				msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
+		else
 		{
-			ERROR_MSG(fmt::format("WebSocketPacketReader::processMessages: Does not support FRAME_TYPE()! addr={}!\n",
-				(int)msg_frameType_, pChannel_->c_str()));
+			KBE_ASSERT(pFragmentDatasRemain_ > 0);
 
-			this->pChannel_->condemn();
-			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+			if(pTCPPacket_ == NULL)
+				pTCPPacket_ = TCPPacket::ObjPool().createObject();
 
-			return REASON_WEBSOCKET_ERROR;
+			if(pFragmentDatasRemain_ <= (int32)pPacket->length())
+			{
+				pTCPPacket_->append(pPacket->data() + pPacket->rpos(), pFragmentDatasRemain_);
+				pPacket->read_skip((size_t)pFragmentDatasRemain_);
+				pFragmentDatasRemain_ = 0;
+			}
+			else
+			{
+				pTCPPacket_->append(*pPacket);
+				pFragmentDatasRemain_ -= pPacket->length();
+				pPacket->done();
+			}
+
+			if(!websocket::WebSocketProtocol::decodingDatas(pTCPPacket_, msg_masked_, msg_mask_))
+			{
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-frame is error! addr={}!\n",
+					pChannel_->c_str()));
+
+				this->pChannel_->condemn();
+				reset();
+
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				return REASON_WEBSOCKET_ERROR;
+			}
+
+			Reason reason = PacketFilter::recv(pChannel, receiver, pTCPPacket_);
+
+			// pTCPPacket_不需要在这里回收了
+			pTCPPacket_ = NULL;
+
+			if(pFragmentDatasRemain_ == 0)
+				reset();
+
+			if(reason != REASON_SUCCESS)
+				return reason;
 		}
-		else if(msg_frameType_ == websocket::WebSocketProtocol::CLOSE_FRAME)
-		{
-			TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
-			this->pChannel_->condemn();
-			pRetTCPPacket = NULL;
-
-			return REASON_SUCCESS;
-		}
-		else if(msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_FRAME)
-		{
-			KBE_ASSERT(false);
-		}
-
-		KBE_ASSERT(remainSize == 0);
-		resetFrame();
-
-		Reason reason = PacketFilter::recv(pChannel, receiver, pRetTCPPacket);
-		if(reason != REASON_SUCCESS)
-			return reason;
-
 	}
 
 	return REASON_SUCCESS;

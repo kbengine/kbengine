@@ -40,20 +40,17 @@ public:
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 
 protected:
-	void resetFrame();
+	void reset();
 
 protected:
 	enum FragmentDataTypes
 	{
-		FRAGMENT_DATA_UNKNOW,
-		FRAGMENT_DATA_BASIC_LENGTH,
-		FRAGMENT_DATA_PAYLOAD_LENGTH,
-		FRAGMENT_DATA_PAYLOAD_MASKS,
-		FRAGMENT_DATA_MESSAGE_BODY
+		FRAGMENT_MESSAGE_HREAD,
+		FRAGMENT_MESSAGE_DATAS
 	};
 
-	uint32										web_pFragmentDatasRemain_;
-	FragmentDataTypes							web_fragmentDatasFlag_;
+	int32										pFragmentDatasRemain_;
+	FragmentDataTypes							fragmentDatasFlag_;
 
 	uint8										msg_opcode_;
 	uint8										msg_fin_;
@@ -65,7 +62,6 @@ protected:
 
 	Channel*									pChannel_;
 
-	// 解析出来的干净的数据包
 	TCPPacket*									pTCPPacket_;
 };
 

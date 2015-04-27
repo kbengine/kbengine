@@ -544,12 +544,6 @@ public:
         return append((const uint8 *)src, cnt);
     }
 
-    void append(size_t offset, const char *src, size_t src_offset, size_t cnt)
-    {
-		wpos_ += offset;
-        return append((const uint8 *)src + src_offset, cnt);
-    }
-
     template<class T> void append(const T *src, size_t cnt)
     {
         return append((const uint8 *)src, cnt * sizeof(T));

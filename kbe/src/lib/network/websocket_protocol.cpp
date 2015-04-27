@@ -219,8 +219,8 @@ int WebSocketProtocol::makeFrame(WebSocketProtocol::FrameType frame_type,
 }
 
 //-------------------------------------------------------------------------------------
-int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& msg_fin, uint8& msg_masked, uint32& msg_mask, 
-		int32& msg_length_field, uint64& msg_payload_length, FrameType& frameType, Packet * pOutPacket)
+int WebSocketProtocol::getFrame(Packet * pPacket, uint8& msg_opcode, uint8& msg_fin, uint8& msg_masked, uint32& msg_mask, 
+		int32& msg_length_field, uint64& msg_payload_length, FrameType& frameType)
 {
 	/*
 	 	0                   1                   2                   3
@@ -244,7 +244,7 @@ int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& ms
 	*/
 
 	// 不足3字节，需要继续等待
-	if(pInPacket->length() < 3) 
+	if(pPacket->length() < 3) 
 	{
 		frameType = INCOMPLETE_FRAME;
 		return 3;
@@ -252,13 +252,13 @@ int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& ms
 
 	// 第一个字节, 最高位用于描述消息是否结束, 最低4位用于描述消息类型
 	uint8 bytedata;
-	(*pInPacket) >> bytedata;
+	(*pPacket) >> bytedata;
 
 	msg_opcode = bytedata & 0x0F;
 	msg_fin = (bytedata >> 7) & 0x01;
 
 	// 第二个字节, 消息的第二个字节主要用于描述掩码和消息长度, 最高位用0或1来描述是否有掩码处理
-	(*pInPacket) >> bytedata;
+	(*pPacket) >> bytedata;
 	msg_masked = (bytedata >> 7) & 0x01;
 
 	// 消息解码
@@ -275,62 +275,44 @@ int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& ms
 	else if(msg_length_field == 126) 
 	{ 
 		uint8 bytedata1, bytedata2;
-		(*pInPacket) >> bytedata1 >> bytedata2;
+		(*pPacket) >> bytedata1 >> bytedata2;
 		msg_payload_length = (bytedata1 << 8) | bytedata2;
 	}
 	else if(msg_length_field == 127) 
 	{ 
-		msg_payload_length = ((uint64)(pInPacket->data() + pInPacket->rpos() + 0) << 56) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 1) << 48) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 2) << 40) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 3) << 32) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 4) << 24) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 5) << 16) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 6) << 8) |
-                         ((uint64)(pInPacket->data() + pInPacket->rpos() + 7));
+		msg_payload_length = ((uint64)(pPacket->data() + pPacket->rpos() + 0) << 56) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 1) << 48) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 2) << 40) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 3) << 32) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 4) << 24) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 5) << 16) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 6) << 8) |
+                         ((uint64)(pPacket->data() + pPacket->rpos() + 7));
 
-		pInPacket->read_skip(8);
+		pPacket->read_skip(8);
 	}
 
 	// 缓冲可读长度不够
-	if(pInPacket->length() < (size_t)msg_payload_length) {
+	/* 这里不做检查，只解析协议头
+	if(pPacket->length() < (size_t)msg_payload_length) {
 		frameType = INCOMPLETE_FRAME;
-		return (size_t)msg_payload_length - pInPacket->length();
+		return (size_t)msg_payload_length - pPacket->length();
 	}
+	*/
 
 	// 如果存在掩码的情况下获取4字节掩码值
 	if(msg_masked) 
 	{
-		(*pInPacket) >> msg_mask;
+		(*pPacket) >> msg_mask;
 	}
 	
-	if(NETWORK_MESSAGE_MAX_SIZE < (msg_payload_length - (NETWORK_MESSAGE_ID_SIZE + NETWORK_MESSAGE_LENGTH_SIZE)))
+	if(NETWORK_MESSAGE_MAX_SIZE < msg_payload_length)
 	{
 		WARNING_MSG(fmt::format("WebSocketProtocol::getFrame: msglen exceeds the limit! msglen=({}), maxlen={}.\n", 
 			msg_payload_length, NETWORK_MESSAGE_MAX_SIZE));
 
 		frameType = ERROR_FRAME;
 		return 0;
-	}
-
-	if((size_t)msg_payload_length > pOutPacket->space()) 
-	{
-		ERROR_MSG(fmt::format("WebSocketProtocol::getFrame: pOutPacket->space({}) < payload_length({})", pOutPacket->space(), msg_payload_length));
-		frameType = ERROR_FRAME;
-		return 0;
-	}
-
-	memcpy((void*)(pOutPacket->data() + pOutPacket->rpos()), (void*)(pInPacket->data() + pInPacket->rpos()), (size_t)msg_payload_length);
-	pOutPacket->wpos(pOutPacket->wpos() + (size_t)msg_payload_length);
-	pInPacket->read_skip((size_t)msg_payload_length);
-
-	// 解码内容
-	if(msg_masked) 
-	{
-		uint8* c = pOutPacket->data() + pOutPacket->rpos();
-		for(int i=0; i<(int)pOutPacket->length(); i++) {
-			c[i] = c[i] ^ ((uint8*)(&msg_mask))[i % 4];
-		}
 	}
 
 	if(msg_opcode == 0x0) frameType = (msg_fin) ? BINARY_FRAME : INCOMPLETE_BINARY_FRAME; // continuation frame ?
@@ -342,6 +324,21 @@ int WebSocketProtocol::getFrame(Packet * pInPacket, uint8& msg_opcode, uint8& ms
 	else frameType = ERROR_FRAME;
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool WebSocketProtocol::decodingDatas(Packet* pPacket, uint8 msg_masked, uint32 msg_mask)
+{
+	// 解码内容
+	if(msg_masked) 
+	{
+		uint8* c = pPacket->data() + pPacket->rpos();
+		for(int i=0; i<(int)pPacket->length(); i++) {
+			c[i] = c[i] ^ ((uint8*)(&msg_mask))[i % 4];
+		}
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
