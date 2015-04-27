@@ -144,7 +144,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				{
 					pPacket->rpos(rpos);
 					pTCPPacket_ = TCPPacket::ObjPool().createObject();
-					pTCPPacket_->append(*pPacket);
+					pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
 					pPacket->done();
 				}
 				else
@@ -179,7 +179,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				}
 				else
 				{
-					pTCPPacket_->append(*pPacket);
+					pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
 					pFragmentDatasRemain_ -= pPacket->length();
 
 					pPacket->done();
@@ -239,7 +239,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			}
 			else
 			{
-				pTCPPacket_->append(*pPacket);
+				pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
 				pFragmentDatasRemain_ -= pPacket->length();
 				pPacket->done();
 			}
