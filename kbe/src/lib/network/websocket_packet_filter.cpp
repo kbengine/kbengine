@@ -269,6 +269,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 		}
 	}
 
+	TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
 	return REASON_SUCCESS;
 }
 
