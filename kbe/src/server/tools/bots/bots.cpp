@@ -282,6 +282,8 @@ void Bots::handleGameTick()
 
 			if(!pClientObject->pServerChannel())
 			{
+				pChannel->stopSend();
+				pChannel->pPacketSender(NULL);
 				clients().erase(pChannel);
 
 				pClientObject->finalise();
