@@ -658,6 +658,10 @@ def getMysqlConfig():
 	return config, cnf
 
 def installMysql():    
+	if platform.system() != 'Windows':
+		INFO_MSG("You are Linux, please install MySQL manually!")
+		return False
+		
 	file = 'mysql-win32.msi'
 
 	try:
