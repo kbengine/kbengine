@@ -282,10 +282,8 @@ void Bots::handleGameTick()
 			ClientObject* pClientObject = iter->second;
 			++iter;
 
-			if(!pClientObject->isDestroyed())
+			if(pClientObject->isDestroyed())
 			{
-				pChannel->stopSend();
-				pChannel->pPacketSender(NULL);
 				delClient(pChannel);
 				continue;
 			}

@@ -77,7 +77,6 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 
 		Bots::getSingleton().addClient(pClient);
 	}
-
 }
 
 //-------------------------------------------------------------------------------------

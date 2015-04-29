@@ -58,6 +58,7 @@ public:
 		C_STATE_LOGIN_GATEWAY_CREATE = 3,
 		C_STATE_LOGIN_GATEWAY = 4,
 		C_STATE_PLAY = 5,
+		C_STATE_DESTROYED = 6,
 	};
 
 	ClientObject(std::string name, Network::NetworkInterface& ninterface);
@@ -73,7 +74,8 @@ public:
 
 	ClientObject::C_ERROR lasterror(){ return error_; }
 
-	bool isDestroyed(){ return !pServerChannel(); }
+	bool isDestroyed(){ return state_ == C_STATE_DESTROYED; }
+	void destroy(){ state_ = C_STATE_DESTROYED; }
 
 	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 
