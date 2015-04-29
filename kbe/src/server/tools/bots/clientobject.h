@@ -39,6 +39,7 @@ class ClientObject : public ClientObjectBase
 		子类化 将一些py操作填充进派生类 
 	*/
 	INSTANCE_SCRIPT_HREADER(ClientObject, ClientObjectBase)	
+
 public:
 	enum C_ERROR
 	{
@@ -71,6 +72,8 @@ public:
 	void gameTick();
 
 	ClientObject::C_ERROR lasterror(){ return error_; }
+
+	bool isDestroyed(){ return !pServerChannel(); }
 
 	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 
