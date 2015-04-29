@@ -784,7 +784,6 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 				continue;
 			}
 
-			(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
 
 			Network::Bundle closebundle;
 			if(componentType != BOTS_TYPE)
@@ -845,6 +844,8 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 				iter++;
 				continue;
 			}
+
+			(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
 
 			int len = ep1.recv(recvpacket.data(), 1);
 			if(len != 1)
