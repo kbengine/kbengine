@@ -838,6 +838,10 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			}
 			else if(selgot == -1)
 			{
+				WARNING_MSG(fmt::format("--> stop {}({}), addr={}, recv_len == -1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
 				iter++;
 				continue;
 			}
@@ -845,12 +849,16 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			int len = ep1.recv(recvpacket.data(), 1);
 			if(len != 1)
 			{
+				ERROR_MSG(fmt::format("--> stop {}({}), addr={}, recv_len != 1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
 				success = false;
 				break;
 			}
 
 			recvpacket >> success;
-			break;
+			iter++;
 		}
 	}
 	else
