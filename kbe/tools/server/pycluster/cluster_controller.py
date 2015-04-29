@@ -461,9 +461,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 			self.startTemplate = startTemplate.split("|")
 		else:
 			self.startTemplate = []
-			
-	def do(self):
-		self.queryAllInterfaces()
+	
+	def sendStop(self):
 		interfaces = self._interfaces
 		
 		if len(self.startTemplate) <= 0:
@@ -472,8 +471,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 				for x in range(0, len(infos)):
 					self.startTemplate.append(COMPONENT_NAME[ctype])
 
-		interfacesCount = {}
-		interfacesCount1 = {}
+		self.interfacesCount = {}
+		self.interfacesCount1 = {}
 		
 		print("online-components:")
 		printed = []
@@ -491,14 +490,14 @@ class ClusterStopHandler(ClusterControllerHandler):
 				if info[0] == self.uid:
 					clist.append(info[1])
 						
-			interfacesCount[ctype] = len(clist)
+			self.interfacesCount[ctype] = len(clist)
 
-			if ctype in interfacesCount1:
-				interfacesCount1[ctype] += 1
+			if ctype in self.interfacesCount1:
+				self.interfacesCount1[ctype] += 1
 			else:
-				interfacesCount1[ctype] = 1
+				self.interfacesCount1[ctype] = 1
 			
-			if interfacesCount1[ctype] > interfacesCount[ctype]:
+			if self.interfacesCount1[ctype] > self.interfacesCount[ctype]:
 				continue
 			
 			if ctype not in printed:
@@ -514,15 +513,20 @@ class ClusterStopHandler(ClusterControllerHandler):
 			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
 			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
 			
-		qcount = 1
+	def do(self):
+		qcount = 0
+		
 		while(True):
-			print("query status: %i" % qcount)
+			if qcount > 0:
+				print("\nquery status: %i" % qcount)
+				
 			qcount += 1
 			
 			self.queryAllInterfaces()
+			self.sendStop()
 			
 			waitcount = 0
-			for ctype in interfacesCount:
+			for ctype in self.interfacesCount:
 				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "machine":
 					continue
 			
