@@ -462,7 +462,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 		else:
 			self.startTemplate = []
 	
-	def sendStop(self):
+	def sendStop(self, showDebug):
 		interfaces = self._interfaces
 		
 		if len(self.startTemplate) <= 0:
@@ -502,7 +502,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			if ctype not in printed:
 				printed.append(ctype)
-				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
+				if showDebug:
+					print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				
 			self.writePacket("H", MachineInterface_stopserver)
 			self.writePacket("H", 10)
@@ -523,8 +524,11 @@ class ClusterStopHandler(ClusterControllerHandler):
 			qcount += 1
 			
 			self.queryAllInterfaces()
-			self.sendStop()
+			self.sendStop(qcount == 1)
 			
+			if qcount == 1:
+				continue
+				
 			waitcount = 0
 			for ctype in self.interfacesCount:
 				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "machine":
