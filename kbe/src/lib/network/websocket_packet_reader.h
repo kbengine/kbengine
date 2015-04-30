@@ -36,6 +36,8 @@ public:
 	virtual void reset();
 	virtual void processMessages(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
+	virtual PacketReader::PACKET_READER_TYPE type()const { return PACKET_READER_TYPE_WEBSOCKET; }
+
 protected:
 };
 

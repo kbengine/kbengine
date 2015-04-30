@@ -677,6 +677,9 @@ void Channel::condemn()
 //-------------------------------------------------------------------------------------
 void Channel::handshake()
 {
+	if(hasHandshake())
+		return;
+
 	if(bufferedReceives_.size() > 0)
 	{
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
@@ -695,7 +698,12 @@ void Channel::handshake()
 					bufferedReceives_.erase(packetIter);
 				}
 
-				pPacketReader_ = new WebSocketPacketReader(this);
+				if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_WEBSOCKET)
+				{
+					SAFE_RELEASE(pPacketReader_);
+					pPacketReader_ = new WebSocketPacketReader(this);
+				}
+
 				pFilter_ = new WebSocketPacketFilter(this);
 				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) successfully!\n", this->c_str()));
 				return;
@@ -706,8 +714,14 @@ void Channel::handshake()
 			}
 		}
 
-		pPacketReader_ = new PacketReader(this);
+		if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_SOCKET)
+		{
+			SAFE_RELEASE(pPacketReader_);
+			pPacketReader_ = new PacketReader(this);
+		}
 	}
+
+	pPacketReader_->reset();
 }
 
 //-------------------------------------------------------------------------------------

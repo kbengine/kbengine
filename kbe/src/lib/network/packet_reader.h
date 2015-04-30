@@ -34,6 +34,12 @@ class MessageHandlers;
 class PacketReader
 {
 public:
+	enum PACKET_READER_TYPE
+	{
+		PACKET_READER_TYPE_SOCKET = 0,
+		PACKET_READER_TYPE_WEBSOCKET = 1
+	};
+
 	PacketReader(Channel* pChannel);
 	virtual ~PacketReader();
 
@@ -46,6 +52,10 @@ public:
 	
 	void currMsgID(Network::MessageID id){currMsgID_ = id;}
 	void currMsgLen(Network::MessageLength len){currMsgLen_ = len;}
+
+	virtual PacketReader::PACKET_READER_TYPE type()const { return PACKET_READER_TYPE_SOCKET; }
+
+
 protected:
 	enum FragmentDataTypes
 	{
@@ -58,6 +68,7 @@ protected:
 	
 	virtual void writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* pPacket, uint32 datasize);
 	virtual void mergeFragmentMessage(Packet* pPacket);
+
 protected:
 	uint8*						pFragmentDatas_;
 	uint32						pFragmentDatasWpos_;
