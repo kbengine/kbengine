@@ -1258,8 +1258,6 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 		return;
 	}
 
-	Py_INCREF(pyKey);
-
 	if(isDelete)
 	{
 		if(pGlobalData_->del(pyKey))
@@ -1279,8 +1277,6 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 			Py_DECREF(pyKey);
 			return;
 		}
-
-		Py_INCREF(pyValue);
 
 		if(pGlobalData_->write(pyKey, pyValue))
 		{

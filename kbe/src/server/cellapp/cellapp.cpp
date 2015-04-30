@@ -734,8 +734,6 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 		return;
 	}
 
-	Py_INCREF(pyKey);
-
 	if(isDelete)
 	{
 		if(pCellAppData_->del(pyKey))
@@ -757,8 +755,6 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 			Py_DECREF(pyKey);
 			return;
 		}
-
-		Py_INCREF(pyValue);
 
 		if(pCellAppData_->write(pyKey, pyValue))
 		{
