@@ -719,9 +719,9 @@ void Channel::handshake()
 			SAFE_RELEASE(pPacketReader_);
 			pPacketReader_ = new PacketReader(this);
 		}
-	}
 
-	pPacketReader_->reset();
+		pPacketReader_->reset();
+	}
 }
 
 //-------------------------------------------------------------------------------------
