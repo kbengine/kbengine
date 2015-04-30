@@ -96,6 +96,7 @@ public:
 	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
+
 protected:
 	FixedDictType* _dataType;
 } ;
