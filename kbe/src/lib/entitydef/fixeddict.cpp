@@ -140,7 +140,10 @@ void FixedDict::initialize(std::string strDictInitData)
 		PyObject* pyobj = iter->second->dataType->parseDefaultStr("");
 		if(pyobj)
 		{
-			PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), pyobj);
+			PyObject* pykey = PyUnicode_FromString(iter->first.c_str());
+			PyDict_SetItem(pyDict_, pykey, pyobj);
+			Py_DECREF(pykey);
+			Py_DECREF(pyobj);
 		}
 		else
 		{

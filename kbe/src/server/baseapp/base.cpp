@@ -416,6 +416,7 @@ PyObject* Base::createCellDataDict(uint32 flags)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);
+			Py_DECREF(pyVal);
 			SCRIPT_ERROR_CHECK();
 		}
 	}
