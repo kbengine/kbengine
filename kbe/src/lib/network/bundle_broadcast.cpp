@@ -201,6 +201,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 					ERROR_MSG(fmt::format("BundleBroadcast::receive: recvfrom error. {}.\n",
 							kbe_strerror()));
 				}
+
 				continue;
 			}
 			
@@ -225,7 +226,6 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			}
 
 			break;
-
 		}
 	}
 	
