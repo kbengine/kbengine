@@ -192,7 +192,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::DBTaskExecuteRawDatabaseCommandByEntity:{}.\n", sdatas_.c_str()));
+	DEBUG_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {}.\n", sdatas_.c_str()));
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
@@ -223,7 +223,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found.",
+		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
 			COMPONENT_NAME_EX(componentType_)));
 
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
@@ -235,7 +235,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::executeRawDatabaseCommand:{}.\n", sdatas_.c_str()));
+	DEBUG_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {}.\n", sdatas_.c_str()));
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
@@ -266,7 +266,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("DBTaskExecuteRawDatabaseCommand::presentMainThread: {} not found.",
+		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
 			COMPONENT_NAME_EX(componentType_)));
 
 		Network::Bundle::ObjPool().reclaimObject(pBundle);
