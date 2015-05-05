@@ -517,7 +517,6 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	return pServerChannel_;
 }
 
-
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::fireEvent(const EventData* pEventData)
 {
