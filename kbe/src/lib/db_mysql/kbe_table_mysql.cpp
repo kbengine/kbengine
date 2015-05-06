@@ -46,7 +46,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 	bool ret = false;
 
 	sqlstr = "CREATE TABLE IF NOT EXISTS kbe_entitylog "
-			"(entityDBID bigint(20) not null DEFAULT 0,"
+			"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
 			"entityType int unsigned not null DEFAULT 0,"
 			"entityID int unsigned not null DEFAULT 0,"
 			"ip varchar(64),"
@@ -200,7 +200,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"`password` varchar(255),"
 			"`bindata` blob,"
 			"`email` varchar(255),"
-			"`entityDBID` bigint(20) not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
+			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
 			"`flags` int unsigned not null DEFAULT 0,"
 			"`deadline` bigint(20) not null DEFAULT 0,"
 			"`regtime` bigint(20) not null DEFAULT 0,"
