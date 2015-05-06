@@ -36,6 +36,7 @@ public:
 	~Cells();
 
 	ArraySize size() const{ return cells_.size(); }
+
 private:
 	std::map<CELL_ID, Cell> cells_;
 };

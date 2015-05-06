@@ -59,6 +59,7 @@ public:
 	void pController(Controller* pController){ pController_ = pController; }
 
 	virtual MoveType type() const{ return MOVE_TYPE_POINT; }
+
 protected:
 	Position3D destPos_;
 	float velocity_;			// ËÙ¶È

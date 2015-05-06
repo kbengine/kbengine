@@ -63,6 +63,7 @@ private:
 	void cancel();
 
 	void start();
+
 private:
 	void syncMessages();
 	void syncGhosts();
@@ -80,6 +81,7 @@ private:
 		COMPONENT_ID componentID;
 		uint64 lastTime;
 	};
+
 private:
 	// 所有存在ghost的相关entity
 	std::map<ENTITY_ID, Entity*> 	realEntities_;

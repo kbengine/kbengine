@@ -65,6 +65,7 @@ public:
 
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);
+
 protected:
 	uint32 id_;
 	Entity* pEntity_;

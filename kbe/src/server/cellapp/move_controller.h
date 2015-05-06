@@ -40,6 +40,7 @@ public:
 
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);
+
 protected:
 	MoveToPointHandler* pMoveToPointHandler_;
 };

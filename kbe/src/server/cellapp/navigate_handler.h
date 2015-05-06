@@ -45,6 +45,7 @@ public:
 	virtual bool isOnGround(){ return true; }
 
 	virtual MoveType type() const{ return MOVE_TYPE_NAV; }
+
 protected:
 	int destPosIdx_;
 	std::vector<Position3D> paths_;

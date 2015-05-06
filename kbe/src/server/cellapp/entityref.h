@@ -55,6 +55,7 @@ public:
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
+
 private:
 	ENTITY_ID id_;
 	Entity* pEntity_;
@@ -69,6 +70,7 @@ public:
 	: obj_(obj) {}
 
 	bool operator()(const EntityRef* obj);
+
 private:
 	Entity* obj_;
 };
@@ -80,6 +82,7 @@ public:
 	: entityID_(entityID) {}
 
 	bool operator()(const EntityRef* obj);
+
 private:
 	ENTITY_ID entityID_;
 };
