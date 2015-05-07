@@ -393,13 +393,14 @@ void ScriptVector2::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 {
-	if(PySequence_Check(value) <= 0)
+	if(value == NULL || PySequence_Check(value) <= 0)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "args of position is must a sequence.");
+			PyErr_Format(PyExc_TypeError, "args is must a sequence.");
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 
@@ -408,9 +409,10 @@ bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "len(position) != %d. can't set.", VECTOR_SIZE);
+			PyErr_Format(PyExc_TypeError, "len(args) != %d. can't set.", VECTOR_SIZE);
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 	
@@ -418,8 +420,11 @@ bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptVector2::convertPyObjectToVector2(Vector2& v, PyObject* obj)
+bool ScriptVector2::convertPyObjectToVector2(Vector2& v, PyObject* obj)
 {
+	if(!check(obj))
+		return false;
+
 	PyObject* pyItem = PySequence_GetItem(obj, 0);
 	v.x = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
@@ -427,6 +432,8 @@ void ScriptVector2::convertPyObjectToVector2(Vector2& v, PyObject* obj)
 	pyItem = PySequence_GetItem(obj, 1);
 	v.y = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -598,11 +605,17 @@ PyObject* ScriptVector2::__py_pyDistTo(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
 	Vector2& v = sv->getVector();
 	
 	Vector2 v1;
-	convertPyObjectToVector2(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector2(v1, pyVal);
 	
 	Vector2 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec2Length(&rv)); //计算长度并返回
@@ -618,11 +631,17 @@ PyObject* ScriptVector2::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
 	Vector2& v = sv->getVector();
 	
 	Vector2 v1;
-	convertPyObjectToVector2(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector2(v1, pyVal);
 	
 	Vector2 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec2LengthSq(&rv)); //计算点乘并返回

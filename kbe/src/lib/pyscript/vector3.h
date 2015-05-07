@@ -130,7 +130,7 @@ public:
 	/** 
 		将某个经过check检查过的python对象转换为vector3 
 	*/
-	static void convertPyObjectToVector3(Vector3& v, PyObject* obj);
+	static bool convertPyObjectToVector3(Vector3& v, PyObject* obj);
 
 	/** 
 		设置mailbox的__getEntityFunc函数地址 
