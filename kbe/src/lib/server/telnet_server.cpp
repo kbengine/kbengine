@@ -110,6 +110,11 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 	}
 
 	INFO_MSG(fmt::format("TelnetServer server is running on port {}\n", port));
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	printf("[INFO]: %s", fmt::format("TelnetServer server is running on port {}\n", port).c_str());
+#endif
+
 	return true;
 }
 
