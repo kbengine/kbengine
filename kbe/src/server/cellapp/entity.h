@@ -429,7 +429,7 @@ public:
 	void restoreProximitys();
 
 	/** 
-		删除一个范围触发器  
+		删除一个控制器 
 	*/
 	void cancelController(uint32 id);
 	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);

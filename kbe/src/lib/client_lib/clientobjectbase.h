@@ -395,6 +395,9 @@ public:
 	virtual void onServerClosed();
 
 	uint64 rndUUID() const{ return rndUUID_; }
+
+	Network::NetworkInterface* pNetworkInterface()const { return &networkInterface_; }
+
 protected:				
 	int32													appID_;
 
@@ -440,7 +443,7 @@ protected:
 
 	EventHandler											eventHandler_;
 
-	Network::NetworkInterface&								ninterface_;
+	Network::NetworkInterface&								networkInterface_;
 
 	// 当前客户端所选择的目标
 	ENTITY_ID												targetID_;

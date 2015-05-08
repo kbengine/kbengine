@@ -44,7 +44,7 @@ ScriptCallbacks::~ScriptCallbacks()
 }
 
 //-------------------------------------------------------------------------------------
-ScriptID ScriptCallbacks::addCallback( float initialOffset, TimerHandler * pHandler )
+ScriptID ScriptCallbacks::addCallback( float initialOffset, float repeatOffset, TimerHandler * pHandler )
 {
 	if (initialOffset < 0.f)
 	{
@@ -64,8 +64,19 @@ ScriptID ScriptCallbacks::addCallback( float initialOffset, TimerHandler * pHand
 	int initialTicks = GameTime( g_kbetime +
 			initialOffset * hertz );
 
+	int repeatTicks = 0;
+
+	if (repeatOffset > 0.f)
+	{
+		repeatTicks = GameTime( repeatOffset * hertz );
+		if (repeatTicks < 1)
+		{
+			repeatTicks = 1;
+		}
+	}
+
 	TimerHandle timerHandle = timers_.add(
-			initialTicks, 0,
+			initialTicks, repeatTicks,
 			pHandler, NULL );
 
 	if (timerHandle.isSet())

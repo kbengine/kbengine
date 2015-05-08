@@ -9,6 +9,7 @@ SRCS =				\
 	entity			\
 	entity_aspect		\
 	event			\
+	moveto_point_handler	\
 	profile
 
 ifndef KBE_ROOT

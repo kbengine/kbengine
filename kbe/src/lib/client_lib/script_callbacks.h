@@ -33,7 +33,7 @@ public:
 	ScriptCallbacks(Timers& timers);
 	~ScriptCallbacks();
 
-	ScriptID addCallback(float initialOffset,
+	ScriptID addCallback(float initialOffset, float repeatOffset,
 			TimerHandler * pHandler);
 	bool delCallback(ScriptID timerID);
 
