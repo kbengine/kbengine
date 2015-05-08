@@ -662,7 +662,7 @@ void Entity::cancelController(uint32 id)
 	}
 
 	// 暂时只有回调, 主要是因为用在了移动中，当前可能不是非常合适
-	if(id == pMoveHandlerID_)
+	if(id == (uint32)pMoveHandlerID_)
 		this->stopMove();
 }
 
