@@ -73,8 +73,7 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 	KBE_ASSERT( g_pApp );
 
 	int hertz = g_kbeSrvConfig.gameUpdateHertz();
-	int initialTicks = GameTime( g_pApp->time() +
-			initialOffset * hertz );
+	int initialTicks = GameTime( g_pApp->time() + initialOffset * hertz );
 	int repeatTicks = 0;
 
 	if (repeatOffset > 0.f)
