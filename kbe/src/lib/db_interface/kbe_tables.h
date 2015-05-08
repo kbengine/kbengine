@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -41,12 +41,12 @@ public:
 	}
 	
 	/**
-		Í¬²½entity±íµ½Êý¾Ý¿âÖÐ
+		åŒæ­¥entityè¡¨åˆ°æ•°æ®åº“ä¸­
 	*/
 	virtual bool syncToDB(DBInterface* dbi) = 0;
 	
 	/**
-		³õÊ¼»¯
+		åˆå§‹åŒ–
 	*/
 	virtual bool initialize(ScriptDefModule* sm, std::string name){ return true; };
 	
@@ -57,7 +57,7 @@ protected:
 };
 
 /*
-	kbeÏµÍ³±í
+	kbeç³»ç»Ÿè¡¨
 */
 class KBEEntityLogTable : public KBETable
 {
@@ -105,6 +105,13 @@ public:
 	{
 	}
 
+    /// ä»Žkbe_accountinfosè¡¨å†…æ£€ç´¢å‡ºaccountNameä¸º\param nameçš„è®°å½•
+    /// 
+    ///     å°†
+    ///     entityDBID    -> @info.dbid
+    ///     password      -> @info.password
+    ///     flags         -> @info.flags
+    ///     deadline      -> @info.deadline
 	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
 	virtual bool setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline) = 0;

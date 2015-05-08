@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -36,7 +36,7 @@ class ThreadPool;
 class DBUtil;
 
 /*
-	Êı¾İ¿â½Ó¿Ú
+	æ•°æ®åº“æ¥å£
 */
 class DBInterface
 {
@@ -61,34 +61,34 @@ public:
 	};
 
 	/**
-		¼ì²é»·¾³
+		æ£€æŸ¥ç¯å¢ƒ
 	*/
 	virtual bool checkEnvironment() = 0;
 	
 	/**
-		¼ì²é´íÎó£¬ ¶Ô´íÎóµÄÄÚÈİ½øĞĞ¾ÀÕı
-		Èç¹û¾ÀÕı²»³É¹¦·µ»ØÊ§°Ü
+		æ£€æŸ¥é”™è¯¯ï¼Œ å¯¹é”™è¯¯çš„å†…å®¹è¿›è¡Œçº æ­£
+		å¦‚æœçº æ­£ä¸æˆåŠŸè¿”å›å¤±è´¥
 	*/
 	virtual bool checkErrors() = 0;
 
 	/**
-		ÓëÄ³¸öÊı¾İ¿â¹ØÁª
+		ä¸æŸä¸ªæ•°æ®åº“å…³è”
 	*/
 	virtual bool attach(const char* databaseName) = 0;
 	virtual bool detach() = 0;
 
 	/**
-		»ñÈ¡Êı¾İ¿âËùÓĞµÄ±íÃû
+		è·å–æ•°æ®åº“æ‰€æœ‰çš„è¡¨å
 	*/
 	virtual bool getTableNames( std::vector<std::string>& tableNames, const char * pattern) = 0;
 
 	/**
-		»ñÈ¡Êı¾İ¿âÄ³¸ö±íËùÓĞµÄ×Ö¶ÎÃû³Æ
+		è·å–æ•°æ®åº“æŸä¸ªè¡¨æ‰€æœ‰çš„å­—æ®µåç§°
 	*/
 	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames) = 0;
 
 	/**
-		²éÑ¯±í
+		æŸ¥è¯¢è¡¨
 	*/
 	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true) = 0;
 	virtual bool query(const std::string& cmd, bool showexecinfo = true)
@@ -97,63 +97,63 @@ public:
 	}
 
 	/**
-		·µ»ØÕâ¸ö½Ó¿ÚµÄÃèÊö
+		è¿”å›è¿™ä¸ªæ¥å£çš„æè¿°
 	*/
 	virtual const char* c_str() = 0;
 
 	/** 
-		»ñÈ¡´íÎó
+		è·å–é”™è¯¯
 	*/
 	virtual const char* getstrerror() = 0;
 
 	/** 
-		»ñÈ¡´íÎó±àºÅ
+		è·å–é”™è¯¯ç¼–å·
 	*/
 	virtual int getlasterror() = 0;
 
 	/**
-		´´½¨Ò»¸öentity´æ´¢±í
+		åˆ›å»ºä¸€ä¸ªentityå­˜å‚¨è¡¨
 	*/
 	virtual EntityTable* createEntityTable() = 0;
 
 	/** 
-		´ÓÊı¾İ¿âÉ¾³ıentity±í
+		ä»æ•°æ®åº“åˆ é™¤entityè¡¨
 	*/
 	virtual bool dropEntityTableFromDB(const char* tablename) = 0;
 
 	/** 
-		´ÓÊı¾İ¿âÉ¾³ıentity±í×Ö¶Î
+		ä»æ•°æ®åº“åˆ é™¤entityè¡¨å­—æ®µ
 	*/
 	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
 
 	/**
-		Ëø×¡½Ó¿Ú²Ù×÷
+		é”ä½æ¥å£æ“ä½œ
 	*/
 	virtual bool lock() = 0;
 	virtual bool unlock() = 0;
 
 	/**
-		´¦ÀíÒì³£
+		å¤„ç†å¼‚å¸¸
 	*/
 	virtual bool processException(std::exception & e) = 0;
 
 	/**
-		»ñÈ¡×îºóÒ»´Î²éÑ¯µÄsqlÓï¾ä
+		è·å–æœ€åä¸€æ¬¡æŸ¥è¯¢çš„sqlè¯­å¥
 	*/
 	virtual const std::string& lastquery() const{ return lastquery_; }
 protected:
-	char db_type_[MAX_BUF];									// Êı¾İ¿âµÄÀà±ğ
-	uint32 db_port_;										// Êı¾İ¿âµÄ¶Ë¿Ú
-	char db_ip_[MAX_IP];									// Êı¾İ¿âµÄipµØÖ·
-	char db_username_[MAX_BUF];								// Êı¾İ¿âµÄÓÃ»§Ãû
-	char db_password_[MAX_BUF];								// Êı¾İ¿âµÄÃÜÂë
-	char db_name_[MAX_BUF];									// Êı¾İ¿âÃû
-	uint16 db_numConnections_;								// Êı¾İ¿â×î´óÁ¬½Ó
-	std::string lastquery_;									// ×îºóÒ»´Î²éÑ¯ÃèÊö
+	char db_type_[MAX_BUF];									// æ•°æ®åº“çš„ç±»åˆ«
+	uint32 db_port_;										// æ•°æ®åº“çš„ç«¯å£
+	char db_ip_[MAX_IP];									// æ•°æ®åº“çš„ipåœ°å€
+	char db_username_[MAX_BUF];								// æ•°æ®åº“çš„ç”¨æˆ·å
+	char db_password_[MAX_BUF];								// æ•°æ®åº“çš„å¯†ç 
+	char db_name_[MAX_BUF];									// æ•°æ®åº“å
+	uint16 db_numConnections_;								// æ•°æ®åº“æœ€å¤§è¿æ¥
+	std::string lastquery_;									// æœ€åä¸€æ¬¡æŸ¥è¯¢æè¿°
 };
 
 /*
-	Êı¾İ¿â²Ù×÷µ¥Ôª
+	æ•°æ®åº“æ“ä½œå•å…ƒ
 */
 class DBUtil : public Singleton<DBUtil>
 {
@@ -161,16 +161,34 @@ public:
 	DBUtil();
 	~DBUtil();
 	
+	/// æ•°æ®æ“ä½œå•å…ƒåˆå§‹åŒ–
+    /// 
+    /// å°†é…ç½®æ–‡ä»¶ä¸­çš„æ•°æ®åº“è®¿é—®å¯†ç åœ¨å†…å­˜ä¸­ä½¿ç”¨æ˜æ–‡å­˜å‚¨
+	/// \return ture/false
 	static bool initialize();
 	static void finalise();
 
 	static bool initThread();
 	static bool finiThread();
 
+	/// åˆ›å»ºä¸€ä¸ªæ•°æ®åº“æ“ä½œæ¥å£
 	static DBInterface* createInterface(bool showinfo = true);
+
+	/// è·çŸ¥æ•°æ®åº“åç§°
 	static const char* dbname();
+
+	/// è·çŸ¥æ•°æ®åº“çš„ç±»å‹
+    /// 
+    /// \b å¦‚ï¼š
+    /// mysql
 	static const char* dbtype();
+
+	/// è·çŸ¥è´¦å·å®ä½“ç±»å‹çš„åç§°
+    /// 
+    /// \b å¦‚ï¼š
+    /// Accountã€‚ï¼ˆåº”è¯¥æ˜¯éœ€è¦ä¸entities.xmlå†…çš„å®ä½“ç±»å‹åç§°åŒ¹é…çš„ï¼‰
 	static const char* accountScriptName();
+	/// åˆå§‹åŒ–æ•°æ®åº“æ“ä½œæ¥å£æ‰€æ“ä½œçš„æ•°æ®åº“ï¼Œè¿™åŒ…æ‹¬kbeç³»ç»Ÿè¡¨çš„å»ºç«‹
 	static bool initInterface(DBInterface* dbi);
 
 	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
