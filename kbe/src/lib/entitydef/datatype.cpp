@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -1229,7 +1229,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 				if(stype == NULL)
 					continue;
 
-				// ÊÇ·ñÊÇÒ»¸öentity?
+				// æ˜¯å¦æ˜¯ä¸€ä¸ªentity?
 				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 				{
 					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
@@ -1263,7 +1263,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 			}
 		}
 		
-		// Ö»ÄÜÊÇmailbox
+		// åªèƒ½æ˜¯mailbox
 		if(id == 0)
 		{
 			EntityMailboxAbstract* pEntityMailboxAbstract = static_cast<EntityMailboxAbstract*>(pyValue);
@@ -1292,7 +1292,7 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 
 		(*mstream) >> id >> cid >> type >> utype;
 
-		// ÔÊĞí´«ÊäPy_None
+		// å…è®¸ä¼ è¾“Py_None
 		if(id > 0)
 		{
 			PyObject* entity = EntityMailbox::tryGetEntity(cid, id);
@@ -1362,7 +1362,7 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 	}
 
 	std::string strType = xml->getValStr(arrayNode);
-	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// ×ª»»Îª´óĞ´
+	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// è½¬æ¢ä¸ºå¤§å†™
 
 	if(strType == "ARRAY")
 	{
@@ -1627,8 +1627,8 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 		return impl_createObjFromDict(pyobj);
 	}
 
-	// ¿ÉÄÜÔÚ´«Èë²ÎÊıµÄÊ±ºòÒÑ¾­ÊÇFixedDictÀàĞÍÁË, ÒòÎªparseDefaultStr
-	// »á³õÊ¼Îª×îÖÕ¶ÔÏóÀàĞÍ
+	// å¯èƒ½åœ¨ä¼ å…¥å‚æ•°çš„æ—¶å€™å·²ç»æ˜¯FixedDictç±»å‹äº†, å› ä¸ºparseDefaultStr
+	// ä¼šåˆå§‹ä¸ºæœ€ç»ˆå¯¹è±¡ç±»å‹
 	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
 	{
 		Py_INCREF(pyobj);
@@ -1670,7 +1670,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		if(typeNode)
 		{
 			strType = xml->getValStr(typeNode);
-			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// ×ª»»Îª´óĞ´
+			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// è½¬æ¢ä¸ºå¤§å†™
 
 			if(strType == "ARRAY")
 			{
@@ -1822,8 +1822,8 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 {
-	// ¿ÉÄÜÔÚ´«Èë²ÎÊıµÄÊ±ºòÒÑ¾­ÊÇÓÃ»§ÀàĞÍÁË, ÒòÎªparseDefaultStr
-	// »á³õÊ¼Îª×îÖÕ¶ÔÏóÀàĞÍ
+	// å¯èƒ½åœ¨ä¼ å…¥å‚æ•°çš„æ—¶å€™å·²ç»æ˜¯ç”¨æˆ·ç±»å‹äº†, å› ä¸ºparseDefaultStr
+	// ä¼šåˆå§‹ä¸ºæœ€ç»ˆå¯¹è±¡ç±»å‹
 	if(impl_isSameType(dictData))
 	{
 		Py_INCREF(dictData);
@@ -1918,8 +1918,8 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 
 	if(hasImpl())
 	{
-		// ÕâÀï·µ»Øfalseºó»¹¼ÌĞøÅĞ¶ÏµÄÔ­ÒòÊÇisSameTypeÒòÎªÏà¹ØÌØĞÔ
-		// fixeddict»òÕßÓÃ»§²úÉúµÄÀà±ğ¶¼Ó¦¸ÃÊÇºÏ·¨µÄ
+		// è¿™é‡Œè¿”å›falseåè¿˜ç»§ç»­åˆ¤æ–­çš„åŸå› æ˜¯isSameTypeå› ä¸ºç›¸å…³ç‰¹æ€§
+		// fixeddictæˆ–è€…ç”¨æˆ·äº§ç”Ÿçš„ç±»åˆ«éƒ½åº”è¯¥æ˜¯åˆæ³•çš„
 		if(impl_isSameType(pyValue))
 			return true;
 	}

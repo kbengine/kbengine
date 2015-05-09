@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -51,9 +51,11 @@ public:
 	EntityDef();
 	~EntityDef();
 	
-	/** 
-		³õÊ¼»¯
-	*/
+    /// å°†entities.xmlåŠå…¶åŒ…å«çš„æ‰€æœ‰çš„å®ä½“ç±»å‹çš„å­defæ–‡ä»¶(entity_defs/xxxx.def)å…¨éƒ¨è£…è½½
+    ///
+	/// å½“\param loadComponentTypeä¸ä¸ºDBMGR_TYPEæ—¶ï¼Œè¿˜ä¼šè£…è½½æ‰€æœ‰è„šæœ¬æ¨¡å—å’Œæ£€è§†å™¨
+	/// \param scriptBaseTypes
+	/// \param loadComponentType è£…è½½å®ä½“å®šä¹‰ç³»ç»Ÿçš„ç»„ä»¶ç±»å‹
 	static bool initialize(std::vector<PyTypeObject*>& scriptBaseTypes, 
 		COMPONENT_TYPE loadComponentType);
 
@@ -62,16 +64,59 @@ public:
 	static void reload(bool fullReload);
 
 	/** 
-		¼ÓÔØÏà¹ØÃèÊö
+		åŠ è½½ç›¸å…³æè¿°
 	*/
 	static bool loadAllScriptModules(std::string entitiesPath, 
 		std::vector<PyTypeObject*>& scriptBaseTypes);
 
+	/// è£…è½½xxxx.defæ–‡ä»¶çš„æè¿°éƒ¨åˆ†
+    ///
+    /// \b å¦‚ï¼š
+    /// Propertiesã€BaseMethodsã€CellMethodsã€ClientMethodsã€‚
+    ///
+	/// å…¶å®å°±æ˜¯é¡ºåºè°ƒç”¨loadDefPropertiesï¼ŒloadDefCellMethodsï¼ŒloadDefBaseMethodsï¼ŒloadDefClientMethods
+	/// \param moduleName æè¿°æ‰€å±çš„å®ä½“æ¨¡å—åç§°ï¼Œæ¯”å¦‚Account/Avatar/Space...
 	static bool loadAllDefDescriptions(const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
+	/// è½½å…¥xxx.defæ–‡ä»¶å†…<Properties>...</Properties>éƒ¨åˆ†çš„é…ç½®
+    ///
+    /// \b æ¯”å¦‚ï¼š
+    /// \code
+    /// <Properties>
+    ///     <characters>
+    ///         <Utype>         10010               < / Utype>
+    ///         <Type>			AVATAR_INFOS_LIST		< / Type>
+    ///         <Flags>			BASE				< / Flags>
+    ///         <Default>						< / Default>
+    ///         <Persistent>		true				< / Persistent>
+    ///         <DetailLevel>  MEDIUM               < / DetailLevel>
+    ///     </characters>
+    /// </Properties>
+    /// \endcode
+    /// \b Utype(ENTITY_PROPERTY_UID)å±æ€§çš„id
+    /// \b Type(DataType)å±æ€§çš„å€¼ç±»å‹
+    /// \b Flagsçš„å€¼å°†å½±å“æ¨¡å— \code scriptModule.setCell/Base/Client(true) \endcodeï¼Œä¸”å…¶è‡³å°‘å¾—æœ‰"BASE"æˆ–è€…"CELL"
+    /// \b Default å±æ€§çš„ç¼ºçœå­—ç¬¦ä¸²å€¼
+    /// \b Persistent
+    /// \b DetailLevelæœ‰NEAR/MEDIUM/FARä¸‰ç§å€¼
+    /// 
+    /// åœ¨é€ä¸ªè§£æçš„è¿‡ç¨‹ä¸­å°†ç”ŸæˆPropertyDescriptionæ¥è¡¨è¿°ä¸€ä¸ªå±æ€§èŠ‚ç‚¹ï¼Œå¹¶å°†å…¶æ·»åŠ åˆ°\param scriptModule
+    /// \code
+    /// if (hasCellFlags > 0)
+    ///     ret = scriptModule->addPropertyDescription(name.c_str(),
+    ///     propertyDescription, CELLAPP_TYPE);
+    ///
+    /// if (hasBaseFlags > 0)
+    ///     ret = scriptModule->addPropertyDescription(name.c_str(),
+    ///     propertyDescription, BASEAPP_TYPE);
+    ///
+    /// if (hasClientFlags > 0)
+    ///     ret = scriptModule->addPropertyDescription(name.c_str(),
+    ///     propertyDescription, CLIENT_TYPE);
+    /// \endcode
 	static bool loadDefPropertys(const std::string& moduleName, 
 		XML* xml, 
 		TiXmlNode* defPropertyNode, 
@@ -103,7 +148,13 @@ public:
 		XML* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
-
+    
+    /// è½½å…¥defæ–‡ä»¶å†…çš„æ‰€æœ‰ä¿¡æ¯
+    ///
+    /// \b æ¯”å¦‚:
+    /// Properties,
+    /// ClientMethods, BaseMethods, CellMethods,
+    /// Interfaces, Parent, DetailLevel, VolatileInfo
 	static bool loadDefInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
@@ -123,28 +174,36 @@ public:
 		ScriptDefModule* scriptModule);
 
 	/** 
-		ÊÇ·ñ¼ÓÔØÕâ¸ö½Å±¾Ä£¿é 
+		æ˜¯å¦åŠ è½½è¿™ä¸ªè„šæœ¬æ¨¡å— 
 	*/
 	static bool isLoadScriptModule(ScriptDefModule* scriptModule);
 
 	/** 
-		¸ù¾İµ±Ç°×é¼şÀà±ğÉèÖÃÊÇ·ñÓĞcell »òÕßbase 
+		æ ¹æ®å½“å‰ç»„ä»¶ç±»åˆ«è®¾ç½®æ˜¯å¦æœ‰cell æˆ–è€…base 
 	*/
 	static void setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule, bool has);
 
 	/** 
-		¼ì²é½Å±¾Ä£¿éÖĞ±»¶¨ÒåµÄ·½·¨ÊÇ·ñ´æÔÚ 
+		æ£€æŸ¥è„šæœ¬æ¨¡å—ä¸­è¢«å®šä¹‰çš„æ–¹æ³•æ˜¯å¦å­˜åœ¨ 
 	*/
 	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, 
 		const std::string& moduleName);
 	
-	/** 
-		¼ì²é½Å±¾Ä£¿éÖĞ±»¶¨ÒåµÄÊôĞÔÊÇ·ñºÏ·¨ 
-	*/
+	/// æ£€æŸ¥è„šæœ¬æ¨¡å—ä¸­è¢«å®šä¹‰çš„å±æ€§æ˜¯å¦åˆæ³•
+    ///
+    ///         æœ‰ä¸€å †å±æ€§æ˜¯ä¿ç•™çš„ï¼Œå¦‚ï¼š
+    ///          "id", "position", "direction", "spaceID", "autoLoad",
+    ///          "cell", "base", "client", "cell", "className", "databaseID",
+    ///          "isDestroyed", "shouldAutoArchive", "shouldAutoBackup", "__ACCOUNT_NAME__",
+    ///          "__ACCOUNT_PASSWORD__", "clientAddr", "entitiesEnabled", "hasClient", "roundTripTime",
+    ///          "timeSinceHeardFromClient", "allClients", "hasWitness", "isWitnessed", "otherClients",
+    ///          "topSpeed", "topSpeedY"
+    ///
+    /// \param scriptModule è·Ÿè¿™ä¸ªå…¶å®æ²¡å•¥å…³ç³»
 	static bool validDefPropertyName(ScriptDefModule* scriptModule, const std::string& name);
 
 	/** 
-		Í¨¹ı±ê¼ÇÀ´Ñ°ÕÒµ½¶ÔÓ¦µÄ½Å±¾Ä£¿é¶ÔÏó 
+		é€šè¿‡æ ‡è®°æ¥å¯»æ‰¾åˆ°å¯¹åº”çš„è„šæœ¬æ¨¡å—å¯¹è±¡ 
 	*/
 	static ScriptDefModule* findScriptModule(ENTITY_SCRIPT_UID utype);
 	static ScriptDefModule* findScriptModule(const char* scriptName);
@@ -187,13 +246,13 @@ public:
 	}
 
 private:
-	static SCRIPT_MODULES __scriptModules;										// ËùÓĞµÄÀ©Õ¹½Å±¾Ä£¿é¶¼´æ´¢ÔÚÕâÀï
-	static SCRIPT_MODULES __oldScriptModules;									// reloadÊ±¾ÉµÄÄ£¿é»á·Åµ½ÕâÀïÓÃÓÚÅĞ¶Ï
+	static SCRIPT_MODULES __scriptModules;										///< entities.xmlå†…çš„å®ä½“ç±»å‹æ¨¡å—ï¼Œä¸”utype==pos+1
+	static SCRIPT_MODULES __oldScriptModules;									// reloadæ—¶æ—§çš„æ¨¡å—ä¼šæ”¾åˆ°è¿™é‡Œç”¨äºåˆ¤æ–­
 
-	static SCRIPT_MODULE_UID_MAP __scriptTypeMappingUType;						// ½Å±¾Àà±ğÓ³Éäutype
-	static SCRIPT_MODULE_UID_MAP __oldScriptTypeMappingUType;					// reloadÊ±¾ÉµÄ½Å±¾Àà±ğÓ³Éäutype
+	static SCRIPT_MODULE_UID_MAP __scriptTypeMappingUType;						///< entities.xmlå†…çš„å®ä½“ç±»å‹åå­—å¯¹åº”çš„UType
+	static SCRIPT_MODULE_UID_MAP __oldScriptTypeMappingUType;					// reloadæ—¶æ—§çš„è„šæœ¬ç±»åˆ«æ˜ å°„utype
 
-	static COMPONENT_TYPE __loadComponentType;									// ËùĞè¹ØÏµµÄ×é¼şÀà±ğµÄÏà¹ØÊı¾İ		
+	static COMPONENT_TYPE __loadComponentType;									// æ‰€éœ€å…³ç³»çš„ç»„ä»¶ç±»åˆ«çš„ç›¸å…³æ•°æ®		
 	static std::vector<PyTypeObject*> __scriptBaseTypes;
 	static std::string __entitiesPath;
 
@@ -201,8 +260,8 @@ private:
 
 	static bool _isInit;
 
-	static bool __entityAliasID;												// ÓÅ»¯EntityID£¬aoi·¶Î§ÄÚĞ¡ÓÚ255¸öEntityID, ´«Êäµ½clientÊ±Ê¹ÓÃ1×Ö½ÚÎ±ID 
-	static bool __entitydefAliasID;												// ÓÅ»¯entityÊôĞÔºÍ·½·¨¹ã²¥Ê±Õ¼ÓÃµÄ´ø¿í£¬entity¿Í»§¶ËÊôĞÔ»òÕß¿Í»§¶Ë²»³¬¹ı255¸öÊ±£¬ ·½·¨uidºÍÊôĞÔuid´«Êäµ½clientÊ±Ê¹ÓÃ1×Ö½Ú±ğÃûID
+	static bool __entityAliasID;												// ä¼˜åŒ–EntityIDï¼ŒaoièŒƒå›´å†…å°äº255ä¸ªEntityID, ä¼ è¾“åˆ°clientæ—¶ä½¿ç”¨1å­—èŠ‚ä¼ªID 
+	static bool __entitydefAliasID;												// ä¼˜åŒ–entityå±æ€§å’Œæ–¹æ³•å¹¿æ’­æ—¶å ç”¨çš„å¸¦å®½ï¼Œentityå®¢æˆ·ç«¯å±æ€§æˆ–è€…å®¢æˆ·ç«¯ä¸è¶…è¿‡255ä¸ªæ—¶ï¼Œ æ–¹æ³•uidå’Œå±æ€§uidä¼ è¾“åˆ°clientæ—¶ä½¿ç”¨1å­—èŠ‚åˆ«åID
 };
 
 }

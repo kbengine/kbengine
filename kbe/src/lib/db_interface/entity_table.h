@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -59,7 +59,7 @@ class MemoryStream;
 #define TABLE_AUTOLOAD_CONST_STR				"autoLoad"
 
 /**
-	db±í²Ù×÷
+	dbè¡¨æ“ä½œ
 */
 enum DB_TABLE_OP
 {
@@ -68,6 +68,9 @@ enum DB_TABLE_OP
 	TABLE_OP_DELETE					= 3
 };
 
+/*!
+ * @brief è´¦æˆ·ä¿¡æ¯: name, password, email, post-data, dbid, flags, deadline
+ */
 struct ACCOUNT_INFOS
 {
 	ACCOUNT_INFOS():
@@ -88,7 +91,7 @@ struct ACCOUNT_INFOS
 };
 
 /**
-	Î¬»¤entityÔÚÊı¾İ¿âÖĞµÄ±íÖĞµÄÒ»¸ö×Ö¶Î
+	ç»´æŠ¤entityåœ¨æ•°æ®åº“ä¸­çš„è¡¨ä¸­çš„ä¸€ä¸ªå­—æ®µ
 */
 class EntityTableItem
 {
@@ -141,7 +144,7 @@ public:
 	const PropertyDescription* pPropertyDescription() const{ return pPropertyDescription_; }
 
 	/**
-		³õÊ¼»¯
+		åˆå§‹åŒ–
 	*/
 	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string itemName) = 0;
@@ -150,21 +153,21 @@ public:
 	const char* tableName(){ return tableName_.c_str(); }
 
 	/**
-		Í¬²½entity±íµ½Êı¾İ¿âÖĞ
+		åŒæ­¥entityè¡¨åˆ°æ•°æ®åº“ä¸­
 	*/
 	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL) = 0;
 
 	/**
-		¸üĞÂÊı¾İ
+		æ›´æ–°æ•°æ®
 	*/
 	virtual bool writeItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 
 	/**
-		»ñÈ¡ËùÓĞµÄÊı¾İ·Åµ½Á÷ÖĞ
+		è·å–æ‰€æœ‰çš„æ•°æ®æ”¾åˆ°æµä¸­
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 protected:
-	// ×Ö¶ÎÃû³Æ
+	// å­—æ®µåç§°
 	std::string itemName_;
 	std::string tableName_;
 	int32/*ENTITY_PROPERTY_UID*/ utype_;
@@ -183,7 +186,7 @@ protected:
 };
 
 /*
-	Î¬»¤entityÔÚÊı¾İ¿âÖĞµÄ±í
+	ç»´æŠ¤entityåœ¨æ•°æ®åº“ä¸­çš„è¡¨
 */
 class EntityTable
 {
@@ -205,27 +208,27 @@ public:
 	const char* tableName(){ return tableName_.c_str(); }
 
 	/**
-		³õÊ¼»¯
+		åˆå§‹åŒ–
 	*/
 	virtual bool initialize(ScriptDefModule* sm, std::string name) = 0;
 
 	/**
-		Í¬²½entity±íµ½Êı¾İ¿âÖĞ
+		åŒæ­¥entityè¡¨åˆ°æ•°æ®åº“ä¸­
 	*/
 	virtual bool syncToDB(DBInterface* dbi) = 0;
 
 	/**
-		Í¬²½entity±íË÷Òıµ½Êı¾İ¿âÖĞ
+		åŒæ­¥entityè¡¨ç´¢å¼•åˆ°æ•°æ®åº“ä¸­
 	*/
 	virtual bool syncIndexToDB(DBInterface* dbi) = 0;
 
 	/** 
-		´´½¨Ò»¸ö±íitem
+		åˆ›å»ºä¸€ä¸ªè¡¨item
 	*/
 	virtual EntityTableItem* createItem(std::string type) = 0;
 
 	/** 
-		»ñµÃËùÓĞ±í×Ö¶Î
+		è·å¾—æ‰€æœ‰è¡¨å­—æ®µ
 	*/
 	const EntityTable::TABLEITEM_MAP& tableItems() const { return tableItems_; }
 	const std::vector<EntityTableItem*>& tableFixedOrderItems() const{ return tableFixedOrderItems_; }
@@ -238,45 +241,45 @@ public:
 	EntityTableItem* findItem(int32/*ENTITY_PROPERTY_UID*/ utype);
 
 	/**
-		¸üĞÂ±í
+		æ›´æ–°è¡¨
 	*/
 	virtual DBID writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
-		´ÓÊı¾İ¿âÉ¾³ıentity
+		ä»æ•°æ®åº“åˆ é™¤entity
 	*/
 	virtual bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
-		»ñÈ¡ËùÓĞµÄÊı¾İ·Åµ½Á÷ÖĞ
+		è·å–æ‰€æœ‰çš„æ•°æ®æ”¾åˆ°æµä¸­
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
-		ÉèÖÃÊÇ·ñ×Ô¶¯¼ÓÔØ
+		è®¾ç½®æ˜¯å¦è‡ªåŠ¨åŠ è½½
 	*/
 	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad){};
 
 	bool hasSync() const { return sync_; }
 
 	/**
-		²éÑ¯×Ô¶¯¼ÓÔØµÄÊµÌå
+		æŸ¥è¯¢è‡ªåŠ¨åŠ è½½çš„å®ä½“
 	*/
 	virtual void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
 
 protected:
 
-	// ±íÃû³Æ
+	// è¡¨åç§°
 	std::string tableName_;
 
-	// ËùÓĞµÄ×Ö¶Î
+	// æ‰€æœ‰çš„å­—æ®µ
 	TABLEITEM_MAP tableItems_;
 
-	// ºÍScriptDefModuleÖĞ±£³ÖÒ»ÖÂÖÈĞòµÄitemÒıÓÃ
+	// å’ŒScriptDefModuleä¸­ä¿æŒä¸€è‡´ç§©åºçš„itemå¼•ç”¨
 	std::vector<EntityTableItem*> tableFixedOrderItems_; 
 
-	// ÊÇ·ñÎª×Ó±í
+	// æ˜¯å¦ä¸ºå­è¡¨
 	bool isChild_; 
 
 	bool sync_;
@@ -294,7 +297,7 @@ public:
 	bool syncToDB(DBInterface* dbi);
 
 	/** 
-		»ñµÃËùÓĞ±í
+		è·å¾—æ‰€æœ‰è¡¨
 	*/
 	const EntityTables::TABLES_MAP& tables() const { return tables_; }
 
@@ -307,30 +310,30 @@ public:
 	EntityTable* findKBETable(std::string name);
 
 	/**
-		Ğ´entityµ½Êı¾İ¿â
+		å†™entityåˆ°æ•°æ®åº“
 	*/
 	DBID writeEntity(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
-		´ÓÊı¾İ¿âÉ¾³ıentity
+		ä»æ•°æ®åº“åˆ é™¤entity
 	*/
 	bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
-		»ñÈ¡Ä³¸ö±íËùÓĞµÄÊı¾İ·Åµ½Á÷ÖĞ
+		è·å–æŸä¸ªè¡¨æ‰€æœ‰çš„æ•°æ®æ”¾åˆ°æµä¸­
 	*/
 	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	void onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTable, bool error);
 
 	/**
-		²éÑ¯×Ô¶¯¼ÓÔØµÄÊµÌå
+		æŸ¥è¯¢è‡ªåŠ¨åŠ è½½çš„å®ä½“
 	*/
 	void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
 
 protected:
-	// ËùÓĞµÄ±í
+	// æ‰€æœ‰çš„è¡¨
 	TABLES_MAP tables_;
 	TABLES_MAP kbe_tables_;
 

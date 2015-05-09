@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -54,7 +54,7 @@ void DataTypes::finalise(void)
 //-------------------------------------------------------------------------------------
 bool DataTypes::initialize(std::string file)
 {
-	// ³õÊ¼»¯Ò»Ğ©»ù´¡Àà±ğ
+	// åˆå§‹åŒ–ä¸€äº›åŸºç¡€ç±»åˆ«
 	addDataType("UINT8",	new IntType<uint8>);
 	addDataType("UINT16",	new IntType<uint16>);
 	addDataType("UINT64",	new UInt64Type);
@@ -95,7 +95,7 @@ bool DataTypes::loadAlias(std::string& file)
 
 	if(node == NULL)
 	{
-		// root½ÚµãÏÂÃ»ÓĞ×Ó½ÚµãÁË
+		// rootèŠ‚ç‚¹ä¸‹æ²¡æœ‰å­èŠ‚ç‚¹äº†
 		return true;
 	}
 
@@ -229,7 +229,6 @@ void DataTypes::delDataType(std::string name)
 	}
 }
 
-//-------------------------------------------------------------------------------------
 DataType* DataTypes::getDataType(std::string name)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);

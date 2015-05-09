@@ -1,4 +1,4 @@
-/*
+﻿/*
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
@@ -44,6 +44,7 @@ public:
 	DataTypes();
 	virtual ~DataTypes();	
 
+    /// 添加基础型别，载入alias.xml型别
 	static bool initialize(std::string file);
 	static void finalise(void);
 
