@@ -180,6 +180,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				ERROR_MSG(fmt::format("BundleBroadcast::receive: select error. {}.\n",
 						kbe_strerror()));
 			}
+
 			return false;
 		}
 		else
@@ -200,6 +201,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 					ERROR_MSG(fmt::format("BundleBroadcast::receive: recvfrom error. {}.\n",
 							kbe_strerror()));
 				}
+
 				continue;
 			}
 			
@@ -213,17 +215,17 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				try
 				{
 					recvArgs->createFromStream(*pCurrPacket());
-				}catch(MemoryStreamException &)
+				}
+				catch(MemoryStreamException &)
 				{
-					ERROR_MSG(fmt::format("BundleBroadcast::receive: data is error. size={}.\n",
-							len));
+					ERROR_MSG(fmt::format("BundleBroadcast::receive: data is error. size={}, from {}.\n",
+							len, inet_ntoa((struct in_addr&)psin->sin_addr.s_addr)));
 
 					continue;
 				}
 			}
 
 			break;
-
 		}
 	}
 	

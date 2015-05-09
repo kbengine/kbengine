@@ -86,6 +86,7 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
 	void setScriptModule(const ScriptDefModule*	scriptModule){ scriptModule_ = scriptModule; }
+
 protected:
 	const ScriptDefModule*					scriptModule_;			// 该entity所使用的脚本模块对象
 

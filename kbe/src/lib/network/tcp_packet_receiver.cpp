@@ -187,11 +187,11 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 
 #ifdef _WIN32
 	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
 				wsaErr));
 #else
 	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n",
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
 			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(

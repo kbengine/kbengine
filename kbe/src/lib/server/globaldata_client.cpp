@@ -65,18 +65,20 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 		else
 		{
 			ret = true;
+
+			// 此处不能减引用，因为需要被pyDict_引用
+			// Py_XDECREF(pyKey);
+			// Py_XDECREF(pyValue);
 		}
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("Map::write:unpickle is error. key={}, val={}\n",
-			PyBytes_AsString(pyKey), PyBytes_AsString(pyValue)));
+			(pyKey ? PyBytes_AsString(pyKey) : "NULL"), (pyValue ? PyBytes_AsString(pyValue)  : "NULL")));
 
 		PyErr_Print();
 	}
 
-	// Py_XDECREF(pyKey);
-	Py_XDECREF(pyValue);
 	return ret;	
 }
 
@@ -87,7 +89,8 @@ bool GlobalDataClient::del(PyObject* pyKey)
 
 	if(pyKey)
 	{
-		if (PyDict_GetItem(pyDict_, pyKey) && PyDict_DelItem(pyDict_, pyKey) == -1)
+		PyObject* pyVal = PyDict_GetItem(pyDict_, pyKey);
+		if (pyVal && PyDict_DelItem(pyDict_, pyKey) == -1)
 		{
 			ERROR_MSG(fmt::format("Map::del: delete key is failed! key={}.\n", PyBytes_AsString(pyKey)));
 			PyErr_Clear();
@@ -96,11 +99,13 @@ bool GlobalDataClient::del(PyObject* pyKey)
 		{
 			ret = true;
 		}
-		Py_DECREF(pyKey);
+
+		// PyDict_GetItem为弱引用
+		// Py_XDECREF(pyVal);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Map::del: delete key is error! key={}.\n", PyBytes_AsString(pyKey)));
+		ERROR_MSG(fmt::format("Map::del: delete key is error! key={}.\n", "NULL"));
 		PyErr_Print();
 	}
 

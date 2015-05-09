@@ -103,7 +103,7 @@ public:
 	void pFilter(PacketFilterPtr pFilter) { pFilter_ = pFilter; }
 
 	void destroy();
-	bool isDestroyed() const { return isDestroyed_; }
+	bool isDestroyed() const { return (flags_ & FLAG_DESTROYED) > 0; }
 
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
 	NetworkInterface* pNetworkInterface()			{ return pNetworkInterface_; }
@@ -122,7 +122,7 @@ public:
 
 	void clearBundle();
 
-	bool sending() const { return sending_;}
+	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
 	void stopSend();
 
 	void send(Bundle * pBundle = NULL);
@@ -159,8 +159,10 @@ public:
 		
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
-	bool isCondemn() const { return isCondemn_; }
+	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
 	void condemn();
+
+	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
 	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
@@ -188,6 +190,14 @@ public:
 	bool finalise();
 
 private:
+
+	enum Flags
+	{
+		FLAG_SENDING	= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED	= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE	= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN	= 0x00000008,	// 该频道已经变得不合法
+	};
 
 	enum TimeOutType
 	{
@@ -217,8 +227,6 @@ private:
 
 	PacketReader*				pPacketReader_;
 
-	bool						isDestroyed_;
-
 	// Statistics
 	uint32						numPacketsSent_;
 	uint32						numPacketsReceived_;
@@ -232,10 +240,6 @@ private:
 	EndPoint *					pEndPoint_;
 	PacketReceiver*				pPacketReceiver_;
 	PacketSender*				pPacketSender_;
-	bool						sending_;
-
-	// 如果为true， 则该频道已经变得不合法
-	bool						isCondemn_;
 
 	// 如果是外部通道且代理了一个前端则会绑定前端代理ID
 	ENTITY_ID					proxyID_;
@@ -250,6 +254,8 @@ private:
 
 	// 支持指定某个通道使用某个消息handlers
 	KBEngine::Network::MessageHandlers* pMsgHandlers_;
+
+	uint32						flags_;
 };
 
 }

@@ -46,6 +46,7 @@ public:
 	virtual void onLeave(CoordinateNode * pNode);
 
 	INLINE Witness* pWitness() const;
+
 protected:
 	Witness* pWitness_;
 };

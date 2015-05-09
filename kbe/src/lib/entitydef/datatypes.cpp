@@ -172,7 +172,7 @@ bool DataTypes::addDataType(std::string name, DataType* dataType)
 	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
 	if (iter != dataTypesLowerName_.end())
 	{ 
-		ERROR_MSG(fmt::format("DataTypes::addDateType(name): name {} exist.\n", name.c_str()));
+		ERROR_MSG(fmt::format("DataTypes::addDataType(name): name {} exist.\n", name.c_str()));
 		return false;
 	}
 
@@ -184,7 +184,7 @@ bool DataTypes::addDataType(std::string name, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("DataTypes::addDateType(name): {:p} name={}, aliasName={}, uid={}.\n", 
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(name): {:p} name={}, aliasName={}, uid={}.\n", 
 			(void*)dataType, name, dataType->aliasName(), dataType->id()));
 	}
 
@@ -197,7 +197,7 @@ bool DataTypes::addDataType(DATATYPE_UID uid, DataType* dataType)
 	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
 	if (iter != uid_dataTypes_.end())
 	{
-		ERROR_MSG(fmt::format("DataTypes(uid)::addDateType: utype {} exist.\n", uid));
+		ERROR_MSG(fmt::format("DataTypes(uid)::addDataType: utype {} exist.\n", uid));
 		return false;
 	}
 
@@ -205,7 +205,7 @@ bool DataTypes::addDataType(DATATYPE_UID uid, DataType* dataType)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("DataTypes::addDateType(uid): {:p} aliasName={}, uid={}.\n", 
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(uid): {:p} aliasName={}, uid={}.\n", 
 			(void*)dataType, dataType->aliasName(), uid));
 	}
 

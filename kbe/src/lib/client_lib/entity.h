@@ -108,6 +108,41 @@ public:
 	INLINE ClientObjectBase* pClientApp() const;
 	
 	const EntityAspect* getAspect() const{ return &aspect_; }
+
+	/** 
+		entity移动到某个点 
+	*/
+	uint32 moveToPoint(const Position3D& destination, float velocity, float distance,
+			PyObject* userData, bool faceMovement, bool moveVertically);
+	
+	DECLARE_PY_MOTHOD_ARG6(pyMoveToPoint, PyObject_ptr, float, float, PyObject_ptr, int32, int32);
+
+	/** 
+		停止任何移动行为
+	*/
+	bool stopMove();
+
+	/** 
+		entity的一次移动完成 
+	*/
+	void onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
+
+	/** 
+		entity的移动完成 
+	*/
+	void onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg);
+
+	/** 
+		entity移动失败
+	*/
+	void onMoveFailure(uint32 controllerId, PyObject* userarg);
+
+	/** 
+		删除一个控制器  
+	*/
+	void cancelController(uint32 id);
+	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);
+
 	/** 
 		销毁这个entity 
 	*/
@@ -153,6 +188,8 @@ protected:
 	bool									enterworld_;						// 是否已经enterworld了， restore时有用
 	
 	bool									isOnGound_;
+
+	ScriptID								pMoveHandlerID_;
 };																										
 
 }

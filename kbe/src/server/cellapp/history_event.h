@@ -45,6 +45,7 @@ public:
 	uint32 msglen() const { return msglen_; }
 
 	void addMsgLen(uint32 v){ msglen_ += v; }
+
 protected:
 	HistoryEventID id_;
 	uint32 msglen_;

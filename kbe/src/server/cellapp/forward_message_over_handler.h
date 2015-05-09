@@ -40,6 +40,7 @@ public:
 	~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp();
 
 	virtual void process();
+
 private:
 	Entity* _e;
 	SPACE_ID _spaceID;
@@ -54,6 +55,7 @@ public:
 	~FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp();
 
 	virtual void process();
+
 private:
 	std::string _entityType;
 	ENTITY_ID _createToEntityID, _entityID;

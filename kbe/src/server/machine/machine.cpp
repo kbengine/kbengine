@@ -737,111 +737,135 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
+	{
+		ERROR_MSG(fmt::format("Machine::stopserver: component({}) is error!", 
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)), 
+			pChannel->c_str()));
+
 		return;
+	}
 
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
-	Components::COMPONENTS::iterator iter = components.begin();
 
-	for(; iter != components.end(); )
+	if(components.size() > 0)
 	{
-		Components::ComponentInfos* cinfos = &(*iter);
+		Components::COMPONENTS::iterator iter = components.begin();
 
-		if(cinfos->uid != uid)
+		for(; iter != components.end(); )
 		{
-			iter++;
-			continue;
-		}
+			Components::ComponentInfos* cinfos = &(*iter);
 
-		if(componentType != cinfos->componentType)
-		{
-			iter++;
-			continue;
-		}
+			if(cinfos->uid != uid)
+			{
+				iter++;
+				continue;
+			}
 
-		if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
-		{
-			iter++;
-			continue;
-		}
+			if(componentType != cinfos->componentType)
+			{
+				iter++;
+				continue;
+			}
 
-		INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
-			(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
+			if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
+			{
+				iter++;
+				continue;
+			}
 
-		bool usable = checkComponentUsable(&(*iter), false, false);
+			INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
+				(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
+
+			bool usable = checkComponentUsable(&(*iter), false, false);
 		
-		if(!usable)
-		{
-			iter = components.erase(iter);
-			continue;
-		}
+			if(!usable)
+			{
+				iter = components.erase(iter);
+				continue;
+			}
 
-		(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
 
-		Network::Bundle closebundle;
-		if(componentType != BOTS_TYPE)
-		{
-			COMMON_NETWORK_MESSAGE(componentType, closebundle, reqCloseServer);
-		}
-		else
-		{
-			closebundle.newMessage(BotsInterface::reqCloseServer);
-		}
+			Network::Bundle closebundle;
+			if(componentType != BOTS_TYPE)
+			{
+				COMMON_NETWORK_MESSAGE(componentType, closebundle, reqCloseServer);
+			}
+			else
+			{
+				closebundle.newMessage(BotsInterface::reqCloseServer);
+			}
 
-		Network::EndPoint ep1;
-		ep1.socket(SOCK_STREAM);
+			Network::EndPoint ep1;
+			ep1.socket(SOCK_STREAM);
 
-		if (!ep1.good())
-		{
-			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
-			success = false;
-			break;
-		}
+			if (!ep1.good())
+			{
+				ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+				success = false;
+				break;
+			}
 		
-		if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
-		{
-			ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
-			success = false;
-			break;
-		}
+			if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
+			{
+				ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
+				success = false;
+				break;
+			}
 
-		ep1.setnonblocking(false);
-		ep1.send(&closebundle);
+			ep1.setnonblocking(false);
+			ep1.send(&closebundle);
 
-		Network::TCPPacket recvpacket;
-		recvpacket.resize(255);
+			Network::TCPPacket recvpacket;
+			recvpacket.resize(255);
 
-		fd_set	fds;
-		struct timeval tv = { 0, 1000000 }; // 1000ms
+			fd_set	fds;
+			struct timeval tv = { 0, 1000000 }; // 1000ms
 
-		FD_ZERO( &fds );
-		FD_SET((int)ep1, &fds);
+			FD_ZERO( &fds );
+			FD_SET((int)ep1, &fds);
 
-		int selgot = select(ep1+1, &fds, NULL, NULL, &tv);
-		if(selgot == 0)
-		{
-			// 超时, 可能对方繁忙
-			ERROR_MSG(fmt::format("--> stop {}({}), addr={}, timeout!\n", 
-				(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
-				cinfos->pIntAddr->c_str() : "unknown")));
+			int selgot = select(ep1+1, &fds, NULL, NULL, &tv);
+			if(selgot == 0)
+			{
+				// 超时, 可能对方繁忙
+				ERROR_MSG(fmt::format("--> stop {}({}), addr={}, timeout!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
 
+				iter++;
+				continue;
+			}
+			else if(selgot == -1)
+			{
+				WARNING_MSG(fmt::format("--> stop {}({}), addr={}, recv_len == -1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
+				iter++;
+				continue;
+			}
+
+			(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
+
+			int len = ep1.recv(recvpacket.data(), 1);
+			if(len != 1)
+			{
+				ERROR_MSG(fmt::format("--> stop {}({}), addr={}, recv_len != 1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
+				success = false;
+				break;
+			}
+
+			recvpacket >> success;
 			iter++;
-			continue;
 		}
-		else if(selgot == -1)
-		{
-			iter++;
-			continue;
-		}
-
-		int len = ep1.recv(recvpacket.data(), 1);
-		if(len != 1)
-		{
-			success = false;
-			break;
-		}
-
-		recvpacket >> success;
-		break;
+	}
+	else
+	{
+		INFO_MSG(fmt::format("Machine::stopserver: uid={}, {} size is 0, addr={}\n", 
+			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
 	(*pBundle) << success;

@@ -18,17 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_MOVETOPOINTHANDLER_H
-#define KBE_MOVETOPOINTHANDLER_H
+#ifndef KBE_CLIENT_MOVETOPOINTHANDLER_H
+#define KBE_CLIENT_MOVETOPOINTHANDLER_H
 
-#include "controller.h"
-#include "updatable.h"
 #include "pyscript/scriptobject.h"	
 #include "math/math.h"
+#include "script_callbacks.h"
 
 namespace KBEngine{
+namespace client
+{
 
-class MoveToPointHandler : public Updatable
+class Entity;
+class MoveToPointHandler : public ScriptCallbackHandler
 {
 public:
 	enum MoveType
@@ -38,27 +40,25 @@ public:
 		MOVE_TYPE_NAV = 2,			// 移动控制器类型
 	};
 
-	virtual std::string c_str(){ return "Move_Handler"; }
-
-	void addToStream(KBEngine::MemoryStream& s);
-	void createFromStream(KBEngine::MemoryStream& s);
-
-	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
+	MoveToPointHandler(ScriptCallbacks& scriptCallbacks, client::Entity* pEntity, int layer, 
+		const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 
 	MoveToPointHandler();
 	virtual ~MoveToPointHandler();
 	
-	virtual bool update();
+	virtual bool update(TimerHandle& handle);
 
 	virtual const Position3D& destPos(){ return destPos_; }
-	virtual bool requestMoveOver(const Position3D& oldPos);
+	virtual bool requestMoveOver(TimerHandle& handle, const Position3D& oldPos);
 
 	virtual bool isOnGround(){ return false; }
-		
-	void pController(Controller* pController){ pController_ = pController; }
 
 	virtual MoveType type() const{ return MOVE_TYPE_POINT; }
+
+protected:
+	virtual void handleTimeout( TimerHandle handle, void * pUser );
+	virtual void onRelease( TimerHandle handle, void * /*pUser*/ );
 
 protected:
 	Position3D destPos_;
@@ -67,10 +67,11 @@ protected:
 	bool moveVertically_;		// true则可以飞起来移动否则贴地
 	PyObject* pyuserarg_;
 	float distance_;
-	Controller* pController_;
 	int layer_;
+	client::Entity* pEntity_;
 };
  
 }
-#endif // KBE_MOVETOPOINTHANDLER_H
+}
+#endif // KBE_CLIENT_MOVETOPOINTHANDLER_H
 

@@ -54,12 +54,6 @@
     <ClCompile Include="fixed_messages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="html5_packet_filter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="html5_packet_reader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="interface_defs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -111,6 +105,12 @@
     <ClCompile Include="poller_select.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="websocket_packet_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="websocket_packet_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="address.h">
@@ -147,12 +147,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fixed_messages.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="html5_packet_filter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="html5_packet_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="http_utility.h">
@@ -216,6 +210,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="poller_select.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="websocket_packet_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="websocket_packet_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

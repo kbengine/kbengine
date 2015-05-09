@@ -141,8 +141,8 @@ bool ClientObject::initCreate()
 
 	pServerChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
 
-	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->ninterface_, this);
-	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->ninterface_, this);
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->networkInterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->networkInterface_, this);
 	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
 	
 	//不在这里注册
@@ -209,8 +209,8 @@ bool ClientObject::initLoginGateWay()
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->ninterface_, this);
-	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->ninterface_, this);
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->networkInterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->networkInterface_, this);
 	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
 
 	//不在这里注册

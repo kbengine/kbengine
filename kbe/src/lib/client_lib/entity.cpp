@@ -21,7 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "clientapp.h"
 #include "entity.h"
+#include "config.h"
 #include "clientobjectbase.h"
+#include "moveto_point_handler.h"	
 #include "entitydef/entity_mailbox.h"
 #include "network/channel.h"	
 #include "network/bundle.h"	
@@ -41,6 +43,8 @@ namespace client
 
 //-------------------------------------------------------------------------------------
 CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
+SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -69,7 +73,8 @@ pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f),
 enterworld_(false),
-isOnGound_(true)
+isOnGound_(true),
+pMoveHandlerID_(0)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 	script::PyGC::incTracing("Entity");
@@ -540,6 +545,195 @@ void Entity::onBecomeNonPlayer()
 
 	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
 	SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::stopMove()
+{
+	if(pMoveHandlerID_ > 0)
+	{
+		pClientApp_->scriptCallbacks().delCallback(pMoveHandlerID_);
+		pMoveHandlerID_ = 0;
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float distance, PyObject* userData, 
+						 bool faceMovement, bool moveVertically)
+{
+	stopMove();
+
+	int hertz = 0;
+	if(g_componentType == BOTS_TYPE)
+		hertz = g_kbeSrvConfig.gameUpdateHertz();
+	else
+		hertz = Config::getSingleton().gameUpdateHertz();
+
+	velocity = velocity / hertz;
+
+	pMoveHandlerID_ = pClientApp_->scriptCallbacks().addCallback(0.0f, 0.1f, new MoveToPointHandler(pClientApp_->scriptCallbacks(), this, 0, destination, velocity, 
+		distance, faceMovement, moveVertically, userData));
+
+	return pMoveHandlerID_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, float distance, PyObject_ptr userData,
+								 int32 faceMovement, int32 moveVertically)
+{
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+	Py_INCREF(userData);
+
+	return PyLong_FromLong(moveToPoint(destination, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	AUTO_SCOPED_PROFILE("onMove");
+
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	stopMove();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	stopMove();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::cancelController(uint32 id)
+{
+	if(this->isDestroyed())
+	{
+		return;
+	}
+
+	// 暂时只有回调, 主要是因为用在了移动中，当前可能不是非常合适
+	if(id == (uint32)pMoveHandlerID_)
+		this->stopMove();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	uint32 id = 0;
+	PyObject* pyargobj = NULL;
+
+	if(currargsSize != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::cancel: args require 1 args(controllerID|int or \"Movement\"|str), gived %d! is script[%s].\n",								
+			pobj->scriptName(), currargsSize);														
+																																
+		PyErr_PrintEx(0);																										
+		return 0;																								
+	}
+
+	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	if(pyargobj == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PyUnicode_Check(pyargobj))
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
+		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		
+		if(strcmp(s, "Movement") == 0)
+		{
+			pobj->stopMove();
+		}
+		else
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->scriptName());
+			PyErr_PrintEx(0);
+			free(s);
+			return 0;
+		}
+
+		free(s);
+
+		S_Return;
+	}
+	else
+	{
+		if(!PyLong_Check(pyargobj))
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) is error!", pobj->scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		id = PyLong_AsLong(pyargobj);
+	}
+
+	pobj->cancelController(id);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

@@ -421,13 +421,14 @@ void ScriptVector4::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 {
-	if(PySequence_Check(value) <= 0)
+	if(value == NULL || PySequence_Check(value) <= 0)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "args of position is must a sequence.");
+			PyErr_Format(PyExc_TypeError, "args is must a sequence.");
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 
@@ -436,9 +437,10 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "len(position) != %d. can't set.", VECTOR_SIZE);
+			PyErr_Format(PyExc_TypeError, "len(args) != %d. can't set.", VECTOR_SIZE);
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 	
@@ -446,8 +448,11 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
+bool ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
 {
+	if(!check(obj))
+		return false;
+
 	PyObject* pyItem = PySequence_GetItem(obj, 0);
 	v.x = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
@@ -463,6 +468,8 @@ void ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
 	pyItem = PySequence_GetItem(obj, 3);
 	v.w = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -634,11 +641,17 @@ PyObject* ScriptVector4::__py_pyDistTo(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
 	Vector4 v1;
-	convertPyObjectToVector4(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector4(v1, pyVal);
 	
 	Vector4 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec4Length(&rv)); //计算长度并返回
@@ -653,12 +666,18 @@ PyObject* ScriptVector4::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 		PyErr_PrintEx(0);
 		S_Return;
 	}
-	
+
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
 	Vector4 v1;
-	convertPyObjectToVector4(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector4(v1, pyVal);
 	
 	Vector4 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec4LengthSq(&rv)); //计算点乘并返回
@@ -760,6 +779,7 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 
 	// 如果参数只有1个元素
 	int tupleSize = PyTuple_Size(args);
+
 	if(tupleSize == 1)
 	{
 		PyObject* pyItem = PyTuple_GetItem(args, 0);
@@ -776,6 +796,7 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 			{
 				v[i] = f;
 			}
+
 			good = true;
 		}
 	}

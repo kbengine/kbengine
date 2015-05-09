@@ -75,6 +75,7 @@ public:
 	PyObject* tp_str();
 	
 	void c_str(char* s, size_t size);
+
 protected:
 	ENTITY_ID								srcEntityID_;						// srcEntityID_
 

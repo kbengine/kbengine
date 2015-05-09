@@ -365,10 +365,10 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	std::string exItems = "";
 
 	if(this->isChild())
-		exItems = ", "TABLE_PARENTID_CONST_STR" bigint(20) NOT NULL, INDEX("TABLE_PARENTID_CONST_STR")";
+		exItems = ", "TABLE_PARENTID_CONST_STR" bigint(20) unsigned NOT NULL, INDEX("TABLE_PARENTID_CONST_STR")";
 
 	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS "ENTITY_TABLE_PERFIX"_%s "
-			"(id bigint(20) AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
+			"(id bigint(20) unsigned AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
 		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 

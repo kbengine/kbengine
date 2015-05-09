@@ -83,7 +83,7 @@ serverDatas_(""),
 typeClient_(CLIENT_TYPE_PC),
 bufferedCreateEntityMessage_(),
 eventHandler_(),
-ninterface_(ninterface),
+networkInterface_(ninterface),
 targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
@@ -159,7 +159,7 @@ void ClientObjectBase::reset(void)
 	}
 
 	pServerChannel_ = Network::Channel::ObjPool().createObject();
-	pServerChannel_->pNetworkInterface(&ninterface_);
+	pServerChannel_->pNetworkInterface(&networkInterface_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -276,7 +276,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
 	Py_INCREF(pyCallback);
-	ScriptID id = pClientObjectBase->scriptCallbacks().addCallback(time, new ScriptCallbackHandler(pClientObjectBase->scriptCallbacks(), pyCallback));
+	ScriptID id = pClientObjectBase->scriptCallbacks().addCallback(time, 0.0f, new ScriptCallbackHandler(pClientObjectBase->scriptCallbacks(), pyCallback));
 	return PyLong_FromLong(id);
 }
 
@@ -516,7 +516,6 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	lastSentUpdateDataTime_ = timestamp();
 	return pServerChannel_;
 }
-
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::fireEvent(const EventData* pEventData)

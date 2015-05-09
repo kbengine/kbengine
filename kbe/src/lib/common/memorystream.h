@@ -303,7 +303,7 @@ public:
         while (length() > 0)
         {
             char c = read<char>();
-            if (c == 0)
+            if (c == 0 || !isascii(c))
                 break;
 
             value += c;
@@ -317,7 +317,7 @@ public:
         while (length() > 0)
         {
             char c = read<char>();
-            if (c == 0)
+            if (c == 0 || !isascii(c))
                 break;
 
             *(value++) = c;
@@ -542,12 +542,6 @@ public:
     void append(const char *src, size_t cnt)
     {
         return append((const uint8 *)src, cnt);
-    }
-
-    void append(size_t offset, const char *src, size_t src_offset, size_t cnt)
-    {
-		wpos_ += offset;
-        return append((const uint8 *)src + src_offset, cnt);
     }
 
     template<class T> void append(const T *src, size_t cnt)

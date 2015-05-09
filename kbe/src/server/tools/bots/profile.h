@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 extern ProfileVal SCRIPTCALL_PROFILE;
+extern ProfileVal ONMOVE_PROFILE;
 
 }
 #endif

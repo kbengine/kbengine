@@ -25,8 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "network/websocket_protocol.h"
-#include "network/html5_packet_filter.h"
-#include "network/html5_packet_reader.h"
+#include "network/websocket_packet_filter.h"
+#include "network/websocket_packet_reader.h"
 #include "network/bundle.h"
 #include "network/packet_reader.h"
 #include "network/network_interface.h"
@@ -64,9 +64,9 @@ size_t Channel::getPoolObjectBytes()
 	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
 		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
 		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_)
-		+ sizeof(isDestroyed_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
+		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
-		+ sizeof(sending_) + sizeof(isCondemn_) + sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
+		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
 		+ sizeof(componentID_) + sizeof(pMsgHandlers_);
 
 	return bytes;
@@ -97,7 +97,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	lastReceivedTime_(0),
 	bundles_(),
 	pPacketReader_(0),
-	isDestroyed_(false),
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
 	numBytesSent_(0),
@@ -108,13 +107,12 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
 	pPacketSender_(NULL),
-	sending_(false),
-	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
-	pMsgHandlers_(NULL)
+	pMsgHandlers_(NULL),
+	flags_(0)
 {
 	this->clearBundle();
 	initialize(networkInterface, pEndPoint, traits, pt, pFilter, id);
@@ -131,7 +129,6 @@ Channel::Channel():
 	lastReceivedTime_(0),
 	bundles_(),
 	pPacketReader_(0),
-	isDestroyed_(false),
 	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
@@ -143,13 +140,12 @@ Channel::Channel():
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
 	pPacketSender_(NULL),
-	sending_(false),
-	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
-	pMsgHandlers_(NULL)
+	pMsgHandlers_(NULL),
+	flags_(0)
 {
 	this->clearBundle();
 }
@@ -302,14 +298,14 @@ void Channel::pEndPoint(const EndPoint* pEndPoint)
 //-------------------------------------------------------------------------------------
 void Channel::destroy()
 {
-	if(isDestroyed_)
+	if(isDestroyed())
 	{
 		CRITICAL_MSG("is channel has Destroyed!\n");
 		return;
 	}
 
 	clearState();
-	isDestroyed_ = true;
+	flags_ |= FLAG_DESTROYED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -344,8 +340,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 	lastReceivedTime_ = timestamp();
 
-	isDestroyed_ = false;
-	isCondemn_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
@@ -370,7 +364,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	//SAFE_RELEASE(pPacketReader_);
 	//SAFE_RELEASE(pPacketSender_);
 
-	sending_ = false;
+	flags_ = 0;
 	pFilter_ = NULL;
 
 	stopInactivityDetection();
@@ -498,7 +492,7 @@ void Channel::send(Bundle * pBundle)
 	if(bundleSize == 0)
 		return;
 
-	if(!sending_)
+	if(!sending())
 	{
 		if(pPacketSender_ == NULL)
 			pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
@@ -508,7 +502,7 @@ void Channel::send(Bundle * pBundle)
 		// 如果不能立即发送到系统缓冲区，那么交给poller处理
 		if(bundles_.size() > 0 && !isCondemn() && !isDestroyed())
 		{
-			sending_ = true;
+			flags_ |= FLAG_SENDING;
 			pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
 		}
 	}
@@ -551,17 +545,18 @@ void Channel::send(Bundle * pBundle)
 //-------------------------------------------------------------------------------------
 void Channel::stopSend()
 {
-	if(!sending_)
+	if(!sending())
 		return;
 
-	sending_ = false;
+	flags_ &= ~FLAG_SENDING;
+
 	pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
 }
 
 //-------------------------------------------------------------------------------------
 void Channel::onSendCompleted()
 {
-	KBE_ASSERT(bundles_.size() == 0 && sending_);
+	KBE_ASSERT(bundles_.size() == 0 && sending());
 	stopSend();
 }
 
@@ -672,34 +667,44 @@ void Channel::addReceiveWindow(Packet* pPacket)
 //-------------------------------------------------------------------------------------
 void Channel::condemn()
 { 
-	if(isCondemn_)
+	if(isCondemn())
 		return;
 
-	isCondemn_ = true; 
+	flags_ |= FLAG_CONDEMN; 
 	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
 
 //-------------------------------------------------------------------------------------
 void Channel::handshake()
 {
+	if(hasHandshake())
+		return;
+
 	if(bufferedReceives_.size() > 0)
 	{
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		Packet* pPacket = (*packetIter);
 		
+		flags_ |= FLAG_HANDSHAKE;
+
 		// 此处判定是否为websocket或者其他协议的握手
-		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
+		if(websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 		{
 			channelType_ = CHANNEL_WEB;
-			if(html5::WebSocketProtocol::handshake(this, pPacket))
+			if(websocket::WebSocketProtocol::handshake(this, pPacket))
 			{
 				if(pPacket->length() == 0)
 				{
 					bufferedReceives_.erase(packetIter);
 				}
 
-				pPacketReader_ = new HTML5PacketReader(this);
-				pFilter_ = new HTML5PacketFilter(this);
+				if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_WEBSOCKET)
+				{
+					SAFE_RELEASE(pPacketReader_);
+					pPacketReader_ = new WebSocketPacketReader(this);
+				}
+
+				pFilter_ = new WebSocketPacketFilter(this);
 				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) successfully!\n", this->c_str()));
 				return;
 			}
@@ -709,7 +714,13 @@ void Channel::handshake()
 			}
 		}
 
-		pPacketReader_ = new PacketReader(this);
+		if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_SOCKET)
+		{
+			SAFE_RELEASE(pPacketReader_);
+			pPacketReader_ = new PacketReader(this);
+		}
+
+		pPacketReader_->reset();
 	}
 }
 
@@ -741,7 +752,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		return;
 	}
 	
-	if(pPacketReader_ == NULL)
+	if(!hasHandshake())
 	{
 		handshake();
 	}

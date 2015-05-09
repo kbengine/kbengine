@@ -46,6 +46,7 @@ public:
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
+
 protected:
 	TrapTrigger* pTrapTrigger_;
 	float xz_; 

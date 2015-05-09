@@ -39,6 +39,7 @@ public:
 	virtual ~LoadNavmeshTask(){}
 	virtual bool process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
 protected:
 	std::string name_;
 	SPACE_ID spaceID_;

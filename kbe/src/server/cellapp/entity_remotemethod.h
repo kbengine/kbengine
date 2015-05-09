@@ -40,6 +40,7 @@ public:
 
 	static PyObject* tp_call(PyObject* self, 
 			PyObject* args, PyObject* kwds);
+
 private:
 
 };

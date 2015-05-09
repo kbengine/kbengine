@@ -1,3 +1,20 @@
+###v0.6.0
+
+	2015/5/3
+
+	新增与改善：
+		Websocket FRC6544协议通讯完善
+		cluster_controller.py（集群控制）、installer.py（安装助手）工具完善
+		assets默认不包含scripts/client目录，避免不必要的误会(移动到OGRE例子脚本目录中)
+		更新API文档
+		一些结构调整
+
+	BUG修正：
+		修正bots程序退出时crash问题
+		修正在进程繁忙状态下有时不能很好的安全关服
+		修正FixedDict引用未释放问题
+
+
 ###v0.5.0
 
 	2015/4/18

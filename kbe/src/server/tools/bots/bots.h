@@ -127,6 +127,7 @@ public:
 
 	bool addClient(ClientObject* pClient);
 	bool delClient(ClientObject* pClient);
+	bool delClient(Network::Channel * pChannel);
 
 	ClientObject* findClient(Network::Channel * pChannel);
 	ClientObject* findClientByAppID(int32 appID);

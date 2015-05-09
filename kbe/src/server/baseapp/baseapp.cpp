@@ -2293,8 +2293,6 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 		return;
 	}
 
-	Py_INCREF(pyKey);
-
 	if(isDelete)
 	{
 		if(pBaseAppData_->del(pyKey))
@@ -2315,8 +2313,6 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 			Py_DECREF(pyKey);
 			return;
 		}
-
-		Py_INCREF(pyValue);
 
 		if(pBaseAppData_->write(pyKey, pyValue))
 		{

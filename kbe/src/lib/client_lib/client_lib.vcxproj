@@ -98,6 +98,7 @@
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="entity_aspect.cpp" />
     <ClCompile Include="event.cpp" />
+    <ClCompile Include="moveto_point_handler.cpp" />
     <ClCompile Include="profile.cpp" />
     <ClCompile Include="script_callbacks.cpp" />
   </ItemGroup>
@@ -112,6 +113,7 @@
     <ClInclude Include="entity_aspect.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="kbemain.h" />
+    <ClInclude Include="moveto_point_handler.h" />
     <ClInclude Include="profile.h" />
     <ClInclude Include="script_callbacks.h" />
   </ItemGroup>

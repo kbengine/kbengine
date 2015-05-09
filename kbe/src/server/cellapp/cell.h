@@ -35,6 +35,7 @@ public:
 	~Cell();
 
 	CELL_ID id() const{ return id_; }
+
 private:
 	CELL_ID id_;
 };

@@ -43,6 +43,7 @@ public:
 	virtual const Position3D& destPos();
 
 	virtual MoveType type() const{ return MOVE_TYPE_ENTITY; }
+
 protected:
 	ENTITY_ID pTargetID_;
 };

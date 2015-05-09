@@ -33,7 +33,7 @@ public:
 	ScriptCallbacks(Timers& timers);
 	~ScriptCallbacks();
 
-	ScriptID addCallback(float initialOffset,
+	ScriptID addCallback(float initialOffset, float repeatOffset,
 			TimerHandler * pHandler);
 	bool delCallback(ScriptID timerID);
 
@@ -44,6 +44,7 @@ public:
 	ScriptID getIDForHandle(TimerHandle handle) const;
 
 	bool isEmpty() const	{ return map_.empty(); }
+
 private:
 	typedef std::map<ScriptID, TimerHandle> Map;
 
@@ -72,7 +73,7 @@ public:
 		}
 	}
 
-private:
+protected:
 	virtual void handleTimeout( TimerHandle handle, void * pUser );
 
 	virtual void onRelease( TimerHandle handle, void * /*pUser*/ );

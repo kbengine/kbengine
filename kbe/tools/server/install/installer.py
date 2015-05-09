@@ -82,7 +82,7 @@ def hello():
 
 	OUT_MSG("###########################################################################")
 	OUT_MSG("#   installer:                                                            #")
-	OUT_MSG("#        KBEngine installation tool.                                      #")
+	OUT_MSG("#        KBEngine installation tools.                                     #")
 	OUT_MSG("#        Install, Uninstall, Check the version,                           #")
 	OUT_MSG("#        Environment settings, etc.                                       #")
 	OUT_MSG("#   homepage:                                                             #")
@@ -111,6 +111,10 @@ def help():
 	OUT_MSG("\tUninstall KBEngine.")
 	OUT_MSG("")
 	
+	OUT_MSG("update:")
+	OUT_MSG("\tUpdate to the latest version(KBEngine).")
+	OUT_MSG("")
+		
 	OUT_MSG("version:")
 	OUT_MSG("\tGet the KBEngine current version.")
 	OUT_MSG("")
@@ -654,6 +658,10 @@ def getMysqlConfig():
 	return config, cnf
 
 def installMysql():    
+	if platform.system() != 'Windows':
+		INFO_MSG("You are Linux, please install MySQL manually!")
+		return False
+		
 	file = 'mysql-win32.msi'
 
 	try:
@@ -1554,8 +1562,13 @@ def uninstall():
 	removeKBEEnvironment()
 	INFO_MSG("Uninstall KBEngine completed!")
 
+def update():
+	INFO_MSG("https://github.com/kbengine/kbengine/releases/latest")
+	sourceinstall()
+
 def processCommand():
 	const_args = {
+		'update'	: update, 
 		'uninstall'	: uninstall, 
 		'version'	: echoKBEVersion, 
 		'evn'		: echoKBEEnvironment, 

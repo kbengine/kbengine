@@ -429,7 +429,7 @@ public:
 	void restoreProximitys();
 
 	/** 
-		删除一个范围触发器  
+		删除一个控制器 
 	*/
 	void cancelController(uint32 id);
 	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);
@@ -546,12 +546,14 @@ public:
 		获得实体控制器管理器
 	*/
 	INLINE Controllers*	pControllers() const;
+
 private:
 	/** 
 		发送teleport结果到base端
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
+
 protected:
 	// 这个entity的客户端mailbox
 	EntityMailbox*											clientMailbox_;						

@@ -124,7 +124,7 @@ public:
 	/** 
 		将某个经过check检查过的python对象转换为vector4 
 	*/
-	static void convertPyObjectToVector4(Vector4& v, PyObject* obj);
+	static bool convertPyObjectToVector4(Vector4& v, PyObject* obj);
 
 private:
 	Vector4*			val_;

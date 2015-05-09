@@ -150,6 +150,7 @@ void Bots::finalise()
 	for(; iter != clients_.end(); ++iter)
 	{
 		iter->second->finalise();
+		Py_DECREF(iter->second);
 	}
 
 	clients_.clear();
@@ -273,6 +274,7 @@ void Bots::handleGameTick()
 
 	{
 		AUTO_SCOPED_PROFILE("updateBots");
+
 		CLIENTS::iterator iter = clients().begin();
 		for(;iter != clients().end();)
 		{
@@ -280,12 +282,9 @@ void Bots::handleGameTick()
 			ClientObject* pClientObject = iter->second;
 			++iter;
 
-			if(!pClientObject->pServerChannel())
+			if(pClientObject->isDestroyed())
 			{
-				clients().erase(pChannel);
-
-				pClientObject->finalise();
-				Py_DECREF(pClientObject);
+				delClient(pChannel);
 				continue;
 			}
 
@@ -497,7 +496,17 @@ bool Bots::addClient(ClientObject* pClient)
 //-------------------------------------------------------------------------------------
 bool Bots::delClient(ClientObject* pClient)
 {
-	clients().erase(pClient->pServerChannel());
+	return delClient(pClient->pServerChannel());
+}
+
+//-------------------------------------------------------------------------------------
+bool Bots::delClient(Network::Channel * pChannel)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(!pClient)
+		return false;
+
+	clients().erase(pChannel);
 	pClient->finalise();
 	Py_DECREF(pClient);
 	return true;
