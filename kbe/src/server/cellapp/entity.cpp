@@ -2158,7 +2158,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 			return 0;
 		}
 
-		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
+		if(pyEntityType && pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
 			PyErr_PrintEx(0);
@@ -2175,7 +2175,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 			return 0;
 		}
 		
-		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
+		if(pyEntityType && pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
 			PyErr_PrintEx(0);
