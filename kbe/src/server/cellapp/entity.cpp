@@ -2682,11 +2682,17 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 //-------------------------------------------------------------------------------------
 void Entity::onEnterSpace(Space* pSpace)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveSpace(Space* pSpace)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
 //-------------------------------------------------------------------------------------
