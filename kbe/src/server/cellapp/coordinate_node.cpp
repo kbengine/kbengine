@@ -136,6 +136,10 @@ void CoordinateNode::onNodePassZ(CoordinateNode* pNode, bool isfront)
 //-------------------------------------------------------------------------------------
 void CoordinateNode::onRemove()
 {
+	old_xx(x_);
+	old_yy(y_);
+	old_zz(z_);
+
 	x_ = -FLT_MAX;
 }
 

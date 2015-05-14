@@ -101,6 +101,7 @@ bool CoordinateSystem::insert(CoordinateNode* pNode)
 		
 		// 只有一个节点不需要更新
 		// update(pNode);
+		pNode->resetOld();
 		return true;
 	}
 
