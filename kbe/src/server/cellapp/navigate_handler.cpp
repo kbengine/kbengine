@@ -55,13 +55,34 @@ maxDistance_(maxDistance)
 
 			if(pNavHandle_)
 			{
-				Position3D currpos = pEntity->position();
+				const Position3D& currpos = pEntity->position();
 				pNavHandle_->findStraightPath(pController->pEntity()->layer(), currpos, destPos, paths_);
 
 				if(paths_.size() == 0)
+				{
 					pController_ = NULL;
+				}
 				else
-					destPos_ = paths_[destPosIdx_++];
+				{
+					bool canMove = false;
+					std::vector<Position3D>::iterator iter = paths_.begin();
+					for(; iter != paths_.end(); iter++)
+					{
+						destPos_ = paths_[destPosIdx_++];
+
+						Vector3 movement = destPos_ - currpos;
+						if(KBEVec3Length(&movement) > 0.00001f)
+						{
+							canMove = true;
+							break;
+						}
+					}
+
+					if(!canMove)
+					{
+						pController_ = NULL;
+					}
+				}
 			}
 			else
 			{
