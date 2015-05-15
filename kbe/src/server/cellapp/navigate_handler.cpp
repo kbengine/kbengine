@@ -28,10 +28,10 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 NavigateHandler::NavigateHandler(Controller* pController, const Position3D& destPos, 
-											 float velocity, float range, bool faceMovement, 
+											 float velocity, float distance, bool faceMovement, 
 											 float maxMoveDistance, float maxDistance, float girth,
 											PyObject* userarg):
-MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, true, userarg),
+MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, distance, faceMovement, true, userarg),
 destPosIdx_(0),
 paths_(),
 pNavHandle_(NULL),

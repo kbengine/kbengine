@@ -128,7 +128,6 @@ isCopy_(true)
 	script::PyGC::incTracing("Vector2");
 }
 
-
 //-------------------------------------------------------------------------------------
 ScriptVector2::ScriptVector2(Vector2 v):
 ScriptObject(getScriptType(), false),

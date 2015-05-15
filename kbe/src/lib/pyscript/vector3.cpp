@@ -132,7 +132,6 @@ _pyVector3ChangedCallback(pyVector3ChangedCallback)
 	script::PyGC::incTracing("Vector3");
 }
 
-
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(Vector3 v):
 ScriptObject(getScriptType(), false),
