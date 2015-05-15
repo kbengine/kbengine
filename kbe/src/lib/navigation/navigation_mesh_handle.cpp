@@ -108,9 +108,10 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 			navmeshQuery->closestPointOnPoly(polys[npolys-1], epos, epos1);
 				
 		navmeshQuery->findStraightPath(spos, epos, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
+
+		Position3D currpos;
 		for(int i = 0; i < nstraightPath * 3; )
 		{
-			Position3D currpos;
 			currpos.x = straightPath[i++];
 			currpos.y = straightPath[i++];
 			currpos.z = straightPath[i++];
