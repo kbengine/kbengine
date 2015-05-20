@@ -263,7 +263,7 @@ void ScriptDefModule::c_str()
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
 	for(; iter4 != methodClientDescr_.end(); ++iter4)
 	{
-		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.ClientMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.ClientMethod {} uid={}, argssize={}, aliasID={}.\n",
 			getName(), iter4->second->getName(), iter4->second->getUType(), iter4->second->getArgSize(), iter4->second->aliasID()));
 	}
 
