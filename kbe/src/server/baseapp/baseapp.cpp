@@ -3395,7 +3395,6 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 
 				uint8 keysize = keys.size();
 				bundle << keysize;
-				
 				bundle << dictdatatype->moduleName();
 
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
@@ -3431,13 +3430,13 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
 			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
-			bundle << posuid << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+			bundle << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
-			bundle << diruid << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+			bundle << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-			bundle << spaceuid << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
+			bundle << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); ++piter)
@@ -3446,8 +3445,8 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				int16 aliasID = piter->second->aliasID();
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
-
-				bundle << properUtype << aliasID << name << defaultValStr << piter->second->getDataType()->id();
+				uint32 flags = piter->second->getFlags();
+				bundle << properUtype << flags << aliasID << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
