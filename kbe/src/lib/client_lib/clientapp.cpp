@@ -609,6 +609,26 @@ bool ClientApp::updateChannel(bool loginapp, std::string accountName, std::strin
 }
 
 //-------------------------------------------------------------------------------------	
+bool ClientApp::createAccount(std::string accountName, std::string passwd, std::string datas,
+								   std::string ip, KBEngine::uint32 port)
+{
+	connectedGateway_ = false;
+
+	if(canReset_)
+		reset();
+
+	clientDatas_ = datas;
+
+	bool ret = updateChannel(true, accountName, passwd, ip, port);
+	if(ret)
+	{
+		ret = ClientObjectBase::createAccount();
+	}
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------	
 bool ClientApp::login(std::string accountName, std::string passwd, std::string datas,
 								   std::string ip, KBEngine::uint32 port)
 {
