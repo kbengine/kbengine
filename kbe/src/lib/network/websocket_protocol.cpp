@@ -172,10 +172,10 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
     server_key = base64_encode(reinterpret_cast<const unsigned char*>(message_digest), 20);
 
 	std::string ackHandshake = fmt::format("HTTP/1.1 101 Switching Protocols\r\n"
-								"Upgrade:websocket\r\n"
+								"Upgrade: websocket\r\n"
 								"Connection: Upgrade\r\n"
-								"Sec-WebSocket-Accept:{}\r\nWebSocket-Origin:{}\r\nWebSocket-Location: ws://{}/WebManagerSocket\r\n"
-								"WebSocket-Protocol:WebManagerSocket\r\n\r\n", server_key, szOrigin, szHost);
+								"Sec-WebSocket-Accept: {}\r\nWebSocket-Origin: {}\r\nWebSocket-Location: ws://{}/WebManagerSocket\r\n"
+								"WebSocket-Protocol: WebManagerSocket\r\n\r\n", server_key, szOrigin, szHost);
 
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
