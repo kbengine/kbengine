@@ -1228,7 +1228,7 @@ void Cellapp::onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine:
 
 	if(e == NULL)
 	{	
-		WARNING_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: can't found entityID:{}, by srcEntityID:{}.\n", 
+		WARNING_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: not found entityID:{}, srcEntityID:{}.\n", 
 			targetID, srcEntityID));
 		
 		s.done();
@@ -1397,7 +1397,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 
 	if(e == NULL)
 	{	
-		WARNING_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:{}.\n",
+		WARNING_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: not found entityID:{}.\n",
 			srcEntityID));
 		
 		s.done();

@@ -437,7 +437,7 @@ bool ClientObjectBase::createAccount()
 	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-
+	(*pBundle).appendBlob(clientDatas_);
 	pServerChannel_->send(pBundle);
 	return true;
 }

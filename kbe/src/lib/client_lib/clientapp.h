@@ -107,6 +107,9 @@ public:
 
 	void shutDown();
 
+	bool createAccount(std::string accountName, std::string passwd, std::string datas,
+		std::string ip, KBEngine::uint32 port);
+
 	bool login(std::string accountName, std::string passwd, std::string datas,
 		std::string ip, KBEngine::uint32 port);
 
@@ -218,6 +221,7 @@ public:
 	{
 		return ClientObjectBase::__py_disconnect(&ClientApp::getSingleton(), args);	
 	}
+
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/format.h"
 
 namespace KBEngine{
+
 /** 安全的释放一个指针内存 */
 #define SAFE_RELEASE(i)										\
 	if (i)													\
