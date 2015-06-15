@@ -88,7 +88,8 @@ std::string ErrorReporter::addressErrorToString(
 		bufLen = strLen + 1;
 		delete [] buf;
 		buf = new char[ bufLen ];
-#ifdef _WIN32
+
+#if KBE_PLATFORM == PLATFORM_WIN32
 		strLen = _snprintf(buf, bufLen, "%d reports of '%s' "
 				"in the last %.00fms",
 			reportAndCount.count,
@@ -129,7 +130,8 @@ void ErrorReporter::reportError(
 
 		va_list va;
 		va_start(va, format);
-#ifdef _WIN32
+
+#if KBE_PLATFORM == PLATFORM_WIN32
 		strLen = _vsnprintf(buf, bufLen, format, va);
 		if (strLen == -1) strLen = (bufLen - 1) * 2;
 #else

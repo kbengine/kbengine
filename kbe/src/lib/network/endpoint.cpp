@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet_sender.h"
 #include "network/udp_packet_receiver.h"
 
-#ifdef WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 #include <Iphlpapi.h>
 #pragma comment (lib,"iphlpapi.lib") 
 #else
@@ -207,7 +207,7 @@ int EndPoint::getBufferSize(int optname) const
 //-------------------------------------------------------------------------------------
 bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	int count = 0;
 	char hostname[1024];
 	struct hostent* inaddrs;
@@ -288,7 +288,7 @@ int EndPoint::getInterfaceAddressByName(const char * name, u_int32_t & address)
 {
 	int ret = -1;
 
-#ifdef WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 
     PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
     unsigned long size = sizeof(IP_ADAPTER_INFO);
@@ -394,7 +394,7 @@ int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
 		++pMac;
 	}
 
-#ifdef WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 
 	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
 	unsigned long size = sizeof(IP_ADAPTER_INFO);

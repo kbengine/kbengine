@@ -47,7 +47,7 @@ SelectPoller::SelectPoller() :
 void SelectPoller::handleNotifications(int &countReady,
 	fd_set &readFDs, fd_set &writeFDs)
 {
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	for (unsigned i=0; i < readFDs.fd_count; ++i)
 	{
 		int fd = readFDs.fd_array[ i ];
@@ -107,7 +107,7 @@ int SelectPoller::processPendingEvents(double maxWait)
 
 	int countReady = 0;
 
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	if (fdLargest_ == -1)
 	{
 		// Windows can't handle it if we don't have any FDs to select on, but
@@ -150,7 +150,7 @@ int SelectPoller::processPendingEvents(double maxWait)
 //-------------------------------------------------------------------------------------
 bool SelectPoller::doRegisterForRead(int fd)
 {
-#ifndef _WIN32
+#if KBE_PLATFORM != PLATFORM_WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
 		ERROR_MSG(fmt::format("SelectPoller::doRegisterForRead: "
@@ -187,7 +187,7 @@ bool SelectPoller::doRegisterForRead(int fd)
 //-------------------------------------------------------------------------------------
 bool SelectPoller::doRegisterForWrite(int fd)
 {
-#ifndef _WIN32
+#if KBE_PLATFORM != PLATFORM_WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
 		ERROR_MSG(fmt::format("SelectPoller::doRegisterForWrite: "
@@ -226,7 +226,7 @@ bool SelectPoller::doRegisterForWrite(int fd)
 //-------------------------------------------------------------------------------------
 bool SelectPoller::doDeregisterForRead(int fd)
 {
-#ifndef _WIN32
+#if KBE_PLATFORM != PLATFORM_WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
 		return false;
@@ -251,7 +251,7 @@ bool SelectPoller::doDeregisterForRead(int fd)
 //-------------------------------------------------------------------------------------
 bool SelectPoller::doDeregisterForWrite(int fd)
 {
-#ifndef _WIN32
+#if KBE_PLATFORM != PLATFORM_WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
 		return false;

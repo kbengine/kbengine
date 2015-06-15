@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>	
 #include <stdarg.h> 
 #include <queue> 
-#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning(disable:4819)
 #endif
 #include "common/singleton.h"

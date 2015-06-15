@@ -28,7 +28,7 @@ namespace KBEngine {
 namespace Network
 {
 	
-#ifndef _WIN32
+#if KBE_PLATFORM != PLATFORM_WIN32
 #define HAS_EPOLL
 #endif
 

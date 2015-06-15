@@ -211,7 +211,7 @@ namespace strutil {
 	/*
 	int wchar2utf8(const wchar_t* in, int in_len, char* out, int out_max)   
 	{   
-	#ifdef WIN32   
+	#if KBE_PLATFORM == PLATFORM_WIN32   
 		BOOL use_def_char;   
 		use_def_char = FALSE;   
 		return ::WideCharToMultiByte(CP_UTF8, 0, in,in_len / sizeof(wchar_t), out, out_max, NULL, NULL);   
@@ -252,7 +252,7 @@ namespace strutil {
 	   
 	int utf82wchar(const char* in, int in_len, wchar_t* out, int out_max)   
 	{   
-	#ifdef WIN32   
+	#if KBE_PLATFORM == PLATFORM_WIN32   
 		return ::MultiByteToWideChar(CP_UTF8, 0, in, in_len, out, out_max);   
 	#else   
 		size_t result;   

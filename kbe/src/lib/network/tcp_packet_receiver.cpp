@@ -136,12 +136,12 @@ Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 //-------------------------------------------------------------------------------------
 PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32
 
 	if (
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 		wsaErr == WSAEWOULDBLOCK && !expectingPacket// send出错大概是缓冲区满了, recv出错已经无数据可读了
 #else
 		errno == EAGAIN && !expectingPacket			// recv缓冲区已经无数据可读了
@@ -185,7 +185,7 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 
 #endif // unix
 
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - {}\n",
 				wsaErr));
