@@ -22,10 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DEBUG_H
 #define KBE_DEBUG_H
 
-#include <assert.h>
-#include <time.h>	
-#include <stdarg.h> 
-#include <queue> 
+#include "common/platform.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning(disable:4819)
 #endif
