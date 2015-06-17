@@ -386,6 +386,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
 	(*pForwardBundle) << pEntity_->id();
+	(*pForwardBundle) << pSpace->id();
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 

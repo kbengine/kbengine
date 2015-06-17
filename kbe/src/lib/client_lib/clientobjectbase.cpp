@@ -930,6 +930,7 @@ void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStr
 	int8 isOnGound = 0;
 
 	s >> eid;
+	s >> spaceID_;
 
 	if(s.length() > 0)
 		s >> isOnGound;
