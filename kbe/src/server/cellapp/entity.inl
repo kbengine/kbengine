@@ -254,4 +254,16 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE EntityMailbox* Entity::controlledBy() const
+{
+	return controlledBy_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
+{
+	controlledBy_ = baseMailbox;
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -146,6 +146,15 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
 	INLINE void otherClients(AllClients* clients);
 
+	/**
+		脚本获取controlledBy属性
+	*/
+	INLINE EntityMailbox* controlledBy() const;
+	INLINE void controlledBy(EntityMailbox* baseMailbox);
+	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
+	bool setControlledBy(EntityMailbox* baseMailbox);
+	bool Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+
 	/** 
 		脚本获取和设置entity的position 
 	*/
@@ -560,6 +569,10 @@ protected:
 
 	// 这个entity的baseapp mailbox
 	EntityMailbox*											baseMailbox_;						
+
+	// 这个entity的坐标和朝向当前受谁的客户端控制
+	// null表示没有客户端在控制，否则指向控制这个entity的对象的baseMailbox_
+	EntityMailbox *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
 	COMPONENT_ID											realCell_;	

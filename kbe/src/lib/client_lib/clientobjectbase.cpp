@@ -1734,6 +1734,11 @@ void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+{
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::addSpaceGeometryMapping: spaceID={}, respath={}!\n",

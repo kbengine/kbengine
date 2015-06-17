@@ -193,7 +193,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 重登陆网关成功 
 	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginGatewaySuccessfully,				NETWORK_VARIABLE_MESSAGE)
 									
-NETWORK_INTERFACE_DECLARE_END()
+	// 告诉客户端：你当前负责（或取消）控制谁的位移同步
+	CLIENT_MESSAGE_DECLARE_ARGS2(onControlEntity,							NETWORK_FIXED_MESSAGE,
+									ENTITY_ID,								eid,
+									int8,									isControlled)
+
+	NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
 	#undef DEFINE_IN_INTERFACE

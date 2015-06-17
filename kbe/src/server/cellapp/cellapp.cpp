@@ -1276,6 +1276,48 @@ void Cellapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID proxiesEntityID = 0;
+	s >> proxiesEntityID;
+	if(proxiesEntityID <= 0)
+		return;
+
+	if(s.length() <= 0)
+		return;
+
+	ENTITY_ID srcEntityID = 0;
+
+	s >> srcEntityID;
+	if(srcEntityID <= 0)
+		return;
+	
+	if(s.length() <= 0)
+		return;
+
+	KBEngine::Entity* e = findEntity(srcEntityID);	
+
+	if(e == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClientForControlledEntity: not found entity {}!\n", srcEntityID));
+		
+		s.done();
+		return;
+	}
+
+	if (e->controlledBy() && e->controlledBy()->id() != proxiesEntityID)
+	{
+		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClientForControlledEntity: entity {} has no permission to control entity {}!\n", proxiesEntityID, srcEntityID));
+		
+		s.done();
+		return;
+	}
+
+	e->onUpdateDataFromClient(s);
+	s.done();
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::onUpdateGhostPropertys(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID entityID;

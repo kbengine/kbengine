@@ -91,6 +91,7 @@ SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
+SCRIPT_GETSET_DECLARE("controlledBy",				pyGetControlledBy,				pySetControlledBy,			0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
@@ -301,6 +302,119 @@ PyObject* Entity::pyGetBaseMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetControlledBy( )
+{
+	EntityMailbox* mailbox = controlledBy();
+	if(mailbox == NULL)
+		S_Return;
+
+	Py_INCREF(mailbox);
+	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetControlledBy(PyObject *value)
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return -1;																				
+	}
+
+	if( value != Py_None && (!PyObject_TypeCheck( value, EntityMailbox::getScriptType() ) || !((EntityMailbox *)value)->isBase()) )
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",		
+			scriptName());		
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	if(value == Py_None)
+	{
+		setControlledBy( NULL );
+		return 0;
+	}
+	else
+	{
+		if (setControlledBy( static_cast<EntityMailbox *>(value) ))
+			return 0;
+		else
+			return -1;
+	}
+}
+
+bool Entity::setControlledBy(EntityMailbox* baseMailbox)
+{
+	if (baseMailbox && baseMailbox->id() == id())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: base entity mailbox can't set to self.base!\n",		
+			scriptName());		
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	EntityMailbox *oldMailbox = controlledBy();
+
+	if(oldMailbox != NULL)
+	{
+		controlledBy( NULL );
+		Py_DECREF( oldMailbox );
+
+		// 通知旧的客户端：当前你不需要控制某人的位移了
+		sendControlledByStatusMessage( oldMailbox, 0 );
+	}
+
+	if(baseMailbox != NULL)
+	{
+		// @TODO(phw): 理论上，这里需要判断basemailbox是否有proxies
+		// add code here...
+
+		Py_INCREF(baseMailbox);
+		controlledBy( baseMailbox );
+		
+		// @TODO(phw): 这里要通知客户端：当前你控制谁的位移同步
+		if (!sendControlledByStatusMessage( baseMailbox, 1 ))
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: base entity mailbox has no client channel!\n",		
+				scriptName());		
+			PyErr_PrintEx(0);
+			return false;
+		}
+		return true;
+	}
+	return true;
+}
+
+bool Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled)
+{
+	PyObject* clientMB = PyObject_GetAttrString(baseMailbox, "client");
+	if(clientMB == Py_None)
+		return false;
+
+	EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
+	// Py_INCREF(client); 这里不需要增加引用， 因为每次都会产生一个新的对象
+
+	Network::Channel* pChannel = client->getChannel();
+	if(!pChannel)
+		return false;
+	
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pForwardBundle).newMessage(ClientInterface::onControlEntity);
+	(*pForwardBundle) << id();
+	(*pForwardBundle) << isControlled;
+
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(baseMailbox->id(), (*pSendBundle), (*pForwardBundle));
+	pChannel->send(pSendBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
