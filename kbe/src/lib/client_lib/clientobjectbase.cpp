@@ -812,10 +812,10 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
 			entity->isOnGound(isOnGound > 0);
-
+			entity->spaceID(spaceID_);
 			entity->initializeEntity(NULL);
 			SCRIPT_ERROR_CHECK();
-
+			
 			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}), appID({}).\n", 
 				entity->scriptName(), eid, (int)isOnGound, appID()));
 		}
@@ -827,6 +827,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 	else
 	{
+		spaceID_ = entity->spaceID();
 		entity->isOnGound(isOnGound > 0);
 		entityPos_ = entity->position();
 		entityDir_ = entity->direction();
