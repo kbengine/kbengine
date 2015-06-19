@@ -72,6 +72,7 @@ class Entity : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
 	ENTITY_HEADER(Entity)
+
 public:
 	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
 	~Entity();
@@ -120,6 +121,7 @@ public:
 	*/
 	INLINE void pChannel(Network::Channel* pchannel);
 	INLINE Network::Channel* pChannel(void) const ;
+
 public:
 	/** 
 		mailbox section
