@@ -319,7 +319,7 @@ public:
 	/** 网络接口
 		服务器告诉客户端：你当前（取消）控制谁的位移同步
 	*/
-	virtual void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
+	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
 
 	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
