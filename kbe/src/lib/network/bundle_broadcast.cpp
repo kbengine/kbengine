@@ -159,7 +159,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			{
 				if(showerr)
 				{
-					ERROR_MSG("BundleBroadcast::receive: is failed(please check{firewall rule => broadcastaddr not is LAN ?} and Machine process has been running?)!\n");
+					ERROR_MSG("BundleBroadcast::receive: is failed! Please check the Firewall rules, broadcastaddr is not LAN?"
+					" And check whether the Machine process has been running?\n");
 				}
 				
 				return false;
