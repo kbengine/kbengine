@@ -155,7 +155,7 @@ public:
 	INLINE void controlledBy(EntityMailbox* baseMailbox);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
 	bool setControlledBy(EntityMailbox* baseMailbox);
-	bool Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+	bool sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
 
 	/** 
 		脚本获取和设置entity的position 
