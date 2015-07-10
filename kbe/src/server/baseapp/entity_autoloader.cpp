@@ -33,7 +33,6 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 EntityAutoLoader::EntityAutoLoader(Network::NetworkInterface & networkInterface, InitProgressHandler* pInitProgressHandler):
-Task(),
 networkInterface_(networkInterface),
 pInitProgressHandler_(pInitProgressHandler),
 entityTypes_(),
@@ -41,8 +40,6 @@ start_(0),
 end_(0),
 querying_(false)
 {
-	networkInterface.dispatcher().addTask(this);
-
 	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
 	for(; iter!= modules.end(); ++iter)
@@ -54,7 +51,6 @@ querying_(false)
 //-------------------------------------------------------------------------------------
 EntityAutoLoader::~EntityAutoLoader()
 {
-	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("EntityAutoLoader::~EntityAutoLoader()\n");
 
 	if(pInitProgressHandler_)
