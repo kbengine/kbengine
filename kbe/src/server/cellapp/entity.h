@@ -291,12 +291,6 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
 
 	/** 
-		…‰œﬂ 
-	*/
-	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
-	static PyObject* __py_pyRaycast(PyObject* self, PyObject* args);
-
-	/** 
 		entity“∆∂Øµº∫Ω 
 	*/
 	bool canNavigate();

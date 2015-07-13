@@ -185,6 +185,8 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,						METH_VARARGS,			0);
+
 	return EntityApp<Entity>::installPyModules();
 }
 
@@ -1776,6 +1778,120 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	entity->onTeleportFailure();
 
 	s.done();
+}
+
+//-------------------------------------------------------------------------------------
+int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
+{
+	Space* pSpace = Spaces::findSpace(spaceID);
+	if(pSpace == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::raycast: not found space({})!\n", 
+			spaceID));
+
+		return -1;
+	}
+	
+	if(pSpace->pNavHandle() == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::raycast: space({}) not addSpaceGeometryMapping! layer={}\n", 
+			spaceID, layer));
+
+		return -1;
+	}
+
+	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+
+	int layer = 0;
+	SPACE_ID spaceID = 0;
+
+	PyObject* pyStartPos = NULL;
+	PyObject* pyEndPos = NULL;
+
+	if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "IOO", &spaceID, &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if(currargsSize == 4)
+	{
+		if(PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PySequence_Check(pyStartPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args1(startPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PySequence_Check(pyEndPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args2(endPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyStartPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args1(startPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyEndPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args2(endPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D startPos;
+	Position3D endPos;
+	std::vector<Position3D> hitPosVec;
+	//float hitPos[3];
+
+	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
+	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
+	if(Cellapp::getSingleton().raycast(spaceID, layer, startPos, endPos, hitPosVec) <= 0)
+	{
+		S_Return;
+	}
+
+	int idx = 0;
+	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
+	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); ++iter)
+	{
+		PyObject* pyHitposItem = PyTuple_New(3);
+		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
+		PyTuple_SetItem(pyHitposItem, 1, ::PyFloat_FromDouble((*iter).y));
+		PyTuple_SetItem(pyHitposItem, 2, ::PyFloat_FromDouble((*iter).z));
+
+		PyTuple_SetItem(pyHitpos, idx++, pyHitposItem);
+	}
+
+	return pyHitpos;
 }
 
 //-------------------------------------------------------------------------------------
