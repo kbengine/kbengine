@@ -160,7 +160,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				if(showerr)
 				{
 					ERROR_MSG("BundleBroadcast::receive: failed! It can be caused by the firewall, the broadcastaddr, etc."
-+					"Maybe broadcastaddr is not a LAN ADDR, or the Machine process is not running.\n");
+					"Maybe broadcastaddr is not a LAN ADDR, or the Machine process is not running.\n");
 				}
 				
 				return false;
