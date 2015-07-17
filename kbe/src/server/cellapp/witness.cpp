@@ -354,7 +354,7 @@ void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	for(; iter != aoiEntities_.end(); )
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
@@ -364,6 +364,7 @@ void Witness::resetAOIEntities()
 		}
 
 		(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+		++iter;
 	}
 }
 
