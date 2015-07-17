@@ -48,7 +48,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 
 	if (!epListen_.good() || !epBroadcast_.good())
 	{
-		ERROR_MSG(fmt::format("BundleBroadcast::BundleBroadcast: init socket is error, {}\n", 
+		ERROR_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Socket initialization failed! {}\n", 
 			kbe_strerror()));
 
 		networkInterface_.dispatcher().breakProcessing();
@@ -67,7 +67,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 
 				if(count > 30)
 				{
-					WARNING_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port {}, {}\n",
+					WARNING_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Cannot bind to port {}, {}\n",
 						bindPort, kbe_strerror()));
 
 					break;
@@ -120,7 +120,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 
 	if(epBroadcast_.setbroadcast(true) != 0)
 	{
-		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Couldn't broadcast socket, port {}, {}\n", 
+		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n", 
 			port, kbe_strerror()));
 
 		networkInterface_.dispatcher().breakProcessing();
@@ -159,8 +159,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			{
 				if(showerr)
 				{
-					ERROR_MSG("BundleBroadcast::receive: is failed! Please check the Firewall rules, broadcastaddr is not LAN?"
-					" And check whether the Machine process has been running?\n");
+					ERROR_MSG("BundleBroadcast::receive: failed! It can be caused by the firewall, the broadcastaddr, etc."
++					"Maybe broadcastaddr is not a LAN ADDR, or the Machine process is not running.\n");
 				}
 				
 				return false;
@@ -219,7 +219,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				}
 				catch(MemoryStreamException &)
 				{
-					ERROR_MSG(fmt::format("BundleBroadcast::receive: data is error. size={}, from {}.\n",
+					ERROR_MSG(fmt::format("BundleBroadcast::receive: data wrong. size={}, from {}.\n",
 							len, inet_ntoa((struct in_addr&)psin->sin_addr.s_addr)));
 
 					continue;
