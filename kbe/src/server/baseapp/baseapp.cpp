@@ -2126,7 +2126,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	if(Baseapp::getSingleton().isShuttingdown())
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge(%s): shuttingdown, operation not allowed! dbid=%"PRIu64, 
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge(%s): shuttingdown, operation not allowed! dbid=%" PRIu64, 
 			pChargeID, dbid);
 
 		PyErr_PrintEx(0);
