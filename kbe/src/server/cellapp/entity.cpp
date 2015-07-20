@@ -121,7 +121,8 @@ pControllers_(new Controllers(id)),
 pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
-layer_(0)
+layer_(0),
+isDirty_(true)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -194,6 +195,7 @@ void Entity::onDestroy(bool callScript)
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
 		if(baseMailbox_ != NULL)
 		{
+			setDirty();
 			this->backupCellData();
 
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -398,6 +400,9 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	if(!isReal() || initing_)
 		return;
 
+	if(propertyDescription->isPersistent())
+		setDirty();
+	
 	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
@@ -750,12 +755,16 @@ void Entity::backupCellData()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
-		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
-		(*pBundle).append(s);
-		MemoryStream::ObjPool().reclaimObject(s);
-
+		(*pBundle) << isDirty();
+		
+		if(isDirty())
+		{
+			MemoryStream* s = MemoryStream::ObjPool().createObject();
+			addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+			(*pBundle).append(s);
+			MemoryStream::ObjPool().reclaimObject(s);
+		}
+		
 		baseMailbox_->postMail(pBundle);
 	}
 	else
@@ -765,6 +774,8 @@ void Entity::backupCellData()
 	}
 
 	SCRIPT_ERROR_CHECK();
+	
+	setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1136,7 +1147,7 @@ int Entity::pySetPosition(PyObject *value)
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1263,7 +1274,7 @@ int Entity::pySetDirection(PyObject *value)
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1306,7 +1317,7 @@ void Entity::onPyPositionChanged()
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1353,7 +1364,7 @@ void Entity::onPyDirectionChanged()
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1850,6 +1861,8 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1863,6 +1876,8 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1876,6 +1891,8 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2810,6 +2827,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createTimersFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
