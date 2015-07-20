@@ -27,33 +27,33 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																				\
-	ENTITY_CPP_IMPL(APP, CLASS)																								\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,			0)		\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,0)	\
 
 	
-#define ENTITY_METHOD_DECLARE_END()																							\
-	SCRIPT_METHOD_DECLARE_END()																								\
+#define ENTITY_METHOD_DECLARE_END()																			\
+	SCRIPT_METHOD_DECLARE_END()																				\
 
-#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																					\
-	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_GET_DECLARE("id",				pyGetID,						0,										0)		\
-	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,										0)		\
-
-
-#define ENTITY_GETSET_DECLARE_END()																							\
-	SCRIPT_GETSET_DECLARE_END()																								\
+#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 
 
-#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
-	ENTITY_CPP_IMPL(APP, CLASS)																								\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+#define ENTITY_GETSET_DECLARE_END()																			\
+	SCRIPT_GETSET_DECLARE_END()																				\
+
+
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)														\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 
 	
 #define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
@@ -278,16 +278,16 @@ namespace KBEngine{
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
-	ENTITY_ID		id_;																					\
-	ScriptDefModule*	scriptModule_;																		\
+	ENTITY_ID										id_;													\
+	ScriptDefModule*								scriptModule_;											\
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
-	SPACE_ID spaceID_;																						\
-	ScriptTimers scriptTimers_;																				\
-	PY_CALLBACKMGR pyCallbackMgr_;																			\
-	bool isDestroyed_;																						\
-	bool initing_;																							\
+	SPACE_ID										spaceID_;												\
+	ScriptTimers									scriptTimers_;											\
+	PY_CALLBACKMGR									pyCallbackMgr_;											\
+	bool											isDestroyed_;											\
+	bool											initing_;												\
 public:																										\
-	bool initing() const{ return initing_; }																	\
+	bool initing() const{ return initing_; }																\
 																											\
 	void initializeScript()																					\
 	{																										\
@@ -539,7 +539,7 @@ public:																										\
 		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* scriptModule(void) const															\
+	INLINE ScriptDefModule* scriptModule(void) const														\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
