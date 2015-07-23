@@ -245,7 +245,6 @@ void Witness::onReclaimObject()
 {
 }
 
-
 //-------------------------------------------------------------------------------------
 const Position3D& Witness::basePos()
 {

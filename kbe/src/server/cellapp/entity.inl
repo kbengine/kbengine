@@ -265,5 +265,16 @@ INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
 	controlledBy_ = baseMailbox;
 }
 
+INLINE void Entity::setDirty(bool dirty)
+{
+	isDirty_ = dirty;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::isDirty() const
+{
+	return isDirty_;
+}
+	
 //-------------------------------------------------------------------------------------
 }

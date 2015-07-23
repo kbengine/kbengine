@@ -53,7 +53,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 			"port int unsigned not null DEFAULT 0,"
 			"componentID bigint unsigned not null DEFAULT 0,"
 			"PRIMARY KEY (entityDBID, entityType))"
-		"ENGINE="MYSQL_ENGINE_TYPE;
+		"ENGINE=" MYSQL_ENGINE_TYPE;
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
@@ -68,7 +68,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 
 	char* tbuf = new char[MAX_BUF * 3];
 
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
@@ -90,7 +90,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, componentID);
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -125,7 +125,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	std::string sqlstr = "select entityID, ip, port, componentID from kbe_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
 	sqlstr += tbuf;
 	
 	sqlstr += " and entityType=";
@@ -169,7 +169,7 @@ bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY
 
 	char tbuf[MAX_BUF];
 
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
 	sqlstr += tbuf;
 
 	sqlstr += " and entityType=";
@@ -206,7 +206,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"`regtime` bigint(20) not null DEFAULT 0,"
 			"`lasttime` bigint(20) not null DEFAULT 0,"
 			"`numlogin` int unsigned not null DEFAULT 0)"
-		"ENGINE="MYSQL_ENGINE_TYPE;
+		"ENGINE=" MYSQL_ENGINE_TYPE;
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
@@ -391,7 +391,7 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += tbuf;
 	sqlstr += "\",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, info.dbid);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, info.dbid);
 	sqlstr += tbuf;
 	sqlstr += ",";
 
@@ -399,15 +399,15 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRIu64, info.deadline);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRIu64, info.deadline);
 	sqlstr += tbuf;
 	sqlstr += ",";
 	
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRTime, time(NULL));
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRTime, time(NULL));
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -513,7 +513,7 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 	sqlstr += tbuf;
 	sqlstr += "\",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRTime, time(NULL));
 
 	sqlstr += tbuf;
 	sqlstr += ")";
@@ -906,7 +906,7 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* dbi)
 			"datas varchar(255),"
 			"code varchar(255), PRIMARY KEY idKey (code),"
 			"logtime bigint(20) not null DEFAULT 0)"
-		"ENGINE="MYSQL_ENGINE_TYPE;
+		"ENGINE=" MYSQL_ENGINE_TYPE;
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);

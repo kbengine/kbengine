@@ -300,12 +300,6 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
 
 	/** 
-		射线 
-	*/
-	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
-	static PyObject* __py_pyRaycast(PyObject* self, PyObject* args);
-
-	/** 
 		entity移动导航 
 	*/
 	bool canNavigate();
@@ -559,6 +553,12 @@ public:
 	*/
 	INLINE Controllers*	pControllers() const;
 
+	/** 
+		设置实体持久化数据是否已脏，脏了会自动存档 
+	*/
+	INLINE void setDirty(bool dirty = true);
+	INLINE bool isDirty() const;
+	
 private:
 	/** 
 		发送teleport结果到base端
@@ -567,30 +567,30 @@ private:
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
 
 protected:
-	// 这个entity的客户端mailbox
-	EntityMailbox*											clientMailbox_;						
+	// 这个entity的客户端部分的mailbox
+	EntityMailbox*											clientMailbox_;
 
-	// 这个entity的baseapp mailbox
-	EntityMailbox*											baseMailbox_;						
+	// 这个entity的baseapp部分的mailbox
+	EntityMailbox*											baseMailbox_;
 
 	// 这个entity的坐标和朝向当前受谁的客户端控制
 	// null表示没有客户端在控制，否则指向控制这个entity的对象的baseMailbox_
 	EntityMailbox *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
-	COMPONENT_ID											realCell_;	
+	COMPONENT_ID											realCell_;
 
 	// 如果一个entity为real，那么entity可能会存在一个ghost的指向
 	COMPONENT_ID											ghostCell_;	
 
 	// entity的当前位置
-	Position3D												lastpos_;	
-	Position3D												position_;							
-	script::ScriptVector3*									pPyPosition_;	
+	Position3D												lastpos_;
+	Position3D												position_;
+	script::ScriptVector3*									pPyPosition_;
 
 	// entity的当前方向
-	Direction3D												direction_;		
-	script::ScriptVector3*									pPyDirection_;	
+	Direction3D												direction_;	
+	script::ScriptVector3*									pPyDirection_;
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
@@ -598,40 +598,43 @@ protected:
 	GAME_TIME												dirChangedTime_;
 
 	// 是否在地面上
-	bool													isOnGround_;						
+	bool													isOnGround_;
 
 	// entity x,z轴最高移动速度
-	float													topSpeed_;							
+	float													topSpeed_;
 
 	// entity y轴最高移动速度
-	float													topSpeedY_;							
+	float													topSpeedY_;
 
 	// 自身在space的entities中的位置
-	SPACE_ENTITIES::size_type								spaceEntityIdx_;					
+	SPACE_ENTITIES::size_type								spaceEntityIdx_;
 
 	// 是否被任何观察者监视到
 	std::list<ENTITY_ID>									witnesses_;
 	size_t													witnesses_count_;
 
 	// 观察者对象
-	Witness*												pWitness_;							
+	Witness*												pWitness_;
 
 	AllClients*												allClients_;
 	AllClients*												otherClients_;
 
 	// entity节点
-	EntityCoordinateNode*									pEntityCoordinateNode_;					
+	EntityCoordinateNode*									pEntityCoordinateNode_;	
 
 	// 控制器管理器
-	Controllers*											pControllers_;						
+	Controllers*											pControllers_;
 	Controller*												pMoveController_;
 
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
 	
-	// entity层， 可以做任意表示， 基于tile的游戏可以表示为海陆空等层， 纯3d也可以表示各种层
+	// entity层，可以做任意表示，基于tile的游戏可以表示为海陆空等层，纯3d也可以表示各种层
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
+	
+	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
+	bool													isDirty_;
 };
 
 }

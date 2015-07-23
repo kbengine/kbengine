@@ -68,7 +68,6 @@ SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("raycast",					pyRaycast,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
@@ -123,7 +122,8 @@ pControllers_(new Controllers(id)),
 pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
-layer_(0)
+layer_(0),
+isDirty_(true)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -196,6 +196,7 @@ void Entity::onDestroy(bool callScript)
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
 		if(baseMailbox_ != NULL)
 		{
+			setDirty();
 			this->backupCellData();
 
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -518,6 +519,9 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	if(!isReal() || initing_)
 		return;
 
+	if(propertyDescription->isPersistent())
+		setDirty();
+	
 	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
@@ -870,12 +874,16 @@ void Entity::backupCellData()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
-		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
-		(*pBundle).append(s);
-		MemoryStream::ObjPool().reclaimObject(s);
-
+		(*pBundle) << isDirty();
+		
+		if(isDirty())
+		{
+			MemoryStream* s = MemoryStream::ObjPool().createObject();
+			addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+			(*pBundle).append(s);
+			MemoryStream::ObjPool().reclaimObject(s);
+		}
+		
 		baseMailbox_->postMail(pBundle);
 	}
 	else
@@ -885,6 +893,8 @@ void Entity::backupCellData()
 	}
 
 	SCRIPT_ERROR_CHECK();
+	
+	setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1273,7 +1283,7 @@ int Entity::pySetPosition(PyObject *value)
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1400,7 +1410,7 @@ int Entity::pySetDirection(PyObject *value)
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1443,7 +1453,7 @@ void Entity::onPyPositionChanged()
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1490,7 +1500,7 @@ void Entity::onPyDirectionChanged()
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1781,134 +1791,6 @@ bool Entity::stopMove()
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
-{
-	Space* pSpace = Spaces::findSpace(spaceID());
-	if(pSpace == NULL)
-	{
-		ERROR_MSG(fmt::format("Entity::raycast: not found space({}), entityID({})!\n", 
-			spaceID(), id()));
-
-		return -1;
-	}
-	
-	if(pSpace->pNavHandle() == NULL)
-	{
-		ERROR_MSG(fmt::format("Entity::raycast: space({}) not addSpaceGeometryMapping!\n", 
-			spaceID(), id()));
-
-		return -1;
-	}
-
-	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
-{
-	uint16 currargsSize = PyTuple_Size(args);
-	Entity* pobj = static_cast<Entity*>(self);
-
-	if(!pobj->isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::raycast: not is real entity(%d).", 
-			pobj->scriptName(), pobj->id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	int layer = pobj->layer();
-	PyObject* pyStartPos = NULL;
-	PyObject* pyEndPos = NULL;
-
-	if(pobj->isDestroyed())
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: entity is destroyed!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(currargsSize == 2)
-	{
-		if(PyArg_ParseTuple(args, "OO", &pyStartPos, &pyEndPos) == -1)
-		{
-			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-	}
-	else if(currargsSize == 3)
-	{
-		if(PyArg_ParseTuple(args, "OOi", &pyStartPos, &pyEndPos, &layer) == -1)
-		{
-			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-	}
-	else
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(!PySequence_Check(pyStartPos))
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) not is PySequence!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(!PySequence_Check(pyEndPos))
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) not is PySequence!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(PySequence_Size(pyStartPos) != 3)
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) invalid!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(PySequence_Size(pyEndPos) != 3)
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) invalid!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	Position3D startPos;
-	Position3D endPos;
-	std::vector<Position3D> hitPosVec;
-	//float hitPos[3];
-
-	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
-	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
-	if(pobj->raycast(layer, startPos, endPos, hitPosVec) <= 0)
-	{
-		S_Return;
-	}
-
-	int idx = 0;
-	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
-	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); ++iter)
-	{
-		PyObject* pyHitposItem = PyTuple_New(3);
-		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
-		PyTuple_SetItem(pyHitposItem, 1, ::PyFloat_FromDouble((*iter).y));
-		PyTuple_SetItem(pyHitposItem, 2, ::PyFloat_FromDouble((*iter).z));
-
-		PyTuple_SetItem(pyHitpos, idx++, pyHitposItem);
-	}
-
-	return pyHitpos;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* Entity::pycanNavigate()
 {
 	if(canNavigate())
@@ -2115,6 +1997,8 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2128,6 +2012,8 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2141,6 +2027,8 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3075,6 +2963,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createTimersFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------

@@ -189,7 +189,7 @@ PyObject* UInt64Type::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "UInt64Type::createFromStream: errval=%"PRIu64", default return is 0", val);
+		PyErr_Format(PyExc_TypeError, "UInt64Type::createFromStream: errval=%" PRIu64 ", default return is 0", val);
 		PyErr_PrintEx(0);
 		S_RELEASE(pyval);
 		return PyLong_FromUnsignedLongLong(0);
@@ -420,7 +420,7 @@ PyObject* Int64Type::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "Int64Type::createFromStream: errval=%"PRI64", default return is 0", val);
+		PyErr_Format(PyExc_TypeError, "Int64Type::createFromStream: errval=%" PRI64 ", default return is 0", val);
 		PyErr_PrintEx(0);
 		S_RELEASE(pyval);
 		return PyLong_FromLongLong(0);
