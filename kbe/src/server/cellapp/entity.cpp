@@ -365,8 +365,13 @@ bool Entity::setControlledBy(EntityMailbox* baseMailbox)
 		controlledBy( NULL );
 		Py_DECREF( oldMailbox );
 
-		// 通知旧的客户端：当前你不需要控制某人的位移了
-		sendControlledByStatusMessage( oldMailbox, 0 );
+		// 如果旧的控制者也是我的观察者之一，那就表示它的客户端能看到我，
+		// 所以，需要通知旧的客户端：当前你不需要控制某人的位移了
+		ENTITY_ID oldID = oldMailbox->id();
+		if (entityInWitnessed(oldID))
+		{
+			sendControlledByStatusMessage( oldMailbox, 0 );
+		}
 	}
 
 	if(baseMailbox != NULL)
@@ -972,6 +977,11 @@ void Entity::delWitnessed(Entity* entity)
 	witnesses_.remove(entity->id());
 	--witnesses_count_;
 
+	if (controlledBy_ != NULL && entity->id() == controlledBy_->id())
+	{
+		setControlledBy( NULL );
+	}
+
 	// 延时执行
 	// onDelWitnessed();
 
@@ -989,6 +999,18 @@ void Entity::onDelWitnessed()
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(0));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::entityInWitnessed(ENTITY_ID entityID)
+{
+	std::list<ENTITY_ID>::iterator it = witnesses_.begin();
+	for (; it != witnesses_.end(); ++it)
+	{
+		if (*it == entityID)
+			return true;
+	}
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
