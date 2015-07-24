@@ -317,7 +317,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		{
 			if((*iiter)->pPropertyDescription()->getDatabaseLength() == 0)
 			{
-				ERROR_MSG(fmt::format("EntityTableMysql::syncIndexToDB(): INDEX({}) without a key length, *.def-><{}>-><DatabaseLength> ? </DatabaseLength>", 
+				ERROR_MSG(fmt::format("EntityTableMysql::syncIndexToDB(): INDEX({}) without a key length, *.def-><{}>-><DatabaseLength> ? </DatabaseLength>\n", 
 					(*iiter)->itemName(), (*iiter)->itemName()));
 			}
 			else
