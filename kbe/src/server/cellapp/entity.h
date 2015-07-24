@@ -89,7 +89,7 @@ public:
 	void destroySpace(void);
 
 	/** 
-		当前一个space销毁时该实体仍然在sapce中时触发 
+		当前实体所在的space将要销毁时触发  
 	*/
 	void onSpaceGone();
 	
