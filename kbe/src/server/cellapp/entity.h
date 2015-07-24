@@ -89,6 +89,11 @@ public:
 	void destroySpace(void);
 
 	/** 
+		当前实体所在的space将要销毁时触发  
+	*/
+	void onSpaceGone();
+	
+	/** 
 		判断自身是否是一个realEntity 
 	*/
 	INLINE bool isReal(void) const;

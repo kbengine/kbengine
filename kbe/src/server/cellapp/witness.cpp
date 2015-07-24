@@ -107,7 +107,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 			}
 			else
 			{
-				pAOITrigger_->range(aoiRadius_, aoiRadius_);
+				pAOITrigger_->update(aoiRadius_, aoiRadius_);
 			}
 		}
 	}
@@ -274,7 +274,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 		}
 		else
 		{
-			pAOITrigger_->range(aoiRadius_, aoiRadius_);
+			pAOITrigger_->update(aoiRadius_, aoiRadius_);
 		}
 	}
 }
