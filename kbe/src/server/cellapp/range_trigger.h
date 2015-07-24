@@ -46,6 +46,11 @@ public:
 	INLINE void origin(CoordinateNode* pCoordinateNode);
 
 	/**
+		更新范围数据
+	*/
+	virtual void update(float xz, float y);
+
+	/**
 		某个节点进入或者离开了rangeTrigger
 	*/
 	virtual void onEnter(CoordinateNode * pNode) = 0;
