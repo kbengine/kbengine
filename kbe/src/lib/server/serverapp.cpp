@@ -310,7 +310,8 @@ void ServerApp::onAddComponent(const Components::ComponentInfos* pInfos)
 //-------------------------------------------------------------------------------------
 void ServerApp::onIdentityillegal(COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 pid, const char* pAddr)
 {
-	ERROR_MSG(fmt::format("ServerApp::onIdentityillegal: The current process and {}(componentID={} ->conflicted???, pid={}, addr={}) conflict, the process will exit!\n",
+	ERROR_MSG(fmt::format("ServerApp::onIdentityillegal: The current process and {}(componentID={} ->conflicted???, pid={}, addr={}) conflict, the process will exit!\n"
+			"Can modify the components-CID and UID to avoid conflict.\n",
 		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pid, pAddr));
 
 	this->shutDown(1.f);
