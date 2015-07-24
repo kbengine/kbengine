@@ -325,38 +325,58 @@ bool Space::destroy(ENTITY_ID entityID)
 	if(destroyed_)
 		return true;
 
+	std::vector<ENTITY_ID> entitieslog;
+	Entity* creator = NULL;
+	
+	{
+		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+		for(; iter != this->entities().end(); ++iter)
+		{
+			const Entity* entity = (*iter).get();
+			
+			if(entity->id() == this->creatorID())
+				creator = const_cast<Entity*>(entity);		
+			else	
+				entitieslog.push_back(entity->id());
+		}
+	}
+
+	{
+		std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+		for(; iter != entitieslog.end(); ++iter)
+		{
+			Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				entity->onSpaceGone();
+			}
+		}
+	}
+	
 	destroyed_ = true;
 
 	if(this->entities().size() == 0)
 		return true;
 
-	SPACE_ENTITIES entitieslog;
-	
-	Entity* creator = NULL;
-
-	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-	for(; iter != this->entities().end(); ++iter)
-	{
-		const Entity* entity = (*iter).get();
-
-		if(entity->id() == this->creatorID())
-			creator = const_cast<Entity*>(entity);
-		else
-			entitieslog.push_back((*iter));
-	}
-
-	iter = entitieslog.begin();
+	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
 	for(; iter != entitieslog.end(); ++iter)
 	{
-		(*iter)->destroyEntity();
+		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		{
+			entity->destroyEntity();
+		}
 	}
 
 	// 最后销毁创建者
 	if(creator)
 	{
+		Py_INCREF(creator);
+		
 		if(Cellapp::getSingleton().findEntity(creator->id()) != NULL)
 		{
-			creator->destroyEntity();
+			if(!creator->isDestroyed() && creator->spaceID() == this->id())
+				creator->destroyEntity();
 		}
 		else
 		{
@@ -364,8 +384,11 @@ bool Space::destroy(ENTITY_ID entityID)
 			// 那么就会出现在spaceEntity-destroy过程中导致这里继续调用creator->destroyEntity()
 			// 此时就会出现EntityApp::destroyEntity: not found.
 			// 然后再spaceEntity析构的时候销毁pEntityCoordinateNode_会出错， 这里应该设置为NULL。
-			creator->pEntityCoordinateNode(NULL);
+			if(creator->spaceID() == this->id())
+				creator->pEntityCoordinateNode(NULL);
 		}
+		
+		Py_DECREF(creator);
 	}
 
 	pNavHandle_.clear();

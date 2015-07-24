@@ -294,6 +294,13 @@ void Entity::destroySpace()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onSpaceGone()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onSpaceGone"));	
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()
 { 
 	EntityMailbox* mailbox = baseMailbox();
