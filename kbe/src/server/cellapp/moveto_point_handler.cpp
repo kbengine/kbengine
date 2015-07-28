@@ -98,7 +98,10 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 	{
 		if(pController_->pEntity())
 			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
-		pController_->destroy();
+
+		// 如果在onMoveOver中调用cancelController（id）会导致MoveController析构导致pController_为NULL
+		if(pController_)
+			pController_->destroy();
 	}
 
 	return true;
