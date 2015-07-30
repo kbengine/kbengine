@@ -280,8 +280,8 @@ void Space::_onEnterWorld(Entity* pEntity)
 
 	if(pEntity->hasWitness())
 	{
-		pEntity->pWitness()->onEnterSpace(this);
 		_addSpaceDatasToEntityClient(pEntity);
+		pEntity->pWitness()->onEnterSpace(this);
 	}
 }
 
