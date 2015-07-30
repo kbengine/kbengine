@@ -766,6 +766,7 @@ public:																										\
 			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
+			removeFlags(ENTITY_FLAGS_DESTROYING);															\
 			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
