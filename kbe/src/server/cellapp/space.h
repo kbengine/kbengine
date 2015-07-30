@@ -70,6 +70,7 @@ public:
 	SPACE_ID id() const{ return id_; }
 
 	const SPACE_ENTITIES& entities() const{ return entities_; }
+	Entity* findEntity(ENTITY_ID entityID);
 
 	/**
 		Ïú»Ù

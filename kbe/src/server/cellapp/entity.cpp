@@ -221,6 +221,8 @@ void Entity::onDestroy(bool callScript)
 		space->removeEntity(this);
 	}
 
+	KBE_ASSERT(spaceID() == 0);
+
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
 }
