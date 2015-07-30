@@ -404,7 +404,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 	// 如果不是一个realEntity或者在初始化则不理会
-	if(!isReal() || initing_)
+	if(!isReal() || initing())
 		return;
 
 	if(propertyDescription->isPersistent())
@@ -2826,8 +2826,8 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createNamespace(cellData);
 	Py_XDECREF(cellData);
 
-	initing_ = false;
-
+	removeFlags(ENTITY_FLAGS_INITING);
+	
 	createMoveHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);

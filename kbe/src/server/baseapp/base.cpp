@@ -103,7 +103,7 @@ Base::~Base()
 void Base::onDefDataChanged(const PropertyDescription* propertyDescription, 
 		PyObject* pyData)
 {
-	if(initing_)
+	if(initing())
 		return;
 
 	if(propertyDescription->isPersistent())
