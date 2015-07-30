@@ -53,11 +53,13 @@ Controller::~Controller()
 //-------------------------------------------------------------------------------------
 void Controller::destroy()
 {
-	if(pControllers_ && !pControllers_->remove(this))
+	if(pControllers_ && !pControllers_->remove(this->id_))
 	{
 		ERROR_MSG(fmt::format("Controller::destroy(): not found {}.\n",
 			id_));
 	}
+
+	pControllers_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

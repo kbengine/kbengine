@@ -39,8 +39,11 @@ pMoveToPointHandler_(pMoveToPointHandler)
 MoveController::~MoveController()
 {
 	// DEBUG_MSG(fmt::format("MoveController::~MoveController(): {:p}\n", (void*)this);
-	pMoveToPointHandler_->pController(NULL);
-	pMoveToPointHandler_ = NULL;
+	if (pMoveToPointHandler_)
+	{
+		pMoveToPointHandler_->pController(NULL);
+		pMoveToPointHandler_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,6 +76,19 @@ void MoveController::createFromStream(KBEngine::MemoryStream& s)
 		KBE_ASSERT(false);
 
 	pMoveToPointHandler_->createFromStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void MoveController::destroy()
+{
+	Controller::destroy();
+
+	// 既然自己要销毁了，那么与自己相联的updatable也应该停止了
+	if (pMoveToPointHandler_)
+	{
+		pMoveToPointHandler_->pController(NULL);
+		pMoveToPointHandler_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------

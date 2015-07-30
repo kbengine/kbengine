@@ -310,11 +310,12 @@ public:
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
 					float maxMoveDistance, float maxDistance, 
-					bool faceMovement, float girth, PyObject* userData);
-
+					bool faceMovement, int8 layer, PyObject* userData);
+	bool navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer );
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
-	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG3(pyNavigatePathPoints, PyObject_ptr, float, int8);
+	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int8, PyObject_ptr);
 
 	/** 
 		entity移动到某个点 
@@ -629,7 +630,7 @@ protected:
 
 	// 控制器管理器
 	Controllers*											pControllers_;
-	Controller*												pMoveController_;
+	KBEShared_ptr<Controller>								pMoveController_;
 
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
