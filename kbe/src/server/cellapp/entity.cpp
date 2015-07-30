@@ -120,7 +120,6 @@ allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
-pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
@@ -1801,7 +1800,7 @@ bool Entity::stopMove()
 	{
 		cancelController( pMoveController_->id() );
 		pMoveController_->destroy();
-		pMoveController_ = NULL;
+		pMoveController_.reset();
 		return true;
 	}
 
@@ -1924,7 +1923,7 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
 	bool faceMovement, int8 layer, PyObject* userData)
 {
-	KBEShared_ptr<std::vector<Position3D>> paths_ptr( new std::vector<Position3D>() );
+	VECTOR_POS3D_PTR paths_ptr( new std::vector<Position3D>() );
 	navigatePathPoints(*paths_ptr, destination, maxDistance, layer);
 	if (paths_ptr->size() <= 0)
 	{
@@ -2117,7 +2116,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
@@ -2132,7 +2131,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 

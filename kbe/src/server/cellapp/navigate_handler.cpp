@@ -29,7 +29,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 NavigateHandler::NavigateHandler(KBEShared_ptr<Controller> pController, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
-											 float maxMoveDistance, KBEShared_ptr<std::vector<Position3D>> paths_ptr,
+											 float maxMoveDistance, VECTOR_POS3D_PTR paths_ptr,
 											PyObject* userarg):
 MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, distance, faceMovement, true, userarg),
 destPosIdx_(0),

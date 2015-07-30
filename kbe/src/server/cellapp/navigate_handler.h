@@ -31,7 +31,7 @@ class NavigateHandler : public MoveToPointHandler
 {
 public:
 	NavigateHandler(KBEShared_ptr<Controller> pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
-		float maxMoveDistance, KBEShared_ptr<std::vector<Position3D>> paths_ptr,
+		float maxMoveDistance, VECTOR_POS3D_PTR paths_ptr,
 		PyObject* userarg);
 
 	NavigateHandler();
@@ -48,7 +48,7 @@ public:
 
 protected:
 	int destPosIdx_;
-	KBEShared_ptr<std::vector<Position3D>> paths_;
+	VECTOR_POS3D_PTR paths_;
 
 	float maxMoveDistance_;
 };

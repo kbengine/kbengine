@@ -53,7 +53,6 @@ faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
 distance_(0.f),
-pController_(NULL),
 layer_(0)
 {
 	Cellapp::getSingleton().addUpdatable(this);

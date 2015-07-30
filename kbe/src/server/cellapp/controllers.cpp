@@ -122,7 +122,7 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 
 		Controller::ControllerType type = (Controller::ControllerType)itype;
 		
-		KBEShared_ptr<Controller> pController = NULL;
+		KBEShared_ptr<Controller> pController;
 
 		switch(type)
 		{

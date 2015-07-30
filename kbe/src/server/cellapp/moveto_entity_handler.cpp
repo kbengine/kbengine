@@ -78,7 +78,7 @@ bool MoveToEntityHandler::update()
 		if(pController_)
 			pController_->destroy();
 		
-		pController_ = NULL;
+		pController_.reset();
 	}
 
 	return MoveToPointHandler::update();
