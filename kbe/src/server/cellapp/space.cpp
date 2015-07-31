@@ -238,6 +238,8 @@ void Space::addEntityToNode(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::removeEntity(Entity* pEntity)
 {
+	KBE_ASSERT(pEntity->spaceID() == id());
+
 	pEntity->spaceID(0);
 	
 	// 先获取到所在位置
@@ -280,8 +282,8 @@ void Space::_onEnterWorld(Entity* pEntity)
 
 	if(pEntity->hasWitness())
 	{
-		pEntity->pWitness()->onEnterSpace(this);
 		_addSpaceDatasToEntityClient(pEntity);
+		pEntity->pWitness()->onEnterSpace(this);
 	}
 }
 
@@ -317,6 +319,21 @@ void Space::onLeaveWorld(Entity* pEntity)
 	{
 		pEntity->pWitness()->onLeaveSpace(this);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+Entity* Space::findEntity(ENTITY_ID entityID)
+{
+	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+	for(; iter != this->entities().end(); ++iter)
+	{
+		const Entity* entity = (*iter).get();
+			
+		if(entity->id() == entityID)
+			return const_cast<Entity*>(entity);
+	}
+
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -366,6 +383,14 @@ bool Space::destroy(ENTITY_ID entityID)
 		{
 			entity->destroyEntity();
 		}
+		else
+		{
+			entity = findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				removeEntity(entity);
+			}
+		}
 	}
 
 	// 最后销毁创建者
@@ -385,7 +410,10 @@ bool Space::destroy(ENTITY_ID entityID)
 			// 此时就会出现EntityApp::destroyEntity: not found.
 			// 然后再spaceEntity析构的时候销毁pEntityCoordinateNode_会出错， 这里应该设置为NULL。
 			if(creator->spaceID() == this->id())
+			{
 				creator->pEntityCoordinateNode(NULL);
+				creator->spaceID(0);
+			}
 		}
 		
 		Py_DECREF(creator);

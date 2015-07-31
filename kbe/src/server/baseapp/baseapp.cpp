@@ -2793,12 +2793,12 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 
 				if(isprint)
 				{
-					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found, {}(msgid={}).\n", 
+					WARNING_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found, {}(msgid={}).\n", 
 						eid, (pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
+					WARNING_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
 				}
 			}
 			else

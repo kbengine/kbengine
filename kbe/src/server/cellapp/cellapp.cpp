@@ -1134,7 +1134,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 		}
 
-		ERROR_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
+		WARNING_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
 		s.done();
 		return;
 	}

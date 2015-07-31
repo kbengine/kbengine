@@ -276,6 +276,11 @@ namespace KBEngine{
 }																											\
 
 
+// 实体的标志
+#define ENTITY_FLAGS_UNKNOWN		0x00000000
+#define ENTITY_FLAGS_DESTROYING		0x00000001
+#define ENTITY_FLAGS_INITING		0x00000002
+
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
 	ENTITY_ID										id_;													\
@@ -285,13 +290,13 @@ protected:																									\
 	ScriptTimers									scriptTimers_;											\
 	PY_CALLBACKMGR									pyCallbackMgr_;											\
 	bool											isDestroyed_;											\
-	bool											initing_;												\
+	uint32											flags_;													\
 public:																										\
-	bool initing() const{ return initing_; }																\
+	bool initing() const{ return hasFlags(ENTITY_FLAGS_INITING); }											\
 																											\
 	void initializeScript()																					\
 	{																										\
-		initing_ = false;																					\
+		removeFlags(ENTITY_FLAGS_INITING);																	\
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
@@ -521,9 +526,36 @@ public:																										\
 		return id_;																							\
 	}																										\
 																											\
-	INLINE void id(int v)																					\
+	INLINE void id(ENTITY_ID v)																				\
 	{																										\
 		id_ = v; 																							\
+	}																										\
+																											\
+	INLINE bool hasFlags(uint32 v) const																	\
+	{																										\
+		return (flags_ & v) > 0;																			\
+	}																										\
+																											\
+	INLINE uint32 flags() const																				\
+	{																										\
+		return flags_;																						\
+	}																										\
+																											\
+	INLINE void flags(uint32 v)																				\
+	{																										\
+		flags_ = v; 																						\
+	}																										\
+																											\
+	INLINE uint32 addFlags(uint32 v)																		\
+	{																										\
+		flags_ |= v;																						\
+		return flags_;																						\
+	}																										\
+																											\
+	INLINE uint32 removeFlags(uint32 v)																		\
+	{																										\
+		flags_ &= ~v; 																						\
+		return flags_;																						\
 	}																										\
 																											\
 	INLINE SPACE_ID spaceID() const																			\
@@ -726,10 +758,15 @@ public:																										\
 																											\
 	void destroy(bool callScript = true)																	\
 	{																										\
+		if(hasFlags(ENTITY_FLAGS_DESTROYING))																\
+			return;																							\
+																											\
 		if(!isDestroyed_)																					\
 		{																									\
+			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
+			removeFlags(ENTITY_FLAGS_DESTROYING);															\
 			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
@@ -952,14 +989,14 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	initing_(true)																							\
+	flags_(ENTITY_FLAGS_INITING)																			\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
-	initing_ = false;																						\
+	removeFlags(ENTITY_FLAGS_INITING);																		\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\
