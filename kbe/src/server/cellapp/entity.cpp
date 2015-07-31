@@ -221,7 +221,8 @@ void Entity::onDestroy(bool callScript)
 		space->removeEntity(this);
 	}
 
-	KBE_ASSERT(spaceID() == 0);
+	// 在进程强制关闭时这里可能不为0
+	//KBE_ASSERT(spaceID() == 0);
 
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
