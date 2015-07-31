@@ -43,7 +43,7 @@ hasGeometry_(false),
 pCell_(NULL),
 coordinateSystem_(),
 pNavHandle_(),
-destroyed_(false)
+state_(STATE_NORMAL)
 {
 }
 
@@ -339,9 +339,11 @@ Entity* Space::findEntity(ENTITY_ID entityID)
 //-------------------------------------------------------------------------------------
 bool Space::destroy(ENTITY_ID entityID)
 {
-	if(destroyed_)
+	if(state_ != STATE_NORMAL)
 		return true;
 
+	state_ = STATE_DESTROYING;
+	
 	std::vector<ENTITY_ID> entitieslog;
 	Entity* creator = NULL;
 	
@@ -370,8 +372,8 @@ bool Space::destroy(ENTITY_ID entityID)
 		}
 	}
 	
-	destroyed_ = true;
-
+	state_ = STATE_DESTROYED;
+	
 	if(this->entities().size() == 0)
 		return true;
 
