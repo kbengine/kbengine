@@ -110,10 +110,17 @@ public:
 
 	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
 
-	bool isDestroyed() const{ return destroyed_; }
+	bool isDestroyed() const{ return state_ == STATE_DESTROYED; }
 
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
+
+	enum STATE
+	{
+		STATE_NORMAL = 0,
+		STATE_DESTROYING = 1,
+		STATE_DESTROYED = 2
+	};
 
 protected:
 	// 这个space的ID
@@ -139,7 +146,7 @@ protected:
 	// 开发者可以将其他类型转换成字符串进行传输
 	SPACE_DATA datas_;
 
-	bool destroyed_;
+	int8 state_;
 };
 
 
