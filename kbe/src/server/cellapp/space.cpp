@@ -370,6 +370,8 @@ bool Space::destroy(ENTITY_ID entityID)
 				entity->onSpaceGone();
 			}
 		}
+		
+		creator->onSpaceGone();
 	}
 	
 	state_ = STATE_DESTROYED;
