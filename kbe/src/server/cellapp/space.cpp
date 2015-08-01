@@ -50,6 +50,8 @@ state_(STATE_NORMAL)
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	pNavHandle_.clear();
+
 	SAFE_RELEASE(pCell_);
 	entities_.clear();
 }
@@ -206,10 +208,9 @@ void Space::onAllSpaceGeometryLoaded()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::update()
+bool Space::update()
 {
-	if(pNavHandle_ == NULL)
-		return;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -267,8 +268,7 @@ void Space::removeEntity(Entity* pEntity)
 	}
 
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
-	// 这个entity通常是spaceEntity
-	if(entities_.empty())
+	if(entities_.empty() && state_ == STATE_NORMAL)
 	{
 		Spaces::destroySpace(this->id(), this->creatorID());
 	}
@@ -377,7 +377,10 @@ bool Space::destroy(ENTITY_ID entityID)
 	state_ = STATE_DESTROYED;
 	
 	if(this->entities().size() == 0)
+	{
+		pNavHandle_.clear();
 		return true;
+	}
 
 	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
 	for(; iter != entitieslog.end(); ++iter)
