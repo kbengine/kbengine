@@ -111,6 +111,7 @@ public:
 	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
 
 	bool isDestroyed() const{ return state_ == STATE_DESTROYED; }
+	bool isGood() const{ return state_ == STATE_NORMAL; }
 
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);

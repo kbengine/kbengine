@@ -42,7 +42,7 @@ maxDistance_(maxDistance)
 	if(pNavHandle_ == NULL)
 	{
 		Space* pSpace = Spaces::findSpace(pEntity->spaceID());
-		if(pSpace == NULL)
+		if(pSpace == NULL || !pSpace->isGood())
 		{
 			ERROR_MSG(fmt::format("NavigateHandler::NavigateHandler(): not found space({}), entityID({})!\n",
 				pEntity->spaceID(), pEntity->id()));

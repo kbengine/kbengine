@@ -441,7 +441,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	}
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
 		PyErr_PrintEx(0);
@@ -1012,7 +1012,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	//	spaceID, entityType.c_str(), entityID, componentID);
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space != NULL)
+	if(space != NULL && space->isGood())
 	{
 		// 告知baseapp， entity的cell创建了
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -1625,7 +1625,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Space* space = Spaces::findSpace(refEntity->spaceID());
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		s.rpos(rpos);
 

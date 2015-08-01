@@ -1444,7 +1444,7 @@ void Entity::onGetWitness(bool fromBase)
 	}
 
 	Space* space = Spaces::findSpace(this->spaceID());
-	if(space)
+	if(space && space->isGood())
 	{
 		space->onEntityAttachWitness(this);
 	}
@@ -1682,7 +1682,7 @@ bool Entity::canNavigate()
 		return false;
 
 	Space* pSpace = Spaces::findSpace(spaceID());
-	if(pSpace == NULL)
+	if(pSpace == NULL || !pSpace->isGood())
 		return false;
 
 	if(pSpace->pNavHandle() == NULL)
@@ -2205,7 +2205,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 		if(spaceID != this->spaceID())
 		{
 			Space* space = Spaces::findSpace(spaceID);
-			if(space == NULL)
+			if(space == NULL || !space->isGood())
 			{
 				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
 					this->scriptName(), this->id(), spaceID));
@@ -2339,9 +2339,9 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		Space* space = Spaces::findSpace(spaceID);
 
 		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
-		if(space == NULL || (space->creatorID() == entity->id() && entity->isDestroyed()))
+		if(space == NULL || !space->isGood() || (space->creatorID() == entity->id() && entity->isDestroyed()))
 		{
-			if(space != NULL)
+			if(space != NULL && space->isGood())
 			{
 				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyEntityRef has been destroyed!\n", scriptName(), id());
 				PyErr_PrintEx(0);
