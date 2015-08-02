@@ -70,7 +70,7 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 
 	if(!pSpace->destroy(entityID))
 	{
-		ERROR_MSG("Spaces::destroySpace: is error!\n");
+		//WARNING_MSG("Spaces::destroySpace: destroying!\n");
 		return false;
 	}
 

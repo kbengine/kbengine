@@ -306,6 +306,7 @@ void Cellapp::finalise()
 	}
 
 	Spaces::finalise();
+	Navigation::getSingleton().finalise();
 	EntityApp<Entity>::finalise();
 }
 
