@@ -262,15 +262,10 @@ void Space::removeEntity(Entity* pEntity)
 	pEntity->uninstallCoordinateNodes(&coordinateSystem_);
 	pEntity->onLeaveSpace(this);
 
-	if(pEntity->id() == this->creatorID())
-	{
-		DEBUG_MSG(fmt::format("Space::removeEntity: lose creator({}).\n", this->creatorID()));
-	}
-
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
 	if(entities_.empty() && state_ == STATE_NORMAL)
 	{
-		Spaces::destroySpace(this->id(), this->creatorID());
+		Spaces::destroySpace(this->id(), 0);
 	}
 }
 

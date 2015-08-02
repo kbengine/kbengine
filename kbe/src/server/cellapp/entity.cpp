@@ -2339,9 +2339,9 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		Space* space = Spaces::findSpace(spaceID);
 
 		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
-		if(space == NULL || !space->isGood() || (space->creatorID() == entity->id() && entity->isDestroyed()))
+		if(space == NULL || !space->isGood() || entity->isDestroyed())
 		{
-			if(space != NULL && space->isGood())
+			if (entity->isDestroyed())
 			{
 				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyEntityRef has been destroyed!\n", scriptName(), id());
 				PyErr_PrintEx(0);

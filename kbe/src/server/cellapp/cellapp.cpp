@@ -119,13 +119,6 @@ void Cellapp::onShutdown(bool first)
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->scriptModule()->isPersistent())
 			{
-				Space* space = Spaces::findSpace(pEntity->spaceID());
-				if(space && space->creatorID() == pEntity->id())
-				{
-					vecs.push_back(pEntity);
-					continue;
-				}
-
 				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
 				count--;
@@ -136,18 +129,7 @@ void Cellapp::onShutdown(bool first)
 
 		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
 		// 剩下的应该都是space，可以开始销毁了
-		if(g_serverConfig.getCellApp().perSecsDestroyEntitySize == count && vecs.size() > 0)
-		{
-			std::vector<Entity*>::iterator iter1 = vecs.begin();
-			for(; iter1 != vecs.end(); ++iter1)
-			{
-				this->destroyEntity(static_cast<Entity*>(*iter1)->id(), true);
-
-				count--;
-				done = true;
-				break;
-			}
-		}
+		Spaces::finalise();
 
 		if(!done)
 			break;
@@ -832,7 +814,6 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		space->addEntityAndEnterWorld(e);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -904,7 +885,6 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		e->onRestore();
 
 		space->addEntityAndEnterWorld(e, true);

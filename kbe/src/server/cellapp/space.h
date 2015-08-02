@@ -44,9 +44,6 @@ public:
 	void unLoadSpaceGeometry();
 	void loadSpaceGeometry();
 
-	void creatorID(ENTITY_ID id){ creatorID_ = id; }
-	ENTITY_ID creatorID() const { return creatorID_; }
-
 	/** 
 		更新space中的内容 
 	*/
@@ -125,10 +122,7 @@ protected:
 
 protected:
 	// 这个space的ID
-	SPACE_ID					id_;							
-
-	// 创造者ID 一般来说就是spaceEntity的ID
-	ENTITY_ID					creatorID_;								
+	SPACE_ID					id_;														
 
 	// 这个space上的entity
 	SPACE_ENTITIES				entities_;							
