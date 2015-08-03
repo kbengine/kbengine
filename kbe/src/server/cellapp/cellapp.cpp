@@ -115,7 +115,7 @@ void Cellapp::onShutdown(bool first)
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
-			Entity* pEntity = static_cast<Entity*>(iter->second.get());
+			//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->scriptModule()->isPersistent())
 			{
