@@ -1841,7 +1841,7 @@ bool Entity::canNavigate()
 bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
 {
 	Space* pSpace = Spaces::findSpace(spaceID());
-	if(pSpace == NULL)
+	if(pSpace == NULL || !pSpace->isGood())
 	{
 		ERROR_MSG(fmt::format("Entity::navigatePathPoints(): not found space({}), entityID({})!\n",
 			spaceID(), id()));
