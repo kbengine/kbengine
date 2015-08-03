@@ -869,7 +869,8 @@ void Base::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 
 	isArchiveing_ = false;
 	isGetingCellData_ = false;
-
+	createdSpace_ = false;
+	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
 
@@ -1202,17 +1203,17 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
-	if(isDestroyed())																				
-	{																										
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",											
-			scriptName(), id());												
-		PyErr_PrintEx(0);																					
-		return 0;																						
+	if(isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
 	}	
 
-	if(createdSpace_)
+	if(createdSpace_ || this->cellMailbox() != NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d has a space!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d in space!\n", 
 			scriptName(), id());
 
 		PyErr_PrintEx(0);
