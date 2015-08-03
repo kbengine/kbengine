@@ -44,13 +44,10 @@ public:
 	void unLoadSpaceGeometry();
 	void loadSpaceGeometry();
 
-	void creatorID(ENTITY_ID id){ creatorID_ = id; }
-	ENTITY_ID creatorID() const { return creatorID_; }
-
 	/** 
 		更新space中的内容 
 	*/
-	void update();
+	bool update();
 
 	void addEntity(Entity* pEntity);
 	void addEntityToNode(Entity* pEntity);
@@ -111,6 +108,7 @@ public:
 	CoordinateSystem* pCoordinateSystem(){ return &coordinateSystem_; }
 
 	bool isDestroyed() const{ return state_ == STATE_DESTROYED; }
+	bool isGood() const{ return state_ == STATE_NORMAL; }
 
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
@@ -124,29 +122,26 @@ protected:
 
 protected:
 	// 这个space的ID
-	SPACE_ID id_;	
-
-	// 创造者ID 一般来说就是spaceEntity的ID
-	ENTITY_ID creatorID_;								
+	SPACE_ID					id_;														
 
 	// 这个space上的entity
-	SPACE_ENTITIES entities_;							
+	SPACE_ENTITIES				entities_;							
 
 	// 是否加载过地形数据
-	bool hasGeometry_;
+	bool						hasGeometry_;
 
 	// 每个space最多只有一个cell
-	Cell* pCell_;
+	Cell*						pCell_;
 
-	CoordinateSystem coordinateSystem_;
+	CoordinateSystem			coordinateSystem_;
 
-	NavigationHandlePtr pNavHandle_;
+	NavigationHandlePtr			pNavHandle_;
 
 	// spaceData, 只能存储字符串资源， 这样能比较好的兼容客户端。
 	// 开发者可以将其他类型转换成字符串进行传输
-	SPACE_DATA datas_;
+	SPACE_DATA					datas_;
 
-	int8 state_;
+	int8						state_;
 };
 
 

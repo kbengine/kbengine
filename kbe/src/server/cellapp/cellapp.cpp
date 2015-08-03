@@ -115,17 +115,10 @@ void Cellapp::onShutdown(bool first)
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
-			Entity* pEntity = static_cast<Entity*>(iter->second.get());
+			//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->scriptModule()->isPersistent())
 			{
-				Space* space = Spaces::findSpace(pEntity->spaceID());
-				if(space && space->creatorID() == pEntity->id())
-				{
-					vecs.push_back(pEntity);
-					continue;
-				}
-
 				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
 				count--;
@@ -136,18 +129,7 @@ void Cellapp::onShutdown(bool first)
 
 		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
 		// 剩下的应该都是space，可以开始销毁了
-		if(g_serverConfig.getCellApp().perSecsDestroyEntitySize == count && vecs.size() > 0)
-		{
-			std::vector<Entity*>::iterator iter1 = vecs.begin();
-			for(; iter1 != vecs.end(); ++iter1)
-			{
-				this->destroyEntity(static_cast<Entity*>(*iter1)->id(), true);
-
-				count--;
-				done = true;
-				break;
-			}
-		}
+		Spaces::finalise();
 
 		if(!done)
 			break;
@@ -306,6 +288,7 @@ void Cellapp::finalise()
 	}
 
 	Spaces::finalise();
+	Navigation::getSingleton().finalise();
 	EntityApp<Entity>::finalise();
 }
 
@@ -441,7 +424,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	}
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
 		PyErr_PrintEx(0);
@@ -831,7 +814,6 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		space->addEntityAndEnterWorld(e);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -892,7 +874,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
 			
-			WARNING_MSG(fmt::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp({}), message is buffered.\n",
+			WARNING_MSG(fmt::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp({}), message has been buffered.\n",
 				componentID));
 			
 			return;
@@ -903,7 +885,6 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		e->onRestore();
 
 		space->addEntityAndEnterWorld(e, true);
@@ -1012,7 +993,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	//	spaceID, entityType.c_str(), entityID, componentID);
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space != NULL)
+	if(space != NULL && space->isGood())
 	{
 		// 告知baseapp， entity的cell创建了
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -1667,7 +1648,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Space* space = Spaces::findSpace(refEntity->spaceID());
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		s.rpos(rpos);
 
@@ -1698,7 +1679,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle).append(&s);
 		pChannel->send(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) error!\n", teleportEntityID));
 		s.done();
 		return;
 	}
