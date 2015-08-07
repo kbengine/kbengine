@@ -52,7 +52,7 @@ void Controllers::clear()
 }
 
 //-------------------------------------------------------------------------------------
-bool Controllers::add(Controller* pController)
+bool Controllers::add(KBEShared_ptr<Controller> pController)
 {
 	uint32 id = pController->id();
 	if(id == 0)
@@ -66,7 +66,7 @@ bool Controllers::add(Controller* pController)
 			lastid_ = id + 1;
 	}
 
-	objects_[id].reset(pController);
+	objects_[id] = pController;
 	pController->id(id);
 	pController->pControllers(this);
 
@@ -79,7 +79,7 @@ bool Controllers::add(Controller* pController)
 }
 
 //-------------------------------------------------------------------------------------
-bool Controllers::remove(Controller* pController)
+bool Controllers::remove(KBEShared_ptr<Controller> pController)
 {
 	return remove(pController->id());
 }
@@ -122,12 +122,12 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 
 		Controller::ControllerType type = (Controller::ControllerType)itype;
 		
-		Controller* pController = NULL;
+		KBEShared_ptr<Controller> pController;
 
 		switch(type)
 		{
 		case Controller::CONTROLLER_TYPE_PROXIMITY:
-			pController = new ProximityController(pEntity);
+			pController = KBEShared_ptr<Controller>(new ProximityController(pEntity));
 			break;
 		case Controller::CONTROLLER_TYPE_MOVE:
 		default:

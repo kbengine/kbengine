@@ -63,6 +63,7 @@ SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("navigatePathPoints",			pyNavigatePathPoints,			METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
@@ -118,7 +119,6 @@ allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
-pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
@@ -949,7 +949,8 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	// 在space中投放一个陷阱
-	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg);
+	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg) );
+
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
 	return p->id();
@@ -1088,7 +1089,15 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		id = PyLong_AsLong(pyargobj);
 	}
 
-	pobj->cancelController(id);
+	// 只要是属于移动控制器的范畴，就应该走stopMove()，以避免多种方式的存在引发调用上的歧议
+	if (pobj->pMoveController_ && pobj->pMoveController_->id() == id)
+	{
+		pobj->stopMove();
+	}
+	else
+	{
+		pobj->cancelController(id);
+	}
 	S_Return;
 }
 
@@ -1656,8 +1665,9 @@ bool Entity::stopMove()
 {
 	if(pMoveController_)
 	{
-		static_cast<MoveController*>(pMoveController_)->destroy();
-		pMoveController_ = NULL;
+		cancelController( pMoveController_->id() );
+		pMoveController_->destroy();
+		pMoveController_.reset();
 		return true;
 	}
 
@@ -1692,17 +1702,109 @@ bool Entity::canNavigate()
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
-	bool faceMovement, float girth, PyObject* userData)
+bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
 {
+	Space* pSpace = Spaces::findSpace(spaceID());
+	if(pSpace == NULL || !pSpace->isGood())
+	{
+		ERROR_MSG(fmt::format("Entity::navigatePathPoints(): not found space({}), entityID({})!\n",
+			spaceID(), id()));
+
+		return false;
+	}
+
+	NavigationHandlePtr pNavHandle = pSpace->pNavHandle();
+
+	if(!pNavHandle)
+	{
+		WARNING_MSG(fmt::format("Entity::navigatePathPoints(): space({}), entityID({}), not found navhandle!\n",
+			spaceID(), id()));
+		return false;
+	}
+
+	int resultCount = pNavHandle->findStraightPath(layer, position_, destination, outPaths);
+	if (resultCount < 0)
+	{
+		return false;
+	}
+
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	while(iter != outPaths.end())
+	{
+		Vector3 movement = (*iter) - position_;
+		if(KBEVec3Length(&movement) <= 0.00001f)
+		{
+			iter++;
+			continue;
+		}
+		break;
+	}
+
+	if (iter != outPaths.begin())
+	{
+		outPaths.erase(outPaths.begin(), iter);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSearchDistance, int8 layer)
+{
+	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+
+	std::vector<Position3D> outPaths;
+	navigatePathPoints(outPaths, destination, maxSearchDistance, layer);
+	
+	PyObject* pyList = PyList_New(outPaths.size());
+
+	int i = 0;
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	for(; iter != outPaths.end(); ++iter)
+	{
+		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
+		Py_INCREF(pos);
+		PyList_SET_ITEM(pyList, i++, pos);
+	}
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
+	bool faceMovement, int8 layer, PyObject* userData)
+{
+	VECTOR_POS3D_PTR paths_ptr( new std::vector<Position3D>() );
+	navigatePathPoints(*paths_ptr, destination, maxDistance, layer);
+	if (paths_ptr->size() <= 0)
+	{
+		return 0;
+	}
+
 	stopMove();
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 	
 	new NavigateHandler(p, destination, velocity, 
-		distance, faceMovement, maxMoveDistance, maxDistance, girth, userData);
+		distance, faceMovement, maxMoveDistance, paths_ptr, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1713,7 +1815,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float dis
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float distance, float maxMoveDistance, float maxDistance,
-								 int8 faceMovement, float layer, PyObject_ptr userData)
+								 int8 faceMovement, int8 layer, PyObject_ptr userData)
 {
 	if(!isReal())
 	{
@@ -1763,7 +1865,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
 		distance, faceMovement, moveVertically, userData);
@@ -1826,7 +1928,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToEntityHandler(p, targetID, velocity, distance,
 		faceMovement, moveVertically, userData);
@@ -1881,7 +1983,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
@@ -1896,7 +1998,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
@@ -2960,7 +3062,7 @@ void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
 	{
 		stopMove();
 
-		pMoveController_ = new MoveController(this);
+		pMoveController_ = KBEShared_ptr<Controller>( new MoveController(this) );
 		pMoveController_->createFromStream(s);
 		pControllers_->add(pMoveController_);
 	}
