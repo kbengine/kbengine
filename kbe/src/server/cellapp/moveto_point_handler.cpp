@@ -39,7 +39,6 @@ distance_(distance),
 pController_(pController),
 layer_(layer)
 {
-	// @TODO(phw): vs2010Ã»ÓÐstatic_pointer_castµÄ±¯°§£º
 	//std::static_pointer_cast<MoveController>(pController)->pMoveToPointHandler(this);
 	static_cast<MoveController*>(pController.get())->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);

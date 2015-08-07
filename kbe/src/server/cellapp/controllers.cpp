@@ -127,7 +127,7 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 		switch(type)
 		{
 		case Controller::CONTROLLER_TYPE_PROXIMITY:
-			pController = KBEShared_ptr<Controller>( new ProximityController(pEntity) );
+			pController = KBEShared_ptr<Controller>(new ProximityController(pEntity));
 			break;
 		case Controller::CONTROLLER_TYPE_MOVE:
 		default:

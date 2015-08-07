@@ -1937,7 +1937,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float dis
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	KBEShared_ptr<Controller> p( new MoveController(this, NULL) );
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 	
 	new NavigateHandler(p, destination, velocity, 
 		distance, faceMovement, maxMoveDistance, paths_ptr, userData);
@@ -2001,7 +2001,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	KBEShared_ptr<Controller> p( new MoveController(this, NULL) );
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
 		distance, faceMovement, moveVertically, userData);
@@ -2064,7 +2064,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	KBEShared_ptr<Controller> p( new MoveController(this, NULL) );
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToEntityHandler(p, targetID, velocity, distance,
 		faceMovement, moveVertically, userData);
