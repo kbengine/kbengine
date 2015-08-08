@@ -2459,25 +2459,7 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		}
 
 		currspace->removeEntity(this);
-
 		this->setPositionAndDirection(pos, dir);
-
-		if (this->pWitness())
-		{
-			// 通知位置强制改变
-			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-
-			(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-			(*pForwardBundle) << id();
-			(*pForwardBundle) << pos.x << pos.y << pos.z;
-			(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
-
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
-			this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
-		}
-
 		space->addEntityAndEnterWorld(this);
 
 		onTeleportSuccess(entity, lastSpaceID);

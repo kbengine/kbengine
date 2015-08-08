@@ -372,17 +372,19 @@ void Witness::resetAOIEntities()
 void Witness::onEnterSpace(Space* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
 	
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
-	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	// 通知位置强制改变
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
+	Position3D &pos = pEntity_->position();
+	Direction3D &dir = pEntity_->direction();
+	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 	(*pForwardPosDirBundle) << pEntity_->id();
-	pEntity_->addPositionAndDirectionToStream(*s1, true);
-	(*pForwardPosDirBundle).append(*s1);
-	MemoryStream::ObjPool().reclaimObject(s1);
+	(*pForwardPosDirBundle) << pos.x << pos.y << pos.z;
+	(*pForwardPosDirBundle) << dir.roll() << dir.pitch() << dir.yaw();
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
+	// 通知进入了新地图
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
 	(*pForwardBundle) << pEntity_->id();
@@ -391,6 +393,8 @@ void Witness::onEnterSpace(Space* pSpace)
 		(*pForwardBundle) << pEntity_->isOnGround();
 
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+
+	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
 	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
