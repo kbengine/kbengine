@@ -2595,9 +2595,7 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		}
 
 		currspace->removeEntity(this);
-
 		this->setPositionAndDirection(pos, dir);
-
 		space->addEntityAndEnterWorld(this);
 
 		onTeleportSuccess(entity, lastSpaceID);
