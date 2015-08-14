@@ -44,6 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <cctype>
 #include <iterator>
+#include <random>
 #include "common/strutil.h"
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
@@ -652,8 +653,10 @@ inline uint64 genUUID64()
 		static uint32 rnd = 0;
 		if(rnd == 0)
 		{
+			std::random_device rd;
+			std::mt19937 gen(rd());			
 			srand(getSystemTime());
-			rnd = (uint32)(rand() << 16);
+			rnd = (uint32)(gen() << 16);
 		}
 		
 		assert(lastNum < 65535 && "genUUID64(): overflow!");

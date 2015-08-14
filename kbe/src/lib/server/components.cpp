@@ -949,8 +949,10 @@ bool Components::findInterfaces()
 {
 	if(state_ == 1)
 	{
-		srand(KBEngine::getSystemTime());
-		uint16 nport = KBE_PORT_START + (rand() % 1000);
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(0, 1000);
+		uint16 nport = KBE_PORT_START + dis(gen);
 
 		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
@@ -1196,8 +1198,10 @@ bool Components::process()
 			if(dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
 				return false;
 
-			srand(KBEngine::getSystemTime());
-			uint16 nport = KBE_PORT_START + (rand() % 1000);
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<> dis(0, 1000);
+			uint16 nport = KBE_PORT_START + dis(gen);
 
 			// 向局域网内广播UDP包，提交自己的身份
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
