@@ -237,6 +237,7 @@ void Cellapp::handleGameTick()
 	EntityApp<Entity>::handleGameTick();
 
 	updatables_.update();
+	Spaces::update();
 }
 
 //-------------------------------------------------------------------------------------
