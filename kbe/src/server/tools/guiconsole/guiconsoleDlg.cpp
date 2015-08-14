@@ -172,10 +172,8 @@ public:
 			COMPONENT_TYPE findComponentType = findComponentTypes[ifind];
 
 			dlg->updateFindTreeStatus();
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_int_distribution<> dis(0, 1000);
-			uint16 nport = KBE_PORT_START + dis(gen);
+			srand(KBEngine::getSystemTime());
+			uint16 nport = KBE_PORT_START + (rand() % 1000);
 			Network::BundleBroadcast bhandler(dlg->networkInterface(), nport);
 
 			if(!bhandler.good())
@@ -1611,10 +1609,8 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 
 	while(1)
 	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, 1000);
-		uint16 nport = KBE_PORT_START + dis(gen);
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
 		Network::BundleBroadcast bhandler(_networkInterface, nport);
 
 		if(!bhandler.good())
@@ -1679,10 +1675,8 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 
 	while(1)
 	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, 1000);
-		uint16 nport = KBE_PORT_START + dis(gen);
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
 		Network::BundleBroadcast bhandler(_networkInterface, nport);
 
 		if(!bhandler.good())
