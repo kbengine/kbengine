@@ -126,7 +126,7 @@ public:
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
 		COMPONENT_ID componentID, bool ignoreComponentID = false, bool shouldShowLog = true);
 
-	void removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown = false);
+	void removeComponentByChannel(Network::Channel * pChannel, bool isShutingdown = false);
 
 	void clear(int32 uid = -1, bool shouldShowLog = true);
 

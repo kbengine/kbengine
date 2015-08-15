@@ -312,7 +312,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown)
+void Components::removeComponentByChannel(Network::Channel * pChannel, bool isShutingdown)
 {
 	int ifind = 0;
 	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -331,17 +331,17 @@ void Components::removeComponentFromChannel(Network::Channel * pChannel, bool is
 
 				if(!isShutingdown)
 				{
-					ERROR_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit.\n",
+					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit!\n",
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit!\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
 #endif
 				}
 				else
 				{
-					INFO_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Normal exit!\n",
+					INFO_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Normal exit!\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid));
 				}
 
@@ -941,7 +941,7 @@ Network::EventDispatcher & Components::dispatcher()
 //-------------------------------------------------------------------------------------
 void Components::onChannelDeregister(Network::Channel * pChannel, bool isShutingdown)
 {
-	removeComponentFromChannel(pChannel, isShutingdown);
+	removeComponentByChannel(pChannel, isShutingdown);
 }
 
 //-------------------------------------------------------------------------------------

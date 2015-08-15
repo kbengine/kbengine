@@ -211,7 +211,7 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 bool Space::update()
 {
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 10.f * stampsPerSecond() ))
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
 		return false;
 		
 	return true;
