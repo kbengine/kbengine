@@ -43,7 +43,8 @@ hasGeometry_(false),
 pCell_(NULL),
 coordinateSystem_(),
 pNavHandle_(),
-state_(STATE_NORMAL)
+state_(STATE_NORMAL),
+destroyTime_(0)
 {
 }
 
@@ -210,6 +211,9 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 bool Space::update()
 {
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
+		return false;
+		
 	return true;
 }
 
@@ -338,7 +342,8 @@ bool Space::destroy(ENTITY_ID entityID)
 		return false;
 
 	state_ = STATE_DESTROYING;
-
+	destroyTime_ = timestamp();
+	
 	std::vector<ENTITY_ID> entitieslog;
 	
 	{

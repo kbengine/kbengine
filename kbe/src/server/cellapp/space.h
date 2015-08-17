@@ -142,6 +142,8 @@ protected:
 	SPACE_DATA					datas_;
 
 	int8						state_;
+	
+	uint64						destroyTime_;	
 };
 
 
