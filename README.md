@@ -56,3 +56,6 @@ depends on complexity of logic of the game itself.)
 
 
 
+##Acknowledgements(alphabetical)
+
+acatadog, colin
