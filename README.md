@@ -56,3 +56,8 @@ depends on complexity of logic of the game itself.)
 
 
 
+##鸣谢
+
+感谢他们长期以来所作出的贡献:
+
+colin，acatadog
