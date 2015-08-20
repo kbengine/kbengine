@@ -186,7 +186,7 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	if(callScript)
+	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));

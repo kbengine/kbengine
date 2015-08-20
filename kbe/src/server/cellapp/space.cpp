@@ -51,10 +51,34 @@ destroyTime_(0)
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	std::vector<ENTITY_ID> entitieslog;
+	
+	SPACE_ENTITIES::const_iterator log_iter = this->entities().begin();
+	for(; log_iter != this->entities().end(); ++log_iter)
+		entitieslog.push_back((*log_iter).get()->id());
+
+	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+	for(; iter != entitieslog.end(); ++iter)
+	{
+		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		{
+			entity->destroyEntity();
+		}
+		else
+		{
+			entity = findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				removeEntity(entity);
+			}
+		}
+	}
+	
+	entities_.clear();
 	pNavHandle_.clear();
 
-	SAFE_RELEASE(pCell_);
-	entities_.clear();
+	SAFE_RELEASE(pCell_);	
 }
 
 //-------------------------------------------------------------------------------------
@@ -360,7 +384,7 @@ bool Space::destroy(ENTITY_ID entityID)
 		for(; iter != entitieslog.end(); ++iter)
 		{
 			Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id() && entity->isReal())
 			{
 				entity->onSpaceGone();
 			}
@@ -370,31 +394,26 @@ bool Space::destroy(ENTITY_ID entityID)
 	state_ = STATE_DESTROYED;
 	
 	if(this->entities().size() == 0)
-	{
-		pNavHandle_.clear();
 		return true;
-	}
 
 	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
 	for(; iter != entitieslog.end(); ++iter)
 	{
 		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
 		{
 			entity->destroyEntity();
 		}
 		else
 		{
 			entity = findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
 			{
 				removeEntity(entity);
 			}
 		}
 	}
 
-	pNavHandle_.clear();
-	entities_.clear();
 	return true;
 }
 
