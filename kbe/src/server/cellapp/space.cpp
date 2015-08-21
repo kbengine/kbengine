@@ -51,6 +51,19 @@ destroyTime_(0)
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	entities_.clear();
+	pNavHandle_.clear();
+
+	SAFE_RELEASE(pCell_);	
+}
+
+//-------------------------------------------------------------------------------------
+void Space::_clearGhosts()
+{
+	// 因为space在destroy时做过一次清理，因此这里理论上剩下的是ghosts实体
+	if(entities_.size() == 0)
+		return;
+	
 	std::vector<ENTITY_ID> entitieslog;
 	
 	SPACE_ENTITIES::const_iterator log_iter = this->entities().begin();
@@ -75,10 +88,7 @@ Space::~Space()
 		}
 	}
 	
-	entities_.clear();
-	pNavHandle_.clear();
-
-	SAFE_RELEASE(pCell_);	
+	entities_.clear();	
 }
 
 //-------------------------------------------------------------------------------------
@@ -237,6 +247,9 @@ bool Space::update()
 {
 	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
 		return false;
+
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
+		_clearGhosts();
 		
 	return true;
 }
