@@ -187,7 +187,7 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	if(callScript)
+	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
@@ -2486,6 +2486,14 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 		return 0;
 	}
 
+	Space* currspace = Spaces::findSpace(this->spaceID());
+	if(currspace == NULL || !currspace->isGood())
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, current space has been destroyed!\n", scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
 	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", scriptName(), id());
