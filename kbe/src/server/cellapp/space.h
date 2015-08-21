@@ -113,6 +113,8 @@ public:
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
 
+	void _clearGhosts();
+	
 	enum STATE
 	{
 		STATE_NORMAL = 0,
