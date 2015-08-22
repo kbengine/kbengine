@@ -436,6 +436,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	}
 
 	aoiEntities_.clear();
+	clientAOISize_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -706,6 +707,7 @@ bool Witness::update()
 					{
 						delete (*iter);
 						iter = aoiEntities_.erase(iter);
+						--clientAOISize_;
 						continue;
 					}
 					
