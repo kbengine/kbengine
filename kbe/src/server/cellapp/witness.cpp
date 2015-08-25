@@ -70,8 +70,6 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;
-
 	/**
 	 * @TODO(phw): 注释下面的原始代码，简单修正如下的问题：
 	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的aoiEntities_里面必须会互相记录着对方的entityID，
@@ -81,7 +79,9 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	 * 但是，Witness::update()并没有针对flags_ == ENTITYREF_FLAG_UNKONWN的情况做特殊处理——把玩家entity数据发送给客户端，
 	 * 所以进入了默认的updateVolatileData()流程，
 	 * 使得客户端在没有别的玩家entity的情况下就收到了别的玩家的坐标更新的信息，导致客户端错误发生。
-
+	
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
+	
 	uint32 size = aoiEntities_.size();
 	s << size;
 
@@ -93,6 +93,8 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	*/
 
 	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
+	clientAOISize_ = 0;
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
 	s << 0; // aoiEntities_.size();
 }
 
