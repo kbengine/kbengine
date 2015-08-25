@@ -93,8 +93,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	*/
 
 	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
-	clientAOISize_ = 0;
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
+	s << aoiRadius_ << aoiHysteresisArea_ << 0;	
 	s << 0; // aoiEntities_.size();
 }
 
