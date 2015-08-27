@@ -1085,7 +1085,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	// 在space中投放一个陷阱
-	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg) );
+	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID()) );
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
