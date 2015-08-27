@@ -62,8 +62,8 @@ bool Controllers::add(KBEShared_ptr<Controller> pController)
 	else
 	{
 		// Ë¢ÐÂid¼ÆÊýÆ÷
-		if(lastid_ <= id)
-			lastid_ = id + 1;
+		if(lastid_ < id)
+			lastid_ = id;
 	}
 
 	objects_[id] = pController;
