@@ -211,7 +211,7 @@ public:
 
 private:
 	virtual bool process();
-	bool findInterfaces();
+	bool findComponents();
 
 	void onFoundAllComponents();
 

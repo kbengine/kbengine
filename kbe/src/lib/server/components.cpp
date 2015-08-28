@@ -945,7 +945,7 @@ void Components::onChannelDeregister(Network::Channel * pChannel, bool isShuting
 }
 
 //-------------------------------------------------------------------------------------
-bool Components::findInterfaces()
+bool Components::findComponents()
 {
 	if(state_ == 1)
 	{
@@ -962,12 +962,12 @@ bool Components::findInterfaces()
 
 			if(count <= 15)
 			{
-				INFO_MSG(fmt::format("Components::findInterfaces: find {}({})...\n",
+				INFO_MSG(fmt::format("Components::findComponents: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			}
 			else
 			{
-				std::string s = fmt::format("Components::findInterfaces: find {}({})...\n",
+				std::string s = fmt::format("Components::findComponents: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
 				WARNING_MSG(s);
 
@@ -1000,7 +1000,7 @@ bool Components::findInterfaces()
 
 			if(!bhandler.broadcast())
 			{
-				ERROR_MSG("Components::findInterfaces: broadcast error!\n");
+				ERROR_MSG("Components::findComponents: broadcast error!\n");
 				return false;
 			}
 		
@@ -1031,7 +1031,7 @@ RESTART_RECV:
 					
 					if(args.componentIDEx != componentID_)
 					{
-						WARNING_MSG(fmt::format("Components::findInterfaces: msg.componentID {} != {}.\n", 
+						WARNING_MSG(fmt::format("Components::findComponents: msg.componentID {} != {}.\n", 
 							args.componentIDEx, componentID_));
 						
 						args.componentIDEx = 0;
@@ -1045,7 +1045,7 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(fmt::format("Components::findInterfaces: found {}, addr:{}:{}\n",
+					INFO_MSG(fmt::format("Components::findComponents: found {}, addr:{}:{}\n",
 						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
 						inet_ntoa((struct in_addr&)args.intaddr),
 						ntohs(args.intport)));
@@ -1067,7 +1067,7 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
+							ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
@@ -1094,7 +1094,7 @@ RESTART_RECV:
 				{
 					if(showerr)
 					{
-						ERROR_MSG("Components::findInterfaces: receive error!\n");
+						ERROR_MSG("Components::findComponents: receive error!\n");
 					}
 
 					// 如果是这些辅助组件没找到则跳过
@@ -1109,7 +1109,7 @@ RESTART_RECV:
 						}
 						else if(findComponentType == helperComponentType)
 						{
-							WARNING_MSG(fmt::format("Components::findInterfaces: not found {}!\n",
+							WARNING_MSG(fmt::format("Components::findComponents: not found {}!\n",
 								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 							findComponentTypes_[findIdx_] = -1; // 跳过标志
@@ -1145,12 +1145,12 @@ RESTART_RECV:
 				return false;
 			}
 
-			INFO_MSG(fmt::format("Components::findInterfaces: register self to {}...\n",
+			INFO_MSG(fmt::format("Components::findComponents: register self to {}...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
+				ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;
@@ -1275,7 +1275,7 @@ bool Components::process()
 			
 		if(timestamp() - lastTime > uint64(stampsPerSecond()))
 		{
-			if(!findInterfaces())
+			if(!findComponents())
 			{
 				if(state_ != 2)
 					lastTime = timestamp();
