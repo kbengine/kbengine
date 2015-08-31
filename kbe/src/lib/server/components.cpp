@@ -1050,7 +1050,7 @@ RESTART_RECV:
 					else
 					{
 						//findComponentTypes_[0] = -1;
-						for(int8 ic=1; ic<sizeof(findComponentTypes_) - 1; ++ic)
+						for(size_t ic=1; ic<sizeof(findComponentTypes_) - 1; ++ic)
 						{
 							findComponentTypes_[ic - 1] = findComponentTypes_[ic];
 						}
