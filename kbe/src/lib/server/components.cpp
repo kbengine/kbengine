@@ -945,6 +945,131 @@ void Components::onChannelDeregister(Network::Channel * pChannel, bool isShuting
 }
 
 //-------------------------------------------------------------------------------------
+bool Components::findLogger()
+{
+	if(g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE)
+	{
+		return true;
+	}
+	
+	int i = 0;
+	
+	while(i++ < 1/*如果Logger与其他游戏进程同时启动，这里设定的查找次数越多，
+		找到Logger的概率越大，当前只设定查找一次，假定用户已经提前好启动Logger服务*/)
+	{
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+			
+		Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+		if(!bhandler.good())
+		{
+			continue;
+		}
+
+		bhandler.itry(0);
+		if(bhandler.pCurrPacket() != NULL)
+		{
+			bhandler.pCurrPacket()->resetPacket();
+		}
+			
+		COMPONENT_TYPE findComponentType = LOGGER_TYPE;
+		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+		MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			g_componentType, g_componentID, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+		if(!bhandler.broadcast())
+		{
+			//ERROR_MSG("Components::findLogger: broadcast error!\n");
+			continue;
+		}
+
+		int32 timeout = 1500000;
+		MachineInterface::onBroadcastInterfaceArgs24 args;
+
+RESTART_RECV:
+
+		if(bhandler.receive(&args, 0, timeout, false))
+		{
+			bool isContinue = false;
+			timeout = 1000000;
+
+			do
+			{
+				if(isContinue)
+				{
+					try
+					{
+						args.createFromStream(*bhandler.pCurrPacket());
+					}catch(MemoryStreamException &)
+					{
+						break;
+					}
+				}
+				
+				if(args.componentIDEx != g_componentID)
+				{
+					//WARNING_MSG(fmt::format("Components::findLogger: msg.componentID {} != {}.\n", 
+					//	args.componentIDEx, g_componentID));
+					
+					args.componentIDEx = 0;
+					goto RESTART_RECV;
+				}
+
+				// 如果找不到
+				if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+				{
+					isContinue = true;
+					continue;
+				}
+
+				INFO_MSG(fmt::format("Components::findLogger: found {}, addr:{}:{}\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+					inet_ntoa((struct in_addr&)args.intaddr),
+					ntohs(args.intport)));
+
+				Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+					args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
+					args.usedmem, args.extradata, args.extradata1, args.extradata2, 123);
+
+				isContinue = true;
+			}while(bhandler.pCurrPacket()->length() > 0);
+
+			// 防止接收到的数据不是想要的数据
+			if(findComponentType == args.componentType)
+			{
+				for(int iconn=0; iconn<5; iconn++)
+				{
+					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+					{
+						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} is error!\n",
+						//COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+						//dispatcher().breakProcessing();
+						KBEngine::sleep(200);
+					}
+					else
+					{
+						//findComponentTypes_[0] = -1;
+						for(int8 ic=1; ic<sizeof(findComponentTypes_) - 1; ++ic)
+						{
+							findComponentTypes_[ic - 1] = findComponentTypes_[ic];
+						}
+
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			// 接受数据超时了
+		}
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
 bool Components::findComponents()
 {
 	if(state_ == 1)
