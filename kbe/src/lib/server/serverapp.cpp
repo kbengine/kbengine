@@ -76,6 +76,11 @@ threadPool_()
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
+	// 广播自己的地址给网上上的所有kbemachine
+	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
+	Components::getSingleton().pHandler(this);
+	this->dispatcher().addTask(&Components::getSingleton());
+	
 	pActiveTimerHandle_ = new ComponentActiveReportHandler(this);
 	pActiveTimerHandle_->startActiveTick(KBE_MAX(1.f, Network::g_channelInternalTimeout / 2.0f));
 
@@ -154,11 +159,6 @@ bool ServerApp::initialize()
 	
 	if(!inInitialize())
 		return false;
-	
-	// 广播自己的地址给网上上的所有kbemachine
-	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
-	Components::getSingleton().pHandler(this);
-	this->dispatcher().addTask(&Components::getSingleton());
 
 	bool ret = initializeEnd();
 

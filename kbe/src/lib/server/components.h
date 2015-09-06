@@ -209,9 +209,11 @@ public:
 	void extraData3(uint64 v){ extraData3_ = v; }
 	void extraData4(uint64 v){ extraData4_ = v; }
 
+	bool findLogger();
+	
 private:
 	virtual bool process();
-	bool findInterfaces();
+	bool findComponents();
 
 	void onFoundAllComponents();
 
