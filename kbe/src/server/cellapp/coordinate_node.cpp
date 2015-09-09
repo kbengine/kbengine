@@ -52,6 +52,14 @@ flags_(COORDINATE_NODE_FLAG_UNKNOWN)
 //-------------------------------------------------------------------------------------
 CoordinateNode::~CoordinateNode()
 {
+	//DEBUG_MSG(fmt::format("CoordinateNode::~CoordinateNode(), addr = {}, desc = {}\n", (void*)this, descr_));
+	KBE_ASSERT(pPrevX_ == NULL &&
+			   pNextX_ == NULL &&
+			   pPrevY_ == NULL &&
+			   pNextY_ == NULL &&
+			   pPrevZ_ == NULL &&
+			   pNextZ_ == NULL &&
+			   pCoordinateSystem_ == NULL);
 }
 
 //-------------------------------------------------------------------------------------

@@ -48,12 +48,17 @@ pRangeTrigger_(pRangeTrigger)
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
-	static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+	// 既然自己都要销毁了，那么就让自己的拥有者注销自己吧
+	if (pRangeTrigger_)
+		pRangeTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onParentRemove(CoordinateNode* pParentNode)
 {
+	// 既然要移除自己了，自然也得中断与自己的拥有者的关系
+	pRangeTrigger_->uninstall();
+
 	if((flags() & COORDINATE_NODE_FLAG_REMOVEING) <= 0)
 		pParentNode->pCoordinateSystem()->remove(this);
 }
@@ -104,6 +109,25 @@ void RangeTriggerNode::onNodePassZ(CoordinateNode* pNode, bool isfront)
 {
 	if((flags() & COORDINATE_NODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
 		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTriggerNode::pRangeTrigger(RangeTrigger* pRangeTrigger)
+{
+	// phw: 在赋新值之前，必须先通过旧的RangeTrigger向Watcher反注册，
+	//      否则在自身被销毁时Watcher就会指向一个野指针。
+	if (pRangeTrigger_)
+		static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+	
+	pRangeTrigger_ = pRangeTrigger;
+	if (pRangeTrigger_)
+	{
+#ifdef _DEBUG
+		descr((fmt::format("RangeTriggerNode(origin={:p}->{})", 
+			(void*)pRangeTrigger_->origin(), pRangeTrigger_->origin()->descr())));
+#endif
+		static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->addWatcherNode(this);
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -74,20 +74,59 @@ float EntityCoordinateNode::zz() const
 void EntityCoordinateNode::update()
 {
 	CoordinateNode::update();
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+
+	// 通过从后往前遍历并辅以每一次都对watcherNodes_的大小进行检查的方式，
+	// 从而有效的避开因内部循环删除所引发的迭代器无法迭代的问题
+	int i = watcherNodes_.size() - 1;
+	
+	// 存储已经遍历过的节点，以避免重复处理
+	// @todo(phw): 如果有需要（例如预期数据量会很大），換成hash_set或set效率会更高
+	std::vector<CoordinateNode*> processeds;
+	
+	for(; i >= 0; --i)
 	{
-		(*iter)->update();
+		// 如果索引比拥有的数量大，那表示一次性删除了多个
+		// 但需要继续推进，直至遍历了所有的节点为止
+		if (i >= (int)watcherNodes_.size())
+			continue;
+		
+		CoordinateNode* pNode = watcherNodes_[i];
+		
+		// 如果已经处理过，就不再次处理了
+		if (processeds.end() != std::find(processeds.begin(), processeds.end(), pNode))
+			continue;
+
+		pNode->update();
+		processeds.push_back(pNode);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onRemove()
 {
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+	// 通过从后往前遍历并辅以每一次都对watcherNodes_的大小进行检查的方式，
+	// 从而有效的避开因内部循环删除所引发的迭代器无法迭代的问题
+	int i = watcherNodes_.size() - 1;
+	
+	// 存储已经遍历过的节点，以避免重复处理
+	// @todo(phw): 如果有需要（例如预期数据量会很大），換成hash_set或set效率会更高
+	std::vector<CoordinateNode*> processeds;
+	
+	for(; i >= 0; --i)
 	{
-		(*iter)->onParentRemove(this);
+		// 如果索引比拥有的数量大，那表示一次性删除了多个
+		// 但需要继续推进，直至遍历了所有的节点为止
+		if (i >= (int)watcherNodes_.size())
+			continue;
+		
+		CoordinateNode* pNode = watcherNodes_[i];
+		
+		// 如果已经处理过，就不再次处理了
+		if (processeds.end() != std::find(processeds.begin(), processeds.end(), pNode))
+			continue;
+
+		pNode->onParentRemove(this);
+		processeds.push_back(pNode);
 	}
 
 	CoordinateNode::onRemove();

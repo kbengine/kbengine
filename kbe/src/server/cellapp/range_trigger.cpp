@@ -89,21 +89,28 @@ bool RangeTrigger::install()
 //-------------------------------------------------------------------------------------
 bool RangeTrigger::uninstall()
 {
-	if(positiveBoundary_ && positiveBoundary_->pCoordinateSystem())
+	if(positiveBoundary_)
 	{
-		positiveBoundary_->pRangeTrigger(NULL);
-		positiveBoundary_->pCoordinateSystem()->remove(positiveBoundary_);
+		// 1.此处不必release node， 节点的释放统一交给CoordinateSystem
+		// 2.先设置变量的原因是为了避免内部循环uninstall导致的崩溃问题
+		RangeTriggerNode* pNode = positiveBoundary_;
+		positiveBoundary_ = NULL;
+		pNode->pRangeTrigger(NULL);
+		if (pNode->pCoordinateSystem())
+			pNode->pCoordinateSystem()->remove(pNode);
 	}
 
-	if(negativeBoundary_ && negativeBoundary_->pCoordinateSystem())
+	if(negativeBoundary_)
 	{
-		negativeBoundary_->pRangeTrigger(NULL);
-		negativeBoundary_->pCoordinateSystem()->remove(negativeBoundary_);
+		// 1.此处不必release node， 节点的释放统一交给CoordinateSystem
+		// 2.先设置变量的原因是为了避免内部循环uninstall导致的崩溃问题
+		RangeTriggerNode* pNode = negativeBoundary_;
+		negativeBoundary_ = NULL;
+		pNode->pRangeTrigger(NULL);
+		if (pNode->pCoordinateSystem())
+			pNode->pCoordinateSystem()->remove(pNode);
 	}
-	
-	// 此处不必release node， 节点的释放统一交给CoordinateSystem
-	positiveBoundary_ = NULL;
-	negativeBoundary_ = NULL;
+
 	return true;
 }
 

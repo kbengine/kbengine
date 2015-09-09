@@ -248,6 +248,8 @@ bool Space::update()
 	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
 		return false;
 
+	this->coordinateSystem_.releaseNodes();
+	
 	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
 		_clearGhosts();
 		

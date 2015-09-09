@@ -44,6 +44,8 @@ updating_(0)
 //-------------------------------------------------------------------------------------
 CoordinateSystem::~CoordinateSystem()
 {
+	KBE_ASSERT(releases_.size() == 0);
+
 	dels_.clear();
 	dels_count_ = 0;
 
@@ -137,13 +139,16 @@ bool CoordinateSystem::insert(CoordinateNode* pNode)
 //-------------------------------------------------------------------------------------
 bool CoordinateSystem::remove(CoordinateNode* pNode)
 {
+	// 如果已经处于删除中的状态，就表示当前处于删除流程中，不需要再次进入流程
+	if ((pNode->flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+		return false;
+
 	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
 	pNode->onRemove();
-	update(pNode);
 	
-	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
 	if((pNode->flags() & COORDINATE_NODE_FLAG_PENDING) > 0)
 	{
+		pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
 		std::list<CoordinateNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
 		if(iter == dels_.end())
 		{
@@ -153,6 +158,8 @@ bool CoordinateSystem::remove(CoordinateNode* pNode)
 	}
 	else
 	{
+		update(pNode);
+		pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
 		removeReal(pNode);
 	}
 
@@ -247,6 +254,7 @@ bool CoordinateSystem::removeReal(CoordinateNode* pNode)
 	pNode->pPrevZ(NULL);
 	pNode->pNextZ(NULL);
 	pNode->pCoordinateSystem(NULL);
+	releases_.push_back(pNode);
 
 	--size_;
 	return true;
@@ -424,6 +432,8 @@ void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode
 void CoordinateSystem::update(CoordinateNode* pNode)
 {
 	AUTO_SCOPED_PROFILE("coordinateSystemUpdates");
+
+	KBE_ASSERT(!(pNode->flags() & COORDINATE_NODE_FLAG_REMOVED));
 
 	// DEBUG_MSG(fmt::format("CoordinateSystem::update:[{}]:  ({}  {}  {})\n", pNode, pNode->xx(), pNode->yy(), pNode->zz()));
 	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
@@ -650,6 +660,17 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 //	if(first_y_coordinateNode_)first_y_coordinateNode_->debugY();
 //	DEBUG_MSG(fmt::format("CoordinateSystem::update[ z ]:[{}]\n", pNode));
 //	first_z_coordinateNode_->debugZ();
+}
+
+//-------------------------------------------------------------------------------------
+void CoordinateSystem::releaseNodes()
+{
+	std::list<CoordinateNode*>::iterator iter = releases_.begin();
+	for (; iter != releases_.end(); ++iter)
+	{
+		delete (*iter);
+	}
+	releases_.clear();
 }
 
 //-------------------------------------------------------------------------------------

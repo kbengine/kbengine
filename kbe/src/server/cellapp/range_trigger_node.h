@@ -40,7 +40,7 @@ public:
 	INLINE float range_y() const;
 
 	INLINE RangeTrigger* pRangeTrigger() const;
-	INLINE void pRangeTrigger(RangeTrigger* pRangeTrigger);
+	void pRangeTrigger(RangeTrigger* pRangeTrigger);
 
 	/**
 		(À©Õ¹×ø±ê)
