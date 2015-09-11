@@ -3384,8 +3384,8 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			const DataType* datatype = dtiter->second;
 
 			bundle << datatype->id();
-			bundle << dtiter->first;
 			bundle << datatype->getName();
+			bundle << datatype->aliasName();
 
 			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{
