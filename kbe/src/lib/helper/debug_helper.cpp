@@ -518,7 +518,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	(*pBundle) << t;
 	uint32 millitm = tp.millitm;
 	(*pBundle) << millitm;
-	(*pBundle) << str;
+	pBundle->appendBlob(str, length);
 	
 	++hasBufferedLogPackets_;
 	bufferedLogPackets_.push(pBundle);
