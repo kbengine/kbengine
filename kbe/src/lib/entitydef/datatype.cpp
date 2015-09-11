@@ -780,6 +780,7 @@ bool StringType::isSameType(PyObject* pyValue)
 	bool ret = PyUnicode_Check(pyValue);
 	if(!ret)
 		OUT_TYPE_ERROR("STRING");
+	
 	return ret;
 }
 
@@ -804,9 +805,25 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	size_t wpos = mstream->wpos();
+	
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyValue, NULL);
 	strutil::wchar2char(PyUnicode_AsWideCharStringRet0, mstream);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	
+	if(wpos == mstream->wpos())
+		return;
+	
+	// 检查值是否为ascii
+	for(size_t i=wpos; i<mstream->wpos(); ++i)
+	{
+		if(!isascii(mstream->data()[i]))
+		{
+			OUT_TYPE_ERROR("STRING");
+			mstream->wpos(wpos);
+			return;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

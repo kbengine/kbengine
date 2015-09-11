@@ -180,7 +180,7 @@ namespace strutil {
 
 		size_t slen = wcstombs(ccattr, ts, len);
 
-		if(outlen)
+		if(outlen && (size_t)-1 != slen)
 			*outlen = slen;
 
 		return ccattr;
@@ -191,7 +191,12 @@ namespace strutil {
 		int len = (wcslen(ts) + 1) * 4/* Linux下sizeof(wchar_t) == 4, Windows下是2字节，这里取大的 */;
 		pStream->data_resize(pStream->wpos() + len);
 		size_t slen = wcstombs((char*)&pStream->data()[pStream->wpos()], ts, len);
-		pStream->wpos(pStream->wpos() + slen + 1);
+		
+		if((size_t)-1 != slen)
+		{
+			pStream->wpos(pStream->wpos() + slen + 1);
+			pStream->data()[pStream->wpos() - 1] = 0;
+		}
 	};
 
 	wchar_t* char2wchar(const char* cs, size_t* outlen)
@@ -202,7 +207,7 @@ namespace strutil {
 
 		size_t slen = mbstowcs(ccattr, cs, len);
 
-		if(outlen)
+		if(outlen && (size_t)-1 != slen)
 			*outlen = slen;
 
 		return ccattr;
