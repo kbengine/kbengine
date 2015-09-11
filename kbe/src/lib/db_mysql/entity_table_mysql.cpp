@@ -240,10 +240,6 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 
 		indexs.push_back(iter->second.get());
 	}
-	
-	// 没有索引需要创建
-	if(indexs.size() == 0)
-		return true;
 
 	char sql_str[MAX_BUF];
 
@@ -263,7 +259,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		return false;
 	}
 
-	KBEUnordered_map<std::string, std::string> getkeys;
+	KBEUnordered_map<std::string, std::string> currDBKeys;
 
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 	if(pResult)
@@ -279,10 +275,13 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 			std::string keyname = arow[2];
 			std::string colname = arow[4];
 
-			if(keyname == "PRIMARY" || colname != keyname)
+			if(keyname == "PRIMARY" || colname != keyname || 
+				keyname == TABLE_PARENTID_CONST_STR ||
+				keyname == TABLE_ID_CONST_STR ||
+				keyname == TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR)
 				continue;
 
-			getkeys[colname] = keytype;
+			currDBKeys[colname] = keytype;
 		}
 
 		mysql_free_result(pResult);
@@ -294,9 +293,12 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 	for(; iiter != indexs.end(); )
 	{
 		std::string itemname = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
-		KBEUnordered_map<std::string, std::string>::iterator fiter = getkeys.find(itemname);
-		if(fiter != getkeys.end())
+		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemname);
+		if(fiter != currDBKeys.end())
 		{
+			// 删除已经处理的，剩下的就是要从数据库删除的index
+			currDBKeys.erase(fiter);
+			
 			if(fiter->second != (*iiter)->indexType())
 			{
 				sql += fmt::format("DROP INDEX `{}`,", itemname);
@@ -327,16 +329,24 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		}
 
 		sql += fmt::format("ADD {} {}({}{}),", (*iiter)->indexType(), itemname, itemname, lengthinfos);
-		iiter++;
+		++iiter;
 		done = true;
 	}
 
-	sql.erase(sql.end() - 1);
-
+	// 剩下的就是要从数据库删除的index
+	KBEUnordered_map<std::string, std::string>::iterator dbkey_iter = currDBKeys.begin();
+	for(; dbkey_iter != currDBKeys.end(); ++dbkey_iter)
+	{
+		sql += fmt::format("DROP INDEX `{}`,", dbkey_iter->first);
+		done = true;		
+	}
+	
 	// 没有需要修改或者添加的
 	if(!done)
 		return true;
-
+	
+	sql.erase(sql.end() - 1);
+	
 	try
 	{
 		bool ret = dbi->query(sql.c_str(), sql.size(), true);
