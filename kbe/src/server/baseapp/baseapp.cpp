@@ -2126,7 +2126,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	if(Baseapp::getSingleton().isShuttingdown())
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge(%s): shuttingdown, operation not allowed! dbid=%" PRIu64, 
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge(%s): shuttingdown, operation not allowed! dbid=%"PRIu64, 
 			pChargeID, dbid);
 
 		PyErr_PrintEx(0);
@@ -2793,12 +2793,12 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 
 				if(isprint)
 				{
-					WARNING_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found, {}(msgid={}).\n", 
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found, {}(msgid={}).\n", 
 						eid, (pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
-					WARNING_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
+					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: entityID {} not found.\n", eid));
 				}
 			}
 			else
@@ -3384,8 +3384,8 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			const DataType* datatype = dtiter->second;
 
 			bundle << datatype->id();
+			bundle << dtiter->first;
 			bundle << datatype->getName();
-			bundle << datatype->aliasName();
 
 			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{

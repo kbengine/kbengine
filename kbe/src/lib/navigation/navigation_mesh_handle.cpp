@@ -78,10 +78,9 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
 	dtPolyRef endRef = INVALID_NAVMESH_POLYREF;
 
-	float startNearestPt[3];
-	float endNearestPt[3];
-	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, startNearestPt);
-	navmeshQuery->findNearestPoly(epos, extents, &filter, &endRef, endNearestPt);
+	float nearestPt[3];
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
+	navmeshQuery->findNearestPoly(epos, extents, &filter, &endRef, nearestPt);
 
 	if (!startRef || !endRef)
 	{
@@ -97,18 +96,18 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	int nstraightPath;
 	int pos = 0;
 
-	navmeshQuery->findPath(startRef, endRef, startNearestPt, endNearestPt, &filter, polys, &npolys, MAX_POLYS);
+	navmeshQuery->findPath(startRef, endRef, spos, epos, &filter, polys, &npolys, MAX_POLYS);
 	nstraightPath = 0;
 
 	if (npolys)
 	{
 		float epos1[3];
-		dtVcopy(epos1, endNearestPt);
+		dtVcopy(epos1, epos);
 				
 		if (polys[npolys-1] != endRef)
-			navmeshQuery->closestPointOnPoly(polys[npolys-1], endNearestPt, epos1);
+			navmeshQuery->closestPointOnPoly(polys[npolys-1], epos, epos1);
 				
-		navmeshQuery->findStraightPath(startNearestPt, endNearestPt, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
+		navmeshQuery->findStraightPath(spos, epos, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
 
 		Position3D currpos;
 		for(int i = 0; i < nstraightPath * 3; )

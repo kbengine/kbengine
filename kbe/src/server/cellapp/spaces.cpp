@@ -70,12 +70,11 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 
 	if(!pSpace->destroy(entityID))
 	{
-		//WARNING_MSG("Spaces::destroySpace: destroying!\n");
+		ERROR_MSG("Spaces::destroySpace: is error!\n");
 		return false;
 	}
 
-	// 延时一段时间再销毁
-	//spaces_.erase(spaceID);
+	spaces_.erase(spaceID);
 	return true;
 }
 
@@ -93,18 +92,8 @@ Space* Spaces::findSpace(SPACE_ID spaceID)
 void Spaces::update()
 {
 	SPACES::iterator iter = spaces_.begin();
-
-	for(; iter != spaces_.end(); )
-	{
-		if(!iter->second->update())
-		{
-			spaces_.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
+	for(;iter != spaces_.end(); ++iter)
+		iter->second->update();
 }
 
 //-------------------------------------------------------------------------------------

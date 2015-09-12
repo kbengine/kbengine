@@ -219,7 +219,7 @@ void EntityMailbox::c_str(char* s, size_t size)
 	
 	Network::Channel* pChannel = getChannel();
 
-	kbe_snprintf(s, size, "%s id:%d, utype:%u, component=%s[%" PRIu64 "], addr: %s.", 
+	kbe_snprintf(s, size, "%s id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", 
 		mailboxName, id_,  utype_,
 		COMPONENT_NAME_EX(ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]), 
 		componentID_, (pChannel && pChannel->pEndPoint()) ? pChannel->addr().c_str() : "None");

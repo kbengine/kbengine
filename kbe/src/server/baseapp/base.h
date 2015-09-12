@@ -270,12 +270,6 @@ public:
 	*/
 	void onBufferedForwardToCellappMessagesOver();
 
-	/** 
-		设置实体持久化数据是否已脏，脏了会自动存档 
-	*/
-	INLINE void setDirty(bool dirty = true);
-	INLINE bool isDirty() const;
-	
 protected:
 	/** 
 		定义属性数据被改变了 
@@ -323,9 +317,6 @@ protected:
 
 	// 在一些状态下(传送过程中)，发往cellapp的数据包需要被缓存, 合适的状态需要继续转发
 	BaseMessagesForwardHandler*				pBufferedSendToCellappMessages_;
-	
-	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
-	bool									isDirty_;
 };
 
 }

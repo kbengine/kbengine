@@ -40,7 +40,7 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
 	
 	Space* pSpace = Spaces::findSpace(spaceID_);
-	if(pSpace == NULL || !pSpace->isGood())
+	if(pSpace == NULL)
 	{
 		ERROR_MSG(fmt::format("LoadNavmeshTask::presentMainThread(): not found space({})\n",
 			spaceID_));

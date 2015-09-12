@@ -27,33 +27,33 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
-	ENTITY_CPP_IMPL(APP, CLASS)																				\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,				0)	\
-	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,				0)	\
-	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,				0)	\
-	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,				0)	\
-	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,0)	\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																				\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,			0)		\
 
 	
-#define ENTITY_METHOD_DECLARE_END()																			\
-	SCRIPT_METHOD_DECLARE_END()																				\
+#define ENTITY_METHOD_DECLARE_END()																							\
+	SCRIPT_METHOD_DECLARE_END()																								\
 
-#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
-	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
-	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
-
-
-#define ENTITY_GETSET_DECLARE_END()																			\
-	SCRIPT_GETSET_DECLARE_END()																				\
+#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																					\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,										0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,										0)		\
 
 
-#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)														\
-	ENTITY_CPP_IMPL(APP, CLASS)																				\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
+#define ENTITY_GETSET_DECLARE_END()																							\
+	SCRIPT_GETSET_DECLARE_END()																								\
+
+
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
 
 	
 #define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
@@ -276,27 +276,22 @@ namespace KBEngine{
 }																											\
 
 
-// 实体的标志
-#define ENTITY_FLAGS_UNKNOWN		0x00000000
-#define ENTITY_FLAGS_DESTROYING		0x00000001
-#define ENTITY_FLAGS_INITING		0x00000002
-
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
-	ENTITY_ID										id_;													\
-	ScriptDefModule*								scriptModule_;											\
+	ENTITY_ID		id_;																					\
+	ScriptDefModule*	scriptModule_;																		\
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
-	SPACE_ID										spaceID_;												\
-	ScriptTimers									scriptTimers_;											\
-	PY_CALLBACKMGR									pyCallbackMgr_;											\
-	bool											isDestroyed_;											\
-	uint32											flags_;													\
+	SPACE_ID spaceID_;																						\
+	ScriptTimers scriptTimers_;																				\
+	PY_CALLBACKMGR pyCallbackMgr_;																			\
+	bool isDestroyed_;																						\
+	bool initing_;																							\
 public:																										\
-	bool initing() const{ return hasFlags(ENTITY_FLAGS_INITING); }											\
+	bool initing() const{ return initing_; }																	\
 																											\
 	void initializeScript()																					\
 	{																										\
-		removeFlags(ENTITY_FLAGS_INITING);																	\
+		initing_ = false;																					\
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
@@ -526,36 +521,9 @@ public:																										\
 		return id_;																							\
 	}																										\
 																											\
-	INLINE void id(ENTITY_ID v)																				\
+	INLINE void id(int v)																					\
 	{																										\
 		id_ = v; 																							\
-	}																										\
-																											\
-	INLINE bool hasFlags(uint32 v) const																	\
-	{																										\
-		return (flags_ & v) > 0;																			\
-	}																										\
-																											\
-	INLINE uint32 flags() const																				\
-	{																										\
-		return flags_;																						\
-	}																										\
-																											\
-	INLINE void flags(uint32 v)																				\
-	{																										\
-		flags_ = v; 																						\
-	}																										\
-																											\
-	INLINE uint32 addFlags(uint32 v)																		\
-	{																										\
-		flags_ |= v;																						\
-		return flags_;																						\
-	}																										\
-																											\
-	INLINE uint32 removeFlags(uint32 v)																		\
-	{																										\
-		flags_ &= ~v; 																						\
-		return flags_;																						\
 	}																										\
 																											\
 	INLINE SPACE_ID spaceID() const																			\
@@ -571,7 +539,7 @@ public:																										\
 		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* scriptModule(void) const														\
+	INLINE ScriptDefModule* scriptModule(void) const															\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
@@ -758,15 +726,10 @@ public:																										\
 																											\
 	void destroy(bool callScript = true)																	\
 	{																										\
-		if(hasFlags(ENTITY_FLAGS_DESTROYING))																\
-			return;																							\
-																											\
 		if(!isDestroyed_)																					\
 		{																									\
-			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
-			removeFlags(ENTITY_FLAGS_DESTROYING);															\
 			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
@@ -989,14 +952,14 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	flags_(ENTITY_FLAGS_INITING)																			\
+	initing_(true)																							\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
-	removeFlags(ENTITY_FLAGS_INITING);																		\
+	initing_ = false;																						\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\

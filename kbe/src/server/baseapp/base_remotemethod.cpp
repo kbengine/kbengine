@@ -59,7 +59,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
 
-	if (!mailbox->isClient() || mailbox->type() == MAILBOX_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
+	if(!mailbox->isClient())
 	{
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}

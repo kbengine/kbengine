@@ -172,7 +172,6 @@ void GhostManager::syncGhosts()
 			if(cinfos == NULL || cinfos->pChannel == NULL)
 			{
 				ERROR_MSG(fmt::format("GhostManager::syncGhosts: not found cellapp({})!\n", iter->first));
-				++iter;
 				continue;
 			}
 
