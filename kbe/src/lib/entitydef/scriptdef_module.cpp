@@ -377,7 +377,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasCell = 0;
 			}
 
-			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasCell, sizeof(int));
 
 			val = node->ToElement()->Attribute("hasBase");
 			if(val)
@@ -388,7 +388,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasBase = 0;
 			}
 
-			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasBase, sizeof(int));
 			break;
 		}
 	}

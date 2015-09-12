@@ -29,7 +29,7 @@ namespace KBEngine{
 class MoveToEntityHandler : public MoveToPointHandler
 {
 public:
-	MoveToEntityHandler(Controller* pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
+	MoveToEntityHandler(KBEShared_ptr<Controller> pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 
 	MoveToEntityHandler();

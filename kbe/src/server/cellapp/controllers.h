@@ -31,8 +31,8 @@ public:
 	Controllers(ENTITY_ID entityID);
 	~Controllers();
 
-	bool add(Controller* pController);
-	bool remove(Controller* pController);
+	bool add(KBEShared_ptr<Controller> pController);
+	bool remove(KBEShared_ptr<Controller> pController);
 	bool remove(uint32 id);
 	
 	void clear();

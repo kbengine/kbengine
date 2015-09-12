@@ -173,6 +173,7 @@ public:
 		重置AOI范围内的entities， 使其同步状态恢复到最初未同步的状态
 	*/
 	void resetAOIEntities();
+
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置
@@ -180,6 +181,7 @@ private:
 	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID);
+
 private:
 	Entity*									pEntity_;
 

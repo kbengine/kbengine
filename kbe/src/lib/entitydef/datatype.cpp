@@ -189,7 +189,7 @@ PyObject* UInt64Type::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "UInt64Type::createFromStream: errval=%"PRIu64", default return is 0", val);
+		PyErr_Format(PyExc_TypeError, "UInt64Type::createFromStream: errval=%" PRIu64 ", default return is 0", val);
 		PyErr_PrintEx(0);
 		S_RELEASE(pyval);
 		return PyLong_FromUnsignedLongLong(0);
@@ -420,7 +420,7 @@ PyObject* Int64Type::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "Int64Type::createFromStream: errval=%"PRI64", default return is 0", val);
+		PyErr_Format(PyExc_TypeError, "Int64Type::createFromStream: errval=%" PRI64 ", default return is 0", val);
 		PyErr_PrintEx(0);
 		S_RELEASE(pyval);
 		return PyLong_FromLongLong(0);
@@ -779,7 +779,36 @@ bool StringType::isSameType(PyObject* pyValue)
 
 	bool ret = PyUnicode_Check(pyValue);
 	if(!ret)
+	{
 		OUT_TYPE_ERROR("STRING");
+	}
+	else
+	{
+		PyObject* pyfunc = PyObject_GetAttrString(pyValue, "encode"); 
+		if(pyfunc == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			ret = false;
+		}
+		else
+		{
+			PyObject* pyRet = PyObject_CallFunction(pyfunc, 
+				const_cast<char*>("(s)"), "ascii");
+			
+			S_RELEASE(pyfunc);
+			
+			if(!pyRet)
+			{
+				SCRIPT_ERROR_CHECK();
+				ret = false;
+			}
+			else
+			{
+				S_RELEASE(pyRet);
+			}
+		}
+	}
+	
 	return ret;
 }
 

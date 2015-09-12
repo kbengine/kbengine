@@ -36,8 +36,6 @@ class AOITrigger : public RangeTrigger
 public:
 	AOITrigger(CoordinateNode* origin, float xz = 0.0f, float y = 0.0f);
 	virtual ~AOITrigger();
-
-
 	
 	/**
 		某个节点进入或者离开了rangeTrigger

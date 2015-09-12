@@ -108,6 +108,9 @@ bool InitProgressHandler::process()
 		{
 			// 必须等待EntityAutoLoader执行完毕
 			// EntityAutoLoader执行完毕会设置autoLoadState_ = 1
+			if(!pEntityAutoLoader_->process())
+				setAutoLoadState(1);
+			
 			return true;
 		}
 	}

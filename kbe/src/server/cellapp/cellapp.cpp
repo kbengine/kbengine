@@ -115,17 +115,10 @@ void Cellapp::onShutdown(bool first)
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
-			Entity* pEntity = static_cast<Entity*>(iter->second.get());
+			//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->scriptModule()->isPersistent())
 			{
-				Space* space = Spaces::findSpace(pEntity->spaceID());
-				if(space && space->creatorID() == pEntity->id())
-				{
-					vecs.push_back(pEntity);
-					continue;
-				}
-
 				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
 				count--;
@@ -136,18 +129,7 @@ void Cellapp::onShutdown(bool first)
 
 		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
 		// 剩下的应该都是space，可以开始销毁了
-		if(g_serverConfig.getCellApp().perSecsDestroyEntitySize == count && vecs.size() > 0)
-		{
-			std::vector<Entity*>::iterator iter1 = vecs.begin();
-			for(; iter1 != vecs.end(); ++iter1)
-			{
-				this->destroyEntity(static_cast<Entity*>(*iter1)->id(), true);
-
-				count--;
-				done = true;
-				break;
-			}
-		}
+		Spaces::finalise();
 
 		if(!done)
 			break;
@@ -185,6 +167,8 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,						METH_VARARGS,			0);
+
 	return EntityApp<Entity>::installPyModules();
 }
 
@@ -253,6 +237,7 @@ void Cellapp::handleGameTick()
 	EntityApp<Entity>::handleGameTick();
 
 	updatables_.update();
+	Spaces::update();
 }
 
 //-------------------------------------------------------------------------------------
@@ -304,6 +289,7 @@ void Cellapp::finalise()
 	}
 
 	Spaces::finalise();
+	Navigation::getSingleton().finalise();
 	EntityApp<Entity>::finalise();
 }
 
@@ -439,7 +425,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	}
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
 		PyErr_PrintEx(0);
@@ -829,7 +815,6 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		space->addEntityAndEnterWorld(e);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -890,7 +875,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
 			
-			WARNING_MSG(fmt::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp({}), message is buffered.\n",
+			WARNING_MSG(fmt::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp({}), message has been buffered.\n",
 				componentID));
 			
 			return;
@@ -901,7 +886,6 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->creatorID(e->id());
 		e->onRestore();
 
 		space->addEntityAndEnterWorld(e, true);
@@ -1010,7 +994,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	//	spaceID, entityType.c_str(), entityID, componentID);
 
 	Space* space = Spaces::findSpace(spaceID);
-	if(space != NULL)
+	if(space != NULL && space->isGood())
 	{
 		// 告知baseapp， entity的cell创建了
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -1132,7 +1116,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 		}
 
-		ERROR_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
+		WARNING_MSG(fmt::format("Cellapp::onEntityMail: entityID {} not found.\n", eid));
 		s.done();
 		return;
 	}
@@ -1623,7 +1607,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Space* space = Spaces::findSpace(refEntity->spaceID());
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		s.rpos(rpos);
 
@@ -1654,7 +1638,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle).append(&s);
 		pChannel->send(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) is error!\n", teleportEntityID));
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: create reqTeleportEntity({}) error!\n", teleportEntityID));
 		s.done();
 		return;
 	}
@@ -1776,6 +1760,120 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	entity->onTeleportFailure();
 
 	s.done();
+}
+
+//-------------------------------------------------------------------------------------
+int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
+{
+	Space* pSpace = Spaces::findSpace(spaceID);
+	if(pSpace == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::raycast: not found space({})!\n", 
+			spaceID));
+
+		return -1;
+	}
+	
+	if(pSpace->pNavHandle() == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::raycast: space({}) not addSpaceGeometryMapping! layer={}\n", 
+			spaceID, layer));
+
+		return -1;
+	}
+
+	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+
+	int layer = 0;
+	SPACE_ID spaceID = 0;
+
+	PyObject* pyStartPos = NULL;
+	PyObject* pyEndPos = NULL;
+
+	if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "IOO", &spaceID, &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if(currargsSize == 4)
+	{
+		if(PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PySequence_Check(pyStartPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args1(startPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!PySequence_Check(pyEndPos))
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args2(endPos) not is PySequence!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyStartPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args1(startPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyEndPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args2(endPos) invalid!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D startPos;
+	Position3D endPos;
+	std::vector<Position3D> hitPosVec;
+	//float hitPos[3];
+
+	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
+	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
+	if(Cellapp::getSingleton().raycast(spaceID, layer, startPos, endPos, hitPosVec) <= 0)
+	{
+		S_Return;
+	}
+
+	int idx = 0;
+	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
+	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); ++iter)
+	{
+		PyObject* pyHitposItem = PyTuple_New(3);
+		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
+		PyTuple_SetItem(pyHitposItem, 1, ::PyFloat_FromDouble((*iter).y));
+		PyTuple_SetItem(pyHitposItem, 2, ::PyFloat_FromDouble((*iter).z));
+
+		PyTuple_SetItem(pyHitpos, idx++, pyHitposItem);
+	}
+
+	return pyHitpos;
 }
 
 //-------------------------------------------------------------------------------------

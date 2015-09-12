@@ -42,6 +42,7 @@ public:
 
 	void addWitnessed(Entity* pEntity);
 	void delWitnessed(Entity* pEntity);
+
 private:
 	virtual void handleTimeout(TimerHandle handle, void * pUser);
 

@@ -63,12 +63,12 @@ SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("navigatePathPoints",			pyNavigatePathPoints,			METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("raycast",					pyRaycast,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
@@ -119,10 +119,10 @@ allClients_(new AllClients(scriptModule, id, false)),
 otherClients_(new AllClients(scriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
-pMoveController_(NULL),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
-layer_(0)
+layer_(0),
+isDirty_(true)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -186,7 +186,7 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	if(callScript)
+	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
@@ -195,6 +195,7 @@ void Entity::onDestroy(bool callScript)
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
 		if(baseMailbox_ != NULL)
 		{
+			setDirty();
 			this->backupCellData();
 
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -219,6 +220,9 @@ void Entity::onDestroy(bool callScript)
 	{
 		space->removeEntity(this);
 	}
+
+	// 在进程强制关闭时这里可能不为0
+	//KBE_ASSERT(spaceID() == 0);
 
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
@@ -290,6 +294,13 @@ void Entity::destroySpace()
 		return;
 
 	Spaces::destroySpace(spaceID(), this->id());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onSpaceGone()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onSpaceGone"));	
 }
 
 //-------------------------------------------------------------------------------------
@@ -396,9 +407,12 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 	// 如果不是一个realEntity或者在初始化则不理会
-	if(!isReal() || initing_)
+	if(!isReal() || initing())
 		return;
 
+	if(propertyDescription->isPersistent())
+		setDirty();
+	
 	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
@@ -751,12 +765,16 @@ void Entity::backupCellData()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
-		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
-		(*pBundle).append(s);
-		MemoryStream::ObjPool().reclaimObject(s);
-
+		(*pBundle) << isDirty();
+		
+		if(isDirty())
+		{
+			MemoryStream* s = MemoryStream::ObjPool().createObject();
+			addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+			(*pBundle).append(s);
+			MemoryStream::ObjPool().reclaimObject(s);
+		}
+		
 		baseMailbox_->postMail(pBundle);
 	}
 	else
@@ -766,6 +784,8 @@ void Entity::backupCellData()
 	}
 
 	SCRIPT_ERROR_CHECK();
+	
+	setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -929,7 +949,8 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	// 在space中投放一个陷阱
-	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg);
+	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID()) );
+
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
 	return p->id();
@@ -1068,7 +1089,15 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		id = PyLong_AsLong(pyargobj);
 	}
 
-	pobj->cancelController(id);
+	// 只要是属于移动控制器的范畴，就应该走stopMove()，以避免多种方式的存在引发调用上的歧议
+	if (pobj->pMoveController_ && pobj->pMoveController_->id() == id)
+	{
+		pobj->stopMove();
+	}
+	else
+	{
+		pobj->cancelController(id);
+	}
 	S_Return;
 }
 
@@ -1137,7 +1166,7 @@ int Entity::pySetPosition(PyObject *value)
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1264,7 +1293,7 @@ int Entity::pySetDirection(PyObject *value)
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1307,7 +1336,7 @@ void Entity::onPyPositionChanged()
 			posuid = msgInfo->msgid;
 	}
 
-	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
@@ -1354,7 +1383,7 @@ void Entity::onPyDirectionChanged()
 			diruid = msgInfo->msgid;
 	}
 
-	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, false, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
 	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
@@ -1424,7 +1453,7 @@ void Entity::onGetWitness(bool fromBase)
 	}
 
 	Space* space = Spaces::findSpace(this->spaceID());
-	if(space)
+	if(space && space->isGood())
 	{
 		space->onEntityAttachWitness(this);
 	}
@@ -1636,140 +1665,13 @@ bool Entity::stopMove()
 {
 	if(pMoveController_)
 	{
-		static_cast<MoveController*>(pMoveController_)->destroy();
-		pMoveController_ = NULL;
+		cancelController( pMoveController_->id() );
+		pMoveController_->destroy();
+		pMoveController_.reset();
 		return true;
 	}
 
 	return false;
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
-{
-	Space* pSpace = Spaces::findSpace(spaceID());
-	if(pSpace == NULL)
-	{
-		ERROR_MSG(fmt::format("Entity::raycast: not found space({}), entityID({})!\n", 
-			spaceID(), id()));
-
-		return -1;
-	}
-	
-	if(pSpace->pNavHandle() == NULL)
-	{
-		ERROR_MSG(fmt::format("Entity::raycast: space({}) not addSpaceGeometryMapping!\n", 
-			spaceID(), id()));
-
-		return -1;
-	}
-
-	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::__py_pyRaycast(PyObject* self, PyObject* args)
-{
-	uint16 currargsSize = PyTuple_Size(args);
-	Entity* pobj = static_cast<Entity*>(self);
-
-	if(!pobj->isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::raycast: not is real entity(%d).", 
-			pobj->scriptName(), pobj->id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	int layer = pobj->layer();
-	PyObject* pyStartPos = NULL;
-	PyObject* pyEndPos = NULL;
-
-	if(pobj->isDestroyed())
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: entity is destroyed!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(currargsSize == 2)
-	{
-		if(PyArg_ParseTuple(args, "OO", &pyStartPos, &pyEndPos) == -1)
-		{
-			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-	}
-	else if(currargsSize == 3)
-	{
-		if(PyArg_ParseTuple(args, "OOi", &pyStartPos, &pyEndPos, &layer) == -1)
-		{
-			PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-	}
-	else
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args is error!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(!PySequence_Check(pyStartPos))
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) not is PySequence!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(!PySequence_Check(pyEndPos))
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) not is PySequence!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(PySequence_Size(pyStartPos) != 3)
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args1(startPos) invalid!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	if(PySequence_Size(pyEndPos) != 3)
-	{
-		PyErr_Format(PyExc_TypeError, "%s::raycast: args2(endPos) invalid!", pobj->scriptName());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
-	Position3D startPos;
-	Position3D endPos;
-	std::vector<Position3D> hitPosVec;
-	//float hitPos[3];
-
-	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
-	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
-	if(pobj->raycast(layer, startPos, endPos, hitPosVec) <= 0)
-	{
-		S_Return;
-	}
-
-	int idx = 0;
-	PyObject* pyHitpos = PyTuple_New(hitPosVec.size());
-	for(std::vector<Position3D>::iterator iter = hitPosVec.begin(); iter != hitPosVec.end(); ++iter)
-	{
-		PyObject* pyHitposItem = PyTuple_New(3);
-		PyTuple_SetItem(pyHitposItem, 0, ::PyFloat_FromDouble((*iter).x));
-		PyTuple_SetItem(pyHitposItem, 1, ::PyFloat_FromDouble((*iter).y));
-		PyTuple_SetItem(pyHitposItem, 2, ::PyFloat_FromDouble((*iter).z));
-
-		PyTuple_SetItem(pyHitpos, idx++, pyHitposItem);
-	}
-
-	return pyHitpos;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1790,7 +1692,7 @@ bool Entity::canNavigate()
 		return false;
 
 	Space* pSpace = Spaces::findSpace(spaceID());
-	if(pSpace == NULL)
+	if(pSpace == NULL || !pSpace->isGood())
 		return false;
 
 	if(pSpace->pNavHandle() == NULL)
@@ -1800,17 +1702,109 @@ bool Entity::canNavigate()
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
-	bool faceMovement, float girth, PyObject* userData)
+bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
 {
+	Space* pSpace = Spaces::findSpace(spaceID());
+	if(pSpace == NULL || !pSpace->isGood())
+	{
+		ERROR_MSG(fmt::format("Entity::navigatePathPoints(): not found space({}), entityID({})!\n",
+			spaceID(), id()));
+
+		return false;
+	}
+
+	NavigationHandlePtr pNavHandle = pSpace->pNavHandle();
+
+	if(!pNavHandle)
+	{
+		WARNING_MSG(fmt::format("Entity::navigatePathPoints(): space({}), entityID({}), not found navhandle!\n",
+			spaceID(), id()));
+		return false;
+	}
+
+	int resultCount = pNavHandle->findStraightPath(layer, position_, destination, outPaths);
+	if (resultCount < 0)
+	{
+		return false;
+	}
+
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	while(iter != outPaths.end())
+	{
+		Vector3 movement = (*iter) - position_;
+		if(KBEVec3Length(&movement) <= 0.00001f)
+		{
+			iter++;
+			continue;
+		}
+		break;
+	}
+
+	if (iter != outPaths.begin())
+	{
+		outPaths.erase(outPaths.begin(), iter);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSearchDistance, int8 layer)
+{
+	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+
+	std::vector<Position3D> outPaths;
+	navigatePathPoints(outPaths, destination, maxSearchDistance, layer);
+	
+	PyObject* pyList = PyList_New(outPaths.size());
+
+	int i = 0;
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	for(; iter != outPaths.end(); ++iter)
+	{
+		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
+		Py_INCREF(pos);
+		PyList_SET_ITEM(pyList, i++, pos);
+	}
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
+	bool faceMovement, int8 layer, PyObject* userData)
+{
+	VECTOR_POS3D_PTR paths_ptr( new std::vector<Position3D>() );
+	navigatePathPoints(*paths_ptr, destination, maxDistance, layer);
+	if (paths_ptr->size() <= 0)
+	{
+		return 0;
+	}
+
 	stopMove();
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 	
 	new NavigateHandler(p, destination, velocity, 
-		distance, faceMovement, maxMoveDistance, maxDistance, girth, userData);
+		distance, faceMovement, maxMoveDistance, paths_ptr, userData);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1821,7 +1815,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float dis
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float distance, float maxMoveDistance, float maxDistance,
-								 int8 faceMovement, float layer, PyObject_ptr userData)
+								 int8 faceMovement, int8 layer, PyObject_ptr userData)
 {
 	if(!isReal())
 	{
@@ -1871,7 +1865,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToPointHandler(p, layer(), destination, velocity, 
 		distance, faceMovement, moveVertically, userData);
@@ -1934,7 +1928,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveController* p = new MoveController(this, NULL);
+	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToEntityHandler(p, targetID, velocity, distance,
 		faceMovement, moveVertically, userData);
@@ -1979,6 +1973,8 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1987,11 +1983,13 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2000,11 +1998,13 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
-	pMoveController_ = NULL;
+	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+	
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2307,7 +2307,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 		if(spaceID != this->spaceID())
 		{
 			Space* space = Spaces::findSpace(spaceID);
-			if(space == NULL)
+			if(space == NULL || !space->isGood())
 			{
 				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
 					this->scriptName(), this->id(), spaceID));
@@ -2350,6 +2350,14 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 		return 0;
 	}
 
+	Space* currspace = Spaces::findSpace(this->spaceID());
+	if(currspace == NULL || !currspace->isGood())
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, current space has been destroyed!\n", scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
 	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", scriptName(), id());
@@ -2441,11 +2449,11 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		Space* space = Spaces::findSpace(spaceID);
 
 		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
-		if(space == NULL || (space->creatorID() == entity->id() && entity->isDestroyed()))
+		if(space == NULL || !space->isGood() || entity->isDestroyed())
 		{
-			if(space != NULL)
+			if (entity->isDestroyed())
 			{
-				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyEntityRef is spaceEntity, spaceEntity is destroyed!\n", scriptName(), id());
+				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyEntityRef has been destroyed!\n", scriptName(), id());
 				PyErr_PrintEx(0);
 			}
 			else
@@ -2459,25 +2467,7 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 		}
 
 		currspace->removeEntity(this);
-
 		this->setPositionAndDirection(pos, dir);
-
-		if (this->pWitness())
-		{
-			// 通知位置强制改变
-			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-
-			(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-			(*pForwardBundle) << id();
-			(*pForwardBundle) << pos.x << pos.y << pos.z;
-			(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
-
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
-			this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
-		}
-
 		space->addEntityAndEnterWorld(this);
 
 		onTeleportSuccess(entity, lastSpaceID);
@@ -2931,14 +2921,15 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createNamespace(cellData);
 	Py_XDECREF(cellData);
 
-	initing_ = false;
-
+	removeFlags(ENTITY_FLAGS_INITING);
+	
 	createMoveHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
 	createTimersFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
+	setDirty();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3061,7 +3052,7 @@ void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
 	{
 		stopMove();
 
-		pMoveController_ = new MoveController(this);
+		pMoveController_ = KBEShared_ptr<Controller>( new MoveController(this) );
 		pMoveController_->createFromStream(s);
 		pControllers_->add(pMoveController_);
 	}

@@ -92,7 +92,7 @@ public:
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
-		sqlstr_ = "insert into "ENTITY_TABLE_PERFIX"_";
+		sqlstr_ = "insert into " ENTITY_TABLE_PERFIX "_";
 		sqlstr_ += tableName;
 		sqlstr_ += " (";
 		sqlstr1_ = ")  values(";
@@ -103,7 +103,7 @@ public:
 			sqlstr_ += ",";
 			
 			char strdbid[MAX_BUF];
-			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
+			kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID, parentDBID);
 			sqlstr1_ += strdbid;
 			sqlstr1_ += ",";
 		}
@@ -181,7 +181,7 @@ public:
 		}
 
 		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
-		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
+		sqlstr_ = "update " ENTITY_TABLE_PERFIX "_";
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
@@ -207,7 +207,7 @@ public:
 		sqlstr_ += " where id=";
 		
 		char strdbid[MAX_BUF];
-		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
+		kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID, dbid);
 		sqlstr_ += strdbid;
 	}
 
@@ -230,7 +230,7 @@ public:
 		// select id,xxx from tbl_SpawnPoint where id=123;
 		sqlstr_ = "select id,";
 		// 无论哪种情况都查询出ID字段
-		sqlstr1_ += " from "ENTITY_TABLE_PERFIX"_";
+		sqlstr1_ += " from " ENTITY_TABLE_PERFIX "_";
 		sqlstr1_ += tableName;
 		
 		char strdbid[MAX_BUF];
@@ -238,7 +238,7 @@ public:
 		if(parentTableDBIDs.size() == 0)
 		{
 			sqlstr1_ += " where id=";
-			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
+			kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID, dbid);
 			sqlstr1_ += strdbid;
 		}
 		else
@@ -247,11 +247,11 @@ public:
 
 			if(parentTableDBIDs.size() > 1)
 			{
-				sqlstr1_ += " where "TABLE_PARENTID_CONST_STR" in(";
+				sqlstr1_ += " where " TABLE_PARENTID_CONST_STR " in(";
 				std::vector<DBID>::const_iterator iter = parentTableDBIDs.begin();
 				for(; iter != parentTableDBIDs.end(); ++iter)
 				{
-					kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID",", (*iter));
+					kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID ",", (*iter));
 					sqlstr1_ += strdbid;
 				}
 
@@ -260,8 +260,8 @@ public:
 			}
 			else
 			{
-				sqlstr1_ += " where "TABLE_PARENTID_CONST_STR"=";
-				kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentTableDBIDs[0]);
+				sqlstr1_ += " where " TABLE_PARENTID_CONST_STR "=";
+				kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID, parentTableDBIDs[0]);
 				sqlstr1_ += strdbid;
 			}
 		}

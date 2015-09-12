@@ -159,8 +159,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	}
 
 	Components::getSingleton().initialize(&networkInterface, componentType, g_componentID);
-
+	
 	SERVER_APP app(dispatcher, networkInterface, componentType, g_componentID);
+	Components::getSingleton().findLogger();
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 
 	if(!app.initialize())

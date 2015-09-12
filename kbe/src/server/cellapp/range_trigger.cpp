@@ -259,4 +259,27 @@ void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 }
 
 //-------------------------------------------------------------------------------------
+void RangeTrigger::update(float xz, float y)
+{
+	float old_range_xz_ = range_xz_;
+	float old_range_y_ = range_y_;
+
+	range(xz, y);
+
+	if (positiveBoundary_)
+	{
+		positiveBoundary_->range(range_xz_, range_y_);
+		positiveBoundary_->old_range(old_range_xz_, old_range_y_);
+		positiveBoundary_->update();
+	}
+
+	if (negativeBoundary_)
+	{
+		negativeBoundary_->range(-range_xz_, -range_y_);
+		negativeBoundary_->old_range(-old_range_xz_, -old_range_y_);
+		negativeBoundary_->update();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 }

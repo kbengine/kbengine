@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointHandler::MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
@@ -39,7 +39,8 @@ distance_(distance),
 pController_(pController),
 layer_(layer)
 {
-	static_cast<MoveController*>(pController)->pMoveToPointHandler(this);
+	//std::static_pointer_cast<MoveController>(pController)->pMoveToPointHandler(this);
+	static_cast<MoveController*>(pController.get())->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -51,7 +52,6 @@ faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
 distance_(0.f),
-pController_(NULL),
 layer_(0)
 {
 	Cellapp::getSingleton().addUpdatable(this);
@@ -98,7 +98,10 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 	{
 		if(pController_->pEntity())
 			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
-		pController_->destroy();
+
+		// 如果在onMoveOver中调用cancelController（id）会导致MoveController析构导致pController_为NULL
+		if(pController_)
+			pController_->destroy();
 	}
 
 	return true;
