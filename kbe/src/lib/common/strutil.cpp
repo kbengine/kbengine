@@ -182,7 +182,9 @@ namespace strutil {
 
 		if(outlen && (size_t)-1 != slen)
 			*outlen = slen;
-
+		else
+			*outlen = 0;
+		
 		return ccattr;
 	};
 
@@ -209,7 +211,9 @@ namespace strutil {
 
 		if(outlen && (size_t)-1 != slen)
 			*outlen = slen;
-
+		else
+			*outlen = 0;
+		
 		return ccattr;
 	};
 
