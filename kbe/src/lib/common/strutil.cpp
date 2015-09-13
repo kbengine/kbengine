@@ -191,16 +191,16 @@ namespace strutil {
 		return ccattr;
 	};
 
-	void wchar2char(const wchar_t* ts, MemoryStream* pStream)
+	void wchar2char(const wchar_t* ts, MemoryStream* pOutStream)
 	{
 		int len = (wcslen(ts) + 1) * sizeof(wchar_t);
-		pStream->data_resize(pStream->wpos() + len);
-		size_t slen = wcstombs((char*)&pStream->data()[pStream->wpos()], ts, len);
+		pOutStream->data_resize(pOutStream->wpos() + len);
+		size_t slen = wcstombs((char*)&pOutStream->data()[pOutStream->wpos()], ts, len);
 		
 		if((size_t)-1 != slen)
 		{
-			pStream->wpos(pStream->wpos() + slen + 1);
-			pStream->data()[pStream->wpos() - 1] = 0;
+			pOutStream->wpos(pOutStream->wpos() + slen + 1);
+			pOutStream->data()[pOutStream->wpos() - 1] = 0;
 		}
 	};
 
@@ -212,10 +212,13 @@ namespace strutil {
 
 		size_t slen = mbstowcs(ccattr, cs, len);
 
-		if(outlen && (size_t)-1 != slen)
-			*outlen = slen;
-		else
-			*outlen = 0;
+		if (outlen)
+		{
+			if ((size_t)-1 != slen)
+				*outlen = slen;
+			else
+				*outlen = 0;
+		}
 		
 		return ccattr;
 	};
