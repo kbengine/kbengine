@@ -174,23 +174,26 @@ namespace strutil {
 
 	char* wchar2char(const wchar_t* ts, size_t* outlen)
 	{
-		int len = (wcslen(ts) + 1) * 4/* Linux下sizeof(wchar_t) == 4, Windows下是2字节，这里取大的 */;
+		int len = (wcslen(ts) + 1) * sizeof(wchar_t);
 		char* ccattr =(char *)malloc(len);
 		memset(ccattr, 0, len);
 
 		size_t slen = wcstombs(ccattr, ts, len);
 
-		if(outlen && (size_t)-1 != slen)
-			*outlen = slen;
-		else
-			*outlen = 0;
-		
+		if (outlen)
+		{
+			if ((size_t)-1 != slen)
+				*outlen = slen;
+			else
+				*outlen = 0;
+		}
+
 		return ccattr;
 	};
 
 	void wchar2char(const wchar_t* ts, MemoryStream* pStream)
 	{
-		int len = (wcslen(ts) + 1) * 4/* Linux下sizeof(wchar_t) == 4, Windows下是2字节，这里取大的 */;
+		int len = (wcslen(ts) + 1) * sizeof(wchar_t);
 		pStream->data_resize(pStream->wpos() + len);
 		size_t slen = wcstombs((char*)&pStream->data()[pStream->wpos()], ts, len);
 		
