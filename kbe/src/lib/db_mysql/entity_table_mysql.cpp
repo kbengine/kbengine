@@ -40,8 +40,8 @@ typedef void (*onSyncItemToDBSuccessPtr)(DBInterface*, const char*, const char*)
 
 bool sync_item_to_db(DBInterface* dbi, 
 					 const char* datatype, 
-					 const char* tablename, 
-					 const char* itemname, 
+					 const char* tableName, 
+					 const char* itemName, 
 					 uint32 length, 
 					 enum_field_types 
 					 sqlitemtype, 
@@ -51,7 +51,7 @@ bool sync_item_to_db(DBInterface* dbi,
 	if(pData)
 	{
 		DBInterfaceMysql::TABLE_FIELDS* pTFData = static_cast<DBInterfaceMysql::TABLE_FIELDS*>(pData);
-		DBInterfaceMysql::TABLE_FIELDS::iterator iter = pTFData->find(itemname);
+		DBInterfaceMysql::TABLE_FIELDS::iterator iter = pTFData->find(itemName);
 		if(iter != pTFData->end())
 		{
 			TABLE_FIELD& tf = iter->second;
@@ -63,12 +63,12 @@ bool sync_item_to_db(DBInterface* dbi,
 		}
 	}
 
-	DEBUG_MSG(fmt::format("syncToDB(): {}->{}({}).\n", tablename, itemname, datatype));
+	DEBUG_MSG(fmt::format("syncToDB(): {}->{}({}).\n", tableName, itemName, datatype));
 
 	char __sql_str__[MAX_BUF];
 
 	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` ADD `%s` %s;",
-		tablename, itemname, datatype);	
+		tableName, itemName, datatype);	
 
 	try
 	{
@@ -81,14 +81,14 @@ bool sync_item_to_db(DBInterface* dbi,
 	if(dbi->getlasterror() == 1060)	
 	{
 		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` MODIFY COLUMN `%s` %s;",	
-			tablename, itemname, datatype);
+			tableName, itemName, datatype);
 
 		try
 		{
 			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
 			{
 				if(callback)
-					(*callback)(dbi, tablename, itemname);
+					(*callback)(dbi, tableName, itemName);
 
 				return true;
 			}
@@ -96,22 +96,22 @@ bool sync_item_to_db(DBInterface* dbi,
 		catch(...)
 		{
 			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}) is error({}: {})\n lastQuery: {}.\n", 
-				tablename, itemname, datatype, dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
+				tableName, itemName, datatype, dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
 
 			return false;
 		}
 	}
 
 	if(callback)
-		(*callback)(dbi, tablename, itemname);
+		(*callback)(dbi, tableName, itemName);
 
 	return true;
 }		
 
-void sync_autoload_item_index(DBInterface* dbi, const char* tablename, const char* itemname)
+void sync_autoload_item_index(DBInterface* dbi, const char* tableName, const char* itemName)
 {
 	// 创建sm_autoLoad的索引
-	std::string sql = fmt::format("ALTER TABLE " ENTITY_TABLE_PERFIX "_{} ADD INDEX ({})", tablename, itemname);
+	std::string sql = fmt::format("ALTER TABLE " ENTITY_TABLE_PERFIX "_{} ADD INDEX ({})", tableName, itemName);
 
 	try
 	{
@@ -292,8 +292,8 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 	std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
 	for(; iiter != indexs.end(); )
 	{
-		std::string itemname = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
-		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemname);
+		std::string itemName = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
+		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
 		if(fiter != currDBKeys.end())
 		{
 			// 删除已经处理的，剩下的就是要从数据库删除的index
@@ -301,7 +301,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 			
 			if(fiter->second != (*iiter)->indexType())
 			{
-				sql += fmt::format("DROP INDEX `{}`,", itemname);
+				sql += fmt::format("DROP INDEX `{}`,", itemName);
 				done = true;
 			}
 			else
@@ -328,7 +328,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 			}
 		}
 
-		sql += fmt::format("ADD {} {}({}{}),", (*iiter)->indexType(), itemname, itemname, lengthinfos);
+		sql += fmt::format("ADD {} {}({}{}),", (*iiter)->indexType(), itemName, itemName, lengthinfos);
 		++iiter;
 		done = true;
 	}
@@ -1108,16 +1108,16 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 		}
 	}
 	
-	std::string tablename = tname + "_";
+	std::string tableName = tname + "_";
 	std::string itemName = "";
 
 	if(name.size() > 0)
 	{
-		tablename += name;
+		tableName += name;
 	}
 	else
 	{
-		tablename += TABLE_ARRAY_ITEM_VALUES_CONST_STR;
+		tableName += TABLE_ARRAY_ITEM_VALUES_CONST_STR;
 	}
 
 	if(itemName.size() == 0)
@@ -1126,7 +1126,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 			itemName = TABLE_ARRAY_ITEM_VALUE_CONST_STR;
 	}
 
-	pTable->tableName(tablename);
+	pTable->tableName(tableName);
 	pTable->isChild(true);
 
 	EntityTableItem* pArrayTableItem;
