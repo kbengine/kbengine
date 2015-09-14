@@ -779,7 +779,36 @@ bool StringType::isSameType(PyObject* pyValue)
 
 	bool ret = PyUnicode_Check(pyValue);
 	if(!ret)
+	{
 		OUT_TYPE_ERROR("STRING");
+	}
+	else
+	{
+		PyObject* pyfunc = PyObject_GetAttrString(pyValue, "encode"); 
+		if(pyfunc == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			ret = false;
+		}
+		else
+		{
+			PyObject* pyRet = PyObject_CallFunction(pyfunc, 
+				const_cast<char*>("(s)"), "ascii");
+			
+			S_RELEASE(pyfunc);
+			
+			if(!pyRet)
+			{
+				SCRIPT_ERROR_CHECK();
+				ret = false;
+			}
+			else
+			{
+				S_RELEASE(pyRet);
+			}
+		}
+	}
+	
 	return ret;
 }
 

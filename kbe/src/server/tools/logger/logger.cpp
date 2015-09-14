@@ -181,7 +181,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> pLogItem->componentGroupOrder;
 	s >> pLogItem->t;
 	s >> pLogItem->kbetime;
-	s >> str;
+	s.readBlob(str);
 
 	time_t tt = static_cast<time_t>(pLogItem->t);	
     tm* aTm = localtime(&tt);

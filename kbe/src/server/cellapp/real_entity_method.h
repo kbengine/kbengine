@@ -67,6 +67,7 @@ public:
 			PyObject* args, PyObject* kwds);
 
 	PyObject* callmethod(PyObject* args, PyObject* kwds);
+
 protected:	
 	MethodDescription*						methodDescription_;					// 这个方法的描述
 

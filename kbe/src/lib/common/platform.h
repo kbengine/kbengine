@@ -574,9 +574,24 @@ inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD dwSize = MAX_NAME;
+	wchar_t wusername[MAX_NAME];
+	::GetUserNameW(wusername, &dwSize);	
+	
 	static char username[MAX_NAME];
 	memset(username, 0, MAX_NAME);
-	::GetUserNameA(username, &dwSize);	
+
+	if(dwSize > 0)
+	{
+		size_t outsize = 0;
+		strutil::wchar2char((wchar_t*)&wusername, &outsize);
+
+		if(outsize == 0)
+		{
+			// 可能是中文名，不支持中文名称
+			strcpy(username, "error_name");
+		}
+	}
+	
 	return username;
 #else
 	char * pUsername = cuserid( NULL );
