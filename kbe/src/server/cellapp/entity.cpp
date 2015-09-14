@@ -393,6 +393,9 @@ bool Entity::setControlledBy(EntityMailbox* baseMailbox)
 		Py_INCREF(baseMailbox);
 		controlledBy( baseMailbox );
 		
+		// 既然由别人控制移动了，自己的移动行为也就必须停止了
+		stopMove();
+
 		// @TODO(phw): 这里要通知客户端：当前你控制谁的位移同步
 		if (!sendControlledByStatusMessage( baseMailbox, 1 ))
 		{
