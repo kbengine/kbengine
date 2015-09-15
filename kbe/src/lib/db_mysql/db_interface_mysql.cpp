@@ -402,27 +402,27 @@ EntityTable* DBInterfaceMysql::createEntityTable()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::dropEntityTableFromDB(const char* tablename)
+bool DBInterfaceMysql::dropEntityTableFromDB(const char* tableName)
 {
-	KBE_ASSERT(tablename != NULL);
+	KBE_ASSERT(tableName != NULL);
   
-	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tablename));
+	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tableName));
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tablename);
+	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tableName);
 	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const char* tableItemName)
+bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tableName, const char* tableItemName)
 {
-	KBE_ASSERT(tablename != NULL && tableItemName != NULL);
+	KBE_ASSERT(tableName != NULL && tableItemName != NULL);
   
 	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableItemFromDB: {} {}.\n", 
-		tablename, tableItemName));
+		tableName, tableItemName));
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tablename, tableItemName);
+	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tableName, tableItemName);
 	return query(sql_str, strlen(sql_str));
 }
 
@@ -577,9 +577,9 @@ bool DBInterfaceMysql::getTableNames(std::vector<std::string>& tableNames, const
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::getTableItemNames(const char* tablename, std::vector<std::string>& itemNames)
+bool DBInterfaceMysql::getTableItemNames(const char* tableName, std::vector<std::string>& itemNames)
 {
-	MYSQL_RES*	result = mysql_list_fields(mysql(), tablename, NULL);
+	MYSQL_RES*	result = mysql_list_fields(mysql(), tableName, NULL);
 	if(result)
 	{
 		unsigned int numFields = mysql_num_fields(result);
@@ -620,10 +620,10 @@ int DBInterfaceMysql::getlasterror()
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
+void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tableName)
 {
 	std::string sqlname = ENTITY_TABLE_PERFIX"_";
-	sqlname += tablename;
+	sqlname += tableName;
 
 	MYSQL_RES*	result = mysql_list_fields(mysql(), sqlname.c_str(), NULL);
 	if(result == NULL)

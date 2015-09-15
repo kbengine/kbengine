@@ -85,7 +85,7 @@ public:
 	/**
 		获取数据库某个表所有的字段名称
 	*/
-	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames) = 0;
+	virtual bool getTableItemNames(const char* tableName, std::vector<std::string>& itemNames) = 0;
 
 	/**
 		查询表
@@ -119,12 +119,12 @@ public:
 	/** 
 		从数据库删除entity表
 	*/
-	virtual bool dropEntityTableFromDB(const char* tablename) = 0;
+	virtual bool dropEntityTableFromDB(const char* tableName) = 0;
 
 	/** 
 		从数据库删除entity表字段
 	*/
-	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
+	virtual bool dropEntityTableItemFromDB(const char* tableName, const char* tableItemName) = 0;
 
 	/**
 		锁住接口操作
