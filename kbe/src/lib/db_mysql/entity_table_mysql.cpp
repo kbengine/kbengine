@@ -296,12 +296,12 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
 		if(fiter != currDBKeys.end())
 		{
-			bool deleteKey = fiter->second != (*iiter)->indexType();
+			bool deleteIndex = fiter->second != (*iiter)->indexType();
 			
 			// 删除已经处理的，剩下的就是要从数据库删除的index
 			currDBKeys.erase(fiter);
 			
-			if(deleteKey)
+			if(deleteIndex)
 			{
 				sql += fmt::format("DROP INDEX `{}`,", itemName);
 				done = true;
