@@ -93,7 +93,7 @@ public:
 	};
 
 	/** 
-		设置mailbox的__getEntityFunc函数地址 
+		设置mailbox的__findChannelFunc函数地址 
 	*/
 	static void setFindChannelFunc(FindChannelFunc func){ 
 		__findChannelFunc = func; 
