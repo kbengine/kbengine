@@ -131,7 +131,7 @@ PyObject* Blob::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 3)
 	{
-		ERROR_MSG("Blob::__unpickle__: args is error! size != 3");
+		ERROR_MSG("Blob::__unpickle__: args is wrong! (size != 3)");
 		S_Return;
 	}
 
@@ -141,7 +141,7 @@ PyObject* Blob::__unpickle__(PyObject* self, PyObject* args)
 	PyObject* pybytes = PyTuple_GET_ITEM(args, 2);
 	if(pybytes == NULL)
 	{
-		ERROR_MSG("Blob::__unpickle__: args is error!");
+		ERROR_MSG("Blob::__unpickle__: args is wrong!");
 		S_Return;
 	}
 	

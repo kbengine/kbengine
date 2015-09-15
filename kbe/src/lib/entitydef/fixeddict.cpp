@@ -147,7 +147,7 @@ void FixedDict::initialize(std::string strDictInitData)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedDict::initialize: is error! strDictInitData={}.\n",
+			ERROR_MSG(fmt::format("FixedDict::initialize: error! strDictInitData={}.\n",
 				strDictInitData.c_str()));
 		}
 	}
@@ -219,7 +219,7 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 2)
 	{
-		ERROR_MSG("FixedDict::__unpickle__: args is error! size != 2");
+		ERROR_MSG("FixedDict::__unpickle__: args is wrong! (size != 2)");
 		S_Return;
 	}
 
@@ -229,7 +229,7 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 	PyObject* dict = PyTuple_GET_ITEM(args, 1);
 	if(dict == NULL)
 	{
-		ERROR_MSG("FixedDict::__unpickle__: args is error!");
+		ERROR_MSG("FixedDict::__unpickle__: args is wrong!");
 		S_Return;
 	}
 	

@@ -156,7 +156,7 @@ PyObject* FixedArray::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 2)
 	{
-		ERROR_MSG("FixedArray::__unpickle__: args is error! size != 2");
+		ERROR_MSG("FixedArray::__unpickle__: args is wrong! (size != 2)");
 		S_Return;
 	}
 	
@@ -165,7 +165,7 @@ PyObject* FixedArray::__unpickle__(PyObject* self, PyObject* args)
 	PyObject* pyList = PyTuple_GET_ITEM(args, 1);
 	if(pyList == NULL)
 	{
-		ERROR_MSG("FixedArray::__unpickle__: args is error!");
+		ERROR_MSG("FixedArray::__unpickle__: args is wrong!");
 		S_Return;
 	}
 	
@@ -254,7 +254,7 @@ PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwar
 	const int argsize = PyTuple_Size(args);
 	if(argsize > 2)
 	{
-		PyErr_SetString(PyExc_ValueError, "FixedArray::insert: args is error!");
+		PyErr_SetString(PyExc_ValueError, "FixedArray::insert: args is wrong!");
 		return NULL;
 	}
 	
