@@ -686,6 +686,7 @@ public:																										\
 			PyErr_PrintEx(0);																				\
 		}																									\
 																											\
+		int extra = 0;																						\
 		PyObject* pycallback = NULL;																		\
 		if(g_componentType == CELLAPP_TYPE)																	\
 		{																									\
@@ -698,8 +699,10 @@ public:																										\
 				PyErr_PrintEx(0);																			\
 			}																								\
 		}																									\
-																											\
-		int extra = 0;																						\
+		else if(g_componentType == BASEAPP_TYPE)															\
+		{																									\
+			extra = -1;	/* shouldAutoLoad -1默认不改变设置 */												\
+		}																									\
 																											\
 		if(currargsSize == 1)																				\
 		{																									\

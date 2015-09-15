@@ -938,7 +938,7 @@ void Base::onBackup()
 void Base::writeToDB(void* data, void* extra)
 {
 	PyObject* pyCallback = NULL;
-	int8 shouldAutoLoad = -1;
+	int8 shouldAutoLoad = dbid() <= 0 ? 0 : -1;
 
 	// data 是有可能会NULL的， 比如定时存档是不需要回调函数的
 	if(data != NULL)
@@ -1058,7 +1058,9 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	// 如果在数据库中已经存在该entity则允许应用层多次调用写库进行数据及时覆盖需求
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
-
+	else
+		setDirty();
+	
 	// 如果数据没有改变那么不需要持久化
 	if(!isDirty())
 		return;
