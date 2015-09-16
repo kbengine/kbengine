@@ -35,7 +35,7 @@ KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread
 {
 
-const int ThreadPool::timeout = 300;
+int ThreadPool::timeout = 300;
 
 //-------------------------------------------------------------------------------------
 THREAD_ID TPThread::createThread(void)
