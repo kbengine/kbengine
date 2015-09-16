@@ -307,7 +307,7 @@ public:
 	virtual std::string name() const{ return "ThreadPool"; }
 
 public:
-	static int timeout;
+	static const int timeout;
 
 	/**
 		创建一个线程池线程
