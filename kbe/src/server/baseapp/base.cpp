@@ -1065,7 +1065,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	if(!isDirty())
 		return;
 	
-	setDirty(false);
+	// 先屏蔽这个优化，等待容器类型的改变能够被监听到时再启用
+	//setDirty(false);
 	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
