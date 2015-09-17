@@ -944,8 +944,8 @@ void Base::writeToDB(void* data, void* extra)
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
 
-	if(extra != NULL)
-		shouldAutoLoad = (*static_cast<int*>(extra)) ? 1 : 0;
+	if(extra != NULL && (*static_cast<int*>(extra)) != -1)
+		shouldAutoLoad = (*static_cast<int*>(extra)) > 0 ? 1 : 0;
 
 	if(isArchiveing_)
 	{
