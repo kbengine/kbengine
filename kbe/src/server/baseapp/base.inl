@@ -21,61 +21,51 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Base::cellMailbox(void) const
 {
 	return cellMailbox_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::cellMailbox(EntityMailbox* mailbox)
 {
 	cellMailbox_ = mailbox;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Base::clientMailbox() const
 { 
 	return clientMailbox_; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::clientMailbox(EntityMailbox* mailbox)
 { 
 	clientMailbox_ = mailbox; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE PyObject* Base::getCellData(void) const
 { 
 	return cellDataDict_; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE bool Base::creatingCell(void) const
 { 
 	return creatingCell_; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE bool Base::hasDB() const 
 {
 	return hasDB_; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::hasDB(bool has) 
 {
 	hasDB_ = has; 
 }
 
-//-------------------------------------------------------------------------------------
 INLINE DBID Base::dbid() const
 {
 	return DBID_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::dbid(DBID id)
 {
 	DBID_ = id;
@@ -83,53 +73,34 @@ INLINE void Base::dbid(DBID id)
 		hasDB_ = true;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE bool Base::isCreatedSpace()
 {
 	return createdSpace_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE bool Base::inRestore()
 {
 	return inRestore_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE int8 Base::shouldAutoArchive() const
 {
 	return shouldAutoArchive_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::shouldAutoArchive(int8 v)
 {
 	shouldAutoArchive_ = v;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE int8 Base::shouldAutoBackup() const
 {
 	return shouldAutoBackup_;
 }
 
-//-------------------------------------------------------------------------------------
 INLINE void Base::shouldAutoBackup(int8 v)
 {
 	shouldAutoBackup_ = v;
 }
 
-//-------------------------------------------------------------------------------------
-INLINE void Base::setDirty(bool dirty)
-{
-	isDirty_ = dirty;
-}
-
-//-------------------------------------------------------------------------------------
-INLINE bool Base::isDirty() const
-{
-	return isDirty_;
-}
-
-//-------------------------------------------------------------------------------------
 }

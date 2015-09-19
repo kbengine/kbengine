@@ -44,7 +44,6 @@ public:
 	bool remove(Updatable* updatable);
 
 	void update();
-
 private:
 	std::map<uint32, Updatable*> objects_;
 };

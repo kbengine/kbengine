@@ -43,52 +43,15 @@ hasGeometry_(false),
 pCell_(NULL),
 coordinateSystem_(),
 pNavHandle_(),
-state_(STATE_NORMAL),
-destroyTime_(0)
+destroyed_(false)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	SAFE_RELEASE(pCell_);
 	entities_.clear();
-	pNavHandle_.clear();
-
-	SAFE_RELEASE(pCell_);	
-}
-
-//-------------------------------------------------------------------------------------
-void Space::_clearGhosts()
-{
-	// 因为space在destroy时做过一次清理，因此这里理论上剩下的是ghosts实体
-	if(entities_.size() == 0)
-		return;
-	
-	std::vector<ENTITY_ID> entitieslog;
-	
-	SPACE_ENTITIES::const_iterator log_iter = this->entities().begin();
-	for(; log_iter != this->entities().end(); ++log_iter)
-		entitieslog.push_back((*log_iter).get()->id());
-
-	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
-	for(; iter != entitieslog.end(); ++iter)
-	{
-		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
-		{
-			entity->destroyEntity();
-		}
-		else
-		{
-			entity = findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
-			{
-				removeEntity(entity);
-			}
-		}
-	}
-	
-	entities_.clear();	
 }
 
 //-------------------------------------------------------------------------------------
@@ -243,15 +206,10 @@ void Space::onAllSpaceGeometryLoaded()
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::update()
+void Space::update()
 {
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
-		return false;
-
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
-		_clearGhosts();
-		
-	return true;
+	if(pNavHandle_ == NULL)
+		return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -280,8 +238,6 @@ void Space::addEntityToNode(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::removeEntity(Entity* pEntity)
 {
-	KBE_ASSERT(pEntity->spaceID() == id());
-
 	pEntity->spaceID(0);
 	
 	// 先获取到所在位置
@@ -303,10 +259,16 @@ void Space::removeEntity(Entity* pEntity)
 	pEntity->uninstallCoordinateNodes(&coordinateSystem_);
 	pEntity->onLeaveSpace(this);
 
-	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
-	if(entities_.empty() && state_ == STATE_NORMAL)
+	if(pEntity->id() == this->creatorID())
 	{
-		Spaces::destroySpace(this->id(), 0);
+		DEBUG_MSG(fmt::format("Space::removeEntity: lose creator({}).\n", this->creatorID()));
+	}
+
+	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
+	// 这个entity通常是spaceEntity
+	if(entities_.empty())
+	{
+		Spaces::destroySpace(this->id(), this->creatorID());
 	}
 }
 
@@ -318,8 +280,8 @@ void Space::_onEnterWorld(Entity* pEntity)
 
 	if(pEntity->hasWitness())
 	{
-		_addSpaceDatasToEntityClient(pEntity);
 		pEntity->pWitness()->onEnterSpace(this);
+		_addSpaceDatasToEntityClient(pEntity);
 	}
 }
 
@@ -358,75 +320,56 @@ void Space::onLeaveWorld(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
-Entity* Space::findEntity(ENTITY_ID entityID)
+bool Space::destroy(ENTITY_ID entityID)
 {
+	if(destroyed_)
+		return true;
+
+	destroyed_ = true;
+
+	if(this->entities().size() == 0)
+		return true;
+
+	SPACE_ENTITIES entitieslog;
+	
+	Entity* creator = NULL;
+
 	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
 	for(; iter != this->entities().end(); ++iter)
 	{
 		const Entity* entity = (*iter).get();
-			
-		if(entity->id() == entityID)
-			return const_cast<Entity*>(entity);
+
+		if(entity->id() == this->creatorID())
+			creator = const_cast<Entity*>(entity);
+		else
+			entitieslog.push_back((*iter));
 	}
 
-	return NULL;
-}
-
-//-------------------------------------------------------------------------------------
-bool Space::destroy(ENTITY_ID entityID)
-{
-	if(state_ != STATE_NORMAL)
-		return false;
-
-	state_ = STATE_DESTROYING;
-	destroyTime_ = timestamp();
-	
-	std::vector<ENTITY_ID> entitieslog;
-	
-	{
-		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-		for(; iter != this->entities().end(); ++iter)
-		{
-			const Entity* entity = (*iter).get();
-			entitieslog.push_back(entity->id());
-		}
-	}
-
-	{
-		std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
-		for(; iter != entitieslog.end(); ++iter)
-		{
-			Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id() && entity->isReal())
-			{
-				entity->onSpaceGone();
-			}
-		}
-	}
-	
-	state_ = STATE_DESTROYED;
-	
-	if(this->entities().size() == 0)
-		return true;
-
-	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+	iter = entitieslog.begin();
 	for(; iter != entitieslog.end(); ++iter)
 	{
-		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-		if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
+		(*iter)->destroyEntity();
+	}
+
+	// 最后销毁创建者
+	if(creator)
+	{
+		if(Cellapp::getSingleton().findEntity(creator->id()) != NULL)
 		{
-			entity->destroyEntity();
+			creator->destroyEntity();
 		}
 		else
 		{
-			entity = findEntity((*iter));
-			if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
-			{
-				removeEntity(entity);
-			}
+			// 之所以会这样是因为可能spaceEntity在调用destroy销毁的时候onDestroy中调用了destroySpace
+			// 那么就会出现在spaceEntity-destroy过程中导致这里继续调用creator->destroyEntity()
+			// 此时就会出现EntityApp::destroyEntity: not found.
+			// 然后再spaceEntity析构的时候销毁pEntityCoordinateNode_会出错， 这里应该设置为NULL。
+			creator->pEntityCoordinateNode(NULL);
 		}
 	}
 
+	pNavHandle_.clear();
+	entities_.clear();
 	return true;
 }
 

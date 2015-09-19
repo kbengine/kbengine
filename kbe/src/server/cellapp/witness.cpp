@@ -70,18 +70,8 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
-	/**
-	 * @TODO(phw): 注释下面的原始代码，简单修正如下的问题：
-	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的aoiEntities_里面必须会互相记录着对方的entityID，
-	 * 那么假如三个玩家都在同一时间传送到另一个cellapp的地图的同一点上，
-	 * 这时三个玩家还原的时候都会为另两个玩家生成一个flags_ == ENTITYREF_FLAG_UNKONWN的EntityRef实例，
-	 * 把它们记录在自己的aoiEntities_，
-	 * 但是，Witness::update()并没有针对flags_ == ENTITYREF_FLAG_UNKONWN的情况做特殊处理——把玩家entity数据发送给客户端，
-	 * 所以进入了默认的updateVolatileData()流程，
-	 * 使得客户端在没有别的玩家entity的情况下就收到了别的玩家的坐标更新的信息，导致客户端错误发生。
-	
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
-	
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;
+
 	uint32 size = aoiEntities_.size();
 	s << size;
 
@@ -90,11 +80,6 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	{
 		(*iter)->addToStream(s);
 	}
-	*/
-
-	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
-	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
-	s << (uint32)0; // aoiEntities_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -122,7 +107,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 			}
 			else
 			{
-				pAOITrigger_->update(aoiRadius_, aoiRadius_);
+				pAOITrigger_->range(aoiRadius_, aoiRadius_);
 			}
 		}
 	}
@@ -260,6 +245,7 @@ void Witness::onReclaimObject()
 {
 }
 
+
 //-------------------------------------------------------------------------------------
 const Position3D& Witness::basePos()
 {
@@ -289,7 +275,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 		}
 		else
 		{
-			pAOITrigger_->update(aoiRadius_, aoiRadius_);
+			pAOITrigger_->range(aoiRadius_, aoiRadius_);
 		}
 	}
 }
@@ -369,7 +355,7 @@ void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); )
+	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
@@ -379,7 +365,6 @@ void Witness::resetAOIEntities()
 		}
 
 		(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
-		++iter;
 	}
 }
 
@@ -387,19 +372,17 @@ void Witness::resetAOIEntities()
 void Witness::onEnterSpace(Space* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	
-	// 通知位置强制改变
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
-	Position3D &pos = pEntity_->position();
-	Direction3D &dir = pEntity_->direction();
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
+	
+	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 	(*pForwardPosDirBundle) << pEntity_->id();
-	(*pForwardPosDirBundle) << pos.x << pos.y << pos.z;
-	(*pForwardPosDirBundle) << dir.roll() << dir.pitch() << dir.yaw();
+	pEntity_->addPositionAndDirectionToStream(*s1, true);
+	(*pForwardPosDirBundle).append(*s1);
+	MemoryStream::ObjPool().reclaimObject(s1);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
-	// 通知进入了新地图
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
 	(*pForwardBundle) << pEntity_->id();
@@ -408,8 +391,6 @@ void Witness::onEnterSpace(Space* pSpace)
 		(*pForwardBundle) << pEntity_->isOnGround();
 
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
-
-	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
 	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
@@ -451,7 +432,6 @@ void Witness::onLeaveSpace(Space* pSpace)
 	}
 
 	aoiEntities_.clear();
-	clientAOISize_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -722,7 +702,6 @@ bool Witness::update()
 					{
 						delete (*iter);
 						iter = aoiEntities_.erase(iter);
-						--clientAOISize_;
 						continue;
 					}
 					

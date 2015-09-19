@@ -137,13 +137,13 @@ public:
 					for(; tabiter != childTableDBIDs.end();)
 					{
 						char sqlstr[MAX_BUF * 10];
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID " union all ", 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
 							tabiter->first.c_str(),
 							context.dbid);
 						
 						sqlstr_getids += sqlstr;
 
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 							tabiter->first.c_str(),
 							context.dbid);
 
@@ -187,7 +187,7 @@ public:
 				{
 					KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 						char sqlstr[MAX_BUF * 10];
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 							tabiter->first.c_str(),
 							context.dbid);
 
@@ -255,9 +255,9 @@ public:
 					continue;
 
 				// 先删除数据库中的记录
-				std::string sqlstr = "delete from " ENTITY_TABLE_PERFIX "_";
+				std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
 				sqlstr += tabiter->first;
-				sqlstr += " where " TABLE_ID_CONST_STR " in (";
+				sqlstr += " where "TABLE_ID_CONST_STR" in (";
 
 				std::vector<DBID>::iterator iter = tabiter->second.begin();
 				for(; iter != tabiter->second.end(); ++iter)
@@ -265,7 +265,7 @@ public:
 					DBID dbid = (*iter);
 
 					char sqlstr1[MAX_BUF];
-					kbe_snprintf(sqlstr1, MAX_BUF, "%" PRDBID, dbid);
+					kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, dbid);
 					sqlstr += sqlstr1;
 					sqlstr += ",";
 				}

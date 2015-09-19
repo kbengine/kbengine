@@ -39,13 +39,13 @@ mutex_()
 //-------------------------------------------------------------------------------------
 Navigation::~Navigation()
 {
-	finalise();
-}
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
+	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.begin();
+	for(; iter != navhandles_.end(); ++iter)
+	{
+		iter->second->decRef();
+	}
 
-//-------------------------------------------------------------------------------------
-void Navigation::finalise()
-{
-	KBEngine::thread::ThreadGuard tg(&mutex_);
 	navhandles_.clear();
 }
 

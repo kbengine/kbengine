@@ -43,7 +43,7 @@ public:
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
-	MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
+	MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 
 	MoveToPointHandler();
@@ -56,7 +56,7 @@ public:
 
 	virtual bool isOnGround(){ return false; }
 		
-	void pController(KBEShared_ptr<Controller> pController){ pController_ = pController; }
+	void pController(Controller* pController){ pController_ = pController; }
 
 	virtual MoveType type() const{ return MOVE_TYPE_POINT; }
 
@@ -67,7 +67,7 @@ protected:
 	bool moveVertically_;		// true则可以飞起来移动否则贴地
 	PyObject* pyuserarg_;
 	float distance_;
-	KBEShared_ptr<Controller> pController_;
+	Controller* pController_;
 	int layer_;
 };
  

@@ -67,7 +67,7 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	char __sql_str__[MAX_BUF];
 
-	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` ADD `%s` %s;",
+	kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` ADD `%s` %s;",
 		tablename, itemname, datatype);	
 
 	try
@@ -80,7 +80,7 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	if(dbi->getlasterror() == 1060)	
 	{
-		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` MODIFY COLUMN `%s` %s;",	
+		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `"ENTITY_TABLE_PERFIX"_%s` MODIFY COLUMN `%s` %s;",	
 			tablename, itemname, datatype);
 
 		try
@@ -111,7 +111,7 @@ bool sync_item_to_db(DBInterface* dbi,
 void sync_autoload_item_index(DBInterface* dbi, const char* tablename, const char* itemname)
 {
 	// 创建sm_autoLoad的索引
-	std::string sql = fmt::format("ALTER TABLE " ENTITY_TABLE_PERFIX "_{} ADD INDEX ({})", tablename, itemname);
+	std::string sql = fmt::format("ALTER TABLE "ENTITY_TABLE_PERFIX"_{} ADD INDEX ({})", tablename, itemname);
 
 	try
 	{
@@ -240,10 +240,14 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 
 		indexs.push_back(iter->second.get());
 	}
+	
+	// 没有索引需要创建
+	if(indexs.size() == 0)
+		return true;
 
 	char sql_str[MAX_BUF];
 
-	kbe_snprintf(sql_str, MAX_BUF, "show index from " ENTITY_TABLE_PERFIX "_%s", 
+	kbe_snprintf(sql_str, MAX_BUF, "show index from "ENTITY_TABLE_PERFIX"_%s", 
 		tableName());
 
 	try
@@ -259,7 +263,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		return false;
 	}
 
-	KBEUnordered_map<std::string, std::string> currDBKeys;
+	KBEUnordered_map<std::string, std::string> getkeys;
 
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 	if(pResult)
@@ -275,30 +279,24 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 			std::string keyname = arow[2];
 			std::string colname = arow[4];
 
-			if(keyname == "PRIMARY" || colname != keyname || 
-				keyname == TABLE_PARENTID_CONST_STR ||
-				keyname == TABLE_ID_CONST_STR ||
-				keyname == TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR)
+			if(keyname == "PRIMARY" || colname != keyname)
 				continue;
 
-			currDBKeys[colname] = keytype;
+			getkeys[colname] = keytype;
 		}
 
 		mysql_free_result(pResult);
 	}
 
 	bool done = false;
-	std::string sql = fmt::format("ALTER TABLE " ENTITY_TABLE_PERFIX "_{} ", tableName());
+	std::string sql = fmt::format("ALTER TABLE "ENTITY_TABLE_PERFIX"_{} ", tableName());
 	std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
 	for(; iiter != indexs.end(); )
 	{
 		std::string itemname = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
-		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemname);
-		if(fiter != currDBKeys.end())
+		KBEUnordered_map<std::string, std::string>::iterator fiter = getkeys.find(itemname);
+		if(fiter != getkeys.end())
 		{
-			// 删除已经处理的，剩下的就是要从数据库删除的index
-			currDBKeys.erase(fiter);
-			
 			if(fiter->second != (*iiter)->indexType())
 			{
 				sql += fmt::format("DROP INDEX `{}`,", itemname);
@@ -319,7 +317,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		{
 			if((*iiter)->pPropertyDescription()->getDatabaseLength() == 0)
 			{
-				ERROR_MSG(fmt::format("EntityTableMysql::syncIndexToDB(): INDEX({}) without a key length, *.def-><{}>-><DatabaseLength> ? </DatabaseLength>\n", 
+				ERROR_MSG(fmt::format("EntityTableMysql::syncIndexToDB(): INDEX({}) without a key length, *.def-><{}>-><DatabaseLength> ? </DatabaseLength>", 
 					(*iiter)->itemName(), (*iiter)->itemName()));
 			}
 			else
@@ -329,24 +327,16 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		}
 
 		sql += fmt::format("ADD {} {}({}{}),", (*iiter)->indexType(), itemname, itemname, lengthinfos);
-		++iiter;
+		iiter++;
 		done = true;
 	}
 
-	// 剩下的就是要从数据库删除的index
-	KBEUnordered_map<std::string, std::string>::iterator dbkey_iter = currDBKeys.begin();
-	for(; dbkey_iter != currDBKeys.end(); ++dbkey_iter)
-	{
-		sql += fmt::format("DROP INDEX `{}`,", dbkey_iter->first);
-		done = true;		
-	}
-	
+	sql.erase(sql.end() - 1);
+
 	// 没有需要修改或者添加的
 	if(!done)
 		return true;
-	
-	sql.erase(sql.end() - 1);
-	
+
 	try
 	{
 		bool ret = dbi->query(sql.c_str(), sql.size(), true);
@@ -375,11 +365,11 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	std::string exItems = "";
 
 	if(this->isChild())
-		exItems = ", " TABLE_PARENTID_CONST_STR " bigint(20) unsigned NOT NULL, INDEX(" TABLE_PARENTID_CONST_STR ")";
+		exItems = ", "TABLE_PARENTID_CONST_STR" bigint(20) unsigned NOT NULL, INDEX("TABLE_PARENTID_CONST_STR")";
 
-	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS " ENTITY_TABLE_PERFIX "_%s "
+	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS "ENTITY_TABLE_PERFIX"_%s "
 			"(id bigint(20) unsigned AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
-		"ENGINE=" MYSQL_ENGINE_TYPE, 
+		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 
 	try
@@ -401,7 +391,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	DBInterfaceMysql::TABLE_FIELDS outs;
 	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
 
-	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0, 
+	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR, 0, 
 			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
 
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
@@ -425,7 +415,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		std::string tname = (*iter0);
 		
 		if(tname == TABLE_ID_CONST_STR || 
-			tname == TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR || 
+			tname == TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR || 
 			tname == TABLE_PARENTID_CONST_STR)
 		{
 			continue;
@@ -462,7 +452,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 void EntityTableMysql::queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs)
 {
-	std::string sql = fmt::format("select id  from " ENTITY_TABLE_PERFIX "_{} where " TABLE_ITEM_PERFIX "_" TABLE_AUTOLOAD_CONST_STR "=1 limit {}, {};", 
+	std::string sql = fmt::format("select id  from "ENTITY_TABLE_PERFIX"_{} where "TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR"=1 limit {}, {};", 
 		tableName(), start, (end - start));
 
 	bool result = dbi->query(sql, false);
@@ -609,7 +599,7 @@ void EntityTableMysql::entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool sh
 	if(dbid == 0)
 		return;
 
-	std::string sql = fmt::format("update " ENTITY_TABLE_PERFIX "_{} set " TABLE_ITEM_PERFIX "_" TABLE_AUTOLOAD_CONST_STR "={} where id={};", 
+	std::string sql = fmt::format("update "ENTITY_TABLE_PERFIX"_{} set "TABLE_ITEM_PERFIX"_"TABLE_AUTOLOAD_CONST_STR"={} where id={};", 
 		tableName(), (shouldAutoLoad ? 1 : 0), dbid);
 
 	dbi->query(sql, false);
@@ -1469,7 +1459,7 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream*
 	{
 		int64 v;
 		(*s) >> v;
-		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%" PRI64, v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%"PRI64, v);
 	}
 	else if(dataSType_ == "UINT8")
 	{
@@ -1493,7 +1483,7 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream*
 	{
 		uint64 v;
 		(*s) >> v;
-		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%" PRIu64, v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%"PRIu64, v);
 	}
 	else if(dataSType_ == "FLOAT")
 	{

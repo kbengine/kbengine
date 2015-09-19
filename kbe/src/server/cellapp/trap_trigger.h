@@ -41,7 +41,6 @@ public:
 	*/
 	virtual void onEnter(CoordinateNode * pNode);
 	virtual void onLeave(CoordinateNode * pNode);
-
 protected:
 	ProximityController* pProximityController_;
 };

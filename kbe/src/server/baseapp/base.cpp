@@ -74,8 +74,7 @@ shouldAutoBackup_(1),
 creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
-pBufferedSendToCellappMessages_(NULL),
-isDirty_(true)
+pBufferedSendToCellappMessages_(NULL)
 {
 	script::PyGC::incTracing("Base");
 	ENTITY_INIT_PROPERTYS(Base);
@@ -103,12 +102,9 @@ Base::~Base()
 void Base::onDefDataChanged(const PropertyDescription* propertyDescription, 
 		PyObject* pyData)
 {
-	if(initing())
+	if(initing_)
 		return;
 
-	if(propertyDescription->isPersistent())
-		setDirty();
-	
 	uint32 flags = propertyDescription->getFlags();
 
 	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
@@ -143,8 +139,6 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 //-------------------------------------------------------------------------------------
 void Base::onDestroy(bool callScript)																					
 {
-	setDirty();
-	
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -869,8 +863,7 @@ void Base::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 
 	isArchiveing_ = false;
 	isGetingCellData_ = false;
-	createdSpace_ = false;
-	
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
 
@@ -910,16 +903,9 @@ void Base::onBackupCellData(Network::Channel* pChannel, MemoryStream& s)
 {
 	isGetingCellData_ = false;
 
-	bool isDirty = false;
-	s >> isDirty;
-	
-	if(isDirty)
-	{		
-		PyObject* cellData = createCellDataFromStream(&s);
-		installCellDataAttr(cellData);
-		Py_DECREF(cellData);
-		setDirty();
-	}
+	PyObject* cellData = createCellDataFromStream(&s);
+	installCellDataAttr(cellData);
+	Py_DECREF(cellData);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1048,7 +1034,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
 
 	hasDB(true);
@@ -1059,12 +1045,6 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
 
-	// 如果数据没有改变那么不需要持久化
-	if(!isDirty())
-		return;
-	
-	setDirty(false);
-	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
@@ -1077,7 +1057,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 			this->scriptName(), this->id()));
 		return;
 	}
-	
+
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
@@ -1203,17 +1183,17 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
-	if(isDestroyed())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",
-			scriptName(), id());
-		PyErr_PrintEx(0);
-		return 0;
+	if(isDestroyed())																				
+	{																										
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",											
+			scriptName(), id());												
+		PyErr_PrintEx(0);																					
+		return 0;																						
 	}	
 
-	if(createdSpace_ || this->cellMailbox() != NULL)
+	if(createdSpace_)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d in space!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d has a space!\n", 
 			scriptName(), id());
 
 		PyErr_PrintEx(0);

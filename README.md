@@ -39,12 +39,6 @@ depends on complexity of logic of the game itself.)
 
 
 
-##Acknowledgements(alphabetical)
-
-acatadog, colin
-
-
-
 ##中文
 
 [官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：16535321

@@ -51,7 +51,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	
 	Space* space = Spaces::findSpace(_spaceID);
 	
-	if(space == NULL || !space->isGood())
+	if(space == NULL)
 	{
 		ERROR_MSG(fmt::format("FMH_Baseapp_onEntityGetCell::process: not found space({}), {} {}.\n",
 			_spaceID, _e->scriptName(), _e->id()));

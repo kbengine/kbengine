@@ -614,13 +614,11 @@ inline int32 getProcessPID()
 /** 获取2个系统时间差 */
 inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 {
-    // 防止getSystemTime()溢出的情况
+    // getSystemTime() have limited data range and this is case when it overflow in this tick
     if (oldTime > newTime)
-    {
-        return (uint32)((int64)0xFFFFFFFF + 1 - (int64)oldTime) + newTime;
-    }
-
-	return newTime - oldTime;
+        return (0xFFFFFFFF - oldTime) + newTime;
+    else
+        return newTime - oldTime;
 }
 
 /* 产生一个64位的uuid 

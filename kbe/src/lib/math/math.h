@@ -184,8 +184,7 @@ inline KBEngine::int8 angle2int8(float v, bool half = false)
 	return angle;
 }
 
-typedef Vector3													Position3D;												// 表示3D位置变量类型	
-typedef KBEShared_ptr< std::vector<Position3D> >				VECTOR_POS3D_PTR;										// 指向Position3D数组的智能指针类型声明
+typedef Vector3													Position3D;												// 表示3D位置变量类型																						// mailbox 所投递的mail类别的类别
 
 struct Direction3D																										// 表示方向位置变量类型
 {

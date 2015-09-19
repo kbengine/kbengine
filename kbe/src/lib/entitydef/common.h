@@ -139,7 +139,7 @@ const char ENTITY_LIMITED_PROPERTYS[][32] =
 	"cell",
 	"base",
 	"client",
-	"cellData",
+	"cell",
 	"className",
 	"databaseID",
 	"isDestroyed",
