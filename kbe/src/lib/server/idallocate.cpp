@@ -46,7 +46,7 @@ EntityIDClient::EntityIDClient():
 //-------------------------------------------------------------------------------------
 void EntityIDClient::onAlloc(void)
 {
-	if(getSize() > id_enough_limit)
+	if(size() > id_enough_limit)
 	{
 		setReqServerAllocFlag(false);
 		return;

@@ -580,7 +580,7 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 										 bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
 	// 检查ID是否足够, 不足返回NULL
-	if(eid <= 0 && idClient_.getSize() == 0)
+	if(eid <= 0 && idClient_.size() == 0)
 	{
 		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
