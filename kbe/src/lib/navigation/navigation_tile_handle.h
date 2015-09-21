@@ -83,7 +83,7 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
-	static NavigationHandle* create(std::string name);
+	static NavigationHandle* create(std::string name, const std::map< int, std::string >& params);
 	
 	int getMap(int x, int y);
 
@@ -97,6 +97,7 @@ public:
 public:
 	Tmx::Map *pTilemap;
 	bool direction8_;
+	std::map< int, std::string > params_;
 };
 
 }

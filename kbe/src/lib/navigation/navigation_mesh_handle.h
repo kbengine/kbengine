@@ -60,7 +60,7 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
-	static NavigationHandle* create(std::string name);
+	static NavigationHandle* create(std::string name, const std::map< int, std::string >& params);
 
 	std::vector<dtNavMesh*> navmesh_layers;
 	std::vector<dtNavMeshQuery*> navmeshQuery_layers;

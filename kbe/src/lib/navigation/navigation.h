@@ -51,7 +51,6 @@ public:
 private:
 	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;
 	KBEngine::thread::ThreadMutex mutex_;
-	std::map< int, std::string > params_;
 };
 
 }

@@ -32,8 +32,7 @@ KBE_SINGLETON_INIT(Navigation);
 //-------------------------------------------------------------------------------------
 Navigation::Navigation():
 navhandles_(),
-mutex_(),
-params_()
+mutex_()
 {
 }
 
@@ -74,6 +73,9 @@ NavigationHandlePtr Navigation::findNavigation(std::string name)
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
 	if(navhandles_.find(name) != navhandles_.end())
 	{
+		if(iter->second == NULL)
+			return NULL;
+
 		if(iter->second->type() == NavigationHandle::NAV_MESH)
 		{
 			return iter->second;
@@ -105,8 +107,6 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name, const std::map<
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	if(name == "")
 		return NULL;
-
-	params_ = params;
 	
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
 	if(iter != navhandles_.end())
@@ -117,22 +117,24 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name, const std::map<
 	NavigationHandle* pNavigationHandle_ = NULL;
 
 	std::string path = "spaces/" + name;
+	path = Resmgr::getSingleton().matchPath(path);
+	if(path.size() == 0)
+		return NULL;
+		
+	wchar_t* wpath = strutil::char2wchar(path.c_str());
+	std::wstring wspath = wpath;
+	free(wpath);
 
-	if(Resmgr::getSingleton().openRes(path + "/" + name + ".tmx"))
+	std::vector<std::wstring> results;
+	Resmgr::getSingleton().listPathRes(wspath, L"tmx", results);
+	
+	if(results.size() > 0)
 	{
-		pNavigationHandle_ = NavTileHandle::create(name);
+		pNavigationHandle_ = NavTileHandle::create(name, params);
 	}
 	else 	
 	{
-		path = Resmgr::getSingleton().matchPath(path);
-		if(path.size() == 0)
-			return NULL;
-
-		wchar_t* wpath = strutil::char2wchar(path.c_str());
-		std::wstring wspath = wpath;
-		free(wpath);
-
-		std::vector<std::wstring> results;
+		results.clear();
 		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
 
 		if(results.size() == 0)
@@ -140,7 +142,7 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name, const std::map<
 			return NULL;
 		}
 
-		pNavigationHandle_ = NavMeshHandle::create(name);
+		pNavigationHandle_ = NavMeshHandle::create(name, params);
 	}
 
 
