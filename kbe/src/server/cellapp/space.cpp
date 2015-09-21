@@ -130,11 +130,13 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	char* path = NULL;
 	bool shouldLoadOnServer = true;
 	PyObject* mapper = NULL;
-
+	PyObject* py_params = NULL;
+	std::map< int, std::string > params;
+	
 	int argCount = PyTuple_Size(args);
-	if(argCount < 3 || argCount > 4)
+	if(argCount < 3 || argCount > 5)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 4) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 5) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -146,6 +148,46 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
 			PyErr_PrintEx(0);
 			return 0;
+		}
+	}
+	else if(argCount == 5)
+	{
+		if(PyArg_ParseTuple(args, "I|O|s|b|O", &spaceID, &mapper, &path, &shouldLoadOnServer, &py_params) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+		
+		if(py_params)
+		{
+			PyObject *key, *value;
+			Py_ssize_t pos = 0;
+
+			if(!PyDict_Check(py_params))
+			{
+				PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) not is PyDict!");
+				PyErr_PrintEx(0);					
+				return 0;
+			}
+
+			while(PyDict_Next(py_params, &pos, &key, &value)) 
+			{
+				if(!PyLong_Check(key))
+				{
+					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
+					PyErr_PrintEx(0);					
+					return 0;
+				}
+				
+			    long i = PyLong_AsLong(key);
+
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(value, NULL);
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);
+				params[i] = ccattr;
+				free(ccattr);
+			}
 		}
 	}
 	else
@@ -168,7 +210,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer))
+	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
 			spaceID, path);
@@ -181,7 +223,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
+bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params)
 {
 	INFO_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={}, shouldLoadOnServer={}!\n",
 		id(), respath, shouldLoadOnServer));
@@ -198,16 +240,16 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	setGeometryPath(respath);
 
 	if(shouldLoadOnServer)
-		loadSpaceGeometry();
+		loadSpaceGeometry(params);
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void Space::loadSpaceGeometry()
+void Space::loadSpaceGeometry(const std::map< int, std::string >& params)
 {
 	KBE_ASSERT(pNavHandle_ == NULL);
-	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->id()));
+	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->id(), params));
 }
 
 //-------------------------------------------------------------------------------------

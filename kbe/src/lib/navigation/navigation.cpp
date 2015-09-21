@@ -32,7 +32,8 @@ KBE_SINGLETON_INIT(Navigation);
 //-------------------------------------------------------------------------------------
 Navigation::Navigation():
 navhandles_(),
-mutex_()
+mutex_(),
+params_()
 {
 }
 
@@ -99,12 +100,14 @@ bool Navigation::hasNavigation(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandlePtr Navigation::loadNavigation(std::string name)
+NavigationHandlePtr Navigation::loadNavigation(std::string name, const std::map< int, std::string >& params)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	if(name == "")
 		return NULL;
 
+	params_ = params;
+	
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
 	if(iter != navhandles_.end())
 	{

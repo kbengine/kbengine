@@ -40,7 +40,7 @@ public:
 	
 	void finalise();
 
-	NavigationHandlePtr loadNavigation(std::string name);
+	NavigationHandlePtr loadNavigation(std::string name, const std::map< int, std::string >& params);
 
 	bool hasNavigation(std::string name);
 
@@ -51,6 +51,7 @@ public:
 private:
 	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;
 	KBEngine::thread::ThreadMutex mutex_;
+	std::map< int, std::string > params_;
 };
 
 }

@@ -30,9 +30,10 @@ namespace KBEngine{
 class LoadNavmeshTask : public thread::TPTask
 {
 public:
-	LoadNavmeshTask(const std::string& name, SPACE_ID spaceID):
+	LoadNavmeshTask(const std::string& name, SPACE_ID spaceID, const std::map< int, std::string >& params):
 	name_(name),
-	spaceID_(spaceID)
+	spaceID_(spaceID),
+	params_(params)
 	{
 	}
 
@@ -43,6 +44,7 @@ public:
 protected:
 	std::string name_;
 	SPACE_ID spaceID_;
+	const std::map< int, std::string >& params_;
 };
 
 
