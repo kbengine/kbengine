@@ -41,8 +41,7 @@ pController_(pController)
 RotatorHandler::RotatorHandler() :
 destDir_(0.f,0.f,0.f),
 velocity_(0.f),
-pyuserarg_(NULL),
-pController_(NULL)
+pyuserarg_(NULL)
 {
 }
 
