@@ -1335,7 +1335,11 @@ void EntityTableItemMysql_FIXED_DICT::init_db_item_name(const char* exstrFlag)
 
 	for(; fditer != keyTypes_.end(); ++fditer)
 	{
-		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->init_db_item_name(exstrFlag);
+		std::string new_exstrFlag = exstrFlag;
+		if(fditer->second->type()== TABLE_ITEM_TYPE_FIXEDDICT)
+			new_exstrFlag += fditer->first + "_";
+
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->init_db_item_name(new_exstrFlag.c_str());
 	}
 }
 
