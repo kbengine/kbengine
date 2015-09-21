@@ -38,7 +38,7 @@ public:
 	{
 		pRotatorHandler_ = pRotatorHandler;
 	}
-
+	
 	virtual void destroy();
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);

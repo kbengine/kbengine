@@ -27,7 +27,7 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 TurnController::TurnController(Entity* pEntity, RotatorHandler* pRotatorHandler, uint32 id) :
-Controller(Controller::CONTROLLER_TYPE_NORMAL, pEntity, 0, id),
+Controller(Controller::CONTROLLER_TYPE_ROTATE, pEntity, 0, id),
 pRotatorHandler_(pRotatorHandler)
 {
 }
@@ -44,7 +44,6 @@ TurnController::~TurnController()
 void TurnController::addToStream(KBEngine::MemoryStream& s)
 {
 	Controller::addToStream(s);
-
 	pRotatorHandler_->addToStream(s);
 }
 
