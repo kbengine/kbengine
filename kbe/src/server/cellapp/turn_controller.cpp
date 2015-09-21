@@ -36,7 +36,7 @@ pRotatorHandler_(pRotatorHandler)
 TurnController::~TurnController()
 {
 	// DEBUG_MSG(fmt::format("TurnController::~TurnController(): {:p}\n", (void*)this);
-	pRotatorHandler_->pController(NULL);
+	pRotatorHandler_->pController(KBEShared_ptr<Controller>());
 	pRotatorHandler_ = NULL;
 }
 
