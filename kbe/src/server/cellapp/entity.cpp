@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "moveto_point_handler.h"	
 #include "moveto_entity_handler.h"	
 #include "navigate_handler.h"	
+#include "rotator_handler.h"
+#include "turn_controller.h"
 #include "pyscript/py_gc.h"
 #include "entitydef/entity_mailbox.h"
 #include "network/channel.h"	
@@ -60,6 +62,7 @@ SCRIPT_METHOD_DECLARE("getAoiRadius",				pyGetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getAoiHystArea",				pyGetAoiHystArea,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("addYawRotator",				pyAddYawRotator,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
@@ -2005,6 +2008,66 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 	
+	setDirty();
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::addYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	stopMove();
+
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	KBEShared_ptr<Controller> p(new TurnController(this, NULL));
+
+	Direction3D dir;
+	dir.yaw(yaw);
+
+	new RotatorHandler(p, dir, velocity,
+		userData);
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+
+	pMoveController_ = p;
+	return p->id();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyAddYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: not is real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Py_INCREF(userData);
+	return PyLong_FromLong(addYawRotator(yaw, velocity, userData));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTurn(uint32 controllerId, PyObject* userarg)
+{
+	if (this->isDestroyed())
+		return;
+
+	pMoveController_.reset();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onTurn"),
+		const_cast<char*>("IO"), controllerId, userarg);
+
 	setDirty();
 }
 

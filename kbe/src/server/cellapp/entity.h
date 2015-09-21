@@ -481,6 +481,19 @@ public:
 	void onMoveFailure(uint32 controllerId, PyObject* userarg);
 
 	/**
+		entity转动朝向
+	*/
+	uint32 addYawRotator(float yaw, float velocity,
+		PyObject* userData);
+
+	DECLARE_PY_MOTHOD_ARG3(pyAddYawRotator, float, float, PyObject_ptr);
+	
+	/**
+		entity转向完成
+	*/
+	void onTurn(uint32 controllerId, PyObject* userarg);
+	
+	/**
 		获取自身在space的entities中的位置
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx() const;

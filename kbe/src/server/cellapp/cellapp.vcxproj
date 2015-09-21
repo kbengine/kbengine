@@ -143,9 +143,11 @@
     <ClCompile Include="range_trigger.cpp" />
     <ClCompile Include="range_trigger_node.cpp" />
     <ClCompile Include="real_entity_method.cpp" />
+    <ClCompile Include="rotator_handler.cpp" />
     <ClCompile Include="space.cpp" />
     <ClCompile Include="spaces.cpp" />
     <ClCompile Include="trap_trigger.cpp" />
+    <ClCompile Include="turn_controller.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="updatables.cpp" />
     <ClCompile Include="watch_obj_pools.cpp" />
@@ -186,9 +188,11 @@
     <ClInclude Include="range_trigger.h" />
     <ClInclude Include="range_trigger_node.h" />
     <ClInclude Include="real_entity_method.h" />
+    <ClInclude Include="rotator_handler.h" />
     <ClInclude Include="space.h" />
     <ClInclude Include="spaces.h" />
     <ClInclude Include="trap_trigger.h" />
+    <ClInclude Include="turn_controller.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="updatables.h" />
     <ClInclude Include="watch_obj_pools.h" />
