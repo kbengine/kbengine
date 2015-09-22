@@ -46,7 +46,7 @@ NavMeshHandle::~NavMeshHandle()
 	for(; iter1 != navmeshQuery_layers.end(); iter1++)
 		dtFreeNavMeshQuery((*iter1));
 	
-	DEBUG_MSG(fmt::format("NavMeshHandle::~NavMeshHandle(): ({}) is destroyed!\n", name));
+	DEBUG_MSG(fmt::format("NavMeshHandle::~NavMeshHandle(): ({}) is destroyed!\n", resPath));
 }
 
 //-------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 	if (!startRef || !endRef)
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath({2}): Could not find any nearby poly's ({0}, {1})\n", startRef, endRef, name));
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath({2}): Could not find any nearby poly's ({0}, {1})\n", startRef, endRef, resPath));
 		return NAV_ERROR_NEARESTPOLY;
 	}
 
@@ -200,14 +200,14 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandle* NavMeshHandle::create(std::string name, const std::map< int, std::string >& params)
+NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int, std::string >& params)
 {
-	if(name == "")
+	if(resPath == "")
 		return NULL;
 	
 	NavMeshHandle* pNavMeshHandle = NULL;
 
-	std::string path = "spaces/" + name;
+	std::string path = resPath;
 	path = Resmgr::getSingleton().matchPath(path);
 	wchar_t* wpath = strutil::char2wchar(path.c_str());
 	std::wstring wspath = wpath;
@@ -243,7 +243,7 @@ NavigationHandle* NavMeshHandle::create(std::string name, const std::map< int, s
 		}
 		
 		DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
-			name, (pNavMeshHandle->navmeshQuery_layers.size())));
+			resPath, (pNavMeshHandle->navmeshQuery_layers.size())));
 
 		bool safeStorage = true;
 		int pos = 0;
@@ -373,7 +373,7 @@ NavigationHandle* NavMeshHandle::create(std::string name, const std::map< int, s
 		dtNavMeshQuery* pMavmeshQuery = new dtNavMeshQuery();
 		pNavMeshHandle->navmeshQuery_layers.push_back(pMavmeshQuery);
 		pMavmeshQuery->init(mesh, 1024);
-		pNavMeshHandle->name = name;
+		pNavMeshHandle->resPath = resPath;
 
 		uint32 tileCount = 0;
 		uint32 nodeCount = 0;

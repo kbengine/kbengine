@@ -55,7 +55,7 @@ direction8_(navTileHandle.direction8_)
 NavTileHandle::~NavTileHandle()
 {
 	DEBUG_MSG(fmt::format("NavTileHandle::~NavTileHandle({1:p}, pTilemap={2:p}): ({0}) is destroyed!\n", 
-		name, (void*)this, (void*)pTilemap));
+		resPath, (void*)this, (void*)pTilemap));
 	
 	SAFE_RELEASE(pTilemap);
 }
@@ -270,12 +270,12 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandle* NavTileHandle::create(std::string name, const std::map< int, std::string >& params)
+NavigationHandle* NavTileHandle::create(std::string resPath, const std::map< int, std::string >& params)
 {
-	if(name == "")
+	if(resPath == "")
 		return NULL;
 	
-	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".tmx");
+	std::string path = Resmgr::getSingleton().matchRes(resPath + "/" + resPath + ".tmx");
 
 	Tmx::Map *map = new Tmx::Map();
 	map->ParseFile(path.c_str());
@@ -289,7 +289,7 @@ NavigationHandle* NavTileHandle::create(std::string name, const std::map< int, s
 	
 	bool mapdir = map->GetProperties().HasProperty("direction8");
 
-	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", name));
+	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", resPath));
 	DEBUG_MSG(fmt::format("\t==> map Width : {}\n", map->GetWidth()));
 	DEBUG_MSG(fmt::format("\t==> map Height : {}\n", map->GetHeight()));
 	DEBUG_MSG(fmt::format("\t==> tile Width : {} px\n", map->GetTileWidth()));

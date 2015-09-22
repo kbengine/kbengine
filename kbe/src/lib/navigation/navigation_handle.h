@@ -48,7 +48,8 @@ public:
 		NAV_OBJECT_STATE_MOVEOVER = 2,	// 移动已经结束了
 	};
 
-	NavigationHandle():name()
+	NavigationHandle():
+	resPath()
 	{
 	}
 
@@ -61,7 +62,7 @@ public:
 	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
 
-	std::string name;
+	std::string resPath;
 };
 
 typedef SmartPointer<NavigationHandle> NavigationHandlePtr;
