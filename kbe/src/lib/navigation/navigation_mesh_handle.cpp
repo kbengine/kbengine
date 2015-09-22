@@ -30,21 +30,19 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 NavMeshHandle::NavMeshHandle():
 NavigationHandle(),
-navmesh_layers(),
-navmeshQuery_layers()
+navmeshLayer()
 {
 }
 
 //-------------------------------------------------------------------------------------
 NavMeshHandle::~NavMeshHandle()
 {
-	std::vector<dtNavMesh*>::iterator iter = navmesh_layers.begin();
-	for(; iter != navmesh_layers.end(); iter++)
-		dtFreeNavMesh((*iter));
-
-	std::vector<dtNavMeshQuery*>::iterator iter1 = navmeshQuery_layers.begin();
-	for(; iter1 != navmeshQuery_layers.end(); iter1++)
-		dtFreeNavMeshQuery((*iter1));
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.begin();
+	for(; iter != navmeshLayer.end(); ++iter)
+	{
+		dtFreeNavMesh(iter->second.pNavmesh);
+		dtFreeNavMeshQuery(iter->second.pNavmeshQuery);
+	}
 	
 	DEBUG_MSG(fmt::format("NavMeshHandle::~NavMeshHandle(): ({}) is destroyed!\n", resPath));
 }
@@ -52,13 +50,14 @@ NavMeshHandle::~NavMeshHandle()
 //-------------------------------------------------------------------------------------
 int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
-	if(layer >= (int)navmeshQuery_layers.size())
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if(iter == navmeshLayer.end())
 	{
 		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
-	dtNavMeshQuery* navmeshQuery = navmeshQuery_layers[layer];
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
 	// dtNavMesh* 
 
 	float spos[3];
@@ -131,13 +130,14 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 //-------------------------------------------------------------------------------------
 int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
-	if(layer >= (int)navmeshQuery_layers.size())
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if(iter == navmeshLayer.end())
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath: not found layer({})\n",  layer));
+		ERROR_MSG(fmt::format("NavMeshHandle::raycast: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
-	dtNavMeshQuery* navmeshQuery = navmeshQuery_layers[layer];
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
 
 	float hitPoint[3];
 
@@ -213,202 +213,226 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 	std::wstring wspath = wpath;
 	free(wpath);
 
-	std::vector<std::wstring> results;
-	Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
-
-	if(results.size() == 0)
+	if(params.size() == 0)
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: path({}) not found navmesh.!\n", 
-			Resmgr::getSingleton().matchRes(path)));
+		std::vector<std::wstring> results;
+		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
 
-		return NULL;
-	}
-
-	pNavMeshHandle = new NavMeshHandle();
-	std::vector<std::wstring>::iterator iter = results.begin();
-
-	for(; iter != results.end(); iter++)
-	{
-		char* cpath = strutil::wchar2char((*iter).c_str());
-		path = cpath;
-		free(cpath);
-	
-		FILE* fp = fopen(path.c_str(), "rb");
-		if (!fp)
+		if(results.size() == 0)
 		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
+			ERROR_MSG(fmt::format("NavMeshHandle::create: path({}) not found navmesh.!\n", 
 				Resmgr::getSingleton().matchRes(path)));
 
-			break;
+			return NULL;
 		}
+
+		pNavMeshHandle = new NavMeshHandle();
+		std::vector<std::wstring>::iterator iter = results.begin();
+		int layer = 0;
 		
-		DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
-			resPath, (pNavMeshHandle->navmeshQuery_layers.size())));
-
-		bool safeStorage = true;
-		int pos = 0;
-		int size = sizeof(NavMeshSetHeader);
-		
-		fseek(fp, 0, SEEK_END); 
-		size_t flen = ftell(fp); 
-		fseek(fp, 0, SEEK_SET); 
-
-		uint8* data = new uint8[flen];
-		if(data == NULL)
+		for(; iter != results.end(); ++iter)
 		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), memory(size={}) error!\n", 
-				Resmgr::getSingleton().matchRes(path), flen));
-
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		size_t readsize = fread(data, 1, flen, fp);
-		if(readsize != flen)
-		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), read(size={} != {}) error!\n", 
-				Resmgr::getSingleton().matchRes(path), readsize, flen));
-
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		if (readsize < sizeof(NavMeshSetHeader))
-		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), NavMeshSetHeader is error!\n", 
-				Resmgr::getSingleton().matchRes(path)));
-
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		NavMeshSetHeader header;
-		memcpy(&header, data, size);
-
-		pos += size;
-
-		if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
-		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: navmesh version({}) is not match({})!\n", 
-				header.version, ((int)NavMeshHandle::RCN_NAVMESH_VERSION)));
-
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		dtNavMesh* mesh = dtAllocNavMesh();
-		if (!mesh)
-		{
-			ERROR_MSG("NavMeshHandle::create: dtAllocNavMesh is failed!\n");
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		dtStatus status = mesh->init(&header.params);
-		if (dtStatusFailed(status))
-		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create: mesh init is error({})!\n", status));
-			fclose(fp);
-			SAFE_RELEASE_ARRAY(data);
-			break;
-		}
-
-		// Read tiles.
-		bool success = true;
-		for (int i = 0; i < header.tileCount; ++i)
-		{
-			NavMeshTileHeader tileHeader;
-			size = sizeof(NavMeshTileHeader);
-			memcpy(&tileHeader, &data[pos], size);
-			pos += size;
-
-			size = tileHeader.dataSize;
-			if (!tileHeader.tileRef || !tileHeader.dataSize)
-			{
-				success = false;
-				status = DT_FAILURE + DT_INVALID_PARAM;
-				break;
-			}
+			char* cpath = strutil::wchar2char((*iter).c_str());
+			path = cpath;
+			free(cpath);
 			
-			unsigned char* tileData = 
-				(unsigned char*)dtAlloc(size, DT_ALLOC_PERM);
-			if (!tileData)
-			{
-				success = false;
-				status = DT_FAILURE + DT_OUT_OF_MEMORY;
-				break;
-			}
-			memcpy(tileData, &data[pos], size);
-			pos += size;
-
-			status = mesh->addTile(tileData
-				, size
-				, (safeStorage ? DT_TILE_FREE_DATA : 0)
-				, tileHeader.tileRef
-				, 0);
-
-			if (dtStatusFailed(status))
-			{
-				success = false;
-				break;
-			}
+			_create(layer++, resPath, path, pNavMeshHandle);
 		}
+	}
+	else
+	{
+		pNavMeshHandle = new NavMeshHandle();
+		std::map< int, std::string >::const_iterator iter = params.begin();
+
+		for(; iter != params.end(); ++iter)
+		{
+			_create(iter->first, resPath, path + "/" + iter->second, pNavMeshHandle);
+		}		
+	}
+	
+	return pNavMeshHandle;
+}
+
+//-------------------------------------------------------------------------------------
+bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::string& res, NavMeshHandle* pNavMeshHandle)
+{
+	KBE_ASSERT(pNavMeshHandle);
+	FILE* fp = fopen(res.c_str(), "rb");
+	if (!fp)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
+			Resmgr::getSingleton().matchRes(res)));
+
+		return false;
+	}
+	
+	DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
+		res, layer));
+
+	bool safeStorage = true;
+	int pos = 0;
+	int size = sizeof(NavMeshSetHeader);
+	
+	fseek(fp, 0, SEEK_END); 
+	size_t flen = ftell(fp); 
+	fseek(fp, 0, SEEK_SET); 
+
+	uint8* data = new uint8[flen];
+	if(data == NULL)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), memory(size={}) error!\n", 
+			Resmgr::getSingleton().matchRes(res), flen));
 
 		fclose(fp);
 		SAFE_RELEASE_ARRAY(data);
-
-		if (!success)
-		{
-			ERROR_MSG(fmt::format("NavMeshHandle::create:  error({})!\n", status));
-			dtFreeNavMesh(mesh);
-			break;
-		}
-
-		pNavMeshHandle->navmesh_layers.push_back(mesh);
-		dtNavMeshQuery* pMavmeshQuery = new dtNavMeshQuery();
-		pNavMeshHandle->navmeshQuery_layers.push_back(pMavmeshQuery);
-		pMavmeshQuery->init(mesh, 1024);
-		pNavMeshHandle->resPath = resPath;
-
-		uint32 tileCount = 0;
-		uint32 nodeCount = 0;
-		uint32 polyCount = 0;
-		uint32 vertCount = 0;
-		uint32 triCount = 0;
-		uint32 triVertCount = 0;
-		uint32 dataSize = 0;
-
-		const dtNavMesh* navmesh = mesh;
-		for (int32 i = 0; i < navmesh->getMaxTiles(); ++i)
-		{
-			const dtMeshTile* tile = navmesh->getTile(i);
-			if (!tile || !tile->header)
-				continue;
-
-			tileCount ++;
-			nodeCount += tile->header->bvNodeCount;
-			polyCount += tile->header->polyCount;
-			vertCount += tile->header->vertCount;
-			triCount += tile->header->detailTriCount;
-			triVertCount += tile->header->detailVertCount;
-			dataSize += tile->dataSize;
-
-			// DEBUG_MSG(fmt::format("NavMeshHandle::create: verts({}, {}, {})\n", tile->verts[0], tile->verts[1], tile->verts[2]));
-		}
-
-		DEBUG_MSG(fmt::format("\t==> tiles loaded: {}\n", tileCount));
-		DEBUG_MSG(fmt::format("\t==> BVTree nodes: {}\n", nodeCount));
-		DEBUG_MSG(fmt::format("\t==> {} polygons ({} vertices)\n", polyCount, vertCount));
-		DEBUG_MSG(fmt::format("\t==> {} triangles ({} vertices)\n", triCount, triVertCount));
-		DEBUG_MSG(fmt::format("\t==> {:.2f} MB of data (not including pointers)\n", (((float)dataSize / sizeof(unsigned char)) / 1048576)));
+		return false;
 	}
 
-	return pNavMeshHandle;
+	size_t readsize = fread(data, 1, flen, fp);
+	if(readsize != flen)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), read(size={} != {}) error!\n", 
+			Resmgr::getSingleton().matchRes(res), readsize, flen));
+
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	if (readsize < sizeof(NavMeshSetHeader))
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), NavMeshSetHeader is error!\n", 
+			Resmgr::getSingleton().matchRes(res)));
+
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	NavMeshSetHeader header;
+	memcpy(&header, data, size);
+
+	pos += size;
+
+	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: navmesh version({}) is not match({})!\n", 
+			header.version, ((int)NavMeshHandle::RCN_NAVMESH_VERSION)));
+
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	dtNavMesh* mesh = dtAllocNavMesh();
+	if (!mesh)
+	{
+		ERROR_MSG("NavMeshHandle::create: dtAllocNavMesh is failed!\n");
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	dtStatus status = mesh->init(&header.params);
+	if (dtStatusFailed(status))
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: mesh init is error({})!\n", status));
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	// Read tiles.
+	bool success = true;
+	for (int i = 0; i < header.tileCount; ++i)
+	{
+		NavMeshTileHeader tileHeader;
+		size = sizeof(NavMeshTileHeader);
+		memcpy(&tileHeader, &data[pos], size);
+		pos += size;
+
+		size = tileHeader.dataSize;
+		if (!tileHeader.tileRef || !tileHeader.dataSize)
+		{
+			success = false;
+			status = DT_FAILURE + DT_INVALID_PARAM;
+			break;
+		}
+		
+		unsigned char* tileData = 
+			(unsigned char*)dtAlloc(size, DT_ALLOC_PERM);
+		if (!tileData)
+		{
+			success = false;
+			status = DT_FAILURE + DT_OUT_OF_MEMORY;
+			break;
+		}
+		memcpy(tileData, &data[pos], size);
+		pos += size;
+
+		status = mesh->addTile(tileData
+			, size
+			, (safeStorage ? DT_TILE_FREE_DATA : 0)
+			, tileHeader.tileRef
+			, 0);
+
+		if (dtStatusFailed(status))
+		{
+			success = false;
+			break;
+		}
+	}
+
+	fclose(fp);
+	SAFE_RELEASE_ARRAY(data);
+
+	if (!success)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create:  error({})!\n", status));
+		dtFreeNavMesh(mesh);
+		return false;
+	}
+
+	dtNavMeshQuery* pMavmeshQuery = new dtNavMeshQuery();
+
+	pMavmeshQuery->init(mesh, 1024);
+	pNavMeshHandle->resPath = resPath;
+	pNavMeshHandle->navmeshLayer[layer].pNavmeshQuery = pMavmeshQuery;
+	pNavMeshHandle->navmeshLayer[layer].pNavmesh = mesh;
+	
+	uint32 tileCount = 0;
+	uint32 nodeCount = 0;
+	uint32 polyCount = 0;
+	uint32 vertCount = 0;
+	uint32 triCount = 0;
+	uint32 triVertCount = 0;
+	uint32 dataSize = 0;
+
+	const dtNavMesh* navmesh = mesh;
+	for (int32 i = 0; i < navmesh->getMaxTiles(); ++i)
+	{
+		const dtMeshTile* tile = navmesh->getTile(i);
+		if (!tile || !tile->header)
+			continue;
+
+		tileCount ++;
+		nodeCount += tile->header->bvNodeCount;
+		polyCount += tile->header->polyCount;
+		vertCount += tile->header->vertCount;
+		triCount += tile->header->detailTriCount;
+		triVertCount += tile->header->detailVertCount;
+		dataSize += tile->dataSize;
+
+		// DEBUG_MSG(fmt::format("NavMeshHandle::create: verts({}, {}, {})\n", tile->verts[0], tile->verts[1], tile->verts[2]));
+	}
+
+	DEBUG_MSG(fmt::format("\t==> tiles loaded: {}\n", tileCount));
+	DEBUG_MSG(fmt::format("\t==> BVTree nodes: {}\n", nodeCount));
+	DEBUG_MSG(fmt::format("\t==> {} polygons ({} vertices)\n", polyCount, vertCount));
+	DEBUG_MSG(fmt::format("\t==> {} triangles ({} vertices)\n", triCount, triVertCount));
+	DEBUG_MSG(fmt::format("\t==> {:.2f} MB of data (not including pointers)\n", (((float)dataSize / sizeof(unsigned char)) / 1048576)));
+	
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

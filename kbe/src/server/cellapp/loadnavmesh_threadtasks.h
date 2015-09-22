@@ -44,7 +44,7 @@ public:
 protected:
 	std::string resPath_;
 	SPACE_ID spaceID_;
-	const std::map< int, std::string >& params_;
+	std::map< int, std::string > params_;
 };
 
 

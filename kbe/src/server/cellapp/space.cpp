@@ -173,7 +173,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 			while(PyDict_Next(py_params, &pos, &key, &value)) 
 			{
-				if(!PyLong_Check(key))
+				if(!PyLong_Check(key) || !PyUnicode_Check(value))
 				{
 					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
 					PyErr_PrintEx(0);					
@@ -188,13 +188,15 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 				params[i] = ccattr;
 				free(ccattr);
 			}
+			
+			SCRIPT_ERROR_CHECK();
 		}
 	}
 	else
 	{
 		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
 		{
-			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -210,6 +212,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
+	SCRIPT_ERROR_CHECK();
 	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 

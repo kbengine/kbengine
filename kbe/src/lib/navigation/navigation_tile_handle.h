@@ -84,6 +84,7 @@ public:
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
 	static NavigationHandle* create(std::string resPath, const std::map< int, std::string >& params);
+	static NavTileHandle* _create(const std::string& res);
 	
 	int getMap(int x, int y);
 

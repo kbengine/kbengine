@@ -275,21 +275,55 @@ NavigationHandle* NavTileHandle::create(std::string resPath, const std::map< int
 	if(resPath == "")
 		return NULL;
 	
-	std::string path = Resmgr::getSingleton().matchRes(resPath + "/" + resPath + ".tmx");
+	std::string path;
+	
+	if(params.size() == 0)
+	{
+		path = resPath;
+		path = Resmgr::getSingleton().matchPath(path);
+		wchar_t* wpath = strutil::char2wchar(path.c_str());
+		std::wstring wspath = wpath;
+		free(wpath);
+			
+		std::vector<std::wstring> results;
+		Resmgr::getSingleton().listPathRes(wspath, L"tmx", results);
 
+		if(results.size() == 0)
+		{
+			ERROR_MSG(fmt::format("NavTileHandle::create: path({}) not found tmx.!\n", 
+				Resmgr::getSingleton().matchRes(path)));
+
+			return NULL;
+		}
+					
+		char* cpath = strutil::wchar2char(results[0].c_str());
+		path = cpath;
+		free(cpath);
+	}
+	else
+	{
+		path = Resmgr::getSingleton().matchRes(params.begin()->second);
+	}
+	
+	return _create(path);
+}
+
+//-------------------------------------------------------------------------------------
+NavTileHandle* NavTileHandle::_create(const std::string& res)
+{
 	Tmx::Map *map = new Tmx::Map();
-	map->ParseFile(path.c_str());
+	map->ParseFile(res.c_str());
 
 	if (map->HasError()) 
 	{
-		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) is error!\n", path));
+		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) is error!\n", res));
 		delete map;
 		return NULL;
 	}
 	
 	bool mapdir = map->GetProperties().HasProperty("direction8");
 
-	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", resPath));
+	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", res));
 	DEBUG_MSG(fmt::format("\t==> map Width : {}\n", map->GetWidth()));
 	DEBUG_MSG(fmt::format("\t==> map Height : {}\n", map->GetHeight()));
 	DEBUG_MSG(fmt::format("\t==> tile Width : {} px\n", map->GetTileWidth()));
@@ -313,6 +347,7 @@ NavigationHandle* NavTileHandle::create(std::string resPath, const std::map< int
 		DEBUG_MSG(fmt::format("\t==> image Source : {}\n", tileset->GetImage()->GetSource().c_str()));
 		DEBUG_MSG(fmt::format("\t==> transparent Color (hex) : {}\n", tileset->GetImage()->GetTransparentColor()));
 		DEBUG_MSG(fmt::format("\t==> tiles Size : {}\n", tileset->GetTiles().size()));
+		
 		if (tileset->GetTiles().size() > 0) 
 		{
 			// Get a tile from the tileset.
@@ -326,7 +361,7 @@ NavigationHandle* NavTileHandle::create(std::string resPath, const std::map< int
 			}
 		}
 	}
-
+	
 	NavTileHandle* pNavTileHandle = new NavTileHandle(mapdir);
 	pNavTileHandle->pTilemap = map;
 	return pNavTileHandle;

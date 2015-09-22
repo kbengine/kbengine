@@ -51,6 +51,13 @@ public:
 
 	static const long RCN_NAVMESH_VERSION = 1;
 	static const int INVALID_NAVMESH_POLYREF = 0;
+	
+	struct NavmeshLayer
+	{
+		dtNavMesh* pNavmesh;
+		dtNavMeshQuery* pNavmeshQuery;
+	};
+
 public:
 	NavMeshHandle();
 	virtual ~NavMeshHandle();
@@ -61,9 +68,9 @@ public:
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }
 
 	static NavigationHandle* create(std::string resPath, const std::map< int, std::string >& params);
-
-	std::vector<dtNavMesh*> navmesh_layers;
-	std::vector<dtNavMeshQuery*> navmeshQuery_layers;
+	static bool _create(int layer, const std::string& resPath, const std::string& res, NavMeshHandle* pNavMeshHandle);
+	
+	std::map<int, NavmeshLayer> navmeshLayer;
 };
 
 
