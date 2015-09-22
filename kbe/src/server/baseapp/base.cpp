@@ -938,14 +938,14 @@ void Base::onBackup()
 void Base::writeToDB(void* data, void* extra)
 {
 	PyObject* pyCallback = NULL;
-	int8 shouldAutoLoad = -1;
+	int8 shouldAutoLoad = dbid() <= 0 ? 0 : -1;
 
 	// data 是有可能会NULL的， 比如定时存档是不需要回调函数的
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
 
-	if(extra != NULL)
-		shouldAutoLoad = (*static_cast<int*>(extra)) ? 1 : 0;
+	if(extra != NULL && (*static_cast<int*>(extra)) != -1)
+		shouldAutoLoad = (*static_cast<int*>(extra)) > 0 ? 1 : 0;
 
 	if(isArchiveing_)
 	{
@@ -1058,12 +1058,15 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	// 如果在数据库中已经存在该entity则允许应用层多次调用写库进行数据及时覆盖需求
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
-
+	else
+		setDirty();
+	
 	// 如果数据没有改变那么不需要持久化
 	if(!isDirty())
 		return;
 	
-	setDirty(false);
+	// 先屏蔽这个优化，等待容器类型的改变能够被监听到时再启用
+	//setDirty(false);
 	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;

@@ -206,7 +206,7 @@ namespace strutil {
 
 	wchar_t* char2wchar(const char* cs, size_t* outlen)
 	{
-		int len = (strlen(cs) + 1) * 4/* Linux下sizeof(wchar_t) == 4, Windows下是2字节，这里取大的 */;
+		int len = (strlen(cs) + 1) * sizeof(wchar_t);
 		wchar_t* ccattr =(wchar_t *)malloc(len);
 		memset(ccattr, 0, len);
 

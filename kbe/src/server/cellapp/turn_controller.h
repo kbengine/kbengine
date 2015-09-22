@@ -18,36 +18,35 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_LOADNAVMESH_THREADTASKS_H
-#define KBE_LOADNAVMESH_THREADTASKS_H
+#ifndef KBE_TURNENTITYCONTROLLERBASE_H
+#define KBE_TURNENTITYCONTROLLERBASE_H
 
-#include "common/common.h"
-#include "thread/threadtask.h"
-#include "helper/debug_helper.h"
+#include "controller.h"
+#include "updatable.h"
+#include "rotator_handler.h"
+#include "pyscript/scriptobject.h"	
 
-namespace KBEngine{ 
+namespace KBEngine{
 
-class LoadNavmeshTask : public thread::TPTask
+class TurnController : public Controller
 {
 public:
-	LoadNavmeshTask(const std::string& name, SPACE_ID spaceID, const std::map< int, std::string >& params):
-	name_(name),
-	spaceID_(spaceID),
-	params_(params)
+	TurnController(Entity* pEntity, RotatorHandler* pRotatorHandler = NULL, uint32 id = 0);
+	virtual ~TurnController();
+	
+	void pRotatorHandler(RotatorHandler* pRotatorHandler)
 	{
+		pRotatorHandler_ = pRotatorHandler;
 	}
-
-	virtual ~LoadNavmeshTask(){}
-	virtual bool process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	
+	virtual void destroy();
+	virtual void addToStream(KBEngine::MemoryStream& s);
+	virtual void createFromStream(KBEngine::MemoryStream& s);
 
 protected:
-	std::string name_;
-	SPACE_ID spaceID_;
-	const std::map< int, std::string >& params_;
+	RotatorHandler* pRotatorHandler_;
 };
 
-
 }
+#endif // KBE_TURNENTITYCONTROLLERBASE_H
 
-#endif // KBE_LOADNAVMESH_THREADTASKS_H

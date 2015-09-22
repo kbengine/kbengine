@@ -2477,7 +2477,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 		return;
 	}
 
-	if(idClient_.getSize() == 0)
+	if(idClient_.size() == 0)
 	{
 		ERROR_MSG("Baseapp::loginGateway: idClient size is 0.\n");
 		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);

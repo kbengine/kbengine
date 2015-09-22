@@ -30,7 +30,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 bool LoadNavmeshTask::process()
 {
-	Navigation::getSingleton().loadNavigation(name_);
+	Navigation::getSingleton().loadNavigation(name_, params_);
 	return false;
 }
 

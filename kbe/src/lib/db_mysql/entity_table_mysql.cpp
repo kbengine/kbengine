@@ -296,12 +296,12 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 		KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
 		if(fiter != currDBKeys.end())
 		{
-			bool deleteKey = fiter->second != (*iiter)->indexType();
+			bool deleteIndex = fiter->second != (*iiter)->indexType();
 			
 			// 删除已经处理的，剩下的就是要从数据库删除的index
 			currDBKeys.erase(fiter);
 			
-			if(deleteKey)
+			if(deleteIndex)
 			{
 				sql += fmt::format("DROP INDEX `{}`,", itemName);
 				done = true;
@@ -1335,7 +1335,11 @@ void EntityTableItemMysql_FIXED_DICT::init_db_item_name(const char* exstrFlag)
 
 	for(; fditer != keyTypes_.end(); ++fditer)
 	{
-		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->init_db_item_name(exstrFlag);
+		std::string new_exstrFlag = exstrFlag;
+		if(fditer->second->type()== TABLE_ITEM_TYPE_FIXEDDICT)
+			new_exstrFlag += fditer->first + "_";
+
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->init_db_item_name(new_exstrFlag.c_str());
 	}
 }
 

@@ -270,11 +270,11 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandle* NavTileHandle::create(std::string name)
+NavigationHandle* NavTileHandle::create(std::string name, const std::map< int, std::string >& params)
 {
 	if(name == "")
 		return NULL;
-
+	
 	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".tmx");
 
 	Tmx::Map *map = new Tmx::Map();

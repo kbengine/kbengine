@@ -82,7 +82,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 	}
 	else
 	{
-        ERROR_MSG(fmt::format("RemoteEntityMethod::tp_call:{} checkArgs is error!\n",
+        ERROR_MSG(fmt::format("RemoteEntityMethod::tp_call:{} checkArgs error!\n",
                 methodDescription->getName()));
 	}
 

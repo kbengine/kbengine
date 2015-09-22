@@ -491,6 +491,19 @@ public:
 	void onMoveFailure(uint32 controllerId, PyObject* userarg);
 
 	/**
+		entity转动朝向
+	*/
+	uint32 addYawRotator(float yaw, float velocity,
+		PyObject* userData);
+
+	DECLARE_PY_MOTHOD_ARG3(pyAddYawRotator, float, float, PyObject_ptr);
+	
+	/**
+		entity转向完成
+	*/
+	void onTurn(uint32 controllerId, PyObject* userarg);
+	
+	/**
 		获取自身在space的entities中的位置
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx() const;
@@ -551,9 +564,9 @@ public:
 	void addWitnessToStream(KBEngine::MemoryStream& s);
 	void createWitnessFromStream(KBEngine::MemoryStream& s);
 
-	void addMoveHandlerToStream(KBEngine::MemoryStream& s);
-	void createMoveHandlerFromStream(KBEngine::MemoryStream& s);
-
+	void addMovementHandlerToStream(KBEngine::MemoryStream& s);
+	void createMovementHandlerFromStream(KBEngine::MemoryStream& s);
+	
 	/** 
 		获得实体控制器管理器
 	*/
@@ -631,7 +644,8 @@ protected:
 	// 控制器管理器
 	Controllers*											pControllers_;
 	KBEShared_ptr<Controller>								pMoveController_;
-
+	KBEShared_ptr<Controller>								pTurnController_;
+	
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
 	

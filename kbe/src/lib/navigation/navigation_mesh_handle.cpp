@@ -29,7 +29,9 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 NavMeshHandle::NavMeshHandle():
-NavigationHandle()
+NavigationHandle(),
+navmesh_layers(),
+navmeshQuery_layers()
 {
 }
 
@@ -198,7 +200,7 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandle* NavMeshHandle::create(std::string name)
+NavigationHandle* NavMeshHandle::create(std::string name, const std::map< int, std::string >& params)
 {
 	if(name == "")
 		return NULL;

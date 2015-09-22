@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "moveto_point_handler.h"	
 #include "moveto_entity_handler.h"	
 #include "navigate_handler.h"	
+#include "rotator_handler.h"
+#include "turn_controller.h"
 #include "pyscript/py_gc.h"
 #include "entitydef/entity_mailbox.h"
 #include "network/channel.h"	
@@ -60,6 +62,7 @@ SCRIPT_METHOD_DECLARE("getAoiRadius",				pyGetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getAoiHystArea",				pyGetAoiHystArea,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("addYawRotator",				pyAddYawRotator,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
@@ -907,7 +910,8 @@ void Entity::backupCellData()
 
 	SCRIPT_ERROR_CHECK();
 	
-	setDirty(false);
+	// 先屏蔽这个优化，等待容器类型的改变能够被监听到时再启用
+	//setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1229,7 +1233,8 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	}
 
 	// 只要是属于移动控制器的范畴，就应该走stopMove()，以避免多种方式的存在引发调用上的歧议
-	if (pobj->pMoveController_ && pobj->pMoveController_->id() == id)
+	if ((pobj->pMoveController_ && pobj->pMoveController_->id() == id) || 
+		(pobj->pTurnController_ && pobj->pTurnController_->id() == id))
 	{
 		pobj->stopMove();
 	}
@@ -1802,15 +1807,25 @@ PyObject* Entity::pyGetAoiHystArea()
 //-------------------------------------------------------------------------------------
 bool Entity::stopMove()
 {
+	bool done = false;
+	
 	if(pMoveController_)
 	{
-		cancelController( pMoveController_->id() );
+		cancelController(pMoveController_->id());
 		pMoveController_->destroy();
 		pMoveController_.reset();
-		return true;
+		done = true;
 	}
 
-	return false;
+	if(pTurnController_)
+	{
+		cancelController(pTurnController_->id());
+		pTurnController_->destroy();
+		pTurnController_.reset();
+		done = true;
+	}
+
+	return done;
 }
 
 //-------------------------------------------------------------------------------------
@@ -2143,6 +2158,66 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 	
+	setDirty();
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::addYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	stopMove();
+
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	KBEShared_ptr<Controller> p(new TurnController(this, NULL));
+
+	Direction3D dir;
+	dir.yaw(yaw);
+
+	new RotatorHandler(p, dir, velocity,
+		userData);
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+
+	pTurnController_ = p;
+	return p->id();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyAddYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: not is real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Py_INCREF(userData);
+	return PyLong_FromLong(addYawRotator(yaw, velocity, userData));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTurn(uint32 controllerId, PyObject* userarg)
+{
+	if (this->isDestroyed())
+		return;
+
+	pTurnController_.reset();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onTurn"),
+		const_cast<char*>("IO"), controllerId, userarg);
+
 	setDirty();
 }
 
@@ -3029,7 +3104,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
-	addMoveHandlerToStream(s);
+	addMovementHandlerToStream(s);
 	addControllersToStream(s);
 	addWitnessToStream(s);
 	addTimersToStream(s);
@@ -3062,7 +3137,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	removeFlags(ENTITY_FLAGS_INITING);
 	
-	createMoveHandlerFromStream(s);
+	createMovementHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
 	createTimersFromStream(s);
@@ -3168,7 +3243,7 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addMoveHandlerToStream(KBEngine::MemoryStream& s)
+void Entity::addMovementHandlerToStream(KBEngine::MemoryStream& s)
 {
 	if(pMoveController_)
 	{
@@ -3179,10 +3254,20 @@ void Entity::addMoveHandlerToStream(KBEngine::MemoryStream& s)
 	{
 		s << false;
 	}
+	
+	if(pTurnController_)
+	{
+		s << true;
+		pTurnController_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}	
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
+void Entity::createMovementHandlerFromStream(KBEngine::MemoryStream& s)
 {
 	bool hasMoveHandler;
 	s >> hasMoveHandler;
@@ -3191,10 +3276,23 @@ void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
 	{
 		stopMove();
 
-		pMoveController_ = KBEShared_ptr<Controller>( new MoveController(this) );
+		pMoveController_ = KBEShared_ptr<Controller>(new MoveController(this));
 		pMoveController_->createFromStream(s);
 		pControllers_->add(pMoveController_);
 	}
+	
+	bool hasTurnHandler;
+	s >> hasTurnHandler;
+
+	if(hasTurnHandler)
+	{
+		if(!hasMoveHandler)
+			stopMove();
+		
+		pTurnController_ = KBEShared_ptr<Controller>(new TurnController(this));
+		pTurnController_->createFromStream(s);
+		pControllers_->add(pTurnController_);
+	}	
 }
 
 //-------------------------------------------------------------------------------------

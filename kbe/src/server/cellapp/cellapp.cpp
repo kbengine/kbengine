@@ -907,7 +907,7 @@ void Cellapp::requestRestore(Network::Channel* pChannel, KBEngine::MemoryStream&
 	COMPONENT_ID cid;
 	s >> cid;
 
-	bool canRestore = idClient_.getSize() > 0;
+	bool canRestore = idClient_.size() > 0;
 
 	DEBUG_MSG(fmt::format("Cellapp::requestRestore: cid={}, canRestore={}, channel={}.\n", 
 		cid, canRestore, pChannel->c_str()));

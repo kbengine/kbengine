@@ -40,7 +40,7 @@ public:
 	
 	void finalise();
 
-	NavigationHandlePtr loadNavigation(std::string name);
+	NavigationHandlePtr loadNavigation(std::string name, const std::map< int, std::string >& params);
 
 	bool hasNavigation(std::string name);
 
