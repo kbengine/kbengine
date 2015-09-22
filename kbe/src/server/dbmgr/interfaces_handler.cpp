@@ -216,13 +216,13 @@ void InterfacesHandler_ThirdParty::onCreateAccountCB(KBEngine::MemoryStream& s)
 {
 	std::string registerName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
-	bool success = false;
+	SERVER_ERROR_CODE success = SERVER_ERR_OP_FAILED;
 
 	s >> cid >> registerName >> accountName >> password >> success;
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(!success)
+	if(success != SERVER_SUCCESS)
 	{
 		accountName = "";
 	}
@@ -271,7 +271,7 @@ void InterfacesHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(!success)
+	if(success != SERVER_SUCCESS)
 	{
 		accountName = "";
 	}
