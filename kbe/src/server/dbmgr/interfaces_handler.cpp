@@ -169,29 +169,30 @@ void InterfacesHandler_Normal::accountNewPassword(Network::Channel* pChannel, EN
 
 //-------------------------------------------------------------------------------------
 InterfacesHandler_ThirdParty::InterfacesHandler_ThirdParty(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool):
-InterfacesHandler_Normal(threadPool, dbThreadPool),
-pInterfacesChannel_(NULL)
+InterfacesHandler_Normal(threadPool, dbThreadPool)
 {
 }
 
 //-------------------------------------------------------------------------------------
 InterfacesHandler_ThirdParty::~InterfacesHandler_ThirdParty()
 {
-	if(pInterfacesChannel_)
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	if(pInterfacesChannel)
 	{
-		pInterfacesChannel_->condemn();
+		pInterfacesChannel->condemn();
 	}
 
-	pInterfacesChannel_ = NULL;
+	pInterfacesChannel = NULL;
 }
 
 //-------------------------------------------------------------------------------------
 bool InterfacesHandler_ThirdParty::createAccount(Network::Channel* pChannel, std::string& registerName, 
 											  std::string& password, std::string& datas, ACCOUNT_TYPE uatype)
 {
-	KBE_ASSERT(pInterfacesChannel_);
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(pInterfacesChannel);
 
-	if(pInterfacesChannel_->isDestroyed())
+	if(pInterfacesChannel->isDestroyed())
 	{
 		if(!this->reconnect())
 		{
@@ -207,7 +208,7 @@ bool InterfacesHandler_ThirdParty::createAccount(Network::Channel* pChannel, std
 	uint8 accountType = uatype;
 	(*pBundle) << registerName << password << accountType;
 	(*pBundle).appendBlob(datas);
-	pInterfacesChannel_->send(pBundle);
+	pInterfacesChannel->send(pBundle);
 	return true;
 }
 
@@ -242,9 +243,10 @@ void InterfacesHandler_ThirdParty::onCreateAccountCB(KBEngine::MemoryStream& s)
 bool InterfacesHandler_ThirdParty::loginAccount(Network::Channel* pChannel, std::string& loginName, 
 											 std::string& password, std::string& datas)
 {
-	KBE_ASSERT(pInterfacesChannel_);
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(pInterfacesChannel);
 
-	if(pInterfacesChannel_->isDestroyed())
+	if(pInterfacesChannel->isDestroyed())
 	{
 		if(!this->reconnect())
 			return false;
@@ -256,7 +258,7 @@ bool InterfacesHandler_ThirdParty::loginAccount(Network::Channel* pChannel, std:
 	(*pBundle) << pChannel->componentID();
 	(*pBundle) << loginName << password;
 	(*pBundle).appendBlob(datas);
-	pInterfacesChannel_->send(pBundle);
+	pInterfacesChannel->send(pBundle);
 	return true;
 }
 
@@ -290,19 +292,24 @@ void InterfacesHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 bool InterfacesHandler_ThirdParty::initialize()
 {
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	if(pInterfacesChannel)
+		return true;
 	return reconnect();
 }
 
 //-------------------------------------------------------------------------------------
 bool InterfacesHandler_ThirdParty::reconnect()
 {
-	if(pInterfacesChannel_)
-	{
-		if(!pInterfacesChannel_->isDestroyed())
-			Dbmgr::getSingleton().networkInterface().deregisterChannel(pInterfacesChannel_);
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
 
-		pInterfacesChannel_->destroy();
-		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+	if(pInterfacesChannel)
+	{
+		if(!pInterfacesChannel->isDestroyed())
+			Dbmgr::getSingleton().networkInterface().deregisterChannel(pInterfacesChannel);
+
+		pInterfacesChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
 	}
 
 	Network::Address addr = g_kbeSrvConfig.interfacesAddr();
@@ -319,35 +326,35 @@ bool InterfacesHandler_ThirdParty::reconnect()
 	pEndPoint->setnonblocking(true);
 	pEndPoint->setnodelay(true);
 
-	pInterfacesChannel_ = Network::Channel::ObjPool().createObject();
-	bool ret = pInterfacesChannel_->initialize(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
+	pInterfacesChannel = Network::Channel::ObjPool().createObject();
+	bool ret = pInterfacesChannel->initialize(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
 	if(!ret)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::initialize: initialize({}) is failed!\n",
-			pInterfacesChannel_->c_str()));
+			pInterfacesChannel->c_str()));
 
-		pInterfacesChannel_->destroy();
-		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+		pInterfacesChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
 		return 0;
 	}
 
-	if(pInterfacesChannel_->pEndPoint()->connect() == -1)
+	if(pInterfacesChannel->pEndPoint()->connect() == -1)
 	{
 		struct timeval tv = { 0, 300000 }; // 300ms
 		fd_set	fds;
 		FD_ZERO(&fds);
-		FD_SET((int)(*pInterfacesChannel_->pEndPoint()), &fds);
+		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &fds);
 
 		bool connected = false;
-		int selgot = select((*pInterfacesChannel_->pEndPoint())+1, &fds, &fds, NULL, &tv);
+		int selgot = select((*pInterfacesChannel->pEndPoint())+1, &fds, &fds, NULL, &tv);
 		if(selgot > 0)
 		{
 			int error;
 			socklen_t len = sizeof(error);
 #if KBE_PLATFORM == PLATFORM_WIN32
-			getsockopt(int(*pInterfacesChannel_->pEndPoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+			getsockopt(int(*pInterfacesChannel->pEndPoint()), SOL_SOCKET, SO_ERROR, (char*)&error, &len);
 #else
-			getsockopt(int(*pInterfacesChannel_->pEndPoint()), SOL_SOCKET, SO_ERROR, &error, &len);
+			getsockopt(int(*pInterfacesChannel->pEndPoint()), SOL_SOCKET, SO_ERROR, &error, &len);
 #endif
 			if(0 == error)
 				connected = true;
@@ -356,17 +363,17 @@ bool InterfacesHandler_ThirdParty::reconnect()
 		if(!connected)
 		{
 			ERROR_MSG(fmt::format("InterfacesHandler_ThirdParty::reconnect(): couldn't connect to:{}\n", 
-				pInterfacesChannel_->pEndPoint()->addr().c_str()));
+				pInterfacesChannel->pEndPoint()->addr().c_str()));
 
-			pInterfacesChannel_->destroy();
-			Network::Channel::ObjPool().reclaimObject(pInterfacesChannel_);
+			pInterfacesChannel->destroy();
+			Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
 			return false;
 		}
 	}
 
 	// ²»¼ì²é³¬Ê±
-	pInterfacesChannel_->stopInactivityDetection();
-	Dbmgr::getSingleton().networkInterface().registerChannel(pInterfacesChannel_);
+	pInterfacesChannel->stopInactivityDetection();
+	Dbmgr::getSingleton().networkInterface().registerChannel(pInterfacesChannel);
 	return true;
 }
 
@@ -379,9 +386,10 @@ bool InterfacesHandler_ThirdParty::process()
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_ThirdParty::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	KBE_ASSERT(pInterfacesChannel_);
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(pInterfacesChannel);
 
-	if(pInterfacesChannel_->isDestroyed())
+	if(pInterfacesChannel->isDestroyed())
 	{
 		if(!this->reconnect())
 			return;
@@ -408,7 +416,7 @@ void InterfacesHandler_ThirdParty::charge(Network::Channel* pChannel, KBEngine::
 	(*pBundle) << dbid;
 	(*pBundle).appendBlob(datas);
 	(*pBundle) << cbid;
-	pInterfacesChannel_->send(pBundle);
+	pInterfacesChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -455,9 +463,10 @@ void InterfacesHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_ThirdParty::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
-	KBE_ASSERT(pInterfacesChannel_);
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(pInterfacesChannel);
 
-	if(pInterfacesChannel_->isDestroyed())
+	if(pInterfacesChannel->isDestroyed())
 	{
 		if(!this->reconnect())
 			return;
@@ -467,7 +476,7 @@ void InterfacesHandler_ThirdParty::eraseClientReq(Network::Channel* pChannel, st
 
 	(*pBundle).newMessage(InterfacesInterface::eraseClientReq);
 	(*pBundle) << logkey;
-	pInterfacesChannel_->send(pBundle);
+	pInterfacesChannel->send(pBundle);
 }
 
 
