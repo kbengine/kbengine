@@ -203,7 +203,7 @@ public:
 	/**
 		hook mailboxcall
 	*/
-	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox);
 
 	/** 网络接口
 		某个app请求查看该app

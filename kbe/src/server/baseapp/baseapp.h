@@ -361,7 +361,7 @@ public:
 	/**
 		hook mailboxcall
 	*/
-	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox);
 
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 

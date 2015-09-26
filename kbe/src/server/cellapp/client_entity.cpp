@@ -116,12 +116,12 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* md = const_cast<ScriptDefModule*>(e->scriptModule())->findClientMethodDescription(ccattr);
+	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(e->scriptModule())->findClientMethodDescription(ccattr);
 	free(ccattr);
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		return new ClientEntityMethod(md, srcEntityID_, clientEntityID_);
+		return new ClientEntityMethod(pMethodDescription, srcEntityID_, clientEntityID_);
 	}
 
 	return ScriptObject::onScriptGetAttribute(attr);

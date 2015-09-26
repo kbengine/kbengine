@@ -626,6 +626,20 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 PyObject* Base::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
+		
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	
+	// 如果访问了def持久化类容器属性
+	// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
+	PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(scriptModule())->findPersistentPropertyDescription(ccattr);
+	if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_BASE_DATA_FLAGS) > 0)
+	{
+		setDirty();
+	}
+
+	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -767,8 +781,8 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
-	if(md == NULL)
+	MethodDescription* pMethodDescription = scriptModule_->findBaseMethodDescription(utype);
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
 			utype, id_, this->scriptName()));
@@ -784,16 +798,16 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		if (srcEntityID <= 0 || srcEntityID != this->id())
 		{
 			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}.\n",
-				srcEntityID, this->id(), this->scriptName(), md->getName()));
+				srcEntityID, this->id(), this->scriptName(), pMethodDescription->getName()));
 
 			s.done();
 			return;
 		}
 
-		if(!md->isExposed())
+		if(!pMethodDescription->isExposed())
 		{
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}.\n",
-				md->getName(), srcEntityID, this->scriptName()));
+				pMethodDescription->getName(), srcEntityID, this->scriptName()));
 
 			s.done();
 			return;
@@ -803,25 +817,25 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	if(g_debugEntity)
 	{
 		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
-			id_, (md ? md->getName() : "unknown"), utype, this->scriptName()));
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
 	}
 
-	md->currCallerID(this->id());
+	pMethodDescription->currCallerID(this->id());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(md->getArgSize() == 0)
+		if(pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_XDECREF(pyargs);
 			}
 			else
@@ -1065,8 +1079,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	if(!isDirty())
 		return;
 	
-	// 先屏蔽这个优化，等待容器类型的改变能够被监听到时再启用
-	//setDirty(false);
+	setDirty(false);
 	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;

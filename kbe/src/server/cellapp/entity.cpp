@@ -387,22 +387,33 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
-		MethodDescription* md = const_cast<ScriptDefModule*>(scriptModule())->findCellMethodDescription(ccattr);
-		free(ccattr);
-
-		if(md != NULL)
+		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(scriptModule())->findCellMethodDescription(ccattr);
+		
+		if(pMethodDescription)
 		{
-			return new RealEntityMethod(md, this);
+			free(ccattr);
+			return new RealEntityMethod(pMethodDescription, this);
 		}
 	}
-
+	else
+	{
+		// 如果访问了def持久化类容器属性
+		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
+		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(scriptModule())->findPersistentPropertyDescription(ccattr);
+		if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
+		{
+			setDirty();
+		}
+	}
+	
+	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -597,9 +608,9 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = scriptModule_->findCellMethodDescription(utype);
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n"
 			, utype, id_, this->scriptName()));
@@ -607,7 +618,7 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	onRemoteMethodCall_(md, id(), s);
+	onRemoteMethodCall_(pMethodDescription, id(), s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -616,13 +627,13 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
-	if(md)
+	MethodDescription* pMethodDescription = scriptModule_->findCellMethodDescription(utype);
+	if(pMethodDescription)
 	{
-		if(!md->isExposed())
+		if(!pMethodDescription->isExposed())
 		{
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! entityID:{1}.\n",
-				md->getName(), this->id(), this->scriptName()));
+				pMethodDescription->getName(), this->id(), this->scriptName()));
 
 			s.done();
 			return;
@@ -636,11 +647,11 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 		return;
 	}
 
-	onRemoteMethodCall_(md, srcEntityID, s);
+	onRemoteMethodCall_(pMethodDescription, srcEntityID, s);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s)
+void Entity::onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -653,7 +664,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, M
 		return;
 	}
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{1}::onRemoteMethodCall: can't found method, callerID:{0}.\n",
 			id_, this->scriptName()));
@@ -664,26 +675,26 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, M
 	if(g_debugEntity)
 	{
 		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n",
-			id_, md->getName(), md->getUType(), this->scriptName()));
+			id_, pMethodDescription->getName(), pMethodDescription->getUType(), this->scriptName()));
 	}
 
-	md->currCallerID(srcEntityID);
+	pMethodDescription->currCallerID(srcEntityID);
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(!md->isExposed() && md->getArgSize() == 0)
+		if(!pMethodDescription->isExposed() && pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_XDECREF(pyargs);
 			}
 			else
@@ -788,8 +799,7 @@ void Entity::backupCellData()
 
 	SCRIPT_ERROR_CHECK();
 	
-	// 先屏蔽这个优化，等待容器类型的改变能够被监听到时再启用
-	//setDirty(false);
+	setDirty(false);
 }
 
 //-------------------------------------------------------------------------------------

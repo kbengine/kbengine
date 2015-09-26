@@ -2967,9 +2967,9 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
 {
-	return new BaseRemoteMethod(md, pMailbox);
+	return new BaseRemoteMethod(pMethodDescription, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ class EntityMailbox : public EntityMailboxAbstract
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
 public:
-	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* md, EntityMailbox* pMailbox)> MailboxCallHookFunc;
+	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityMailbox* pMailbox)> MailboxCallHookFunc;
 	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
 	typedef std::tr1::function<Network::Channel* (EntityMailbox&)> FindChannelFunc;
 
@@ -112,7 +112,7 @@ public:
 		__getEntityFunc = GetEntityFunc();
 	}
 
-	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
+	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* pMethodDescription);
 
 	virtual Network::Channel* getChannel(void);
 

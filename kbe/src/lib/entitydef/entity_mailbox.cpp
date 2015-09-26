@@ -90,14 +90,14 @@ EntityMailbox::~EntityMailbox()
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* md)
+RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* pMethodDescription)
 {
 	if(__hookCallFuncPtr != NULL)
 	{
-		return (*__hookCallFuncPtr)(md, this);
+		return (*__hookCallFuncPtr)(pMethodDescription, this);
 	}
 
-	return new RemoteEntityMethod(md, this);
+	return new RemoteEntityMethod(pMethodDescription, this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,46 +107,46 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* md = NULL;
+	MethodDescription* pMethodDescription = NULL;
 
 	switch(type_)
 	{
 	case MAILBOX_TYPE_CELL:
-		md = scriptModule_->findCellMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE:
-		md = scriptModule_->findBaseMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CELL_VIA_BASE:
-		md = scriptModule_->findCellMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE_VIA_CELL:
-		md = scriptModule_->findBaseMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_CELL:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_BASE:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	default:
 		break;
 	};
 	
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
 		free(ccattr);
 
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
-			if(!md->isExposed())
+			if(!pMethodDescription->isExposed())
 				return ScriptObject::onScriptGetAttribute(attr);
 		}
 
-		return createRemoteMethod(md);
+		return createRemoteMethod(pMethodDescription);
 	}
 
 	// 首先要求名称不能为自己  比如：自身是一个cell， 不能使用cell.cell

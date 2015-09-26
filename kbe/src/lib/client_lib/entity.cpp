@@ -157,22 +157,22 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	
-	MethodDescription* md = NULL;
+	MethodDescription* pMethodDescription = NULL;
 	
 	if(scriptModule_->useMethodDescrAlias())
 	{
 		ENTITY_DEF_ALIASID aliasID;
 		s >> aliasID;
-		md = scriptModule_->findAliasMethodDescription(aliasID);
+		pMethodDescription = scriptModule_->findAliasMethodDescription(aliasID);
 		utype = aliasID;
 	}
 	else
 	{
 		s >> utype;
-		md = scriptModule_->findClientMethodDescription(utype);
+		pMethodDescription = scriptModule_->findClientMethodDescription(utype);
 	}
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
 			utype, id_));
@@ -187,20 +187,20 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(md->getArgSize() == 0)
+		if(pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_DECREF(pyargs);
 			}
 			else

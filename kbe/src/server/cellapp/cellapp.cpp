@@ -1082,9 +1082,9 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Network::Channel* pChannel, ENTITY_
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Cellapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+RemoteEntityMethod* Cellapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
 {
-	return new EntityRemoteMethod(md, pMailbox);
+	return new EntityRemoteMethod(pMethodDescription, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------
