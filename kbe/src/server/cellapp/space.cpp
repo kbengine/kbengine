@@ -215,7 +215,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	SCRIPT_ERROR_CHECK();
 	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) error!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -234,7 +234,7 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	hasGeometry_ = true;
 	if(getGeometryPath() == respath)
 	{
-		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} is exist!\n",
+		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} exist!\n",
 			id(), respath));
 
 		return true;
