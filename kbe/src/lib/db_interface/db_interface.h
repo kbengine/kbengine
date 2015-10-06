@@ -74,7 +74,7 @@ public:
 	/**
 		与某个数据库关联
 	*/
-	virtual bool attach(const char* databaseName) = 0;
+	virtual bool attach(const char* databaseName = NULL) = 0;
 	virtual bool detach() = 0;
 
 	/**
@@ -141,6 +141,7 @@ public:
 		获取最后一次查询的sql语句
 	*/
 	virtual const std::string& lastquery() const{ return lastquery_; }
+
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口
@@ -174,6 +175,7 @@ public:
 	static bool initInterface(DBInterface* dbi);
 
 	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
+
 private:
 	static thread::ThreadPool* pThreadPool_;
 };

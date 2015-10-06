@@ -28,10 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-KBEngine::thread::ThreadMutex logMutex;
-KBEUnordered_map< std::string, uint32 > g_querystatistics;
-bool _g_installedWatcher = false;
-bool _g_debug = false;
+static KBEngine::thread::ThreadMutex _g_logMutex;
+static KBEUnordered_map< std::string, uint32 > g_querystatistics;
+static bool _g_installedWatcher = false;
+static bool _g_debug = false;
 
 void querystatistics(const char* strCommand, uint32 size)
 {
@@ -49,7 +49,7 @@ void querystatistics(const char* strCommand, uint32 size)
 
 	std::transform(op.begin(), op.end(), op.begin(), toupper);
 
-	logMutex.lockMutex();
+	_g_logMutex.lockMutex();
 
 	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(op);
 	if(iter == g_querystatistics.end())
@@ -61,12 +61,12 @@ void querystatistics(const char* strCommand, uint32 size)
 		iter->second += 1;
 	}
 
-	logMutex.unlockMutex();
+	_g_logMutex.unlockMutex();
 }
 
 uint32 watcher_query(std::string cmd)
 {
-	KBEngine::thread::ThreadGuard tg(&logMutex); 
+	KBEngine::thread::ThreadGuard tg(&_g_logMutex); 
 
 	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(cmd);
 	if(iter != g_querystatistics.end())
