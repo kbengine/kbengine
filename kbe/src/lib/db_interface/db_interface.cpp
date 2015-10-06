@@ -128,7 +128,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(dbinterface == NULL)
 	{
-		ERROR_MSG(fmt::format("DBUtil::createInterface: create db_interface error! type={}",
+		ERROR_MSG(fmt::format("DBUtil::createInterface: create db_interface error! type={}\n",
 			dbcfg.db_type));
 
 		return NULL;
@@ -143,7 +143,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
-		ERROR_MSG(fmt::format("DBUtil::createInterface: attach to database failed!\n\tdbinterface={0:p}\n\targs={1}",
+		ERROR_MSG(fmt::format("DBUtil::createInterface: attach to database failed!\n\tdbinterface={0:p}\n\targs={1}\n",
 			(void*)&dbinterface, dbinterface->c_str()));
 
 		delete dbinterface;
@@ -153,7 +153,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}", (void*)&dbinterface, 
+			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}\n", (void*)&dbinterface, 
 				dbinterface->c_str()));
 		}
 	}
