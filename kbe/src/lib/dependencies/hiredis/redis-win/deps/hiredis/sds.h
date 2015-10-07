@@ -1,6 +1,7 @@
 /* SDSLib, A C dynamic strings library
  *
  * Copyright (c) 2006-2010, Salvatore Sanfilippo <antirez at gmail dot com>
+ * Copyright (c) 2014, Ren Bin <232811979 at 163 dot com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +32,30 @@
 #ifndef __SDS_H
 #define __SDS_H
 
-#define SDS_MAX_PREALLOC (1024*1024)
-
-#ifdef _WIN32
-#include "../../src/Win32_Interop/Win32_Portability.h"
-#include "../../src/Win32_Interop/win32_types_hiredis.h"
-#endif
 #include <sys/types.h>
 #include <stdarg.h>
+#define HIREDIS_WIN
+#ifndef HIREDIS_WIN
+#	define HIREDIS_INLINE inline
+#else
+#	define HIREDIS_INLINE __inline
+#endif
 
 typedef char *sds;
 
 struct sdshdr {
-    unsigned int len;
-    unsigned int free;
+    int len;
+    int free;
     char buf[];
 };
 
-static inline size_t sdslen(const sds s) {
-    struct sdshdr *sh = (struct sdshdr *)(s-(sizeof(struct sdshdr)));
+static HIREDIS_INLINE size_t sdslen(const sds s) {
+    struct sdshdr *sh = (void*)(s-(sizeof(struct sdshdr)));
     return sh->len;
 }
 
-static inline size_t sdsavail(const sds s) {
-    struct sdshdr *sh = (struct sdshdr *)(s-(sizeof(struct sdshdr)));
+static HIREDIS_INLINE size_t sdsavail(const sds s) {
+    struct sdshdr *sh = (void*)(s-(sizeof(struct sdshdr)));
     return sh->free;
 }
 
@@ -64,13 +65,12 @@ sds sdsempty(void);
 size_t sdslen(const sds s);
 sds sdsdup(const sds s);
 void sdsfree(sds s);
-size_t sdsavail(const sds s);
+size_t sdsavail(sds s);
 sds sdsgrowzero(sds s, size_t len);
 sds sdscatlen(sds s, const void *t, size_t len);
 sds sdscat(sds s, const char *t);
-sds sdscatsds(sds s, const sds t);
-sds sdscpylen(sds s, const char *t, size_t len);
-sds sdscpy(sds s, const char *t);
+sds sdscpylen(sds s, char *t, size_t len);
+sds sdscpy(sds s, char *t);
 
 sds sdscatvprintf(sds s, const char *fmt, va_list ap);
 #ifdef __GNUC__
@@ -80,26 +80,16 @@ sds sdscatprintf(sds s, const char *fmt, ...)
 sds sdscatprintf(sds s, const char *fmt, ...);
 #endif
 
-sds sdscatfmt(sds s, char const *fmt, ...);
 sds sdstrim(sds s, const char *cset);
-void sdsrange(sds s, int start, int end);
+sds sdsrange(sds s, int start, int end);
 void sdsupdatelen(sds s);
-void sdsclear(sds s);
-int sdscmp(const sds s1, const sds s2);
-sds *sdssplitlen(const char *s, int len, const char *sep, int seplen, int *count);
+int sdscmp(sds s1, sds s2);
+sds *sdssplitlen(char *s, int len, char *sep, int seplen, int *count);
 void sdsfreesplitres(sds *tokens, int count);
 void sdstolower(sds s);
 void sdstoupper(sds s);
-sds sdsfromlonglong(PORT_LONGLONG value);
-sds sdscatrepr(sds s, const char *p, size_t len);
-sds *sdssplitargs(const char *line, int *argc);
-sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen);
-sds sdsjoin(char **argv, int argc, char *sep);
-
-/* Low level functions exposed to the user API */
-sds sdsMakeRoomFor(sds s, size_t addlen);
-void sdsIncrLen(sds s, int incr);
-sds sdsRemoveFreeSpace(sds s);
-size_t sdsAllocSize(sds s);
+sds sdsfromlonglong(long long value);
+sds sdscatrepr(sds s, char *p, size_t len);
+sds *sdssplitargs(char *line, int *argc);
 
 #endif

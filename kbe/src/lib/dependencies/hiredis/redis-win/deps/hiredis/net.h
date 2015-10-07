@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2006-2011, Salvatore Sanfilippo <antirez at gmail dot com>
  * Copyright (c) 2010-2011, Pieter Noordhuis <pcnoordhuis at gmail dot com>
+ * Copyright (c) 2014, Ren Bin <232811979 at 163 dot com>
  *
  * All rights reserved.
  *
@@ -35,17 +36,14 @@
 
 #include "hiredis.h"
 
-#if defined(__sun) || defined(_AIX)
+#if defined(__sun)
 #define AF_LOCAL AF_UNIX
 #endif
 
-int redisCheckSocketError(redisContext *c);
-int redisContextSetTimeout(redisContext *c, const struct timeval tv);
-int redisContextConnectTcp(redisContext *c, const char *addr, int port, const struct timeval *timeout);
-int redisContextConnectBindTcp(redisContext *c, const char *addr, int port,
-                               const struct timeval *timeout,
-                               const char *source_addr);
-int redisContextConnectUnix(redisContext *c, const char *path, const struct timeval *timeout);
-int redisKeepAlive(redisContext *c, int interval);
-
+int redisCheckSocketError(redisContext *c, int fd);
+int redisContextSetTimeout(redisContext *c, struct timeval tv);
+int redisContextConnectTcp(redisContext *c, const char *addr, int port, struct timeval *timeout);
+#ifndef HIREDIS_WIN
+int redisContextConnectUnix(redisContext *c, const char *path, struct timeval *timeout);
+#endif
 #endif

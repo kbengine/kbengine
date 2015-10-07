@@ -32,9 +32,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifdef _WIN32
-#include "../../src/win32_Interop/win32_types.h"
-#endif
 
 #include "fmacros.h"
 #include <stdlib.h>
@@ -45,7 +42,7 @@
 /* -------------------------- private prototypes ---------------------------- */
 
 static int _dictExpandIfNeeded(dict *ht);
-static PORT_ULONG _dictNextPower(PORT_ULONG);
+static unsigned long _dictNextPower(unsigned long size);
 static int _dictKeyIndex(dict *ht, const void *key);
 static int _dictInit(dict *ht, dictType *type, void *privDataPtr);
 
@@ -88,9 +85,9 @@ static int _dictInit(dict *ht, dictType *type, void *privDataPtr) {
 }
 
 /* Expand or create the hashtable */
-static int dictExpand(dict *ht, PORT_ULONG size) {
+static int dictExpand(dict *ht, unsigned long size) {
     dict n; /* the new hashtable */
-    PORT_ULONG realsize = _dictNextPower(size), i;
+    unsigned long realsize = _dictNextPower(size), i;
 
     /* the size is invalid if it is smaller than the number of
      * elements already inside the hashtable */
@@ -214,7 +211,7 @@ static int dictDelete(dict *ht, const void *key) {
 
 /* Destroy an entire hash table */
 static int _dictClear(dict *ht) {
-    PORT_ULONG i;
+    unsigned long i;
 
     /* Free all the elements */
     for (i = 0; i < ht->size && ht->used > 0; i++) {
@@ -306,10 +303,10 @@ static int _dictExpandIfNeeded(dict *ht) {
 }
 
 /* Our hash table capability is a power of two */
-static PORT_ULONG _dictNextPower(PORT_ULONG size) {
-    PORT_ULONG i = DICT_HT_INITIAL_SIZE;
+static unsigned long _dictNextPower(unsigned long size) {
+    unsigned long i = DICT_HT_INITIAL_SIZE;
 
-    if (size >= PORT_LONG_MAX) return PORT_LONG_MAX;
+    if (size >= LONG_MAX) return LONG_MAX;
     while(1) {
         if (i >= size)
             return i;

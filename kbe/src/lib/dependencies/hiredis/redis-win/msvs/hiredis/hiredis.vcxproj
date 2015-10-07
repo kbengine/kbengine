@@ -18,6 +18,22 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\deps\hiredis\async.c" />
+    <ClCompile Include="..\..\deps\hiredis\dict.c" />
+    <ClCompile Include="..\..\deps\hiredis\hiredis.c" />
+    <ClCompile Include="..\..\deps\hiredis\net.c" />
+    <ClCompile Include="..\..\deps\hiredis\sds.c" />
+    <ClCompile Include="..\..\deps\hiredis\test.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\deps\hiredis\async.h" />
+    <ClInclude Include="..\..\deps\hiredis\dict.h" />
+    <ClInclude Include="..\..\deps\hiredis\fmacros.h" />
+    <ClInclude Include="..\..\deps\hiredis\hiredis.h" />
+    <ClInclude Include="..\..\deps\hiredis\net.h" />
+    <ClInclude Include="..\..\deps\hiredis\sds.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{13E85053-54B3-487B-8DDB-3430B1C1B3BF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -148,20 +164,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\deps\hiredis\async.c" />
-    <ClCompile Include="..\..\deps\hiredis\hiredis.c" />
-    <ClCompile Include="..\..\deps\hiredis\net.c" />
-    <ClCompile Include="..\..\deps\hiredis\sds.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\deps\hiredis\async.h" />
-    <ClInclude Include="..\..\deps\hiredis\fmacros.h" />
-    <ClInclude Include="..\..\deps\hiredis\hiredis.h" />
-    <ClInclude Include="..\..\deps\hiredis\net.h" />
-    <ClInclude Include="..\..\deps\hiredis\sds.h" />
-    <ClInclude Include="..\..\deps\hiredis\win32_hiredis.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
