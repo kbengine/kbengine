@@ -66,7 +66,7 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
 	
 	if (NULL == r) 
 	{ 
-		ERROR_MSG(fmt::format("DBInterfaceMysql::ping: errno={}, error={}\n",
+		ERROR_MSG(fmt::format("DBInterfaceRedis::ping: errno={}, error={}\n",
 			pRedisContext->err, pRedisContext->errstr));
  
 		return false;
@@ -74,7 +74,7 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
      	
 	if (!(r->type == REDIS_REPLY_STATUS && kbe_stricmp(r->str, "PONG") == 0))
 	{  
-		ERROR_MSG(fmt::format("DBInterfaceMysql::ping: errno={}, error={}\n",
+		ERROR_MSG(fmt::format("DBInterfaceRedis::ping: errno={}, error={}\n",
 			pRedisContext->err, pRedisContext->errstr));
 		
 		freeReplyObject(r);  
@@ -104,7 +104,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	redisContext* c = redisConnectWithTimeout(db_ip_, db_port_, timeout);  
 	if (c->err) 
 	{  
-		ERROR_MSG(fmt::format("DBInterfaceMysql::attach: errno={}, error={}\n",
+		ERROR_MSG(fmt::format("DBInterfaceRedis::attach: errno={}, error={}\n",
 			c->err, c->errstr));
 		
 		redisFree(c);  
@@ -116,11 +116,11 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	// ÃÜÂëÑéÖ¤
 	if(!ping())
 	{
-		redisReply* r = (redisReply*)redisCommand(c, fmt::format("auth {}", db_password_).c_str());  
+		r = (redisReply*)redisCommand(c, fmt::format("auth {}", db_password_).c_str());  
 		
 		if (NULL == r) 
 		{ 
-			ERROR_MSG(fmt::format("DBInterfaceMysql::attach: cmd={}, errno={}, error={}\n",
+			ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
 				fmt::format("auth ***").c_str(), c->err, c->errstr));
 			
 			redisFree(c);  
@@ -129,7 +129,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	     	
 		if (!(r->type == REDIS_REPLY_STATUS && kbe_stricmp(r->str, "OK") == 0))
 		{  
-			ERROR_MSG(fmt::format("DBInterfaceMysql::attach: cmd={}, errno={}, error={}\n",
+			ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
 				fmt::format("auth ***").c_str(), c->err, c->errstr));
 			
 			freeReplyObject(r);  
@@ -150,7 +150,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	
 	if (NULL == r) 
 	{ 
-		ERROR_MSG(fmt::format("DBInterfaceMysql::attach: cmd={}, errno={}, error={}\n",
+		ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
 			fmt::format("select {}", db_index).c_str(), c->err, c->errstr));
 		
 		redisFree(c);  
@@ -159,7 +159,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
      	
 	if (!(r->type == REDIS_REPLY_STATUS && kbe_stricmp(r->str, "OK") == 0))
 	{  
-		ERROR_MSG(fmt::format("DBInterfaceMysql::attach: cmd={}, errno={}, error={}\n",
+		ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
 			fmt::format("select {}", db_index).c_str(), c->err, c->errstr));
 		
 		freeReplyObject(r);  
@@ -201,6 +201,30 @@ bool DBInterfaceRedis::getTableItemNames(const char* tableName, std::vector<std:
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::query(const char* strCommand, uint32 size, bool showexecinfo)
 {
+	KBE_ASSERT(pRedisContext_);
+	redisReply* r = (redisReply*)redisCommand(pRedisContext_, strCommand);  
+	
+	if (pRedisContext_->err) 
+	{
+		if(showexecinfo)
+		{
+			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
+				strCommand, pRedisContext_->err, pRedisContext_->errstr));
+		}
+		
+		if(r)
+			freeReplyObject(r); 
+		
+		return false;
+	}  
+    
+	freeReplyObject(r); 
+		
+	if(showexecinfo)
+	{
+		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
+	}
+				
 	return true;
 }
 

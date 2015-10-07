@@ -21,23 +21,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_INTERFACE_REDIS_H
 #define KBE_DB_INTERFACE_REDIS_H
 
-#include "hiredis.h"
-#if KBE_PLATFORM == PLATFORM_WIN32
-#ifdef _DEBUG
-#pragma comment (lib, "hiredis_d.lib")
-#pragma comment (lib, "Win32_Interop_d.lib")
-#else
-#pragma comment (lib, "hiredis.lib")
-#pragma comment (lib, "Win32_Interop.lib")
-#endif
-#endif
-
 #include "common.h"
 #include "common/common.h"
 #include "common/singleton.h"
 #include "common/memorystream.h"
 #include "helper/debug_helper.h"
 #include "db_interface/db_interface.h"
+
+#include "hiredis.h"
+#if KBE_PLATFORM == PLATFORM_WIN32
+#ifdef _DEBUG
+#pragma comment (lib, "hiredis_d.lib")
+#else
+#pragma comment (lib, "hiredis.lib")
+#endif
+#endif
 
 namespace KBEngine { 
 

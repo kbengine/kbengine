@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_table.h"
 #include "common/kbekey.h"
 #include "db_mysql/db_interface_mysql.h"
-//#include "db_redis/db_interface_redis.h"
+#include "db_redis/db_interface_redis.h"
 #include "db_mysql/kbe_table_mysql.h"
 #include "server/serverconfig.h"
 #include "thread/threadpool.h"
@@ -123,7 +123,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	}
 	else if(strcmp(dbcfg.db_type, "redis") == 0)
 	{
-		//dbinterface = new DBInterfaceRedis();
+		dbinterface = new DBInterfaceRedis();
 	}
 
 	if(dbinterface == NULL)
