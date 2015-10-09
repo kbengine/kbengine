@@ -202,7 +202,7 @@ bool DBInterfaceRedis::getTableItemNames(const char* tableName, std::vector<std:
 bool DBInterfaceRedis::query(const char* strCommand, uint32 size, bool showexecinfo)
 {
 	KBE_ASSERT(pRedisContext_);
-	redisReply* r = (redisReply*)redisCommand(pRedisContext_, strCommand);  
+	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", strCommand, size);  
 	
 	if (pRedisContext_->err) 
 	{
