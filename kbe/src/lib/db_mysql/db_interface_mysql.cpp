@@ -449,6 +449,9 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
 		}
 
+		if(result)
+			write_query_result(result);
+		
 		return false;
 	}
 
@@ -472,6 +475,10 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 		}
 
 		this->throwError();
+		
+		if(result)
+			write_query_result(result);
+		
         return false;
     }  
     else
@@ -482,7 +489,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 		}
     }
     
-    return write_query_result(result);
+    return result == NULL || write_query_result(result);
 }
 
 //-------------------------------------------------------------------------------------
@@ -497,30 +504,27 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 
 	if(pResult)
 	{
-		if (result != NULL)
+		uint32 nrows = (uint32)mysql_num_rows(pResult);
+		uint32 nfields = (uint32)mysql_num_fields(pResult);
+
+		(*result) << nfields << nrows;
+
+		MYSQL_ROW arow;
+
+		while((arow = mysql_fetch_row(pResult)) != NULL)
 		{
-			uint32 nrows = (uint32)mysql_num_rows(pResult);
-			uint32 nfields = (uint32)mysql_num_fields(pResult);
+			unsigned long *lengths = mysql_fetch_lengths(pResult);
 
-			(*result) << nfields << nrows;
-
-			MYSQL_ROW arow;
-
-			while((arow = mysql_fetch_row(pResult)) != NULL)
+			for (uint32 i = 0; i < nfields; ++i)
 			{
-				unsigned long *lengths = mysql_fetch_lengths(pResult);
-
-				for (uint32 i = 0; i < nfields; ++i)
+				if (arow[i] == NULL)
 				{
-					if (arow[i] == NULL)
-					{
-						std::string null = "NULL";
-						result->appendBlob(null.c_str(), null.size());
-					}
-					else
-					{
-						result->appendBlob(arow[i], lengths[i]);
-					}
+					std::string null = "NULL";
+					result->appendBlob(null.c_str(), null.size());
+				}
+				else
+				{
+					result->appendBlob(arow[i], lengths[i]);
 				}
 			}
 		}
@@ -530,7 +534,11 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 	else
 	{
 		uint32 nfields = 0;
-		uint64 affectedRows = mysql()->affected_rows;
+		uint64 affectedRows = 0;
+		
+		if(mysql())
+			affectedRows = mysql()->affected_rows;
+		
 		(*result) << ""; // errormsg
 		(*result) << nfields;
 		(*result) << affectedRows;

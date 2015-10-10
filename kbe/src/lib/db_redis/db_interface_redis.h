@@ -82,6 +82,8 @@ public:
 	*/
 	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
 
+	void write_query_result(redisReply* r, MemoryStream * result);
+	
 	/**
 		返回这个接口的描述
 	*/

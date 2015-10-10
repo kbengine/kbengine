@@ -203,6 +203,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 {
 	KBE_ASSERT(pRedisContext_);
 	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
+	write_query_result(r, result);
 	
 	if (pRedisContext_->err) 
 	{
@@ -211,13 +212,13 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
 				cmd, pRedisContext_->err, pRedisContext_->errstr));
 		}
-		
+
 		if(r)
 			freeReplyObject(r); 
 		
 		return false;
 	}  
-    
+
 	freeReplyObject(r); 
 		
 	if(showExecInfo)
@@ -226,6 +227,31 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 	}
 				
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBInterfaceRedis::write_query_result(redisReply* r, MemoryStream * result)
+{
+	if(result == NULL)
+	{
+		return;
+	}
+
+	if(pRedisContext_ && r && !pRedisContext_->err)
+	{
+		uint32 nrows = 0;
+		uint32 nfields = 0;
+
+		(*result) << nfields << nrows;
+	}
+	else
+	{
+		uint32 nfields = 0;
+		uint64 affectedRows = 0;
+		(*result) << ""; // errormsg
+		(*result) << nfields;
+		(*result) << affectedRows;
+	}
 }
 
 //-------------------------------------------------------------------------------------
