@@ -80,7 +80,7 @@ public:
 	/**
 		查询表
 	*/
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
+	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
 
 	/**
 		返回这个接口的描述

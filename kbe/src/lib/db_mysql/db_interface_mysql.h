@@ -92,9 +92,9 @@ public:
 	*/
 	virtual bool checkErrors();
 
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
+	virtual bool query(const char* strCommand, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
 
-	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
+	bool write_query_result(MemoryStream * result);
 
 	/**
 		获取数据库所有的表名

@@ -440,11 +440,11 @@ void DBInterfaceMysql::throwError()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexecinfo)
+bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	if(pMysql_ == NULL)
 	{
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
 		}
@@ -452,20 +452,20 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 		return false;
 	}
 
-	querystatistics(strCommand, size);
+	querystatistics(cmd, size);
 
-	lastquery_ = strCommand;
+	lastquery_ = cmd;
 
 	if(_g_debug)
 	{
 		DEBUG_MSG(fmt::format("DBInterfaceMysql::query({:p}): {}\n", (void*)this, lastquery_));
 	}
 
-    int nResult = mysql_real_query(pMysql_, strCommand, size);  
+    int nResult = mysql_real_query(pMysql_, cmd, size);  
 
     if(nResult != 0)  
     {  
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
 				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
@@ -476,26 +476,19 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
     }  
     else
     {
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
 		}
     }
     
-    return true;
+    return write_query_result(result);
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream * resdata)
+bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 {
-	bool result = this->query(strCommand, size);
-
-	if (!result)
-	{
-		return false;
-	}
-
-	if(resdata == NULL)
+	if(result == NULL)
 	{
 		return true;
 	}
@@ -504,12 +497,12 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 
 	if(pResult)
 	{
-		if (resdata != NULL)
+		if (result != NULL)
 		{
 			uint32 nrows = (uint32)mysql_num_rows(pResult);
 			uint32 nfields = (uint32)mysql_num_fields(pResult);
 
-			(*resdata) << nfields << nrows;
+			(*result) << nfields << nrows;
 
 			MYSQL_ROW arow;
 
@@ -522,11 +515,11 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 					if (arow[i] == NULL)
 					{
 						std::string null = "NULL";
-						resdata->appendBlob(null.c_str(), null.size());
+						result->appendBlob(null.c_str(), null.size());
 					}
 					else
 					{
-						resdata->appendBlob(arow[i], lengths[i]);
+						result->appendBlob(arow[i], lengths[i]);
 					}
 				}
 			}
@@ -538,9 +531,9 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 	{
 		uint32 nfields = 0;
 		uint64 affectedRows = mysql()->affected_rows;
-		(*resdata) << ""; // errormsg
-		(*resdata) << nfields;
-		(*resdata) << affectedRows;
+		(*result) << ""; // errormsg
+		(*result) << nfields;
+		(*result) << affectedRows;
 	}
 
 	return true;

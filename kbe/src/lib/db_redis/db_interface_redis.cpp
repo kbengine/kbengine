@@ -199,17 +199,17 @@ bool DBInterfaceRedis::getTableItemNames(const char* tableName, std::vector<std:
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceRedis::query(const char* strCommand, uint32 size, bool showexecinfo)
+bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	KBE_ASSERT(pRedisContext_);
-	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", strCommand, size);  
+	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
 	
 	if (pRedisContext_->err) 
 	{
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
-				strCommand, pRedisContext_->err, pRedisContext_->errstr));
+				cmd, pRedisContext_->err, pRedisContext_->errstr));
 		}
 		
 		if(r)
@@ -220,7 +220,7 @@ bool DBInterfaceRedis::query(const char* strCommand, uint32 size, bool showexeci
     
 	freeReplyObject(r); 
 		
-	if(showexecinfo)
+	if(showExecInfo)
 	{
 		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
 	}

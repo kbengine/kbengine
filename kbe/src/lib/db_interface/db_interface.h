@@ -90,10 +90,10 @@ public:
 	/**
 		≤È—Ø±Ì
 	*/
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true) = 0;
-	virtual bool query(const std::string& cmd, bool showexecinfo = true)
+	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL) = 0;
+	virtual bool query(const std::string& cmd, bool showExecInfo = true, MemoryStream * result = NULL)
 	{
-		return query(cmd.c_str(), cmd.size(), showexecinfo);
+		return query(cmd.c_str(), cmd.size(), showExecInfo, result);
 	}
 
 	/**
