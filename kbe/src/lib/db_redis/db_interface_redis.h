@@ -48,6 +48,8 @@ public:
 	DBInterfaceRedis();
 	virtual ~DBInterfaceRedis();
 
+	static bool initInterface(DBInterface* dbi);
+	
 	bool ping(redisContext* pRedisContext = NULL);
 	
 	/**

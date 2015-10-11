@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_interface_mysql.h"
 #include "entity_table_mysql.h"
+#include "kbe_table_mysql.h"
 #include "db_exception.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
@@ -158,6 +159,15 @@ collation_(collation)
 //-------------------------------------------------------------------------------------
 DBInterfaceMysql::~DBInterfaceMysql()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::initInterface(DBInterface* dbi)
+{
+	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
+	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

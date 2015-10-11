@@ -25,7 +25,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/kbekey.h"
 #include "db_mysql/db_interface_mysql.h"
 #include "db_redis/db_interface_redis.h"
-#include "db_mysql/kbe_table_mysql.h"
 #include "server/serverconfig.h"
 #include "thread/threadpool.h"
 
@@ -188,15 +187,11 @@ bool DBUtil::initInterface(DBInterface* dbi)
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
-		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
+		DBInterfaceMysql::initInterface(dbi);
 	}
 	else if(strcmp(dbcfg.db_type, "redis") == 0)
 	{
-		//EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
-		//EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-		//EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
+		DBInterfaceRedis::initInterface(dbi);
 	}
 	
 	if(!pThreadPool_->isInitialize())

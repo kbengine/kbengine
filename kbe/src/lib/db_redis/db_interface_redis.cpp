@@ -40,6 +40,16 @@ DBInterfaceRedis::~DBInterfaceRedis()
 {
 }
 
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceRedis::initInterface(DBInterface* dbi)
+{
+	//EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+	//EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
+	//EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	
+	return true;
+}
+
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::checkEnvironment()
 {
