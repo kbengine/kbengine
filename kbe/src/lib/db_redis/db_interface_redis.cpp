@@ -254,7 +254,22 @@ void DBInterfaceRedis::write_query_result(redisReply* r, MemoryStream * result)
 		uint32 nrows = 0;
 		uint32 nfields = 0;
 
+		if(r->type == REDIS_REPLY_ARRAY)
+			nfields = r->elements;
+
 		(*result) << nfields << nrows;
+		
+		if(r->type == REDIS_REPLY_ARRAY)
+		{
+			for(size_t j = 0; j < r->elements; ++j) 
+			{
+				write_query_result_element(r->element[j], result);
+			}
+		}
+		else
+		{
+			write_query_result_element(r, result);
+		}
 	}
 	else
 	{
@@ -263,6 +278,38 @@ void DBInterfaceRedis::write_query_result(redisReply* r, MemoryStream * result)
 		(*result) << ""; // errormsg
 		(*result) << nfields;
 		(*result) << affectedRows;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void DBInterfaceRedis::write_query_result_element(redisReply* r, MemoryStream * result)
+{
+	if(r->type == REDIS_REPLY_ARRAY)
+	{
+		// 不支持元素中包含数组
+		KBE_ASSERT(false);
+	}
+	else if(r->type == REDIS_REPLY_INTEGER)
+	{
+		std::stringstream sstream;
+		sstream << r->integer;
+		result->appendBlob(sstream.str().c_str(), sstream.str().size());
+	}
+	else if(r->type == REDIS_REPLY_NIL)
+	{
+		result->appendBlob("NULL", strlen("NULL"));
+	}		
+	else if(r->type == REDIS_REPLY_STATUS)
+	{
+		result->appendBlob(r->str, r->len);
+	}	
+	else if(r->type == REDIS_REPLY_ERROR)
+	{
+		result->appendBlob(r->str, r->len);
+	}			
+	else if(r->type == REDIS_REPLY_STRING)
+	{
+		result->appendBlob(r->str, r->len);
 	}
 }
 

@@ -529,8 +529,7 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 			{
 				if (arow[i] == NULL)
 				{
-					const std::string null = "NULL";
-					result->appendBlob(null.c_str(), null.size());
+					result->appendBlob("NULL", strlen("NULL"));
 				}
 				else
 				{
