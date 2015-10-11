@@ -213,6 +213,8 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 {
 	KBE_ASSERT(pRedisContext_);
 	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
+	
+	lastquery_.assign(cmd, size);
 	write_query_result(r, result);
 	
 	if (pRedisContext_->err) 

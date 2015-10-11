@@ -467,7 +467,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 
 	querystatistics(cmd, size);
 
-	lastquery_ = cmd;
+	lastquery_.assign(cmd, size);
 
 	if(_g_debug)
 	{
@@ -529,7 +529,7 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 			{
 				if (arow[i] == NULL)
 				{
-					std::string null = "NULL";
+					const std::string null = "NULL";
 					result->appendBlob(null.c_str(), null.size());
 				}
 				else
