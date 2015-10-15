@@ -174,7 +174,7 @@ void Witness::onAttach(Entity* pEntity)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
 	(*pForwardBundle) << pEntity_->id();
-	pEntity_->scriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	pEntity_->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
@@ -675,7 +675,7 @@ bool Witness::update()
 			
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->id();
-					otherEntity->scriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
 					if(!otherEntity->isOnGround())
 						(*pForwardBundle2) << otherEntity->isOnGround();
 
@@ -771,7 +771,7 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo& volatileInfo = pEntity_->scriptModule()->getVolatileInfo();
+	const VolatileInfo& volatileInfo = pEntity_->pScriptModule()->getVolatileInfo();
 	if((volatileInfo.position() <= 0.0004f))
 		return;
 
@@ -962,7 +962,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	const VolatileInfo& volatileInfo = otherEntity->scriptModule()->getVolatileInfo();
+	const VolatileInfo& volatileInfo = otherEntity->pScriptModule()->getVolatileInfo();
 	
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	

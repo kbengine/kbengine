@@ -59,6 +59,32 @@ bool DBInterfaceRedis::checkEnvironment()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::checkErrors()
 {
+	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	std::string querycmd = fmt::format("keys {}:*", DBUtil::accountScriptName());
+	
+	if(!query(querycmd.c_str(), querycmd.size(), true, stream))
+	{
+		ERROR_MSG(fmt::format("DBInterfaceRedis::checkErrors: {}, query is error!\n", querycmd));
+		MemoryStream::ObjPool().reclaimObject(stream);
+		return false;
+	}
+	
+	uint32 nfields = 0;
+	(*stream) >> nfields;
+	
+	MemoryStream::ObjPool().reclaimObject(stream);
+
+	if(nfields == 0)
+	{
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+			DBUtil::accountScriptName()));
+		
+		querycmd = "eval \"redis.call('del', unpack(redis.call('keys','kbe_*')))\" 0";
+		query(querycmd.c_str(), querycmd.size(), false);
+		
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
+	}
+	
 	return true;
 }
 
@@ -252,7 +278,7 @@ void DBInterfaceRedis::write_query_result(redisReply* r, MemoryStream * result)
 	if(pRedisContext_ && r && !pRedisContext_->err)
 	{
 		uint32 nrows = 0;
-		uint32 nfields = 0;
+		uint32 nfields = 1;
 
 		if(r->type == REDIS_REPLY_ARRAY)
 			nfields = r->elements;
@@ -350,13 +376,26 @@ EntityTable* DBInterfaceRedis::createEntityTable()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::dropEntityTableFromDB(const char* tableName)
 {
-	return true;
+	KBE_ASSERT(tableName != NULL);
+  
+	DEBUG_MSG(fmt::format("DBInterfaceRedis::dropEntityTableFromDB: {}.\n", tableName));
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "eval \"redis.call('del', unpack(redis.call('keys','%s')))\" 0", tableName);
+	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::dropEntityTableItemFromDB(const char* tableName, const char* tableItemName)
 {
-	return true;
+	KBE_ASSERT(tableName != NULL && tableItemName != NULL);
+  
+	DEBUG_MSG(fmt::format("DBInterfaceRedis::dropEntityTableItemFromDB: {} {}.\n", 
+		tableName, tableItemName));
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "hdel %s %s", tableName, tableItemName);
+	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------

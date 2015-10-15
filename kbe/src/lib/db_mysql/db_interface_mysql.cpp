@@ -362,6 +362,9 @@ bool DBInterfaceMysql::checkErrors()
 	{
 		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+			DBUtil::accountScriptName()));
+		
 		try
 		{
 			query(querycmd.c_str(), querycmd.size(), false);
@@ -369,6 +372,8 @@ bool DBInterfaceMysql::checkErrors()
 		catch (...)
 		{
 		}
+		
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
 	}
 
 	return true;

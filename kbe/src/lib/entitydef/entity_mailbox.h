@@ -52,7 +52,7 @@ public:
 	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
 	typedef std::tr1::function<Network::Channel* (EntityMailbox&)> FindChannelFunc;
 
-	EntityMailbox(ScriptDefModule* scriptModule, const Network::Address* pAddr, COMPONENT_ID componentID, 
+	EntityMailbox(ScriptDefModule* pScriptModule, const Network::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
 
 	~EntityMailbox();
@@ -122,13 +122,16 @@ public:
 	static MAILBOXS mailboxs;
 	
 private:
-	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
+	// 获得一个entity的实体的函数地址
+	static GetEntityFunc					__getEntityFunc;
 	static MailboxCallHookFunc*				__hookCallFuncPtr;
 	static FindChannelFunc					__findChannelFunc;
 	
 protected:
 	std::string								scriptModuleName_;
-	ScriptDefModule*						scriptModule_;			// 该entity所使用的脚本模块对象
+
+	// 该entity所使用的脚本模块对象
+	ScriptDefModule*						pScriptModule_;	
 
 	void _setATIdx(MAILBOXS::size_type idx){ atIdx_ = idx; }
 	MAILBOXS::size_type	atIdx_;

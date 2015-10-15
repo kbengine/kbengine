@@ -59,7 +59,7 @@ class AllClients : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(AllClients, ScriptObject)
 public:
-	AllClients(const ScriptDefModule* scriptModule, 
+	AllClients(const ScriptDefModule* pScriptModule, 
 		ENTITY_ID eid, 
 		bool otherClients);
 	
@@ -85,10 +85,12 @@ public:
 	void setID(int id){ id_ = id; }
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
-	void setScriptModule(const ScriptDefModule*	scriptModule){ scriptModule_ = scriptModule; }
+	void setScriptModule(const ScriptDefModule*	pScriptModule){ 
+		pScriptModule_ = pScriptModule; 
+	}
 
 protected:
-	const ScriptDefModule*					scriptModule_;			// 该entity所使用的脚本模块对象
+	const ScriptDefModule*					pScriptModule_;			// 该entity所使用的脚本模块对象
 
 	ENTITY_ID								id_;					// entityID
 

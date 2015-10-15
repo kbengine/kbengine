@@ -116,7 +116,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(e->scriptModule())->findClientMethodDescription(ccattr);
+	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(e->pScriptModule())->findClientMethodDescription(ccattr);
 	free(ccattr);
 
 	if(pMethodDescription != NULL)

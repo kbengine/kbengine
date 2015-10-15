@@ -358,7 +358,7 @@ void Space::removeEntity(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::_onEnterWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 
 	if(pEntity->hasWitness())
@@ -391,7 +391,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::onLeaveWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 	
 	// 向其他人客户端广播自己的离开

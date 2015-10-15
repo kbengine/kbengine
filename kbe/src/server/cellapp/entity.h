@@ -74,7 +74,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Entity();
 	
 	/** 

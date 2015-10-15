@@ -98,7 +98,7 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
@@ -118,8 +118,8 @@ topSpeedY_(-0.1f),
 witnesses_(),
 witnesses_count_(0),
 pWitness_(NULL),
-allClients_(new AllClients(scriptModule, id, false)),
-otherClients_(new AllClients(scriptModule, id, true)),
+allClients_(new AllClients(pScriptModule, id, false)),
+otherClients_(new AllClients(pScriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
@@ -394,7 +394,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
-		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(scriptModule())->findCellMethodDescription(ccattr);
+		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
 		
 		if(pMethodDescription)
 		{
@@ -406,7 +406,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 	{
 		// 如果访问了def持久化类容器属性
 		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
-		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(scriptModule())->findPersistentPropertyDescription(ccattr);
+		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
 		if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
 		{
 			setDirty();
@@ -487,14 +487,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			const Position3D& targetPos = pEntity->position();
 			Position3D lengthPos = targetPos - basePos;
 
-			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
+			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id());
 
-				if(scriptModule_->usePropertyDescrAlias())
+				if(pScriptModule_->usePropertyDescrAlias())
 					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
 				else
 					(*pForwardBundle) << propertyDescription->getUType();
@@ -577,7 +577,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pForwardBundle) << id();
 
-		if(scriptModule_->usePropertyDescrAlias())
+		if(pScriptModule_->usePropertyDescrAlias())
 			(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
 		else
 			(*pForwardBundle) << propertyDescription->getUType();
@@ -608,7 +608,7 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* pMethodDescription = scriptModule_->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = pScriptModule_->findCellMethodDescription(utype);
 
 	if(pMethodDescription == NULL)
 	{
@@ -627,7 +627,7 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* pMethodDescription = scriptModule_->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = pScriptModule_->findCellMethodDescription(utype);
 	if(pMethodDescription)
 	{
 		if(!pMethodDescription->isExposed())
@@ -720,7 +720,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
-					scriptModule_->getCellPropertyDescriptions();
+					pScriptModule_->getCellPropertyDescriptions();
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
@@ -732,7 +732,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 			// DEBUG_MSG(fmt::format("Entity::addCellDataToStream: {}.\n", propertyDescription->getName()));
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 
-			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			if(useAliasID && pScriptModule_->usePropertyDescrAlias())
 			{
 				(*mstream) << propertyDescription->aliasIDAsUint8();
 			}
@@ -857,7 +857,7 @@ void Entity::addWitnessed(Entity* entity)
 	++witnesses_count_;
 
 	/*
-	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
+	int8 detailLevel = pScriptModule_->getDetailLevel().getLevelByRange(range);
 	WitnessInfo* info = new WitnessInfo(detailLevel, entity, range);
 	ENTITY_ID id = entity->id();
 
@@ -1182,7 +1182,7 @@ int Entity::pySetPosition(PyObject *value)
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
 	onDefDataChanged(&positionDescription, value);
@@ -1309,7 +1309,7 @@ int Entity::pySetDirection(PyObject *value)
 	}
 
 	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, value);
@@ -1352,7 +1352,7 @@ void Entity::onPyPositionChanged()
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
 	onDefDataChanged(&positionDescription, pPyPosition_);
@@ -1399,7 +1399,7 @@ void Entity::onPyDirectionChanged()
 	}
 
 	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, pPyDirection_);
@@ -2615,7 +2615,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();
 	(*pBundle) << spaceID();
-	(*pBundle) << scriptModule()->getUType();
+	(*pBundle) << pScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
 
@@ -2831,7 +2831,7 @@ void Entity::onRestore()
 //-------------------------------------------------------------------------------------
 bool Entity::_reload(bool fullReload)
 {
-	allClients_->setScriptModule(scriptModule_);
+	allClients_->setScriptModule(pScriptModule_);
 	return true;
 }
 
@@ -2841,7 +2841,7 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 	ENTITY_PROPERTY_UID utype;
 	s >> utype;
 
-	PropertyDescription* pPropertyDescription = scriptModule()->findCellPropertyDescription(utype);
+	PropertyDescription* pPropertyDescription = pScriptModule()->findCellPropertyDescription(utype);
 	if(pPropertyDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: not found propertyID({}), entityID({})\n", 
@@ -2876,7 +2876,7 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 	ENTITY_METHOD_UID utype;
 	s >> utype;
 
-	MethodDescription* pMethodDescription = scriptModule()->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = pScriptModule()->findCellMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found propertyID({}), entityID({})\n", 
@@ -2969,7 +2969,7 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		baseMailboxComponentID = baseMailbox_->componentID();
 	}
 
-	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
+	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
 		layer_ << baseMailboxComponentID;
 
@@ -2996,11 +2996,11 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	// 而服务端的NPC则与移动后是否在地面来判定。
 	isOnGround_ = false;
 
-	this->scriptModule_ = EntityDef::findScriptModule(scriptUType);
+	this->pScriptModule_ = EntityDef::findScriptModule(scriptUType);
 
 	// 设置entity的baseMailbox
 	if(baseMailboxComponentID > 0)
-		baseMailbox(new EntityMailbox(scriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
+		baseMailbox(new EntityMailbox(pScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
 
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);

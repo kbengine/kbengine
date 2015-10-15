@@ -54,7 +54,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 		
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell);
 	~Entity();
 	
 	/** 
