@@ -252,7 +252,7 @@ namespace KBEngine{
 												tentity->scriptName(),										\
 												static_cast<PyObject*>(tentity)->ob_refcnt,					\
 												tentity->id(),												\
-												tentity->scriptModule()->getUType()));						\
+												tentity->pScriptModule()->getUType()));						\
 		}																									\
 
 
@@ -284,8 +284,8 @@ namespace KBEngine{
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
 	ENTITY_ID										id_;													\
-	ScriptDefModule*								scriptModule_;											\
-	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
+	ScriptDefModule*								pScriptModule_;											\
+	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs_;										\
 	SPACE_ID										spaceID_;												\
 	ScriptTimers									scriptTimers_;											\
 	PY_CALLBACKMGR									pyCallbackMgr_;											\
@@ -320,16 +320,16 @@ public:																										\
 	{																										\
 		if(fullReload)																						\
 		{																									\
-			scriptModule_ = EntityDef::findScriptModule(scriptName());										\
-			KBE_ASSERT(scriptModule_);																		\
-			lpPropertyDescrs_ = &scriptModule_->getPropertyDescrs();										\
+			pScriptModule_ = EntityDef::findScriptModule(scriptName());										\
+			KBE_ASSERT(pScriptModule_);																		\
+			pPropertyDescrs_ = &pScriptModule_->getPropertyDescrs();										\
 		}																									\
 																											\
-		if(PyObject_SetAttrString(this, "__class__", (PyObject*)scriptModule_->getScriptType()) == -1)		\
+		if(PyObject_SetAttrString(this, "__class__", (PyObject*)pScriptModule_->getScriptType()) == -1)		\
 		{																									\
 			WARNING_MSG(fmt::format("Base::reload: "														\
 				"{} {} could not change __class__ to new class!\n",											\
-				scriptModule_->getName(), id_));															\
+				pScriptModule_->getName(), id_));															\
 			PyErr_Print();																					\
 			return false;																					\
 		}																									\
@@ -386,7 +386,7 @@ public:																										\
 		ADD_POSDIR_TO_PYDICT(cellData, pos, dir);															\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
-								scriptModule_->getCellPropertyDescriptions_uidmap();						\
+								pScriptModule_->getCellPropertyDescriptions_uidmap();						\
 																											\
 		size_t count = 0;																					\
 																											\
@@ -414,14 +414,14 @@ public:																										\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
+				pScriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());				\
 																											\
-			if(useAliasID && scriptModule_->usePropertyDescrAlias())										\
+			if(useAliasID && pScriptModule_->usePropertyDescrAlias())										\
 			{																								\
 				(*mstream) << propertyDescription->aliasIDAsUint8();										\
 			}																								\
@@ -442,7 +442,7 @@ public:																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				scriptModule()->getClientPropertyDescriptions();											\
+				pScriptModule()->getClientPropertyDescriptions();											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
 		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
@@ -457,7 +457,7 @@ public:																										\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-				if(scriptModule()->usePropertyDescrAlias())													\
+				if(pScriptModule()->usePropertyDescrAlias())												\
 				{																							\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
@@ -487,7 +487,7 @@ public:																										\
 		PyObject* args1 = PyTuple_New(4);																	\
 		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->id()));									\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
-		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->scriptModule()->getUType()));			\
+		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->pScriptModule()->getUType()));			\
 		if(g_componentType == BASEAPP_TYPE)																	\
 			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));							\
 		else																								\
@@ -571,9 +571,9 @@ public:																										\
 		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* scriptModule(void) const														\
+	INLINE ScriptDefModule* pScriptModule(void) const														\
 	{																										\
-		return scriptModule_; 																				\
+		return pScriptModule_; 																				\
 	}																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
@@ -583,11 +583,11 @@ public:																										\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
-		if(lpPropertyDescrs_)																				\
+		if(pPropertyDescrs_)																				\
 		{																									\
 																											\
-			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
-			if(iter != lpPropertyDescrs_->end())															\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->find(ccattr);	\
+			if(iter != pPropertyDescrs_->end())																\
 			{																								\
 				char err[255];																				\
 				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, scriptName());	\
@@ -598,7 +598,7 @@ public:																										\
 			}																								\
 		}																									\
 																											\
-		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
+		if(pScriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
 			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, scriptName());			\
@@ -619,10 +619,10 @@ public:																										\
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 																											\
-		if(lpPropertyDescrs_)																				\
+		if(pPropertyDescrs_)																				\
 		{																									\
-			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
-			if(iter != lpPropertyDescrs_->end())															\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->find(ccattr);	\
+			if(iter != pPropertyDescrs_->end())																\
 			{																								\
 				PropertyDescription* propertyDescription = iter->second;									\
 				DataType* dataType = propertyDescription->getDataType();									\
@@ -910,7 +910,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		if(scriptModule()->usePropertyDescrAlias() && useAliasID)											\
+		if(pScriptModule()->usePropertyDescrAlias() && useAliasID)											\
 		{																									\
 			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		}																									\
@@ -933,20 +933,20 @@ public:																										\
 		if(isReload)																						\
 		{																									\
 			ScriptDefModule* pOldScriptDefModule =															\
-										EntityDef::findOldScriptModule(scriptModule_->getName());			\
+										EntityDef::findOldScriptModule(pScriptModule_->getName());			\
 			if(!pOldScriptDefModule)																		\
 			{																								\
-				ERROR_MSG(fmt::format("{}::initProperty: not found oldmodule!\n",							\
-					scriptModule_->getName()));																\
-				KBE_ASSERT(false && "Entity::initProperty: not found oldmodule");							\
+				ERROR_MSG(fmt::format("{}::initProperty: not found old_module!\n",							\
+					pScriptModule_->getName()));															\
+				KBE_ASSERT(false && "Entity::initProperty: not found old_module");							\
 			}																								\
 																											\
 			oldpropers =																					\
 											&pOldScriptDefModule->getPropertyDescrs();						\
 		}																									\
 																											\
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();			\
-		for(; iter != lpPropertyDescrs_->end(); ++iter)														\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->begin();			\
+		for(; iter != pPropertyDescrs_->end(); ++iter)														\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			DataType* dataType = propertyDescription->getDataType();										\
@@ -986,8 +986,8 @@ public:																										\
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\
 	id_(id),																								\
-	scriptModule_(const_cast<ScriptDefModule*>(scriptModule)),												\
-	lpPropertyDescrs_(&scriptModule_->getPropertyDescrs()),													\
+	pScriptModule_(const_cast<ScriptDefModule*>(pScriptModule)),											\
+	pPropertyDescrs_(&pScriptModule_->getPropertyDescrs()),													\
 	spaceID_(0),																							\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
@@ -997,7 +997,7 @@ public:																										\
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
-	scriptModule_ = NULL;																					\
+	pScriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	removeFlags(ENTITY_FLAGS_INITING);																		\
 

@@ -89,7 +89,7 @@ bool Cellapp::canShutdown()
 	{
 		//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 		//if(pEntity->baseMailbox() != NULL && 
-		//		pEntity->scriptModule()->isPersistent())
+		//		pEntity->pScriptModule()->isPersistent())
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
 			return false;
@@ -117,7 +117,7 @@ void Cellapp::onShutdown(bool first)
 		{
 			//Entity* pEntity = static_cast<Entity*>(iter->second.get());
 			//if(pEntity->baseMailbox() != NULL && 
-			//	pEntity->scriptModule()->isPersistent())
+			//	pEntity->pScriptModule()->isPersistent())
 			{
 				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
 
@@ -788,7 +788,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		EntityMailbox* mailbox = new EntityMailbox(e->pScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->baseMailbox(mailbox);
 		
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
@@ -859,7 +859,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		EntityMailbox* mailbox = new EntityMailbox(e->pScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->baseMailbox(mailbox);
 		
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
@@ -1015,7 +1015,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		}
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->scriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
+		EntityMailbox* mailbox = new EntityMailbox(e->pScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
 		e->baseMailbox(mailbox);
 		
 		cellData = e->createCellDataFromStream(pCellData);
@@ -1082,9 +1082,9 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Network::Channel* pChannel, ENTITY_
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Cellapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+RemoteEntityMethod* Cellapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
 {
-	return new EntityRemoteMethod(md, pMailbox);
+	return new EntityRemoteMethod(pMethodDescription, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------

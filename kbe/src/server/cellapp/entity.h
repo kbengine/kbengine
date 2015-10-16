@@ -74,7 +74,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Entity();
 	
 	/** 
@@ -369,7 +369,7 @@ public:
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 	void onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s);
-	void onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s);
 
 	/**
 		π€≤Ï’ﬂ

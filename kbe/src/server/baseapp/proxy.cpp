@@ -57,8 +57,8 @@ SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
-Base(id, scriptModule, getScriptType(), true),
+Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule):
+Base(id, pScriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Network::Address::NONE),
 dataDownloads_(),
@@ -137,7 +137,7 @@ void Proxy::initClientCellPropertys()
 		spaceuid = msgInfo->msgid;
 	}
 	
-	if(scriptModule()->usePropertyDescrAlias())
+	if(pScriptModule()->usePropertyDescrAlias())
 	{
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
 		(*pBundle) << aliasID << this->spaceID();
@@ -219,7 +219,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 {
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
-		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -368,7 +368,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 {
-	clientMailbox(new EntityMailbox(this->scriptModule_, 
+	clientMailbox(new EntityMailbox(this->pScriptModule_, 
 		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
 
 	addr(lpChannel->addr());

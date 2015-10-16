@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellappmgr/cellappmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
 #include "dbmgr/dbmgr_interface.h"
+#include "profile.h"	
 
 namespace KBEngine{
 	
@@ -48,7 +49,7 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID),
+	PythonApp(dispatcher, ninterface, componentType, componentID),
 	mainProcessTimer_(),
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
@@ -88,9 +89,17 @@ Interfaces::~Interfaces()
 }
 
 //-------------------------------------------------------------------------------------	
+void Interfaces::onShutdownBegin()
+{
+	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"));
+}
+
+//-------------------------------------------------------------------------------------	
 void Interfaces::onShutdownEnd()
 {
-	ServerApp::onShutdownEnd();
+	PythonApp::onShutdownEnd();
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,7 +145,7 @@ bool Interfaces::hasOrders(std::string ordersid)
 //-------------------------------------------------------------------------------------
 bool Interfaces::run()
 {
-	return ServerApp::run();
+	return PythonApp::run();
 }
 
 //-------------------------------------------------------------------------------------
@@ -151,7 +160,7 @@ void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 			break;
 	}
 
-	ServerApp::handleTimeout(handle, arg);
+	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -174,6 +183,7 @@ bool Interfaces::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Interfaces::inInitialize()
 {
+	PythonApp::inInitialize();
 	// 广播自己的地址给网上上的所有kbemachine
 	Components::getSingleton().pHandler(this);
 	return true;
@@ -190,7 +200,41 @@ bool Interfaces::initializeEnd()
 
 	this->threadPool().addTask(new AnonymousChannel());
 
-	return initDB();
+	if (!initDB())
+		return false;
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInterfaceAppReady"), 
+										const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------		
+void Interfaces::onInstallPyModules()
+{
+	PyObject * module = getScript().getModule();
+
+	for (int i = 0; i < SERVER_ERR_MAX; i++)
+	{
+		if(PyModule_AddIntConstant(module, SERVER_ERR_STR[i], i))
+		{
+			ERROR_MSG( fmt::format("Interfaces::onInstallPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
+		}
+	}
+
+	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,				METH_VARARGS,			0);
+
 }
 
 //-------------------------------------------------------------------------------------		
@@ -202,7 +246,7 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
-	ServerApp::finalise();
+	PythonApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
@@ -243,7 +287,87 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	reqCreateAccount_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
 
-	this->threadPool().addTask(pinfo);
+	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
+	//this->threadPool().addTask(pinfo);
+
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("requestCreateAccount"), 
+										const_cast<char*>("ssy#"), 
+										registerName, 
+										password, 
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::createAccountResponse(std::string commitName, std::string realAccountName, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+{
+	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(commitName);
+	if (iter == reqCreateAccount_requests_.end())
+	{
+		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
+		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: accountName '{}' not found!" \
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			commitName, 
+			realAccountName, 
+			extraDatas, 
+			errorCode));
+		return;
+	}
+
+	CreateAccountTask *task = iter->second;
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
+	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
+
+	(*pBundle).appendBlob(task->postDatas);
+	(*pBundle).appendBlob(extraDatas);
+
+	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(task->address);
+
+	if(pChannel)
+	{
+		pChannel->send(pBundle);
+	}
+	else
+	{
+		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: not found channel. commitName={}\n", commitName));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	// 清理
+	reqCreateAccount_requests_.erase(iter);
+	delete task;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+
+	const char *commitName;
+	const char *realAccountName;
+	Py_buffer extraDatas;
+	KBEngine::SERVER_ERROR_CODE errCode;
+
+	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+		return NULL;
+
+	Interfaces::getSingleton().createAccountResponse(std::string(commitName),
+		std::string(realAccountName),
+		std::string((const char *)extraDatas.buf, extraDatas.len),
+		errCode);
+
+	PyBuffer_Release(&extraDatas);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -279,7 +403,87 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	reqAccountLogin_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
 
-	this->threadPool().addTask(pinfo);
+	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
+	//this->threadPool().addTask(pinfo);
+
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("requestAccountLogin"), 
+										const_cast<char*>("ssy#"), 
+										loginName, 
+										password, 
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::accountLoginResponse(std::string commitName, std::string realAccountName, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+{
+	REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.find(commitName);
+	if (iter == reqAccountLogin_requests_.end())
+	{
+		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
+		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found!" \
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			commitName, 
+			realAccountName, 
+			extraDatas, 
+			errorCode));
+		return;
+	}
+
+	LoginAccountTask *task = iter->second;
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	
+	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
+	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
+
+	(*pBundle).appendBlob(task->postDatas);
+	(*pBundle).appendBlob(extraDatas);
+
+	Network::Channel* pChannel = Interfaces::getSingleton().networkInterface().findChannel(task->address);
+
+	if(pChannel)
+	{
+		pChannel->send(pBundle);
+	}
+	else
+	{
+		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: not found channel. commitName={}\n", commitName));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	// 清理
+	reqAccountLogin_requests_.erase(iter);
+	delete task;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+
+	const char *commitName;
+	const char *realAccountName;
+	Py_buffer extraDatas;
+	KBEngine::SERVER_ERROR_CODE errCode;
+
+	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+		return NULL;
+
+	Interfaces::getSingleton().accountLoginResponse(std::string(commitName),
+		std::string(realAccountName),
+		std::string((const char *)extraDatas.buf, extraDatas.len),
+		errCode);
+
+	PyBuffer_Release(&extraDatas);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -318,7 +522,92 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	orders_[pOrdersCharge->ordersID].reset(pOrdersCharge);
 	unlockthread();
 	
-	this->threadPool().addTask(pinfo);
+	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
+	//this->threadPool().addTask(pinfo);
+
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("requestCharge"), 
+										const_cast<char*>("sKy#"), 
+										pOrdersCharge->ordersID, 
+										pOrdersCharge->dbid, 
+										pOrdersCharge->postDatas.c_str(), pOrdersCharge->postDatas.length());
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+{
+	ORDERS::iterator iter = orders_.find(orderID);
+	if (iter == orders_.end())
+	{
+		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'", 
+			orderID, 
+			extraDatas, 
+			errorCode));
+		return;
+	}
+
+	std::shared_ptr<Orders> orders = iter->second;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+	(*pBundle) << orders->baseappID << orders->ordersID << orders->dbid;
+	(*pBundle).appendBlob(orders->getDatas);
+	(*pBundle) << orders->cbid;
+	(*pBundle) << errorCode;
+
+	Network::Channel* pChannel = networkInterface().findChannel(orders->address);
+
+	if(pChannel)
+	{
+		WARNING_MSG(fmt::format("Interfaces::chargeResponse: orders={} commit is failed!\n", 
+			orders->ordersID));
+
+		pChannel->send(pBundle);
+	}
+	else
+	{
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channel. orders={}\n", 
+			orders->ordersID));
+
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	orders_.erase(iter);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+
+	const char *orderID;
+	Py_buffer extraDatas;
+	KBEngine::SERVER_ERROR_CODE errCode;
+
+	if (!PyArg_ParseTuple(args, "sy*H", &orderID, &extraDatas, &errCode))
+		return NULL;
+
+	if (errCode < SERVER_ERR_MAX)
+	{
+		Interfaces::getSingleton().chargeResponse(std::string(orderID),
+			std::string((const char *)extraDatas.buf, extraDatas.len),
+			errCode);
+	}
+	else
+	{
+		//ERROR_MSG(fmt::format());
+	}
+
+	PyBuffer_Release(&extraDatas);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------

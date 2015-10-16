@@ -173,7 +173,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 			while(PyDict_Next(py_params, &pos, &key, &value)) 
 			{
-				if(!PyLong_Check(key))
+				if(!PyLong_Check(key) || !PyUnicode_Check(value))
 				{
 					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
 					PyErr_PrintEx(0);					
@@ -188,13 +188,15 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 				params[i] = ccattr;
 				free(ccattr);
 			}
+			
+			SCRIPT_ERROR_CHECK();
 		}
 	}
 	else
 	{
 		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
 		{
-			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -210,9 +212,10 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
+	SCRIPT_ERROR_CHECK();
 	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) error!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -231,7 +234,7 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	hasGeometry_ = true;
 	if(getGeometryPath() == respath)
 	{
-		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} is exist!\n",
+		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} exist!\n",
 			id(), respath));
 
 		return true;
@@ -357,7 +360,7 @@ void Space::removeEntity(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::_onEnterWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 
 	if(pEntity->hasWitness())
@@ -390,7 +393,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::onLeaveWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 	
 	// 向其他人客户端广播自己的离开

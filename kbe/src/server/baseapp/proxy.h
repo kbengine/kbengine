@@ -49,7 +49,7 @@ class Proxy : public Base
 	BASE_SCRIPT_HREADER(Proxy, Base)	
 
 public:
-	Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Proxy();
 	
 	INLINE void addr(const Network::Address& address);

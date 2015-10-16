@@ -61,7 +61,7 @@ CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(cell),
@@ -157,22 +157,22 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
 	
-	MethodDescription* md = NULL;
+	MethodDescription* pMethodDescription = NULL;
 	
-	if(scriptModule_->useMethodDescrAlias())
+	if(pScriptModule_->useMethodDescrAlias())
 	{
 		ENTITY_DEF_ALIASID aliasID;
 		s >> aliasID;
-		md = scriptModule_->findAliasMethodDescription(aliasID);
+		pMethodDescription = pScriptModule_->findAliasMethodDescription(aliasID);
 		utype = aliasID;
 	}
 	else
 	{
 		s >> utype;
-		md = scriptModule_->findClientMethodDescription(utype);
+		pMethodDescription = pScriptModule_->findClientMethodDescription(utype);
 	}
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
 			utype, id_));
@@ -187,20 +187,20 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(md->getArgSize() == 0)
+		if(pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_DECREF(pyargs);
 			}
 			else
@@ -221,7 +221,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
-	if(!scriptModule_->usePropertyDescrAlias())
+	if(!pScriptModule_->usePropertyDescrAlias())
 	{
 		Network::FixedMessages::MSGInfo* msgInfo =
 					Network::FixedMessages::getSingleton().isFixed("Property::position");
@@ -249,7 +249,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		ENTITY_PROPERTY_UID uid;
 		uint8 aliasID = 0;
 
-		if(scriptModule_->usePropertyDescrAlias())
+		if(pScriptModule_->usePropertyDescrAlias())
 		{
 			s >> aliasID;
 			uid = aliasID;
@@ -311,10 +311,10 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		PropertyDescription* pPropertyDescription = NULL;
 		
-		if(scriptModule_->usePropertyDescrAlias())
-			pPropertyDescription = scriptModule()->findAliasPropertyDescription(aliasID);
+		if(pScriptModule_->usePropertyDescrAlias())
+			pPropertyDescription = pScriptModule()->findAliasPropertyDescription(aliasID);
 		else
-			pPropertyDescription = scriptModule()->findClientPropertyDescription(uid);
+			pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
 
 		if(pPropertyDescription == NULL)
 		{
@@ -502,10 +502,10 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 void Entity::onBecomePlayer()
 {
 	std::string moduleName = "Player";
-	moduleName += this->scriptModule_->getName();
+	moduleName += this->pScriptModule_->getName();
 
 	PyObject* pyModule = 
-		PyImport_ImportModule(const_cast<char*>(this->scriptModule_->getName()));
+		PyImport_ImportModule(const_cast<char*>(this->pScriptModule_->getName()));
 
 	if(pyModule == NULL)
 	{
@@ -519,7 +519,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
-			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->scriptModule_->getName(), moduleName));
+			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->pScriptModule_->getName(), moduleName));
 		}
 		else
 		{
@@ -543,7 +543,7 @@ void Entity::onBecomeNonPlayer()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
 
-	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
+	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->pScriptModule_->getScriptType());
 	SCRIPT_ERROR_CHECK();
 }
 

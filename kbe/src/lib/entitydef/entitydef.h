@@ -70,78 +70,78 @@ public:
 	static bool loadAllDefDescriptions(const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDefPropertys(const std::string& moduleName, 
 		XML* xml, 
 		TiXmlNode* defPropertyNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDefCellMethods(const std::string& moduleName, 
 		XML* xml, 
 		TiXmlNode* defMethodNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDefBaseMethods(const std::string& moduleName, 
 		XML* xml, 
 		TiXmlNode* defMethodNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDefClientMethods(const std::string& moduleName, 
 		XML* xml, 
 		TiXmlNode* defMethodNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadInterfaces(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadParentClass(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDefInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadDetailLevelInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	static bool loadVolatileInfo(const std::string& defFilePath, 
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
-		ScriptDefModule* scriptModule);
+		ScriptDefModule* pScriptModule);
 
 	/** 
 		是否加载这个脚本模块 
 	*/
-	static bool isLoadScriptModule(ScriptDefModule* scriptModule);
+	static bool isLoadScriptModule(ScriptDefModule* pScriptModule);
 
 	/** 
 		根据当前组件类别设置是否有cell 或者base 
 	*/
-	static void setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule, bool has);
+	static void setScriptModuleHasComponentEntity(ScriptDefModule* pScriptModule, bool has);
 
 	/** 
 		检查脚本模块中被定义的方法是否存在 
 	*/
-	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, 
+	static bool checkDefMethod(ScriptDefModule* pScriptModule, PyObject* moduleObj, 
 		const std::string& moduleName);
 	
 	/** 
 		检查脚本模块中被定义的属性是否合法 
 	*/
-	static bool validDefPropertyName(ScriptDefModule* scriptModule, const std::string& name);
+	static bool validDefPropertyName(ScriptDefModule* pScriptModule, const std::string& name);
 
 	/** 
 		通过标记来寻找到对应的脚本模块对象 

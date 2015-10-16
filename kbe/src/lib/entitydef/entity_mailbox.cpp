@@ -49,17 +49,17 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailbox::EntityMailbox(ScriptDefModule* scriptModule, 
+EntityMailbox::EntityMailbox(ScriptDefModule* pScriptModule, 
 							 const Network::Address* pAddr, 
 							 COMPONENT_ID componentID, 
 ENTITY_ID eid, ENTITY_MAILBOX_TYPE type):
 EntityMailboxAbstract(getScriptType(),
 					  pAddr, 
 					  componentID, 
-					  eid, scriptModule->getUType(), 
+					  eid, pScriptModule->getUType(),
 					  type),
-					  scriptModuleName_(scriptModule->getName()),
-scriptModule_(scriptModule),
+					  scriptModuleName_(pScriptModule->getName()),
+					  pScriptModule_(pScriptModule),
 atIdx_(MAILBOXS::size_type(-1))
 {
 	atIdx_ = EntityMailbox::mailboxs.size();
@@ -90,14 +90,14 @@ EntityMailbox::~EntityMailbox()
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* md)
+RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* pMethodDescription)
 {
 	if(__hookCallFuncPtr != NULL)
 	{
-		return (*__hookCallFuncPtr)(md, this);
+		return (*__hookCallFuncPtr)(pMethodDescription, this);
 	}
 
-	return new RemoteEntityMethod(md, this);
+	return new RemoteEntityMethod(pMethodDescription, this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,46 +107,46 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* md = NULL;
+	MethodDescription* pMethodDescription = NULL;
 
 	switch(type_)
 	{
 	case MAILBOX_TYPE_CELL:
-		md = scriptModule_->findCellMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE:
-		md = scriptModule_->findBaseMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CELL_VIA_BASE:
-		md = scriptModule_->findCellMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE_VIA_CELL:
-		md = scriptModule_->findBaseMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_CELL:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_BASE:
-		md = scriptModule_->findClientMethodDescription(ccattr);
+		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
 	default:
 		break;
 	};
 	
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
 		free(ccattr);
 
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
-			if(!md->isExposed())
+			if(!pMethodDescription->isExposed())
 				return ScriptObject::onScriptGetAttribute(attr);
 		}
 
-		return createRemoteMethod(md);
+		return createRemoteMethod(pMethodDescription);
 	}
 
 	// 首先要求名称不能为自己  比如：自身是一个cell， 不能使用cell.cell
@@ -182,7 +182,7 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
-				return new EntityMailbox(scriptModule_, &addr_, componentID_, 
+				return new EntityMailbox(pScriptModule_, &addr_, componentID_, 
 					id_, (ENTITY_MAILBOX_TYPE)mbtype);
 			}
 			else
@@ -301,7 +301,7 @@ Network::Channel* EntityMailbox::getChannel(void)
 //-------------------------------------------------------------------------------------
 void EntityMailbox::reload()
 {
-	scriptModule_ = EntityDef::findScriptModule(scriptModuleName_.c_str());
+	pScriptModule_ = EntityDef::findScriptModule(scriptModuleName_.c_str());
 }
 
 //-------------------------------------------------------------------------------------

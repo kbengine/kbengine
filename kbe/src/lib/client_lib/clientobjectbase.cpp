@@ -842,7 +842,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 		KBE_ASSERT(entity->cellMailbox() == NULL);
 
 		// ÉèÖÃentityµÄcellMailbox
-		EntityMailbox* mailbox = new EntityMailbox(entity->scriptModule(), 
+		EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
 			NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
 		entity->cellMailbox(mailbox);

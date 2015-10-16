@@ -126,9 +126,11 @@ bool EntityTables::load(DBInterface* dbi)
 	{
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = dbi->createEntityTable();
-		bool ret = pEtable->initialize(pSM, pSM->getName());
 
-		if(!ret)
+		if(!pEtable)
+			continue;
+
+		if (!pEtable->initialize(pSM, pSM->getName()))
 		{
 			delete pEtable;
 			return false;

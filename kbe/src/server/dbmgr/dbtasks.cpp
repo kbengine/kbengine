@@ -123,7 +123,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -169,7 +169,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}

@@ -258,8 +258,8 @@
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- 数据库类型 
-			（Database type)
+		<!-- 数据库类型 （mysql、redis）
+			（Database type(mysql, redis))
 		-->
 		<type> mysql </type>											<!-- Type: String -->
 		

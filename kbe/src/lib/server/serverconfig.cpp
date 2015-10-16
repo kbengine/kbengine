@@ -380,6 +380,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				interfaces_chargeType_ = "normal";
 		}
 
+		childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		if(childnode != NULL)
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
+
 		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)

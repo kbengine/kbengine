@@ -170,6 +170,12 @@ CPPFLAGS += -DUSE_KBE_MYSQL
 
 endif # USE_MYSQL
 
+ifdef USE_REDIS
+LDLIBS += -lhiredis
+CPPFLAGS += -DUSE_REDIS
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
+endif # USE_REDIS
+
 # everyone needs pthread if LDLINUX_TLS_IS_BROKEN
 ifdef LDLINUX_TLS_IS_BROKEN
 CPPFLAGS += -DLDLINUX_TLS_IS_BROKEN

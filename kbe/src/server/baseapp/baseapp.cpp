@@ -60,10 +60,10 @@ KBE_SINGLETON_INIT(Baseapp);
 PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
+	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(entityType);
 
 	// 先将celldata中的存储属性取出
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
 	for(; iter != propertyDescrs.end(); ++iter)
@@ -91,7 +91,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 		Py_DECREF(pyVal);
 	}
 	
-	if(scriptModule->hasCell())
+	if(pScriptModule->hasCell())
 	{
 		ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
@@ -2529,7 +2529,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 			else
 			{
 				// 创建entity的客户端mailbox
-				EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
+				EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
 					&pChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
 				base->clientMailbox(entityClientMailbox);
@@ -2611,7 +2611,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	else
 	{
 		// 创建entity的客户端mailbox
-		entityClientMailbox = new EntityMailbox(proxy->scriptModule(), 
+		entityClientMailbox = new EntityMailbox(proxy->pScriptModule(), 
 			&pChannel->addr(), 0, proxy->id(), MAILBOX_TYPE_CLIENT);
 
 		proxy->clientMailbox(entityClientMailbox);
@@ -2732,7 +2732,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	if(pClientChannel != NULL)
 	{
 		// 创建entity的客户端mailbox
-		EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
+		EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
 			&pClientChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
 		base->clientMailbox(entityClientMailbox);
@@ -2967,9 +2967,9 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
 {
-	return new BaseRemoteMethod(md, pMailbox);
+	return new BaseRemoteMethod(pMethodDescription, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------

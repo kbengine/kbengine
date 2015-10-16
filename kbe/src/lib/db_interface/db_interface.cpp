@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_table.h"
 #include "common/kbekey.h"
 #include "db_mysql/db_interface_mysql.h"
-#include "db_mysql/kbe_table_mysql.h"
+#include "db_redis/db_interface_redis.h"
 #include "server/serverconfig.h"
 #include "thread/threadpool.h"
 
@@ -120,10 +120,16 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		dbinterface = new DBInterfaceMysql(dbcfg.db_unicodeString_characterSet, dbcfg.db_unicodeString_collation);
 	}
+	else if(strcmp(dbcfg.db_type, "redis") == 0)
+	{
+		dbinterface = new DBInterfaceRedis();
+	}
 
 	if(dbinterface == NULL)
 	{
-		ERROR_MSG("DBUtil::createInterface: can't create dbinterface!\n");
+		ERROR_MSG(fmt::format("DBUtil::createInterface: create db_interface error! type={}\n",
+			dbcfg.db_type));
+
 		return NULL;
 	}
 	
@@ -136,7 +142,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
-		ERROR_MSG(fmt::format("DBUtil::createInterface: can't attach to database!\n\tdbinterface={0:p}\n\targs={1}",
+		ERROR_MSG(fmt::format("DBUtil::createInterface: attach to database failed!\n\tdbinterface={0:p}\n\targs={1}\n",
 			(void*)&dbinterface, dbinterface->c_str()));
 
 		delete dbinterface;
@@ -146,7 +152,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}", (void*)&dbinterface, 
+			INFO_MSG(fmt::format("DBUtil::createInterface[{0:p}]: {1}\n", (void*)&dbinterface, 
 				dbinterface->c_str()));
 		}
 	}
@@ -181,9 +187,11 @@ bool DBUtil::initInterface(DBInterface* dbi)
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
-		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
+		DBInterfaceMysql::initInterface(dbi);
+	}
+	else if(strcmp(dbcfg.db_type, "redis") == 0)
+	{
+		DBInterfaceRedis::initInterface(dbi);
 	}
 	
 	if(!pThreadPool_->isInitialize())

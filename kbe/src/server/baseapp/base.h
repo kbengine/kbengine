@@ -51,7 +51,7 @@ class Base : public script::ScriptObject
 	BASE_SCRIPT_HREADER(Base, ScriptObject)	
 	ENTITY_HEADER(Base)
 public:
-	Base(ENTITY_ID id, const ScriptDefModule* scriptModule, 
+	Base(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
 		PyTypeObject* pyType = getScriptType(), bool isInitialised = true);
 	~Base();
 

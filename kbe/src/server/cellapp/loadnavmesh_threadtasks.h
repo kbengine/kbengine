@@ -30,8 +30,8 @@ namespace KBEngine{
 class LoadNavmeshTask : public thread::TPTask
 {
 public:
-	LoadNavmeshTask(const std::string& name, SPACE_ID spaceID, const std::map< int, std::string >& params):
-	name_(name),
+	LoadNavmeshTask(const std::string& resPath, SPACE_ID spaceID, const std::map< int, std::string >& params):
+	resPath_(resPath),
 	spaceID_(spaceID),
 	params_(params)
 	{
@@ -42,9 +42,9 @@ public:
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
 protected:
-	std::string name_;
+	std::string resPath_;
 	SPACE_ID spaceID_;
-	const std::map< int, std::string >& params_;
+	std::map< int, std::string > params_;
 };
 
 

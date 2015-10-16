@@ -222,7 +222,7 @@ bool RestoreEntityHandler::process()
 
 				if(!destroyed)
 				{
-					utype = pBase->scriptModule()->getUType();
+					utype = pBase->pScriptModule()->getUType();
 					cellappID = pBase->cellMailbox()->componentID();
 				}
 
