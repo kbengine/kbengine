@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 
-
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
 #include "baseappmgr/baseappmgr_interface.h"
@@ -44,6 +43,46 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Interfaces);
 
+class ScriptTimerHandler : public TimerHandler
+{
+public:
+	ScriptTimerHandler(ScriptTimers* scriptTimers, PyObject * callback) :
+		pyCallback_(callback),
+		scriptTimers_(scriptTimers)
+	{
+	}
+
+	~ScriptTimerHandler()
+	{
+		Py_DECREF(pyCallback_);
+	}
+
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser)
+	{
+		int id = ScriptTimersUtil::getIDForHandle(scriptTimers_, handle);
+
+		PyObject *pyRet = PyObject_CallFunction(pyCallback_, "i", id);
+		if (pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			return;
+		}
+		return;
+	}
+
+	virtual void onRelease(TimerHandle handle, void * /*pUser*/)
+	{
+		scriptTimers_->releaseTimer(handle);
+		delete this;
+	}
+
+	PyObject* pyCallback_;
+	ScriptTimers* scriptTimers_;
+};
+
+
+
 //-------------------------------------------------------------------------------------
 Interfaces::Interfaces(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -53,8 +92,10 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	mainProcessTimer_(),
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
-	mutex_()
+	mutex_(),
+	scriptTimers_()
 {
+	ScriptTimers::initialize(*this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -94,6 +135,8 @@ void Interfaces::onShutdownBegin()
 	// Í¨Öª½Å±¾
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"));
+
+	scriptTimers_.cancelAll();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -171,6 +214,7 @@ void Interfaces::handleMainTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
+	handleTimers();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);
 }
 
@@ -234,6 +278,8 @@ void Interfaces::onInstallPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,							METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,							METH_VARARGS,			0);
 
 }
 
@@ -246,6 +292,7 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
+	ScriptTimers::finalise(*this);
 	PythonApp::finalise();
 }
 
@@ -295,8 +342,8 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("requestCreateAccount"), 
 										const_cast<char*>("ssy#"), 
-										registerName, 
-										password, 
+										registerName.c_str(), 
+										password.c_str(),
 										datas.c_str(), datas.length());
 
 	if(pyResult != NULL)
@@ -367,7 +414,7 @@ PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
 		errCode);
 
 	PyBuffer_Release(&extraDatas);
-	return NULL;
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -411,8 +458,8 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("requestAccountLogin"), 
 										const_cast<char*>("ssy#"), 
-										loginName, 
-										password, 
+										loginName.c_str(), 
+										password.c_str(), 
 										datas.c_str(), datas.length());
 
 	if(pyResult != NULL)
@@ -483,7 +530,7 @@ PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
 		errCode);
 
 	PyBuffer_Release(&extraDatas);
-	return NULL;
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -530,7 +577,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("requestCharge"), 
 										const_cast<char*>("sKy#"), 
-										pOrdersCharge->ordersID, 
+										pOrdersCharge->ordersID.c_str(),
 										pOrdersCharge->dbid, 
 										pOrdersCharge->postDatas.c_str(), pOrdersCharge->postDatas.length());
 
@@ -607,7 +654,7 @@ PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 	}
 
 	PyBuffer_Release(&extraDatas);
-	return NULL;
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -633,5 +680,40 @@ void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *callback)
+{
+	if (!PyCallable_Check(callback))
+	{
+		PyErr_Format(PyExc_TypeError, "Interfaces::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	ScriptTimers * pTimers = &Interfaces::getSingleton().scriptTimers();
+	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
+
+	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, (int)&callback, handler);
+
+	if (id == 0)
+	{
+		delete handler;
+		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	Py_INCREF(callback);
+	return PyLong_FromLong(id);
+}
+
+PyObject* Interfaces::__py_delTimer(ScriptID timerID)
+{
+	if (!ScriptTimersUtil::delTimer(&Interfaces::getSingleton().scriptTimers(), timerID))
+	{
+		return PyLong_FromLong(-1);
+	}
+
+	return PyLong_FromLong(timerID);
+}
 
 }

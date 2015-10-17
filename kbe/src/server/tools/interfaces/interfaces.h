@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.h"
 #include "resmgr/resmgr.h"
 #include "thread/threadpool.h"
+#include "server/script_timers.h"
 
 //#define NDEBUG
 // windows include	
@@ -118,6 +119,11 @@ public:
 	void createAccountResponse(std::string commitName, std::string realAccountName, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode);
 	static PyObject* __py_createAccountResponse(PyObject* self, PyObject* args);
 
+	/** Timer²Ù×÷
+	*/
+	static PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *callback);
+	static PyObject* Interfaces::__py_delTimer(ScriptID timerID);
+
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	Interfaces::ORDERS& orders(){ return orders_; }
 
@@ -130,6 +136,8 @@ public:
 	void eraseOrders_s(std::string ordersid);
 	
 	bool hasOrders(std::string ordersid);
+	ScriptTimers &scriptTimers() { return scriptTimers_; }
+
 protected:
 	TimerHandle																mainProcessTimer_;
 
@@ -141,6 +149,8 @@ protected:
 	REQLOGIN_MAP															reqAccountLogin_requests_;
 
 	KBEngine::thread::ThreadMutex											mutex_;
+
+	ScriptTimers															scriptTimers_;
 };
 
 }
