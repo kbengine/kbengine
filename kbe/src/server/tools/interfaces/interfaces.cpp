@@ -398,8 +398,6 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 //-------------------------------------------------------------------------------------
 PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
-
 	const char *commitName;
 	const char *realAccountName;
 	Py_buffer extraDatas;
@@ -514,8 +512,6 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 //-------------------------------------------------------------------------------------
 PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
-
 	const char *commitName;
 	const char *realAccountName;
 	Py_buffer extraDatas;
@@ -601,7 +597,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 		return;
 	}
 
-	std::shared_ptr<Orders> orders = iter->second;
+	KBEShared_ptr<Orders> orders = iter->second;
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
