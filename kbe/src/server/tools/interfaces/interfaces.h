@@ -121,8 +121,8 @@ public:
 
 	/** Timer²Ù×÷
 	*/
-	static PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *callback);
-	static PyObject* Interfaces::__py_delTimer(ScriptID timerID);
+	static PyObject* __py_addTimer(float interval, float repeat, PyObject *callback);
+	static PyObject* __py_delTimer(ScriptID timerID);
 
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	Interfaces::ORDERS& orders(){ return orders_; }
