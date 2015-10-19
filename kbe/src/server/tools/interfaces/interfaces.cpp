@@ -633,8 +633,6 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 //-------------------------------------------------------------------------------------
 PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
-
 	const char *orderID;
 	Py_buffer extraDatas;
 	KBEngine::SERVER_ERROR_CODE errCode;
@@ -692,7 +690,7 @@ PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *call
 	ScriptTimers * pTimers = &Interfaces::getSingleton().scriptTimers();
 	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
 
-	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, (int)&callback, handler);
+	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
 
 	if (id == 0)
 	{
