@@ -5,6 +5,7 @@ SRCS =						\
 	interfaces_tasks			\
 	interfaces_interface			\
 	orders					\
+	profile					\
 	main
 
 ASMS =
@@ -12,6 +13,7 @@ ASMS =
 MY_LIBS =		\
 	server		\
 	network		\
+	pyscript	\
 	thread		
 	
 
@@ -19,6 +21,7 @@ BUILD_TIME_FILE = main
 USE_G3DMATH = 1
 USE_MYSQL = 1
 USE_OPENSSL = 1
+USE_PYTHON = 1
 
 
 ifndef NO_USE_LOG4CXX

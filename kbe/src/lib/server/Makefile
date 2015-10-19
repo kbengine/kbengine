@@ -18,7 +18,8 @@ SRCS =				\
 	shutdowner		\
 	signal_handler		\
 	telnet_handler		\
-	telnet_server
+	telnet_server		\
+	python_app
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
