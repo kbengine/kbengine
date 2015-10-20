@@ -43,6 +43,9 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Interfaces);
 
+/**
+	内部定时器处理类
+*/
 class ScriptTimerHandler : public TimerHandler
 {
 public:
@@ -674,13 +677,19 @@ void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *callback)
+PyObject* Interfaces::__py_addTimer(PyObject* self, PyObject* args)
 {
+	float interval, repeat;
+	PyObject *callback;
+
+	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &callback))
+		S_Return;
+
 	if (!PyCallable_Check(callback))
 	{
 		PyErr_Format(PyExc_TypeError, "Interfaces::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	ScriptTimers * pTimers = &Interfaces::getSingleton().scriptTimers();
@@ -693,15 +702,20 @@ PyObject* Interfaces::__py_addTimer(float interval, float repeat, PyObject *call
 		delete handler;
 		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	Py_INCREF(callback);
 	return PyLong_FromLong(id);
 }
 
-PyObject* Interfaces::__py_delTimer(ScriptID timerID)
+PyObject* Interfaces::__py_delTimer(PyObject* self, PyObject* args)
 {
+	ScriptID timerID;
+
+	if (!PyArg_ParseTuple(args, "i", &timerID))
+		return NULL;
+
 	if (!ScriptTimersUtil::delTimer(&Interfaces::getSingleton().scriptTimers(), timerID))
 	{
 		return PyLong_FromLong(-1);

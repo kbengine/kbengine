@@ -213,7 +213,9 @@ bool PythonApp::installPyModules()
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
 	
-	if(entryScriptFileName != NULL)
+	onInstallPyModules();
+
+	if (entryScriptFileName != NULL)
 	{
 		entryScript_ = PyImport_Import(entryScriptFileName);
 		SCRIPT_ERROR_CHECK();
@@ -225,7 +227,6 @@ bool PythonApp::installPyModules()
 		}
 	}
 
-	onInstallPyModules();
 	return true;
 }
 
