@@ -40,7 +40,7 @@ public:
 	virtual ~KBEEntityLogTableMysql(){}
 	
 	/**
-		同步entity表到数据库中
+		同步表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
 	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
@@ -62,7 +62,7 @@ public:
 	virtual ~KBEAccountTableMysql(){}
 	
 	/**
-		同步entity表到数据库中
+		同步表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
 	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
@@ -84,7 +84,7 @@ public:
 	virtual ~KBEEmailVerificationTableMysql();
 
 	/**
-		同步entity表到数据库中
+		同步表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
 	virtual bool syncIndexToDB(DBInterface* dbi){ return true; }
