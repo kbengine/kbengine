@@ -1536,7 +1536,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		}
 	}
 
-	pTable->updateCount(pdbi_, info.dbid);
+	pTable->updateCount(pdbi_, accountName_, info.dbid);
 
 	retcode_ = SERVER_ERR_ACCOUNT_IS_ONLINE;
 	KBEEntityLogTable::EntityLog entitylog;

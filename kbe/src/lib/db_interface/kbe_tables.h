@@ -108,7 +108,7 @@ public:
 	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
 	virtual bool setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline) = 0;
-	virtual bool updateCount(DBInterface * dbi, DBID dbid) = 0;
+	virtual bool updateCount(DBInterface * dbi, const std::string& name, DBID dbid) = 0;
 	virtual bool queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool updatePassword(DBInterface * dbi, const std::string& name, const std::string& password) = 0;
 
