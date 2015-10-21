@@ -448,6 +448,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			interfaces_orders_timeout_ = xml->getValInt(node);
 		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
 	}
 
 	rootNode = xml->getRootNode("cellapp");

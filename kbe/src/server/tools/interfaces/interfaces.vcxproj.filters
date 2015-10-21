@@ -42,6 +42,9 @@
     <ClCompile Include="..\..\..\lib\python\Modules\getbuildinfo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="py_file_descriptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="anonymous_channel.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_file_descriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

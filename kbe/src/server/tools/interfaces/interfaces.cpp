@@ -29,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "thread/threadpool.h"
 #include "server/components.h"
+#include "server/telnet_server.h"
+#include "py_file_descriptor.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
@@ -96,6 +98,7 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
 	mutex_(),
+	pTelnetServer_(),
 	scriptTimers_()
 {
 	ScriptTimers::initialize(*this);
@@ -262,7 +265,15 @@ bool Interfaces::initializeEnd()
 	else
 		SCRIPT_ERROR_CHECK();
 
-	return true;
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
+	pTelnetServer_->pScript(&this->getScript());
+
+	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getInterfaces().telnet_passwd,
+		g_kbeSrvConfig.getInterfaces().telnet_deflayer,
+		g_kbeSrvConfig.getInterfaces().telnet_port);
+
+	Components::getSingleton().extraData4(pTelnetServer_->port());
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------		
@@ -278,11 +289,15 @@ void Interfaces::onInstallPyModules()
 		}
 	}
 
-	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,				METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,				METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,							METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,							METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,									METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,								METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,								METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterFileDescriptor,		PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS, 0);
 
 }
 

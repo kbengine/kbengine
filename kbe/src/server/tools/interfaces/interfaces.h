@@ -44,6 +44,8 @@ class DBInterface;
 class Orders;
 class CreateAccountTask;
 class LoginAccountTask;
+class TelnetServer;
+
 
 class Interfaces : public PythonApp, 
 				public Singleton<Interfaces>
@@ -151,6 +153,9 @@ protected:
 	KBEngine::thread::ThreadMutex											mutex_;
 
 	ScriptTimers															scriptTimers_;
+
+	TelnetServer*															pTelnetServer_;
+
 };
 
 }
