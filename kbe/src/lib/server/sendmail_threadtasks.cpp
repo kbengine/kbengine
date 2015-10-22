@@ -44,6 +44,7 @@ bool SendEMailTask::process()
 
 	KBEngine::strutil::kbe_replace(mailmessage, "${username}", emailaddr_);
 	KBEngine::strutil::kbe_replace(mailmessage, "${code}", code_);
+	mailmessage = KBEngine::strutil::kbe_trim(mailmessage);
 
 	m.setmessageHTML(mailmessage);
 
