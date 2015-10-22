@@ -28,6 +28,7 @@
 #include <sstream>   // ostrstream
 #include <ctime>     // for localtime
 #include <cassert>
+#include <string.h>
 #include "mailer.h"
 #include "base64.h"
 
