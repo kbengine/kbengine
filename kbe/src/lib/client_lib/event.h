@@ -37,8 +37,8 @@ typedef int32 EventID;
 #define CLIENT_EVENT_CREATEDENTITY 5
 #define CLIENT_EVENT_LOGIN_SUCCESS 6
 #define CLIENT_EVENT_LOGIN_FAILED 7
-#define CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS 8
-#define CLIENT_EVENT_LOGIN_GATEWAY_FAILED 9
+#define CLIENT_EVENT_LOGIN_BASEAPP_SUCCESS 8
+#define CLIENT_EVENT_LOGIN_BASEAPP_FAILED 9
 #define CLIENT_EVENT_SCRIPT 10
 #define CLIENT_EVENT_POSITION_CHANGED 11
 #define CLIENT_EVENT_DIRECTION_CHANGED 12
@@ -113,18 +113,18 @@ struct EventData_LoginFailed : public EventData
 	int failedcode;
 };
 
-struct EventData_LoginGatewaySuccess : public EventData
+struct EventData_LoginBaseappSuccess : public EventData
 {
-	EventData_LoginGatewaySuccess():
-	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS)
+	EventData_LoginBaseappSuccess():
+	EventData(CLIENT_EVENT_LOGIN_BASEAPP_SUCCESS)
 	{
 	}
 };
 
-struct EventData_LoginGatewayFailed : public EventData
+struct EventData_LoginBaseappFailed : public EventData
 {
-	EventData_LoginGatewayFailed():
-	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS),
+	EventData_LoginBaseappFailed():
+	EventData(CLIENT_EVENT_LOGIN_BASEAPP_SUCCESS),
 	failedcode(0),
 	relogin(false)
 	{
@@ -384,11 +384,11 @@ inline EventData* newKBEngineEvent(EventID v)
 		case CLIENT_EVENT_LOGIN_FAILED:
 			return new EventData_LoginFailed();
 			break;
-		case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
-			return new EventData_LoginGatewaySuccess();
+		case CLIENT_EVENT_LOGIN_BASEAPP_SUCCESS:
+			return new EventData_LoginBaseappSuccess();
 			break;
-		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
-			return new EventData_LoginGatewayFailed();
+		case CLIENT_EVENT_LOGIN_BASEAPP_FAILED:
+			return new EventData_LoginBaseappFailed();
 			break;
 		case CLIENT_EVENT_SCRIPT:
 			return new EventData_Script();
@@ -466,13 +466,13 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 			peventdata = new EventData_LoginFailed();
 			(*static_cast<EventData_LoginFailed*>(peventdata)) = (*static_cast<const EventData_LoginFailed*>(lpEventData));
 			break;
-		case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
-			peventdata = new EventData_LoginGatewaySuccess();
-			(*static_cast<EventData_LoginGatewaySuccess*>(peventdata)) = (*static_cast<const EventData_LoginGatewaySuccess*>(lpEventData));
+		case CLIENT_EVENT_LOGIN_BASEAPP_SUCCESS:
+			peventdata = new EventData_LoginBaseappSuccess();
+			(*static_cast<EventData_LoginBaseappSuccess*>(peventdata)) = (*static_cast<const EventData_LoginBaseappSuccess*>(lpEventData));
 			break;
-		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
-			peventdata = new EventData_LoginGatewayFailed();
-			(*static_cast<EventData_LoginGatewayFailed*>(peventdata)) = (*static_cast<const EventData_LoginGatewayFailed*>(lpEventData));
+		case CLIENT_EVENT_LOGIN_BASEAPP_FAILED:
+			peventdata = new EventData_LoginBaseappFailed();
+			(*static_cast<EventData_LoginBaseappFailed*>(peventdata)) = (*static_cast<const EventData_LoginBaseappFailed*>(lpEventData));
 			break;
 		case CLIENT_EVENT_SCRIPT:
 			peventdata = new EventData_Script();

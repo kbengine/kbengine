@@ -271,42 +271,49 @@ enum COMPONENT_CLIENT_TYPE
 	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
 
 	// 移动类，手机，平板电脑
-	// Mobile, Phone, Pad(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
+	// Mobile, Phone, Pad
 	CLIENT_TYPE_MOBILE				= 1,
 
-	// 独立的Windows/Linux/Mac应用程序(包含python脚本，entitydefs解析与检查entitydefs的MD5，原生的)
-	// Windows/Linux/Mac Application program (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
-	CLIENT_TYPE_PC					= 2,	
+	// 独立的Windows应用程序
+	// Windows Application program
+	CLIENT_TYPE_WIN					= 2,
 
-	// 不包含Python脚本，entitydefs协议可使用网络导入
+	// 独立的Linux应用程序
+	// Linux Application program
+	CLIENT_TYPE_LINUX				= 3,
+		
+	// Mac应用程序
+	// Mac Application program
+	CLIENT_TYPE_MAC					= 4,
+				
 	// Web, HTML5, Flash
-	CLIENT_TYPE_BROWSER				= 3,	
+	CLIENT_TYPE_BROWSER				= 5,
 
-	// 包含Python脚本，entitydefs解析与检查entitydefs的MD5，原生的
-	// bots	 (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
-	CLIENT_TYPE_BOTS				= 4,	
+	// bots
+	CLIENT_TYPE_BOTS				= 6,
 
-	// 轻端类, 可不包含python脚本，entitydefs协议可使用网络导入
-	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
-	CLIENT_TYPE_MINI				= 5,	
+	// 轻端类
+	CLIENT_TYPE_MINI				= 7,
 
 	// End
-	CLIENT_TYPE_END					= 6		
+	CLIENT_TYPE_END					= 8
 };
 
 /** 定义前端应用的类别名称 */
 const char COMPONENT_CLIENT_NAME[][255] = {
 	"UNKNOWN_CLIENT_COMPONENT_TYPE",
 	"CLIENT_TYPE_MOBILE",
-	"CLIENT_TYPE_PC",
+	"CLIENT_TYPE_WIN",
+	"CLIENT_TYPE_LINUX",
+	"CLIENT_TYPE_MAC",
 	"CLIENT_TYPE_BROWSER",
 	"CLIENT_TYPE_BOTS",
 	"CLIENT_TYPE_MINI",
 };
 
 // 所有前端应用的类别
-const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYPE_PC, CLIENT_TYPE_BROWSER, 
-												CLIENT_TYPE_BOTS, CLIENT_TYPE_MINI, UNKNOWN_CLIENT_COMPONENT_TYPE};
+const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYPE_WIN, CLIENT_TYPE_LINUX, CLIENT_TYPE_MAC, 
+												CLIENT_TYPE_BROWSER, CLIENT_TYPE_BOTS, CLIENT_TYPE_MINI, UNKNOWN_CLIENT_COMPONENT_TYPE};
 
 typedef int8 CLIENT_CTYPE;
 
