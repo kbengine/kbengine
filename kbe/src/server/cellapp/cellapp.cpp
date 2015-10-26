@@ -1225,7 +1225,7 @@ void Cellapp::onRemoteCallMethodFromClient(Network::Channel* pChannel, KBEngine:
 		e->onRemoteCallMethodFromClient(pChannel, srcEntityID, s);
 	}catch(MemoryStreamException &)
 	{
-		ERROR_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: message is error! entityID:{}.\n", 
+		ERROR_MSG(fmt::format("Cellapp::onRemoteCallMethodFromClient: message error! entityID:{}.\n", 
 			targetID));
 
 		s.done();
@@ -1450,8 +1450,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			pMsgHandler->handle(pChannel, s);
 		}catch(MemoryStreamException &)
 		{
-			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: message is error! entityID:{}.\n", 
-				srcEntityID));
+			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: message({}) error! entityID:{}.\n", 
+				pMsgHandler->name.c_str()£¬ srcEntityID));
 
 			s.done();
 			return;
