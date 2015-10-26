@@ -1451,7 +1451,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		}catch(MemoryStreamException &)
 		{
 			ERROR_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient: message({}) error! entityID:{}.\n", 
-				pMsgHandler->name.c_str()£¬ srcEntityID));
+				pMsgHandler->name.c_str(), srcEntityID));
 
 			s.done();
 			return;
