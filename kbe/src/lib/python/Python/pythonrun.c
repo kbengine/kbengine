@@ -1105,13 +1105,26 @@ error:
 static int
 is_valid_fd(int fd)
 {
-    int dummy_fd;
     if (fd < 0 || !_PyVerify_fd(fd))
         return 0;
-    dummy_fd = dup(fd);
-    if (dummy_fd < 0)
-        return 0;
-    close(dummy_fd);
+#if defined(MS_WINDOWS) && defined(HAVE_FSTAT) && defined(_MSC_VER) && (_MSC_VER >= 1700 && _MSC_VER < 1900)
+    /* dup (DuplicateHandle) doesn't say fd is a valid *file* handle.
+     * It could be a current thread pseudo-handle.
+     */
+    {
+        struct stat buf;
+        if (fstat(fd, &buf) < 0 && (errno == EBADF || errno == ENOENT))
+            return 0;
+    }
+#else
+    {
+        int dummy_fd;
+        dummy_fd = dup(fd);
+        if (dummy_fd < 0)
+            return 0;
+        close(dummy_fd);
+    }
+#endif
     return 1;
 }
 
