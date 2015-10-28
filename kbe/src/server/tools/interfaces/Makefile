@@ -4,6 +4,7 @@ SRCS =						\
 	interfaces				\
 	interfaces_tasks			\
 	interfaces_interface			\
+	py_file_descriptor			\
 	orders					\
 	profile					\
 	main

@@ -98,8 +98,8 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
 	mutex_(),
-	pTelnetServer_(),
-	scriptTimers_()
+	scriptTimers_(),
+	pTelnetServer_(NULL)
 {
 	ScriptTimers::initialize(*this);
 }
