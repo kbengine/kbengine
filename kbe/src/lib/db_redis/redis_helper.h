@@ -42,19 +42,16 @@ public:
 
 	static bool check_array_results(redisReply* pRedisReply)
 	{
-		bool valid = true;
-		
 		for(size_t j = 0; j < pRedisReply->elements; ++j) 
 		{
 			if(pRedisReply->element[j]->type != REDIS_REPLY_INTEGER && 
 				pRedisReply->element[j]->type != REDIS_REPLY_STRING)
 			{
-				valid = false;
-				break;
+				return false;
 			}
 		}
 		
-		return valid;
+		return true;
 	}
 	
 	static bool hasTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)

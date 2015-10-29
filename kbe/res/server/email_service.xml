@@ -260,6 +260,19 @@
 				</html>
 			]]>
 		</backlink_fail_message>
+		
+		<backlink_success_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">重置成功!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_success_message>		
 	</email_resetpassword>
 	
 	<email_bind>
