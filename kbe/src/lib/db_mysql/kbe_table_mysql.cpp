@@ -817,7 +817,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailResetPasswordInfo_.deadline)
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): is expired! {} > {}.\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): is expired! {} > {}.\n", 
 				code, (time(NULL) - logtime), g_kbeSrvConfig.emailResetPasswordInfo_.deadline));
 
 		return false;

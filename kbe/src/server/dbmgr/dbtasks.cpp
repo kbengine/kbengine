@@ -925,6 +925,17 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 		return false;
 	}
 
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+
+	if(!pTable->queryAccountAllInfos(pdbi_, accountName_, info))
+	{
+		return false;
+	}
+
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
+		return false;
+	
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	KBEEmailVerificationTable* pTable1 = 
@@ -932,9 +943,8 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 	KBE_ASSERT(pTable1);
 
 	info.datas = genmail_code(accountName_);
-	info.name = accountName_;
-	email_ = accountName_;
 	code_ = info.datas;
+	email_ = info.email;
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
 	return false;
 }
