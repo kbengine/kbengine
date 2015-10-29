@@ -727,10 +727,10 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 		return false;
 	}
 	
-	if(qname != name)
+	if(qemail != name)
 	{
-		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail: code({}) username({}, {}) not match.\n" 
-			, code, name, qname));
+		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail: code({}) username({}:{}, {}) not match.\n" 
+			, code, name, qname, qemail));
 
 		return false;
 	}
@@ -745,7 +745,7 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 	sqlstr += "\" where accountName like \"";
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, name.c_str(), name.size());
+		tbuf, qname.c_str(), qname.size());
 	
 	sqlstr += tbuf;
 	sqlstr += "\"";

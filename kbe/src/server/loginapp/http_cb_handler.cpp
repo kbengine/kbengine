@@ -312,7 +312,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				{
 					username = HttpUtility::URLDecode(username);
 
-					// œÚdbmgr÷ÿ÷√’À∫≈
+					// œÚdbmgr∞Û∂®’À∫≈’À∫≈
 					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 					(*pBundle).newMessage(DbmgrInterface::accountBindMail);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
