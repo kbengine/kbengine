@@ -333,7 +333,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 				KBEngine::strutil::kbe_replace(hellomessage, "${code}", code);
 
-				std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+				std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 					hellomessage.size(), hellomessage);
 
 				newclient->send(response.c_str(), response.size());
@@ -372,7 +372,7 @@ void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
@@ -398,7 +398,7 @@ void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailBindInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
@@ -424,7 +424,7 @@ void HTTPCBHandler::onAccountResetPassword(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
 			iter->second.endpoint->send(response.c_str(), response.size());
