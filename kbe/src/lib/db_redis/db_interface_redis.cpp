@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+#include "redis_helper.h"
 #include "db_interface_redis.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
@@ -43,10 +44,10 @@ DBInterfaceRedis::~DBInterfaceRedis()
 
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::initInterface(DBInterface* dbi)
-{
-	//EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
-	//EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-	//EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	
+{/*
+	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableRedis());
+	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	*/
 	return true;
 }
 
@@ -59,29 +60,12 @@ bool DBInterfaceRedis::checkEnvironment()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::checkErrors()
 {
-	MemoryStream* stream = MemoryStream::ObjPool().createObject();
-	std::string querycmd = fmt::format("keys {}:*", DBUtil::accountScriptName());
-	
-	if(!query(querycmd.c_str(), querycmd.size(), true, stream))
-	{
-		ERROR_MSG(fmt::format("DBInterfaceRedis::checkErrors: {}, query is error!\n", querycmd));
-		MemoryStream::ObjPool().reclaimObject(stream);
-		return false;
-	}
-	
-	uint32 nfields = 0;
-	(*stream) >> nfields;
-	
-	MemoryStream::ObjPool().reclaimObject(stream);
-
-	if(nfields == 0)
+	if (!RedisHelper::hasTable(this, fmt::format("{}:*", DBUtil::accountScriptName()), true))
 	{
 		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
 			DBUtil::accountScriptName()));
 		
-		querycmd = "eval \"redis.call('del', unpack(redis.call('keys','kbe_*')))\" 0";
-		query(querycmd.c_str(), querycmd.size(), false);
-		
+		RedisHelper::dropTable(this, fmt::format("kbe_*"), false);
 		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
 	}
 	
@@ -235,6 +219,38 @@ bool DBInterfaceRedis::getTableItemNames(const char* tableName, std::vector<std:
 }
 
 //-------------------------------------------------------------------------------------
+bool DBInterfaceRedis::query(const char* cmd, uint32 size, redisReply** pRedisReply, bool showExecInfo)
+{
+	KBE_ASSERT(pRedisContext_);
+	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
+	
+	lastquery_.assign(cmd, size);
+	
+	if (pRedisContext_->err) 
+	{
+		if(showExecInfo)
+		{
+			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
+				cmd, pRedisContext_->err, pRedisContext_->errstr));
+		}
+
+		if(*pRedisReply){
+			freeReplyObject(*pRedisReply); 
+			(*pRedisReply) = NULL;
+		}
+		
+		return false;
+	}  
+		
+	if(showExecInfo)
+	{
+		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
+	}
+				
+	return true;	
+}
+
+//-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	KBE_ASSERT(pRedisContext_);
@@ -264,6 +280,43 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
 	}
 				
+	return true;
+}
+
+bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+	KBE_ASSERT(pRedisContext_);
+	redisReply* pRedisReply = (redisReply*)redisvCommand(pRedisContext_, format, ap);
+	
+	lastquery_ = pRedisContext_->obuf;
+	
+	if (pRedisContext_->err) 
+	{
+		if(showExecInfo)
+		{
+			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
+				lastquery_, pRedisContext_->err, pRedisContext_->errstr));
+		}
+
+		if(pRedisReply){
+			freeReplyObject(pRedisReply); 
+			pRedisReply = NULL;
+		}
+		
+		va_end(ap);
+		return false;
+	}  
+		
+	if(showExecInfo)
+	{
+		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
+	}    
+	
+	va_end(ap);
+
 	return true;
 }
 
@@ -379,10 +432,7 @@ bool DBInterfaceRedis::dropEntityTableFromDB(const char* tableName)
 	KBE_ASSERT(tableName != NULL);
   
 	DEBUG_MSG(fmt::format("DBInterfaceRedis::dropEntityTableFromDB: {}.\n", tableName));
-
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "eval \"redis.call('del', unpack(redis.call('keys','%s')))\" 0", tableName);
-	return query(sql_str, strlen(sql_str));
+	return RedisHelper::dropTable(this, tableName);
 }
 
 //-------------------------------------------------------------------------------------

@@ -41,6 +41,15 @@ namespace KBEngine {
 
 /*
 	数据库接口
+	tbl_Account_Auto_increment = uint64(1)
+	tbl_Account:1 = hashes(name, password, xxx)
+	tbl_Account:2 = hashes(name, password, xxx)
+	tbl_Account:3 = hashes(name, password, xxx(array))
+
+	tbl_Account_xxx_values:3:size = uint64(3)
+	tbl_Account_xxx_values:3:1 = val
+	tbl_Account_xxx_values:3:2 = val
+	tbl_Account_xxx_values:3:3 = val	
 */
 class DBInterfaceRedis : public DBInterface
 {
@@ -83,7 +92,9 @@ public:
 		查询表
 	*/
 	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
-
+	bool query(const char* cmd, uint32 size, redisReply** pRedisReply, bool showExecInfo = true);
+	bool query(bool showExecInfo, const char* format, ...);
+	
 	void write_query_result(redisReply* r, MemoryStream * result);
 	void write_query_result_element(redisReply* r, MemoryStream * result);
 		
@@ -111,7 +122,7 @@ public:
 		从数据库删除entity表
 	*/
 	virtual bool dropEntityTableFromDB(const char* tableName);
-
+	
 	/** 
 		从数据库删除entity表字段
 	*/
