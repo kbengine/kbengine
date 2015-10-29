@@ -185,11 +185,7 @@
 				  }
 				  
 				  if (username && username.value === '') {
-				    displayError(username, '请输入邮箱');
-				    return false;
-				  } else if (! (/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(username.value)
-				                || /^1[358](\d){9}$/.test(username.value))){
-				    displayError(username, '请输入正确的邮箱');
+				    displayError(username, '请输入账号名');
 				    return false;
 				  } else {
 				    username && clearError(username);

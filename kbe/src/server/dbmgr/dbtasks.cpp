@@ -945,7 +945,7 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 	info.datas = genmail_code(accountName_);
 	code_ = info.datas;
 	email_ = info.email;
-	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, email_, code_);
 	return false;
 }
 
