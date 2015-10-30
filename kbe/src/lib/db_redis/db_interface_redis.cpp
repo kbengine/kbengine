@@ -222,9 +222,9 @@ bool DBInterfaceRedis::getTableItemNames(const char* tableName, std::vector<std:
 bool DBInterfaceRedis::query(const char* cmd, uint32 size, redisReply** pRedisReply, bool showExecInfo)
 {
 	KBE_ASSERT(pRedisContext_);
-	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
+	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd);  
 	
-	lastquery_.assign(cmd, size);
+	lastquery_ = cmd;
 	
 	if (pRedisContext_->err) 
 	{
@@ -254,9 +254,9 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, redisReply** pRedisRe
 bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	KBE_ASSERT(pRedisContext_);
-	redisReply* r = (redisReply*)redisCommand(pRedisContext_, "%b", cmd, size);  
+	redisReply* r = (redisReply*)redisCommand(pRedisContext_, cmd);
 	
-	lastquery_.assign(cmd, size);
+	lastquery_ = cmd;
 	write_query_result(r, result);
 	
 	if (pRedisContext_->err) 
@@ -279,7 +279,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 	{
 		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
 	}
-				
+
 	return true;
 }
 
@@ -292,10 +292,21 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 	KBE_ASSERT(pRedisContext_);
 	redisReply* pRedisReply = (redisReply*)redisvCommand(pRedisContext_, format, ap);
 	
-	lastquery_ = pRedisContext_->obuf;
-	
 	if (pRedisContext_->err) 
 	{
+	    char *cmd;
+	    int len = redisvFormatCommand(&cmd, format, ap);
+		if(len == 0)
+		{
+			lastquery_ = cmd;
+			free(cmd);
+		}
+		else
+		{
+			// 分析命令出错了
+			lastquery_ = format;
+		}
+				
 		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
@@ -318,6 +329,7 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 	
 	va_end(ap);
 
+	lastquery_ = pRedisContext_->obuf;
 	return true;
 }
 
@@ -330,13 +342,29 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	KBE_ASSERT(pRedisContext_);
 	int ret = redisvAppendCommand(pRedisContext_, format, ap);
 
-	lastquery_ = pRedisContext_->obuf;
+	if(lastquery_.size() > 0 && lastquery_[lastquery_.size() - 1] != ';')
+		lastquery_ = "";
 	
 	if (ret == REDIS_ERR) 
-	{
+	{	
+	    char *cmd;
+	    int len = redisvFormatCommand(&cmd, format, ap);
+		if(len == 0)
+		{
+			lastquery_ += cmd;
+			free(cmd);
+		}
+		else
+		{
+			// 分析命令出错了
+			lastquery_ += format;
+		}
+
+		lastquery_ += ";";
+		
 		if(showExecInfo)
 		{
-			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
+			ERROR_MSG(fmt::format("DBInterfaceRedis::queryAppend: cmd={}, errno={}, error={}\n",
 				lastquery_, pRedisContext_->err, pRedisContext_->errstr));
 		}
 		
@@ -346,11 +374,14 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 		
 	if(showExecInfo)
 	{
-		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
+		INFO_MSG("DBInterfaceRedis::queryAppend: successfully!\n"); 
 	}    
 	
 	va_end(ap);
 
+	lastquery_ += pRedisContext_->obuf;
+	lastquery_ += ";";
+		
 	return true;
 }
 
