@@ -75,7 +75,11 @@ public:
 		
 		if(pRedisReply)
 		{
-			size = pRedisReply->elements;
+			if(pRedisReply->elements == 2 && pRedisReply->element[1]->type == REDIS_REPLY_ARRAY)
+			{
+				size = pRedisReply->element[1]->elements;
+			}
+			
 			freeReplyObject(pRedisReply); 
 		}
 		
@@ -107,12 +111,15 @@ public:
 					
 					// 下一次由这个index开始
 					StringConv::str2value(index, pRedisReply->element[0]->str);
-
-					for(size_t j = 0; j < pRedisReply->element[1]->elements; ++j) 
+					
+					redisReply* r0 = pRedisReply->element[1];
+					KBE_ASSERT(r0->type == REDIS_REPLY_ARRAY);
+					
+					for(size_t j = 0; j < r0->elements; ++j) 
 					{
-						redisReply* r = pRedisReply->element[1]->element[j];
-						KBE_ASSERT(r->type == REDIS_REPLY_STRING);
-						sqlstr = fmt::format("del {}", r->str);
+						redisReply* r1 = r0->element[j];
+						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
+						sqlstr = fmt::format("del {}", r1->str);
 							
 						try
 						{
