@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common.h"
 #include "common/common.h"
+#include "common/stringconv.h"
 #include "common/memorystream.h"
 #include "helper/debug_helper.h"
 #include "db_interface_redis.h"
@@ -63,35 +64,76 @@ public:
 		
 		try
 		{
-			pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+			if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo))
+				return false;
 		}
 		catch(...)
 		{
 		}
 		
-		if(pRedisReply)
-			freeReplyObject(pRedisReply); 
+		size_t size = 0;
 		
-		return true;
+		if(pRedisReply)
+		{
+			size = pRedisReply->elements;
+			freeReplyObject(pRedisReply); 
+		}
+		
+		return size > 0;
 	}
 	
 	static bool dropTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)
 	{
 		uint64 index = 0;
 		
-		redisReply* pRedisReply = NULL;
-		std::string sqlstr = fmt::format("scan {} MATCH {}", name);
-		
-		try
+		while(true)
 		{
-			pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+			redisReply* pRedisReply = NULL;
+			std::string sqlstr = fmt::format("scan {} MATCH {}", index, name);
+			
+			try
+			{
+				pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+			}
+			catch(...)
+			{
+			}
+			
+			if(pRedisReply)
+			{
+				if(pRedisReply->elements == 2)
+				{
+					KBE_ASSERT(pRedisReply->element[0]->type == REDIS_REPLY_STRING);
+					
+					// 下一次由这个index开始
+					StringConv::str2value(index, pRedisReply->element[0]->str);
+
+					for(size_t j = 0; j < pRedisReply->element[1]->elements; ++j) 
+					{
+						redisReply* r = pRedisReply->element[1]->element[j];
+						KBE_ASSERT(r->type == REDIS_REPLY_STRING);
+						sqlstr = fmt::format("del {}", r->str);
+							
+						try
+						{
+							pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+						}
+						catch(...)
+						{
+						}
+					}
+				}
+				
+				freeReplyObject(pRedisReply); 
+			}
+			else
+			{
+				return false;
+			}
+			
+			if(index == 0)
+				break;
 		}
-		catch(...)
-		{
-		}
-		
-		if(pRedisReply)
-			freeReplyObject(pRedisReply); 
 		
 		return true;
 	}
