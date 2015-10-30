@@ -57,8 +57,6 @@ public:
 	
 	static bool hasTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)
 	{
-		uint64 index = 0;
-		
 		redisReply* pRedisReply = NULL;
 		std::string sqlstr = fmt::format("scan {} MATCH {}", name);
 		
