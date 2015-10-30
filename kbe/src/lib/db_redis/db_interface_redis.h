@@ -94,6 +94,7 @@ public:
 	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
 	bool query(const char* cmd, uint32 size, redisReply** pRedisReply, bool showExecInfo = true);
 	bool query(bool showExecInfo, const char* format, ...);
+	bool queryAppend(bool showExecInfo, const char* format, ...);
 	
 	void write_query_result(redisReply* r, MemoryStream * result);
 	void write_query_result_element(redisReply* r, MemoryStream * result);

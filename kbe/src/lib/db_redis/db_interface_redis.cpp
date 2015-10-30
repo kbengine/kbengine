@@ -283,6 +283,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 {
     va_list ap;
@@ -304,6 +305,39 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 		if(pRedisReply){
 			freeReplyObject(pRedisReply); 
 			pRedisReply = NULL;
+		}
+		
+		va_end(ap);
+		return false;
+	}  
+		
+	if(showExecInfo)
+	{
+		INFO_MSG("DBInterfaceRedis::query: successfully!\n"); 
+	}    
+	
+	va_end(ap);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+	KBE_ASSERT(pRedisContext_);
+	int ret = redisvAppendCommand(pRedisContext_, format, ap);
+
+	lastquery_ = pRedisContext_->obuf;
+	
+	if (ret == REDIS_ERR) 
+	{
+		if(showExecInfo)
+		{
+			ERROR_MSG(fmt::format("DBInterfaceRedis::query: cmd={}, errno={}, error={}\n",
+				lastquery_, pRedisContext_->err, pRedisContext_->errstr));
 		}
 		
 		va_end(ap);
