@@ -92,12 +92,13 @@ public:
 		查询表
 	*/
 	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
-	bool query(const char* cmd, uint32 size, redisReply** pRedisReply, bool showExecInfo = true);
+	bool query(const std::string& cmd, redisReply** pRedisReply, bool showExecInfo = true);
 	bool query(bool showExecInfo, const char* format, ...);
 	bool queryAppend(bool showExecInfo, const char* format, ...);
+	bool getQueryReply(redisReply **pRedisReply);
 	
-	void write_query_result(redisReply* r, MemoryStream * result);
-	void write_query_result_element(redisReply* r, MemoryStream * result);
+	void write_query_result(redisReply* pRedisReply, MemoryStream * result);
+	void write_query_result_element(redisReply* pRedisReply, MemoryStream * result);
 		
 	/**
 		返回这个接口的描述

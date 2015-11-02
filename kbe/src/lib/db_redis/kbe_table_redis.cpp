@@ -69,12 +69,11 @@ bool KBEEntityLogTableRedis::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
 	*/
 	redisReply* pRedisReply = NULL;
-	std::string sqlstr = fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID", 
-		dbid, entityType);
 
 	try
 	{
-		static_cast<DBInterfaceRedis*>(dbi)->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, false);
+		static_cast<DBInterfaceRedis*>(dbi)->query(fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID",
+			dbid, entityType), &pRedisReply, false);
 	}
 	catch(...)
 	{
@@ -146,11 +145,10 @@ bool KBEAccountTableRedis::setFlagsDeadline(DBInterface * dbi, const std::string
 	/*
 	kbe_accountinfos:accountName = hashes(password, bindata, email, entityDBID, flags, deadline, regtime, lasttime, numlogin)
 	*/
-	std::string sqlstr = fmt::format("HSET kbe_accountinfos:{} flags {} deadline {}", 
-		name, flags, deadline);
 	
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(dbi->query(fmt::format("HSET kbe_accountinfos:{} flags {} deadline {}", 
+		name, flags, deadline), false))
 		return true;
 
 	return false;
@@ -163,12 +161,11 @@ bool KBEAccountTableRedis::queryAccount(DBInterface * dbi, const std::string& na
 	kbe_accountinfos:accountName = hashes(password, bindata, email, entityDBID, flags, deadline, regtime, lasttime, numlogin)
 	*/
 	redisReply* pRedisReply = NULL;
-	std::string sqlstr = fmt::format("HMGET kbe_accountinfos:{} entityDBID password flags deadline", 
-		name);
 
 	try
 	{
-		static_cast<DBInterfaceRedis*>(dbi)->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, false);
+		static_cast<DBInterfaceRedis*>(dbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password flags deadline",
+			name), &pRedisReply, false);
 	}
 	catch(...)
 	{
@@ -204,12 +201,11 @@ bool KBEAccountTableRedis::queryAccountAllInfos(DBInterface * dbi, const std::st
 	kbe_accountinfos:accountName = hashes(password, bindata, email, entityDBID, flags, deadline, regtime, lasttime, numlogin)
 	*/
 	redisReply* pRedisReply = NULL;
-	std::string sqlstr = fmt::format("HMGET kbe_accountinfos:{} entityDBID password email flags deadline", 
-		name);
 
 	try
 	{
-		static_cast<DBInterfaceRedis*>(dbi)->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, false);
+		static_cast<DBInterfaceRedis*>(dbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password email flags deadline",
+			name), &pRedisReply, false);
 	}
 	catch(...)
 	{
@@ -244,28 +240,41 @@ bool KBEAccountTableRedis::updateCount(DBInterface * dbi, const std::string& nam
 	/*
 	kbe_accountinfos:accountName = hashes(password, bindata, email, entityDBID, flags, deadline, regtime, lasttime, numlogin)
 	*/
-	std::string sqlstr = fmt::format("HINCRBY kbe_accountinfos:{} numlogin", name);
-
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!static_cast<DBInterfaceRedis*>(dbi)->queryAppend(false, "HINCRBY kbe_accountinfos:{} numlogin", name))
 		return false;
 
-	sqlstr = fmt::format("HSET kbe_accountinfos:{} lasttime {}", name, time(NULL));
-
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!static_cast<DBInterfaceRedis*>(dbi)->queryAppend(false, "HSET kbe_accountinfos:{} lasttime {}", name, time(NULL)))
 		return false;
 
-	return true;
+	redisReply* pRedisReply = NULL;
+	int replys = 0;
+	
+	static_cast<DBInterfaceRedis*>(dbi)->getQueryReply(&pRedisReply);
+	if(pRedisReply)
+	{
+		++replys;
+		freeReplyObject(pRedisReply); 
+		pRedisReply = NULL;
+	}
+
+	static_cast<DBInterfaceRedis*>(dbi)->getQueryReply(&pRedisReply);
+	if(pRedisReply)
+	{
+		++replys;
+		freeReplyObject(pRedisReply); 
+		pRedisReply = NULL;
+	}
+	
+	return replys == 2;
 }
 
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableRedis::updatePassword(DBInterface * dbi, const std::string& name, const std::string& password)
 {
-	std::string sqlstr = fmt::format("HSET kbe_accountinfos:{} password {}", name, password);
-
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!dbi->query(fmt::format("HSET kbe_accountinfos:{} password {}", name, password), false))
 		return false;
 
 	return true;
@@ -765,6 +774,9 @@ bool KBEEmailVerificationTableRedis::delAccount(DBInterface * dbi, int8 type, co
 //-------------------------------------------------------------------------------------
 bool KBEEmailVerificationTableRedis::syncToDB(DBInterface* dbi)
 {
+	/*
+	kbe_email_verification:code = hashes(entityID, ip, port, componentID)
+	*/
 	bool ret = false;
 
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_email_verification "

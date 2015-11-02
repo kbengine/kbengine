@@ -58,11 +58,10 @@ public:
 	static bool hasTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)
 	{
 		redisReply* pRedisReply = NULL;
-		std::string sqlstr = fmt::format("scan {} MATCH {}", name);
 		
 		try
 		{
-			if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo))
+			if (!pdbi->query(fmt::format("scan {} MATCH {}", name), &pRedisReply, showExecInfo))
 				return false;
 		}
 		catch(...)
@@ -91,11 +90,10 @@ public:
 		while(true)
 		{
 			redisReply* pRedisReply = NULL;
-			std::string sqlstr = fmt::format("scan {} MATCH {}", index, name);
 			
 			try
 			{
-				pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+				pdbi->query(fmt::format("scan {} MATCH {}", index, name), &pRedisReply, showExecInfo);
 			}
 			catch(...)
 			{
@@ -117,11 +115,10 @@ public:
 					{
 						redisReply* r1 = r0->element[j];
 						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
-						sqlstr = fmt::format("del {}", r1->str);
 							
 						try
 						{
-							pdbi->query(sqlstr.c_str(), sqlstr.size(), &pRedisReply, showExecInfo);
+							pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, showExecInfo);
 						}
 						catch(...)
 						{
