@@ -947,7 +947,8 @@ void Components::onChannelDeregister(Network::Channel * pChannel, bool isShuting
 //-------------------------------------------------------------------------------------
 bool Components::findLogger()
 {
-	if(g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE)
+	if(g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE ||
+		componentType_ == INTERFACES_TYPE)
 	{
 		return true;
 	}

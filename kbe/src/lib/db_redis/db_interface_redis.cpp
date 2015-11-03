@@ -295,7 +295,8 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 	char buffer[1024];
 	int cnt	= vsnprintf(buffer, sizeof(buffer) - 1, format, ap);
 
-	lastquery_ = buffer;
+	if(cnt > 0)
+		lastquery_ = buffer;
 	
 	if (pRedisContext_->err) 
 	{
@@ -339,9 +340,12 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	char buffer[1024];
 	int cnt	= vsnprintf(buffer, sizeof(buffer) - 1, format, ap);
 
-	lastquery_ += buffer;
-	lastquery_ += ";";
-
+	if(cnt > 0)
+	{
+		lastquery_ += buffer;
+		lastquery_ += ";";
+	}
+	
 	if (ret == REDIS_ERR) 
 	{	
 		if(showExecInfo)
