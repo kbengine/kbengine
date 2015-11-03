@@ -59,7 +59,6 @@ public:
 	KBEngine::script::Script& getScript(){ return script_; }
 	PyObjectPtr getEntryScript(){ return entryScript_; }
 
-	void registerScript(PyTypeObject*);
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
 	int unregisterPyObjectToScript(const char* attrName);
 
