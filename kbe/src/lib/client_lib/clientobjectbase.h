@@ -90,8 +90,8 @@ public:
 	bool createAccount();
 	bool login();
 	
-	bool loginGateWay();
-	bool reLoginGateWay();
+	bool loginBaseapp();
+	bool reLoginBaseapp();
 
 	int32 appID() const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
@@ -190,13 +190,13 @@ public:
 									NETWORK_ERR_ILLEGAL_LOGIN:非法登录, 
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity
@@ -426,13 +426,13 @@ protected:
 	std::string												ip_;
 	uint16													port_;
 
-	std::string												gatewayIP_;
-	uint16													gateWayPort_;
+	std::string												baseappIP_;
+	uint16													baseappPort_;
 
 	uint64													lastSentActiveTickTime_;
 	uint64													lastSentUpdateDataTime_;
 
-	bool													connectedGateway_;
+	bool													connectedBaseapp_;
 	bool													canReset_;
 
 	std::string												name_;

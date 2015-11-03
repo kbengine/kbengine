@@ -699,22 +699,28 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && 
-		ctype != CLIENT_TYPE_MINI && ctype != CLIENT_TYPE_MOBILE))
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest)
 	{
 		std::string clientDigest;
 
 		if(s.length() > 0)
 			s >> clientDigest;
 
-		if(clientDigest != digest_)
+		if(clientDigest.size() > 0)
 		{
-			INFO_MSG(fmt::format("Loginapp::login: loginName({}), digest not match. curr({}) != dbmgr({})\n",
-				loginName, clientDigest, digest_));
+			if(clientDigest != digest_)
+			{
+				INFO_MSG(fmt::format("Loginapp::login: loginName({}), digest not match. curr({}) != dbmgr({})\n",
+					loginName, clientDigest, digest_));
 
-			datas = "";
-			_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
-			return;
+				datas = "";
+				_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
+				return;
+			}
+		}
+		else
+		{
+			//WARNING_MSG(fmt::format("Loginapp::login: loginName={} no check entitydefs!\n", loginName));
 		}
 	}
 

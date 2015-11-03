@@ -1574,7 +1574,7 @@ void Entity::onGetWitness(bool fromBase)
 
 	if(fromBase)
 	{
-		// proxy的giveClientTo功能或者reloginGateway， 如果一个entity已经创建了cell， 并将控制权绑定
+		// proxy的giveClientTo功能或者reloginBaseapp， 如果一个entity已经创建了cell， 并将控制权绑定
 		// 到该entity时是一定没有clientMailbox的。
 		if(clientMailbox() == NULL)
 		{

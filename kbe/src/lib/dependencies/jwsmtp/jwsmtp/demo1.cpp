@@ -41,7 +41,7 @@ std::string html("<html>"
 int main(int argc, char* argv[])
 {
    // replace the users 'to' and 'from' here before compiling this demo
-   jwsmtp::mailer m("3603661@qq.com", "liquidx@163.com", "subject line",
+   jwsmtp::mailer m("***@qq.com", "***@163.com", "subject line",
                     "This is the plain text part of the message", "smtp.163.com",
                     jwsmtp::mailer::SMTP_PORT, false);
 
@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
    //    m.setmessageHTML(htmlvec);
    m.setmessageHTML(html);
 
-   m.username("liquidx@163.com");
-   m.password("kebiao");
+   m.username("***@163.com");
+   m.password("***");
    m.send(); // send the mail
    std ::cout << m.response() << "\n";
    return 0;

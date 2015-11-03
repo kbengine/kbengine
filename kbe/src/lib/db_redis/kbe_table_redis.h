@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_KBE_TABLE_MYSQL_H
-#define KBE_KBE_TABLE_MYSQL_H
+#ifndef KBE_KBE_TABLE_REDIS_H
+#define KBE_KBE_TABLE_REDIS_H
 
 #include "common.h"
 #include "common/common.h"
@@ -33,11 +33,11 @@ namespace KBEngine {
 /*
 	kbe系统表
 */
-class KBEEntityLogTableMysql : public KBEEntityLogTable
+class KBEEntityLogTableRedis : public KBEEntityLogTable
 {
 public:
-	KBEEntityLogTableMysql();
-	virtual ~KBEEntityLogTableMysql(){}
+	KBEEntityLogTableRedis();
+	virtual ~KBEEntityLogTableRedis(){}
 	
 	/**
 		同步表到数据库中
@@ -55,11 +55,11 @@ protected:
 	
 };
 
-class KBEAccountTableMysql : public KBEAccountTable
+class KBEAccountTableRedis : public KBEAccountTable
 {
 public:
-	KBEAccountTableMysql();
-	virtual ~KBEAccountTableMysql(){}
+	KBEAccountTableRedis();
+	virtual ~KBEAccountTableRedis(){}
 	
 	/**
 		同步表到数据库中
@@ -76,12 +76,12 @@ public:
 protected:
 };
 
-class KBEEmailVerificationTableMysql : public KBEEmailVerificationTable
+class KBEEmailVerificationTableRedis : public KBEEmailVerificationTable
 {
 public:
 
-	KBEEmailVerificationTableMysql();
-	virtual ~KBEEmailVerificationTableMysql();
+	KBEEmailVerificationTableRedis();
+	virtual ~KBEEmailVerificationTableRedis();
 
 	/**
 		同步表到数据库中
@@ -102,4 +102,4 @@ protected:
 
 }
 
-#endif // KBE_KBE_TABLE_MYSQL_H
+#endif // KBE_KBE_TABLE_REDIS_H

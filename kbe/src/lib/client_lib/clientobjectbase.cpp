@@ -70,17 +70,23 @@ entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
 ip_(),
 port_(),
-gatewayIP_(),
-gateWayPort_(),
+baseappIP_(),
+baseappPort_(),
 lastSentActiveTickTime_(timestamp()),
 lastSentUpdateDataTime_(timestamp()),
-connectedGateway_(false),
+connectedBaseapp_(false),
 canReset_(false),
 name_(),
 password_(),
 clientDatas_(""),
 serverDatas_(""),
-typeClient_(CLIENT_TYPE_PC),
+#if KBE_PLATFORM == PLATFORM_UNIX
+typeClient_(CLIENT_TYPE_LINUX),
+#elif KBE_PLATFORM == PLATFORM_APPLE
+typeClient_(CLIENT_TYPE_MAC),
+#else
+typeClient_(CLIENT_TYPE_WIN),
+#endif
 bufferedCreateEntityMessage_(),
 eventHandler_(),
 networkInterface_(ninterface),
@@ -140,7 +146,7 @@ void ClientObjectBase::reset(void)
 
 	lastSentActiveTickTime_ = timestamp();
 	lastSentUpdateDataTime_ = timestamp();
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 
 	name_ = "";
 	password_ = "";
@@ -167,7 +173,7 @@ void ClientObjectBase::onServerClosed()
 {
 	EventData_ServerCloased eventdata;
 	eventHandler_.fire(&eventdata);
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 	canReset_ = true;
 
 	DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
@@ -183,7 +189,7 @@ void ClientObjectBase::tickSend()
 	
 	if(pServerChannel_ && pServerChannel_->isDestroyed())
 	{
-		if(connectedGateway_)
+		if(connectedBaseapp_)
 		{
 			onServerClosed();
 		}
@@ -198,7 +204,7 @@ void ClientObjectBase::tickSend()
 		lastSentActiveTickTime_ = timestamp();
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		if(connectedGateway_)
+		if(connectedBaseapp_)
 			(*pBundle).newMessage(BaseappInterface::onClientActiveTick);
 		else
 			(*pBundle).newMessage(LoginappInterface::onClientActiveTick);
@@ -511,7 +517,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 	lastSentActiveTickTime_ = timestamp();
 	lastSentUpdateDataTime_ = timestamp();
 	return pServerChannel_;
@@ -597,18 +603,18 @@ bool ClientObjectBase::login()
 	(*pBundle) << password_;
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	pServerChannel_->send(pBundle);
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObjectBase::loginGateWay()
+bool ClientObjectBase::loginBaseapp()
 {
 	// 请求登录网关, 能走到这里来一定是连接了网关
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(BaseappInterface::loginGateway);
+	(*pBundle).newMessage(BaseappInterface::loginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	pServerChannel_->send(pBundle);
@@ -616,13 +622,13 @@ bool ClientObjectBase::loginGateWay()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObjectBase::reLoginGateWay()
+bool ClientObjectBase::reLoginBaseapp()
 {
 	// 请求重登陆网关, 通常是掉线了之后执行
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(BaseappInterface::reLoginGateway);
+	(*pBundle).newMessage(BaseappInterface::reLoginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << rndUUID();
@@ -660,14 +666,14 @@ void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemorySt
 	s >> port_;
 	s.readBlob(serverDatas_);
 	
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
 
-	gatewayIP_ = ip_;
-	gateWayPort_ = port_;
+	baseappIP_ = ip_;
+	baseappPort_ = port_;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -678,7 +684,7 @@ void ClientObjectBase::onLoginFailed(Network::Channel * pChannel, MemoryStream& 
 	s >> failedcode;
 	s.readBlob(serverDatas_);
 	
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 	INFO_MSG(fmt::format("ClientObjectBase::onLoginFailed: {} failedcode={}!\n", name_, failedcode));
 	EventData_LoginFailed eventdata;
 	eventdata.failedcode = failedcode;
@@ -686,38 +692,38 @@ void ClientObjectBase::onLoginFailed(Network::Channel * pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(fmt::format("ClientObjectBase::onLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
 
 	// 能走到这里来一定是连接了网关
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
-	EventData_LoginGatewayFailed eventdata;
+	EventData_LoginBaseappFailed eventdata;
 	eventdata.failedcode = failedcode;
 	eventdata.relogin = false;
 	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewayFailed: {} failedcode={}!\n", name_, failedcode));
+	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
 
 	// 能走到这里来一定是连接了网关
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
-	EventData_LoginGatewayFailed eventdata;
+	EventData_LoginBaseappFailed eventdata;
 	eventdata.failedcode = failedcode;
 	eventdata.relogin = true;
 	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	s >> rndUUID_;
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginGatewaySuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
+	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -733,7 +739,7 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 
 	if(entityID_ == 0)
 	{
-		EventData_LoginGatewaySuccess eventdata;
+		EventData_LoginBaseappSuccess eventdata;
 		eventHandler_.fire(&eventdata);
 	}
 
@@ -741,7 +747,7 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 	bool hasBufferedMessage = (iter != bufferedCreateEntityMessage_.end());
 
 	// 能走到这里来一定是连接了网关
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
 	entityID_ = eid;
 	rndUUID_ = rndUUID;
@@ -1114,7 +1120,7 @@ void ClientObjectBase::updatePlayerToServer()
 	lastSentUpdateDataTime_ = timestamp();
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
-	if(pEntity == NULL || !connectedGateway_ || 
+	if(pEntity == NULL || !connectedBaseapp_ || 
 		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
 		return;
 

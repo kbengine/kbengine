@@ -318,7 +318,7 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::updateCount(DBInterface * dbi, DBID dbid)
+bool KBEAccountTableMysql::updateCount(DBInterface * dbi, const std::string& name, DBID dbid)
 {
 	// 如果查询失败则返回存在， 避免可能产生的错误
 	if(!dbi->query(fmt::format("update kbe_accountinfos set lasttime={}, numlogin=numlogin+1 where entityDBID={}",
@@ -727,10 +727,10 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 		return false;
 	}
 	
-	if(qname != name)
+	if(qemail != name)
 	{
-		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail: code({}) username({}, {}) not match.\n" 
-			, code, name, qname));
+		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail: code({}) username({}:{}, {}) not match.\n" 
+			, code, name, qname, qemail));
 
 		return false;
 	}
@@ -745,7 +745,7 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 	sqlstr += "\" where accountName like \"";
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, name.c_str(), name.size());
+		tbuf, qname.c_str(), qname.size());
 	
 	sqlstr += tbuf;
 	sqlstr += "\"";
@@ -754,8 +754,8 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 
 	if(!dbi->query(sqlstr, false))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): update kbe_accountinfos is error({})!\n", 
-				code, dbi->getstrerror()));
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): update kbe_accountinfos({}) error({})!\n", 
+				code, qname, dbi->getstrerror()));
 
 		return false;
 	}
@@ -775,7 +775,7 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std::string& name, 
 												   const std::string& password, const std::string& code)
 {
-	std::string sqlstr = "select accountName, logtime from kbe_email_verification where code=\"";
+	std::string sqlstr = "select accountName, datas, logtime from kbe_email_verification where code=\"";
 
 	char* tbuf = new char[code.size() * 2 + 1];
 
@@ -800,7 +800,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	uint64 logtime = 1;
 	
-	std::string qname;
+	std::string qname, qemail;
 
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 	if(pResult)
@@ -809,7 +809,8 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 		if(arow != NULL)
 		{
 			qname = arow[0];
-			KBEngine::StringConv::str2value(logtime, arow[1]);
+			qemail = arow[1];
+			KBEngine::StringConv::str2value(logtime, arow[2]);
 		}
 
 		mysql_free_result(pResult);
@@ -817,7 +818,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailResetPasswordInfo_.deadline)
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): is expired! {} > {}.\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): is expired! {} > {}.\n", 
 				code, (time(NULL) - logtime), g_kbeSrvConfig.emailResetPasswordInfo_.deadline));
 
 		return false;
@@ -833,7 +834,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	if(qname != name)
 	{
-		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword: code({}) username({}, {}) not match.\n" 
+		WARNING_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword: code({}) username({} != {}) not match.\n" 
 			, code, name, qname));
 
 		return false;
@@ -843,10 +844,10 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
-	if(!pTable->updatePassword(dbi, name, KBE_MD5::getDigest(password.data(), password.length())))
+	if(!pTable->updatePassword(dbi, qname, KBE_MD5::getDigest(password.data(), password.length())))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): update password is error({})!\n", 
-				code, dbi->getstrerror()));
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): update accountName({}) password error({})!\n", 
+				code, qname, dbi->getstrerror()));
 
 		return false;
 	}
@@ -854,7 +855,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	try
 	{
-		delAccount(dbi, (int8)V_TYPE_RESETPASSWORD, name);
+		delAccount(dbi, (int8)V_TYPE_RESETPASSWORD, qname);
 	}
 	catch (...)
 	{

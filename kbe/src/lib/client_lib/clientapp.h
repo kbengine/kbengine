@@ -65,8 +65,8 @@ public:
 		C_STATE_INIT = 0,
 		C_STATE_INITLOGINAPP_CHANNEL = 1,
 		C_STATE_LOGIN = 2,
-		C_STATE_LOGIN_GATEWAY_CHANNEL = 3,
-		C_STATE_LOGIN_GATEWAY = 4,
+		C_STATE_LOGIN_BASEAPP_CHANNEL = 3,
+		C_STATE_LOGIN_BASEAPP = 4,
 		C_STATE_PLAY = 5,
 	};
 public:
@@ -177,13 +177,13 @@ public:
 									NETWORK_ERR_ILLEGAL_LOGIN:非法登录, 
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	virtual void onTargetChanged();
 

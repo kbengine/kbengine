@@ -1,3 +1,23 @@
+###v0.6.20
+
+	2015/10/23
+
+	新增与改善：
+		增加新的API：Entity.addYawRotator
+		更新API文档
+		vs2010项目升级到vs2013
+		实体容器类属性标脏机制(#259)
+		addSpaceGeometryMapping参数调整可指定参数加载navmesh到某个layer下(#240)
+		调整数据库查询接口，更好的支持不同形式的数据库扩展
+
+	BUG修正：
+		修正email激活邮件乱码问题
+		修正指定FIXED_DICT类型存档字段不对的问题(#255)
+		修正dbmgr多次与interfaces连接的问题
+		修正moveToPoint的参数distance大于0时当实体距离目的地小于distance时实体会忘相反的地方行走
+
+
+
 ###v0.6.1
 
 	2015/6/1

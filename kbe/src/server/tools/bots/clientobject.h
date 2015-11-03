@@ -47,7 +47,7 @@ public:
 		C_ERROR_INIT_NETWORK_FAILED = 1,
 		C_ERROR_CREATE_FAILED = 2,
 		C_ERROR_LOGIN_FAILED = 3,
-		C_ERROR_LOGIN_GATEWAY_FAILED = 4,
+		C_ERROR_LOGIN_BASEAPP_FAILED = 4,
 	};
 
 	enum C_STATE
@@ -55,8 +55,8 @@ public:
 		C_STATE_INIT = 0,
 		C_STATE_CREATE = 1,
 		C_STATE_LOGIN = 2,
-		C_STATE_LOGIN_GATEWAY_CREATE = 3,
-		C_STATE_LOGIN_GATEWAY = 4,
+		C_STATE_LOGIN_BASEAPP_CREATE = 3,
+		C_STATE_LOGIN_BASEAPP = 4,
 		C_STATE_PLAY = 5,
 		C_STATE_DESTROYED = 6,
 	};
@@ -68,7 +68,7 @@ public:
 	virtual void reset(void);
 
 	bool initCreate();
-	bool initLoginGateWay();
+	bool initLoginBaseapp();
 
 	void gameTick();
 
