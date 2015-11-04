@@ -4,7 +4,8 @@ SRCS =					\
 	common				\
 	db_exception			\
 	db_transaction			\
-	db_interface_redis
+	db_interface_redis		\
+	kbe_table_redis
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
