@@ -421,8 +421,8 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	try
 	{	
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "HSET kbe_email_verification:{} accountName {} type {} datas {} logtime {}", 
-			code, name, type, datas, time(NULL)))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "%s", fmt::format("HSET kbe_email_verification:{} accountName {} type {} datas {} logtime {}", 
+			code, name, type, datas, time(NULL)).c_str()))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));
@@ -437,7 +437,7 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	try
 	{
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "SET kbe_email_verification:{} {}", name, code))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "%s", fmt::format("SET kbe_email_verification:{} {}", name, code).c_str()))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));			
