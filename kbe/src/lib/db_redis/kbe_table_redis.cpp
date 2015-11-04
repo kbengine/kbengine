@@ -243,7 +243,7 @@ bool KBEAccountTableRedis::updateCount(DBInterface * pdbi, const std::string& na
 	try
 	{	
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "HINCRBY kbe_accountinfos:{} numlogin", name))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "HINCRBY kbe_accountinfos:%s numlogin", name.c_str()))
 			return false;
 	}
 	catch(...)
@@ -253,7 +253,7 @@ bool KBEAccountTableRedis::updateCount(DBInterface * pdbi, const std::string& na
 	try
 	{
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "HSET kbe_accountinfos:{} lasttime {}", name, time(NULL)))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "%s", fmt::format("HSET kbe_accountinfos:{} lasttime {}", name, time(NULL)).c_str()))
 			return false;
 	}
 	catch(...)
@@ -451,8 +451,8 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	try
 	{	
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "EXPIRE kbe_email_verification:{} {}", 
-			code, getDeadline(type)))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "EXPIRE kbe_email_verification:%s %d", 
+			code.c_str(), getDeadline(type)))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));
@@ -467,8 +467,8 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	try
 	{	
 		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "EXPIRE kbe_email_verification:{} {}", 
-			name, getDeadline(type)))
+		if(!static_cast<DBInterfaceRedis*>(pdbi)->queryAppend(false, "EXPIRE kbe_email_verification:%s %d", 
+			name.c_str(), getDeadline(type)))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));
