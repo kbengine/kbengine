@@ -41,6 +41,18 @@ public:
 	{
 	}
 
+	static bool expireKey(DBInterfaceRedis* pdbi, const std::string& key, int secs, bool showExecInfo = true)
+	{
+		try
+		{
+			if (!pdbi->query(showExecInfo, "EXPIRE %s %d", key.c_str(), secs))
+				return false;
+		}
+		catch(...)
+		{
+		}
+	}
+	
 	static bool check_array_results(redisReply* pRedisReply)
 	{
 		for(size_t j = 0; j < pRedisReply->elements; ++j) 

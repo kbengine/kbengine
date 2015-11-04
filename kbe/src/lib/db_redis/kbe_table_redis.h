@@ -97,6 +97,8 @@ public:
 	virtual bool resetpassword(DBInterface * pdbi, const std::string& name, 
 		const std::string& password, const std::string& code);
 
+	int getDeadline(int8 type);
+	
 protected:
 };
 
