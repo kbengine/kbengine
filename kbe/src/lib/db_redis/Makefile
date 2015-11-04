@@ -2,6 +2,8 @@ LIB =	db_redis
 
 SRCS =					\
 	common				\
+	db_exception			\
+	db_transaction			\
 	db_interface_redis
 
 ifndef KBE_ROOT

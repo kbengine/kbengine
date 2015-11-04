@@ -32,7 +32,8 @@ namespace KBEngine {
 DBInterfaceRedis::DBInterfaceRedis() :
 DBInterface(),
 pRedisContext_(NULL),
-hasLostConnection_(false)
+hasLostConnection_(false),
+inTransaction_(false)
 {
 }
 
