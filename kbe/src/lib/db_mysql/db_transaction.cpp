@@ -34,8 +34,8 @@ std::string SQL_ROLLBACK = "ROLLBACK";
 std::string SQL_COMMIT = "COMMIT";
 
 //-------------------------------------------------------------------------------------
-DBTransaction::DBTransaction(DBInterface* dbi, bool autostart):
-	dbi_(dbi),
+DBTransaction::DBTransaction(DBInterface* pdbi, bool autostart):
+	pdbi_(pdbi),
 	committed_(false),
 	autostart_(autostart)
 {
@@ -57,45 +57,45 @@ void DBTransaction::start()
 
 	try
 	{
-		dbi_->query(SQL_START_TRANSACTION, false);
+		pdbi_->query(SQL_START_TRANSACTION, false);
 	}
 	catch (DBException & e)
 	{
-		bool ret = static_cast<DBInterfaceMysql*>(dbi_)->processException(e);
+		bool ret = static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
 		KBE_ASSERT(ret);
 	}
 
-	static_cast<DBInterfaceMysql*>(dbi_)->inTransaction(true);
+	static_cast<DBInterfaceMysql*>(pdbi_)->inTransaction(true);
 }
 
 //-------------------------------------------------------------------------------------
 void DBTransaction::end()
 {
-	if (!committed_ && !static_cast<DBInterfaceMysql*>(dbi_)->hasLostConnection())
+	if (!committed_ && !static_cast<DBInterfaceMysql*>(pdbi_)->hasLostConnection())
 	{
 		try
 		{
 			WARNING_MSG( "DBTransaction::~DBTransaction: "
 					"Rolling back\n" );
 
-			dbi_->query(SQL_ROLLBACK, false);
+			pdbi_->query(SQL_ROLLBACK, false);
 		}
 		catch (DBException & e)
 		{
 			if (e.isLostConnection())
 			{
-				static_cast<DBInterfaceMysql*>(dbi_)->hasLostConnection(true);
+				static_cast<DBInterfaceMysql*>(pdbi_)->hasLostConnection(true);
 			}
 		}
 	}
 
-	static_cast<DBInterfaceMysql*>(dbi_)->inTransaction(false);
+	static_cast<DBInterfaceMysql*>(pdbi_)->inTransaction(false);
 }
 
 //-------------------------------------------------------------------------------------
 bool DBTransaction::shouldRetry() const
 {
-	return (dbi_->getlasterror() == ER_LOCK_DEADLOCK);
+	return (pdbi_->getlasterror() == ER_LOCK_DEADLOCK);
 }
 
 //-------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ void DBTransaction::commit()
 	KBE_ASSERT(!committed_);
 
 	uint64 startTime = timestamp();
-	dbi_->query(SQL_COMMIT, false);
+	pdbi_->query(SQL_COMMIT, false);
 
 	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)

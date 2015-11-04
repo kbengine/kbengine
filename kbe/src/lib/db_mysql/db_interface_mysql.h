@@ -60,7 +60,7 @@ public:
 	DBInterfaceMysql(std::string characterSet, std::string collation);
 	virtual ~DBInterfaceMysql();
 
-	static bool initInterface(DBInterface* dbi);
+	static bool initInterface(DBInterface* pdbi);
 	
 	/**
 		与某个数据库关联

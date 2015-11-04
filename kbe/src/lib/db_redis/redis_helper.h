@@ -61,7 +61,7 @@ public:
 		
 		try
 		{
-			if (!pdbi->query(fmt::format("scan {} MATCH {}", name), &pRedisReply, showExecInfo))
+			if (!pdbi->query(fmt::format("scan 0 MATCH {} COUNT 1", name), &pRedisReply, showExecInfo))
 				return false;
 		}
 		catch(...)

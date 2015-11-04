@@ -43,7 +43,7 @@ DBInterfaceRedis::~DBInterfaceRedis()
 
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceRedis::initInterface(DBInterface* dbi)
+bool DBInterfaceRedis::initInterface(DBInterface* pdbi)
 {/*
 	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableRedis());

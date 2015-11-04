@@ -162,7 +162,7 @@ DBInterfaceMysql::~DBInterfaceMysql()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::initInterface(DBInterface* dbi)
+bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
 {
 	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());

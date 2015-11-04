@@ -29,7 +29,7 @@ class DBInterface;
 class DBException : public std::exception
 {
 public:
-	DBException(DBInterface* dbi);
+	DBException(DBInterface* pdbi);
 	~DBException() throw();
 
 	virtual const char * what() const throw() { return errStr_.c_str(); }

@@ -29,7 +29,7 @@ class DBInterface;
 class DBTransaction
 {
 public:
-	DBTransaction(DBInterface* dbi, bool autostart = true);
+	DBTransaction(DBInterface* pdbi, bool autostart = true);
 	~DBTransaction();
 	
 	void start();
@@ -39,9 +39,10 @@ public:
 
 	bool shouldRetry() const;
 
-	void pdbi(DBInterface* dbi){ dbi_ = dbi; }
+	void pdbi(DBInterface* pdbi){ pdbi_ = pdbi; }
+	
 private:
-	DBInterface* dbi_;
+	DBInterface* pdbi_;
 	bool committed_;
 	bool autostart_;
 };
