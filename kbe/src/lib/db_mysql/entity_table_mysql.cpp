@@ -55,7 +55,7 @@ bool sync_item_to_db(DBInterface* pdbi,
 		if(iter != pTFData->end())
 		{
 			TABLE_FIELD& tf = iter->second;
-			if(tf.type == sqlitemtype && ((tf.flags & itemflags) == itemflags))
+			if (tf.type == sqlitemtype && ((tf.flags & ALL_MYSQL_SET_FLAGS) == itemflags))
 			{
 				if((length == 0) || (int32)length == tf.length)
 					return true;

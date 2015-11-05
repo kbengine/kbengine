@@ -44,6 +44,9 @@ public:
 	  EntityTableItem(itemDBType, datalength, flags),
 	  mysqlItemtype_(mysqlItemtype)
 	{
+		// 记录下我们所设置的所有标记
+		ALL_MYSQL_SET_FLAGS |= flags;
+
 		memset(db_item_name_, 0, MAX_BUF);
 	};
 
@@ -89,6 +92,7 @@ public:
 	const char* db_item_name(){ return db_item_name_; }
 
 	virtual bool isSameKey(std::string key){ return key == db_item_name(); }
+
 protected:
 	char db_item_name_[MAX_BUF];
 	enum_field_types mysqlItemtype_;
@@ -123,6 +127,7 @@ public:
 	*/
 	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
+
 protected:
 	std::string dataSType_;
 };
@@ -484,6 +489,7 @@ public:
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
+
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
