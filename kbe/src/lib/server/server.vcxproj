@@ -105,6 +105,7 @@
     <ClCompile Include="idallocate.cpp" />
     <ClCompile Include="machine_infos.cpp" />
     <ClCompile Include="pendingLoginmgr.cpp" />
+    <ClCompile Include="python_app.cpp" />
     <ClCompile Include="script_timers.cpp" />
     <ClCompile Include="sendmail_threadtasks.cpp" />
     <ClCompile Include="serverapp.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="kbemain.h" />
     <ClInclude Include="machine_infos.h" />
     <ClInclude Include="pendingLoginmgr.h" />
+    <ClInclude Include="python_app.h" />
     <ClInclude Include="script_timers.h" />
     <ClInclude Include="sendmail_threadtasks.h" />
     <ClInclude Include="server_errors.h" />
