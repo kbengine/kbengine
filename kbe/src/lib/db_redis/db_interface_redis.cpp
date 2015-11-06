@@ -21,11 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "redis_helper.h"
 #include "kbe_table_redis.h"
+#include "redis_watcher.h"
 #include "db_interface_redis.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
 #include "server/serverconfig.h"
-
 
 namespace KBEngine { 
 
@@ -109,6 +109,8 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::attach(const char* databaseName)
 {
+	RedisWatcher::initializeWatcher();
+		
 	if(db_port_ == 0)
 		db_port_ = 6379;
 		
@@ -232,6 +234,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd.c_str());  
 	
 	lastquery_ = cmd;
+	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
 	
 	if (pRedisContext_->err) 
 	{
@@ -264,6 +267,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 	redisReply* pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd);
 	
 	lastquery_ = cmd;
+	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
 	write_query_result(pRedisReply, result);
 	
 	if (pRedisContext_->err) 
@@ -303,7 +307,10 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 	int cnt	= vsnprintf(buffer, sizeof(buffer) - 1, format, ap);
 
 	if(cnt > 0)
+	{
 		lastquery_ = buffer;
+		RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
+	}
 	
 	if (pRedisContext_->err) 
 	{
@@ -351,6 +358,7 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	{
 		lastquery_ += buffer;
 		lastquery_ += ";";
+		RedisWatcher::querystatistics(buffer, cnt);
 	}
 	
 	if (ret == REDIS_ERR) 
