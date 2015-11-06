@@ -26,10 +26,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/timestamp.h"
 
 namespace KBEngine { 
+namespace redis {
 
-std::string SQL_START_TRANSACTION = "MULTI";
-std::string SQL_ROLLBACK = "DISCARD";
-std::string SQL_COMMIT = "EXEC";
+static std::string SQL_START_TRANSACTION = "MULTI";
+static std::string SQL_ROLLBACK = "DISCARD";
+static std::string SQL_COMMIT = "EXEC";
 
 //-------------------------------------------------------------------------------------
 DBTransaction::DBTransaction(DBInterface* pdbi, bool autostart):
@@ -133,4 +134,4 @@ void DBTransaction::commit()
 }
 
 }
-
+}

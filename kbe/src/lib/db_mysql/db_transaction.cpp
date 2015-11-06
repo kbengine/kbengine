@@ -28,10 +28,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <mysql/errmsg.h>
 
 namespace KBEngine { 
-
-std::string SQL_START_TRANSACTION = "START TRANSACTION";
-std::string SQL_ROLLBACK = "ROLLBACK";
-std::string SQL_COMMIT = "COMMIT";
+namespace mysql {
+ 
+static std::string SQL_START_TRANSACTION = "START TRANSACTION";
+static std::string SQL_ROLLBACK = "ROLLBACK";
+static std::string SQL_COMMIT = "COMMIT";
 
 //-------------------------------------------------------------------------------------
 DBTransaction::DBTransaction(DBInterface* pdbi, bool autostart):
@@ -117,4 +118,4 @@ void DBTransaction::commit()
 }
 
 }
-
+}

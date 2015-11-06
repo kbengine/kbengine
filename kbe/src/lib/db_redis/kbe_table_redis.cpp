@@ -241,7 +241,7 @@ bool KBEAccountTableRedis::updateCount(DBInterface * pdbi, const std::string& na
 	/*
 	kbe_accountinfos:accountName = hashes(password, bindata, email, entityDBID, flags, deadline, regtime, lasttime, numlogin)
 	*/
-	DBTransaction transaction(pdbi);
+	redis::DBTransaction transaction(pdbi);
 	
 	try
 	{	
@@ -413,7 +413,7 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	kbe_email_verification:accountName = code
 	*/
 	
-	DBTransaction transaction(pdbi);
+	redis::DBTransaction transaction(pdbi);
 	
 	try
 	{	
@@ -855,7 +855,7 @@ bool KBEEmailVerificationTableRedis::delAccount(DBInterface * pdbi, int8 type, c
 	}
 
 	// 事务开始	
-	DBTransaction transaction(pdbi);
+	redis::DBTransaction transaction(pdbi);
 	
 	if(code.size() > 0)
 	{

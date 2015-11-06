@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "redis_helper.h"
+#include "kbe_table_redis.h"
 #include "db_interface_redis.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
@@ -42,13 +43,12 @@ DBInterfaceRedis::~DBInterfaceRedis()
 {
 }
 
-
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::initInterface(DBInterface* pdbi)
-{/*
-	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+{
+	EntityTables::getSingleton().addKBETable(new KBEAccountTableRedis());
 	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableRedis());
-	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	*/
+	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableRedis());
 	return true;
 }
 
@@ -362,7 +362,7 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	if(showExecInfo)
 	{
 		INFO_MSG("DBInterfaceRedis::queryAppend: successfully!\n"); 
-	}    
+	}
 
 	va_end(ap);
 
@@ -462,7 +462,7 @@ const char* DBInterfaceRedis::getstrerror()
 {
 	if(pRedisContext_ == NULL)
 		return "pRedisContext_ is NULL";
-	
+
 	return pRedisContext_->errstr;
 }
 

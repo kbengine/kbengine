@@ -189,7 +189,7 @@ protected:
 
 	bool inTransaction_;
 
-	DBTransaction lock_;
+	mysql::DBTransaction lock_;
 
 	std::string characterSet_;
 	std::string collation_;

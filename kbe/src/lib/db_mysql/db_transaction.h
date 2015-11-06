@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 class DBInterface;
+namespace mysql {
 
 /**
  */
@@ -47,6 +48,7 @@ private:
 	bool autostart_;
 };
 
+}
 }
 #endif // KBE_MYSQL_TRANSACTION_HELPER_H
 

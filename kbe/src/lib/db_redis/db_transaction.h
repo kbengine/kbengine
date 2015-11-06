@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 class DBInterface;
+namespace redis {
 
 /**
  */
@@ -53,6 +54,7 @@ private:
 	redisReply* pRedisReply_;
 };
 
+}
 }
 #endif // KBE_REDIS_TRANSACTION_HELPER_H
 
