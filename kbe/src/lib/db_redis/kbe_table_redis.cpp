@@ -635,7 +635,7 @@ bool KBEEmailVerificationTableRedis::bindEMail(DBInterface * pdbi, const std::st
 
 	try
 	{
-		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), &pRedisReply, false))
+		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));
@@ -734,7 +734,7 @@ bool KBEEmailVerificationTableRedis::resetpassword(DBInterface * pdbi, const std
 
 	try
 	{
-		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), &pRedisReply, false))
+		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
 		{
 			ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
 					code, pdbi->lastquery(), pdbi->getstrerror()));
