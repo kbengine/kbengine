@@ -150,12 +150,15 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	     	
 		if (!(pRedisReply->type == REDIS_REPLY_STATUS && kbe_stricmp(pRedisReply->str, "OK") == 0))
 		{  
-			ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
-				fmt::format("auth ***").c_str(), c->err, pRedisReply->str));
-			
-			freeReplyObject(pRedisReply);  
-			redisFree(c);  
-			return false;
+			if(!kbe_stricmp(pRedisReply->str, "ERR Client sent AUTH, but no password is set") == 0)
+			{
+				ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
+					fmt::format("auth ***").c_str(), c->err, pRedisReply->str));
+
+				freeReplyObject(pRedisReply);
+				redisFree(c);
+				return false;
+			}
 		}
 
 		freeReplyObject(pRedisReply); 	
@@ -164,8 +167,11 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	
 	// Ñ¡ÔñÊý¾Ý¿â
 	int db_index = atoi(db_name_);
-	if(db_index < 0)
+	if(db_index <= 0)
+	{
+		kbe_snprintf(db_name_, MAX_BUF, "%s", "0");
 		db_index = 0;
+	}
 		
 	pRedisReply = (redisReply*)redisCommand(c, fmt::format("select {}", db_index).c_str());
 	
