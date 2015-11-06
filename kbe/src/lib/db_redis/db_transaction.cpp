@@ -35,7 +35,8 @@ std::string SQL_COMMIT = "EXEC";
 DBTransaction::DBTransaction(DBInterface* pdbi, bool autostart):
 	pdbi_(pdbi),
 	committed_(false),
-	autostart_(autostart)
+	autostart_(autostart),
+	pRedisReply_(NULL)
 {
 	if(autostart)
 		start();
@@ -46,6 +47,11 @@ DBTransaction::~DBTransaction()
 {
 	if(autostart_)
 		end();
+	
+	if(pRedisReply_){
+		freeReplyObject(pRedisReply_); 
+		pRedisReply_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,9 +73,21 @@ void DBTransaction::start()
 }
 
 //-------------------------------------------------------------------------------------
+void DBTransaction::rollback()
+{
+	if(committed_)
+		return;
+	
+	WARNING_MSG( "DBTransaction::rollback: "
+			"Rolling back\n" );
+
+	pdbi_->query(SQL_ROLLBACK, false);	
+}
+
+//-------------------------------------------------------------------------------------
 void DBTransaction::end()
 {
-	if (!committed_ && !static_cast<DBInterfaceRedis*>(pdbi_)->hasLostConnection())
+	if(!committed_ && !static_cast<DBInterfaceRedis*>(pdbi_)->hasLostConnection())
 	{
 		try
 		{
@@ -102,7 +120,7 @@ void DBTransaction::commit()
 	KBE_ASSERT(!committed_);
 
 	uint64 startTime = timestamp();
-	pdbi_->query(SQL_COMMIT, false);
+	static_cast<DBInterfaceRedis*>(pdbi_)->query(SQL_COMMIT, &pRedisReply_, false);
 
 	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)

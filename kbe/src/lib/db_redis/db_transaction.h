@@ -21,6 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_REDIS_TRANSACTION_HELPER_H
 #define KBE_REDIS_TRANSACTION_HELPER_H
 
+#include "hiredis.h"
+
 namespace KBEngine { 
 class DBInterface;
 
@@ -36,15 +38,19 @@ public:
 	void end();
 
 	void commit();
-
+	void rollback();
+	
 	bool shouldRetry() const;
 
 	void pdbi(DBInterface* pdbi){ pdbi_ = pdbi; }
 	
+	redisReply* pRedisReply(){ return pRedisReply_; }
+
 private:
 	DBInterface* pdbi_;
 	bool committed_;
 	bool autostart_;
+	redisReply* pRedisReply_;
 };
 
 }
