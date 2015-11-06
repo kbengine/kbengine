@@ -71,6 +71,66 @@ static uint32 watcher_GET()
 	return watcher_query("GET");
 }
 
+static uint32 watcher_GETRANGE()
+{
+	return watcher_query("GETRANGE");
+}
+
+static uint32 watcher_GETSET()
+{
+	return watcher_query("GETSET");
+}
+
+static uint32 watcher_GETBIT()
+{
+	return watcher_query("GETBIT");
+}
+
+static uint32 watcher_MGET()
+{
+	return watcher_query("MGET");
+}
+
+static uint32 watcher_SETBIT()
+{
+	return watcher_query("SETBIT");
+}
+
+static uint32 watcher_SETEX()
+{
+	return watcher_query("SETEX");
+}
+
+static uint32 watcher_SETNX()
+{
+	return watcher_query("SETNX");
+}
+
+static uint32 watcher_SETRANGE()
+{
+	return watcher_query("SETRANGE");
+}
+
+static uint32 watcher_STRLEN()
+{
+	return watcher_query("STRLEN");
+}
+
+static uint32 watcher_MSET()
+{
+	return watcher_query("MSET");
+}
+
+static uint32 watcher_MSETNX()
+{
+	return watcher_query("MSETNX");
+}
+
+static uint32 watcher_PSETEX()
+{
+	return watcher_query("PSETEX");
+}
+
 static uint32 watcher_INCR()
 {
 	return watcher_query("INCR");
@@ -246,6 +306,18 @@ void RedisWatcher::initializeWatcher()
 	WATCH_OBJECT("db_querys/SCAN", &KBEngine::watcher_SCAN);
 	WATCH_OBJECT("db_querys/SET", &KBEngine::watcher_SET);
 	WATCH_OBJECT("db_querys/GET", &KBEngine::watcher_GET);
+	WATCH_OBJECT("db_querys/GETRANGE", &KBEngine::watcher_GETRANGE);
+	WATCH_OBJECT("db_querys/GETSET", &KBEngine::watcher_GETSET);
+	WATCH_OBJECT("db_querys/GETBIT", &KBEngine::watcher_GETBIT);
+	WATCH_OBJECT("db_querys/MGET", &KBEngine::watcher_MGET);
+	WATCH_OBJECT("db_querys/SETBIT", &KBEngine::watcher_SETBIT);
+	WATCH_OBJECT("db_querys/SETEX", &KBEngine::watcher_SETEX);
+	WATCH_OBJECT("db_querys/SETNX", &KBEngine::watcher_SETNX);
+	WATCH_OBJECT("db_querys/SETRANGE", &KBEngine::watcher_SETRANGE);
+	WATCH_OBJECT("db_querys/STRLEN", &KBEngine::watcher_STRLEN);
+	WATCH_OBJECT("db_querys/MSET", &KBEngine::watcher_MSET);
+	WATCH_OBJECT("db_querys/MSETNX", &KBEngine::watcher_MSETNX);
+	WATCH_OBJECT("db_querys/PSETEX", &KBEngine::watcher_PSETEX);
 	WATCH_OBJECT("db_querys/INCR", &KBEngine::watcher_INCR);
 	WATCH_OBJECT("db_querys/INCRBY", &KBEngine::watcher_INCRBY);
 	WATCH_OBJECT("db_querys/DEL", &KBEngine::watcher_DEL);
