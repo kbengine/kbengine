@@ -380,6 +380,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				interfaces_chargeType_ = "normal";
 		}
 
+		childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		if(childnode != NULL)
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
+
 		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
@@ -443,6 +447,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "orders_timeout");
 		if(node != NULL){
 			interfaces_orders_timeout_ = xml->getValInt(node);
+		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 

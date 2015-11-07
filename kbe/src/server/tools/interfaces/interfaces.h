@@ -20,22 +20,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_INTERFACES_TOOL_H
 #define KBE_INTERFACES_TOOL_H
-	
-// common include	
+
 #include "server/kbemain.h"
-#include "server/serverapp.h"
+#include "server/python_app.h"
 #include "server/serverconfig.h"
 #include "common/timer.h"
 #include "network/endpoint.h"
 #include "resmgr/resmgr.h"
 #include "thread/threadpool.h"
-
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+#include "server/script_timers.h"
 	
 namespace KBEngine{
 
@@ -43,8 +36,10 @@ class DBInterface;
 class Orders;
 class CreateAccountTask;
 class LoginAccountTask;
+class TelnetServer;
 
-class Interfaces : public ServerApp, 
+
+class Interfaces : public PythonApp, 
 				public Singleton<Interfaces>
 {
 public:
@@ -70,12 +65,11 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	void onInstallPyModules();
 	
 	bool initDB();
-	
-	void lockthread();
-	void unlockthread();
 
+	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
 
 	/** 网络接口
@@ -98,18 +92,44 @@ public:
 	*/
 	void charge(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** Python回调接口
+	    充值响应
+	*/
+	void chargeResponse(std::string orderID, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode);
+	static PyObject* __py_chargeResponse(PyObject* self, PyObject* args);
+
+	/** Python回调接口
+	    请求登录账号的响应
+	*/
+	void accountLoginResponse(std::string commitName, std::string realAccountName, 
+		std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode);
+	static PyObject* __py_accountLoginResponse(PyObject* self, PyObject* args);
+
+	/** Python回调接口
+	    请求创建账号的响应
+	*/
+	void createAccountResponse(std::string commitName, std::string realAccountName, 
+		std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode);
+	static PyObject* __py_createAccountResponse(PyObject* self, PyObject* args);
+
+	/** Timer操作
+	*/
+	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
+	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
+
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	Interfaces::ORDERS& orders(){ return orders_; }
 
-	typedef KBEUnordered_map<std::string, CreateAccountTask* /*不用担心释放问题, 由线程池完成*/> REQCREATE_MAP;
-	typedef KBEUnordered_map<std::string, LoginAccountTask* /*不用担心释放问题, 由线程池完成*/> REQLOGIN_MAP;
-
+	typedef KBEUnordered_map<std::string, CreateAccountTask*> REQCREATE_MAP;
+	typedef KBEUnordered_map<std::string, LoginAccountTask*> REQLOGIN_MAP;
 	REQCREATE_MAP& reqCreateAccount_requests(){ return reqCreateAccount_requests_; }
 	REQLOGIN_MAP& reqAccountLogin_requests(){ return reqAccountLogin_requests_; }
 
-	void eraseOrders_s(std::string ordersid);
-	
+	void eraseOrders(std::string ordersid);
 	bool hasOrders(std::string ordersid);
+	
+	ScriptTimers &scriptTimers() { return scriptTimers_; }
+
 protected:
 	TimerHandle																mainProcessTimer_;
 
@@ -120,7 +140,10 @@ protected:
 	REQCREATE_MAP															reqCreateAccount_requests_;
 	REQLOGIN_MAP															reqAccountLogin_requests_;
 
-	KBEngine::thread::ThreadMutex											mutex_;
+	ScriptTimers															scriptTimers_;
+
+	TelnetServer*															pTelnetServer_;
+
 };
 
 }
