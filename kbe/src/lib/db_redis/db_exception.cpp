@@ -19,17 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "db_exception.h"
-#include "db_interface_mysql.h"
+#include "db_interface_redis.h"
 #include "db_interface/db_interface.h"
-#include <mysql/mysqld_error.h>
-#include <mysql/errmsg.h>
 
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
 DBException::DBException(DBInterface* pdbi) :
-			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(pdbi)->mysql())),
-			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(pdbi)->mysql()))
+			errStr_(static_cast<DBInterfaceRedis*>(pdbi)->getstrerror()),
+			errNum_(static_cast<DBInterfaceRedis*>(pdbi)->getlasterror())
 {
 }
 
@@ -41,15 +39,13 @@ DBException::~DBException() throw()
 //-------------------------------------------------------------------------------------
 bool DBException::shouldRetry() const
 {
-	return (errNum_== ER_LOCK_DEADLOCK) ||
-			(errNum_ == ER_LOCK_WAIT_TIMEOUT);
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool DBException::isLostConnection() const
 {
-	return (errNum_ == CR_SERVER_GONE_ERROR) ||
-			(errNum_ == CR_SERVER_LOST);
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

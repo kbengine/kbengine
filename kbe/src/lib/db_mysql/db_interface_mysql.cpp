@@ -34,7 +34,7 @@ static KBEUnordered_map< std::string, uint32 > g_querystatistics;
 static bool _g_installedWatcher = false;
 static bool _g_debug = false;
 
-void querystatistics(const char* strCommand, uint32 size)
+static void querystatistics(const char* strCommand, uint32 size)
 {
 	std::string op;
 	for(uint32 i=0; i<size; ++i)
@@ -65,7 +65,7 @@ void querystatistics(const char* strCommand, uint32 size)
 	_g_logMutex.unlockMutex();
 }
 
-uint32 watcher_query(std::string cmd)
+static uint32 watcher_query(std::string cmd)
 {
 	KBEngine::thread::ThreadGuard tg(&_g_logMutex); 
 
@@ -78,52 +78,52 @@ uint32 watcher_query(std::string cmd)
 	return 0;
 }
 
-uint32 watcher_select()
+static uint32 watcher_select()
 {
 	return watcher_query("SELECT");
 }
 
-uint32 watcher_delete()
+static uint32 watcher_delete()
 {
 	return watcher_query("DELETE");
 }
 
-uint32 watcher_insert()
+static uint32 watcher_insert()
 {
 	return watcher_query("INSERT");
 }
 
-uint32 watcher_update()
+static uint32 watcher_update()
 {
 	return watcher_query("UPDATE");
 }
 
-uint32 watcher_create()
+static uint32 watcher_create()
 {
 	return watcher_query("CREATE");
 }
 
-uint32 watcher_drop()
+static uint32 watcher_drop()
 {
 	return watcher_query("DROP");
 }
 
-uint32 watcher_show()
+static uint32 watcher_show()
 {
 	return watcher_query("SHOW");
 }
 
-uint32 watcher_alter()
+static uint32 watcher_alter()
 {
 	return watcher_query("ALTER");
 }
 
-uint32 watcher_grant()
+static uint32 watcher_grant()
 {
 	return watcher_query("GRANT");
 }
 
-void initializeWatcher()
+static void initializeWatcher()
 {
 	if(_g_installedWatcher)
 		return;
@@ -162,7 +162,7 @@ DBInterfaceMysql::~DBInterfaceMysql()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::initInterface(DBInterface* dbi)
+bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
 {
 	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());

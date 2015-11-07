@@ -57,9 +57,18 @@ public:
 	DBInterfaceRedis();
 	virtual ~DBInterfaceRedis();
 
-	static bool initInterface(DBInterface* dbi);
+	static bool initInterface(DBInterface* pdbi);
 	
 	bool ping(redisContext* pRedisContext = NULL);
+	
+	void inTransaction(bool value)
+	{
+		KBE_ASSERT(inTransaction_ != value);
+		inTransaction_ = value;
+	}
+
+	bool hasLostConnection() const		{ return hasLostConnection_; }
+	void hasLostConnection( bool v )	{ hasLostConnection_ = v; }
 	
 	/**
 		¼ì²é»·¾³
@@ -144,6 +153,7 @@ public:
 protected:
 	redisContext* pRedisContext_;
 	bool hasLostConnection_;
+	bool inTransaction_;	
 };
 
 

@@ -43,7 +43,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi) = 0;
+	virtual bool syncToDB(DBInterface* pdbi) = 0;
 	
 	/**
 		初始化
@@ -81,12 +81,12 @@ public:
 	{
 	}
 	
-	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
+	virtual bool logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 						COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType) = 0;
 
-	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType) = 0;
+	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType) = 0;
 
-	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType) = 0;
+	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType) = 0;
 protected:
 	
 };
@@ -105,12 +105,12 @@ public:
 	{
 	}
 
-	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
-	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
-	virtual bool setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline) = 0;
-	virtual bool updateCount(DBInterface * dbi, const std::string& name, DBID dbid) = 0;
-	virtual bool queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
-	virtual bool updatePassword(DBInterface * dbi, const std::string& name, const std::string& password) = 0;
+	virtual bool queryAccount(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool logAccount(DBInterface * pdbi, ACCOUNT_INFOS& info) = 0;
+	virtual bool setFlagsDeadline(DBInterface * pdbi, const std::string& name, uint32 flags, uint64 deadline) = 0;
+	virtual bool updateCount(DBInterface * pdbi, const std::string& name, DBID dbid) = 0;
+	virtual bool queryAccountAllInfos(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool updatePassword(DBInterface * pdbi, const std::string& name, const std::string& password) = 0;
 
 	MemoryStream& accountDefMemoryStream()
 	{ 
@@ -146,12 +146,12 @@ public:
 	{
 	}
 
-	virtual bool queryAccount(DBInterface * dbi, int8 type, const std::string& name, ACCOUNT_INFOS& info) = 0;
-	virtual bool logAccount(DBInterface * dbi, int8 type, const std::string& name, const std::string& datas, const std::string& code) = 0;
-	virtual bool delAccount(DBInterface * dbi, int8 type, const std::string& name) = 0;
-	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info) = 0;
-	virtual bool bindEMail(DBInterface * dbi, const std::string& name, const std::string& code) = 0;
-	virtual bool resetpassword(DBInterface * dbi, const std::string& name, const std::string& password, const std::string& code) = 0;
+	virtual bool queryAccount(DBInterface * pdbi, int8 type, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool logAccount(DBInterface * pdbi, int8 type, const std::string& name, const std::string& datas, const std::string& code) = 0;
+	virtual bool delAccount(DBInterface * pdbi, int8 type, const std::string& name) = 0;
+	virtual bool activateAccount(DBInterface * pdbi, const std::string& code, ACCOUNT_INFOS& info) = 0;
+	virtual bool bindEMail(DBInterface * pdbi, const std::string& name, const std::string& code) = 0;
+	virtual bool resetpassword(DBInterface * pdbi, const std::string& name, const std::string& password, const std::string& code) = 0;
 protected:
 };
 

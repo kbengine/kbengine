@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+//-------------------------------------------------------------------------------------
 PythonApp::PythonApp(Network::EventDispatcher& dispatcher, 
 					 Network::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
@@ -33,12 +34,12 @@ entryScript_()
 {
 }
 
-
+//-------------------------------------------------------------------------------------
 PythonApp::~PythonApp()
 {
 }
 
-
+//-------------------------------------------------------------------------------------
 bool PythonApp::inInitialize()
 {
 	if(!installPyScript())
@@ -50,7 +51,7 @@ bool PythonApp::inInitialize()
 	return true;
 }
 
-
+//-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
 	uninstallPyScript();
@@ -58,19 +59,19 @@ void PythonApp::finalise(void)
 	ServerApp::finalise();
 }
 
-
+//-------------------------------------------------------------------------------------
 int PythonApp::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
 { 
 	return script_.registerToModule(attrName, pyObj); 
 }
 
-
+//-------------------------------------------------------------------------------------
 int PythonApp::unregisterPyObjectToScript(const char* attrName)
 { 
 	return script_.unregisterToModule(attrName); 
 }
 
-
+//-------------------------------------------------------------------------------------
 bool PythonApp::installPyScript()
 {
 	if(Resmgr::getSingleton().respaths().size() <= 0 || 
@@ -131,13 +132,13 @@ bool PythonApp::installPyScript()
 	return ret;
 }
 
-
+//-------------------------------------------------------------------------------------
 bool PythonApp::uninstallPyScript()
 {
 	return uninstallPyModules() && getScript().uninstall();
 }
 
-
+//-------------------------------------------------------------------------------------
 bool PythonApp::installPyModules()
 {
 	// 安装入口模块
@@ -230,7 +231,7 @@ bool PythonApp::installPyModules()
 	return true;
 }
 
-
+//-------------------------------------------------------------------------------------
 bool PythonApp::uninstallPyModules()
 {
 	// script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
@@ -240,13 +241,13 @@ bool PythonApp::uninstallPyModules()
 	return true;
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_getAppPublish(PyObject* self, PyObject* args)
 {
 	return PyLong_FromLong(g_appPublish);
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -270,7 +271,7 @@ PyObject* PythonApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 	S_Return;
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_getResFullPath(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -297,7 +298,7 @@ PyObject* PythonApp::__py_getResFullPath(PyObject* self, PyObject* args)
 	return PyUnicode_FromString(fullpath.c_str());
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_hasRes(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -320,7 +321,7 @@ PyObject* PythonApp::__py_hasRes(PyObject* self, PyObject* args)
 	return PyBool_FromLong(Resmgr::getSingleton().hasRes(respath));
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -355,7 +356,7 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	return openedFile;
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_matchPath(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -379,7 +380,7 @@ PyObject* PythonApp::__py_matchPath(PyObject* self, PyObject* args)
 	return PyUnicode_FromStringAndSize(path.c_str(), path.size());
 }
 
-
+//-------------------------------------------------------------------------------------
 PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
@@ -509,7 +510,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	return pyresults;
 }
 
-
+//-------------------------------------------------------------------------------------
 void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
 	switch(profileType)
@@ -524,7 +525,7 @@ void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileNam
 	ServerApp::startProfile_(pChannel, profileName, profileType, timelen);
 }
 
-
+//-------------------------------------------------------------------------------------
 void PythonApp::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string cmd;
@@ -560,12 +561,12 @@ void PythonApp::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Memory
 	Py_DECREF(pycmd1);
 }
 
-
+//-------------------------------------------------------------------------------------
 void PythonApp::onReloadScript(bool fullReload)
 {
 }
 
-
+//-------------------------------------------------------------------------------------
 void PythonApp::reloadScript(bool fullReload)
 {
 	onReloadScript(fullReload);
@@ -584,4 +585,5 @@ void PythonApp::reloadScript(bool fullReload)
 		SCRIPT_ERROR_CHECK();
 }
 
+//-------------------------------------------------------------------------------------
 }

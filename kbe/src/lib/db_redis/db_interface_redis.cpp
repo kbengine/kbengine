@@ -20,11 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "redis_helper.h"
+#include "kbe_table_redis.h"
+#include "redis_watcher.h"
 #include "db_interface_redis.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
 #include "server/serverconfig.h"
-
 
 namespace KBEngine { 
 
@@ -32,7 +33,8 @@ namespace KBEngine {
 DBInterfaceRedis::DBInterfaceRedis() :
 DBInterface(),
 pRedisContext_(NULL),
-hasLostConnection_(false)
+hasLostConnection_(false),
+inTransaction_(false)
 {
 }
 
@@ -41,13 +43,12 @@ DBInterfaceRedis::~DBInterfaceRedis()
 {
 }
 
-
 //-------------------------------------------------------------------------------------
-bool DBInterfaceRedis::initInterface(DBInterface* dbi)
-{/*
-	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+bool DBInterfaceRedis::initInterface(DBInterface* pdbi)
+{
+	EntityTables::getSingleton().addKBETable(new KBEAccountTableRedis());
 	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableRedis());
-	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	*/
+	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableRedis());
 	return true;
 }
 
@@ -82,9 +83,9 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
 		return false;
 	
 	// 密码验证
-	redisReply* r = (redisReply*)redisCommand(pRedisContext, "ping");  
+	redisReply* pRedisReply = (redisReply*)redisCommand(pRedisContext, "ping");
 	
-	if (NULL == r) 
+	if (NULL == pRedisReply)
 	{ 
 		ERROR_MSG(fmt::format("DBInterfaceRedis::ping: errno={}, error={}\n",
 			pRedisContext->err, pRedisContext->errstr));
@@ -92,22 +93,24 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
 		return false;
 	}  
      	
-	if (!(r->type == REDIS_REPLY_STATUS && kbe_stricmp(r->str, "PONG") == 0))
+	if (!(pRedisReply->type == REDIS_REPLY_STATUS && kbe_stricmp(pRedisReply->str, "PONG") == 0))
 	{  
 		ERROR_MSG(fmt::format("DBInterfaceRedis::ping: errno={}, error={}\n",
-			pRedisContext->err, pRedisContext->errstr));
+			pRedisContext->err, pRedisReply->str));
 		
-		freeReplyObject(r);  
+		freeReplyObject(pRedisReply);
 		return false;
 	}
 	
-	freeReplyObject(r); 
+	freeReplyObject(pRedisReply);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::attach(const char* databaseName)
 {
+	RedisWatcher::initializeWatcher();
+		
 	if(db_port_ == 0)
 		db_port_ = 6379;
 		
@@ -149,12 +152,15 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	     	
 		if (!(pRedisReply->type == REDIS_REPLY_STATUS && kbe_stricmp(pRedisReply->str, "OK") == 0))
 		{  
-			ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
-				fmt::format("auth ***").c_str(), c->err, c->errstr));
-			
-			freeReplyObject(pRedisReply);  
-			redisFree(c);  
-			return false;
+			if(!kbe_stricmp(pRedisReply->str, "ERR Client sent AUTH, but no password is set") == 0)
+			{
+				ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
+					fmt::format("auth ***").c_str(), c->err, pRedisReply->str));
+
+				freeReplyObject(pRedisReply);
+				redisFree(c);
+				return false;
+			}
 		}
 
 		freeReplyObject(pRedisReply); 	
@@ -163,8 +169,11 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	
 	// 选择数据库
 	int db_index = atoi(db_name_);
-	if(db_index < 0)
+	if(db_index <= 0)
+	{
+		kbe_snprintf(db_name_, MAX_BUF, "%s", "0");
 		db_index = 0;
+	}
 		
 	pRedisReply = (redisReply*)redisCommand(c, fmt::format("select {}", db_index).c_str());
 	
@@ -180,7 +189,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 	if (!(pRedisReply->type == REDIS_REPLY_STATUS && kbe_stricmp(pRedisReply->str, "OK") == 0))
 	{  
 		ERROR_MSG(fmt::format("DBInterfaceRedis::attach: cmd={}, errno={}, error={}\n",
-			fmt::format("select {}", db_index).c_str(), c->err, c->errstr));
+			fmt::format("select {}", db_index).c_str(), c->err, pRedisReply->str));
 		
 		freeReplyObject(pRedisReply);  
 		redisFree(c);  
@@ -225,6 +234,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd.c_str());  
 	
 	lastquery_ = cmd;
+	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
 	
 	if (pRedisContext_->err) 
 	{
@@ -257,6 +267,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 	redisReply* pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd);
 	
 	lastquery_ = cmd;
+	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
 	write_query_result(pRedisReply, result);
 	
 	if (pRedisContext_->err) 
@@ -296,7 +307,10 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 	int cnt	= vsnprintf(buffer, sizeof(buffer) - 1, format, ap);
 
 	if(cnt > 0)
+	{
 		lastquery_ = buffer;
+		RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
+	}
 	
 	if (pRedisContext_->err) 
 	{
@@ -344,6 +358,7 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	{
 		lastquery_ += buffer;
 		lastquery_ += ";";
+		RedisWatcher::querystatistics(buffer, cnt);
 	}
 	
 	if (ret == REDIS_ERR) 
@@ -361,7 +376,7 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 	if(showExecInfo)
 	{
 		INFO_MSG("DBInterfaceRedis::queryAppend: successfully!\n"); 
-	}    
+	}
 
 	va_end(ap);
 
@@ -461,7 +476,7 @@ const char* DBInterfaceRedis::getstrerror()
 {
 	if(pRedisContext_ == NULL)
 		return "pRedisContext_ is NULL";
-	
+
 	return pRedisContext_->errstr;
 }
 

@@ -18,18 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_MYSQL_COMMON_H
-#define KBE_DB_MYSQL_COMMON_H
+#ifndef KBE_REDIS_WATCHER_H
+#define KBE_REDIS_WATCHER_H
 
-#include "db_context.h"
-#include "common/common.h"
-#include "common/memorystream.h"
-#include "helper/debug_helper.h"
+#include "db_interface_redis.h"
 
 namespace KBEngine{ 
 
-// 记录KBE所设置过的所有mysql标记，提供sync_item_to_db时检查设置项
-extern uint32 ALL_MYSQL_SET_FLAGS;
+class RedisWatcher
+{
+public:
+	static void querystatistics(const char* strCommand, uint32 size);
+	static void initializeWatcher();
+};
 
 }
-#endif // KBE_DB_MYSQL_COMMON_H
+#endif // KBE_REDIS_WATCHER_H

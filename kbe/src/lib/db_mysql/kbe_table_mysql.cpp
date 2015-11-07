@@ -31,13 +31,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
+bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 {
 	std::string sqlstr = "DROP TABLE kbe_entitylog;";
 
 	try
 	{
-		dbi->query(sqlstr.c_str(), sqlstr.size(), false);
+		pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	}
 	catch(...)
 	{
@@ -55,13 +55,13 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 			"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 	return ret;
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
+bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
 	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityType, entityID, ip, port, componentID) values(";
@@ -80,7 +80,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 	sqlstr += tbuf;
 	sqlstr += ",\"";
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, ip, strlen(ip));
 
 	sqlstr += tbuf;
@@ -98,9 +98,9 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 
 	try
 	{
-		if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		{
-			// 1062 int err = dbi->getlasterror(); 
+			// 1062 int err = pdbi->getlasterror(); 
 			return false;
 		}
 	}
@@ -109,7 +109,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 		DBException& dbe = static_cast<DBException&>(e);
 		if(dbe.isLostConnection())
 		{
-			if(dbi->processException(e))
+			if(pdbi->processException(e))
 				return true;
 		}
 
@@ -120,7 +120,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
+bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
 	std::string sqlstr = "select entityID, ip, port, componentID from kbe_entitylog where entityDBID=";
 
@@ -133,7 +133,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	sqlstr += tbuf;
 	sqlstr += " LIMIT 1";
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		return true;
 	}
@@ -144,7 +144,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -163,7 +163,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY_SCRIPT_UID entityType)
+bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType)
 {
 	std::string sqlstr = "delete from kbe_entitylog where entityDBID=";
 
@@ -176,7 +176,7 @@ bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid, ENTITY
 	kbe_snprintf(tbuf, MAX_BUF, "%u", entityType);
 	sqlstr += tbuf;
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		return false;
 	}
@@ -191,7 +191,7 @@ KBEEntityLogTableMysql::KBEEntityLogTableMysql():
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
+bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
@@ -208,7 +208,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"`numlogin` int unsigned not null DEFAULT 0)"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 	return ret;
 }
@@ -220,11 +220,11 @@ KBEAccountTableMysql::KBEAccountTableMysql():
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline)
+bool KBEAccountTableMysql::setFlagsDeadline(DBInterface * pdbi, const std::string& name, uint32 flags, uint64 deadline)
 {
 	char* tbuf = new char[name.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	std::string sqlstr = fmt::format("update kbe_accountinfos set flags={}, deadline={} where accountName=\"{}\"", 
@@ -233,20 +233,20 @@ bool KBEAccountTableMysql::setFlagsDeadline(DBInterface * dbi, const std::string
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		return true;
 
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
+bool KBEAccountTableMysql::queryAccount(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "select entityDBID, password, flags, deadline from kbe_accountinfos where accountName=\"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += tbuf;
@@ -254,11 +254,11 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		return true;
 
 	info.dbid = 0;
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -279,13 +279,13 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
+bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "select entityDBID, password, email, flags, deadline from kbe_accountinfos where accountName=\"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += tbuf;
@@ -293,11 +293,11 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		return true;
 
 	info.dbid = 0;
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -318,10 +318,10 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::updateCount(DBInterface * dbi, const std::string& name, DBID dbid)
+bool KBEAccountTableMysql::updateCount(DBInterface * pdbi, const std::string& name, DBID dbid)
 {
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(fmt::format("update kbe_accountinfos set lasttime={}, numlogin=numlogin+1 where entityDBID={}",
+	if(!pdbi->query(fmt::format("update kbe_accountinfos set lasttime={}, numlogin=numlogin+1 where entityDBID={}",
 		time(NULL), dbid), false))
 		return false;
 
@@ -329,19 +329,19 @@ bool KBEAccountTableMysql::updateCount(DBInterface * dbi, const std::string& nam
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::updatePassword(DBInterface * dbi, const std::string& name, const std::string& password)
+bool KBEAccountTableMysql::updatePassword(DBInterface * pdbi, const std::string& name, const std::string& password)
 {
 	char* tbuf = new char[MAX_BUF * 3];
 	char* tbuf1 = new char[MAX_BUF * 3];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, password.c_str(), password.size());
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf1, name.c_str(), name.size());
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(fmt::format("update kbe_accountinfos set password=\"{}\" where accountName like \"{}\"", 
+	if(!pdbi->query(fmt::format("update kbe_accountinfos set password=\"{}\" where accountName like \"{}\"", 
 		password, tbuf1), false))
 	{
 		SAFE_RELEASE_ARRAY(tbuf);
@@ -355,34 +355,34 @@ bool KBEAccountTableMysql::updatePassword(DBInterface * dbi, const std::string& 
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
+bool KBEAccountTableMysql::logAccount(DBInterface * pdbi, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline, regtime, lasttime) values(";
 
 	char* tbuf = new char[MAX_BUF > info.datas.size() ? MAX_BUF * 3 : info.datas.size() * 3];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, info.name.c_str(), info.name.size());
 
 	sqlstr += "\"";
 	sqlstr += tbuf;
 	sqlstr += "\",";
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, info.password.c_str(), info.password.size());
 
 	sqlstr += "md5(\"";
 	sqlstr += tbuf;
 	sqlstr += "\"),";
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, info.datas.data(), info.datas.size());
 
 	sqlstr += "\"";
 	sqlstr += tbuf;
 	sqlstr += "\",";
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, info.email.c_str(), info.email.size());
 
 	sqlstr += "\"";
@@ -412,10 +412,10 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEAccountTableMysql::logAccount({}): sql({}) is failed({})!\n", 
-				info.name, sqlstr, dbi->getstrerror()));
+				info.name, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -435,13 +435,13 @@ KBEEmailVerificationTableMysql::~KBEEmailVerificationTableMysql()
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, const std::string& name, ACCOUNT_INFOS& info)
+bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * pdbi, int8 type, const std::string& name, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "select code, datas from kbe_email_verification where accountName=\"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += tbuf;
@@ -452,16 +452,16 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 	sqlstr += " LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::queryAccount({}): sql({}) is failed({})!\n", 
-				name, sqlstr, dbi->getstrerror()));
+				name, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
 
 	info.datas = "";
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -479,7 +479,7 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, const std::string& name, 
+bool KBEEmailVerificationTableMysql::logAccount(DBInterface * pdbi, int8 type, const std::string& name, 
 												const std::string& datas, const std::string& code)
 {
 	std::string sqlstr = "insert into kbe_email_verification (accountName, type, datas, code, logtime) values(";
@@ -487,7 +487,7 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 	char* tbuf = new char[MAX_BUF > datas.size() ? MAX_BUF * 3 : 
 		(code.size() > datas.size() ? code.size() * 3 : datas.size() * 3)];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += "\"";
@@ -497,14 +497,14 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 	kbe_snprintf(tbuf, MAX_BUF, "%d,", type);
 	sqlstr += tbuf;
 	
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, datas.c_str(), datas.size());
 
 	sqlstr += "\"";
 	sqlstr += tbuf;
 	sqlstr += "\",";
 	
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, code.c_str(), code.size());
 
 	sqlstr += "\"";
@@ -518,10 +518,10 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): sql({}) is failed({})!\n", 
-				code, sqlstr, dbi->getstrerror()));
+				code, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -530,13 +530,13 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, co
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info)
+bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const std::string& code, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "select accountName, datas, logtime from kbe_email_verification where code=\"";
 
 	char* tbuf = new char[code.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, code.c_str(), code.size());
 
 	sqlstr += tbuf;
@@ -547,17 +547,17 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	sqlstr += " LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): sql({}) is failed({})!\n", 
-				code, sqlstr, dbi->getstrerror()));
+				code, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
 
 	uint64 logtime = 1;
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -595,7 +595,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	KBE_ASSERT(pTable);
 	
 	info.flags = 0;
-	if(!pTable->queryAccount(dbi, info.name, info))
+	if(!pTable->queryAccount(pdbi, info.name, info))
 	{
 		return false;
 	}
@@ -610,17 +610,17 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 
 	info.flags &= ~ACCOUNT_FLAG_NOT_ACTIVATED; 
 
-	if(!pTable->setFlagsDeadline(dbi, info.name, info.flags, info.deadline))
+	if(!pTable->setFlagsDeadline(pdbi, info.name, info.flags, info.deadline))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline is error({})!\n", 
-				code, dbi->getstrerror()));
+				code, pdbi->getstrerror()));
 		return false;
 	}
 
-	if(!pTable->updatePassword(dbi, info.name, password))
+	if(!pTable->updatePassword(pdbi, info.name, password))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password is error({})!\n", 
-				code, dbi->getstrerror()));
+				code, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -632,7 +632,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	// 防止多线程问题， 这里做一个拷贝。
 	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-	info.dbid = EntityTables::getSingleton().writeEntity(dbi, 0, -1,
+	info.dbid = EntityTables::getSingleton().writeEntity(pdbi, 0, -1,
 			&copyAccountDefMemoryStream, pModule);
 
 	KBE_ASSERT(info.dbid > 0);
@@ -640,14 +640,14 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	// 如果查询失败则返回存在， 避免可能产生的错误
 	tbuf = new char[MAX_BUF * 3];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, info.name.c_str(), info.name.size());
 
-	if(!dbi->query(fmt::format("update kbe_accountinfos set entityDBID={} where accountName like \"{}\"", 
+	if(!pdbi->query(fmt::format("update kbe_accountinfos set entityDBID={} where accountName like \"{}\"", 
 		info.dbid, tbuf), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update kbe_accountinfos is error({})!\n", 
-				code, dbi->getstrerror()));
+				code, pdbi->getstrerror()));
 
 		SAFE_RELEASE_ARRAY(tbuf);
 		return false;
@@ -657,7 +657,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 
 	try
 	{
-		delAccount(dbi, (int8)V_TYPE_CREATEACCOUNT, info.name);
+		delAccount(pdbi, (int8)V_TYPE_CREATEACCOUNT, info.name);
 	}
 	catch (...)
 	{
@@ -667,13 +667,13 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::string& name, const std::string& code)
+bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * pdbi, const std::string& name, const std::string& code)
 {
 	std::string sqlstr = "select accountName, datas, logtime from kbe_email_verification where code=\"";
 
 	char* tbuf = new char[code.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, code.c_str(), code.size());
 
 	sqlstr += tbuf;
@@ -684,10 +684,10 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 	sqlstr += " LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): sql({}) is failed({})!\n", 
-				code, sqlstr, dbi->getstrerror()));
+				code, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -696,7 +696,7 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 
 	std::string qname, qemail;
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -737,14 +737,14 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 
 	tbuf = new char[code.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, qemail.c_str(), qemail.size());
 
 	sqlstr = "update kbe_accountinfos set email=\"";
 	sqlstr += tbuf;
 	sqlstr += "\" where accountName like \"";
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, qname.c_str(), qname.size());
 	
 	sqlstr += tbuf;
@@ -752,17 +752,17 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr, false))
+	if(!pdbi->query(sqlstr, false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::bindEMail({}): update kbe_accountinfos({}) error({})!\n", 
-				code, qname, dbi->getstrerror()));
+				code, qname, pdbi->getstrerror()));
 
 		return false;
 	}
 
 	try
 	{
-		delAccount(dbi, (int8)V_TYPE_BIND_MAIL, name);
+		delAccount(pdbi, (int8)V_TYPE_BIND_MAIL, name);
 	}
 	catch (...)
 	{
@@ -772,14 +772,14 @@ bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::str
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std::string& name, 
+bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * pdbi, const std::string& name, 
 												   const std::string& password, const std::string& code)
 {
 	std::string sqlstr = "select accountName, datas, logtime from kbe_email_verification where code=\"";
 
 	char* tbuf = new char[code.size() * 2 + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, code.c_str(), code.size());
 
 	sqlstr += tbuf;
@@ -790,10 +790,10 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	sqlstr += " LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): sql({}) is failed({})!\n", 
-				code, sqlstr, dbi->getstrerror()));
+				code, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -802,7 +802,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	
 	std::string qname, qemail;
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
@@ -844,10 +844,10 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
-	if(!pTable->updatePassword(dbi, qname, KBE_MD5::getDigest(password.data(), password.length())))
+	if(!pTable->updatePassword(pdbi, qname, KBE_MD5::getDigest(password.data(), password.length())))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::resetpassword({}): update accountName({}) password error({})!\n", 
-				code, qname, dbi->getstrerror()));
+				code, qname, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -855,7 +855,7 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 
 	try
 	{
-		delAccount(dbi, (int8)V_TYPE_RESETPASSWORD, qname);
+		delAccount(pdbi, (int8)V_TYPE_RESETPASSWORD, qname);
 	}
 	catch (...)
 	{
@@ -865,13 +865,13 @@ bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std:
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::delAccount(DBInterface * dbi, int8 type, const std::string& name)
+bool KBEEmailVerificationTableMysql::delAccount(DBInterface * pdbi, int8 type, const std::string& name)
 {
 	std::string sqlstr = "delete from kbe_email_verification where accountName=";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += "\"";
@@ -883,10 +883,10 @@ bool KBEEmailVerificationTableMysql::delAccount(DBInterface * dbi, int8 type, co
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
 		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::delAccount({}): sql({}) is failed({})!\n", 
-				name, sqlstr, dbi->getstrerror()));
+				name, sqlstr, pdbi->getstrerror()));
 
 		return false;
 	}
@@ -895,7 +895,7 @@ bool KBEEmailVerificationTableMysql::delAccount(DBInterface * dbi, int8 type, co
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* dbi)
+bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
@@ -907,7 +907,7 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* dbi)
 			"logtime bigint(20) not null DEFAULT 0)"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 
 	// 删除xx小时之前的记录
@@ -915,21 +915,21 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* dbi)
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailAtivationInfo_.deadline), 
 		((int)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT));
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 
 	sqlstr = fmt::format("delete from kbe_email_verification where logtime<{} and type={}", 
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailResetPasswordInfo_.deadline),
 		((int)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD));
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 
 	sqlstr = fmt::format("delete from kbe_email_verification where logtime<{} and type={}", 
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailBindInfo_.deadline), 
 		((int)KBEEmailVerificationTable::V_TYPE_BIND_MAIL));
 
-	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 	return ret;
 }

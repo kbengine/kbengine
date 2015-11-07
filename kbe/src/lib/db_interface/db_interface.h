@@ -172,7 +172,7 @@ public:
 	static const char* dbname();
 	static const char* dbtype();
 	static const char* accountScriptName();
-	static bool initInterface(DBInterface* dbi);
+	static bool initInterface(DBInterface* pdbi);
 
 	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
 

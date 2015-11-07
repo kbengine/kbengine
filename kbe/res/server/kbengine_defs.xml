@@ -192,6 +192,11 @@
 	<email_service_config>server/email_service.xml</email_service_config>
 		
 	<interfaces>
+		<!-- 入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
+		<entryScriptFile> kbengine </entryScriptFile>
+			
 		<!-- 
 			账号的类型(Account Type):
 			normal: 默认当前进程处理(default handling the current process), 
@@ -217,29 +222,23 @@
 		-->
 		<orders_timeout> 3600 	</orders_timeout>
 		
-		<!-- 第三方账号服务接口,如: www.google.com, 当accountType是thirdparty时有效 
-			(Third-party account service interfaces, such as: www.google.com, 
-			When the accountType is thirdparty, is valid.)
-		-->
-		<thirdpartyAccountService_addr></thirdpartyAccountService_addr>
-		<thirdpartyAccountService_port> 80 </thirdpartyAccountService_port>
-		
-		<!-- 第三方充值服务接口 如: www.google.com, 当chargeType是thirdparty时有效 
-			(Third-party charge service interfaces, such as: www.google.com, 
-			When the chargeType is thirdparty, is valid.)
-		-->
-		<thirdpartyChargeService_addr></thirdpartyChargeService_addr>
-		<thirdpartyChargeService_port> 80 </thirdpartyChargeService_port>
-		
-		<!-- interfaces和第三方服务商协作的回调地址, 这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析
-			(interfaces and third-party service providers collaborate callback address)
-		-->
-		<thirdpartyService_cbport> 30040 </thirdpartyService_cbport>
 		
 		<!-- listen监听队列最大值
 		    (listen: Maximum listen queue)
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
+		
+		<!-- Telnet服务, 如果端口被占用则向后尝试30001.. 
+			(Telnet service, if the port is occupied backwards to try 30001)
+		-->
+		<telnet_service>
+			<port> 30000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
+			<default_layer> python </default_layer>
+		</telnet_service>
 	</interfaces>
 	
 	<dbmgr>

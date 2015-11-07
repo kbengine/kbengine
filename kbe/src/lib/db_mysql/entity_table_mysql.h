@@ -44,6 +44,9 @@ public:
 	  EntityTableItem(itemDBType, datalength, flags),
 	  mysqlItemtype_(mysqlItemtype)
 	{
+		// 记录下我们所设置的所有标记
+		ALL_MYSQL_SET_FLAGS |= flags;
+
 		memset(db_item_name_, 0, MAX_BUF);
 	};
 
@@ -62,17 +65,17 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL) = 0;
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL) = 0;
 
 	/**
 		更新数据
 	*/
-	virtual bool writeItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+	virtual bool writeItem(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
 
 	/**
 		查询表
 	*/
-	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+	virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
 
 	/**
 		获取某个表所有的数据放到流中
@@ -82,13 +85,14 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context) = 0;
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context) = 0;
 	virtual void getReadSqlItem(DBContext& context) = 0;
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
 	const char* db_item_name(){ return db_item_name_; }
 
 	virtual bool isSameKey(std::string key){ return key == db_item_name(); }
+
 protected:
 	char db_item_name_[MAX_BUF];
 	enum_field_types mysqlItemtype_;
@@ -111,7 +115,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -121,8 +125,9 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
+
 protected:
 	std::string dataSType_;
 };
@@ -143,7 +148,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -153,7 +158,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 };
 
@@ -173,7 +178,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -183,7 +188,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 };
 
@@ -203,7 +208,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -213,7 +218,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 };
 
@@ -233,7 +238,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -243,7 +248,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 };
 
@@ -265,7 +270,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -275,7 +280,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -306,7 +311,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -316,7 +321,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -347,7 +352,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -357,7 +362,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -386,7 +391,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -396,7 +401,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 };
 
@@ -425,7 +430,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -435,7 +440,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
@@ -470,7 +475,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -480,10 +485,11 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
+
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
@@ -506,39 +512,39 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* pdbi);
 
 	/**
 		同步表索引
 	*/
-	virtual bool syncIndexToDB(DBInterface* dbi);
+	virtual bool syncIndexToDB(DBInterface* pdbi);
 
 	/** 
 		创建一个表item
 	*/
 	virtual EntityTableItem* createItem(std::string type);
 
-	DBID writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity
 	*/
-	bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
+	bool removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
 		获取所有的数据放到流中
 	*/
-	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		设置是否自动加载
 	*/
-	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad);
+	virtual void entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool shouldAutoLoad);
 
 	/**
 		查询自动加载的实体
 	*/
-	virtual void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+	virtual void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
 
 	/**
@@ -549,7 +555,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
 	virtual void getReadSqlItem(DBContext& context);
 
 	void init_db_item_name();

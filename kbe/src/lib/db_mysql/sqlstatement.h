@@ -37,14 +37,14 @@ namespace KBEngine{
 class SqlStatement
 {
 public:
-	SqlStatement(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, 
+	SqlStatement(DBInterface* pdbi, std::string tableName, DBID parentDBID, DBID dbid, 
 		DBContext::DB_ITEM_DATAS& tableItemDatas):
 	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
 	  dbid_(dbid),
 	  parentDBID_(parentDBID),
-	  dbi_(dbi)
+	  pdbi_(pdbi)
 	{
 	}
 
@@ -54,18 +54,18 @@ public:
 
 	std::string& sql(){ return sqlstr_; }
 
-	virtual bool query(DBInterface* dbi = NULL)
+	virtual bool query(DBInterface* pdbi = NULL)
 	{
 		// 没有数据更新
 		if(sqlstr_ == "")
 			return true;
 
-		bool ret = static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
+		bool ret = static_cast<DBInterfaceMysql*>(pdbi != NULL ? pdbi : pdbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
 
 		if(!ret)
 		{
 			ERROR_MSG(fmt::format("SqlStatement::query: {}\n\tsql:{}\n", 
-				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
+				(pdbi != NULL ? pdbi : pdbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}
@@ -81,15 +81,15 @@ protected:
 	std::string tableName_;
 	DBID dbid_;
 	DBID parentDBID_;
-	DBInterface* dbi_; 
+	DBInterface* pdbi_; 
 };
 
 class SqlStatementInsert : public SqlStatement
 {
 public:
-	SqlStatementInsert(DBInterface* dbi, std::string tableName, DBID parentDBID, 
+	SqlStatementInsert(DBInterface* pdbi, std::string tableName, DBID parentDBID, 
 		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
-	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
+	  SqlStatement(pdbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
 		sqlstr_ = "insert into " ENTITY_TABLE_PERFIX "_";
@@ -143,36 +143,35 @@ public:
 	{
 	}
 
-	virtual bool query(DBInterface* dbi = NULL)
+	virtual bool query(DBInterface* pdbi = NULL)
 	{
 		// 没有数据更新
 		if(sqlstr_ == "")
 			return true;
 
-		bool ret = SqlStatement::query(dbi);
+		bool ret = SqlStatement::query(pdbi);
 		if(!ret)
 		{
 			ERROR_MSG(fmt::format("SqlStatementInsert::query: {}\n\tsql:{}\n",
-				(dbi != NULL ? dbi : dbi_)->getstrerror(), sqlstr_));
+				(pdbi != NULL ? pdbi : pdbi_)->getstrerror(), sqlstr_));
 
 			return false;
 		}
 
-		dbid_ = static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->insertID();
+		dbid_ = static_cast<DBInterfaceMysql*>(pdbi != NULL ? pdbi : pdbi_)->insertID();
 		return ret;
 	}
 
 protected:
-	
 	std::string sqlstr1_;
 };
 
 class SqlStatementUpdate : public SqlStatement
 {
 public:
-	SqlStatementUpdate(DBInterface* dbi, std::string tableName, DBID parentDBID, 
+	SqlStatementUpdate(DBInterface* pdbi, std::string tableName, DBID parentDBID, 
 		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
-	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
+	  SqlStatement(pdbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		if(tableItemDatas.size() == 0)
 		{
@@ -221,9 +220,9 @@ protected:
 class SqlStatementQuery : public SqlStatement
 {
 public:
-	SqlStatementQuery(DBInterface* dbi, std::string tableName, const std::vector<DBID>& parentTableDBIDs, 
+	SqlStatementQuery(DBInterface* pdbi, std::string tableName, const std::vector<DBID>& parentTableDBIDs, 
 		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
-	  SqlStatement(dbi, tableName, 0, dbid, tableItemDatas),
+	  SqlStatement(pdbi, tableName, 0, dbid, tableItemDatas),
 	  sqlstr1_()
 	{
 

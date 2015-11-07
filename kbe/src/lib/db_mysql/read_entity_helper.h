@@ -50,10 +50,10 @@ public:
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DBInterface* dbi, DBContext& context)
+	static bool queryDB(DBInterface* pdbi, DBContext& context)
 	{
 		// 根据某个dbid获得一张表上的相关数据
-		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
+		SqlStatement* pSqlcmd = new SqlStatementQuery(pdbi, context.tableName, 
 			context.dbids[context.dbid], 
 			context.dbid, context.items);
 
@@ -65,7 +65,7 @@ public:
 			return ret;
 
 		// 将查询到的结果写入上下文
-		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
 		if(pResult)
 		{
@@ -120,7 +120,7 @@ public:
 		for(; iter1 != context.optable.end(); ++iter1)
 		{
 			DBContext& wbox = *iter1->second.get();
-			if(!queryChildDB(dbi, wbox, dbids))
+			if(!queryChildDB(pdbi, wbox, dbids))
 				return false;
 		}
 
@@ -131,10 +131,10 @@ public:
 	/**
 		从子表中查询数据
 	*/
-	static bool queryChildDB(DBInterface* dbi, DBContext& context, std::vector<DBID>& parentTableDBIDs)
+	static bool queryChildDB(DBInterface* pdbi, DBContext& context, std::vector<DBID>& parentTableDBIDs)
 	{
 		// 根据某个dbid获得一张表上的相关数据
-		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, context.tableName, 
+		SqlStatement* pSqlcmd = new SqlStatementQuery(pdbi, context.tableName, 
 			parentTableDBIDs, 
 			context.dbid, context.items);
 
@@ -148,7 +148,7 @@ public:
 		std::vector<DBID> t_parentTableDBIDs;
 
 		// 将查询到的结果写入上下文
-		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
 		if(pResult)
 		{
@@ -208,7 +208,7 @@ public:
 		{
 			DBContext& wbox = *iter1->second.get();
 
-			if(!queryChildDB(dbi, wbox, t_parentTableDBIDs))
+			if(!queryChildDB(pdbi, wbox, t_parentTableDBIDs))
 				return false;
 		}
 

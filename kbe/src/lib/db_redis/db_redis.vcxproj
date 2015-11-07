@@ -99,14 +99,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.cpp" />
+    <ClCompile Include="db_exception.cpp" />
     <ClCompile Include="db_interface_redis.cpp" />
+    <ClCompile Include="db_transaction.cpp" />
     <ClCompile Include="kbe_table_redis.cpp" />
+    <ClCompile Include="redis_watcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
+    <ClInclude Include="db_exception.h" />
     <ClInclude Include="db_interface_redis.h" />
+    <ClInclude Include="db_transaction.h" />
     <ClInclude Include="kbe_table_redis.h" />
     <ClInclude Include="redis_helper.h" />
+    <ClInclude Include="redis_watcher.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

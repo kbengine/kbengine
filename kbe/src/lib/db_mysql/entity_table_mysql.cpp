@@ -38,7 +38,7 @@ namespace KBEngine {
 // 同步成功时回调
 typedef void (*onSyncItemToDBSuccessPtr)(DBInterface*, const char*, const char*);
 
-bool sync_item_to_db(DBInterface* dbi, 
+bool sync_item_to_db(DBInterface* pdbi, 
 					 const char* datatype, 
 					 const char* tableName, 
 					 const char* itemName, 
@@ -55,7 +55,7 @@ bool sync_item_to_db(DBInterface* dbi,
 		if(iter != pTFData->end())
 		{
 			TABLE_FIELD& tf = iter->second;
-			if(tf.type == sqlitemtype && ((tf.flags & itemflags) == itemflags))
+			if (tf.type == sqlitemtype && ((tf.flags & ALL_MYSQL_SET_FLAGS) == itemflags))
 			{
 				if((length == 0) || (int32)length == tf.length)
 					return true;
@@ -72,23 +72,23 @@ bool sync_item_to_db(DBInterface* dbi,
 
 	try
 	{
-		dbi->query(__sql_str__, strlen(__sql_str__), false);	
+		pdbi->query(__sql_str__, strlen(__sql_str__), false);	
 	}
 	catch(...)
 	{
 	}	
 
-	if(dbi->getlasterror() == 1060)	
+	if(pdbi->getlasterror() == 1060)	
 	{
 		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` MODIFY COLUMN `%s` %s;",	
 			tableName, itemName, datatype);
 
 		try
 		{
-			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
+			if(pdbi->query(__sql_str__, strlen(__sql_str__), false))
 			{
 				if(callback)
-					(*callback)(dbi, tableName, itemName);
+					(*callback)(pdbi, tableName, itemName);
 
 				return true;
 			}
@@ -96,26 +96,26 @@ bool sync_item_to_db(DBInterface* dbi,
 		catch(...)
 		{
 			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}) is error({}: {})\n lastQuery: {}.\n", 
-				tableName, itemName, datatype, dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
+				tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 			return false;
 		}
 	}
 
 	if(callback)
-		(*callback)(dbi, tableName, itemName);
+		(*callback)(pdbi, tableName, itemName);
 
 	return true;
 }		
 
-void sync_autoload_item_index(DBInterface* dbi, const char* tableName, const char* itemName)
+void sync_autoload_item_index(DBInterface* pdbi, const char* tableName, const char* itemName)
 {
 	// 创建sm_autoLoad的索引
 	std::string sql = fmt::format("ALTER TABLE " ENTITY_TABLE_PERFIX "_{} ADD INDEX ({})", tableName, itemName);
 
 	try
 	{
-		dbi->query(sql.c_str(), sql.size(), true);
+		pdbi->query(sql.c_str(), sql.size(), true);
 	}
 	catch(...)
 	{
@@ -228,7 +228,7 @@ void EntityTableMysql::init_db_item_name()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
+bool EntityTableMysql::syncIndexToDB(DBInterface* pdbi)
 {
 	std::vector<EntityTableItem*> indexs;
 
@@ -248,7 +248,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 
 	try
 	{
-		bool ret = dbi->query(sql_str, strlen(sql_str), false);
+		bool ret = pdbi->query(sql_str, strlen(sql_str), false);
 		if(!ret)
 		{
 			return false;
@@ -261,7 +261,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 
 	KBEUnordered_map<std::string, std::string> currDBKeys;
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 	if(pResult)
 	{
 		MYSQL_ROW arow;
@@ -351,7 +351,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 	
 	try
 	{
-		bool ret = dbi->query(sql.c_str(), sql.size(), true);
+		bool ret = pdbi->query(sql.c_str(), sql.size(), true);
 		if(!ret)
 		{
 			return false;
@@ -366,7 +366,7 @@ bool EntityTableMysql::syncIndexToDB(DBInterface* dbi)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::syncToDB(DBInterface* dbi)
+bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 {
 	if(hasSync())
 		return true;
@@ -386,7 +386,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 
 	try
 	{
-		bool ret = dbi->query(sql_str, strlen(sql_str), false);
+		bool ret = pdbi->query(sql_str, strlen(sql_str), false);
 		if(!ret)
 		{
 			return false;
@@ -395,21 +395,21 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	catch(...)
 	{
 		ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): is error({}: {})\n lastQuery: {}.\n", 
-			dbi->getlasterror(), dbi->getstrerror(), static_cast<DBInterfaceMysql*>(dbi)->lastquery()));
+			pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 		return false;
 	}
 
 	DBInterfaceMysql::TABLE_FIELDS outs;
-	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
+	static_cast<DBInterfaceMysql*>(pdbi)->getFields(outs, this->tableName());
 
-	sync_item_to_db(dbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0, 
+	sync_item_to_db(pdbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0, 
 			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
 
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); ++iter)
 	{
-		if(!iter->second->syncToDB(dbi, (void*)&outs))
+		if(!iter->second->syncToDB(pdbi, (void*)&outs))
 			return false;
 	}
 
@@ -418,7 +418,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	std::string ttablename = ENTITY_TABLE_PERFIX"_";
 	ttablename += tableName();
 
-	dbi->getTableItemNames(ttablename.c_str(), dbTableItemNames);
+	pdbi->getTableItemNames(ttablename.c_str(), dbTableItemNames);
 
 	// 检查是否有需要删除的表字段
 	std::vector<std::string>::iterator iter0 = dbTableItemNames.begin();
@@ -447,13 +447,13 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 
 		if(!found)
 		{
-			if(!dbi->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
+			if(!pdbi->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
 				return false;
 		}
 	}
 
 	// 同步表索引
-	if(!syncIndexToDB(dbi))
+	if(!syncIndexToDB(pdbi))
 		return false;
 
 	sync_ = true;
@@ -461,19 +461,19 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+void EntityTableMysql::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs)
 {
 	std::string sql = fmt::format("select id  from " ENTITY_TABLE_PERFIX "_{} where " TABLE_ITEM_PERFIX "_" TABLE_AUTOLOAD_CONST_STR "=1 limit {}, {};", 
 		tableName(), start, (end - start));
 
-	bool result = dbi->query(sql, false);
+	bool result = pdbi->query(sql, false);
 
 	if (!result)
 		return;
 
 
-	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
 	if(pResult)
 	{
@@ -606,7 +606,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad)
+void EntityTableMysql::entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool shouldAutoLoad)
 {
 	if(dbid == 0)
 		return;
@@ -614,11 +614,11 @@ void EntityTableMysql::entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool sh
 	std::string sql = fmt::format("update " ENTITY_TABLE_PERFIX "_{} set " TABLE_ITEM_PERFIX "_" TABLE_AUTOLOAD_CONST_STR "={} where id={};", 
 		tableName(), (shouldAutoLoad ? 1 : 0), dbid);
 
-	dbi->query(sql, false);
+	pdbi->query(sql, false);
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTableMysql::writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	DBContext context;
 	context.parentTableName = "";
@@ -640,11 +640,11 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLo
 			return dbid;
 		}
 		
-		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(dbi, s, context);
+		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(pdbi, s, context);
 	};
 
 	if(!WriteEntityHelper::writeDB(context.dbid > 0 ? TABLE_OP_UPDATE : TABLE_OP_INSERT, 
-		dbi, context))
+		pdbi, context))
 		return 0;
 
 	dbid = context.dbid;
@@ -655,13 +655,13 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLo
 
 	// 设置实体是否自动加载
 	if(shouldAutoLoad > -1)
-		entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
+		entityShouldAutoLoad(pdbi, dbid, shouldAutoLoad > 0);
 
 	return dbid;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+bool EntityTableMysql::removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule)
 {
 	KBE_ASSERT(pModule && dbid > 0);
 
@@ -679,14 +679,14 @@ bool EntityTableMysql::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule
 		static_cast<EntityTableItemMysqlBase*>((*iter))->getReadSqlItem(context);
 	}
 
-	bool ret = RemoveEntityHelper::removeDB(dbi, context);
+	bool ret = RemoveEntityHelper::removeDB(pdbi, context);
 	KBE_ASSERT(ret);
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableMysql::queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	KBE_ASSERT(pModule && s && dbid > 0);
 
@@ -704,7 +704,7 @@ bool EntityTableMysql::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 		static_cast<EntityTableItemMysqlBase*>((*iter))->getReadSqlItem(context);
 	}
 
-	if(!ReadEntityHelper::queryDB(dbi, context))
+	if(!ReadEntityHelper::queryDB(pdbi, context))
 		return false;
 
 	if(context.dbids[dbid].size() == 0)
@@ -730,7 +730,7 @@ void EntityTableMysql::addToStream(MemoryStream* s, DBContext& context, DBID res
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableMysql::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(tableFixedOrderItems_.size() == 0)
 		return;
@@ -751,7 +751,7 @@ void EntityTableMysql::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBCont
 
 	for(; iter != tableFixedOrderItems_.end(); ++iter)
 	{
-		static_cast<EntityTableItemMysqlBase*>((*iter))->getWriteSqlItem(dbi, s, *context1);
+		static_cast<EntityTableItemMysqlBase*>((*iter))->getWriteSqlItem(pdbi, s, *context1);
 	}
 }
 
@@ -800,13 +800,13 @@ bool EntityTableItemMysql_VECTOR2::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, 
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, 
 		this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, 
+	return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -828,7 +828,7 @@ void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -886,17 +886,17 @@ bool EntityTableItemMysql_VECTOR3::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, 
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, 
 		this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, 
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, 
 		this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[2], 0, 
+	return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[2], 0, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -918,7 +918,7 @@ void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -976,18 +976,18 @@ bool EntityTableItemMysql_VECTOR4::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, this->mysqlItemtype_, this->flags(), pData))
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0], 0, this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, this->mysqlItemtype_, this->flags(), pData))
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[1], 0, this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[2], 0, this->mysqlItemtype_, this->flags(), pData))
+	if(!sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[2], 0, this->mysqlItemtype_, this->flags(), pData))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[3], 0, this->mysqlItemtype_, this->flags(), pData);
+	return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[3], 0, this->mysqlItemtype_, this->flags(), pData);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1008,7 +1008,7 @@ void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -1054,7 +1054,7 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
 {
 	return true;
 }
@@ -1065,7 +1065,7 @@ void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 }
 
@@ -1155,10 +1155,10 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* pdbi, void* pData)
 {
 	if(pChildTable_)
-		return pChildTable_->syncToDB(dbi);
+		return pChildTable_->syncToDB(pdbi);
 
 	return true;
 }
@@ -1189,7 +1189,7 @@ void EntityTableItemMysql_ARRAY::addToStream(MemoryStream* s, DBContext& context
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	ArraySize size = 0;
 	if(s)
@@ -1200,11 +1200,11 @@ void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* dbi, MemoryStream*
 		if(size > 0)
 		{
 			for(ArraySize i=0; i<size; ++i)
-				static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(dbi, s, context);
+				static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(pdbi, s, context);
 		}
 		else
 		{
-			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(dbi, NULL, context);
+			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(pdbi, NULL, context);
 		}
 	}
 }
@@ -1283,12 +1283,12 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); ++iter)
 	{
-		if(!iter->second->syncToDB(dbi, pData))
+		if(!iter->second->syncToDB(pdbi, pData))
 			return false;
 	}
 
@@ -1307,13 +1307,13 @@ void EntityTableItemMysql_FIXED_DICT::addToStream(MemoryStream* s, DBContext& co
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
 	for(; fditer != keyTypes_.end(); ++fditer)
 	{
-		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getWriteSqlItem(dbi, s, context);
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getWriteSqlItem(pdbi, s, context);
 	}
 }
 
@@ -1356,11 +1356,11 @@ bool EntityTableItemMysqlBase::initialize(const PropertyDescription* pPropertyDe
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	if(datalength_ == 0)
 	{
-		return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), 
+		return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), 
 			db_item_name(), datalength_, this->mysqlItemtype_, this->flags(), pData);
 	}
 
@@ -1372,7 +1372,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi, void* pData)
 	else
 		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 
-	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), db_item_name(), length, this->mysqlItemtype_, this->flags(), pData);
+	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, this->mysqlItemtype_, this->flags(), pData);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1446,7 +1446,7 @@ void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DBContext& context
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -1528,7 +1528,7 @@ void EntityTableItemMysql_DIGIT::getReadSqlItem(DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 {
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
@@ -1542,7 +1542,7 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi, void* pData)
 		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 	}
 
-	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), db_item_name(), length, 
+	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -1554,7 +1554,7 @@ void EntityTableItemMysql_STRING::addToStream(MemoryStream* s,
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* dbi, 
+void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* pdbi, 
 												  MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
@@ -1570,7 +1570,7 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* dbi,
 	char* tbuf = new char[val.size() * 2 + 1];
 	memset(tbuf, 0, val.size() * 2 + 1);
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 
 	pSotvs->extraDatas += tbuf;
@@ -1593,7 +1593,7 @@ void EntityTableItemMysql_STRING::getReadSqlItem(DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 {
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
@@ -1607,7 +1607,7 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi, void* pData)
 		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 	}
 
-	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), db_item_name(), length, 
+	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -1619,7 +1619,7 @@ void EntityTableItemMysql_UNICODE::addToStream(MemoryStream* s,
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, 
+void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, 
 												   DBContext& context)
 {
 	if(s == NULL)
@@ -1633,7 +1633,7 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 	char* tbuf = new char[val.size() * 2 + 1];
 	memset(tbuf, 0, val.size() * 2 + 1);
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 	
 	pSotvs->extraDatas = "\"";
@@ -1656,9 +1656,9 @@ void EntityTableItemMysql_UNICODE::getReadSqlItem(DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* pdbi, void* pData)
 {
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name(), 0, 
+	return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name(), 0, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -1670,7 +1670,7 @@ void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DBContext& context,
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -1683,7 +1683,7 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 	char* tbuf = new char[val.size() * 2 + 1];
 	memset(tbuf, 0, val.size() * 2 + 1);
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, val.data(), val.size());
 
 	pSotvs->extraDatas = "\"";
@@ -1706,9 +1706,9 @@ void EntityTableItemMysql_BLOB::getReadSqlItem(DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_PYTHON::syncToDB(DBInterface* dbi, void* pData)
+bool EntityTableItemMysql_PYTHON::syncToDB(DBInterface* pdbi, void* pData)
 {
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name(), 0, 
+	return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name(), 0, 
 		this->mysqlItemtype_, this->flags(), pData);
 }
 
@@ -1720,7 +1720,7 @@ void EntityTableItemMysql_PYTHON::addToStream(MemoryStream* s, DBContext& contex
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -1733,7 +1733,7 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream
 	char* tbuf = new char[val.size() * 2 + 1];
 	memset(tbuf, 0, val.size() * 2 + 1);
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
 
 	pSotvs->extraDatas = "\"";

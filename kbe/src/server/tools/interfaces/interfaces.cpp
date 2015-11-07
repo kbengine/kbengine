@@ -21,7 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "orders.h"
 #include "interfaces.h"
 #include "interfaces_tasks.h"
-#include "anonymous_channel.h"
 #include "interfaces_interface.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
@@ -87,7 +86,6 @@ private:
 };
 
 
-
 //-------------------------------------------------------------------------------------
 Interfaces::Interfaces(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -97,7 +95,6 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	mainProcessTimer_(),
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
-	mutex_(),
 	scriptTimers_(),
 	pTelnetServer_(NULL)
 {
@@ -108,7 +105,6 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 Interfaces::~Interfaces()
 {
 	mainProcessTimer_.cancel();
-	lockthread();
 
 	if(reqCreateAccount_requests_.size() > 0)
 	{	
@@ -131,8 +127,6 @@ Interfaces::~Interfaces()
 				++i, reqAccountLogin_requests_.size(), (void*)iter->second));
 		}
 	}
-
-	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -143,7 +137,7 @@ void Interfaces::onShutdownBegin()
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"));
-
+	
 	scriptTimers_.cancelAll();
 }
 
@@ -151,46 +145,6 @@ void Interfaces::onShutdownBegin()
 void Interfaces::onShutdownEnd()
 {
 	PythonApp::onShutdownEnd();
-}
-
-//-------------------------------------------------------------------------------------
-void Interfaces::lockthread()
-{
-	mutex_.lockMutex();
-}
-
-//-------------------------------------------------------------------------------------
-void Interfaces::unlockthread()
-{
-	mutex_.unlockMutex();
-}
-
-//-------------------------------------------------------------------------------------
-void Interfaces::eraseOrders_s(std::string ordersid)
-{
-	lockthread();
-
-	ORDERS::iterator iter = orders_.find(ordersid);
-	if(iter != orders_.end())
-	{
-		ERROR_MSG(fmt::format("Interfaces::eraseOrders_s: chargeID={} not found!\n", ordersid));
-	}
-
-	orders_.erase(iter);
-	unlockthread();
-}
-
-//-------------------------------------------------------------------------------------
-bool Interfaces::hasOrders(std::string ordersid)
-{
-	bool ret = false;
-	
-	lockthread();
-	ORDERS::iterator iter = orders_.find(ordersid);
-	ret = (iter != orders_.end());
-	unlockthread();
-	
-	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -250,8 +204,6 @@ bool Interfaces::initializeEnd()
 	// 不做频道超时检查
 	CLOSE_CHANNEL_INACTIVITIY_DETECTION();
 
-	this->threadPool().addTask(new AnonymousChannel());
-
 	if (!initDB())
 		return false;
 
@@ -298,9 +250,8 @@ void Interfaces::onInstallPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS, 0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS, 0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterFileDescriptor,		PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS, 0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS, 0);
-
 }
 
 //-------------------------------------------------------------------------------------		
@@ -317,6 +268,29 @@ void Interfaces::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Interfaces::eraseOrders(std::string ordersid)
+{
+	ORDERS::iterator iter = orders_.find(ordersid);
+	if(iter != orders_.end())
+	{
+		ERROR_MSG(fmt::format("Interfaces::eraseOrders: chargeID={} not found!\n", ordersid));
+	}
+
+	orders_.erase(iter);
+}
+
+//-------------------------------------------------------------------------------------
+bool Interfaces::hasOrders(std::string ordersid)
+{
+	bool ret = false;
+	
+	ORDERS::iterator iter = orders_.find(ordersid);
+	ret = (iter != orders_.end());
+	
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string registerName, accountName, password, datas;
@@ -330,12 +304,9 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	{
 	}
 
-	lockthread();
-
 	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(registerName);
 	if(iter != reqCreateAccount_requests_.end())
 	{
-		unlockthread();
 		return;
 	}
 
@@ -352,10 +323,6 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	pinfo->enable = true;
 
 	reqCreateAccount_requests_[pinfo->commitName] = pinfo;
-	unlockthread();
-
-	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
-	//this->threadPool().addTask(pinfo);
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -373,7 +340,8 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 }
 
 //-------------------------------------------------------------------------------------
-void Interfaces::createAccountResponse(std::string commitName, std::string realAccountName, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+void Interfaces::createAccountResponse(std::string commitName, std::string realAccountName, 
+	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
 {
 	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(commitName);
 	if (iter == reqCreateAccount_requests_.end())
@@ -444,12 +412,9 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	s >> cid >> loginName >> password;
 	s.readBlob(datas);
 
-	lockthread();
-
 	REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.find(loginName);
 	if(iter != reqAccountLogin_requests_.end())
 	{
-		unlockthread();
 		return;
 	}
 
@@ -466,10 +431,6 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	pinfo->enable = true;
 
 	reqAccountLogin_requests_[pinfo->commitName] = pinfo;
-	unlockthread();
-
-	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
-	//this->threadPool().addTask(pinfo);
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -487,7 +448,8 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void Interfaces::accountLoginResponse(std::string commitName, std::string realAccountName, std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+void Interfaces::accountLoginResponse(std::string commitName, std::string realAccountName, 
+	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
 {
 	REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.find(commitName);
 	if (iter == reqAccountLogin_requests_.end())
@@ -554,7 +516,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	OrdersCharge* pOrdersCharge = new OrdersCharge();
 
-	pOrdersCharge->timeout = timestamp()  + uint64(g_kbeSrvConfig.interfaces_orders_timeout_ * stampsPerSecond());
+	pOrdersCharge->timeout = timestamp() + uint64(g_kbeSrvConfig.interfaces_orders_timeout_ * stampsPerSecond());
 
 	pOrdersCharge->dbmgrID = pChannel->componentID();
 	pOrdersCharge->address = pChannel->addr();
@@ -568,14 +530,11 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	INFO_MSG(fmt::format("Interfaces::charge: componentID={4}, chargeID={0}, dbid={1}, cbid={2}, datas={3}!\n",
 		pOrdersCharge->ordersID, pOrdersCharge->dbid, pOrdersCharge->cbid, pOrdersCharge->postDatas, pOrdersCharge->baseappID));
 
-	lockthread();
-
 	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
 		ERROR_MSG(fmt::format("Interfaces::charge: chargeID={} is exist!\n", pOrdersCharge->ordersID));
 		delete pOrdersCharge;
-		unlockthread();
 		return;
 	}
 
@@ -583,11 +542,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	pinfo->orders = *pOrdersCharge;
 	pinfo->pOrders = pOrdersCharge;
 	orders_[pOrdersCharge->ordersID].reset(pOrdersCharge);
-	unlockthread();
 	
-	// phw: 由于使用了下面的脚本回调，因此不再把此数据放到线程任务队列中处理
-	//this->threadPool().addTask(pinfo);
-
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
@@ -674,8 +629,6 @@ PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
-	lockthread();
-
 	REQCREATE_MAP::iterator citer = reqCreateAccount_requests_.find(logkey);
 	if(citer != reqCreateAccount_requests_.end())
 	{
@@ -689,8 +642,6 @@ void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 		liter->second->enable = false;
 		DEBUG_MSG(fmt::format("Interfaces::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
 	}
-
-	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -726,6 +677,7 @@ PyObject* Interfaces::__py_addTimer(PyObject* self, PyObject* args)
 	return PyLong_FromLong(id);
 }
 
+//-------------------------------------------------------------------------------------
 PyObject* Interfaces::__py_delTimer(PyObject* self, PyObject* args)
 {
 	ScriptID timerID;
@@ -741,4 +693,5 @@ PyObject* Interfaces::__py_delTimer(PyObject* self, PyObject* args)
 	return PyLong_FromLong(timerID);
 }
 
+//-------------------------------------------------------------------------------------
 }

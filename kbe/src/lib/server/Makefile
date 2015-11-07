@@ -10,6 +10,7 @@ SRCS =				\
 	globaldata_server	\
 	idallocate		\
 	pendingLoginmgr		\
+	python_app		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\

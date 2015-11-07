@@ -18,43 +18,43 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ANONYMOUS_CHANNEL_H
-#define KBE_ANONYMOUS_CHANNEL_H
+#ifndef KBE_REDIS_TRANSACTION_HELPER_H
+#define KBE_REDIS_TRANSACTION_HELPER_H
 
-// common include	
-// #define NDEBUG
-#include "common/common.h"
-#include "common/memorystream.h"
-#include "thread/threadtask.h"
-#include "helper/debug_helper.h"
-#include "network/address.h"
-#include "network/endpoint.h"
+#include "hiredis.h"
 
-namespace KBEngine{ 
+namespace KBEngine { 
+class DBInterface;
+namespace redis {
 
-class AnonymousChannel : public thread::TPTask
+/**
+ */
+class DBTransaction
 {
 public:
-	AnonymousChannel();
-	virtual ~AnonymousChannel();
+	DBTransaction(DBInterface* pdbi, bool autostart = true);
+	~DBTransaction();
 	
-	virtual bool process();
+	void start();
+	void end();
+
+	void commit();
+	void rollback();
 	
-	virtual thread::TPTask::TPTaskState presentMainThread();
+	bool shouldRetry() const;
 
-	Network::EndPoint listen;
+	void pdbi(DBInterface* pdbi){ pdbi_ = pdbi; }
+	
+	redisReply* pRedisReply(){ return pRedisReply_; }
 
-	struct BACK_ORDERS_DATA
-	{
-		std::string data;
-	};
-
-	KBEUnordered_map<std::string, BACK_ORDERS_DATA> backOrdersDatas_;
-
-private:	
-	void initListen();
+private:
+	DBInterface* pdbi_;
+	bool committed_;
+	bool autostart_;
+	redisReply* pRedisReply_;
 };
 
 }
+}
+#endif // KBE_REDIS_TRANSACTION_HELPER_H
 
-#endif // KBE_ANONYMOUS_CHANNEL_H

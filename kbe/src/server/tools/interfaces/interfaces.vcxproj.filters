@@ -18,9 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="anonymous_channel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,9 +44,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="anonymous_channel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="orders.h">
       <Filter>Header Files</Filter>
     </ClInclude>

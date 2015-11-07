@@ -182,16 +182,16 @@ const char* DBUtil::accountScriptName()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::initInterface(DBInterface* dbi)
+bool DBUtil::initInterface(DBInterface* pdbi)
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		DBInterfaceMysql::initInterface(dbi);
+		DBInterfaceMysql::initInterface(pdbi);
 	}
 	else if(strcmp(dbcfg.db_type, "redis") == 0)
 	{
-		DBInterfaceRedis::initInterface(dbi);
+		DBInterfaceRedis::initInterface(pdbi);
 	}
 	
 	if(!pThreadPool_->isInitialize())
@@ -201,19 +201,19 @@ bool DBUtil::initInterface(DBInterface* dbi)
 			return false;
 	}
 
-	bool ret = EntityTables::getSingleton().load(dbi);
+	bool ret = EntityTables::getSingleton().load(pdbi);
 
 	if(ret)
 	{
-		ret = dbi->checkEnvironment();
+		ret = pdbi->checkEnvironment();
 	}
 	
 	if(ret)
 	{
-		ret = dbi->checkErrors();
+		ret = pdbi->checkErrors();
 	}
 
-	return ret && EntityTables::getSingleton().syncToDB(dbi);
+	return ret && EntityTables::getSingleton().syncToDB(pdbi);
 }
 
 //-------------------------------------------------------------------------------------

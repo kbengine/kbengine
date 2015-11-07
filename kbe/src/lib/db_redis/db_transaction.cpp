@@ -18,27 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "db_interface_mysql.h"
+#include "db_interface_redis.h"
 #include "db_transaction.h"
 #include "db_exception.h"
 #include "db_interface/db_interface.h"
 #include "helper/debug_helper.h"
 #include "common/timestamp.h"
-#include <mysql/mysqld_error.h>
-#include <mysql/errmsg.h>
 
 namespace KBEngine { 
-namespace mysql {
- 
-static std::string SQL_START_TRANSACTION = "START TRANSACTION";
-static std::string SQL_ROLLBACK = "ROLLBACK";
-static std::string SQL_COMMIT = "COMMIT";
+namespace redis {
+
+static std::string SQL_START_TRANSACTION = "MULTI";
+static std::string SQL_ROLLBACK = "DISCARD";
+static std::string SQL_COMMIT = "EXEC";
 
 //-------------------------------------------------------------------------------------
 DBTransaction::DBTransaction(DBInterface* pdbi, bool autostart):
 	pdbi_(pdbi),
 	committed_(false),
-	autostart_(autostart)
+	autostart_(autostart),
+	pRedisReply_(NULL)
 {
 	if(autostart)
 		start();
@@ -49,6 +48,11 @@ DBTransaction::~DBTransaction()
 {
 	if(autostart_)
 		end();
+	
+	if(pRedisReply_){
+		freeReplyObject(pRedisReply_); 
+		pRedisReply_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,17 +66,29 @@ void DBTransaction::start()
 	}
 	catch (DBException & e)
 	{
-		bool ret = static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+		bool ret = static_cast<DBInterfaceRedis*>(pdbi_)->processException(e);
 		KBE_ASSERT(ret);
 	}
 
-	static_cast<DBInterfaceMysql*>(pdbi_)->inTransaction(true);
+	static_cast<DBInterfaceRedis*>(pdbi_)->inTransaction(true);
+}
+
+//-------------------------------------------------------------------------------------
+void DBTransaction::rollback()
+{
+	if(committed_)
+		return;
+	
+	WARNING_MSG( "DBTransaction::rollback: "
+			"Rolling back\n" );
+
+	pdbi_->query(SQL_ROLLBACK, false);	
 }
 
 //-------------------------------------------------------------------------------------
 void DBTransaction::end()
 {
-	if (!committed_ && !static_cast<DBInterfaceMysql*>(pdbi_)->hasLostConnection())
+	if(!committed_ && !static_cast<DBInterfaceRedis*>(pdbi_)->hasLostConnection())
 	{
 		try
 		{
@@ -85,18 +101,18 @@ void DBTransaction::end()
 		{
 			if (e.isLostConnection())
 			{
-				static_cast<DBInterfaceMysql*>(pdbi_)->hasLostConnection(true);
+				static_cast<DBInterfaceRedis*>(pdbi_)->hasLostConnection(true);
 			}
 		}
 	}
 
-	static_cast<DBInterfaceMysql*>(pdbi_)->inTransaction(false);
+	static_cast<DBInterfaceRedis*>(pdbi_)->inTransaction(false);
 }
 
 //-------------------------------------------------------------------------------------
 bool DBTransaction::shouldRetry() const
 {
-	return (pdbi_->getlasterror() == ER_LOCK_DEADLOCK);
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,7 +121,7 @@ void DBTransaction::commit()
 	KBE_ASSERT(!committed_);
 
 	uint64 startTime = timestamp();
-	pdbi_->query(SQL_COMMIT, false);
+	static_cast<DBInterfaceRedis*>(pdbi_)->query(SQL_COMMIT, &pRedisReply_, false);
 
 	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)
