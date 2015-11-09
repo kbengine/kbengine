@@ -844,23 +844,23 @@ void RedisWatcher::initializeWatcher()
 	WATCH_OBJECT("db_querys/HSCAN", &KBEngine::watcher_HSCAN);	
 	
 	// list
-	WATCH_OBJECT("db_querys/HDEL", &KBEngine::watcher_HDEL);
-	WATCH_OBJECT("db_querys/HEXISTS", &KBEngine::watcher_HEXISTS);
-	WATCH_OBJECT("db_querys/HGET", &KBEngine::watcher_HGET);
-	WATCH_OBJECT("db_querys/HGETALL", &KBEngine::watcher_HGETALL);
-	WATCH_OBJECT("db_querys/HINCRBY", &KBEngine::watcher_HINCRBY);
-	WATCH_OBJECT("db_querys/HINCRBYFLOAT", &KBEngine::watcher_HINCRBYFLOAT);
-	WATCH_OBJECT("db_querys/HKEYS", &KBEngine::watcher_HKEYS);
-	WATCH_OBJECT("db_querys/HLEN", &KBEngine::watcher_HLEN);
-	WATCH_OBJECT("db_querys/HMGET", &KBEngine::watcher_HMGET);
-	WATCH_OBJECT("db_querys/HMSET", &KBEngine::watcher_HMSET);
-	WATCH_OBJECT("db_querys/HSET", &KBEngine::watcher_HSET);
-	WATCH_OBJECT("db_querys/HSETNX", &KBEngine::watcher_HSETNX);
-	WATCH_OBJECT("db_querys/HVALS", &KBEngine::watcher_HVALS);
-	WATCH_OBJECT("db_querys/HSCAN", &KBEngine::watcher_HSCAN);
-	WATCH_OBJECT("db_querys/HSETNX", &KBEngine::watcher_HSETNX);
-	WATCH_OBJECT("db_querys/HVALS", &KBEngine::watcher_HVALS);
-	WATCH_OBJECT("db_querys/HSCAN", &KBEngine::watcher_HSCAN);
+	WATCH_OBJECT("db_querys/BLPOP", &KBEngine::watcher_BLPOP);
+	WATCH_OBJECT("db_querys/BRPOP", &KBEngine::watcher_BRPOP);
+	WATCH_OBJECT("db_querys/BRPOPLPUSH", &KBEngine::watcher_BRPOPLPUSH);
+	WATCH_OBJECT("db_querys/LINDEX", &KBEngine::watcher_LINDEX);
+	WATCH_OBJECT("db_querys/LINSERT", &KBEngine::watcher_LINSERT);
+	WATCH_OBJECT("db_querys/LLEN", &KBEngine::watcher_LLEN);
+	WATCH_OBJECT("db_querys/LPOP", &KBEngine::watcher_LPOP);
+	WATCH_OBJECT("db_querys/LPUSH", &KBEngine::watcher_LPUSH);
+	WATCH_OBJECT("db_querys/LPUSHX", &KBEngine::watcher_LPUSHX);
+	WATCH_OBJECT("db_querys/LRANGE", &KBEngine::watcher_LRANGE);
+	WATCH_OBJECT("db_querys/LREM", &KBEngine::watcher_LREM);
+	WATCH_OBJECT("db_querys/LSET", &KBEngine::watcher_LSET);
+	WATCH_OBJECT("db_querys/LTRIM", &KBEngine::watcher_LTRIM);
+	WATCH_OBJECT("db_querys/RPOP", &KBEngine::watcher_RPOP);
+	WATCH_OBJECT("db_querys/RPOPLPUSH", &KBEngine::watcher_RPOPLPUSH);
+	WATCH_OBJECT("db_querys/RPUSH", &KBEngine::watcher_RPUSH);
+	WATCH_OBJECT("db_querys/RPUSHX", &KBEngine::watcher_RPUSHX);
 	
 	// set
 	WATCH_OBJECT("db_querys/SADD", &KBEngine::watcher_SADD);
