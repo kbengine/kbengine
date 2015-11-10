@@ -5,7 +5,7 @@ from KBEDebug import *
 from Poller import Poller
 """
 interfaces进程主要处理KBEngine服务端与第三方平台的接入接出工作。
-目前支持三种功能:
+目前支持几种功能:
 1: 注册账号
 	当客户端请求注册账号后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.requestCreateAccount）
 	此时脚本收到这个请求之后可以使用各种方式与第三方平台通信，可以使用python的http库也能直接使用socket，当与第三方平台交互完毕之后应该将
