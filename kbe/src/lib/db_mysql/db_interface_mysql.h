@@ -65,14 +65,13 @@ public:
 	/**
 		与某个数据库关联
 	*/
+	bool reattach();
 	virtual bool attach(const char* databaseName = NULL);
 	virtual bool detach();
 
 	bool ping(){ 
 		return mysql_ping(pMysql_) == 0; 
 	}
-
-	bool reattach();
 
 	void inTransaction(bool value)
 	{

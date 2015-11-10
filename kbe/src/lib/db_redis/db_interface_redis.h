@@ -46,6 +46,7 @@ namespace KBEngine {
 	tbl_Account:2 = hashes(name, password, xxx)
 	tbl_Account:3 = hashes(name, password, xxx(array))
 
+	// array of type
 	tbl_Account_xxx_values:3:size = uint64(3)
 	tbl_Account_xxx_values:3:1 = val
 	tbl_Account_xxx_values:3:2 = val
@@ -67,6 +68,8 @@ public:
 		inTransaction_ = value;
 	}
 
+	redisContext* context()				{ return pRedisContext_; }
+	
 	bool hasLostConnection() const		{ return hasLostConnection_; }
 	void hasLostConnection( bool v )	{ hasLostConnection_ = v; }
 	
@@ -84,6 +87,7 @@ public:
 	/**
 		与某个数据库关联
 	*/
+	bool reattach();
 	virtual bool attach(const char* databaseName = NULL);
 	virtual bool detach();
 
@@ -145,6 +149,8 @@ public:
 	virtual bool lock();
 	virtual bool unlock();
 
+	void throwError();
+	
 	/**
 		处理异常
 	*/

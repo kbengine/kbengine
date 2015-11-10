@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "redis_helper.h"
 #include "kbe_table_redis.h"
+#include "db_exception.h"
 #include "redis_watcher.h"
 #include "db_interface_redis.h"
 #include "thread/threadguard.h"
@@ -163,7 +164,7 @@ bool DBInterfaceRedis::attach(const char* databaseName)
 			}
 		}
 
-		freeReplyObject(pRedisReply); 	
+		freeReplyObject(pRedisReply); 
 		pRedisReply = NULL;
 	}
 	
@@ -201,6 +202,25 @@ bool DBInterfaceRedis::attach(const char* databaseName)
               
 	DEBUG_MSG(fmt::format("DBInterfaceRedis::attach: successfully! addr: {}:{}\n", db_ip_, db_port_));
 	return ping();
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceRedis::reattach()
+{
+	detach();
+
+	bool ret = false;
+
+	try
+	{
+		ret = attach();
+	}
+	catch (...)
+	{
+		return false;
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -249,6 +269,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 			(*pRedisReply) = NULL;
 		}
 
+		this->throwError();
 		return false;
 	}
 
@@ -280,7 +301,8 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool showExecInfo, Me
 
 		if(pRedisReply)
 			freeReplyObject(pRedisReply); 
-
+		
+		this->throwError();
 		return false;
 	}  
 
@@ -326,6 +348,8 @@ bool DBInterfaceRedis::query(bool showExecInfo, const char* format, ...)
 		}
 
 		va_end(ap);
+		
+		this->throwError();
 		return false;
 	}
 
@@ -370,6 +394,8 @@ bool DBInterfaceRedis::queryAppend(bool showExecInfo, const char* format, ...)
 		}
 
 		va_end(ap);
+		
+		this->throwError();
 		return false;
 	}  
 
@@ -530,9 +556,70 @@ bool DBInterfaceRedis::unlock()
 }
 
 //-------------------------------------------------------------------------------------
+void DBInterfaceRedis::throwError()
+{
+	DBException e( this );
+
+	if (e.isLostConnection())
+	{
+		this->hasLostConnection(true);
+	}
+
+	throw e;
+}
+
+//-------------------------------------------------------------------------------------
 bool DBInterfaceRedis::processException(std::exception & e)
 {
-	return true;
+	DBException* dbe = static_cast<DBException*>(&e);
+	bool retry = false;
+
+	if (dbe->isLostConnection())
+	{
+		INFO_MSG(fmt::format("DBInterfaceRedis::processException: "
+				"Thread {:p} lost connection to database. Exception: {}. "
+				"Attempting to reconnect.\n",
+			(void*)this,
+			dbe->what()));
+
+		int attempts = 1;
+
+		while (!this->reattach())
+		{
+			ERROR_MSG(fmt::format("DBInterfaceRedis::processException: "
+							"Thread {:p} reconnect({}) attempt {} failed({}).\n",
+						(void*)this,
+						db_name_,
+						attempts,
+						getstrerror()));
+
+			KBEngine::sleep(30);
+			++attempts;
+		}
+
+		INFO_MSG(fmt::format("DBInterfaceRedis::processException: "
+					"Thread {:p} reconnected({}). Attempts = {}\n",
+				(void*)this,
+				db_name_,
+				attempts));
+
+		retry = true;
+	}
+	else if (dbe->shouldRetry())
+	{
+		WARNING_MSG(fmt::format("DBInterfaceRedis::processException: Retrying {:p}\nException:{}\nnlastquery={}\n",
+				(void*)this, dbe->what(), lastquery_));
+
+		retry = true;
+	}
+	else
+	{
+		WARNING_MSG(fmt::format("DBInterfaceRedis::processException: "
+				"Exception: {}\nlastquery={}\n",
+			dbe->what(), lastquery_));
+	}
+
+	return retry;
 }
 
 //-------------------------------------------------------------------------------------

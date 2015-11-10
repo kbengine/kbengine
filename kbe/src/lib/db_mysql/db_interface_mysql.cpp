@@ -442,19 +442,6 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tableName, const ch
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceMysql::throwError()
-{
-	DBException e( this );
-
-	if (e.isLostConnection())
-	{
-		this->hasLostConnection(true);
-	}
-
-	throw e;
-}
-
-//-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	if(pMysql_ == NULL)
@@ -466,7 +453,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 
 		if(result)
 			write_query_result(result);
-		
+
 		return false;
 	}
 
@@ -482,7 +469,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
     int nResult = mysql_real_query(pMysql_, cmd, size);  
 
     if(nResult != 0)  
-    {  
+    {
 		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
@@ -493,9 +480,9 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 		
 		if(result)
 			write_query_result(result);
-		
+
         return false;
-    }  
+    } 
     else
     {
 		if(showExecInfo)
@@ -503,7 +490,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 			INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
 		}
     }
-    
+
     return result == NULL || write_query_result(result);
 }
 
@@ -679,6 +666,19 @@ bool DBInterfaceMysql::unlock()
 	lock_.commit();
 	lock_.end();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBInterfaceMysql::throwError()
+{
+	DBException e( this );
+
+	if (e.isLostConnection())
+	{
+		this->hasLostConnection(true);
+	}
+
+	throw e;
 }
 
 //-------------------------------------------------------------------------------------
