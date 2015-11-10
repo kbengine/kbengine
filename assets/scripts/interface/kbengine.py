@@ -78,7 +78,9 @@ def requestCreateAccount(registerName, password, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至客户端
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.createAccountResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
@@ -104,7 +106,9 @@ def requestAccountLogin(loginName, password, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至客户端
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.accountLoginResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
@@ -125,7 +129,9 @@ def requestCharge(ordersID, entityDBID, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至baseapp的订单回调中，具体参考API手册charge
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.chargeResponse(ordersID, datas, KBEngine.SERVER_SUCCESS)
 
