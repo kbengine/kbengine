@@ -538,9 +538,7 @@ bool DBInterfaceRedis::dropEntityTableItemFromDB(const char* tableName, const ch
 	DEBUG_MSG(fmt::format("DBInterfaceRedis::dropEntityTableItemFromDB: {} {}.\n", 
 		tableName, tableItemName));
 
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "hdel %s %s", tableName, tableItemName);
-	return query(sql_str, strlen(sql_str));
+	return RedisHelper::dropTableItem(this, tableName, tableItemName);
 }
 
 //-------------------------------------------------------------------------------------
