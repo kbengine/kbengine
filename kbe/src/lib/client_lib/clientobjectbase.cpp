@@ -777,7 +777,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 {
 	ENTITY_ID eid = 0;
 	ENTITY_SCRIPT_UID scriptType;
-	int8 isOnGound = 0;
+	int8 isOnGround = 0;
 
 	s >> eid;
 
@@ -793,7 +793,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 
 	if(s.length() > 0)
-		s >> isOnGound;
+		s >> isOnGround;
 
 	if(eid != entityID_ && entityID_ > 0)
 		pEntityIDAliasIDList_.push_back(eid);
@@ -817,13 +817,13 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			// 先更新属性再初始化脚本
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
-			entity->isOnGound(isOnGound > 0);
+			entity->isOnGround(isOnGround > 0);
 			entity->spaceID(spaceID_);
 			entity->initializeEntity(NULL);
 			SCRIPT_ERROR_CHECK();
 			
-			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGound({}), appID({}).\n", 
-				entity->scriptName(), eid, (int)isOnGound, appID()));
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n", 
+				entity->scriptName(), eid, (int)isOnGround, appID()));
 		}
 		else
 		{
@@ -834,15 +834,15 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	else
 	{
 		spaceID_ = entity->spaceID();
-		entity->isOnGound(isOnGound > 0);
+		entity->isOnGround(isOnGround > 0);
 		entityPos_ = entity->position();
 		entityDir_ = entity->direction();
 
 		// 初始化一下服务端当前的位置
 		entity->serverPosition(entity->position());
 
-		DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGound({}), appID({}).\n",
-			entity->scriptName(), eid, (int)isOnGound, appID()));
+		DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
+			entity->scriptName(), eid, (int)isOnGround, appID()));
 
 		KBE_ASSERT(!entity->inWorld());
 		KBE_ASSERT(entity->cellMailbox() == NULL);
@@ -872,7 +872,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	eventdata.roll = entity->direction().roll();
 	eventdata.yaw = entity->direction().yaw();
 	eventdata.speed = entity->moveSpeed();
-	eventdata.isOnGound = isOnGound > 0;
+	eventdata.isOnGround = isOnGround > 0;
 	eventHandler_.fire(&eventdata);
 
 	if(entityID_ == eid)
@@ -933,13 +933,13 @@ void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID
 void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
-	int8 isOnGound = 0;
+	int8 isOnGround = 0;
 
 	s >> eid;
 	s >> spaceID_;
 
 	if(s.length() > 0)
-		s >> isOnGound;
+		s >> isOnGround;
 
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -951,7 +951,7 @@ void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStr
 	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterSpace: {}({}).\n", 
 		entity->scriptName(), eid));
 
-	entity->isOnGound(isOnGound > 0);
+	entity->isOnGround(isOnGround > 0);
 
 	entityPos_ = entity->position();
 	entityDir_ = entity->direction();
@@ -969,7 +969,7 @@ void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStr
 	eventdata.roll = entity->direction().roll();
 	eventdata.yaw = entity->direction().yaw();
 	eventdata.speed = entity->moveSpeed();
-	eventdata.isOnGound = isOnGound > 0;
+	eventdata.isOnGround = isOnGround > 0;
 	eventHandler_.fire(&eventdata);
 
 	entity->onEnterSpace();
@@ -1009,6 +1009,14 @@ void ClientObjectBase::onEntityDestroyed(Network::Channel * pChannel, ENTITY_ID 
 
 	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityDestroyed: {}({}).\n", 
 		entity->scriptName(), eid));
+
+	if (entity->inWorld())
+	{
+		if(entityID_ == eid)
+			clearSpace(false);
+		
+		entity->onLeaveWorld();
+	}
 
 	destroyEntity(eid, false);
 }
@@ -1149,7 +1157,7 @@ void ClientObjectBase::updatePlayerToServer()
 	(*pBundle) << dir.pitch();
 	(*pBundle) << dir.yaw();
 
-	(*pBundle) << pEntity->isOnGound();
+	(*pBundle) << pEntity->isOnGround();
 	(*pBundle) << spaceID_;
 	pServerChannel_->send(pBundle);
 }
@@ -1674,7 +1682,7 @@ void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStre
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
-										   float roll, float pitch, float yaw, int8 isOnGound)
+										   float roll, float pitch, float yaw, int8 isOnGround)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
@@ -1694,8 +1702,8 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	}
 
 	// 小于0不设置
-	if(isOnGound >= 0)
-		entity->isOnGound(isOnGound > 0);
+	if(isOnGround >= 0)
+		entity->isOnGround(isOnGround > 0);
 
 	if(!almostEqual(x + y + z, 0.f, 0.000001f))
 	{

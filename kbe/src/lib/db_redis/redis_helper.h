@@ -95,7 +95,7 @@ public:
 		return size > 0;
 	}
 	
-	static bool dropTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)
+	static bool dropTable(DBInterfaceRedis* pdbi, const std::string& tableName, bool showExecInfo = true)
 	{
 		uint64 index = 0;
 		
@@ -105,7 +105,7 @@ public:
 			
 			try
 			{
-				pdbi->query(fmt::format("scan {} MATCH {}", index, name), &pRedisReply, showExecInfo);
+				pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
 			}
 			catch(...)
 			{
@@ -131,6 +131,64 @@ public:
 						try
 						{
 							pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, showExecInfo);
+						}
+						catch(...)
+						{
+						}
+					}
+				}
+				
+				freeReplyObject(pRedisReply); 
+			}
+			else
+			{
+				return false;
+			}
+			
+			if(index == 0)
+				break;
+		}
+		
+		return true;
+	}
+	
+	static bool dropTableItem(DBInterfaceRedis* pdbi, const std::string& tableName, 
+		const std::string& itemName, bool showExecInfo = true)
+	{
+		uint64 index = 0;
+		
+		while(true)
+		{
+			redisReply* pRedisReply = NULL;
+			
+			try
+			{
+				pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
+			}
+			catch(...)
+			{
+			}
+			
+			if(pRedisReply)
+			{
+				if(pRedisReply->elements == 2)
+				{
+					KBE_ASSERT(pRedisReply->element[0]->type == REDIS_REPLY_STRING);
+					
+					// 下一次由这个index开始
+					StringConv::str2value(index, pRedisReply->element[0]->str);
+					
+					redisReply* r0 = pRedisReply->element[1];
+					KBE_ASSERT(r0->type == REDIS_REPLY_ARRAY);
+					
+					for(size_t j = 0; j < r0->elements; ++j) 
+					{
+						redisReply* r1 = r0->element[j];
+						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
+							
+						try
+						{
+							pdbi->query(fmt::format("hdel {} {}", r1->str, itemName), &pRedisReply, showExecInfo);
 						}
 						catch(...)
 						{

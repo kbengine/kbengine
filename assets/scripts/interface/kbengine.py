@@ -5,7 +5,7 @@ from KBEDebug import *
 from Poller import Poller
 """
 interfaces进程主要处理KBEngine服务端与第三方平台的接入接出工作。
-目前支持三种功能:
+目前支持几种功能:
 1: 注册账号
 	当客户端请求注册账号后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.requestCreateAccount）
 	此时脚本收到这个请求之后可以使用各种方式与第三方平台通信，可以使用python的http库也能直接使用socket，当与第三方平台交互完毕之后应该将
@@ -78,7 +78,9 @@ def requestCreateAccount(registerName, password, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至客户端
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.createAccountResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
@@ -104,7 +106,9 @@ def requestAccountLogin(loginName, password, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至客户端
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.accountLoginResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
@@ -125,7 +129,9 @@ def requestCharge(ordersID, entityDBID, datas):
 	
 	# 此处可通过http等手段将请求提交至第三方平台，平台返回的数据也可放入datas
 	# datas将会回调至baseapp的订单回调中，具体参考API手册charge
-	
+	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
+	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
+	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
 	KBEngine.chargeResponse(ordersID, datas, KBEngine.SERVER_SUCCESS)
 

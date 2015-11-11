@@ -39,13 +39,15 @@ DBException::~DBException() throw()
 //-------------------------------------------------------------------------------------
 bool DBException::shouldRetry() const
 {
-	return false;
+	return (errNum_== REDIS_ERR_OOM) ||
+			(errNum_ == REDIS_ERR_OTHER);
 }
 
 //-------------------------------------------------------------------------------------
 bool DBException::isLostConnection() const
 {
-	return false;
+	return (errNum_ == REDIS_ERR_IO) ||
+			(errNum_ == REDIS_ERR_EOF);
 }
 
 //-------------------------------------------------------------------------------------
