@@ -294,7 +294,7 @@ public:
 	virtual void onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s);
 	
 	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float roll, 
-		float pitch, float yaw, int8 isOnGound);
+		float pitch, float yaw, int8 isOnGround);
 
 	/** 
 		更新玩家到服务端 

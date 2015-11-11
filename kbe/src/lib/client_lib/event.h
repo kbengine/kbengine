@@ -165,7 +165,7 @@ struct EventData_EnterWorld : public EventData
 	float x, y, z;
 	float pitch, roll, yaw;
 	float speed;
-	bool isOnGound;
+	bool isOnGround;
 };
 
 struct EventData_LeaveWorld : public EventData
@@ -197,7 +197,7 @@ struct EventData_EnterSpace : public EventData
 	float x, y, z;
 	float pitch, roll, yaw;
 	float speed;
-	bool isOnGound;
+	bool isOnGround;
 };
 
 struct EventData_LeaveSpace : public EventData
