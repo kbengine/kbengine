@@ -3086,7 +3086,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
-			e->scriptName(), srcEntityID));
+			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
 		return;
