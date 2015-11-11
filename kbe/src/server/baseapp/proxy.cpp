@@ -78,7 +78,13 @@ clientDatas_()
 Proxy::~Proxy()
 {
 	Baseapp::getSingleton().decProxicesCount();
+	kick();
+	SAFE_RELEASE(pProxyForwarder_);
+}
 
+//-------------------------------------------------------------------------------------
+void Proxy::kick()
+{
 	// 如果被销毁频道仍然存活则将其关闭
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDestroyed())
@@ -91,8 +97,6 @@ Proxy::~Proxy()
 		this->sendToClient();
 		pChannel->condemn();
 	}
-
-	SAFE_RELEASE(pProxyForwarder_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -244,7 +248,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 {
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -272,11 +276,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 {
 	if(isDestroyed())
 	{
-		char err[255];																				
+		char err[255];
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: %d is destroyed.", 
-			scriptName(), id());			
+			scriptName(), id());
 
-		PyErr_SetString(PyExc_TypeError, err);														
+		PyErr_SetString(PyExc_TypeError, err);
 		PyErr_PrintEx(0);	
 		onGiveClientToFailure();
 		return;
@@ -284,10 +288,10 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
-		char err[255];																				
-		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());			
-		PyErr_SetString(PyExc_TypeError, err);														
-		PyErr_PrintEx(0);	
+		char err[255];
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());
+		PyErr_SetString(PyExc_TypeError, err);
+		PyErr_PrintEx(0);
 		onGiveClientToFailure();
 		return;
 	}
@@ -298,11 +302,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 	{
 		if(proxy->isDestroyed())
 		{
-			char err[255];																				
-			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.", 
-				scriptName(), proxy->id());			
+			char err[255];
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.",
+				scriptName(), proxy->id());
 
-			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);	
 			onGiveClientToFailure();
 			return;
@@ -310,11 +314,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 		if(proxy->id() == this->id())
 		{
-			char err[255];																				
+			char err[255];
 			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is self.", 
-				scriptName(), proxy->id());			
+				scriptName(), proxy->id());	
 
-			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);	
 			onGiveClientToFailure();
 			return;

@@ -172,6 +172,11 @@ public:
 	*/
 	void onGetWitness();
 
+	/**
+		将客户端从服务器踢出
+	*/
+	void kick();
+
 protected:
 	uint64 rndUUID_;
 	Network::Address addr_;
