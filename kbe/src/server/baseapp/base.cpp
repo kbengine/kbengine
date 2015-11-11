@@ -141,7 +141,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onDestroy(bool callScript)																					
+void Base::onDestroy(bool callScript)
 {
 	setDirty();
 	
@@ -157,6 +157,11 @@ void Base::onDestroy(bool callScript)
 	}
 	
 	eraseEntityLog();
+
+	// 按照当前的设计来说，有clientMailbox_必定是proxy
+	// 至于为何跑到base里来和python本身是C语言实现有关
+	if(clientMailbox_)
+		static_cast<Proxy*>(this)->kick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1148,13 +1153,13 @@ void Base::onCellAppDeath()
 //-------------------------------------------------------------------------------------
 PyObject* Base::createCellEntity(PyObject* pyobj)
 {
-	if(isDestroyed())																				
-	{																										
-		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",											
-			scriptName(), id());												
-		PyErr_PrintEx(0);																					
-		return 0;																						
-	}																										
+	if(isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	if(Baseapp::getSingleton().findEntity(id()) == NULL)
 	{
