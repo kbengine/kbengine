@@ -3,13 +3,16 @@ SRCS =						\
 	http_cb_handler				\
 	loginapp				\
 	loginapp_interface			\
-	main
+	main					\
+	profile					\
+	py_file_descriptor
 
 ASMS =
 
 MY_LIBS =		\
 	server		\
 	network		\
+	pyscript	\
 	thread
 	
 

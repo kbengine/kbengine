@@ -113,16 +113,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c" />
     <ClCompile Include="http_cb_handler.cpp" />
     <ClCompile Include="loginapp.cpp" />
     <ClCompile Include="loginapp_interface.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="profile.cpp" />
+    <ClCompile Include="py_file_descriptor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="http_cb_handler.h" />
     <ClInclude Include="loginapp.h" />
     <ClInclude Include="loginapp_interface.h" />
     <ClInclude Include="loginapp_interface_macros.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="py_file_descriptor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
