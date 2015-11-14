@@ -13,6 +13,12 @@ def onBaseAppReady(isBootstrap):
 	INFO_MSG('onBaseAppReady: isBootstrap=%s, bootstrapGroupIndex=%s, bootstrapGlobalIndex=%s' % \
 	 (isBootstrap, os.getenv("KBE_BOOTIDX_GROUP"), os.getenv("KBE_BOOTIDX_GLOBAL")))
 
+	"""
+	KBEngine method.
+	当引擎启动后初始化完所有的脚本后这个接口被调用
+	"""
+	DEBUG_MSG('onInit::isReload:%s' % isReload)
+
 def onReadyForLogin(isBootstrap):
 	"""
 	KBEngine method.
