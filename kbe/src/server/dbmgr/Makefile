@@ -10,18 +10,17 @@ SRCS =						\
 
 ASMS =
 
-MY_LIBS =			\
-	entitydef		\
-	server			\
-	pyscript		\
-	network			\
-	thread			\
-	db_interface		\
-	db_mysql		\
-	db_redis		\
-	py_file_descriptor	\
-	profile
-
+MY_LIBS =		\
+	entitydef	\
+	server		\
+	pyscript	\
+	network		\
+	thread		\
+	py_file_descriptor\
+	profile		\
+	db_interface	\
+	db_mysql	\
+	db_redis
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
