@@ -263,6 +263,7 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
+	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 	PythonApp::finalise();
 }

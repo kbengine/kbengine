@@ -261,6 +261,7 @@ void Loginapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();

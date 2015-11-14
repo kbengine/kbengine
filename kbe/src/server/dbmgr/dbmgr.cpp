@@ -401,6 +401,7 @@ bool Dbmgr::initDB()
 //-------------------------------------------------------------------------------------
 void Dbmgr::finalise()
 {
+	scriptTimers_.cancelAll();
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);
