@@ -6,6 +6,8 @@ SRCS =						\
 	dbtasks					\
 	interfaces_handler			\
 	main					\
+	py_file_descriptor			\
+	profile					\
 	sync_app_datas_handler
 
 ASMS =
@@ -16,8 +18,6 @@ MY_LIBS =		\
 	pyscript	\
 	network		\
 	thread		\
-	py_file_descriptor\
-	profile		\
 	db_interface	\
 	db_mysql	\
 	db_redis
