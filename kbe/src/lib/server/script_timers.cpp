@@ -55,6 +55,7 @@ void ScriptTimers::initialize(ServerApp & app)
 void ScriptTimers::finalise(ServerApp & app)
 {
 	KBE_ASSERT(g_pApp == &app);
+	cancelAll();
 	g_pApp = NULL;
 }
 
