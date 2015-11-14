@@ -192,7 +192,7 @@
 	<email_service_config>server/email_service.xml</email_service_config>
 		
 	<interfaces>
-		<!-- 入口模块， 相当于main函数 
+		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
@@ -228,11 +228,11 @@
 		 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
-		<!-- Telnet服务, 如果端口被占用则向后尝试30001.. 
-			(Telnet service, if the port is occupied backwards to try 30001)
+		<!-- Telnet服务, 如果端口被占用则向后尝试33001.. 
+			(Telnet service, if the port is occupied backwards to try 33001)
 		-->
 		<telnet_service>
-			<port> 30000 </port>
+			<port> 33000 </port>
 			<password> kbe </password>
 			<!-- 命令默认层 
 				(layer of default the command)
@@ -242,6 +242,11 @@
 	</interfaces>
 	
 	<dbmgr>
+		<!-- 脚本入口模块， 相当于main函数 
+			(Entry module, like the main-function)
+		-->
+		<entryScriptFile> kbengine </entryScriptFile>
+			
 		<!-- debug模式下可输出读写操作信息
 		    (Debug mode can output the read and write informations)
 		 -->
@@ -302,7 +307,7 @@
 		<!-- 账号系统
 			(Account system)
 		-->
-		<account_system> 
+		<account_system>
 			<!-- 账号Entity的名称
 			    (Name of AccountEntity)
 			 -->
@@ -336,10 +341,22 @@
 				<loginAutoCreate> true </loginAutoCreate>
 			</account_registration>
 		</account_system>
+
+		<!-- Telnet服务, 如果端口被占用则向后尝试32001.. 
+			(Telnet service, if the port is occupied backwards to try 32001)
+		-->
+		<telnet_service>
+			<port> 32000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 
+				(layer of default the command)
+			-->
+			<default_layer> python </default_layer>
+		</telnet_service>
 	</dbmgr>
 	
 	<cellapp>
-		<!-- 入口模块， 相当于main函数 
+		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
@@ -465,7 +482,7 @@
 	</cellapp>
 	
 	<baseapp>
-		<!-- 入口模块， 相当于main函数 
+		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
@@ -607,7 +624,7 @@
 	</baseappmgr>
 	
 	<loginapp>
-		<!-- 入口模块， 相当于main函数 
+		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
@@ -684,7 +701,7 @@
 	</machine>
 	
 	<bots>
-		<!-- 入口模块， 相当于main函数 
+		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>

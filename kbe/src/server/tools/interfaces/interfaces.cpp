@@ -19,9 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "orders.h"
+#include "profile.h"
 #include "interfaces.h"
 #include "interfaces_tasks.h"
 #include "interfaces_interface.h"
+#include "py_file_descriptor.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -29,15 +31,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
-#include "py_file_descriptor.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
 #include "baseappmgr/baseappmgr_interface.h"
 #include "cellappmgr/cellappmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
-#include "dbmgr/dbmgr_interface.h"
-#include "profile.h"	
+#include "dbmgr/dbmgr_interface.h"	
 
 namespace KBEngine{
 	

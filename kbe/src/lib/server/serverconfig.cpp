@@ -773,6 +773,32 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("dbmgr");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);

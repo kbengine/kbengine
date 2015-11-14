@@ -538,6 +538,14 @@ bool EntityApp<E>::installPyModules()
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
+
+	for(int i = 0; i < SERVER_ERR_MAX; i++)
+	{
+		if(PyModule_AddIntConstant(getScript().getModule(), SERVER_ERR_STR[i], i))
+		{
+			ERROR_MSG( fmt::format("EntityApp::installPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
+		}
+	}
 	
 	if(entryScriptFileName != NULL)
 	{

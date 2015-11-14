@@ -40,6 +40,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp/baseapp_interface.h"
 #include "baseappmgr/baseappmgr_interface.h"
 #include "dbmgr/dbmgr_interface.h"
+
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;

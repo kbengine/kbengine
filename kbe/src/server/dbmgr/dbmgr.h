@@ -20,17 +20,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_DBMGR_H
 #define KBE_DBMGR_H
-	
-// common include	
+
 #include "db_interface/db_threadpool.h"
 #include "buffered_dbtasks.h"
 #include "server/kbemain.h"
 #include "pyscript/script.h"
 #include "pyscript/pyobject_pointer.h"
 #include "entitydef/entitydef.h"
-#include "server/serverapp.h"
+#include "server/python_app.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
+#include "server/script_timers.h"
 #include "server/globaldata_client.h"
 #include "server/globaldata_server.h"
 #include "common/timer.h"
@@ -38,20 +38,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.h"
 #include "thread/threadpool.h"
 
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
-	
+
 namespace KBEngine{
 
 class DBInterface;
+class TelnetServer;
 class InterfacesHandler;
 class SyncAppDatasHandler;
 
-class Dbmgr :	public ServerApp, 
+class Dbmgr :	public PythonApp, 
 				public Singleton<Dbmgr>
 {
 public:
@@ -79,12 +74,16 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	void onInstallPyModules();
 	
 	bool initInterfacesHandler();
 
 	bool initDB();
 
 	virtual bool canShutdown();
+
+	virtual void onShutdownBegin();
+	virtual void onShutdownEnd();
 
 	/** 获取ID服务器指针 */
 	IDServer<ENTITY_ID>& idServer(void){ return idServer_; }
@@ -227,21 +226,28 @@ public:
 	SyncAppDatasHandler* pSyncAppDatasHandler() const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 
+	/** Timer操作
+	*/
+	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
+	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
+	
+	ScriptTimers &scriptTimers() { return scriptTimers_; }
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
 
 	// entityID分配服务端
-	IDServer<ENTITY_ID>									idServer_;									
+	IDServer<ENTITY_ID>									idServer_;
 
 	// globalData
-	GlobalDataServer*									pGlobalData_;								
+	GlobalDataServer*									pGlobalData_;
 
 	// baseAppData
-	GlobalDataServer*									pBaseAppData_;								
+	GlobalDataServer*									pBaseAppData_;
 
 	// cellAppData
-	GlobalDataServer*									pCellAppData_;														
+	GlobalDataServer*									pCellAppData_;
 
 	Buffered_DBTasks									bufferedDBTasks_;
 
@@ -256,6 +262,10 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
+
+	ScriptTimers										scriptTimers_;
+
+	TelnetServer*										pTelnetServer_;
 };
 
 }
