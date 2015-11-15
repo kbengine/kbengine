@@ -372,6 +372,72 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		return false;
 	}
 	
+	{
+		// 把请求交由脚本处理
+		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+											const_cast<char*>("onRequestCreateAccount"), 
+											const_cast<char*>("ssy#"), 
+											accountName.c_str(),
+											password.c_str(),
+											datas.c_str(), datas.length());
+
+		if(pyResult != NULL)
+		{
+			if(PySequence_Check(pyResult) && PySequence_Size(pyResult) == 4)
+			{
+				char* sname;
+				char* spassword;
+			    char *extraDatas;
+			    Py_ssize_t extraDatas_size = 0;
+				
+				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
+				{
+					ERROR_MSG("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! loginName={}\n", 
+						g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+
+					retcode = SERVER_ERR_OP_FAILED;
+				}
+				else
+				{
+					accountName = sname;
+					password = spassword;
+
+					if (extraDatas && extraDatas_size > 0)
+						datas.assign(extraDatas, extraDatas_size);
+					else
+						SCRIPT_ERROR_CHECK();
+				}
+			}
+			else
+			{
+				ERROR_MSG("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+
+				retcode = SERVER_ERR_OP_FAILED;
+			}
+			
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			retcode = SERVER_ERR_OP_FAILED;
+		}
+		
+		if(retcode != SERVER_SUCCESS)
+		{
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+			(*pBundle) << retcode;
+			(*pBundle).appendBlob(retdatas);
+			pChannel->send(pBundle);
+			return false;
+		}
+	}
+
 	if(type == ACCOUNT_TYPE_SMART)
 	{
 		if (email_isvalid(accountName.c_str()))
@@ -510,6 +576,24 @@ void Loginapp::onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream
 
 	s >> failedcode >> accountName >> password;
 	s.readBlob(retdatas);
+
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onCreateAccountCallbackFromDB"), 
+										const_cast<char*>("sHy#"), 
+										accountName.c_str(),
+										failedcode,
+										retdatas.c_str(), retdatas.length());
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
 
 	DEBUG_MSG(fmt::format("Loginapp::onReqCreateAccountResult: accountName={}, failedcode={}.\n",
 		accountName.c_str(), failedcode));
@@ -832,6 +916,89 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 
 	s.done();
 
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
+
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas, true);
+		return;
+	}
+
+	if(initProgress_ < 1.f)
+	{
+		datas = fmt::format("initProgress: {}", initProgress_);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas, true);
+		return;
+	}
+	
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onReuqestLogin"), 
+										const_cast<char*>("ssby#"), 
+										loginName.c_str(),
+										password.c_str(),
+										tctype,
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+	{
+		bool login_check = true;
+		if(PySequence_Check(pyResult) && PySequence_Size(pyResult) == 5)
+		{
+			char* sname;
+			char* spassword;
+		    char *extraDatas;
+		    Py_ssize_t extraDatas_size = 0;
+			SERVER_ERROR_CODE error;
+			
+			if(PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size) == -1)
+			{
+				ERROR_MSG("Loginapp::login: {}.onReuqestLogin, Return value error! loginName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+
+				login_check = false;
+				_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+			}
+			
+			if(login_check)
+			{
+				loginName = sname;
+				password = spassword;
+
+				if (extraDatas && extraDatas_size > 0)
+					datas.assign(extraDatas, extraDatas_size);
+				else
+					SCRIPT_ERROR_CHECK();
+			}
+			
+			if(error != SERVER_SUCCESS)
+			{
+				login_check = false;
+				_loginFailed(pChannel, loginName, error, datas, true);
+			}
+		}
+		else
+		{
+			ERROR_MSG("Loginapp::login: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+				g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+
+			login_check = false;
+			_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+		}
+		
+		Py_DECREF(pyResult);
+		
+		if(!login_check)
+			return;
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+	}
+
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
@@ -850,22 +1017,6 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
 		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
-
-	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
-	{
-		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
-
-		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
-		return;
-	}
-
-	if(initProgress_ < 1.f)
-	{
-		datas = fmt::format("initProgress: {}", initProgress_);
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas);
-		return;
-	}
 
 	INFO_MSG(fmt::format("Loginapp::login: new client[{0}], loginName={1}, datas={2}.\n",
 		COMPONENT_CLIENT_NAME[ctype], loginName, datas));
@@ -987,6 +1138,25 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		return;
 	}
 
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onLoginCallbackFromDB"), 
+										const_cast<char*>("ssHy#"), 
+										loginName.c_str(),
+										accountName.c_str(),
+										retcode,
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
 	infos->datas = datas;
 
 	Network::Channel* pClientChannel = this->networkInterface().findChannel(infos->addr);

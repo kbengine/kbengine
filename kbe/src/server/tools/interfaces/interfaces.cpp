@@ -389,18 +389,19 @@ PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
 {
 	const char *commitName;
 	const char *realAccountName;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	Interfaces::getSingleton().createAccountResponse(std::string(commitName),
 		std::string(realAccountName),
-		std::string((const char *)extraDatas.buf, extraDatas.len),
+		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 		errCode);
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 
@@ -497,18 +498,19 @@ PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
 {
 	const char *commitName;
 	const char *realAccountName;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	Interfaces::getSingleton().accountLoginResponse(std::string(commitName),
 		std::string(realAccountName),
-		std::string((const char *)extraDatas.buf, extraDatas.len),
+		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 		errCode);
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 
@@ -606,16 +608,17 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 {
 	const char *orderID;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "sy*H", &orderID, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "sy#H", &orderID, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	if (errCode < SERVER_ERR_MAX)
 	{
 		Interfaces::getSingleton().chargeResponse(std::string(orderID),
-			std::string((const char *)extraDatas.buf, extraDatas.len),
+			(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 			errCode);
 	}
 	else
@@ -623,7 +626,7 @@ PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 		//ERROR_MSG(fmt::format());
 	}
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 
