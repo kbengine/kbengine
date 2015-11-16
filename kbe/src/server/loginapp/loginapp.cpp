@@ -395,8 +395,8 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				
 				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
 				{
-					ERROR_MSG("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! loginName={}\n", 
-						g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! loginName={}\n", 
+						g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 					retcode = SERVER_ERR_OP_FAILED;
 				}
@@ -413,8 +413,8 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			}
 			else
 			{
-				ERROR_MSG("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
-					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 				retcode = SERVER_ERR_OP_FAILED;
 			}
@@ -955,8 +955,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 			
 			if(PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size) == -1)
 			{
-				ERROR_MSG("Loginapp::login: {}.onReuqestLogin, Return value error! loginName={}\n", 
-					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+				ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error! loginName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 				login_check = false;
 				_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
@@ -981,8 +981,8 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG("Loginapp::login: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
-				g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName);
+			ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+				g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 			login_check = false;
 			_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
