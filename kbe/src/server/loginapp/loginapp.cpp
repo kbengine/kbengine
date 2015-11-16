@@ -395,8 +395,8 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				
 				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
 				{
-					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! loginName={}\n", 
-						g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
+					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! accountName={}\n", 
+						g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
 
 					retcode = SERVER_ERR_OP_FAILED;
 				}
@@ -413,8 +413,8 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
-					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! accountName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
 
 				retcode = SERVER_ERR_OP_FAILED;
 			}
