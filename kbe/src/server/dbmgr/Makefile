@@ -6,7 +6,6 @@ SRCS =						\
 	dbtasks					\
 	interfaces_handler			\
 	main					\
-	py_file_descriptor			\
 	profile					\
 	sync_app_datas_handler
 

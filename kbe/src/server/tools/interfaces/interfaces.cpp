@@ -23,7 +23,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "interfaces.h"
 #include "interfaces_tasks.h"
 #include "interfaces_interface.h"
-#include "py_file_descriptor.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -31,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
+#include "server/py_file_descriptor.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"

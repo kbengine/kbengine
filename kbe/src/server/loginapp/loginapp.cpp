@@ -24,7 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"	
 #include "http_cb_handler.h"
 #include "loginapp_interface.h"
-#include "py_file_descriptor.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -34,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.h"
 #include "server/telnet_server.h"
 #include "server/sendmail_threadtasks.h"
+#include "server/py_file_descriptor.h"
 #include "client_lib/client_interface.h"
 #include "network/encryption_filter.h"
 

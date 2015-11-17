@@ -4,8 +4,7 @@ SRCS =						\
 	loginapp				\
 	loginapp_interface			\
 	main					\
-	profile					\
-	py_file_descriptor
+	profile
 
 ASMS =
 
