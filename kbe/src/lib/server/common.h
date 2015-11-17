@@ -148,17 +148,18 @@ inline uint64 secondsToStamps(float seconds)
 /*
  账号和密码最大长度
 */
-#define ACCOUNT_NAME_MAX_LENGTH 1024
-#define ACCOUNT_PASSWD_MAX_LENGTH 1024
+#define ACCOUNT_NAME_MAX_LENGTH						1024
+#define ACCOUNT_PASSWD_MAX_LENGTH					1024
 
 // 登录注册时附带的信息最大长度
-#define ACCOUNT_DATA_MAX_LENGTH 1024
+#define ACCOUNT_DATA_MAX_LENGTH						1024
 
 // 被用来描述任何只做一次后自动设置为不做的选项
-#define KBE_NEXT_ONLY 2
+#define KBE_NEXT_ONLY								2
 
 /** c/c++数据类别转换成KBEDataTypeID */
 uint16 datatype2id(std::string datatype);
+
 
 }
 

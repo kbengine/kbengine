@@ -171,6 +171,9 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 
 	for(; iter != cellapps_.end(); ++iter)
 	{
+		if((iter->second.flags() & APP_FLAGS_UNKNOWN) > 0)
+			continue;
+		
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
 			(iter->second.numEntities() == 0 ||
@@ -300,13 +303,15 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, ENTITY_ID numEntities, float load)
+void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, 
+	ENTITY_ID numEntities, float load, uint32 flags)
 {
 	Cellapp& cellapp = cellapps_[componentID];
 	
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
-
+	cellapp.flags(flags);
+	
 	updateBestCellapp();
 }
 
