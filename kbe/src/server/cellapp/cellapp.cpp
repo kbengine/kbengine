@@ -1289,7 +1289,7 @@ void Cellapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChann
 		return;
 	}
 
-	if (e->controlledBy() && e->controlledBy()->id() != proxiesEntityID)
+	if (e->controlledBy() == NULL || e->controlledBy()->id() != proxiesEntityID)
 	{
 		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClientForControlledEntity: entity {} has no permission to control entity {}!\n", proxiesEntityID, srcEntityID));
 		
