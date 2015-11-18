@@ -603,6 +603,8 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(pChannel == NULL)
 				continue;
 
+			// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+			// 又如自己的entity还未在目标客户端上创建
 			if(!pEntity->pWitness()->entityInAOI(id()))
 				continue;
 
