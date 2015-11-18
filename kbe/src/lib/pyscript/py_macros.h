@@ -674,109 +674,151 @@ namespace KBEngine{ namespace script{
 */
 #define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 									\
-															const_cast<char*>(""));						\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 								\
+																const_cast<char*>(""));					\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			
 			
 #define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1)										\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			
 			
 #define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2)									\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3)							\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4)						\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3),													\
-												(ARG4)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3),												\
+													(ARG4)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5)				\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3),													\
-												(ARG4),													\
-												(ARG5)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3),												\
+													(ARG4),												\
+													(ARG5)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			

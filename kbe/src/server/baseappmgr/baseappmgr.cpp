@@ -213,14 +213,15 @@ bool Baseappmgr::componentReady(COMPONENT_ID cid)
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
-							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
+							ENTITY_ID numBases, ENTITY_ID numProxices, float load, uint32 flags)
 {
 	Baseapp& baseapp = baseapps_[componentID];
 	
 	baseapp.load(load);
 	baseapp.numProxices(numProxices);
 	baseapp.numBases(numBases);
-
+	baseapp.flags(flags);
+	
 	updateBestBaseapp();
 }
 
@@ -235,6 +236,9 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 
 	for(; iter != baseapps_.end(); ++iter)
 	{
+		if((iter->second.flags() & APP_FLAGS_UNKNOWN) > 0)
+			continue;
+		
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
 			(iter->second.numEntities() == 0 || 

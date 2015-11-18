@@ -118,7 +118,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="orders.cpp" />
     <ClCompile Include="profile.cpp" />
-    <ClCompile Include="py_file_descriptor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="interfaces_tasks.h" />
@@ -127,7 +126,6 @@
     <ClInclude Include="interfaces_interface_macros.h" />
     <ClInclude Include="orders.h" />
     <ClInclude Include="profile.h" />
-    <ClInclude Include="py_file_descriptor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

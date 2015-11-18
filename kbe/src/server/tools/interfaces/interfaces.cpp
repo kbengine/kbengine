@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "orders.h"
+#include "profile.h"
 #include "interfaces.h"
 #include "interfaces_tasks.h"
 #include "interfaces_interface.h"
@@ -29,15 +30,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
-#include "py_file_descriptor.h"
+#include "server/py_file_descriptor.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
 #include "baseappmgr/baseappmgr_interface.h"
 #include "cellappmgr/cellappmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
-#include "dbmgr/dbmgr_interface.h"
-#include "profile.h"	
+#include "dbmgr/dbmgr_interface.h"	
 
 namespace KBEngine{
 	
@@ -243,15 +243,15 @@ void Interfaces::onInstallPyModules()
 		}
 	}
 
-	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,									METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,								METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,								METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS, 0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS, 0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,									METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,								METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,								METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,	0);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -263,6 +263,7 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
+	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 	PythonApp::finalise();
 }
@@ -388,18 +389,19 @@ PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
 {
 	const char *commitName;
 	const char *realAccountName;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	Interfaces::getSingleton().createAccountResponse(std::string(commitName),
 		std::string(realAccountName),
-		std::string((const char *)extraDatas.buf, extraDatas.len),
+		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 		errCode);
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 
@@ -496,18 +498,19 @@ PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
 {
 	const char *commitName;
 	const char *realAccountName;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "ssy*H", &commitName, &realAccountName, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	Interfaces::getSingleton().accountLoginResponse(std::string(commitName),
 		std::string(realAccountName),
-		std::string((const char *)extraDatas.buf, extraDatas.len),
+		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 		errCode);
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 
@@ -605,16 +608,17 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 {
 	const char *orderID;
-	Py_buffer extraDatas;
+    char *extraDatas = NULL;
+    Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
 
-	if (!PyArg_ParseTuple(args, "sy*H", &orderID, &extraDatas, &errCode))
+	if (!PyArg_ParseTuple(args, "sy#H", &orderID, &extraDatas, &extraDatas_size, &errCode))
 		return NULL;
 
 	if (errCode < SERVER_ERR_MAX)
 	{
 		Interfaces::getSingleton().chargeResponse(std::string(orderID),
-			std::string((const char *)extraDatas.buf, extraDatas.len),
+			(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
 			errCode);
 	}
 	else
@@ -622,7 +626,7 @@ PyObject* Interfaces::__py_chargeResponse(PyObject* self, PyObject* args)
 		//ERROR_MSG(fmt::format());
 	}
 
-	PyBuffer_Release(&extraDatas);
+	SCRIPT_ERROR_CHECK();
 	S_Return;
 }
 

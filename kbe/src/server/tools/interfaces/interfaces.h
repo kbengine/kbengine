@@ -39,8 +39,8 @@ class LoginAccountTask;
 class TelnetServer;
 
 
-class Interfaces : public PythonApp, 
-				public Singleton<Interfaces>
+class Interfaces :	public PythonApp, 
+					public Singleton<Interfaces>
 {
 public:
 	enum TimeOutType

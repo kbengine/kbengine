@@ -50,6 +50,9 @@ public:
 
 	ENTITY_ID numEntities() const { return numBases_ + numProxices_; }
 
+	uint32 flags() const { return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	
 protected:
 	ENTITY_ID numBases_;
 	ENTITY_ID numProxices_;
@@ -60,6 +63,8 @@ protected:
 	Watchers watchers_;
 
 	float initProgress_;
+	
+	uint32 flags_;
 };
 
 }

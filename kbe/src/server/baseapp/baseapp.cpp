@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.h"
 #include "proxy.h"
 #include "base.h"
-#include "py_file_descriptor.h"
 #include "baseapp_interface.h"
 #include "base_remotemethod.h"
 #include "archiver.h"
@@ -40,6 +39,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/encryption_filter.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
+#include "server/py_file_descriptor.h"
 #include "server/sendmail_threadtasks.h"
 #include "math/math.h"
 #include "entitydef/blob.h"
@@ -140,7 +140,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_(),
 	pResmgrTimerHandle_(),
-	pInitProgressHandler_(NULL)
+	pInitProgressHandler_(NULL),
+	flags_(APP_FLAGS_UNKNOWN)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -309,6 +310,9 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,												METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deleteBaseByDBID,				__py_deleteBaseByDBID,										METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		lookUpBaseByDBID,				__py_lookUpBaseByDBID,										METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,												METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,												METH_VARARGS,			0);
+		
 	return EntityApp<Base>::installPyModules();
 }
 
@@ -376,8 +380,8 @@ void Baseapp::onUpdateLoad()
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
-		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad());
+		BaseappmgrInterface::updateBaseappArgs5::staticAddToBundle((*pBundle), 
+			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad(), flags_);
 
 		pChannel->send(pBundle);
 	}
@@ -4073,6 +4077,35 @@ void Baseapp::onScriptVersionNotMatch(Network::Channel* pChannel)
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
 	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_getFlags(PyObject* self, PyObject* args)
+{
+	return PyLong_FromUnsignedLong(Baseapp::getSingleton().flags());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_setFlags(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: argsSize != 1!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	uint32 flags;
+
+	if(PyArg_ParseTuple(args, "I", &flags) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	Baseapp::getSingleton().flags(flags);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

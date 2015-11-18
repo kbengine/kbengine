@@ -6,6 +6,7 @@ SRCS =						\
 	dbtasks					\
 	interfaces_handler			\
 	main					\
+	profile					\
 	sync_app_datas_handler
 
 ASMS =

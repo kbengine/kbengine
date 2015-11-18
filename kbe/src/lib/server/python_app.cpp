@@ -118,6 +118,10 @@ bool PythonApp::installPyScript()
 		pyPaths += user_scripts_path + L"server_common;";
 		pyPaths += user_scripts_path + L"interface;";
 		break;
+	case LOGINAPP_TYPE:
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"login;";
+		break;
 	default:
 		pyPaths += user_scripts_path + L"client;";
 		break;
@@ -157,6 +161,20 @@ bool PythonApp::installPyModules()
 	{
 		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getInterfaces();
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else if (componentType() == LOGINAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLoginApp();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else if (componentType() == DBMGR_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getDBMgr();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else
+	{
+		ERROR_MSG("PythonApp::installPyModules: entryScriptFileName is NULL!\n");
 	}
 
 	// 注册创建entity的方法到py

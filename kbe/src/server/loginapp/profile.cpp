@@ -17,27 +17,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "baseapp.h"
 
-namespace KBEngine{
+#include "profile.h"	
+namespace KBEngine{	
 
-//-------------------------------------------------------------------------------------
-Baseapp::Baseapp():
-numBases_(0),
-numProxices_(0),
-load_(0.f),
-isDestroyed_(false),
-watchers_(),
-initProgress_(0.f),
-flags_(APP_FLAGS_UNKNOWN)
-{
-}
+ProfileVal SCRIPTCALL_PROFILE("scriptCall");
 
-//-------------------------------------------------------------------------------------
-Baseapp::~Baseapp()
-{
-}
+EventHistoryStats g_privateClientEventHistoryStats("PrivateClientEvents");
+EventHistoryStats g_publicClientEventHistoryStats("PublicClientEvents");
 
-
-//-------------------------------------------------------------------------------------
 }
