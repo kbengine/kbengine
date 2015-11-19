@@ -320,7 +320,7 @@ typedef int8 CLIENT_CTYPE;
 /*
  APP设置的标志
 */
-// 默认的
+// 默认的(未设置标记)
 #define APP_FLAGS_NONE								0x00000000
 // 不参与负载均衡
 #define APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING	0x00000001
