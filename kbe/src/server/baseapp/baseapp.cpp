@@ -141,7 +141,7 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pRestoreEntityHandlers_(),
 	pResmgrTimerHandle_(),
 	pInitProgressHandler_(NULL),
-	flags_(APP_FLAGS_UNKNOWN)
+	flags_(APP_FLAGS_NONE)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -289,6 +289,17 @@ bool Baseapp::installPyModules()
 
 	registerScript(Base::getScriptType());
 	registerScript(Proxy::getScriptType());
+
+	// 将app标记注册到脚本
+	std::map<uint32, std::string> flagsmaps = createAppFlagsMaps();
+	std::map<uint32, std::string>::iterator fiter = flagsmaps.begin();
+	for (; fiter != flagsmaps.end(); ++fiter)
+	{
+		if (PyModule_AddIntConstant(getScript().getModule(), fiter->second.c_str(), fiter->first))
+		{
+			ERROR_MSG(fmt::format("Baseapp::onInstallPyModules: Unable to set KBEngine.{}.\n", fiter->second));
+		}
+	}
 
 	// 注册创建entity的方法到py 
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,												METH_VARARGS,			0);

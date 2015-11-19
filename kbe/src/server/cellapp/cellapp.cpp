@@ -64,7 +64,7 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pWitnessedTimeoutHandler_(NULL),
 	pGhostManager_(NULL),
-	flags_(APP_FLAGS_UNKNOWN)
+	flags_(APP_FLAGS_NONE)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -156,6 +156,17 @@ bool Cellapp::installPyModules()
 
 	registerScript(Entity::getScriptType());
 	
+	// 将app标记注册到脚本
+	std::map<uint32, std::string> flagsmaps = createAppFlagsMaps();
+	std::map<uint32, std::string>::iterator fiter = flagsmaps.begin();
+	for (; fiter != flagsmaps.end(); ++fiter)
+	{
+		if (PyModule_AddIntConstant(getScript().getModule(), fiter->second.c_str(), fiter->first))
+		{
+			ERROR_MSG(fmt::format("Cellapp::onInstallPyModules: Unable to set KBEngine.{}.\n", fiter->second));
+		}
+	}
+
 	// 注册创建entity的方法到py
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,					METH_VARARGS,			0);
