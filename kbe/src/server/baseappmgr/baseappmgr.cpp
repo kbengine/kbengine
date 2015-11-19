@@ -236,7 +236,7 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 
 	for(; iter != baseapps_.end(); ++iter)
 	{
-		if((iter->second.flags() & APP_FLAGS_UNKNOWN) > 0)
+		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
 			continue;
 		
 		if(!iter->second.isDestroyed() &&

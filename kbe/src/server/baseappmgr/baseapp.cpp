@@ -29,7 +29,7 @@ load_(0.f),
 isDestroyed_(false),
 watchers_(),
 initProgress_(0.f),
-flags_(APP_FLAGS_UNKNOWN)
+flags_(APP_FLAGS_NONE)
 {
 }
 
