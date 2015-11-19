@@ -279,7 +279,7 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 
 //-------------------------------------------------------------------------------------
 int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
-	std::vector<Position3D>& points, uint32 max_points, float maxSearchDistance)
+	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
@@ -295,7 +295,7 @@ int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	for (uint32 i = 0; i < max_points; i++)
 	{
 		float rnd = frand();
-		float a = maxSearchDistance * rnd;				// 半径在maxSearchDistance米内
+		float a = maxRadius * rnd;						// 半径在maxRadius米内
 		float b = 360.0f * rnd;							// 随机一个角度
 		currpos.x = a * cos(b); 						// 半径 * 正余玄
 		currpos.z = a * sin(b);

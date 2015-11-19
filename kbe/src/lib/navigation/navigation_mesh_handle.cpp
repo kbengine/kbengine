@@ -135,7 +135,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 //-------------------------------------------------------------------------------------
 int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos, 
-	std::vector<Position3D>& points, uint32 max_points, float maxSearchDistance)
+	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
 	if(iter == navmeshLayer.end())
@@ -150,7 +150,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	filter.setIncludeFlags(0xffff);
 	filter.setExcludeFlags(0);
 
-	if(maxSearchDistance <= 0.0001f)
+	if (maxRadius <= 0.0001f)
 	{
 		Position3D currpos;
 		
@@ -196,7 +196,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	{
 		float pt[3];
 		dtPolyRef ref;
-		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxSearchDistance, &filter, frand, &ref, pt);
+		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
 		if (dtStatusSucceed(status))
 		{
 			currpos.x = pt[0];

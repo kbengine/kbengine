@@ -65,7 +65,7 @@ public:
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
 
 	int findRandomPointAroundCircle(int layer, const Position3D& centerPos, std::vector<Position3D>& points, 
-		uint32 max_points, float maxSearchDistance);
+		uint32 max_points, float maxRadius);
 
 	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec);
 

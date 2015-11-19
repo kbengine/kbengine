@@ -311,7 +311,7 @@ public:
 	/** 
 		entity获得随机点 
 	*/
-	bool getRandomPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, uint32 maxPoints, int8 layer);
+	bool getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos, float maxRadius, uint32 maxPoints, int8 layer);
 	DECLARE_PY_MOTHOD_ARG4(pyGetRandomPoints, PyObject_ptr, float, uint32, int8);
 
 	/** 

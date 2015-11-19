@@ -1766,6 +1766,7 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 		break;
 	}
 
+	// 第一个坐标点是当前位置，因此可以过滤掉
 	if (iter != outPaths.begin())
 	{
 		outPaths.erase(outPaths.begin(), iter);
@@ -1885,8 +1886,8 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::getRandomPoints(std::vector<Position3D>& outPaths, const Position3D& destination, 
-	float maxSearchDistance, uint32 maxPoints, int8 layer)
+bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos,
+	float maxRadius, uint32 maxPoints, int8 layer)
 {
 	Space* pSpace = Spaces::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
@@ -1906,45 +1907,22 @@ bool Entity::getRandomPoints(std::vector<Position3D>& outPaths, const Position3D
 		return false;
 	}
 
-	int resultCount = pNavHandle->findRandomPointAroundCircle(layer, destination, outPaths, maxPoints, maxSearchDistance);
-	if (resultCount < 0)
-	{
-		return false;
-	}
-
-	std::vector<Position3D>::iterator iter = outPaths.begin();
-	while(iter != outPaths.end())
-	{
-		Vector3 movement = (*iter) - position_;
-		if(KBEVec3Length(&movement) <= 0.00001f)
-		{
-			iter++;
-			continue;
-		}
-		break;
-	}
-
-	if (iter != outPaths.begin())
-	{
-		outPaths.erase(outPaths.begin(), iter);
-	}
-
-	return true;
+	return pNavHandle->findRandomPointAroundCircle(layer, centerPos, outPoints, maxPoints, maxRadius) > 0;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyDestination, float maxSearchDistance, uint32 maxPoints, int8 layer)
+PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyCenterPos, float maxRadius, uint32 maxPoints, int8 layer)
 {
-	Position3D destination;
+	Position3D centerPos;
 
-	if(!PySequence_Check(pyDestination))
+	if (!PySequence_Check(pyCenterPos))
 	{
 		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) not is PySequence!", scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	if(PySequence_Size(pyDestination) != 3)
+	if (PySequence_Size(pyCenterPos) != 3)
 	{
 		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) invalid!", scriptName());
 		PyErr_PrintEx(0);
@@ -1952,16 +1930,16 @@ PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyDestination, float maxSearchD
 	}
 
 	// 将坐标信息提取出来
-	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+	script::ScriptVector3::convertPyObjectToVector3(centerPos, pyCenterPos);
 
-	std::vector<Position3D> outPaths;
-	getRandomPoints(outPaths, destination, maxSearchDistance, maxPoints, layer);
+	std::vector<Position3D> outPoints;
+	getRandomPoints(outPoints, centerPos, maxRadius, maxPoints, layer);
 	
-	PyObject* pyList = PyList_New(outPaths.size());
+	PyObject* pyList = PyList_New(outPoints.size());
 
 	int i = 0;
-	std::vector<Position3D>::iterator iter = outPaths.begin();
-	for(; iter != outPaths.end(); ++iter)
+	std::vector<Position3D>::iterator iter = outPoints.begin();
+	for (; iter != outPoints.end(); ++iter)
 	{
 		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
 		Py_INCREF(pos);
