@@ -1305,7 +1305,10 @@ void Cellapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChann
 
 	if (e->controlledBy() == NULL || e->controlledBy()->id() != proxiesEntityID)
 	{
-		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClientForControlledEntity: entity {} has no permission to control entity {}!\n", proxiesEntityID, srcEntityID));
+		// phw: 经测试发现，由于controlledBy改变时通知客户端存在一定的时间差，
+		//      所以客户端收到消息前仍然发送位移消息，这使得下面的错误日志变得有点多，
+		//      因此注释掉这个日志，以减少不必要的日志输出。
+		//ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClientForControlledEntity: entity {} has no permission to control entity {}!\n", proxiesEntityID, srcEntityID));
 		
 		s.done();
 		return;
