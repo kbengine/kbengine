@@ -64,6 +64,8 @@ void DBTransaction::start()
 	{
 		bool ret = static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
 		KBE_ASSERT(ret);
+
+		pdbi_->query(SQL_START_TRANSACTION, false);
 	}
 
 	static_cast<DBInterfaceMysql*>(pdbi_)->inTransaction(true);

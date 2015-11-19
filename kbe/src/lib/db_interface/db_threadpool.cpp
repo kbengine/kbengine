@@ -82,22 +82,15 @@ public:
 
 	virtual void processTask(thread::TPTask* pTask)
 	{ 
-		bool retry;
-
-		do
+		try
 		{
-			retry = false;
-			try
-			{
-				thread::TPThread::processTask(pTask); 
-			}
-			catch (std::exception & e)
-			{
-				if(!_pDBInterface->processException(e))
-					break;
-			}
+			thread::TPThread::processTask(pTask); 
 		}
-		while (retry);
+		catch (std::exception & e)
+		{
+			if(!_pDBInterface->processException(e))
+				break;
+		}
 	}
 
 	virtual void onProcessTaskEnd(thread::TPTask* pTask)
