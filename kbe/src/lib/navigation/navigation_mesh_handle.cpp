@@ -26,6 +26,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{	
 
+// Returns a random number [0..1)
+static float frand()
+{
+//	return ((float)(rand() & 0xffff)/(float)0xffff);
+	return (float)rand()/(float)RAND_MAX;
+}
 
 //-------------------------------------------------------------------------------------
 NavMeshHandle::NavMeshHandle():
@@ -125,6 +131,83 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	}
 
 	return pos;
+}
+
+//-------------------------------------------------------------------------------------
+int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos, 
+	std::vector<Position3D>& points, uint32 max_points, float maxSearchDistance)
+{
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if(iter == navmeshLayer.end())
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n",  layer));
+		return NAV_ERROR;
+	}
+
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
+	
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
+
+	if(maxSearchDistance <= 0.0001f)
+	{
+		Position3D currpos;
+		
+		for (uint32 i = 0; i < max_points; i++)
+		{
+			float pt[3];
+			dtPolyRef ref;
+			dtStatus status = navmeshQuery->findRandomPoint(&filter, frand, &ref, pt);
+			if (dtStatusSucceed(status))
+			{
+				currpos.x = pt[0];
+				currpos.y = pt[1];
+				currpos.z = pt[2];
+
+				points.push_back(currpos);
+			}
+		}
+
+		return (int)points.size();
+	}
+	
+	const float extents[3] = {2.f, 4.f, 2.f};
+
+	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
+
+	float spos[3];
+	spos[0] = centerPos.x;
+	spos[1] = centerPos.y;
+	spos[2] = centerPos.z;
+
+	float startNearestPt[3];
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, startNearestPt);
+
+	if (!startRef)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle({1}): Could not find any nearby poly's ({0})\n", startRef, resPath));
+		return NAV_ERROR_NEARESTPOLY;
+	}
+	
+	Position3D currpos;
+	
+	for (uint32 i = 0; i < max_points; i++)
+	{
+		float pt[3];
+		dtPolyRef ref;
+		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxSearchDistance, &filter, frand, &ref, pt);
+		if (dtStatusSucceed(status))
+		{
+			currpos.x = pt[0];
+			currpos.y = pt[1];
+			currpos.z = pt[2];
+
+			points.push_back(currpos);
+		}
+	}
+
+	return (int)points.size();
 }
 
 //-------------------------------------------------------------------------------------

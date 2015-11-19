@@ -63,6 +63,10 @@ public:
 	virtual ~NavMeshHandle();
 
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+
+	int findRandomPointAroundCircle(int layer, const Position3D& centerPos, std::vector<Position3D>& points, 
+		uint32 max_points, float maxSearchDistance);
+
 	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_MESH; }

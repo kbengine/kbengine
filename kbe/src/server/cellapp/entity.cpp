@@ -68,6 +68,7 @@ SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigatePathPoints",			pyNavigatePathPoints,			METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getRandomPoints",			pyGetRandomPoints,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
@@ -1780,14 +1781,14 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::navigatePathPoints: args1(position) not is PySequence!", scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::navigatePathPoints: args1(position) invalid!", scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1808,6 +1809,7 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 		Py_INCREF(pos);
 		PyList_SET_ITEM(pyList, i++, pos);
 	}
+
 	return pyList;
 }
 
@@ -1880,6 +1882,93 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 
 	return PyLong_FromLong(navigate(destination, velocity, distance, maxMoveDistance, 
 		maxDistance, faceMovement > 0, layer, userData));
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::getRandomPoints(std::vector<Position3D>& outPaths, const Position3D& destination, 
+	float maxSearchDistance, uint32 maxPoints, int8 layer)
+{
+	Space* pSpace = Spaces::findSpace(spaceID());
+	if(pSpace == NULL || !pSpace->isGood())
+	{
+		ERROR_MSG(fmt::format("Entity::getRandomPoints(): not found space({}), entityID({})!\n",
+			spaceID(), id()));
+
+		return false;
+	}
+
+	NavigationHandlePtr pNavHandle = pSpace->pNavHandle();
+
+	if(!pNavHandle)
+	{
+		WARNING_MSG(fmt::format("Entity::getRandomPoints(): space({}), entityID({}), not found navhandle!\n",
+			spaceID(), id()));
+		return false;
+	}
+
+	int resultCount = pNavHandle->findRandomPointAroundCircle(layer, destination, outPaths, maxPoints, maxSearchDistance);
+	if (resultCount < 0)
+	{
+		return false;
+	}
+
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	while(iter != outPaths.end())
+	{
+		Vector3 movement = (*iter) - position_;
+		if(KBEVec3Length(&movement) <= 0.00001f)
+		{
+			iter++;
+			continue;
+		}
+		break;
+	}
+
+	if (iter != outPaths.begin())
+	{
+		outPaths.erase(outPaths.begin(), iter);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyDestination, float maxSearchDistance, uint32 maxPoints, int8 layer)
+{
+	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+
+	std::vector<Position3D> outPaths;
+	getRandomPoints(outPaths, destination, maxSearchDistance, maxPoints, layer);
+	
+	PyObject* pyList = PyList_New(outPaths.size());
+
+	int i = 0;
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	for(; iter != outPaths.end(); ++iter)
+	{
+		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
+		Py_INCREF(pos);
+		PyList_SET_ITEM(pyList, i++, pos);
+	}
+
+	return pyList;
 }
 
 //-------------------------------------------------------------------------------------
