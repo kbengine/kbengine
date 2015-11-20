@@ -88,8 +88,8 @@ public:
 		}
 		catch (std::exception & e)
 		{
-			if(!_pDBInterface->processException(e))
-				break;
+			if (!_pDBInterface->processException(e))
+				return;
 		}
 	}
 
