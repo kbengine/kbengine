@@ -279,8 +279,11 @@ void DebugHelper::finalise(bool destroy)
 		{
 			size_t size = DebugHelper::getSingleton().hasBufferedLogPackets();
 			Network::Channel* pLoggerChannel = DebugHelper::getSingleton().pLoggerChannel();
-			if(pLoggerChannel)
+			if (pLoggerChannel)
+			{
 				DebugHelper::getSingleton().sync();
+				pLoggerChannel->send();
+			}
 
 			if(DebugHelper::getSingleton().hasBufferedLogPackets() == size)
 				break;

@@ -105,6 +105,7 @@ public:
 		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->unlock();
 	}
+
 private:
 	DBInterface* _pDBInterface;
 };
