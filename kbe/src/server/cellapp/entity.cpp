@@ -2720,9 +2720,6 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 	// 传送过程中有任何错误也不会影响到base部分，base部分的包也能够按照秩序送往real。
 	if(this->baseMailbox() != NULL)
 	{
-		// 如果有base部分, 我们还需要调用一下备份功能。
-		this->backupCellData();
-		
 		Network::Channel* pBaseChannel = baseMailbox()->getChannel();
 		if(pBaseChannel)
 		{
