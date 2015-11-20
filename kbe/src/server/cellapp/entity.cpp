@@ -2647,7 +2647,9 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 	if(this->baseMailbox() != NULL)
 	{
 		// 如果有base部分, 我们还需要调用一下备份功能。
-		this->backupCellData();
+		// 由于ghost功能会addCellDataToStream一次数据流，并且在传送失败时能重用该实体
+		// 因此这里不需要进行备份
+		// this->backupCellData();
 		
 		Network::Channel* pBaseChannel = baseMailbox()->getChannel();
 		if(pBaseChannel)
