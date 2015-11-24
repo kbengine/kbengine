@@ -55,6 +55,7 @@ public:
 	virtual void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 
 	uint64 initTime() const{ return initTime_; }
+
 protected:
 	DBInterface* pdbi_;
 	uint64 initTime_;
@@ -70,6 +71,7 @@ public:
 	virtual ~DBTaskSyncTable();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
 protected:
 	KBEShared_ptr<EntityTable> pEntityTable_;
 	bool success_;
