@@ -46,12 +46,96 @@ EntityTableRedis::~EntityTableRedis()
 //-------------------------------------------------------------------------------------
 bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 {
+	// 获取表名
+	tableName(name);
+
+	// 找到所有存储属性并且创建出所有的字段
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = sm->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
+	std::string hasUnique = "";
+
+	for(; iter != pdescrsMap.end(); ++iter)
+	{
+		PropertyDescription* pdescrs = iter->second;
+
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName());
+
+		pETItem->pParentTable(this);
+		pETItem->utype(pdescrs->getUType());
+		pETItem->tableName(this->tableName());
+
+		bool ret = pETItem->initialize(pdescrs, pdescrs->getDataType(), pdescrs->getName());
+		
+		if(!ret)
+		{
+			delete pETItem;
+			return false;
+		}
+		
+		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
+	}
+
+	// 特殊处理， 数据库保存方向和位置
+	if(sm->hasCell())
+	{
+		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+
+		Network::FixedMessages::MSGInfo* msgInfo =	
+					Network::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if(msgInfo != NULL)
+		{
+			posuid = msgInfo->msgid;
+			msgInfo = NULL;
+		}	
+
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+		{
+			diruid = msgInfo->msgid;
+			msgInfo = NULL;	
+		}
+
+		EntityTableItem* pETItem = this->createItem("VECTOR3");
+		pETItem->pParentTable(this);
+		pETItem->utype(posuid);
+		pETItem->tableName(this->tableName());
+		pETItem->itemName("position");
+		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
+
+		pETItem = this->createItem("VECTOR3");
+		pETItem->pParentTable(this);
+		pETItem->utype(diruid);
+		pETItem->tableName(this->tableName());
+		pETItem->itemName("direction");
+		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
+	}
+
+	init_db_item_name();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void EntityTableRedis::init_db_item_name()
 {
+	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+	for(; iter != tableItems_.end(); ++iter)
+	{
+		// 处理fixedDict字段名称的特例情况
+		std::string exstrFlag = "";
+		if(iter->second->type() == TABLE_ITEM_TYPE_FIXEDDICT)
+		{
+			exstrFlag = iter->second->itemName();
+			if(exstrFlag.size() > 0)
+				exstrFlag += "_";
+		}
+
+		static_cast<EntityTableItemRedisBase*>(iter->second.get())->init_db_item_name(exstrFlag.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -63,10 +147,69 @@ bool EntityTableRedis::syncIndexToDB(DBInterface* pdbi)
 //-------------------------------------------------------------------------------------
 bool EntityTableRedis::syncToDB(DBInterface* pdbi)
 {
-	if(hasSync())
+	if (hasSync())
 		return true;
 
 	// DEBUG_MSG(fmt::format("EntityTableRedis::syncToDB(): {}.\n", tableName()));
+
+	// 对于redis不需要一开始将表创建出来，数据写时才产生数据，因此这里不需要创建表
+	// 获取当前表的items，检查每个item是否与当前匹配，将其同步为当前表描述
+
+	//DBInterfaceRedis::TABLE_FIELDS outs;
+	//static_cast<DBInterfaceRedis*>(pdbi)->getFields(outs, this->tableName());
+
+	//sync_item_to_db(pdbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0,
+	//	FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
+
+	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+	for (; iter != tableItems_.end(); ++iter)
+	{
+	//	if (!iter->second->syncToDB(pdbi, (void*)&outs))
+	//		return false;
+	}
+
+	std::vector<std::string> dbTableItemNames;
+
+	std::string ttablename = ENTITY_TABLE_PERFIX"_";
+	ttablename += tableName();
+
+	pdbi->getTableItemNames(ttablename.c_str(), dbTableItemNames);
+
+	// 检查是否有需要删除的表字段
+	std::vector<std::string>::iterator iter0 = dbTableItemNames.begin();
+	for (; iter0 != dbTableItemNames.end(); ++iter0)
+	{
+		std::string tname = (*iter0);
+
+		if (tname == TABLE_ID_CONST_STR ||
+			tname == TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR ||
+			tname == TABLE_PARENTID_CONST_STR)
+		{
+			continue;
+		}
+
+		EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+		bool found = false;
+
+		for (; iter != tableItems_.end(); ++iter)
+		{
+			if (iter->second->isSameKey(tname))
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			if (!pdbi->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
+				return false;
+		}
+	}
+
+	// 同步表索引
+	if (!syncIndexToDB(pdbi))
+		return false;
 
 	sync_ = true;
 	return true;
@@ -430,6 +573,11 @@ void EntityTableItemRedis_FIXED_DICT::init_db_item_name(const char* exstrFlag)
 bool EntityTableItemRedisBase::initialize(const PropertyDescription* pPropertyDescription, 
 										  const DataType* pDataType, std::string name)
 {
+	itemName(name);
+
+	pDataType_ = pDataType;
+	pPropertyDescription_ = pPropertyDescription;
+	indexType_ = pPropertyDescription->indexType();
 	return true;
 }
 

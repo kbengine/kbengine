@@ -54,7 +54,7 @@ bool sync_item_to_db(DBInterface* pdbi,
 		DBInterfaceMysql::TABLE_FIELDS::iterator iter = pTFData->find(itemName);
 		if(iter != pTFData->end())
 		{
-			TABLE_FIELD& tf = iter->second;
+			MYSQL_TABLE_FIELD& tf = iter->second;
 			if (tf.type == sqlitemtype && ((tf.flags & ALL_MYSQL_SET_FLAGS) == itemflags))
 			{
 				if((length == 0) || (int32)length == tf.length)
