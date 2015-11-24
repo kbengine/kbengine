@@ -77,16 +77,20 @@ public:
 	}
 	
 	DB_ITEM_DATAS items;
+	
 	std::string tableName;
 	std::string parentTableName;
+	
 	DBID parentTableDBID;
 	DBID dbid;
+	
 	DB_RW_CONTEXTS optable;
+	
 	bool isEmpty;
+	
 	std::map<DBID, std::vector<DBID> > dbids;
 	std::vector< std::string >results;
 	std::vector< std::string >::size_type readresultIdx;
-
 
 private:
 
