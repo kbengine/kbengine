@@ -620,7 +620,7 @@ void EntityTableMysql::entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool s
 //-------------------------------------------------------------------------------------
 DBID EntityTableMysql::writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
-	DBContext context;
+	mysql::DBContext context;
 	context.parentTableName = "";
 	context.parentTableDBID = 0;
 	context.dbid = dbid;
@@ -665,7 +665,7 @@ bool EntityTableMysql::removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModul
 {
 	KBE_ASSERT(pModule && dbid > 0);
 
-	DBContext context;
+	mysql::DBContext context;
 	context.parentTableName = "";
 	context.parentTableDBID = 0;
 	context.dbid = dbid;
@@ -690,7 +690,7 @@ bool EntityTableMysql::queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s,
 {
 	KBE_ASSERT(pModule && s && dbid > 0);
 
-	DBContext context;
+	mysql::DBContext context;
 	context.parentTableName = "";
 	context.parentTableDBID = 0;
 	context.dbid = dbid;
@@ -720,7 +720,7 @@ bool EntityTableMysql::queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s,
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableMysql::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 	for(; iter != tableFixedOrderItems_.end(); ++iter)
@@ -730,14 +730,14 @@ void EntityTableMysql::addToStream(MemoryStream* s, DBContext& context, DBID res
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableMysql::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(tableFixedOrderItems_.size() == 0)
 		return;
 	
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 
-	DBContext* context1 = new DBContext();
+	mysql::DBContext* context1 = new mysql::DBContext();
 	context1->parentTableName = (*iter)->pParentTable()->tableName();
 	context1->tableName = (*iter)->tableName();
 	context1->parentTableDBID = 0;
@@ -745,8 +745,8 @@ void EntityTableMysql::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBCon
 	context1->isEmpty = (s == NULL);
 	context1->readresultIdx = 0;
 
-	KBEShared_ptr< DBContext > opTableValBox1Ptr(context1);
-	context.optable.push_back( std::pair<std::string/*tableName*/, KBEShared_ptr< DBContext > >
+	KBEShared_ptr< mysql::DBContext > opTableValBox1Ptr(context1);
+	context.optable.push_back(std::pair<std::string/*tableName*/, KBEShared_ptr< mysql::DBContext > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); ++iter)
@@ -756,14 +756,14 @@ void EntityTableMysql::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBCon
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::getReadSqlItem(DBContext& context)
+void EntityTableMysql::getReadSqlItem(mysql::DBContext& context)
 {
 	if(tableFixedOrderItems_.size() == 0)
 		return;
 	
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 
-	DBContext* context1 = new DBContext();
+	mysql::DBContext* context1 = new mysql::DBContext();
 	context1->parentTableName = (*iter)->pParentTable()->tableName();
 	context1->tableName = (*iter)->tableName();
 	context1->parentTableDBID = 0;
@@ -771,8 +771,8 @@ void EntityTableMysql::getReadSqlItem(DBContext& context)
 	context1->isEmpty = true;
 	context1->readresultIdx = 0;
 
-	KBEShared_ptr< DBContext > opTableValBox1Ptr(context1);
-	context.optable.push_back( std::pair<std::string/*tableName*/, KBEShared_ptr< DBContext > >
+	KBEShared_ptr< mysql::DBContext > opTableValBox1Ptr(context1);
+	context.optable.push_back(std::pair<std::string/*tableName*/, KBEShared_ptr< mysql::DBContext > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); ++iter)
@@ -811,7 +811,7 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	ArraySize asize = 2;
 	(*s) << asize;
@@ -828,7 +828,7 @@ void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -847,7 +847,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	for(ArraySize i=0; i<asize; ++i)
 	{
 		(*s) >> v;
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 
 #ifdef CLIENT_NO_FLOAT
@@ -856,20 +856,20 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 		
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_VECTOR2::getReadSqlItem(mysql::DBContext& context)
 {
 	ArraySize asize = 2;
 	for(ArraySize i=0; i<asize; ++i)
 	{
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -901,7 +901,7 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	ArraySize asize = 3;
 	(*s) << asize;
@@ -918,7 +918,7 @@ void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -937,7 +937,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	for(ArraySize i=0; i<asize; ++i)
 	{
 		(*s) >> v;
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 
 #ifdef CLIENT_NO_FLOAT
@@ -946,20 +946,20 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_VECTOR3::getReadSqlItem(mysql::DBContext& context)
 {
 	ArraySize asize = 3;
 	for(ArraySize i=0; i<asize; ++i)
 	{
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -991,7 +991,7 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	ArraySize asize = 4;
 	(*s) << asize;
@@ -1008,7 +1008,7 @@ void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DBContext& conte
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
@@ -1027,7 +1027,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	for(ArraySize i=0; i<asize; ++i)
 	{
 		(*s) >> v;
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 
 #ifdef CLIENT_NO_FLOAT
@@ -1036,20 +1036,20 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_VECTOR4::getReadSqlItem(mysql::DBContext& context)
 {
 	ArraySize asize = 4;
 	for(ArraySize i=0; i<asize; ++i)
 	{
-		DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+		context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -1060,17 +1060,17 @@ bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_MAILBOX::getReadSqlItem(mysql::DBContext& context)
 {
 }
 
@@ -1164,11 +1164,11 @@ bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_ARRAY::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	if(pChildTable_)
 	{
-		DBContext::DB_RW_CONTEXTS::iterator iter = context.optable.begin();
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter = context.optable.begin();
 		for(; iter != context.optable.end(); ++iter)
 		{
 			if(pChildTable_->tableName() == iter->first)
@@ -1189,7 +1189,7 @@ void EntityTableItemMysql_ARRAY::addToStream(MemoryStream* s, DBContext& context
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	ArraySize size = 0;
 	if(s)
@@ -1210,7 +1210,7 @@ void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* pdbi, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_ARRAY::getReadSqlItem(mysql::DBContext& context)
 {
 	if(pChildTable_)
 	{
@@ -1296,7 +1296,7 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_FIXED_DICT::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
@@ -1307,7 +1307,7 @@ void EntityTableItemMysql_FIXED_DICT::addToStream(MemoryStream* s, DBContext& co
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
@@ -1318,7 +1318,7 @@ void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* pdbi, MemoryS
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_FIXED_DICT::getReadSqlItem(mysql::DBContext& context)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
@@ -1376,7 +1376,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	std::stringstream stream;
 	stream << context.results[context.readresultIdx++];
@@ -1446,12 +1446,12 @@ void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DBContext& context
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
 
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	
 	if(dataSType_ == "INT8")
 	{
@@ -1515,16 +1515,16 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream
 	}
 
 	pSotvs->sqlkey = db_item_name();
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_DIGIT::getReadSqlItem(mysql::DBContext& context)
 {
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1548,19 +1548,19 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_STRING::addToStream(MemoryStream* s, 
-											  DBContext& context, DBID resultDBID)
+										mysql::DBContext& context, DBID resultDBID)
 {
 	(*s) << context.results[context.readresultIdx++];
 }
 
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* pdbi, 
-												  MemoryStream* s, DBContext& context)
+										MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
 
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 
 	std::string val;
 	(*s) >> val;
@@ -1580,16 +1580,16 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* pdbi,
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_STRING::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_STRING::getReadSqlItem(mysql::DBContext& context)
 {
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1613,19 +1613,19 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_UNICODE::addToStream(MemoryStream* s, 
-											   DBContext& context, DBID resultDBID)
+								mysql::DBContext& context, DBID resultDBID)
 {
 	s->appendBlob(context.results[context.readresultIdx++]);
 }
 
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, 
-												   DBContext& context)
+									mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
 
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 
 	std::string val;
 	s->readBlob(val);
@@ -1643,16 +1643,16 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_UNICODE::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_UNICODE::getReadSqlItem(mysql::DBContext& context)
 {
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1663,19 +1663,19 @@ bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	std::string& datas = context.results[context.readresultIdx++];
 	s->appendBlob(datas.data(), datas.size());
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
 
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 
 	std::string val;
 	s->readBlob(val);
@@ -1693,16 +1693,16 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* pdbi, MemoryStream*
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_BLOB::getReadSqlItem(mysql::DBContext& context)
 {
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1713,19 +1713,19 @@ bool EntityTableItemMysql_PYTHON::syncToDB(DBInterface* pdbi, void* pData)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_PYTHON::addToStream(MemoryStream* s, DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_PYTHON::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 	std::string& datas = context.results[context.readresultIdx++];
 	(*s).appendBlob(datas);
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context)
+void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 	if(s == NULL)
 		return;
 
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 
 	std::string val;
 	s->readBlob(val);
@@ -1743,16 +1743,16 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* pdbi, MemoryStrea
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_PYTHON::getReadSqlItem(DBContext& context)
+void EntityTableItemMysql_PYTHON::getReadSqlItem(mysql::DBContext& context)
 {
-	DBContext::DB_ITEM_DATA* pSotvs = new DBContext::DB_ITEM_DATA();
+	mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	context.items.push_back(KBEShared_ptr<DBContext::DB_ITEM_DATA>(pSotvs));
+	context.items.push_back(KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------

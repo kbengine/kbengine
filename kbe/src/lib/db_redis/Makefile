@@ -5,6 +5,7 @@ SRCS =					\
 	db_exception			\
 	db_transaction			\
 	db_interface_redis		\
+	entity_table_redis		\
 	kbe_table_redis			\
 	redis_watcher
 
