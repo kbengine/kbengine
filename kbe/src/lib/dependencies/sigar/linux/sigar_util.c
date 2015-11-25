@@ -31,47 +31,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-SIGAR_INLINE char *sigar_uitoa(char *buf, unsigned int n, int *len)
-{
-    char *start = buf + UITOA_BUFFER_SIZE - 1;
-
-    *start = 0;
-
-    do {
-	*--start = '0' + (n % 10);
-        ++*len;
-	n /= 10;
-    } while (n);
-
-    return start;
-}
-
-SIGAR_INLINE char *sigar_skip_line(char *buffer, int buflen)
-{
-    char *ptr = buflen ?
-        (char *)memchr(buffer, '\n', buflen) : /* bleh */
-        strchr(buffer, '\n');
-    return ++ptr;
-}
-
-SIGAR_INLINE char *sigar_skip_token(char *p)
-{
-    while (sigar_isspace(*p)) p++;
-    while (*p && !sigar_isspace(*p)) p++;
-    return p;
-}
-
-SIGAR_INLINE char *sigar_skip_multiple_token(char *p, int count)
-{
-    int i;
-    
-    for (i = 0; i < count; i++) {
-        p = sigar_skip_token(p);
-    }
-
-    return p;
-}
-
 char *sigar_getword(char **line, char stop)
 {
     char *pos = *line;
