@@ -48,7 +48,7 @@ public:
 
 	static SqlStatement* createSql(DBInterface* pdbi, DB_TABLE_OP opType, 
 		std::string tableName, DBID parentDBID, 
-		DBID dbid, DBContext::DB_ITEM_DATAS& tableVal)
+		DBID dbid, mysql::DBContext::DB_ITEM_DATAS& tableVal)
 	{
 		SqlStatement* pSqlcmd = NULL;
 
@@ -75,7 +75,7 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool writeDB(DB_TABLE_OP optype, DBInterface* pdbi, DBContext& context)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* pdbi, mysql::DBContext& context)
 	{
 		bool ret = true;
 
@@ -93,10 +93,10 @@ public:
 		if(optype == TABLE_OP_INSERT)
 		{
 			// 开始更新所有的子表
-			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); ++iter1)
 			{
-				DBContext& wbox = *iter1->second.get();
+				mysql::DBContext& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = context.dbid;
@@ -115,10 +115,10 @@ public:
 
 			if(context.dbid > 0)
 			{
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 
 					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(context.tableName);
@@ -214,10 +214,10 @@ public:
 			if(!context.isEmpty)
 			{
 				// 开始更新所有的子表
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 					
 					if(wbox.isEmpty)
 						continue;
@@ -275,10 +275,10 @@ public:
 				bool ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 				KBE_ASSERT(ret);
 
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -301,6 +301,7 @@ public:
 	}
 
 protected:
+
 };
 
 }

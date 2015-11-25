@@ -311,11 +311,17 @@ public:
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, int8 layer, PyObject* userData);
-	bool navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer );
+	bool navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer);
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
 	DECLARE_PY_MOTHOD_ARG3(pyNavigatePathPoints, PyObject_ptr, float, int8);
 	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int8, PyObject_ptr);
+
+	/** 
+		entity获得随机点 
+	*/
+	bool getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos, float maxRadius, uint32 maxPoints, int8 layer);
+	DECLARE_PY_MOTHOD_ARG4(pyGetRandomPoints, PyObject_ptr, float, uint32, int8);
 
 	/** 
 		entity移动到某个点 

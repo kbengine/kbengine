@@ -87,6 +87,7 @@ public:
 	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType) = 0;
 
 	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType) = 0;
+
 protected:
 	
 };
@@ -122,6 +123,7 @@ public:
 		accountDefMemoryStream_.clear(false);
 		accountDefMemoryStream_.append(s.data() + s.rpos(), s.length()); 
 	}
+
 protected:
 	MemoryStream accountDefMemoryStream_;
 };
@@ -152,6 +154,7 @@ public:
 	virtual bool activateAccount(DBInterface * pdbi, const std::string& code, ACCOUNT_INFOS& info) = 0;
 	virtual bool bindEMail(DBInterface * pdbi, const std::string& name, const std::string& code) = 0;
 	virtual bool resetpassword(DBInterface * pdbi, const std::string& name, const std::string& password, const std::string& code) = 0;
+
 protected:
 };
 

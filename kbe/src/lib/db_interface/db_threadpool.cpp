@@ -87,17 +87,17 @@ public:
 		do
 		{
 			retry = false;
+
 			try
 			{
-				thread::TPThread::processTask(pTask); 
+				thread::TPThread::processTask(pTask);
 			}
 			catch (std::exception & e)
 			{
-				if(!_pDBInterface->processException(e))
-					break;
+				retry = _pDBInterface->processException(e);
 			}
-		}
-		while (retry);
+
+		} while (retry);
 	}
 
 	virtual void onProcessTaskEnd(thread::TPTask* pTask)
@@ -105,6 +105,7 @@ public:
 		static_cast<DBTaskBase*>(pTask)->pdbi(_pDBInterface);
 		_pDBInterface->unlock();
 	}
+
 private:
 	DBInterface* _pDBInterface;
 };

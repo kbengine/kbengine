@@ -50,7 +50,7 @@ public:
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DBInterface* pdbi, DBContext& context)
+	static bool queryDB(DBInterface* pdbi, mysql::DBContext& context)
 	{
 		// 根据某个dbid获得一张表上的相关数据
 		SqlStatement* pSqlcmd = new SqlStatementQuery(pdbi, context.tableName, 
@@ -94,7 +94,7 @@ public:
 					KBE_ASSERT(nfields == context.items.size() + 1);
 					for (uint32 i = 1; i < nfields; ++i)
 					{
-						KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = context.items[i - 1];
+						KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA> pSotvs = context.items[i - 1];
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
@@ -116,10 +116,10 @@ public:
 		// 每一个dbid都需要获得子表上的数据
 		// 在这里我们让子表一次查询出所有的dbids数据然后填充到结果集
 
-		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 		for(; iter1 != context.optable.end(); ++iter1)
 		{
-			DBContext& wbox = *iter1->second.get();
+			mysql::DBContext& wbox = *iter1->second.get();
 			if(!queryChildDB(pdbi, wbox, dbids))
 				return false;
 		}
@@ -131,7 +131,7 @@ public:
 	/**
 		从子表中查询数据
 	*/
-	static bool queryChildDB(DBInterface* pdbi, DBContext& context, std::vector<DBID>& parentTableDBIDs)
+	static bool queryChildDB(DBInterface* pdbi, mysql::DBContext& context, std::vector<DBID>& parentTableDBIDs)
 	{
 		// 根据某个dbid获得一张表上的相关数据
 		SqlStatement* pSqlcmd = new SqlStatementQuery(pdbi, context.tableName, 
@@ -184,7 +184,7 @@ public:
 					KBE_ASSERT(nfields == context.items.size() + const_fields);
 					for (uint32 i = const_fields; i < nfields; ++i)
 					{
-						KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = context.items[i - const_fields];
+						KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA> pSotvs = context.items[i - const_fields];
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
@@ -203,10 +203,10 @@ public:
 		// 如果当前表存在子表引用则需要继续查询子表
 		// 每一个dbid都需要获得子表上的数据
 		// 在这里我们让子表一次查询出所有的dbids数据然后填充到结果集
-		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 		for(; iter1 != context.optable.end(); ++iter1)
 		{
-			DBContext& wbox = *iter1->second.get();
+			mysql::DBContext& wbox = *iter1->second.get();
 
 			if(!queryChildDB(pdbi, wbox, t_parentTableDBIDs))
 				return false;
@@ -214,6 +214,7 @@ public:
 
 		return ret;
 	}
+
 protected:
 };
 

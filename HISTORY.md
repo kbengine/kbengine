@@ -1,3 +1,36 @@
+###v0.7.0
+
+	2015/11/25
+
+	新增与改善：
+		邮件重置密码完善
+		更新API文档
+		抽象化interfaces，interfaces使用python进行扩展
+		loginapp支持脚本了,可扩展脚本做类似登陆排队功能和控制账号的登陆等行为
+		deregisterFileDescriptor改名为deregisterReadFileDescriptor
+		proxy在destroy后及时通知客户端被服务器踢出
+		支持让某个baseapp、cellapp不参与负载均衡（KBEngine.setAppFlags、KBEngine.getAppFlags）
+		增加新的API：Entity.getRandomPoints用于随机获取目的坐标点周围navigate可到达的指定数量的坐标点（可用于NPC随机移动，掉落物品坐标计算等）。
+		
+	BUG修正：
+		修正loginapp的http回调端口返回页面时乱码现象
+		修正:一个entity属性设成BOOL（也就是UINT8），然后退出服务器，改成了INT8，重起服务器以后，数据表不会变bug(#263)
+		修正在服务器上不存在某实体的时候，客户端请求实体方法可能造成crash
+		防止APP在退出时有日志没有同步完（同步到logger）。
+
+
+
+###v0.6.21
+
+	2015/10/26
+
+	新增与改善：
+		将原有的CLIENYT_TYPE_PC拆分成CLIENYT_TYPE_WIN、CLIENYT_TYPE_LlINUX、CLIENYT_TYPE_MAC
+		Entitydef的摘要检查不再与客户端类型绑定在一起，如果客户端提交了摘要则检查，没有提交则客户端对自己的协议正确性负责（如果客户端严格从服务器远程导入协议，理论上不会有问题）
+		标准化一些协议名称
+
+
+
 ###v0.6.20
 
 	2015/10/23

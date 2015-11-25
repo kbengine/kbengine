@@ -38,7 +38,7 @@ class SqlStatement
 {
 public:
 	SqlStatement(DBInterface* pdbi, std::string tableName, DBID parentDBID, DBID dbid, 
-		DBContext::DB_ITEM_DATAS& tableItemDatas):
+		mysql::DBContext::DB_ITEM_DATAS& tableItemDatas) :
 	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
@@ -76,7 +76,7 @@ public:
 	DBID dbid() const{ return dbid_; }
 
 protected:
-	DBContext::DB_ITEM_DATAS& tableItemDatas_;
+	mysql::DBContext::DB_ITEM_DATAS& tableItemDatas_;
 	std::string sqlstr_;
 	std::string tableName_;
 	DBID dbid_;
@@ -88,7 +88,7 @@ class SqlStatementInsert : public SqlStatement
 {
 public:
 	SqlStatementInsert(DBInterface* pdbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
+		DBID dbid, mysql::DBContext::DB_ITEM_DATAS& tableItemDatas) :
 	  SqlStatement(pdbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
@@ -108,10 +108,10 @@ public:
 			sqlstr1_ += ",";
 		}
 
-		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		mysql::DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
-			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -170,7 +170,7 @@ class SqlStatementUpdate : public SqlStatement
 {
 public:
 	SqlStatementUpdate(DBInterface* pdbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
+		DBID dbid, mysql::DBContext::DB_ITEM_DATAS& tableItemDatas) :
 	  SqlStatement(pdbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		if(tableItemDatas.size() == 0)
@@ -184,10 +184,10 @@ public:
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
-		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		mysql::DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
-			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -221,7 +221,7 @@ class SqlStatementQuery : public SqlStatement
 {
 public:
 	SqlStatementQuery(DBInterface* pdbi, std::string tableName, const std::vector<DBID>& parentTableDBIDs, 
-		DBID dbid, DBContext::DB_ITEM_DATAS& tableItemDatas):
+		DBID dbid, mysql::DBContext::DB_ITEM_DATAS& tableItemDatas) :
 	  SqlStatement(pdbi, tableName, 0, dbid, tableItemDatas),
 	  sqlstr1_()
 	{
@@ -265,10 +265,10 @@ public:
 			}
 		}
 
-		DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		mysql::DBContext::DB_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); ++tableValIter)
 		{
-			KBEShared_ptr<DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<mysql::DBContext::DB_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += ",";

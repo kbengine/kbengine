@@ -642,7 +642,7 @@ void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tableName)
 
 	for(unsigned int i=0; i<numFields; ++i)
 	{
-		TABLE_FIELD& info = outs[fields[i].name];
+		MYSQL_TABLE_FIELD& info = outs[fields[i].name];
 		info.name = fields[i].name;
 		info.length = fields[i].length;
 		info.maxlength = fields[i].max_length;

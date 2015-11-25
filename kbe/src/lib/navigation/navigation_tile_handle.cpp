@@ -34,6 +34,14 @@ AStarSearch<NavTileHandle::MapSearchNode> NavTileHandle::astarsearch;
 #define DEBUG_LISTS 0
 #define DEBUG_LIST_LENGTHS_ONLY 0
 
+// Returns a random number [0..1)
+static float frand()
+{
+//	return ((float)(rand() & 0xffff)/(float)0xffff);
+	return (float)rand()/(float)RAND_MAX;
+}
+
+
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle(bool dir):
 NavigationHandle(),
@@ -267,6 +275,34 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 	}
 
 	return 1;
+}
+
+//-------------------------------------------------------------------------------------
+int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
+{
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(fmt::format("NavTileHandle::findRandomPointAroundCircle: not found layer({})\n", layer));
+		return NAV_ERROR;
+	}
+	
+	Position3D currpos;
+	
+	for (uint32 i = 0; i < max_points; i++)
+	{
+		float rnd = frand();
+		float a = maxRadius * rnd;						// 半径在maxRadius米内
+		float b = 360.0f * rnd;							// 随机一个角度
+		currpos.x = a * cos(b); 						// 半径 * 正余玄
+		currpos.z = a * sin(b);
+		points.push_back(currpos);
+	}
+
+	return (int)points.size();
 }
 
 //-------------------------------------------------------------------------------------
