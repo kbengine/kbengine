@@ -676,6 +676,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	KBE_ASSERT(entityDBID > 0);
 
 	info.name = accountName;
+	info.email = accountName + "@0.0";
 	info.password = passwd;
 	info.dbid = entityDBID;
 	info.datas = datas;

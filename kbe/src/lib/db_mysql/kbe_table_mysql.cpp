@@ -199,7 +199,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 			"(`accountName` varchar(255) not null, PRIMARY KEY idKey (`accountName`),"
 			"`password` varchar(255),"
 			"`bindata` blob,"
-			"`email` varchar(255),"
+			"`email` varchar(255) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
 			"`flags` int unsigned not null DEFAULT 0,"
 			"`deadline` bigint(20) not null DEFAULT 0,"
@@ -250,6 +250,8 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * pdbi, const std::string& n
 		tbuf, name.c_str(), name.size());
 
 	sqlstr += tbuf;
+	sqlstr += "\" or email=\"";
+	sqlstr += tbuf;
 	sqlstr += "\" LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
 
@@ -288,6 +290,8 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * pdbi, const std::s
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(pdbi)->mysql(), 
 		tbuf, name.c_str(), name.size());
 
+	sqlstr += tbuf;
+	sqlstr += "\" or email=\"";
 	sqlstr += tbuf;
 	sqlstr += "\" LIMIT 1";
 	SAFE_RELEASE_ARRAY(tbuf);
