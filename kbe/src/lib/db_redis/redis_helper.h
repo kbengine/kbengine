@@ -43,14 +43,8 @@ public:
 
 	static bool expireKey(DBInterfaceRedis* pdbi, const std::string& key, int secs, bool showExecInfo = true)
 	{
-		try
-		{
-			if (!pdbi->query(showExecInfo, "EXPIRE %s %d", key.c_str(), secs))
-				return false;
-		}
-		catch(...)
-		{
-		}
+		if (!pdbi->query(showExecInfo, "EXPIRE %s %d", key.c_str(), secs))
+			return false;
 	}
 	
 	static bool check_array_results(redisReply* pRedisReply)
@@ -71,14 +65,8 @@ public:
 	{
 		redisReply* pRedisReply = NULL;
 		
-		try
-		{
-			if (!pdbi->query(fmt::format("scan 0 MATCH {}", name), &pRedisReply, showExecInfo))
-				return false;
-		}
-		catch(...)
-		{
-		}
+		if (!pdbi->query(fmt::format("scan 0 MATCH {}", name), &pRedisReply, showExecInfo))
+			return false;
 		
 		size_t size = 0;
 		
@@ -103,13 +91,7 @@ public:
 		{
 			redisReply* pRedisReply = NULL;
 			
-			try
-			{
-				pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
-			}
-			catch(...)
-			{
-			}
+			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
 			
 			if(pRedisReply)
 			{
@@ -128,13 +110,7 @@ public:
 						redisReply* r1 = r0->element[j];
 						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
 							
-						try
-						{
-							pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, showExecInfo);
-						}
-						catch(...)
-						{
-						}
+						pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, showExecInfo);
 					}
 				}
 				
@@ -161,13 +137,7 @@ public:
 		{
 			redisReply* pRedisReply = NULL;
 			
-			try
-			{
-				pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
-			}
-			catch(...)
-			{
-			}
+			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
 			
 			if(pRedisReply)
 			{
@@ -185,14 +155,8 @@ public:
 					{
 						redisReply* r1 = r0->element[j];
 						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
-							
-						try
-						{
-							pdbi->query(fmt::format("hdel {} {}", r1->str, itemName), &pRedisReply, showExecInfo);
-						}
-						catch(...)
-						{
-						}
+
+						pdbi->query(fmt::format("hdel {} {}", r1->str, itemName), &pRedisReply, showExecInfo);
 					}
 				}
 				

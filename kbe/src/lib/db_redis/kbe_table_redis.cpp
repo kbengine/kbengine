@@ -52,14 +52,7 @@ bool KBEEntityLogTableRedis::logEntity(DBInterface * pdbi, const char* ip, uint3
 	std::string sqlstr = fmt::format("HSET kbe_entitylog:{}:{} entityID {} ip {} port {} componentID {}", 
 		dbid, entityType, entityID, ip, port, componentID);
 
-	try
-	{
-		pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
-	}
-	catch(...)
-	{
-	}
-
+	pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	return true;
 }
 
@@ -71,14 +64,8 @@ bool KBEEntityLogTableRedis::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 	*/
 	redisReply* pRedisReply = NULL;
 
-	try
-	{
-		static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID",
-			dbid, entityType), &pRedisReply, false);
-	}
-	catch(...)
-	{
-	}
+	static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID",
+		dbid, entityType), &pRedisReply, false);
 
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
@@ -111,14 +98,7 @@ bool KBEEntityLogTableRedis::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTIT
 	std::string sqlstr = fmt::format("HDEL kbe_entitylog:{}:{}", 
 		dbid, entityType);
 	
-	try
-	{
-		pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
-	}
-	catch(...)
-	{
-	}
-
+	pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	return true;
 }
 
@@ -163,14 +143,8 @@ bool KBEAccountTableRedis::queryAccount(DBInterface * pdbi, const std::string& n
 	*/
 	redisReply* pRedisReply = NULL;
 
-	try
-	{
-		static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password flags deadline",
-			name), &pRedisReply, false);
-	}
-	catch(...)
-	{
-	}
+	static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password flags deadline",
+		name), &pRedisReply, false);
 	
 	info.dbid = 0;
 	
@@ -203,17 +177,11 @@ bool KBEAccountTableRedis::queryAccountAllInfos(DBInterface * pdbi, const std::s
 	*/
 	redisReply* pRedisReply = NULL;
 
-	try
-	{
-		static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password email flags deadline",
-			name), &pRedisReply, false);
-	}
-	catch(...)
-	{
-	}
-	
+	static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_accountinfos:{} entityDBID password email flags deadline",
+		name), &pRedisReply, false);
+
 	info.dbid = 0;
-	
+
 	if(pRedisReply)
 	{
 		if(pRedisReply->type == REDIS_REPLY_ARRAY)
@@ -243,30 +211,18 @@ bool KBEAccountTableRedis::updateCount(DBInterface * pdbi, const std::string& na
 	*/
 	redis::DBTransaction transaction(pdbi);
 	
-	try
-	{	
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("HINCRBY kbe_accountinfos:{} numlogin", name), false))
-		{
-			transaction.rollback();
-			return false;
-		}
-	}
-	catch(...)
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("HINCRBY kbe_accountinfos:{} numlogin", name), false))
 	{
+		transaction.rollback();
+		return false;
 	}
 	
-	try
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("HSET kbe_accountinfos:{} lasttime {}", name, time(NULL)), false))
 	{
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("HSET kbe_accountinfos:{} lasttime {}", name, time(NULL)), false))
-		{
-			transaction.rollback();
-			return false;
-		}
-	}
-	catch(...)
-	{
+		transaction.rollback();
+		return false;
 	}
 	
 	transaction.commit();
@@ -326,14 +282,8 @@ bool KBEEmailVerificationTableRedis::queryAccount(DBInterface * pdbi, int8 type,
 	*/
 	redisReply* pRedisReply = NULL;
 
-	try
-	{
-		if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("GET kbe_email_verification:{}", name), &pRedisReply, false))
-			return false;
-	}
-	catch(...)
-	{
-	}
+	if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("GET kbe_email_verification:{}", name), &pRedisReply, false))
+		return false;
 	
 	info.datas = "";
 	
@@ -350,14 +300,8 @@ bool KBEEmailVerificationTableRedis::queryAccount(DBInterface * pdbi, int8 type,
 
 	if(info.datas.size() > 0)
 	{
-		try
-		{
-			if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_email_verification:{} datas", info.datas), &pRedisReply, false))
-				return false;
-		}
-		catch(...)
-		{
-		}		
+		if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_email_verification:{} datas", info.datas), &pRedisReply, false))
+			return false;
 	}
 	else
 	{
@@ -415,71 +359,47 @@ bool KBEEmailVerificationTableRedis::logAccount(DBInterface * pdbi, int8 type, c
 	
 	redis::DBTransaction transaction(pdbi);
 	
-	try
-	{	
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("HSET kbe_email_verification:{} accountName {} type {} datas {} logtime {}", 
-			code, name, type, datas, time(NULL)), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));
-			
-			transaction.rollback();
-			return false;
-		}
-	}
-	catch(...)
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("HSET kbe_email_verification:{} accountName {} type {} datas {} logtime {}", 
+		code, name, type, datas, time(NULL)), false))
 	{
-	}
-	
-	try
-	{
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("SET kbe_email_verification:{} {}", name, code), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));	
-			
-			transaction.rollback();	
-			return false;
-		}
-	}
-	catch(...)
-	{
-	}
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));
 		
-	try
-	{	
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("EXPIRE kbe_email_verification:{} {}", 
-			code.c_str(), getDeadline(type)), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));
-			
-			transaction.rollback();	
-			return false;
-		}
+		transaction.rollback();
+		return false;
 	}
-	catch(...)
+
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("SET kbe_email_verification:{} {}", name, code), false))
 	{
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));	
+		
+		transaction.rollback();	
+		return false;
+	}
+
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("EXPIRE kbe_email_verification:{} {}", 
+		code.c_str(), getDeadline(type)), false))
+	{
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));
+		
+		transaction.rollback();	
+		return false;
 	}
 	
-	try
-	{	
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("EXPIRE kbe_email_verification:{} {}", 
-			name.c_str(), getDeadline(type)), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));
-			
-			transaction.rollback();	
-			return false;
-		}
-	}
-	catch(...)
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("EXPIRE kbe_email_verification:{} {}", 
+		name.c_str(), getDeadline(type)), false))
 	{
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::logAccount({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));
+		
+		transaction.rollback();	
+		return false;
 	}
 	
 	transaction.commit();
@@ -498,14 +418,8 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 	*/	
 	redisReply* pRedisReply = NULL;
 
-	try
-	{
-		if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), &pRedisReply, false))
-			return false;
-	}
-	catch(...)
-	{
-	}
+	if (!static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), &pRedisReply, false))
+		return false;
 
 	uint64 logtime = 1;
 	int type = -1;
@@ -613,14 +527,7 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 		return false;
 	}
 
-	try
-	{
-		delAccount(pdbi, (int8)V_TYPE_CREATEACCOUNT, info.name);
-	}
-	catch (...)
-	{
-	}
-	
+	delAccount(pdbi, (int8)V_TYPE_CREATEACCOUNT, info.name);
 	return true;
 }
 
@@ -633,17 +540,11 @@ bool KBEEmailVerificationTableRedis::bindEMail(DBInterface * pdbi, const std::st
 	*/	
 	redisReply* pRedisReply = NULL;
 
-	try
+	if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
 	{
-		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));
-		}	
-	}
-	catch(...)
-	{
-	}
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));
+	}	
 
 	uint64 logtime = 1;
 	int type = -1;
@@ -711,14 +612,7 @@ bool KBEEmailVerificationTableRedis::bindEMail(DBInterface * pdbi, const std::st
 		return false;
 	}
 
-	try
-	{
-		delAccount(pdbi, (int8)V_TYPE_BIND_MAIL, name);
-	}
-	catch (...)
-	{
-	}
-
+	delAccount(pdbi, (int8)V_TYPE_BIND_MAIL, name);
 	return true;
 }
 
@@ -732,17 +626,11 @@ bool KBEEmailVerificationTableRedis::resetpassword(DBInterface * pdbi, const std
 	*/	
 	redisReply* pRedisReply = NULL;
 
-	try
+	if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
 	{
-		if (!pdbi->query(fmt::format("HMGET kbe_email_verification:{} accountName type, datas logtime", code), false))
-		{
-			ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
-					code, pdbi->lastquery(), pdbi->getstrerror()));
-		}	
-	}
-	catch(...)
-	{
-	}
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::bindEMail({}): cmd({}) is failed({})!\n", 
+				code, pdbi->lastquery(), pdbi->getstrerror()));
+	}	
 
 	uint64 logtime = 1;
 	int type = -1;
@@ -808,15 +696,7 @@ bool KBEEmailVerificationTableRedis::resetpassword(DBInterface * pdbi, const std
 		return false;
 	}
 
-
-	try
-	{
-		delAccount(pdbi, (int8)V_TYPE_RESETPASSWORD, qname);
-	}
-	catch (...)
-	{
-	}
-
+	delAccount(pdbi, (int8)V_TYPE_RESETPASSWORD, qname);
 	return true;
 }
 
@@ -829,18 +709,12 @@ bool KBEEmailVerificationTableRedis::delAccount(DBInterface * pdbi, int8 type, c
 	*/
 	redisReply* pRedisReply = NULL;
 	
-	try
-	{	
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if(!pdbi->query(fmt::format("GET kbe_email_verification:{}", name), false))
-		{
-			return false;
-		}
-	}
-	catch(...)
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!pdbi->query(fmt::format("GET kbe_email_verification:{}", name), false))
 	{
+		return false;
 	}
-	
+
 	std::string code;
 	
 	if(pRedisReply)
@@ -859,23 +733,11 @@ bool KBEEmailVerificationTableRedis::delAccount(DBInterface * pdbi, int8 type, c
 	
 	if(code.size() > 0)
 	{
-		try
-		{
-			if (!pdbi->query(fmt::format("DEL kbe_email_verification:{}", code), false))
-				return false;
-		}
-		catch(...)
-		{
-		}
-		
-		try
-		{
-			if (!pdbi->query(fmt::format("DEL kbe_email_verification:{}", name), false))
-				return false;
-		}
-		catch(...)
-		{
-		}
+		if (!pdbi->query(fmt::format("DEL kbe_email_verification:{}", code), false))
+			return false;
+	
+		if (!pdbi->query(fmt::format("DEL kbe_email_verification:{}", name), false))
+			return false;
 	}
 	else
 	{

@@ -20,8 +20,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "network/event_dispatcher.h"
 #include "network/event_poller.h"
+#include "network/network_interface.h"
 #include "py_file_descriptor.h"
-#include "baseapp.h"
+#include "server/components.h"
 #include "helper/debug_helper.h"
 #include "pyscript/pyobject_pointer.h"
 
@@ -34,18 +35,18 @@ PyFileDescriptor::PyFileDescriptor(int fd, PyObject* pyCallback, bool write) :
 	write_(write)
 {
 	if(write)
-		Baseapp::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor(fd_, this);
+		Components::getSingleton().pNetworkInterface()->dispatcher().registerWriteFileDescriptor(fd_, this);
 	else
-		Baseapp::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor(fd_, this);
+		Components::getSingleton().pNetworkInterface()->dispatcher().registerReadFileDescriptor(fd_, this);
 }
 
 //-------------------------------------------------------------------------------------
 PyFileDescriptor::~PyFileDescriptor()
 {
 	if(write_)
-		Baseapp::getSingleton().networkInterface().dispatcher().deregisterWriteFileDescriptor(fd_);
+		Components::getSingleton().pNetworkInterface()->dispatcher().deregisterWriteFileDescriptor(fd_);
 	else
-		Baseapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(fd_);
+		Components::getSingleton().pNetworkInterface()->dispatcher().deregisterReadFileDescriptor(fd_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,7 +114,7 @@ PyObject* PyFileDescriptor::__py_deregisterReadFileDescriptor(PyObject* self, Py
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->findForRead(fd));
+		static_cast<PyFileDescriptor*>(Components::getSingleton().pNetworkInterface()->dispatcher().pPoller()->findForRead(fd));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -186,7 +187,7 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().networkInterface().dispatcher().pPoller()->findForWrite(fd));
+		static_cast<PyFileDescriptor*>(Components::getSingleton().pNetworkInterface()->dispatcher().pPoller()->findForWrite(fd));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;

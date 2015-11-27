@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_REDIS_COMMON_H
 #define KBE_DB_REDIS_COMMON_H
 
+#include "db_context.h"
 #include "common/common.h"
 #include "common/memorystream.h"
 #include "helper/debug_helper.h"

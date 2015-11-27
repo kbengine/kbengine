@@ -461,10 +461,16 @@ public:
 	void onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 		SERVER_ERROR_CODE failedcode);
 
+	uint32 flags() const { return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	static PyObject* __py_setFlags(PyObject* self, PyObject* args);
+	static PyObject* __py_getFlags(PyObject* self, PyObject* args);
+	
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
-	GlobalDataClient*										pBaseAppData_;								// globalBases
+	// globalBases
+	GlobalDataClient*										pBaseAppData_;
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr											pendingLoginMgr_;
@@ -484,6 +490,9 @@ protected:
 	TimerHandle												pResmgrTimerHandle_;
 
 	InitProgressHandler*									pInitProgressHandler_;
+	
+	// APP的标志
+	uint32													flags_;
 };
 
 }

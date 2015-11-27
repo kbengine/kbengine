@@ -50,6 +50,7 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_MAILBOX		10
 #define TABLE_ITEM_TYPE_PYTHON		11
 
+#define KBE_TABLE_PERFIX						"kbe"
 #define ENTITY_TABLE_PERFIX						"tbl"
 #define TABLE_ID_CONST_STR						"id"
 #define TABLE_PARENTID_CONST_STR				"parentID"
@@ -163,6 +164,7 @@ public:
 		获取所有的数据放到流中
 	*/
 	virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+
 protected:
 	// 字段名称
 	std::string itemName_;

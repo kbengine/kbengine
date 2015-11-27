@@ -42,7 +42,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-struct TABLE_FIELD
+struct MYSQL_TABLE_FIELD
 {
 	std::string name;
 	int32 length;
@@ -132,7 +132,7 @@ public:
 
 	unsigned int getLastErrorNum() { return mysql_errno( pMysql_ ); }
 
-	typedef KBEUnordered_map<std::string, TABLE_FIELD> TABLE_FIELDS;
+	typedef KBEUnordered_map<std::string, MYSQL_TABLE_FIELD> TABLE_FIELDS;
 	void getFields(TABLE_FIELDS& outs, const char* tableName);
 
 	/**

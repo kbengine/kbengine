@@ -82,8 +82,7 @@ bool DBInterfaceRedis::ping(redisContext* pRedisContext)
 	
 	if(!pRedisContext)
 		return false;
-	
-	// √‹¬Î—È÷§
+
 	redisReply* pRedisReply = (redisReply*)redisCommand(pRedisContext, "ping");
 	
 	if (NULL == pRedisReply)

@@ -46,7 +46,7 @@ public:
 	{
 	}
 
-	static bool removeDB(DBInterface* dbi, DBContext& context)
+	static bool removeDB(DBInterface* dbi, mysql::DBContext& context)
 	{
 		bool ret = _removeDB(dbi, context);
 
@@ -67,16 +67,16 @@ public:
 		return ret;
 	}
 
-	static bool _removeDB(DBInterface* dbi, DBContext& context)
+	static bool _removeDB(DBInterface* dbi, mysql::DBContext& context)
 	{
 		bool ret = true;
 
 		KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
-		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 		for(; iter1 != context.optable.end(); ++iter1)
 		{
-			DBContext& wbox = *iter1->second.get();
+			mysql::DBContext& wbox = *iter1->second.get();
 
 			KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 				childTableDBIDs.find(context.tableName);
@@ -195,10 +195,10 @@ public:
 			bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 			KBE_ASSERT(ret);
 
-			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); ++iter1)
 			{
-				DBContext& wbox = *iter1->second.get();
+				mysql::DBContext& wbox = *iter1->second.get();
 				if(wbox.tableName == tabiter->first)
 				{
 					std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -220,6 +220,7 @@ public:
 	}
 
 protected:
+
 };
 
 }

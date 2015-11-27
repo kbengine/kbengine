@@ -21,8 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DBTASKS_H
 #define KBE_DBTASKS_H
 
-// common include	
-// #define NDEBUG
 #include "common/common.h"
 #include "common/memorystream.h"
 #include "common/timestamp.h"

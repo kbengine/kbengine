@@ -80,13 +80,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	virtual void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID){};
+	virtual void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID){};
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context) = 0;
-	virtual void getReadSqlItem(DBContext& context) = 0;
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context) = 0;
+	virtual void getReadSqlItem(mysql::DBContext& context) = 0;
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
 	const char* db_item_name(){ return db_item_name_; }
@@ -120,13 +120,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 protected:
 	std::string dataSType_;
@@ -153,13 +153,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -183,13 +183,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 };
 
 class EntityTableItemMysql_PYTHON : public EntityTableItemMysqlBase
@@ -213,13 +213,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 };
 
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
@@ -243,13 +243,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -275,13 +275,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
@@ -316,13 +316,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
@@ -357,13 +357,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
 	{
@@ -396,13 +396,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -435,13 +435,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
 
@@ -480,13 +480,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
 
@@ -550,13 +550,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	void addToStream(MemoryStream* s, DBContext& context, DBID resultDBID);
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, DBContext& context);
-	virtual void getReadSqlItem(DBContext& context);
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
 
 	void init_db_item_name();
 

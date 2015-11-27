@@ -317,14 +317,31 @@ const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYP
 
 typedef int8 CLIENT_CTYPE;
 
+/*
+ APP设置的标志
+*/
+// 默认的(未设置标记)
+#define APP_FLAGS_NONE								0x00000000
+// 不参与负载均衡
+#define APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING	0x00000001
+
+// 建立一个通过标记值得到名称的map，提供初始化python暴露给脚本使用
+inline std::map<uint32, std::string> createAppFlagsMaps()
+{
+	std::map<uint32, std::string> datas;
+	datas[APP_FLAGS_NONE] = "APP_FLAGS_NONE";
+	datas[APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING] = "APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING";
+	return datas;
+}
+
 // 前端是否支持浮点数
 // #define CLIENT_NO_FLOAT
 
 // 一个cell的默认的边界或者最小大小
-#define CELL_DEF_MIN_AREA_SIZE				500.0f
+#define CELL_DEF_MIN_AREA_SIZE						500.0f
 
 /** 一个空间的一个chunk大小 */
-#define SPACE_CHUNK_SIZE					100
+#define SPACE_CHUNK_SIZE							100
 
 
 /** 检查用户名合法性 */
