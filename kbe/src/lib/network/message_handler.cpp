@@ -190,6 +190,31 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		{
 			msgHandler->msgLen = args->dataSize();
 
+			if (msgHandler->pArgs)
+			{ 
+				std::vector<std::string>::iterator args_iter = msgHandler->pArgs->strArgsTypes.begin();
+				for (; args_iter != msgHandler->pArgs->strArgsTypes.end(); ++args_iter)
+				{
+					if ((*args_iter) == "std::string")
+					{
+						#if KBE_PLATFORM == PLATFORM_WIN32
+							DebugHelper::getSingleton().set_warningcolor();
+						#endif
+
+						printf("%s::dataSize: "	
+							"Not NETWORK_FIXED_MESSAGE, "	
+							"has changed to NETWORK_VARIABLE_MESSAGE!\n", ihName.c_str());
+
+						#if KBE_PLATFORM == PLATFORM_WIN32
+							DebugHelper::getSingleton().set_normalcolor();
+						#endif
+
+						msgHandler->msgLen = NETWORK_VARIABLE_MESSAGE;
+						break;
+					}
+				}
+			}
+
 			if(msgHandler->type() == NETWORK_MESSAGE_TYPE_ENTITY)
 			{
 				msgHandler->msgLen += sizeof(ENTITY_ID);
