@@ -18,13 +18,13 @@
 				<html>
 				<body>
 				账号激活<br><br>
-				这封信是由kbengine发送的。<br>
-				您收到这封邮件，是由于在kbengine新用户注册时使用了这个邮箱地址。如果您并没有访问过kbengine， 
+				这封信是由KBEngine发送的。<br>
+				您收到这封邮件，是由于在KBEngine新用户注册时使用了这个邮箱地址。如果您并没有访问过KBEngine， 
 				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
 				----------------------------------------------------------------------<br>
 				<font size="7">新用户注册说明</font><br>
 				----------------------------------------------------------------------<br><br>
-				如果您是kbengine的新用户， 或在修改您的注册Email时使用了本地址，我们需要对您的地址有效性进行验证以避免垃圾邮件或地址被滥用。<br>
+				如果您是KBEngine的新用户， 或在修改您的注册Email时使用了本地址，我们需要对您的地址有效性进行验证以避免垃圾邮件或地址被滥用。<br>
 				您只需点击下面的链接即可进行用户注册，以下链接有效期为3天。过期可以重新请求发送一封新的邮件验证：<br>
 				<a href="${backlink}">${backlink}</a><br>
 				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
@@ -72,8 +72,8 @@
 				<html>
 				<body>
 				重置账号<br><br>
-				这封信是由kbengine发送的。<br>
-				您收到这封邮件，是由于在kbengine的用户绑定了这个邮箱地址。如果您并没有访问过kbengine， 
+				这封信是由KBEngine发送的。<br>
+				您收到这封邮件，是由于在KBEngine的用户绑定了这个邮箱地址。如果您并没有访问过KBEngine， 
 				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
 				----------------------------------------------------------------------<br>
 				<font size="7">访问如下链接重置您的账号:</font><br>
@@ -185,11 +185,7 @@
 				  }
 				  
 				  if (username && username.value === '') {
-				    displayError(username, '请输入邮箱');
-				    return false;
-				  } else if (! (/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(username.value)
-				                || /^1[358](\d){9}$/.test(username.value))){
-				    displayError(username, '请输入正确的邮箱');
+				    displayError(username, '请输入账号名');
 				    return false;
 				  } else {
 				    username && clearError(username);
@@ -264,6 +260,19 @@
 				</html>
 			]]>
 		</backlink_fail_message>
+		
+		<backlink_success_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">重置成功!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_success_message>		
 	</email_resetpassword>
 	
 	<email_bind>
@@ -275,13 +284,13 @@
 				<html>
 				<body>
 				邮箱绑定<br><br>
-				这封信是由kbengine发送的。<br>
-				您收到这封邮件，是由于在kbengine的用户绑定了这个邮箱地址。如果您并没有访问过kbengine， 
+				这封信是由KBEngine发送的。<br>
+				您收到这封邮件，是由于在KBEngine的用户绑定了这个邮箱地址。如果您并没有访问过KBEngine， 
 				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
 				----------------------------------------------------------------------<br>
-				<font size="7">访问如下链接重置您的密码:</font><br>
+				<font size="7">访问如下链接绑定您的邮箱:</font><br>
 				----------------------------------------------------------------------<br><br>
-				以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行重置：<br>
+				以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行绑定：<br>
 				<a href="${backlink}?username=${username}">${backlink}?username=${username}</a><br>
 				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
 				</body>

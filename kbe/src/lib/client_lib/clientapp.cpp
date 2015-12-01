@@ -380,7 +380,7 @@ void ClientApp::handleGameTick()
 			}
 
 			break;
-		case C_STATE_LOGIN_GATEWAY_CHANNEL:
+		case C_STATE_LOGIN_BASEAPP_CHANNEL:
 			{
 				state_ = C_STATE_PLAY;
 
@@ -407,17 +407,17 @@ void ClientApp::handleGameTick()
 
 					pServerChannel_->pEndPoint()->send(pBundle);
 					Network::Bundle::ObjPool().reclaimObject(pBundle);
-					// ret = ClientObjectBase::loginGateWay();
+					// ret = ClientObjectBase::loginBaseapp();
 				}
 			}
 			break;
-		case C_STATE_LOGIN_GATEWAY:
+		case C_STATE_LOGIN_BASEAPP:
 
 			state_ = C_STATE_PLAY;
 
-			if(!ClientObjectBase::loginGateWay())
+			if(!ClientObjectBase::loginBaseapp())
 			{
-				WARNING_MSG("ClientApp::handleGameTick: loginGateWay is failed!\n");
+				WARNING_MSG("ClientApp::handleGameTick: loginBaseapp is failed!\n");
 				return;
 			}
 
@@ -612,7 +612,7 @@ bool ClientApp::updateChannel(bool loginapp, std::string accountName, std::strin
 bool ClientApp::createAccount(std::string accountName, std::string passwd, std::string datas,
 								   std::string ip, KBEngine::uint32 port)
 {
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 
 	if(canReset_)
 		reset();
@@ -632,7 +632,7 @@ bool ClientApp::createAccount(std::string accountName, std::string passwd, std::
 bool ClientApp::login(std::string accountName, std::string passwd, std::string datas,
 								   std::string ip, KBEngine::uint32 port)
 {
-	connectedGateway_ = false;
+	connectedBaseapp_ = false;
 
 	if(canReset_)
 		reset();
@@ -684,7 +684,7 @@ void ClientApp::onHelloCB_(Network::Channel* pChannel, const std::string& verInf
 	}
 	else
 	{
-		state_ = C_STATE_LOGIN_GATEWAY;
+		state_ = C_STATE_LOGIN_BASEAPP;
 	}
 }
 
@@ -706,7 +706,7 @@ void ClientApp::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
 	Config::getSingleton().writeAccountName(name_.c_str());
 
-	state_ = C_STATE_LOGIN_GATEWAY_CHANNEL;
+	state_ = C_STATE_LOGIN_BASEAPP_CHANNEL;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -717,23 +717,23 @@ void ClientApp::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientObjectBase::onLoginGatewayFailed(pChannel, failedcode);
+	ClientObjectBase::onLoginBaseappFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientObjectBase::onReLoginGatewayFailed(pChannel, failedcode);
+	ClientObjectBase::onReLoginBaseappFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientApp::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
-	ClientObjectBase::onReLoginGatewaySuccessfully(pChannel, s);
+	ClientObjectBase::onReLoginBaseappSuccessfully(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	

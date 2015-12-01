@@ -40,13 +40,13 @@ public:
 	
 	void finalise();
 
-	NavigationHandlePtr loadNavigation(std::string name);
+	NavigationHandlePtr loadNavigation(std::string resPath, const std::map< int, std::string >& params);
 
-	bool hasNavigation(std::string name);
+	bool hasNavigation(std::string resPath);
 
-	bool removeNavigation(std::string name);
+	bool removeNavigation(std::string resPath);
 
-	NavigationHandlePtr findNavigation(std::string name);
+	NavigationHandlePtr findNavigation(std::string resPath);
 
 private:
 	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;

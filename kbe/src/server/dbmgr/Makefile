@@ -6,6 +6,7 @@ SRCS =						\
 	dbtasks					\
 	interfaces_handler			\
 	main					\
+	profile					\
 	sync_app_datas_handler
 
 ASMS =
@@ -17,12 +18,14 @@ MY_LIBS =		\
 	network		\
 	thread		\
 	db_interface	\
-	db_mysql
+	db_mysql	\
+	db_redis
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
 USE_G3DMATH = 1
 USE_MYSQL = 1
+USE_REDIS = 1
 USE_OPENSSL = 1
 
 

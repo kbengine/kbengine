@@ -251,7 +251,7 @@ public:
 	/** 网络接口
 		新用户请求登录到网关上
 	*/
-	void loginGateway(Network::Channel* pChannel, std::string& accountName, std::string& password);
+	void loginBaseapp(Network::Channel* pChannel, std::string& accountName, std::string& password);
 
 	/**
 		踢出一个Channel
@@ -262,7 +262,7 @@ public:
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 		之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 	*/
-	void reLoginGateway(Network::Channel* pChannel, std::string& accountName, 
+	void reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 		std::string& password, uint64 key, ENTITY_ID entityID);
 
 	/**
@@ -271,7 +271,7 @@ public:
 									NETWORK_ERR_ILLEGAL_LOGIN:非法登录, 
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void loginGatewayFailed(Network::Channel* pChannel, std::string& accountName, 
+	void loginBaseappFailed(Network::Channel* pChannel, std::string& accountName, 
 		SERVER_ERROR_CODE failedcode, bool relogin = false);
 
 	/** 网络接口
@@ -361,7 +361,7 @@ public:
 	/**
 		hook mailboxcall
 	*/
-	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox);
 
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
@@ -461,10 +461,16 @@ public:
 	void onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 		SERVER_ERROR_CODE failedcode);
 
+	uint32 flags() const { return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	static PyObject* __py_setFlags(PyObject* self, PyObject* args);
+	static PyObject* __py_getFlags(PyObject* self, PyObject* args);
+	
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
-	GlobalDataClient*										pBaseAppData_;								// globalBases
+	// globalBases
+	GlobalDataClient*										pBaseAppData_;
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr											pendingLoginMgr_;
@@ -484,6 +490,9 @@ protected:
 	TimerHandle												pResmgrTimerHandle_;
 
 	InitProgressHandler*									pInitProgressHandler_;
+	
+	// APP的标志
+	uint32													flags_;
 };
 
 }

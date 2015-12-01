@@ -203,7 +203,7 @@ public:
 	/**
 		hook mailboxcall
 	*/
-	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox);
 
 	/** 网络接口
 		某个app请求查看该app
@@ -250,8 +250,15 @@ public:
 	int raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
 	static PyObject* __py_raycast(PyObject* self, PyObject* args);
 
+	uint32 flags() const { return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	static PyObject* __py_setFlags(PyObject* self, PyObject* args);
+	static PyObject* __py_getFlags(PyObject* self, PyObject* args);
+
 protected:
-	GlobalDataClient*					pCellAppData_;									// cellAppData
+	// cellAppData
+	GlobalDataClient*					pCellAppData_;
+
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
 
 	Updatables							updatables_;
@@ -264,6 +271,9 @@ protected:
 	WitnessedTimeoutHandler	*			pWitnessedTimeoutHandler_;
 
 	GhostManager*						pGhostManager_;
+	
+	// APP的标志
+	uint32								flags_;
 };
 
 }

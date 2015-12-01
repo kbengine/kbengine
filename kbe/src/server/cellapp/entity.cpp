@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "moveto_point_handler.h"	
 #include "moveto_entity_handler.h"	
 #include "navigate_handler.h"	
+#include "rotator_handler.h"
+#include "turn_controller.h"
 #include "pyscript/py_gc.h"
 #include "entitydef/entity_mailbox.h"
 #include "network/channel.h"	
@@ -60,11 +62,13 @@ SCRIPT_METHOD_DECLARE("getAoiRadius",				pyGetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getAoiHystArea",				pyGetAoiHystArea,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("addYawRotator",				pyAddYawRotator,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("clientEntity",				pyClientEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("canNavigate",				pycanNavigate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigatePathPoints",			pyNavigatePathPoints,			METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getRandomPoints",			pyGetRandomPoints,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
@@ -95,7 +99,7 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
@@ -115,8 +119,8 @@ topSpeedY_(-0.1f),
 witnesses_(),
 witnesses_count_(0),
 pWitness_(NULL),
-allClients_(new AllClients(scriptModule, id, false)),
-otherClients_(new AllClients(scriptModule, id, true)),
+allClients_(new AllClients(pScriptModule, id, false)),
+otherClients_(new AllClients(pScriptModule, id, true)),
 pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
@@ -186,7 +190,7 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	if(callScript)
+	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
@@ -384,22 +388,33 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
-		MethodDescription* md = const_cast<ScriptDefModule*>(scriptModule())->findCellMethodDescription(ccattr);
-		free(ccattr);
-
-		if(md != NULL)
+		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
+		
+		if(pMethodDescription)
 		{
-			return new RealEntityMethod(md, this);
+			free(ccattr);
+			return new RealEntityMethod(pMethodDescription, this);
 		}
 	}
-
+	else
+	{
+		// 如果访问了def持久化类容器属性
+		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
+		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
+		if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
+		{
+			setDirty();
+		}
+	}
+	
+	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -473,14 +488,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			const Position3D& targetPos = pEntity->position();
 			Position3D lengthPos = targetPos - basePos;
 
-			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
+			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id());
 
-				if(scriptModule_->usePropertyDescrAlias())
+				if(pScriptModule_->usePropertyDescrAlias())
 					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
 				else
 					(*pForwardBundle) << propertyDescription->getUType();
@@ -563,7 +578,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pForwardBundle) << id();
 
-		if(scriptModule_->usePropertyDescrAlias())
+		if(pScriptModule_->usePropertyDescrAlias())
 			(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
 		else
 			(*pForwardBundle) << propertyDescription->getUType();
@@ -594,9 +609,9 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = pScriptModule_->findCellMethodDescription(utype);
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n"
 			, utype, id_, this->scriptName()));
@@ -604,7 +619,7 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	onRemoteMethodCall_(md, id(), s);
+	onRemoteMethodCall_(pMethodDescription, id(), s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -613,13 +628,13 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 
-	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
-	if(md)
+	MethodDescription* pMethodDescription = pScriptModule_->findCellMethodDescription(utype);
+	if(pMethodDescription)
 	{
-		if(!md->isExposed())
+		if(!pMethodDescription->isExposed())
 		{
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! entityID:{1}.\n",
-				md->getName(), this->id(), this->scriptName()));
+				pMethodDescription->getName(), this->id(), this->scriptName()));
 
 			s.done();
 			return;
@@ -633,11 +648,11 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 		return;
 	}
 
-	onRemoteMethodCall_(md, srcEntityID, s);
+	onRemoteMethodCall_(pMethodDescription, srcEntityID, s);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s)
+void Entity::onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -650,7 +665,7 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, M
 		return;
 	}
 
-	if(md == NULL)
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{1}::onRemoteMethodCall: can't found method, callerID:{0}.\n",
 			id_, this->scriptName()));
@@ -661,26 +676,26 @@ void Entity::onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, M
 	if(g_debugEntity)
 	{
 		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n",
-			id_, md->getName(), md->getUType(), this->scriptName()));
+			id_, pMethodDescription->getName(), pMethodDescription->getUType(), this->scriptName()));
 	}
 
-	md->currCallerID(srcEntityID);
+	pMethodDescription->currCallerID(srcEntityID);
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(!md->isExposed() && md->getArgSize() == 0)
+		if(!pMethodDescription->isExposed() && pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_XDECREF(pyargs);
 			}
 			else
@@ -706,7 +721,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
-					scriptModule_->getCellPropertyDescriptions();
+					pScriptModule_->getCellPropertyDescriptions();
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
@@ -718,7 +733,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 			// DEBUG_MSG(fmt::format("Entity::addCellDataToStream: {}.\n", propertyDescription->getName()));
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 
-			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			if(useAliasID && pScriptModule_->usePropertyDescrAlias())
 			{
 				(*mstream) << propertyDescription->aliasIDAsUint8();
 			}
@@ -843,7 +858,7 @@ void Entity::addWitnessed(Entity* entity)
 	++witnesses_count_;
 
 	/*
-	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
+	int8 detailLevel = pScriptModule_->getDetailLevel().getLevelByRange(range);
 	WitnessInfo* info = new WitnessInfo(detailLevel, entity, range);
 	ENTITY_ID id = entity->id();
 
@@ -949,7 +964,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 	}
 
 	// 在space中投放一个陷阱
-	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg) );
+	KBEShared_ptr<Controller> p( new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID()) );
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -1090,7 +1105,8 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	}
 
 	// 只要是属于移动控制器的范畴，就应该走stopMove()，以避免多种方式的存在引发调用上的歧议
-	if (pobj->pMoveController_ && pobj->pMoveController_->id() == id)
+	if ((pobj->pMoveController_ && pobj->pMoveController_->id() == id) || 
+		(pobj->pTurnController_ && pobj->pTurnController_->id() == id))
 	{
 		pobj->stopMove();
 	}
@@ -1167,7 +1183,7 @@ int Entity::pySetPosition(PyObject *value)
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
 	onDefDataChanged(&positionDescription, value);
@@ -1294,7 +1310,7 @@ int Entity::pySetDirection(PyObject *value)
 	}
 
 	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, value);
@@ -1337,7 +1353,7 @@ void Entity::onPyPositionChanged()
 	}
 
 	static PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
 	onDefDataChanged(&positionDescription, pPyPosition_);
@@ -1384,7 +1400,7 @@ void Entity::onPyDirectionChanged()
 	}
 
 	static PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
-	if(scriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+	if(pScriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, pPyDirection_);
@@ -1420,7 +1436,7 @@ void Entity::onGetWitness(bool fromBase)
 
 	if(fromBase)
 	{
-		// proxy的giveClientTo功能或者reloginGateway， 如果一个entity已经创建了cell， 并将控制权绑定
+		// proxy的giveClientTo功能或者reloginBaseapp， 如果一个entity已经创建了cell， 并将控制权绑定
 		// 到该entity时是一定没有clientMailbox的。
 		if(clientMailbox() == NULL)
 		{
@@ -1663,15 +1679,25 @@ PyObject* Entity::pyGetAoiHystArea()
 //-------------------------------------------------------------------------------------
 bool Entity::stopMove()
 {
+	bool done = false;
+	
 	if(pMoveController_)
 	{
-		cancelController( pMoveController_->id() );
+		cancelController(pMoveController_->id());
 		pMoveController_->destroy();
 		pMoveController_.reset();
-		return true;
+		done = true;
 	}
 
-	return false;
+	if(pTurnController_)
+	{
+		cancelController(pTurnController_->id());
+		pTurnController_->destroy();
+		pTurnController_.reset();
+		done = true;
+	}
+
+	return done;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1740,6 +1766,7 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 		break;
 	}
 
+	// 第一个坐标点是当前位置，因此可以过滤掉
 	if (iter != outPaths.begin())
 	{
 		outPaths.erase(outPaths.begin(), iter);
@@ -1755,14 +1782,14 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 
 	if(!PySequence_Check(pyDestination))
 	{
-		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) not is PySequence!", scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::navigatePathPoints: args1(position) not is PySequence!", scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PySequence_Size(pyDestination) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::navigate: args1(position) invalid!", scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::navigatePathPoints: args1(position) invalid!", scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1783,6 +1810,7 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 		Py_INCREF(pos);
 		PyList_SET_ITEM(pyList, i++, pos);
 	}
+
 	return pyList;
 }
 
@@ -1855,6 +1883,70 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 
 	return PyLong_FromLong(navigate(destination, velocity, distance, maxMoveDistance, 
 		maxDistance, faceMovement > 0, layer, userData));
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos,
+	float maxRadius, uint32 maxPoints, int8 layer)
+{
+	Space* pSpace = Spaces::findSpace(spaceID());
+	if(pSpace == NULL || !pSpace->isGood())
+	{
+		ERROR_MSG(fmt::format("Entity::getRandomPoints(): not found space({}), entityID({})!\n",
+			spaceID(), id()));
+
+		return false;
+	}
+
+	NavigationHandlePtr pNavHandle = pSpace->pNavHandle();
+
+	if(!pNavHandle)
+	{
+		WARNING_MSG(fmt::format("Entity::getRandomPoints(): space({}), entityID({}), not found navhandle!\n",
+			spaceID(), id()));
+		return false;
+	}
+
+	return pNavHandle->findRandomPointAroundCircle(layer, centerPos, outPoints, maxPoints, maxRadius) > 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyCenterPos, float maxRadius, uint32 maxPoints, int8 layer)
+{
+	Position3D centerPos;
+
+	if (!PySequence_Check(pyCenterPos))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (PySequence_Size(pyCenterPos) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::getRandomPoints: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(centerPos, pyCenterPos);
+
+	std::vector<Position3D> outPoints;
+	getRandomPoints(outPoints, centerPos, maxRadius, maxPoints, layer);
+	
+	PyObject* pyList = PyList_New(outPoints.size());
+
+	int i = 0;
+	std::vector<Position3D>::iterator iter = outPoints.begin();
+	for (; iter != outPoints.end(); ++iter)
+	{
+		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
+		Py_INCREF(pos);
+		PyList_SET_ITEM(pyList, i++, pos);
+	}
+
+	return pyList;
 }
 
 //-------------------------------------------------------------------------------------
@@ -2004,6 +2096,66 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 	
+	setDirty();
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::addYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	stopMove();
+
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	KBEShared_ptr<Controller> p(new TurnController(this, NULL));
+
+	Direction3D dir;
+	dir.yaw(yaw);
+
+	new RotatorHandler(p, dir, velocity,
+		userData);
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+
+	pTurnController_ = p;
+	return p->id();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyAddYawRotator(float yaw, float velocity, PyObject* userData)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: not is real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::addYawRotator: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Py_INCREF(userData);
+	return PyLong_FromLong(addYawRotator(yaw, velocity, userData));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTurn(uint32 controllerId, PyObject* userarg)
+{
+	if (this->isDestroyed())
+		return;
+
+	pTurnController_.reset();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onTurn"),
+		const_cast<char*>("IO"), controllerId, userarg);
+
 	setDirty();
 }
 
@@ -2350,6 +2502,14 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 		return 0;
 	}
 
+	Space* currspace = Spaces::findSpace(this->spaceID());
+	if(currspace == NULL || !currspace->isGood())
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, current space has been destroyed!\n", scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
 	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", scriptName(), id());
@@ -2487,7 +2647,9 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 	if(this->baseMailbox() != NULL)
 	{
 		// 如果有base部分, 我们还需要调用一下备份功能。
-		this->backupCellData();
+		// 由于ghost功能会addCellDataToStream一次数据流，并且在传送失败时能重用该实体
+		// 因此这里不需要进行备份
+		// this->backupCellData();
 		
 		Network::Channel* pBaseChannel = baseMailbox()->getChannel();
 		if(pBaseChannel)
@@ -2522,7 +2684,7 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();
 	(*pBundle) << spaceID();
-	(*pBundle) << scriptModule()->getUType();
+	(*pBundle) << pScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
 
@@ -2738,7 +2900,7 @@ void Entity::onRestore()
 //-------------------------------------------------------------------------------------
 bool Entity::_reload(bool fullReload)
 {
-	allClients_->setScriptModule(scriptModule_);
+	allClients_->setScriptModule(pScriptModule_);
 	return true;
 }
 
@@ -2748,7 +2910,7 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 	ENTITY_PROPERTY_UID utype;
 	s >> utype;
 
-	PropertyDescription* pPropertyDescription = scriptModule()->findCellPropertyDescription(utype);
+	PropertyDescription* pPropertyDescription = pScriptModule()->findCellPropertyDescription(utype);
 	if(pPropertyDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: not found propertyID({}), entityID({})\n", 
@@ -2783,7 +2945,7 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 	ENTITY_METHOD_UID utype;
 	s >> utype;
 
-	MethodDescription* pMethodDescription = scriptModule()->findCellMethodDescription(utype);
+	MethodDescription* pMethodDescription = pScriptModule()->findCellMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found propertyID({}), entityID({})\n", 
@@ -2876,13 +3038,13 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		baseMailboxComponentID = baseMailbox_->componentID();
 	}
 
-	s << scriptModule_->getUType() << spaceID_ << isDestroyed_ << 
+	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
 		layer_ << baseMailboxComponentID;
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
-	addMoveHandlerToStream(s);
+	addMovementHandlerToStream(s);
 	addControllersToStream(s);
 	addWitnessToStream(s);
 	addTimersToStream(s);
@@ -2903,11 +3065,11 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	// 而服务端的NPC则与移动后是否在地面来判定。
 	isOnGround_ = false;
 
-	this->scriptModule_ = EntityDef::findScriptModule(scriptUType);
+	this->pScriptModule_ = EntityDef::findScriptModule(scriptUType);
 
 	// 设置entity的baseMailbox
 	if(baseMailboxComponentID > 0)
-		baseMailbox(new EntityMailbox(scriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
+		baseMailbox(new EntityMailbox(pScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
 
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);
@@ -2915,7 +3077,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	removeFlags(ENTITY_FLAGS_INITING);
 	
-	createMoveHandlerFromStream(s);
+	createMovementHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
 	createTimersFromStream(s);
@@ -3021,7 +3183,7 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addMoveHandlerToStream(KBEngine::MemoryStream& s)
+void Entity::addMovementHandlerToStream(KBEngine::MemoryStream& s)
 {
 	if(pMoveController_)
 	{
@@ -3032,10 +3194,20 @@ void Entity::addMoveHandlerToStream(KBEngine::MemoryStream& s)
 	{
 		s << false;
 	}
+	
+	if(pTurnController_)
+	{
+		s << true;
+		pTurnController_->addToStream(s);
+	}
+	else
+	{
+		s << false;
+	}	
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
+void Entity::createMovementHandlerFromStream(KBEngine::MemoryStream& s)
 {
 	bool hasMoveHandler;
 	s >> hasMoveHandler;
@@ -3044,10 +3216,23 @@ void Entity::createMoveHandlerFromStream(KBEngine::MemoryStream& s)
 	{
 		stopMove();
 
-		pMoveController_ = KBEShared_ptr<Controller>( new MoveController(this) );
+		pMoveController_ = KBEShared_ptr<Controller>(new MoveController(this));
 		pMoveController_->createFromStream(s);
 		pControllers_->add(pMoveController_);
 	}
+	
+	bool hasTurnHandler;
+	s >> hasTurnHandler;
+
+	if(hasTurnHandler)
+	{
+		if(!hasMoveHandler)
+			stopMove();
+		
+		pTurnController_ = KBEShared_ptr<Controller>(new TurnController(this));
+		pTurnController_->createFromStream(s);
+		pControllers_->add(pTurnController_);
+	}	
 }
 
 //-------------------------------------------------------------------------------------

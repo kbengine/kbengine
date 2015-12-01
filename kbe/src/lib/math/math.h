@@ -42,6 +42,7 @@ typedef D3DXVECTOR3								Vector3;
 typedef D3DXVECTOR4								Vector4;
 
 #define KBE_PI									D3DX_PI
+#define KBE_2PI									KBE_PI * 2
 #define KBE_DegreeToRadian						D3DXToRadian
 #define KBE_RadianToDegree						D3DXToDegree
 	
@@ -109,6 +110,7 @@ typedef G3D::Vector3							Vector3;
 typedef G3D::Vector4							Vector4;
 
 #define KBE_PI									3.1415926535898
+#define KBE_2PI									KBE_PI * 2
 #define KBE_DegreeToRadian						G3D::toRadians
 #define KBE_RadianToDegree						G3D::toRadians
 	

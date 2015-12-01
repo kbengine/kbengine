@@ -18,43 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_ANONYMOUS_CHANNEL_H
-#define KBE_ANONYMOUS_CHANNEL_H
+#ifndef KBE_DB_REDIS_COMMON_H
+#define KBE_DB_REDIS_COMMON_H
 
-// common include	
-// #define NDEBUG
+#include "db_context.h"
 #include "common/common.h"
 #include "common/memorystream.h"
-#include "thread/threadtask.h"
 #include "helper/debug_helper.h"
-#include "network/address.h"
-#include "network/endpoint.h"
 
 namespace KBEngine{ 
 
-class AnonymousChannel : public thread::TPTask
-{
-public:
-	AnonymousChannel();
-	virtual ~AnonymousChannel();
-	
-	virtual bool process();
-	
-	virtual thread::TPTask::TPTaskState presentMainThread();
-
-	Network::EndPoint listen;
-
-	struct BACK_ORDERS_DATA
-	{
-		std::string data;
-	};
-
-	KBEUnordered_map<std::string, BACK_ORDERS_DATA> backOrdersDatas_;
-
-private:	
-	void initListen();
-};
 
 }
-
-#endif // KBE_ANONYMOUS_CHANNEL_H
+#endif // KBE_DB_REDIS_COMMON_H

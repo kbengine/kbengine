@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.h"
 #include "proxy.h"
 #include "base.h"
-#include "py_file_descriptor.h"
 #include "baseapp_interface.h"
 #include "base_remotemethod.h"
 #include "archiver.h"
@@ -40,6 +39,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/encryption_filter.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
+#include "server/py_file_descriptor.h"
 #include "server/sendmail_threadtasks.h"
 #include "math/math.h"
 #include "entitydef/blob.h"
@@ -60,10 +60,10 @@ KBE_SINGLETON_INIT(Baseapp);
 PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
+	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(entityType);
 
 	// 先将celldata中的存储属性取出
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
 	for(; iter != propertyDescrs.end(); ++iter)
@@ -91,7 +91,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 		Py_DECREF(pyVal);
 	}
 	
-	if(scriptModule->hasCell())
+	if(pScriptModule->hasCell())
 	{
 		ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
@@ -140,7 +140,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_(),
 	pResmgrTimerHandle_(),
-	pInitProgressHandler_(NULL)
+	pInitProgressHandler_(NULL),
+	flags_(APP_FLAGS_NONE)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -289,7 +290,18 @@ bool Baseapp::installPyModules()
 	registerScript(Base::getScriptType());
 	registerScript(Proxy::getScriptType());
 
-	// 注册创建entity的方法到py
+	// 将app标记注册到脚本
+	std::map<uint32, std::string> flagsmaps = createAppFlagsMaps();
+	std::map<uint32, std::string>::iterator fiter = flagsmaps.begin();
+	for (; fiter != flagsmaps.end(); ++fiter)
+	{
+		if (PyModule_AddIntConstant(getScript().getModule(), fiter->second.c_str(), fiter->first))
+		{
+			ERROR_MSG(fmt::format("Baseapp::onInstallPyModules: Unable to set KBEngine.{}.\n", fiter->second));
+		}
+	}
+
+	// 注册创建entity的方法到py 
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,												METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBase,						__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,				__py_createBase,											METH_VARARGS,			0);
@@ -300,15 +312,18 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,								METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		quantumPassedPercent,			__py_quantumPassedPercent,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		charge,							__py_charge,												METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,			METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		deregisterFileDescriptor,		PyFileDescriptor::__py_deregisterReadFileDescriptor,			METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,										METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,												METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deleteBaseByDBID,				__py_deleteBaseByDBID,										METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		lookUpBaseByDBID,				__py_lookUpBaseByDBID,										METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,												METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,												METH_VARARGS,			0);
+		
 	return EntityApp<Base>::installPyModules();
 }
 
@@ -376,8 +391,8 @@ void Baseapp::onUpdateLoad()
 	{
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
-		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad());
+		BaseappmgrInterface::updateBaseappArgs5::staticAddToBundle((*pBundle), 
+			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad(), flags_);
 
 		pChannel->send(pBundle);
 	}
@@ -2382,7 +2397,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGatewayFailed(Network::Channel* pChannel, std::string& accountName, 
+void Baseapp::loginBaseappFailed(Network::Channel* pChannel, std::string& accountName, 
 								 SERVER_ERROR_CODE failedcode, bool relogin)
 {
 	if(failedcode == SERVER_ERR_NAME)
@@ -2406,23 +2421,23 @@ void Baseapp::loginGatewayFailed(Network::Channel* pChannel, std::string& accoun
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	if(relogin)
-		(*pBundle).newMessage(ClientInterface::onReLoginGatewayFailed);
+		(*pBundle).newMessage(ClientInterface::onReLoginBaseappFailed);
 	else
-		(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
+		(*pBundle).newMessage(ClientInterface::onLoginBaseappFailed);
 
-	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle((*pBundle), failedcode);
+	ClientInterface::onLoginBaseappFailedArgs1::staticAddToBundle((*pBundle), failedcode);
 	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGateway(Network::Channel* pChannel, 
+void Baseapp::loginBaseapp(Network::Channel* pChannel, 
 						   std::string& accountName, 
 						   std::string& password)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(fmt::format("Baseapp::loginGateway: accountName too big, size={}, limit={}.\n",
+		ERROR_MSG(fmt::format("Baseapp::loginBaseapp: accountName too big, size={}, limit={}.\n",
 			accountName.size(), ACCOUNT_NAME_MAX_LENGTH));
 
 		return;
@@ -2430,70 +2445,70 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(fmt::format("Baseapp::loginGateway: password too big, size={}, limit={}.\n",
+		ERROR_MSG(fmt::format("Baseapp::loginBaseapp: password too big, size={}, limit={}.\n",
 			password.size(), ACCOUNT_PASSWD_MAX_LENGTH));
 
 		return;
 	}
 
-	INFO_MSG(fmt::format("Baseapp::loginGateway: new user[{0}], channel[{1}].\n", 
+	INFO_MSG(fmt::format("Baseapp::loginBaseapp: new user[{0}], channel[{1}].\n", 
 		accountName, pChannel->c_str()));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
 
 	if(ptinfos->password != password)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_LOCK);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_LOCK);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_NOT_ACTIVATED) > 0)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED);
 		return;
 	}
 
 	if(ptinfos->deadline > 0 && ::time(NULL) - ptinfos->deadline <= 0)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_DEADLINE);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_DEADLINE);
 		return;
 	}
 
-	if(idClient_.getSize() == 0)
+	if(idClient_.size() == 0)
 	{
-		ERROR_MSG("Baseapp::loginGateway: idClient size is 0.\n");
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		ERROR_MSG("Baseapp::loginBaseapp: idClient size is 0.\n");
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
-		INFO_MSG(fmt::format("Baseapp::loginGateway: user[{}] has entity({}).\n",
+		INFO_MSG(fmt::format("Baseapp::loginBaseapp: user[{}] has entity({}).\n",
 			accountName.c_str(), ptinfos->entityID));
 
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL || base->isDestroyed())
 		{
-			loginGatewayFailed(pChannel, accountName, SERVER_ERR_BUSY);
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_BUSY);
 			return;
 		}
 		
@@ -2510,14 +2525,14 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 				Network::Channel* pOldClientChannel = base->clientMailbox()->getChannel();
 				if(pOldClientChannel != NULL)
 				{
-					INFO_MSG(fmt::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel={}\n",
+					INFO_MSG(fmt::format("Baseapp::loginBaseapp: script LOG_ON_ACCEPT. oldClientChannel={}\n",
 						pOldClientChannel->c_str()));
 					
 					kickChannel(pOldClientChannel, SERVER_ERR_ACCOUNT_LOGIN_ANOTHER);
 				}
 				else
 				{
-					INFO_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
+					INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_ACCEPT.\n");
 				}
 				
 				base->clientMailbox()->addr(pChannel->addr());
@@ -2529,7 +2544,7 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 			else
 			{
 				// 创建entity的客户端mailbox
-				EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
+				EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
 					&pChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
 				base->clientMailbox(entityClientMailbox);
@@ -2544,8 +2559,8 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 			break;
 		case LOG_ON_WAIT_FOR_DESTROY:
 		default:
-			INFO_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
-			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
+			INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_REJECT.\n");
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
 			return;
 		};
 	}
@@ -2568,17 +2583,17 @@ void Baseapp::loginGateway(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountName, 
+void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
-	INFO_MSG(fmt::format("Baseapp::reLoginGateway: accountName={}, key={}, entityID={}.\n",
+	INFO_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, entityID={}.\n",
 		accountName, key, entityID));
 
 	Base* base = findEntity(entityID);
 	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()) || base->isDestroyed())
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
 		return;
 	}
 	
@@ -2586,7 +2601,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	
 	if(key == 0 || proxy->rndUUID() != key)
 	{
-		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN, true);
 		return;
 	}
 
@@ -2595,7 +2610,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	{
 		Network::Channel* pMBChannel = entityClientMailbox->getChannel();
 
-		WARNING_MSG(fmt::format("Baseapp::reLoginGateway: accountName={}, key={}, "
+		WARNING_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, "
 			"entityID={}, ClientMailbox({}) is exist, will be kicked out!\n",
 			accountName, key, entityID, 
 			(pMBChannel ? pMBChannel->c_str() : "unknown")));
@@ -2611,7 +2626,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 	else
 	{
 		// 创建entity的客户端mailbox
-		entityClientMailbox = new EntityMailbox(proxy->scriptModule(), 
+		entityClientMailbox = new EntityMailbox(proxy->pScriptModule(), 
 			&pChannel->addr(), 0, proxy->id(), MAILBOX_TYPE_CLIENT);
 
 		proxy->clientMailbox(entityClientMailbox);
@@ -2631,7 +2646,7 @@ void Baseapp::reLoginGateway(Network::Channel* pChannel, std::string& accountNam
 
 	/*
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(ClientInterface::onReLoginGatewaySuccessfully);
+	(*pBundle).newMessage(ClientInterface::onReLoginBaseappSuccessfully);
 	(*pBundle) << proxy->rndUUID();
 	pChannel->send(pBundle);
 	*/
@@ -2693,7 +2708,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		
 		s.done();
 		
-		loginGatewayFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -2706,7 +2721,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		
 		s.done();
 		
-		loginGatewayFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 	
@@ -2732,7 +2747,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	if(pClientChannel != NULL)
 	{
 		// 创建entity的客户端mailbox
-		EntityMailbox* entityClientMailbox = new EntityMailbox(base->scriptModule(), 
+		EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
 			&pClientChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
 
 		base->clientMailbox(entityClientMailbox);
@@ -2967,9 +2982,9 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
 {
-	return new BaseRemoteMethod(md, pMailbox);
+	return new BaseRemoteMethod(pMethodDescription, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3086,7 +3101,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
-			e->scriptName(), srcEntityID));
+			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
 		return;
@@ -3384,8 +3399,8 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			const DataType* datatype = dtiter->second;
 
 			bundle << datatype->id();
-			bundle << dtiter->first;
 			bundle << datatype->getName();
+			bundle << datatype->aliasName();
 
 			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{
@@ -4033,6 +4048,35 @@ void Baseapp::onScriptVersionNotMatch(Network::Channel* pChannel)
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
 	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_getFlags(PyObject* self, PyObject* args)
+{
+	return PyLong_FromUnsignedLong(Baseapp::getSingleton().flags());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_setFlags(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: argsSize != 1!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	uint32 flags;
+
+	if(PyArg_ParseTuple(args, "I", &flags) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	Baseapp::getSingleton().flags(flags);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

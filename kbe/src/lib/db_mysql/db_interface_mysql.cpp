@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_interface_mysql.h"
 #include "entity_table_mysql.h"
+#include "kbe_table_mysql.h"
 #include "db_exception.h"
 #include "thread/threadguard.h"
 #include "helper/watcher.h"
@@ -28,12 +29,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-KBEngine::thread::ThreadMutex logMutex;
-KBEUnordered_map< std::string, uint32 > g_querystatistics;
-bool _g_installedWatcher = false;
-bool _g_debug = false;
+static KBEngine::thread::ThreadMutex _g_logMutex;
+static KBEUnordered_map< std::string, uint32 > g_querystatistics;
+static bool _g_installedWatcher = false;
+static bool _g_debug = false;
 
-void querystatistics(const char* strCommand, uint32 size)
+static void querystatistics(const char* strCommand, uint32 size)
 {
 	std::string op;
 	for(uint32 i=0; i<size; ++i)
@@ -49,7 +50,7 @@ void querystatistics(const char* strCommand, uint32 size)
 
 	std::transform(op.begin(), op.end(), op.begin(), toupper);
 
-	logMutex.lockMutex();
+	_g_logMutex.lockMutex();
 
 	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(op);
 	if(iter == g_querystatistics.end())
@@ -61,12 +62,12 @@ void querystatistics(const char* strCommand, uint32 size)
 		iter->second += 1;
 	}
 
-	logMutex.unlockMutex();
+	_g_logMutex.unlockMutex();
 }
 
-uint32 watcher_query(std::string cmd)
+static uint32 watcher_query(std::string cmd)
 {
-	KBEngine::thread::ThreadGuard tg(&logMutex); 
+	KBEngine::thread::ThreadGuard tg(&_g_logMutex); 
 
 	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(cmd);
 	if(iter != g_querystatistics.end())
@@ -77,52 +78,52 @@ uint32 watcher_query(std::string cmd)
 	return 0;
 }
 
-uint32 watcher_select()
+static uint32 watcher_select()
 {
 	return watcher_query("SELECT");
 }
 
-uint32 watcher_delete()
+static uint32 watcher_delete()
 {
 	return watcher_query("DELETE");
 }
 
-uint32 watcher_insert()
+static uint32 watcher_insert()
 {
 	return watcher_query("INSERT");
 }
 
-uint32 watcher_update()
+static uint32 watcher_update()
 {
 	return watcher_query("UPDATE");
 }
 
-uint32 watcher_create()
+static uint32 watcher_create()
 {
 	return watcher_query("CREATE");
 }
 
-uint32 watcher_drop()
+static uint32 watcher_drop()
 {
 	return watcher_query("DROP");
 }
 
-uint32 watcher_show()
+static uint32 watcher_show()
 {
 	return watcher_query("SHOW");
 }
 
-uint32 watcher_alter()
+static uint32 watcher_alter()
 {
 	return watcher_query("ALTER");
 }
 
-uint32 watcher_grant()
+static uint32 watcher_grant()
 {
 	return watcher_query("GRANT");
 }
 
-void initializeWatcher()
+static void initializeWatcher()
 {
 	if(_g_installedWatcher)
 		return;
@@ -158,6 +159,15 @@ collation_(collation)
 //-------------------------------------------------------------------------------------
 DBInterfaceMysql::~DBInterfaceMysql()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
+{
+	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
+	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
+	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -352,6 +362,9 @@ bool DBInterfaceMysql::checkErrors()
 	{
 		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+			DBUtil::accountScriptName()));
+		
 		try
 		{
 			query(querycmd.c_str(), querycmd.size(), false);
@@ -359,6 +372,8 @@ bool DBInterfaceMysql::checkErrors()
 		catch (...)
 		{
 		}
+		
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
 	}
 
 	return true;
@@ -402,100 +417,87 @@ EntityTable* DBInterfaceMysql::createEntityTable()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::dropEntityTableFromDB(const char* tablename)
+bool DBInterfaceMysql::dropEntityTableFromDB(const char* tableName)
 {
-	KBE_ASSERT(tablename != NULL);
+	KBE_ASSERT(tableName != NULL);
   
-	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tablename));
+	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tableName));
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tablename);
+	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tableName);
 	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const char* tableItemName)
+bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tableName, const char* tableItemName)
 {
-	KBE_ASSERT(tablename != NULL && tableItemName != NULL);
+	KBE_ASSERT(tableName != NULL && tableItemName != NULL);
   
 	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableItemFromDB: {} {}.\n", 
-		tablename, tableItemName));
+		tableName, tableItemName));
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tablename, tableItemName);
+	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tableName, tableItemName);
 	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceMysql::throwError()
-{
-	DBException e( this );
-
-	if (e.isLostConnection())
-	{
-		this->hasLostConnection(true);
-	}
-
-	throw e;
-}
-
-//-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexecinfo)
+bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
 {
 	if(pMysql_ == NULL)
 	{
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
 		}
 
+		if(result)
+			write_query_result(result);
+
 		return false;
 	}
 
-	querystatistics(strCommand, size);
+	querystatistics(cmd, size);
 
-	lastquery_ = strCommand;
+	lastquery_.assign(cmd, size);
 
 	if(_g_debug)
 	{
 		DEBUG_MSG(fmt::format("DBInterfaceMysql::query({:p}): {}\n", (void*)this, lastquery_));
 	}
 
-    int nResult = mysql_real_query(pMysql_, strCommand, size);  
+    int nResult = mysql_real_query(pMysql_, cmd, size);  
 
     if(nResult != 0)  
-    {  
-		if(showexecinfo)
+    {
+		if(showExecInfo)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
 				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
 		}
 
 		this->throwError();
+		
+		if(result)
+			write_query_result(result);
+
         return false;
-    }  
+    } 
     else
     {
-		if(showexecinfo)
+		if(showExecInfo)
 		{
 			INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
 		}
     }
-    
-    return true;
+
+    return result == NULL || write_query_result(result);
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream * resdata)
+bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 {
-	bool result = this->query(strCommand, size);
-
-	if (!result)
-	{
-		return false;
-	}
-
-	if(resdata == NULL)
+	if(result == NULL)
 	{
 		return true;
 	}
@@ -504,30 +506,26 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 
 	if(pResult)
 	{
-		if (resdata != NULL)
+		uint32 nrows = (uint32)mysql_num_rows(pResult);
+		uint32 nfields = (uint32)mysql_num_fields(pResult);
+
+		(*result) << nfields << nrows;
+
+		MYSQL_ROW arow;
+
+		while((arow = mysql_fetch_row(pResult)) != NULL)
 		{
-			uint32 nrows = (uint32)mysql_num_rows(pResult);
-			uint32 nfields = (uint32)mysql_num_fields(pResult);
+			unsigned long *lengths = mysql_fetch_lengths(pResult);
 
-			(*resdata) << nfields << nrows;
-
-			MYSQL_ROW arow;
-
-			while((arow = mysql_fetch_row(pResult)) != NULL)
+			for (uint32 i = 0; i < nfields; ++i)
 			{
-				unsigned long *lengths = mysql_fetch_lengths(pResult);
-
-				for (uint32 i = 0; i < nfields; ++i)
+				if (arow[i] == NULL)
 				{
-					if (arow[i] == NULL)
-					{
-						std::string null = "NULL";
-						resdata->appendBlob(null.c_str(), null.size());
-					}
-					else
-					{
-						resdata->appendBlob(arow[i], lengths[i]);
-					}
+					result->appendBlob("NULL", strlen("NULL"));
+				}
+				else
+				{
+					result->appendBlob(arow[i], lengths[i]);
 				}
 			}
 		}
@@ -537,10 +535,14 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 	else
 	{
 		uint32 nfields = 0;
-		uint64 affectedRows = mysql()->affected_rows;
-		(*resdata) << ""; // errormsg
-		(*resdata) << nfields;
-		(*resdata) << affectedRows;
+		uint64 affectedRows = 0;
+		
+		if(mysql())
+			affectedRows = mysql()->affected_rows;
+		
+		(*result) << ""; // errormsg
+		(*result) << nfields;
+		(*result) << affectedRows;
 	}
 
 	return true;
@@ -577,9 +579,9 @@ bool DBInterfaceMysql::getTableNames(std::vector<std::string>& tableNames, const
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::getTableItemNames(const char* tablename, std::vector<std::string>& itemNames)
+bool DBInterfaceMysql::getTableItemNames(const char* tableName, std::vector<std::string>& itemNames)
 {
-	MYSQL_RES*	result = mysql_list_fields(mysql(), tablename, NULL);
+	MYSQL_RES*	result = mysql_list_fields(mysql(), tableName, NULL);
 	if(result)
 	{
 		unsigned int numFields = mysql_num_fields(result);
@@ -620,10 +622,10 @@ int DBInterfaceMysql::getlasterror()
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
+void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tableName)
 {
 	std::string sqlname = ENTITY_TABLE_PERFIX"_";
-	sqlname += tablename;
+	sqlname += tableName;
 
 	MYSQL_RES*	result = mysql_list_fields(mysql(), sqlname.c_str(), NULL);
 	if(result == NULL)
@@ -640,7 +642,7 @@ void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
 
 	for(unsigned int i=0; i<numFields; ++i)
 	{
-		TABLE_FIELD& info = outs[fields[i].name];
+		MYSQL_TABLE_FIELD& info = outs[fields[i].name];
 		info.name = fields[i].name;
 		info.length = fields[i].length;
 		info.maxlength = fields[i].max_length;
@@ -664,6 +666,19 @@ bool DBInterfaceMysql::unlock()
 	lock_.commit();
 	lock_.end();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DBInterfaceMysql::throwError()
+{
+	DBException e( this );
+
+	if (e.isLostConnection())
+	{
+		this->hasLostConnection(true);
+	}
+
+	throw e;
 }
 
 //-------------------------------------------------------------------------------------

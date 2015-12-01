@@ -380,6 +380,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				interfaces_chargeType_ = "normal";
 		}
 
+		childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		if(childnode != NULL)
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
+
 		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
@@ -405,36 +409,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 			interfacesAddr_ = addr;
 		}
 
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
-		if(childnode)
-		{
-			interfaces_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
-		if(childnode)
-		{
-			interfaces_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
-		}
-		
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
-		if(childnode)
-		{
-			interfaces_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
-		if(childnode)
-		{
-			interfaces_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
-		if(childnode)
-		{
-			interfaces_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
-		}
-
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_interfacesInfo.tcp_SOMAXCONN = xml->getValInt(node);
@@ -443,6 +417,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "orders_timeout");
 		if(node != NULL){
 			interfaces_orders_timeout_ = xml->getValInt(node);
+		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
@@ -777,6 +773,32 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("dbmgr");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
@@ -901,6 +923,32 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("loginapp");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_loginAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);

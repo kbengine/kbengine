@@ -41,13 +41,13 @@ public:
 	{
 	}
 
-	void addQuerySqlStatement(const std::string& tablename, SqlStatement* pSqlStatement);
-	void addInsertSqlStatement(const std::string& tablename, SqlStatement* pSqlStatement);
-	void addUpdateSqlStatement(const std::string& tablename, SqlStatement* pSqlStatement);
+	void addQuerySqlStatement(const std::string& tableName, SqlStatement* pSqlStatement);
+	void addInsertSqlStatement(const std::string& tableName, SqlStatement* pSqlStatement);
+	void addUpdateSqlStatement(const std::string& tableName, SqlStatement* pSqlStatement);
 
-	SqlStatement* findQuerySqlStatement(const std::string& tablename);
-	SqlStatement* findInsertSqlStatement(const std::string& tablename);
-	SqlStatement* findUpdateSqlStatement(const std::string& tablename);
+	SqlStatement* findQuerySqlStatement(const std::string& tableName);
+	SqlStatement* findInsertSqlStatement(const std::string& tableName);
+	SqlStatement* findUpdateSqlStatement(const std::string& tableName);
 protected:
 	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > > query_sqlStatements_;
 	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > > update_sqlStatements_;

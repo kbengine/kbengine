@@ -74,7 +74,7 @@ public:
 	/**
 		与某个数据库关联
 	*/
-	virtual bool attach(const char* databaseName) = 0;
+	virtual bool attach(const char* databaseName = NULL) = 0;
 	virtual bool detach() = 0;
 
 	/**
@@ -85,15 +85,15 @@ public:
 	/**
 		获取数据库某个表所有的字段名称
 	*/
-	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames) = 0;
+	virtual bool getTableItemNames(const char* tableName, std::vector<std::string>& itemNames) = 0;
 
 	/**
 		查询表
 	*/
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true) = 0;
-	virtual bool query(const std::string& cmd, bool showexecinfo = true)
+	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL) = 0;
+	virtual bool query(const std::string& cmd, bool showExecInfo = true, MemoryStream * result = NULL)
 	{
-		return query(cmd.c_str(), cmd.size(), showexecinfo);
+		return query(cmd.c_str(), cmd.size(), showExecInfo, result);
 	}
 
 	/**
@@ -119,12 +119,12 @@ public:
 	/** 
 		从数据库删除entity表
 	*/
-	virtual bool dropEntityTableFromDB(const char* tablename) = 0;
+	virtual bool dropEntityTableFromDB(const char* tableName) = 0;
 
 	/** 
 		从数据库删除entity表字段
 	*/
-	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
+	virtual bool dropEntityTableItemFromDB(const char* tableName, const char* tableItemName) = 0;
 
 	/**
 		锁住接口操作
@@ -141,6 +141,7 @@ public:
 		获取最后一次查询的sql语句
 	*/
 	virtual const std::string& lastquery() const{ return lastquery_; }
+
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口
@@ -171,9 +172,10 @@ public:
 	static const char* dbname();
 	static const char* dbtype();
 	static const char* accountScriptName();
-	static bool initInterface(DBInterface* dbi);
+	static bool initInterface(DBInterface* pdbi);
 
 	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
+
 private:
 	static thread::ThreadPool* pThreadPool_;
 };

@@ -122,7 +122,7 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 	if((rootNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
 	{
 		Entity* pEntity = static_cast<EntityCoordinateNode*>(rootNode)->pEntity();
-		if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+		if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 		{
 			Position3D distVec = originpos - pEntity->position();
 			float dist = KBEVec3Length(&distVec);
@@ -142,7 +142,7 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 		{
 			Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
 			
-			if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
 				Position3D distVec = originpos - pEntity->position();
 				float dist = KBEVec3Length(&distVec);
@@ -166,7 +166,7 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 		{
 			Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
 			
-			if(entityUType == -1 || pEntity->scriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
 				Position3D distVec = originpos - pEntity->position();
 				float dist = KBEVec3Length(&distVec);

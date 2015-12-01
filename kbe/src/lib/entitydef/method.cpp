@@ -217,7 +217,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 		if(pyitem == NULL)
 		{
-			WARNING_MSG(fmt::format("MethodDescription::createFromStream:{} arg[{}][{}] is NULL.\n", 
+			WARNING_MSG(fmt::format("MethodDescription::createFromStream: {} arg[{}][{}] is NULL.\n", 
 				this->getName(), index, argTypes_[index]->getName()));
 		}
 
@@ -255,7 +255,18 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 		}
 	}
 
- 	SCRIPT_ERROR_CHECK();
+	if (PyErr_Occurred())
+	{
+		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
+		{
+			WARNING_MSG(fmt::format("MethodDescription::call: {} is method of exposed, if there is a missing arguments error, "
+				"try adding exposedID, For example: \ndef func(msg): => def func(exposedID, msg):\n",
+				this->getName()));
+		}
+
+		PyErr_PrintEx(0);
+	}
+
 	return pyResult;
 }
 

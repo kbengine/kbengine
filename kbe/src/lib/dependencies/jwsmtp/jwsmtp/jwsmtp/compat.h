@@ -36,7 +36,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <memory.h>
 typedef int SOCKET; // get round windows definitions.
 #endif
 
@@ -117,7 +116,7 @@ struct SOCKADDR_IN {
   }
   operator const sockaddr () const {
     sockaddr addr;
-	memcpy((void*)&addr, (void*)&ADDR, sizeof(ADDR));
+    std::copy((char*)&ADDR, (char*)&ADDR + sizeof(ADDR), (char*)&addr);
     return addr;
   }
 

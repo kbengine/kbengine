@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -21,10 +21,12 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -103,6 +105,8 @@
     <ClCompile Include="idallocate.cpp" />
     <ClCompile Include="machine_infos.cpp" />
     <ClCompile Include="pendingLoginmgr.cpp" />
+    <ClCompile Include="python_app.cpp" />
+    <ClCompile Include="py_file_descriptor.cpp" />
     <ClCompile Include="script_timers.cpp" />
     <ClCompile Include="sendmail_threadtasks.cpp" />
     <ClCompile Include="serverapp.cpp" />
@@ -125,6 +129,8 @@
     <ClInclude Include="kbemain.h" />
     <ClInclude Include="machine_infos.h" />
     <ClInclude Include="pendingLoginmgr.h" />
+    <ClInclude Include="python_app.h" />
+    <ClInclude Include="py_file_descriptor.h" />
     <ClInclude Include="script_timers.h" />
     <ClInclude Include="sendmail_threadtasks.h" />
     <ClInclude Include="server_errors.h" />

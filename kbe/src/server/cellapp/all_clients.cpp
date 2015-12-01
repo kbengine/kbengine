@@ -50,11 +50,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(AllClients, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-AllClients::AllClients(const ScriptDefModule* scriptModule, 
+AllClients::AllClients(const ScriptDefModule* pScriptModule, 
 						ENTITY_ID eid, 
 						bool otherClients):
 ScriptObject(getScriptType(), false),
-scriptModule_(scriptModule),
+pScriptModule_(pScriptModule),
 id_(eid),
 otherClients_(otherClients)
 {
@@ -78,12 +78,12 @@ PyObject* AllClients::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	MethodDescription* md = const_cast<ScriptDefModule*>(scriptModule_)->findClientMethodDescription(ccattr);
+	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule_)->findClientMethodDescription(ccattr);
 	
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
 		free(ccattr);
-		return new ClientsRemoteEntityMethod(md, otherClients_, id_);
+		return new ClientsRemoteEntityMethod(pMethodDescription, otherClients_, id_);
 	}
 
 	free(ccattr);

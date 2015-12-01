@@ -51,7 +51,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTable::writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	while(s->length() > 0)
 	{
@@ -65,11 +65,11 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, M
 			return dbid;
 		}
 
-		if(!pTableItem->writeItem(dbi, dbid, s, pModule))
+		if(!pTableItem->writeItem(pdbi, dbid, s, pModule))
 		{
 			// 设置实体是否自动加载
 			if(shouldAutoLoad > -1)
-				entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
+				entityShouldAutoLoad(pdbi, dbid, shouldAutoLoad > 0);
 
 			return dbid;
 		}
@@ -77,24 +77,24 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, M
 
 	// 设置实体是否自动加载
 	if(shouldAutoLoad > -1)
-		entityShouldAutoLoad(dbi, dbid, shouldAutoLoad > 0);
+		entityShouldAutoLoad(pdbi, dbid, shouldAutoLoad > 0);
 
 	return dbid;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTable::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+bool EntityTable::removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTable::queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 	for(; iter != tableFixedOrderItems_.end(); ++iter)
 	{
-		if(!(*iter)->queryTable(dbi, dbid, s, pModule))
+		if(!(*iter)->queryTable(pdbi, dbid, s, pModule))
 			return false;
 	}
 
@@ -118,17 +118,19 @@ EntityTables::~EntityTables()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::load(DBInterface* dbi)
+bool EntityTables::load(DBInterface* pdbi)
 {
 	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
 	for(; iter != smodules.end(); ++iter)
 	{
 		ScriptDefModule* pSM = (*iter).get();
-		EntityTable* pEtable = dbi->createEntityTable();
-		bool ret = pEtable->initialize(pSM, pSM->getName());
+		EntityTable* pEtable = pdbi->createEntityTable();
 
-		if(!ret)
+		if(!pEtable)
+			continue;
+
+		if (!pEtable->initialize(pSM, pSM->getName()))
 		{
 			delete pEtable;
 			return false;
@@ -153,17 +155,17 @@ void EntityTables::onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTab
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTables::queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+void EntityTables::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 	ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	pTable->queryAutoLoadEntities(dbi, pModule, start, end, outs);
+	pTable->queryAutoLoadEntities(pdbi, pModule, start, end, outs);
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::syncToDB(DBInterface* dbi)
+bool EntityTables::syncToDB(DBInterface* pdbi)
 {
 	DBThreadPool* pDBThreadPool = static_cast<DBThreadPool*>(DBUtil::pThreadPool());
 	KBE_ASSERT(pDBThreadPool != NULL);
@@ -203,7 +205,7 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 
 
 		std::vector<std::string> dbTableNames;
-		dbi->getTableNames(dbTableNames, "");
+		pdbi->getTableNames(dbTableNames, "");
 
 		// 检查是否有需要删除的表
 		std::vector<std::string>::iterator iter0 = dbTableNames.begin();
@@ -217,7 +219,7 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 			EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
 			if(iter == tables_.end())
 			{
-				if(!dbi->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
+				if(!pdbi->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
 					return false;
 			}
 		}
@@ -290,30 +292,30 @@ EntityTable* EntityTables::findKBETable(std::string name)
 };
 
 //-------------------------------------------------------------------------------------
-DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTables::writeEntity(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->writeTable(dbi, dbid, shouldAutoLoad, s, pModule);
+	return pTable->writeTable(pdbi, dbid, shouldAutoLoad, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+bool EntityTables::removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->removeEntity(dbi, dbid, pModule);
+	return pTable->removeEntity(pdbi, dbid, pModule);
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTables::queryEntity(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->queryTable(dbi, dbid, s, pModule);
+	return pTable->queryTable(pdbi, dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

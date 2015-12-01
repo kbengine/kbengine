@@ -74,7 +74,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Entity();
 	
 	/** 
@@ -302,11 +302,17 @@ public:
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, int8 layer, PyObject* userData);
-	bool navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer );
+	bool navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer);
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
 	DECLARE_PY_MOTHOD_ARG3(pyNavigatePathPoints, PyObject_ptr, float, int8);
 	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int8, PyObject_ptr);
+
+	/** 
+		entity获得随机点 
+	*/
+	bool getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos, float maxRadius, uint32 maxPoints, int8 layer);
+	DECLARE_PY_MOTHOD_ARG4(pyGetRandomPoints, PyObject_ptr, float, uint32, int8);
 
 	/** 
 		entity移动到某个点 
@@ -360,7 +366,7 @@ public:
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 	void onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s);
-	void onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s);
 
 	/**
 		观察者
@@ -481,6 +487,19 @@ public:
 	void onMoveFailure(uint32 controllerId, PyObject* userarg);
 
 	/**
+		entity转动朝向
+	*/
+	uint32 addYawRotator(float yaw, float velocity,
+		PyObject* userData);
+
+	DECLARE_PY_MOTHOD_ARG3(pyAddYawRotator, float, float, PyObject_ptr);
+	
+	/**
+		entity转向完成
+	*/
+	void onTurn(uint32 controllerId, PyObject* userarg);
+	
+	/**
 		获取自身在space的entities中的位置
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx() const;
@@ -541,9 +560,9 @@ public:
 	void addWitnessToStream(KBEngine::MemoryStream& s);
 	void createWitnessFromStream(KBEngine::MemoryStream& s);
 
-	void addMoveHandlerToStream(KBEngine::MemoryStream& s);
-	void createMoveHandlerFromStream(KBEngine::MemoryStream& s);
-
+	void addMovementHandlerToStream(KBEngine::MemoryStream& s);
+	void createMovementHandlerFromStream(KBEngine::MemoryStream& s);
+	
 	/** 
 		获得实体控制器管理器
 	*/
@@ -617,7 +636,8 @@ protected:
 	// 控制器管理器
 	Controllers*											pControllers_;
 	KBEShared_ptr<Controller>								pMoveController_;
-
+	KBEShared_ptr<Controller>								pTurnController_;
+	
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
 	

@@ -392,10 +392,10 @@ void Script::setenv(const std::string& name, const std::string& value)
 			return;
 		}
 
-		Py_DECREF(environData);
-		Py_DECREF(environ);
-
 		int ret = PyDict_SetItem(environData, py_name, py_value);
+		
+		Py_DECREF(environData);
+		Py_DECREF(environ);		
 		Py_DECREF(py_value);
 		Py_DECREF(py_name);
 		

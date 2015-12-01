@@ -89,7 +89,7 @@ bool InitProgressHandler::process()
 	if(pChannel == NULL)
 		return true;
 
-	if(Baseapp::getSingleton().idClient().getSize() == 0)
+	if(Baseapp::getSingleton().idClient().size() == 0)
 		return true;
 
 	if(delayTicks_++ < 1)

@@ -79,11 +79,16 @@ public:
 	virtual ~NavTileHandle();
 
 	int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths);
+
+	virtual int findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+		std::vector<Position3D>& points, uint32 max_points, float maxRadius);
+
 	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec);
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_TILE; }
 
-	static NavigationHandle* create(std::string name);
+	static NavigationHandle* create(std::string resPath, const std::map< int, std::string >& params);
+	static NavTileHandle* _create(const std::string& res);
 	
 	int getMap(int x, int y);
 
@@ -97,6 +102,7 @@ public:
 public:
 	Tmx::Map *pTilemap;
 	bool direction8_;
+	std::map< int, std::string > params_;
 };
 
 }

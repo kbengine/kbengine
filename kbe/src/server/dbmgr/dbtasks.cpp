@@ -123,7 +123,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -169,7 +169,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -676,6 +676,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	KBE_ASSERT(entityDBID > 0);
 
 	info.name = accountName;
+	info.email = accountName + "@0.0";
 	info.password = passwd;
 	info.dbid = entityDBID;
 	info.datas = datas;
@@ -925,6 +926,17 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 		return false;
 	}
 
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+
+	if(!pTable->queryAccountAllInfos(pdbi_, accountName_, info))
+	{
+		return false;
+	}
+
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
+		return false;
+	
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	KBEEmailVerificationTable* pTable1 = 
@@ -932,10 +944,9 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 	KBE_ASSERT(pTable1);
 
 	info.datas = genmail_code(accountName_);
-	info.name = accountName_;
-	email_ = accountName_;
 	code_ = info.datas;
-	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
+	email_ = info.email;
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, email_, code_);
 	return false;
 }
 
@@ -1536,7 +1547,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		}
 	}
 
-	pTable->updateCount(pdbi_, info.dbid);
+	pTable->updateCount(pdbi_, accountName_, info.dbid);
 
 	retcode_ = SERVER_ERR_ACCOUNT_IS_ONLINE;
 	KBEEntityLogTable::EntityLog entitylog;

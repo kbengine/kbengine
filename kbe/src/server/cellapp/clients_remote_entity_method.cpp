@@ -154,7 +154,9 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(pChannel == NULL)
 				continue;
 
-			if(!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
+			// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+			// 又如自己的entity还未在目标客户端上创建
+			if (!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
 				continue;
 
 			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();

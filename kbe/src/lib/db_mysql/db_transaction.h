@@ -18,18 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_TRANSACTION_HELPER_H
-#define KBE_DB_TRANSACTION_HELPER_H
+#ifndef KBE_MYSQL_TRANSACTION_HELPER_H
+#define KBE_MYSQL_TRANSACTION_HELPER_H
 
 namespace KBEngine { 
 class DBInterface;
+namespace mysql {
 
 /**
  */
 class DBTransaction
 {
 public:
-	DBTransaction(DBInterface* dbi, bool autostart = true);
+	DBTransaction(DBInterface* pdbi, bool autostart = true);
 	~DBTransaction();
 	
 	void start();
@@ -39,13 +40,15 @@ public:
 
 	bool shouldRetry() const;
 
-	void pdbi(DBInterface* dbi){ dbi_ = dbi; }
+	void pdbi(DBInterface* pdbi){ pdbi_ = pdbi; }
+	
 private:
-	DBInterface* dbi_;
+	DBInterface* pdbi_;
 	bool committed_;
 	bool autostart_;
 };
 
 }
-#endif // KBE_DB_TRANSACTION_HELPER_H
+}
+#endif // KBE_MYSQL_TRANSACTION_HELPER_H
 

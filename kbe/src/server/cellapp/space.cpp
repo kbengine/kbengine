@@ -43,17 +43,52 @@ hasGeometry_(false),
 pCell_(NULL),
 coordinateSystem_(),
 pNavHandle_(),
-state_(STATE_NORMAL)
+state_(STATE_NORMAL),
+destroyTime_(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	entities_.clear();
 	pNavHandle_.clear();
 
-	SAFE_RELEASE(pCell_);
-	entities_.clear();
+	SAFE_RELEASE(pCell_);	
+}
+
+//-------------------------------------------------------------------------------------
+void Space::_clearGhosts()
+{
+	// 因为space在destroy时做过一次清理，因此这里理论上剩下的是ghosts实体
+	if(entities_.size() == 0)
+		return;
+	
+	std::vector<ENTITY_ID> entitieslog;
+	
+	SPACE_ENTITIES::const_iterator log_iter = this->entities().begin();
+	for(; log_iter != this->entities().end(); ++log_iter)
+		entitieslog.push_back((*log_iter).get()->id());
+
+	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+	for(; iter != entitieslog.end(); ++iter)
+	{
+		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		{
+			entity->destroyEntity();
+		}
+		else
+		{
+			entity = findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				removeEntity(entity);
+			}
+		}
+	}
+	
+	entities_.clear();	
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,11 +130,13 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	char* path = NULL;
 	bool shouldLoadOnServer = true;
 	PyObject* mapper = NULL;
-
+	PyObject* py_params = NULL;
+	std::map< int, std::string > params;
+	
 	int argCount = PyTuple_Size(args);
-	if(argCount < 3 || argCount > 4)
+	if(argCount < 3 || argCount > 5)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 4) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 5) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -113,11 +150,53 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 			return 0;
 		}
 	}
+	else if(argCount == 5)
+	{
+		if(PyArg_ParseTuple(args, "I|O|s|b|O", &spaceID, &mapper, &path, &shouldLoadOnServer, &py_params) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+		
+		if(py_params)
+		{
+			PyObject *key, *value;
+			Py_ssize_t pos = 0;
+
+			if(!PyDict_Check(py_params))
+			{
+				PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) not is PyDict!");
+				PyErr_PrintEx(0);					
+				return 0;
+			}
+
+			while(PyDict_Next(py_params, &pos, &key, &value)) 
+			{
+				if(!PyLong_Check(key) || !PyUnicode_Check(value))
+				{
+					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
+					PyErr_PrintEx(0);					
+					return 0;
+				}
+				
+			    long i = PyLong_AsLong(key);
+
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(value, NULL);
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);
+				params[i] = ccattr;
+				free(ccattr);
+			}
+			
+			SCRIPT_ERROR_CHECK();
+		}
+	}
 	else
 	{
 		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
 		{
-			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -133,9 +212,10 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer))
+	SCRIPT_ERROR_CHECK();
+	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) error!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -146,7 +226,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
+bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params)
 {
 	INFO_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={}, shouldLoadOnServer={}!\n",
 		id(), respath, shouldLoadOnServer));
@@ -154,7 +234,7 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	hasGeometry_ = true;
 	if(getGeometryPath() == respath)
 	{
-		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} is exist!\n",
+		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} exist!\n",
 			id(), respath));
 
 		return true;
@@ -163,16 +243,16 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	setGeometryPath(respath);
 
 	if(shouldLoadOnServer)
-		loadSpaceGeometry();
+		loadSpaceGeometry(params);
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void Space::loadSpaceGeometry()
+void Space::loadSpaceGeometry(const std::map< int, std::string >& params)
 {
 	KBE_ASSERT(pNavHandle_ == NULL);
-	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->id()));
+	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->id(), params));
 }
 
 //-------------------------------------------------------------------------------------
@@ -210,6 +290,12 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 bool Space::update()
 {
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
+		return false;
+
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
+		_clearGhosts();
+		
 	return true;
 }
 
@@ -272,7 +358,7 @@ void Space::removeEntity(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::_onEnterWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 
 	if(pEntity->hasWitness())
@@ -305,7 +391,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::onLeaveWorld(Entity* pEntity)
 {
-	if(!pEntity->isReal() || !pEntity->scriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 	
 	// 向其他人客户端广播自己的离开
@@ -338,7 +424,8 @@ bool Space::destroy(ENTITY_ID entityID)
 		return false;
 
 	state_ = STATE_DESTROYING;
-
+	destroyTime_ = timestamp();
+	
 	std::vector<ENTITY_ID> entitieslog;
 	
 	{
@@ -355,7 +442,7 @@ bool Space::destroy(ENTITY_ID entityID)
 		for(; iter != entitieslog.end(); ++iter)
 		{
 			Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id() && entity->isReal())
 			{
 				entity->onSpaceGone();
 			}
@@ -365,31 +452,26 @@ bool Space::destroy(ENTITY_ID entityID)
 	state_ = STATE_DESTROYED;
 	
 	if(this->entities().size() == 0)
-	{
-		pNavHandle_.clear();
 		return true;
-	}
 
 	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
 	for(; iter != entitieslog.end(); ++iter)
 	{
 		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
-		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
 		{
 			entity->destroyEntity();
 		}
 		else
 		{
 			entity = findEntity((*iter));
-			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
 			{
 				removeEntity(entity);
 			}
 		}
 	}
 
-	pNavHandle_.clear();
-	entities_.clear();
 	return true;
 }
 

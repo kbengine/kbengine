@@ -42,7 +42,7 @@ public:
 	~Space();
 
 	void unLoadSpaceGeometry();
-	void loadSpaceGeometry();
+	void loadSpaceGeometry(const std::map< int, std::string >& params);
 
 	/** 
 		更新space中的内容 
@@ -84,7 +84,7 @@ public:
 		添加space的几何映射
 	*/
 	static PyObject* __py_AddSpaceGeometryMapping(PyObject* self, PyObject* args);
-	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer);
+	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params);
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
 	const std::string& getGeometryPath();
 	void setGeometryPath(const std::string& path);
@@ -113,6 +113,8 @@ public:
 protected:
 	void _addSpaceDatasToEntityClient(const Entity* pEntity);
 
+	void _clearGhosts();
+	
 	enum STATE
 	{
 		STATE_NORMAL = 0,
@@ -142,6 +144,8 @@ protected:
 	SPACE_DATA					datas_;
 
 	int8						state_;
+	
+	uint64						destroyTime_;	
 };
 
 

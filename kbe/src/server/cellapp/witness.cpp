@@ -70,8 +70,18 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;
-
+	/**
+	 * @TODO(phw): 注释下面的原始代码，简单修正如下的问题：
+	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的aoiEntities_里面必须会互相记录着对方的entityID，
+	 * 那么假如三个玩家都在同一时间传送到另一个cellapp的地图的同一点上，
+	 * 这时三个玩家还原的时候都会为另两个玩家生成一个flags_ == ENTITYREF_FLAG_UNKONWN的EntityRef实例，
+	 * 把它们记录在自己的aoiEntities_，
+	 * 但是，Witness::update()并没有针对flags_ == ENTITYREF_FLAG_UNKONWN的情况做特殊处理——把玩家entity数据发送给客户端，
+	 * 所以进入了默认的updateVolatileData()流程，
+	 * 使得客户端在没有别的玩家entity的情况下就收到了别的玩家的坐标更新的信息，导致客户端错误发生。
+	
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
+	
 	uint32 size = aoiEntities_.size();
 	s << size;
 
@@ -80,6 +90,11 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	{
 		(*iter)->addToStream(s);
 	}
+	*/
+
+	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
+	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
+	s << (uint32)0; // aoiEntities_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -159,7 +174,7 @@ void Witness::onAttach(Entity* pEntity)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
 	(*pForwardBundle) << pEntity_->id();
-	pEntity_->scriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	pEntity_->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
@@ -436,6 +451,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	}
 
 	aoiEntities_.clear();
+	clientAOISize_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -659,7 +675,7 @@ bool Witness::update()
 			
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->id();
-					otherEntity->scriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
 					if(!otherEntity->isOnGround())
 						(*pForwardBundle2) << otherEntity->isOnGround();
 
@@ -706,6 +722,7 @@ bool Witness::update()
 					{
 						delete (*iter);
 						iter = aoiEntities_.erase(iter);
+						--clientAOISize_;
 						continue;
 					}
 					
@@ -754,7 +771,7 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo& volatileInfo = pEntity_->scriptModule()->getVolatileInfo();
+	const VolatileInfo& volatileInfo = pEntity_->pScriptModule()->getVolatileInfo();
 	if((volatileInfo.position() <= 0.0004f))
 		return;
 
@@ -945,7 +962,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	const VolatileInfo& volatileInfo = otherEntity->scriptModule()->getVolatileInfo();
+	const VolatileInfo& volatileInfo = otherEntity->pScriptModule()->getVolatileInfo();
 	
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	

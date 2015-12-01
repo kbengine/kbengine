@@ -21,8 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_DB_TASKS_H
 #define KBE_DB_TASKS_H
 
-// common include	
-// #define NDEBUG
 #include "common/common.h"
 #include "common/timer.h"
 #include "thread/threadtask.h"
@@ -55,6 +53,7 @@ public:
 	virtual void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 
 	uint64 initTime() const{ return initTime_; }
+
 protected:
 	DBInterface* pdbi_;
 	uint64 initTime_;
@@ -70,6 +69,7 @@ public:
 	virtual ~DBTaskSyncTable();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
 protected:
 	KBEShared_ptr<EntityTable> pEntityTable_;
 	bool success_;

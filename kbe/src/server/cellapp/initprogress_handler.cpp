@@ -61,7 +61,7 @@ bool InitProgressHandler::process()
 	if(pChannel == NULL)
 		return true;
 
-	if(Cellapp::getSingleton().idClient().getSize() == 0)
+	if(Cellapp::getSingleton().idClient().size() == 0)
 		return true;
 
 	if(delayTicks_++ < 1)

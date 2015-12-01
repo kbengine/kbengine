@@ -57,6 +57,7 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_CANNOT_USE_MAIL					22			// 不能使用email地址。
 #define SERVER_ERR_NOT_FOUND_ACCOUNT				23			// 找不到此账号。
 #define SERVER_ERR_DB								24			// 数据库错误(请检查dbmgr日志和DB)。
+#define SERVER_ERR_MAX                              25          // 请把这条放在所有错误的最后面，这本身不是一个错误标识，仅表示一共有多少条错误定义
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",

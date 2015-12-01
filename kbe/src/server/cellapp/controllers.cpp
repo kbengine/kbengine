@@ -62,8 +62,8 @@ bool Controllers::add(KBEShared_ptr<Controller> pController)
 	else
 	{
 		// Ë¢ÐÂid¼ÆÊýÆ÷
-		if(lastid_ <= id)
-			lastid_ = id + 1;
+		if(lastid_ < id)
+			lastid_ = id;
 	}
 
 	objects_[id] = pController;
@@ -129,11 +129,15 @@ void Controllers::createFromStream(KBEngine::MemoryStream& s)
 		case Controller::CONTROLLER_TYPE_PROXIMITY:
 			pController = KBEShared_ptr<Controller>(new ProximityController(pEntity));
 			break;
+		case Controller::CONTROLLER_TYPE_ROTATE:
 		case Controller::CONTROLLER_TYPE_MOVE:
 		default:
 			KBE_ASSERT(false);
 			break;
 		};
+		
+		if(pController == NULL)
+			continue;
 		
 		pController->type(type);
 		pController->createFromStream(s);

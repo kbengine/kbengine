@@ -574,9 +574,24 @@ inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD dwSize = MAX_NAME;
+	wchar_t wusername[MAX_NAME];
+	::GetUserNameW(wusername, &dwSize);	
+	
 	static char username[MAX_NAME];
 	memset(username, 0, MAX_NAME);
-	::GetUserNameA(username, &dwSize);	
+
+	if(dwSize > 0)
+	{
+		size_t outsize = 0;
+		strutil::wchar2char((wchar_t*)&wusername, &outsize);
+
+		if(outsize == 0)
+		{
+			// 可能是中文名，不支持中文名称
+			strcpy(username, "error_name");
+		}
+	}
+	
 	return username;
 #else
 	char * pUsername = cuserid( NULL );
@@ -614,11 +629,13 @@ inline int32 getProcessPID()
 /** 获取2个系统时间差 */
 inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 {
-    // getSystemTime() have limited data range and this is case when it overflow in this tick
+    // 防止getSystemTime()溢出的情况
     if (oldTime > newTime)
-        return (0xFFFFFFFF - oldTime) + newTime;
-    else
-        return newTime - oldTime;
+    {
+        return (uint32)((int64)0xFFFFFFFF + 1 - (int64)oldTime) + newTime;
+    }
+
+	return newTime - oldTime;
 }
 
 /* 产生一个64位的uuid 

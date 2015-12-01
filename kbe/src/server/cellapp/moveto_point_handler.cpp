@@ -126,20 +126,28 @@ bool MoveToPointHandler::update()
 	if (!moveVertically_) movement.y = 0.f;
 	
 	bool ret = true;
+	float dist_len = KBEVec3Length(&movement);
 
-	if(KBEVec3Length(&movement) < velocity_ + distance_)
+	if (dist_len < velocity_ + distance_)
 	{
 		float y = currpos.y;
-		currpos = dstPos;
 
-		if(distance_ > 0.0f)
+		if (distance_ > 0.0f)
 		{
 			// 单位化向量
 			KBEVec3Normalize(&movement, &movement); 
-			movement *= distance_;
-			currpos -= movement;
+				
+			if(dist_len > distance_)
+			{
+				movement *= distance_;
+				currpos = dstPos - movement;
+			}
 		}
-
+		else
+		{
+			currpos = dstPos;
+		}
+		
 		if (!moveVertically_)
 			currpos.y = y;
 

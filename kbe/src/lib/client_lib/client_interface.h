@@ -67,11 +67,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									std::string,							entityType)
 
 	// 登录网关失败。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,						NETWORK_FIXED_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginBaseappFailed,						NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 登录网关失败。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginGatewayFailed,					NETWORK_FIXED_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginBaseappFailed,					NETWORK_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 服务器上的entity已经进入游戏世界了。
@@ -191,7 +191,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									SERVER_ERROR_CODE,						failedcode)
 
 	// 重登陆网关成功 
-	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginGatewaySuccessfully,				NETWORK_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginBaseappSuccessfully,				NETWORK_VARIABLE_MESSAGE)
 									
 NETWORK_INTERFACE_DECLARE_END()
 

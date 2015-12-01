@@ -50,16 +50,16 @@ void Navigation::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-bool Navigation::removeNavigation(std::string name)
+bool Navigation::removeNavigation(std::string resPath)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
-	if(navhandles_.find(name) != navhandles_.end())
+	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
+	if(navhandles_.find(resPath) != navhandles_.end())
 	{
 		navhandles_.erase(iter);
 		iter->second->decRef();
 
-		DEBUG_MSG(fmt::format("Navigation::removeNavigation: ({}) is destroyed!\n", name));
+		DEBUG_MSG(fmt::format("Navigation::removeNavigation: ({}) is destroyed!\n", resPath));
 		return true;
 	}
 
@@ -67,12 +67,15 @@ bool Navigation::removeNavigation(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandlePtr Navigation::findNavigation(std::string name)
+NavigationHandlePtr Navigation::findNavigation(std::string resPath)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
-	if(navhandles_.find(name) != navhandles_.end())
+	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
+	if(navhandles_.find(resPath) != navhandles_.end())
 	{
+		if(iter->second == NULL)
+			return NULL;
+
 		if(iter->second->type() == NavigationHandle::NAV_MESH)
 		{
 			return iter->second;
@@ -92,20 +95,20 @@ NavigationHandlePtr Navigation::findNavigation(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool Navigation::hasNavigation(std::string name)
+bool Navigation::hasNavigation(std::string resPath)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	return navhandles_.find(name) != navhandles_.end();
+	return navhandles_.find(resPath) != navhandles_.end();
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandlePtr Navigation::loadNavigation(std::string name)
+NavigationHandlePtr Navigation::loadNavigation(std::string resPath, const std::map< int, std::string >& params)
 {
 	KBEngine::thread::ThreadGuard tg(&mutex_); 
-	if(name == "")
+	if(resPath == "")
 		return NULL;
-
-	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(name);
+	
+	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
 	if(iter != navhandles_.end())
 	{
 		return iter->second;
@@ -113,23 +116,25 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name)
 
 	NavigationHandle* pNavigationHandle_ = NULL;
 
-	std::string path = "spaces/" + name;
+	std::string path = resPath;
+	path = Resmgr::getSingleton().matchPath(path);
+	if(path.size() == 0)
+		return NULL;
+		
+	wchar_t* wpath = strutil::char2wchar(path.c_str());
+	std::wstring wspath = wpath;
+	free(wpath);
 
-	if(Resmgr::getSingleton().openRes(path + "/" + name + ".tmx"))
+	std::vector<std::wstring> results;
+	Resmgr::getSingleton().listPathRes(wspath, L"tmx", results);
+	
+	if(results.size() > 0)
 	{
-		pNavigationHandle_ = NavTileHandle::create(name);
+		pNavigationHandle_ = NavTileHandle::create(resPath, params);
 	}
 	else 	
 	{
-		path = Resmgr::getSingleton().matchPath(path);
-		if(path.size() == 0)
-			return NULL;
-
-		wchar_t* wpath = strutil::char2wchar(path.c_str());
-		std::wstring wspath = wpath;
-		free(wpath);
-
-		std::vector<std::wstring> results;
+		results.clear();
 		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
 
 		if(results.size() == 0)
@@ -137,11 +142,11 @@ NavigationHandlePtr Navigation::loadNavigation(std::string name)
 			return NULL;
 		}
 
-		pNavigationHandle_ = NavMeshHandle::create(name);
+		pNavigationHandle_ = NavMeshHandle::create(resPath, params);
 	}
 
 
-	navhandles_[name] = NavigationHandlePtr(pNavigationHandle_);
+	navhandles_[resPath] = NavigationHandlePtr(pNavigationHandle_);
 	return pNavigationHandle_;
 }
 

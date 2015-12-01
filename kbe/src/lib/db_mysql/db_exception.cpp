@@ -27,9 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-DBException::DBException(DBInterface* dbi) :
-			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(dbi)->mysql())),
-			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(dbi)->mysql()))
+DBException::DBException(DBInterface* pdbi) :
+			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(pdbi)->mysql())),
+			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(pdbi)->mysql()))
 {
 }
 

@@ -75,6 +75,12 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getLogger(void)
 	return _loggerInfo;
 }
 
+//-------------------------------------------------------------------------------------		
+INLINE ENGINE_COMPONENT_INFO& ServerConfig::getInterfaces(void)
+{
+	return _interfacesInfo;
+}
+
 //-------------------------------------------------------------------------------------	
 INLINE ENGINE_COMPONENT_INFO& ServerConfig::getConfig()
 {

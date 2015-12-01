@@ -71,6 +71,7 @@ public:
 	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email) = 0;
 	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode) = 0;
 	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword) = 0;
+
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -106,6 +107,7 @@ public:
 	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
 	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode);
 	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
+
 protected:
 };
 
@@ -143,8 +145,9 @@ public:
 	bool reconnect();
 
 	virtual bool process();
+
 protected:
-	Network::Channel* pInterfacesChannel_;
+
 };
 
 class InterfacesHandlerFactory

@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_SQL_COMMON_H
-#define KBE_DB_SQL_COMMON_H
+#ifndef KBE_DB_MYSQL_COMMON_H
+#define KBE_DB_MYSQL_COMMON_H
 
 #include "db_context.h"
 #include "common/common.h"
@@ -28,6 +28,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
+// 记录KBE所设置过的所有mysql标记，提供sync_item_to_db时检查设置项
+extern uint32 ALL_MYSQL_SET_FLAGS;
 
 }
-#endif // KBE_DB_SQL_COMMON_H
+#endif // KBE_DB_MYSQL_COMMON_H

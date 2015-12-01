@@ -538,6 +538,14 @@ bool EntityApp<E>::installPyModules()
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
+
+	for(int i = 0; i < SERVER_ERR_MAX; i++)
+	{
+		if(PyModule_AddIntConstant(getScript().getModule(), SERVER_ERR_STR[i], i))
+		{
+			ERROR_MSG( fmt::format("EntityApp::installPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
+		}
+	}
 	
 	if(entryScriptFileName != NULL)
 	{
@@ -580,7 +588,7 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 										 bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
 	// 检查ID是否足够, 不足返回NULL
-	if(eid <= 0 && idClient_.getSize() == 0)
+	if(eid <= 0 && idClient_.size() == 0)
 	{
 		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);

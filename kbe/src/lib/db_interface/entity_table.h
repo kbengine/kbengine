@@ -50,6 +50,7 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_MAILBOX		10
 #define TABLE_ITEM_TYPE_PYTHON		11
 
+#define KBE_TABLE_PERFIX						"kbe"
 #define ENTITY_TABLE_PERFIX						"tbl"
 #define TABLE_ID_CONST_STR						"id"
 #define TABLE_PARENTID_CONST_STR				"parentID"
@@ -152,17 +153,18 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL) = 0;
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL) = 0;
 
 	/**
 		更新数据
 	*/
-	virtual bool writeItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+	virtual bool writeItem(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 
 	/**
 		获取所有的数据放到流中
 	*/
-	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+	virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+
 protected:
 	// 字段名称
 	std::string itemName_;
@@ -212,12 +214,12 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi) = 0;
+	virtual bool syncToDB(DBInterface* pdbi) = 0;
 
 	/**
 		同步entity表索引到数据库中
 	*/
-	virtual bool syncIndexToDB(DBInterface* dbi) = 0;
+	virtual bool syncIndexToDB(DBInterface* pdbi) = 0;
 
 	/** 
 		创建一个表item
@@ -240,29 +242,29 @@ public:
 	/**
 		更新表
 	*/
-	virtual DBID writeTable(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
+	virtual DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity
 	*/
-	virtual bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
+	virtual bool removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
 		获取所有的数据放到流中
 	*/
-	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		设置是否自动加载
 	*/
-	virtual void entityShouldAutoLoad(DBInterface* dbi, DBID dbid, bool shouldAutoLoad){};
+	virtual void entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool shouldAutoLoad){};
 
 	bool hasSync() const { return sync_; }
 
 	/**
 		查询自动加载的实体
 	*/
-	virtual void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+	virtual void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
 
 protected:
@@ -289,9 +291,9 @@ public:
 	EntityTables();
 	virtual ~EntityTables();
 	
-	bool load(DBInterface* dbi);
+	bool load(DBInterface* pdbi);
 
-	bool syncToDB(DBInterface* dbi);
+	bool syncToDB(DBInterface* pdbi);
 
 	/** 
 		获得所有表
@@ -309,24 +311,24 @@ public:
 	/**
 		写entity到数据库
 	*/
-	DBID writeEntity(DBInterface* dbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeEntity(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		从数据库删除entity
 	*/
-	bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
+	bool removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	bool queryEntity(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	void onTableSyncSuccessfully(KBEShared_ptr<EntityTable> pEntityTable, bool error);
 
 	/**
 		查询自动加载的实体
 	*/
-	void queryAutoLoadEntities(DBInterface* dbi, ScriptDefModule* pModule, 
+	void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
 
 protected:
