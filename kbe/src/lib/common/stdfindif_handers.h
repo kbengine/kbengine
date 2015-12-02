@@ -30,7 +30,7 @@ template<typename T>
 class find_vec_string_exist_handle
 {
 public:
-	find_vec_string_exist_handle(std::basic_string< T > str)
+	find_vec_string_exist_handle(const std::basic_string< T >& str)
 	: str_(str) {}
 
 	bool operator()(const std::basic_string< T > &strSrc)
@@ -42,6 +42,7 @@ public:
 	{
 		return strSrc == str_;
 	}
+
 private:
 	std::basic_string< T > str_;
 };
@@ -64,10 +65,11 @@ public:
 	{
 		return obj == obj_;
 	}
+
 private:
 	T obj_;
-
 };
+
 }
 
 #endif // KBE_STDFINDIF_HANDERS_H
