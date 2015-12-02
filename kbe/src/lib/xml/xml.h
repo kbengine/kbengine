@@ -155,14 +155,26 @@ public:
 	/**直接返回要进入的key节点指针*/
 	TiXmlNode* enterNode(TiXmlNode* node, const char* key)
 	{
-		do{
+		do
+		{
 			if(node->Type() != TiXmlNode::TINYXML_ELEMENT)
 				continue;
 
-			if(getKey(node) == key)
-				return node->FirstChild();
+			if (getKey(node) == key)
+			{
+				TiXmlNode* childNode = node->FirstChild();
+				do
+				{
+					if (!childNode || childNode->Type() != TiXmlNode::TINYXML_COMMENT)
+						break;
+				}
+				while ((childNode = childNode->NextSibling()));
 
-		}while((node = node->NextSibling()));
+				return childNode;
+			}
+
+		}
+		while((node = node->NextSibling()));
 
 		return NULL;
 	}
