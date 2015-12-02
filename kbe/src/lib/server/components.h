@@ -146,7 +146,7 @@ public:
 	*/
 	Components::ComponentInfos* findLocalComponent(uint32 pid);
 
-	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
+	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog = true);
 
 	typedef std::map<int32/*uid*/, COMPONENT_ORDER/*lastorder*/> ORDER_LOG;
 	ORDER_LOG& getGlobalOrderLog(){ return _globalOrderLog; }
