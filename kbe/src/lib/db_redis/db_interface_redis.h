@@ -55,7 +55,7 @@ namespace KBEngine {
 class DBInterfaceRedis : public DBInterface
 {
 public:
-	DBInterfaceRedis();
+	DBInterfaceRedis(const char* name);
 	virtual ~DBInterfaceRedis();
 
 	static bool initInterface(DBInterface* pdbi);
@@ -104,10 +104,10 @@ public:
 	/**
 		查询表
 	*/
-	virtual bool query(const char* cmd, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
-	bool query(const std::string& cmd, redisReply** pRedisReply, bool showExecInfo = true);
-	bool query(bool showExecInfo, const char* format, ...);
-	bool queryAppend(bool showExecInfo, const char* format, ...);
+	virtual bool query(const char* cmd, uint32 size, bool printlog = true, MemoryStream * result = NULL);
+	bool query(const std::string& cmd, redisReply** pRedisReply, bool printlog = true);
+	bool query(bool printlog, const char* format, ...);
+	bool queryAppend(bool printlog, const char* format, ...);
 	bool getQueryReply(redisReply **pRedisReply);
 	
 	void write_query_result(redisReply* pRedisReply, MemoryStream * result);
@@ -131,7 +131,7 @@ public:
 	/**
 		创建一个entity存储表
 	*/
-	virtual EntityTable* createEntityTable();
+	virtual EntityTable* createEntityTable(EntityTables* pEntityTables);
 
 	/** 
 		从数据库删除entity表

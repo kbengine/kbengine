@@ -35,6 +35,7 @@ class ScriptDefModule;
 class DataType;
 class PropertyDescription;
 class EntityTable;
+class EntityTables;
 class MemoryStream;
 
 #define TABLE_ITEM_TYPE_UNKONWN		0
@@ -192,12 +193,13 @@ class EntityTable
 public:
 	typedef std::map<int32/*ENTITY_PROPERTY_UID*/, KBEShared_ptr<EntityTableItem> > TABLEITEM_MAP;
 
-	EntityTable():
+	EntityTable(EntityTables* pEntityTables) :
 	tableName_(),
 	tableItems_(),
 	tableFixedOrderItems_(),
 	isChild_(false),
-	sync_(false)
+	sync_(false),
+	pEntityTables_(pEntityTables)
 	{
 	};
 
@@ -267,6 +269,9 @@ public:
 	virtual void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
 
+	EntityTables* pEntityTables() const { return pEntityTables_; }
+	void pEntityTables(EntityTables* v){ pEntityTables_ = v; }
+
 protected:
 
 	// 表名称
@@ -282,18 +287,27 @@ protected:
 	bool isChild_; 
 
 	bool sync_;
+
+	EntityTables* pEntityTables_;
 };
 
-class EntityTables : public Singleton<EntityTables>
+class EntityTables
 {
 public:
+	typedef KBEUnordered_map<std::string, EntityTables> ENTITY_TABLES_MAP;
+	static ENTITY_TABLES_MAP sEntityTables;
+	static EntityTables& findByInterfaceName(const std::string& dbInterfaceName);
+
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<EntityTable> > TABLES_MAP;
 	EntityTables();
 	virtual ~EntityTables();
 	
 	bool load(DBInterface* pdbi);
-
 	bool syncToDB(DBInterface* pdbi);
+
+	void dbInterfaceName(const std::string& dbInterfaceName){
+		dbInterfaceName_ = dbInterfaceName;
+	}
 
 	/** 
 		获得所有表
@@ -338,6 +352,8 @@ protected:
 
 	int numSyncTables_;
 	bool syncTablesError_;
+
+	std::string dbInterfaceName_;
 };
 
 }

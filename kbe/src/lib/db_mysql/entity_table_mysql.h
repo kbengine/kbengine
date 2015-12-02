@@ -501,7 +501,7 @@ protected:
 class EntityTableMysql : public EntityTable
 {
 public:
-	EntityTableMysql();
+	EntityTableMysql(EntityTables* pEntityTables);
 	virtual ~EntityTableMysql();
 	
 	/**

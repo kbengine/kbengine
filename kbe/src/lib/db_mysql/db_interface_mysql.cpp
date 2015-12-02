@@ -144,8 +144,8 @@ static void initializeWatcher()
 
 size_t DBInterfaceMysql::sql_max_allowed_packet_ = 0;
 //-------------------------------------------------------------------------------------
-DBInterfaceMysql::DBInterfaceMysql(std::string characterSet, std::string collation) :
-DBInterface(),
+DBInterfaceMysql::DBInterfaceMysql(const char* name, std::string characterSet, std::string collation) :
+DBInterface(name),
 pMysql_(NULL),
 hasLostConnection_(false),
 inTransaction_(false),
@@ -164,9 +164,11 @@ DBInterfaceMysql::~DBInterfaceMysql()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
 {
-	EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
-	EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-	EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());	
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
+
+	entityTables.addKBETable(new KBEAccountTableMysql(&entityTables));
+	entityTables.addKBETable(new KBEEntityLogTableMysql(&entityTables));
+	entityTables.addKBETable(new KBEEmailVerificationTableMysql(&entityTables));
 	return true;
 }
 
@@ -335,7 +337,7 @@ bool DBInterfaceMysql::checkEnvironment()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::createDatabaseIfNotExist()
 {
-	std::string querycmd = fmt::format("create database {}", DBUtil::dbname());
+	std::string querycmd = fmt::format("create database {}", db_name_);
 	query(querycmd.c_str(), querycmd.size(), false);
 	return true;
 }
@@ -411,9 +413,9 @@ bool DBInterfaceMysql::detach()
 }
 
 //-------------------------------------------------------------------------------------
-EntityTable* DBInterfaceMysql::createEntityTable()
+EntityTable* DBInterfaceMysql::createEntityTable(EntityTables* pEntityTables)
 {
-	return new EntityTableMysql();
+	return new EntityTableMysql(pEntityTables);
 }
 
 //-------------------------------------------------------------------------------------
@@ -442,11 +444,11 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tableName, const ch
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, MemoryStream * result)
+bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool printlog, MemoryStream * result)
 {
 	if(pMysql_ == NULL)
 	{
-		if(showExecInfo)
+		if(printlog)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
 		}
@@ -470,7 +472,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
 
     if(nResult != 0)  
     {
-		if(showExecInfo)
+		if(printlog)
 		{
 			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
 				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
@@ -485,7 +487,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool showExecInfo, Me
     } 
     else
     {
-		if(showExecInfo)
+		if(printlog)
 		{
 			INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
 		}
@@ -603,8 +605,8 @@ bool DBInterfaceMysql::getTableItemNames(const char* tableName, std::vector<std:
 const char* DBInterfaceMysql::c_str()
 {
 	static char strdescr[MAX_BUF];
-	kbe_snprintf(strdescr, MAX_BUF, "dbtype=mysql, ip=%s, port=%u, currdatabase=%s, username=%s, connected=%s.\n", 
-		db_ip_, db_port_, db_name_, db_username_, pMysql_ == NULL ? "no" : "yes");
+	kbe_snprintf(strdescr, MAX_BUF, "interface=%s, dbtype=mysql, ip=%s, port=%u, currdatabase=%s, username=%s, connected=%s.\n", 
+		name_, db_ip_, db_port_, db_name_, db_username_, pMysql_ == NULL ? "no" : "yes");
 
 	return strdescr;
 }

@@ -478,13 +478,16 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 {
 	int argCount = PyTuple_Size(args);
 	PyObject* pycallback = NULL;
+	PyObject* pyDBInterfaceName = NULL;
 	int ret = -1;
 	ENTITY_ID eid = -1;
 
 	char* data = NULL;
 	Py_ssize_t size;
 	
-	if(argCount == 3)
+	if (argCount == 4)
+		ret = PyArg_ParseTuple(args, "s#|O|i|O", &data, &size, &pycallback, &eid, &pyDBInterfaceName);
+	else if (argCount == 3)
 		ret = PyArg_ParseTuple(args, "s#|O|i", &data, &size, &pycallback, &eid);
 	else if(argCount == 2)
 		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
@@ -495,14 +498,35 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
 		PyErr_PrintEx(0);
+		S_Return;
 	}
 	
-	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback, eid);
+	std::string dbInterfaceName = "default";
+	if (pyDBInterfaceName)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyDBInterfaceName, NULL);
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		dbInterfaceName = ccattr;
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		Py_DECREF(pyDBInterfaceName);
+		free(ccattr);
+		
+		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args4, incorrect dbInterfaceName(%s)!", 
+				dbInterfaceName.c_str());
+			
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	}
+
+	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback, eid, dbInterfaceName);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid)
+void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName)
 {
 	if(datas == NULL)
 	{
@@ -522,11 +546,21 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", (eid > 0 ? fmt::format("(entityID={})", eid) : ""), datas));
+	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	if (dbInterfaceIndex < 0)
+	{
+		ERROR_MSG(fmt::format("KBEngine::executeRawDatabaseCommand: not found dbInterface({})!\n",
+			dbInterfaceName));
+
+		return;
+	}
+
+	//INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", (eid > 0 ? fmt::format("(entityID={})", eid) : ""), datas));
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
 	(*pBundle) << eid;
+	(*pBundle) << (uint16)dbInterfaceIndex;
 	(*pBundle) << componentID_ << componentType_;
 
 	CALLBACK_ID callbackID = 0;
@@ -686,7 +720,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Network::Channel* pChannel, KBEngine::Memo
 		return;
 	}
 
-	e->writeToDB(&callbackID, &shouldAutoLoad);
+	e->writeToDB(&callbackID, &shouldAutoLoad, NULL);
 }
 
 //-------------------------------------------------------------------------------------

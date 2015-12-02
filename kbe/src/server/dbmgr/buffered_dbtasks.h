@@ -50,6 +50,9 @@ public:
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
 
+	void dbInterfaceName(const std::string& dbInterfaceName) { dbInterfaceName_ = dbInterfaceName; }
+	const std::string& dbInterfaceName() { return dbInterfaceName_; }
+
 	/**
 		提供给watcher使用
 	*/
@@ -79,6 +82,7 @@ public:
 	std::string printBuffered_entityID();
 	std::string printBuffered_dbid_();
 	std::string printBuffered_entityID_();
+
 protected:
 	bool hasTask_(DBID dbid);
 	bool hasTask_(ENTITY_ID entityID);
@@ -87,6 +91,8 @@ protected:
 	ENTITYID_TASKS_MAP entityid_tasks_;
 
 	KBEngine::thread::ThreadMutex mutex_;
+
+	std::string dbInterfaceName_;
 };
 
 }

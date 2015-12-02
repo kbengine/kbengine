@@ -60,6 +60,9 @@ EntityAutoLoader::~EntityAutoLoader()
 //-------------------------------------------------------------------------------------
 void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s)
 {
+	uint16 dbInterfaceIndex = 0;
+	s >> dbInterfaceIndex;
+
 	int size = 0;
 	s >> size;
 
@@ -108,7 +111,8 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		}
 		else
 		{
-			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL);
+			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
+				g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
 		}
 	}
 }
@@ -127,8 +131,10 @@ bool EntityAutoLoader::process()
 		if(start_ == 0 && end_ == 0)
 			end_ = LOAD_ENTITY_SIZE;
 
+		uint16 dbInterfaceIndex = 0;
+
 		(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
-		(*pBundle) << g_componentID << (*entityTypes_.begin()) << start_ << end_;
+		(*pBundle) << dbInterfaceIndex << g_componentID << (*entityTypes_.begin()) << start_ << end_;
 		pChannel->send(pBundle);
 		querying_ = true;
 		return true;

@@ -197,9 +197,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									NETWORK_VARIABLE_MESSAGE)
 
 	// Ð´entityµ½db»Øµ÷¡£
-	BASEAPP_MESSAGE_DECLARE_ARGS4(onWriteToDBCallback,								NETWORK_FIXED_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onWriteToDBCallback,								NETWORK_VARIABLE_MESSAGE,
 									ENTITY_ID,										eid,
 									DBID,											entityDBID,
+									uint16,											dbInterfaceIndex,
 									CALLBACK_ID,									callbackID,
 									bool,											success)
 

@@ -75,7 +75,8 @@ creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
 pBufferedSendToCellappMessages_(NULL),
-isDirty_(true)
+isDirty_(true),
+dbInterfaceIndex_(0)
 {
 	script::PyGC::incTracing("Base");
 	ENTITY_INIT_PROPERTYS(Base);
@@ -176,6 +177,7 @@ void Base::eraseEntityLog()
 		(*pBundle).newMessage(DbmgrInterface::onEntityOffline);
 		(*pBundle) << this->dbid();
 		(*pBundle) << this->pScriptModule()->getUType();
+		(*pBundle) << dbInterfaceIndex();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
@@ -602,7 +604,8 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(DbmgrInterface::removeEntity);
-
+		
+		(*pBundle) << this->dbInterfaceIndex();
 		(*pBundle) << g_componentID;
 		(*pBundle) << this->id();
 		(*pBundle) << this->dbid();
@@ -954,7 +957,7 @@ void Base::onBackup()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::writeToDB(void* data, void* extra)
+void Base::writeToDB(void* data, void* extra1, void* extra2)
 {
 	PyObject* pyCallback = NULL;
 	int8 shouldAutoLoad = dbid() <= 0 ? 0 : -1;
@@ -963,8 +966,27 @@ void Base::writeToDB(void* data, void* extra)
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
 
-	if(extra != NULL && (*static_cast<int*>(extra)) != -1)
-		shouldAutoLoad = (*static_cast<int*>(extra)) > 0 ? 1 : 0;
+	if(extra1 != NULL && (*static_cast<int*>(extra1)) != -1)
+		shouldAutoLoad = (*static_cast<int*>(extra1)) > 0 ? 1 : 0;
+
+	if (extra2)
+	{
+		if (strlen(static_cast<char*>(extra2)) > 0)
+		{
+			int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(static_cast<char*>(extra2));
+			if (dbInterfaceIndex >= 0)
+			{
+				dbInterfaceIndex_ = dbInterfaceIndex;
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Base::writeToDB: not found dbInterface({})!\n",
+					static_cast<char*>(extra2)));
+
+				return;
+			}
+		}
+	}
 
 	if(isArchiveing_)
 	{
@@ -980,7 +1002,7 @@ void Base::writeToDB(void* data, void* extra)
 
 	isArchiveing_ = true;
 
-	if(isDestroyed())																				
+	if(isDestroyed())
 	{	
 		// __py_pyWriteToDB没有增加引用
 		//if(pyCallback != NULL)
@@ -989,7 +1011,7 @@ void Base::writeToDB(void* data, void* extra)
 		ERROR_MSG(fmt::format("{}::writeToDB(): is destroyed! entityid={}, dbid={}.\n", 
 			this->scriptName(), this->id(), this->dbid()));
 
-		return;																							
+		return;
 	}
 
 	CALLBACK_ID callbackID = 0;
@@ -1019,6 +1041,7 @@ void Base::writeToDB(void* data, void* extra)
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDBCallback(ENTITY_ID eid, 
 								DBID entityDBID, 
+								uint16 dbInterfaceIndex,
 								CALLBACK_ID callbackID, 
 								int8 shouldAutoLoad,
 								bool success)
@@ -1031,7 +1054,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		pyCallback = callbackMgr().take(callbackID);
 
 	if(dbid() <= 0)
-		dbid(entityDBID);
+		dbid(dbInterfaceIndex, entityDBID);
 
 	if(callbackID > 0)
 	{
@@ -1108,6 +1131,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	(*pBundle) << g_componentID;
 	(*pBundle) << this->id();
 	(*pBundle) << this->dbid();
+	(*pBundle) << this->dbInterfaceIndex();
 	(*pBundle) << this->pScriptModule()->getUType();
 	(*pBundle) << callbackID;
 	(*pBundle) << shouldAutoLoad;

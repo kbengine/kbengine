@@ -65,7 +65,7 @@ public:
 		数据库关联ID
 	*/
 	INLINE DBID dbid() const;
-	INLINE void dbid(DBID id);
+	INLINE void dbid(uint16 dbInterfaceIndex, DBID id);
 	DECLARE_PY_GET_MOTHOD(pyGetDBID);
 
 	/** 
@@ -141,7 +141,7 @@ public:
 	*/
 	void onWriteToDB();
 	void onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad);
-	void onWriteToDBCallback(ENTITY_ID eid, DBID entityDBID, 
+	void onWriteToDBCallback(ENTITY_ID eid, DBID entityDBID, uint16 dbInterfaceIndex,
 		CALLBACK_ID callbackID, int8 shouldAutoLoad, bool success);
 
 	/** 网络接口
@@ -276,6 +276,8 @@ public:
 	INLINE void setDirty(bool dirty = true);
 	INLINE bool isDirty() const;
 	
+	INLINE uint16 dbInterfaceIndex() const;
+
 protected:
 	/** 
 		定义属性数据被改变了 
@@ -326,6 +328,9 @@ protected:
 	
 	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
 	bool									isDirty_;
+
+	// 如果这个实体已经写到数据库，那么这个属性就是对应的数据库接口的索引
+	uint16									dbInterfaceIndex_;
 };
 
 }

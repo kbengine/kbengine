@@ -97,6 +97,21 @@ struct EmailSendInfo
 	uint32 deadline;
 };
 
+struct DBInterfaceInfo
+{
+	char name[MAX_BUF];										// 数据库的接口名称
+	char db_type[MAX_BUF];									// 数据库的类别
+	uint32 db_port;											// 数据库的端口
+	char db_ip[MAX_BUF];									// 数据库的ip地址
+	char db_username[MAX_NAME];								// 数据库的用户名
+	char db_password[MAX_BUF * 10];							// 数据库的密码
+	bool db_passwordEncrypt;								// db密码是否是加密的
+	char db_name[MAX_NAME];									// 数据库名
+	uint16 db_numConnections;								// 数据库最大连接
+	std::string db_unicodeString_characterSet;				// 设置数据库字符集
+	std::string db_unicodeString_collation;
+};
+
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
@@ -145,17 +160,8 @@ typedef struct EngineComponentInfo
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
 	int32 externalPorts_max;
 
-	char db_type[MAX_BUF];									// 数据库的类别
-	uint32 db_port;											// 数据库的端口
-	char db_ip[MAX_BUF];									// 数据库的ip地址
-	char db_username[MAX_NAME];								// 数据库的用户名
-	char db_password[MAX_BUF * 10];							// 数据库的密码
-	char db_name[MAX_NAME];									// 数据库名
-	uint16 db_numConnections;								// 数据库最大连接
-	std::string db_unicodeString_characterSet;				// 设置数据库字符集
-	std::string db_unicodeString_collation;
+	std::vector<DBInterfaceInfo> dbInterfaceInfos;			// 数据库接口
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
-	bool db_passwordEncrypt;								// db密码是否是加密的
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
 
@@ -239,13 +245,7 @@ public:
 	INLINE const char* interfacesAccountType() const;
 	INLINE const char* interfacesChargeType() const;
 
-	INLINE const char* interfacesThirdpartyAccountServiceAddr() const;
-	INLINE uint16 interfacesThirdpartyAccountServicePort() const;
-
-	INLINE const char* interfacesThirdpartyChargeServiceAddr() const;
-	INLINE uint16 interfacesThirdpartyChargeServicePort() const;
-
-	INLINE uint16 interfacesThirdpartyServiceCBPort() const;
+	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -256,6 +256,30 @@ public:
 
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
+
+	int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName)
+	{
+		for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
+		{
+			if (_dbmgrInfo.dbInterfaceInfos[i].name == dbInterfaceName)
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex)
+	{
+		if (_dbmgrInfo.dbInterfaceInfos.size() - 1 >= dbInterfaceIndex)
+		{
+			return _dbmgrInfo.dbInterfaceInfos[dbInterfaceIndex].name;
+		}
+
+		return "";
+	}
+
 private:
 	void _updateEmailInfos();
 
@@ -284,11 +308,6 @@ public:
 	Network::Address interfacesAddr_;
 	std::string interfaces_accountType_;							// 账号系统类别
 	std::string interfaces_chargeType_;								// 计费系统类别
-	std::string interfaces_thirdpartyAccountServiceAddr_;			// 第三方运营账号服务地址(当type是thirdparty时有效)
-	uint16 interfaces_thirdpartyAccountServicePort_;			
-	std::string interfaces_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
-	uint16 interfaces_thirdpartyChargeServicePort_;	
-	uint16 interfaces_thirdpartyServiceCBPort_;	
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

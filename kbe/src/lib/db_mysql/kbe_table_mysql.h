@@ -36,7 +36,7 @@ namespace KBEngine {
 class KBEEntityLogTableMysql : public KBEEntityLogTable
 {
 public:
-	KBEEntityLogTableMysql();
+	KBEEntityLogTableMysql(EntityTables* pEntityTables);
 	virtual ~KBEEntityLogTableMysql(){}
 	
 	/**
@@ -58,7 +58,7 @@ protected:
 class KBEAccountTableMysql : public KBEAccountTable
 {
 public:
-	KBEAccountTableMysql();
+	KBEAccountTableMysql(EntityTables* pEntityTables);
 	virtual ~KBEAccountTableMysql(){}
 	
 	/**
@@ -80,7 +80,7 @@ class KBEEmailVerificationTableMysql : public KBEEmailVerificationTable
 {
 public:
 
-	KBEEmailVerificationTableMysql();
+	KBEEmailVerificationTableMysql(EntityTables* pEntityTables);
 	virtual ~KBEEmailVerificationTableMysql();
 
 	/**
