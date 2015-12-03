@@ -46,7 +46,7 @@ private:
 	Network::NetworkInterface & networkInterface_;
 	InitProgressHandler* pInitProgressHandler_;
 
-	std::vector<ENTITY_SCRIPT_UID> entityTypes_;
+	std::vector< std::vector<ENTITY_SCRIPT_UID> > entityTypes_;
 
 	// 每次取查询结果集的区段
 	ENTITY_ID start_;

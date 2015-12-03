@@ -779,12 +779,15 @@ public:																										\
 				}																							\
 			}																								\
 																											\
-			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);		\
-			char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);								\
-			strextra = ccattr;																				\
-			PyMem_Free(PyUnicode_AsWideCharStringRet0);														\
-			Py_DECREF(pystr_extra);																			\
-			free(ccattr);																					\
+			if(pystr_extra)																					\
+			{																								\
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);	\
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
+				strextra = ccattr;																			\
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
+				free(ccattr);																				\
+																											\
+			}																								\
 																											\
 			if(!g_kbeSrvConfig.dbInterface(strextra))														\
 			{																								\
