@@ -508,7 +508,6 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 		
 		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))

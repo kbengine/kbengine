@@ -872,7 +872,6 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 
 		int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
@@ -1185,7 +1184,6 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 
 		int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
@@ -2029,7 +2027,6 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 		
 		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
@@ -3759,7 +3756,6 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 	}
 
@@ -3924,7 +3920,6 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 		dbInterfaceName = ccattr;
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		Py_DECREF(pyDBInterfaceName);
 		free(ccattr);
 	}
 	else
