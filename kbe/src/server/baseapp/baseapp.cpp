@@ -1429,8 +1429,8 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	COMPONENT_ID sourceBaseappID;
 	uint16 dbInterfaceIndex;
 
-	s >> dbInterfaceIndex;
 	s >> sourceBaseappID;
+	s >> dbInterfaceIndex;
 	s >> entityType;
 	s >> dbid;
 	s >> callbackID;
