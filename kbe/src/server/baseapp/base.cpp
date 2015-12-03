@@ -372,7 +372,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -388,7 +388,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -401,8 +401,12 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent[{}].\n",
+				WARNING_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent({}), use default values!\n",
 					this->scriptName(), this->id(), attrname));
+
+				(*s) << propertyDescription->getUType();
+				log.push_back(propertyDescription->getUType());
+				propertyDescription->addPersistentToStream(s, NULL);
 			}
 
 			Py_DECREF(key);
