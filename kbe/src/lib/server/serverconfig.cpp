@@ -881,7 +881,25 @@ bool ServerConfig::loadConfig(std::string fileName)
 						pDBInfo->db_unicodeString_collation = "utf8_bin";
 	
 					if (pDBInfo == &dbinfo)
+					{
+						// 检查不能在不同的接口中使用相同的数据库与相同的表
+						std::vector<DBInterfaceInfo>::iterator dbinfo_iter = _dbmgrInfo.dbInterfaceInfos.begin();
+						for (; dbinfo_iter != _dbmgrInfo.dbInterfaceInfos.end(); ++dbinfo_iter)
+						{
+							if (kbe_stricmp((*dbinfo_iter).db_ip, dbinfo.db_ip) == 0 && 
+								kbe_stricmp((*dbinfo_iter).db_type, dbinfo.db_type) == 0 &&
+								(*dbinfo_iter).db_port == dbinfo.db_port &&
+								strcmp(dbinfo.db_name, (*dbinfo_iter).db_name) == 0)
+							{
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}\" and \"{}\", file={}!\n",
+									(*dbinfo_iter).name, dbinfo.name, fileName.c_str()));
+
+								return false;
+							}
+						}
+
 						_dbmgrInfo.dbInterfaceInfos.push_back(dbinfo);
+					}
 
 				} while ((databaseInterfacesNode = databaseInterfacesNode->NextSibling()));
 			}
