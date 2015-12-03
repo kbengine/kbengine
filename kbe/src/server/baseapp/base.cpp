@@ -154,7 +154,7 @@ void Base::onDestroy(bool callScript)
 
 	if(this->hasDB())
 	{
-		onCellWriteToDBCompleted(0, -1);
+		onCellWriteToDBCompleted(0, -1, -1);
 	}
 	
 	eraseEntityLog();
@@ -1025,7 +1025,7 @@ void Base::writeToDB(void* data, void* extra1, void* extra2)
 	// 写入数据库的是该entity的初始值， 并不影响
 	if(this->cellMailbox() == NULL) 
 	{
-		onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
+		onCellWriteToDBCompleted(callbackID, shouldAutoLoad, -1);
 	}
 	else
 	{
