@@ -140,7 +140,7 @@ public:
 		将要保存到数据库之前的通知 
 	*/
 	void onWriteToDB();
-	void onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad);
+	void onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad, int dbInterfaceIndex);
 	void onWriteToDBCallback(ENTITY_ID eid, DBID entityDBID, uint16 dbInterfaceIndex,
 		CALLBACK_ID callbackID, int8 shouldAutoLoad, bool success);
 

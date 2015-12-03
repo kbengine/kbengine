@@ -3325,10 +3325,12 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 	ENTITY_ID baseID = 0;
 	CALLBACK_ID callbackID = 0;
 	int8 shouldAutoLoad = -1;
+	int dbInterfaceIndex = -1;
 
 	s >> baseID;
 	s >> callbackID;
 	s >> shouldAutoLoad;
+	s >> dbInterfaceIndex;
 
 	Base* base = this->findEntity(baseID);
 
@@ -3338,7 +3340,7 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 		INFO_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: {}({}).\n",
 			base->scriptName(), baseID));
 
-		base->onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
+		base->onCellWriteToDBCompleted(callbackID, shouldAutoLoad, dbInterfaceIndex);
 	}
 	else
 	{

@@ -1087,11 +1087,14 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
+void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad, int dbInterfaceIndex)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
+
+	if (dbInterfaceIndex >= 0)
+		dbInterfaceIndex_ = dbInterfaceIndex;
 
 	hasDB(true);
 	
