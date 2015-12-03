@@ -270,14 +270,14 @@ public:
 		return -1;
 	}
 
-	char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex)
+	const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex)
 	{
 		if (_dbmgrInfo.dbInterfaceInfos.size() - 1 >= dbInterfaceIndex)
 		{
 			return _dbmgrInfo.dbInterfaceInfos[dbInterfaceIndex].name;
 		}
 
-		static char* nullstr = "";
+		static const char* nullstr = "";
 		return nullstr;
 	}
 
