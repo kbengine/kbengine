@@ -277,8 +277,7 @@ public:
 			return _dbmgrInfo.dbInterfaceInfos[dbInterfaceIndex].name;
 		}
 
-		static const char* nullstr = "";
-		return nullstr;
+		return "";
 	}
 
 private:
