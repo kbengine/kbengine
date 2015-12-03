@@ -786,7 +786,6 @@ public:																										\
 				strextra = ccattr;																			\
 				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
 				free(ccattr);																				\
-																											\
 			}																								\
 																											\
 			if(!g_kbeSrvConfig.dbInterface(strextra))														\
