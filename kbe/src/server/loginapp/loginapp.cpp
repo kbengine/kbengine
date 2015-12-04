@@ -426,7 +426,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			SCRIPT_ERROR_CHECK();
 			retcode = SERVER_ERR_OP_FAILED;
 		}
-		
+			
 		if(retcode != SERVER_SUCCESS)
 		{
 			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -435,6 +435,21 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			(*pBundle).appendBlob(retdatas);
 			pChannel->send(pBundle);
 			return false;
+		}
+		else
+		{
+			if(accountName.size() == 0)
+			{
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: accountName is empty!\n"));
+
+				retcode = SERVER_ERR_NAME;
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+				(*pBundle) << retcode;
+				(*pBundle).appendBlob(retdatas);
+				pChannel->send(pBundle);
+				return false;
+			}
 		}
 	}
 
@@ -977,6 +992,14 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 			{
 				login_check = false;
 				_loginFailed(pChannel, loginName, error, datas, true);
+			}
+			
+			if(loginName.size() == 0)
+			{
+				INFO_MSG("Loginapp::login: loginName is NULL.\n");
+				_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas, true);
+				s.done();
+				return;
 			}
 		}
 		else
