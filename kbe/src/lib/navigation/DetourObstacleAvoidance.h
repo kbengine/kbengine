@@ -128,10 +128,8 @@ private:
 	float processSample(const float* vcand, const float cs,
 						const float* pos, const float rad,
 						const float* vel, const float* dvel,
+						const float minPenalty,
 						dtObstacleAvoidanceDebugData* debug);
-
-	dtObstacleCircle* insertCircle(const float dist);
-	dtObstacleSegment* insertSegment(const float dist);
 
 	dtObstacleAvoidanceParams m_params;
 	float m_invHorizTime;
