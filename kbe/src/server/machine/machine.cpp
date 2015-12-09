@@ -635,6 +635,8 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
+	uint64 cid = 0;
+	int16 gus = 0;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	bool success = true;
@@ -643,14 +645,16 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	s >> uid;
 	s >> componentType;
+	s >> cid;
+	s >> gus;
 
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}\n", 
+		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
@@ -691,6 +695,10 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	free(szCmdline);
 	free(currdir);
 #else
+	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
+	{
+		success = false;
+	}
 #endif
 	
 	(*pBundle) << success;
@@ -892,5 +900,59 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 
 //-------------------------------------------------------------------------------------
+#if KBE_PLATFORM != PLATFORM_WIN32
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
+	uint16 childpid;
+
+	if ((childpid = fork()) == 0)
+	{
+		if (setuid(uid) == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to setuid to {}, aborting exec for '{}'\n", 
+				uid,  COMPONENT_NAME_EX(componentType)));
+
+			exit(1);
+		}
+
+		std::string bin_path = Resmgr::getSingleton().getEnv().bin_path;
+		std::string cmdLine = bin_path + COMPONENT_NAME_EX(componentType);
+
+		// 改变当前目录，以让出问题的时候core能在此处生成
+		//chdir(bin_path.c_str());
+
+		const char *argv[6];
+		std::string scid = fmt::format("{}", cid);
+		std::string sgus = fmt::format("{}", gus);
+		
+		argv[0] = cmdLine.c_str();
+		argv[1] = "--cid";
+		argv[2] = scid.c_str();
+		argv[3] = "--gus";
+		argv[4] = sgus.c_str();
+		argv[5] = NULL;
+
+		// 关闭父类的socket
+		ep_.close();
+		epBroadcast_.close();
+		epLocal_.close();
+
+		INFO_MSG(fmt::format("Machine::startLinuxProcess: UID {} execing '{}', cid = {}, gus = {}\n", uid, cmdLine, cid, gus));
+
+		DebugHelper::getSingleton().closeLogger();
+		int result = execv(cmdLine.c_str(), (char * const *)argv);
+
+		if (result == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to exec '{}'\n", cmdLine));
+		}
+
+		exit(1);
+		return 0;
+	}
+	else
+		return childpid;
+}
+#endif
 
 }

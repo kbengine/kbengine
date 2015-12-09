@@ -101,6 +101,13 @@ public:
 	*/
 	void startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+#if KBE_PLATFORM != PLATFORM_WIN32
+	/**
+	* 在linux下启动一个新进程
+	*/
+	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+#endif
+
 	/** 网络接口
 		关闭服务器
 		@uid: 提供启动的uid参数
