@@ -617,34 +617,13 @@ if __name__ == "__main__":
 		cmdType = sys.argv[1]
 		
 		if cmdType == "start":
-			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp"
+			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp|interfaces|logger|bots"
 			uid = -1
 			
-			if len(sys.argv) >= 3:
-				if sys.argv[2].isdigit():
-					uid = sys.argv[2]
-				else:
-					templatestr = sys.argv[2]
-
-			if len(sys.argv) == 4:
-				if sys.argv[3].isdigit():
-					uid = sys.argv[3]
-				else:
-					templatestr = sys.argv[3]
-					
-			uid = int(uid)
-			if uid < 0:
-				uid = getDefaultUID()
-
-			clusterHandler = ClusterStartHandler(uid, templatestr)
-		elif cmdType == "startprocess":
-			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp|interfaces"
-			uid = -1
-			
-			# cluster_controller.py startprocess dbmgr 123456789012345678 123 [10.11.12.13] [uid]
+			# cluster_controller.py start dbmgr 123456789012345678 123 [10.11.12.13] [uid]
 			if len(sys.argv) < 6:
-				print("syntax: cluster_controller.py startprocess componentName cid gus machine-ip [user-id]")
-				print("exp: cluster_controller.py startprocess dbmgr 123456789012345678 123 10.11.12.13")
+				print("syntax: cluster_controller.py start componentName cid gus machine-ip [user-id]")
+				print("exp: cluster_controller.py start dbmgr 123456789012345678 123 10.11.12.13")
 				exit(1)
 			
 			if len(sys.argv) > 6:
@@ -654,7 +633,7 @@ if __name__ == "__main__":
 				_, _, componentName, cid, gus, machineip = sys.argv
 				uid = getDefaultUID()
 			
-			if componentName not in templatestr:
+			if componentName not in COMPONENT_NAME:
 				print("Error: component name invalid. refer to:", templatestr)
 				exit(1)
 			
