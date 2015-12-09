@@ -391,9 +391,10 @@ bool Dbmgr::initDB()
 
 	std::vector<DBInterfaceInfo>::iterator dbinfo_iter = dbcfg.dbInterfaceInfos.begin();
 	for (; dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
-	{
 		bufferedDBTasksMaps_[(*dbinfo_iter).name].dbInterfaceName((*dbinfo_iter).name);
-
+	
+	for (dbinfo_iter = dbcfg.dbInterfaceInfos.begin(); dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
+	{
 		DBInterface* pDBInterface = DBUtil::createInterface((*dbinfo_iter).name);
 		if(pDBInterface == NULL)
 		{
