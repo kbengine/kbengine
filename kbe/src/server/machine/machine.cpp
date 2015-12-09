@@ -660,40 +660,10 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	std::string str = Resmgr::getSingleton().getEnv().bin_path;
-	str += COMPONENT_NAME_EX(componentType);
-	str += ".exe";
-
-	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
-
-	ZeroMemory( &si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory( &pi, sizeof(pi));
-
-	if(!CreateProcess( NULL,   // No module name (use command line)
-		szCmdline,      // Command line
-		NULL,           // Process handle not inheritable
-		NULL,           // Thread handle not inheritable
-		FALSE,          // Set handle inheritance to FALSE
-		CREATE_NEW_CONSOLE,    // No creation flags
-		NULL,           // Use parent's environment block
-		currdir,        // Use parent's starting directory
-		&si,            // Pointer to STARTUPINFO structure
-		&pi )           // Pointer to PROCESS_INFORMATION structure
-	)
+	if (startWindowsProcess(uid, componentType, cid, gus) <= 0)
 	{
-		ERROR_MSG(fmt::format("Machine::startserver:CreateProcess failed ({}).\n",
-			GetLastError()));
-
 		success = false;
 	}
-	
-	free(szCmdline);
-	free(currdir);
 #else
 	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
 	{
@@ -952,7 +922,52 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 	}
 	else
 		return childpid;
+
+	return 0;
 }
+
+#else
+
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	std::string str = Resmgr::getSingleton().getEnv().bin_path;
+	str += COMPONENT_NAME_EX(componentType);
+	str += ".exe";
+
+	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
+	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
+
+	ZeroMemory( &si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory( &pi, sizeof(pi));
+
+	if(!CreateProcess( NULL,   // No module name (use command line)
+		szCmdline,      // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		CREATE_NEW_CONSOLE,    // No creation flags
+		NULL,           // Use parent's environment block
+		currdir,        // Use parent's starting directory
+		&si,            // Pointer to STARTUPINFO structure
+		&pi )           // Pointer to PROCESS_INFORMATION structure
+		)
+	{
+		ERROR_MSG(fmt::format("Machine::startWindowsProcess: CreateProcess failed ({}).\n",
+			GetLastError()));
+
+		return 0;
+	}
+
+	free(szCmdline);
+	free(currdir);
+
+	return pi.dwProcessId;
+}
+
 #endif
 
 }

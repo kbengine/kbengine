@@ -106,6 +106,11 @@ public:
 	* 在linux下启动一个新进程
 	*/
 	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+#else
+	/**
+	* 在windows下启动一个新进程
+	*/
+	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
 #endif
 
 	/** 网络接口
