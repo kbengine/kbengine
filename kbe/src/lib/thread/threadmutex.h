@@ -53,6 +53,12 @@ public:
 		THREAD_MUTEX_INIT(mutex_);
 	}
 
+	ThreadMutex(const ThreadMutex& v):
+	ThreadMutex()
+	{
+		// 这里不允许拷贝构造mutex_，这是非常危险的
+	}
+
 	virtual ~ThreadMutex(void) 
 	{ 
 		THREAD_MUTEX_DELETE(mutex_);
