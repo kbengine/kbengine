@@ -834,8 +834,10 @@ void DebugHelper::backtrace_msg()
 void DebugHelper::closeLogger()
 {
 	// close logger for fork + execv
+#ifndef NO_USE_LOG4CXX
 	g_logger = (const int)NULL;
 	log4cxx::LogManager::shutdown();
+#endif
 }
 
 
