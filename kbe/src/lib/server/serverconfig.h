@@ -263,7 +263,7 @@ public:
 		{
 			if (_dbmgrInfo.dbInterfaceInfos[i].name == dbInterfaceName)
 			{
-				return i;
+				return (int)i;
 			}
 		}
 
