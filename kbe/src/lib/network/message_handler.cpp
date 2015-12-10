@@ -279,8 +279,6 @@ std::string MessageHandlers::getDigestStr()
 
 		md5.append((void*)&isize, sizeof(int32));
 
-		
-
 		std::vector<MessageHandlers*>& msgHandlers = messageHandlers();
 		isize += msgHandlers.size();
 		md5.append((void*)&isize, sizeof(int32));
