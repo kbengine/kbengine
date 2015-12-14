@@ -362,7 +362,7 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 }
 
 //-------------------------------------------------------------------------------------		
-int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID)
+int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog)
 {
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
 	KBE_ASSERT(pComponentInfos != NULL);
@@ -371,7 +371,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
-		ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		if (printlog)
+		{
+			ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		}
+
 		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
 	}
@@ -385,8 +389,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		if(!ret)
 		{
-			ERROR_MSG(fmt::format("Components::connectComponent: initialize({}) is failed!\n",
-				pChannel->c_str()));
+			if (printlog)
+			{
+				ERROR_MSG(fmt::format("Components::connectComponent: initialize({}) is failed!\n",
+					pChannel->c_str()));
+			}
 
 			pChannel->destroy();
 			Network::Channel::ObjPool().reclaimObject(pChannel);
@@ -397,8 +404,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
-			ERROR_MSG(fmt::format("Components::connectComponent: registerChannel({}) is failed!\n",
-				pComponentInfos->pChannel->c_str()));
+			if (printlog)
+			{
+				ERROR_MSG(fmt::format("Components::connectComponent: registerChannel({}) is failed!\n",
+					pComponentInfos->pChannel->c_str()));
+			}
 
 			pComponentInfos->pChannel->destroy();
 			Network::Channel::ObjPool().reclaimObject(pComponentInfos->pChannel);
@@ -481,8 +491,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
-			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
+		if (printlog)
+		{
+			ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
+				pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
+		}
 
 		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
@@ -1041,7 +1054,7 @@ RESTART_RECV:
 			{
 				for(int iconn=0; iconn<5; iconn++)
 				{
-					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0, false) != 0)
 					{
 						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} is error!\n",
 						//COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));

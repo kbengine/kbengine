@@ -36,7 +36,7 @@ namespace KBEngine {
 class KBEEntityLogTableRedis : public KBEEntityLogTable
 {
 public:
-	KBEEntityLogTableRedis();
+	KBEEntityLogTableRedis(EntityTables* pEntityTables);
 	virtual ~KBEEntityLogTableRedis(){}
 	
 	/**
@@ -58,7 +58,7 @@ protected:
 class KBEAccountTableRedis : public KBEAccountTable
 {
 public:
-	KBEAccountTableRedis();
+	KBEAccountTableRedis(EntityTables* pEntityTables);
 	virtual ~KBEAccountTableRedis(){}
 	
 	/**
@@ -80,7 +80,7 @@ class KBEEmailVerificationTableRedis : public KBEEmailVerificationTable
 {
 public:
 
-	KBEEmailVerificationTableRedis();
+	KBEEmailVerificationTableRedis(EntityTables* pEntityTables);
 	virtual ~KBEEmailVerificationTableRedis();
 
 	/**

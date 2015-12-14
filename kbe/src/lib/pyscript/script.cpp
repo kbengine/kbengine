@@ -154,7 +154,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	pyPaths += pySysPaths;
 	free(pwpySysResPath);
 
-	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
+	// 先设置python的环境变量
+	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 	std::wstring fs = L";";
@@ -185,7 +186,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	Py_SetPath(pyPaths.c_str());
 
 	// python解释器的初始化  
-	Py_Initialize();                      											
+	Py_Initialize();
     if (!Py_IsInitialized())
     {
     	ERROR_MSG("Script::install(): Py_Initialize is failed!\n");
@@ -195,7 +196,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	PyObject *m = PyImport_AddModule("__main__");
 
 	// 添加一个脚本基础模块
-	module_ = PyImport_AddModule(moduleName);										
+	module_ = PyImport_AddModule(moduleName);
 	if (module_ == NULL)
 		return false;
 	
@@ -217,29 +218,29 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	}
 
 	// 安装py重定向模块
-	ScriptStdOut::installScript(NULL);												
-	ScriptStdErr::installScript(NULL);	
+	ScriptStdOut::installScript(NULL);
+	ScriptStdErr::installScript(NULL);
 
-	static struct PyModuleDef moduleDesc =   
+	static struct PyModuleDef moduleDesc =
 	{  
 			 PyModuleDef_HEAD_INIT,  
 			 moduleName,  
-			 "This module is created by KBEngine!",  
+			 "This module is created by KBEngine!", 
 			 -1,  
 			 NULL  
 	};  
 
 	// 初始化基础模块
-	PyModule_Create(&moduleDesc);		
+	PyModule_Create(&moduleDesc);
 
 	// 将模块对象加入main
-	PyObject_SetAttrString(m, moduleName, module_);									
+	PyObject_SetAttrString(m, moduleName, module_);	
 
 	// 重定向python输出
-	pyStdouterr_ = new ScriptStdOutErr();											
+	pyStdouterr_ = new ScriptStdOutErr();
 	
 	// 安装py重定向脚本模块
-	if(!pyStdouterr_->install()){													
+	if(!pyStdouterr_->install()){
 		ERROR_MSG("Script::install::pyStdouterr_->install() is failed!\n");
 		delete pyStdouterr_;
 		SCRIPT_ERROR_CHECK();
@@ -277,8 +278,8 @@ bool Script::uninstall()
 		delete pyStdouterr_;
 	}
 
-	ScriptStdOut::uninstallScript();	
-	ScriptStdErr::uninstallScript();	
+	ScriptStdOut::uninstallScript();
+	ScriptStdErr::uninstallScript();
 
 	if(!uninstall_py_dlls())
 	{
@@ -289,7 +290,7 @@ bool Script::uninstall()
 	PyGC::initialize();
 
 	// 卸载python解释器
-	Py_Finalize();												
+	Py_Finalize();
 
 	INFO_MSG("Script::uninstall(): is successfully!\n");
 	return true;	
@@ -301,17 +302,17 @@ bool Script::installExtraModule(const char* moduleName)
 	PyObject *m = PyImport_AddModule("__main__");
 
 	// 添加一个脚本扩展模块
-	extraModule_ = PyImport_AddModule(moduleName);								
+	extraModule_ = PyImport_AddModule(moduleName);
 	if (extraModule_ == NULL)
 		return false;
 	
 	// 初始化扩展模块
-	PyObject *module_ = PyImport_AddModule(moduleName);							
+	PyObject *module_ = PyImport_AddModule(moduleName);
 	if (module_ == NULL)
 		return false;
 
 	// 将扩展模块对象加入main
-	PyObject_SetAttrString(m, moduleName, extraModule_);						
+	PyObject_SetAttrString(m, moduleName, extraModule_);
 
 	INFO_MSG(fmt::format("Script::install(): {} is successfully!\n", moduleName));
 	return true;

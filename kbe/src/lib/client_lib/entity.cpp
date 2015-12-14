@@ -340,7 +340,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(void* data, void* extra)
+void Entity::writeToDB(void* data, void* extra1, void* extra2)
 {
 }
 

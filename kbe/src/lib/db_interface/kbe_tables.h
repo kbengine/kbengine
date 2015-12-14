@@ -31,8 +31,8 @@ namespace KBEngine {
 class KBETable : public EntityTable
 {
 public:
-	KBETable():
-	EntityTable()
+	KBETable(EntityTables* pEntityTables) :
+	EntityTable(pEntityTables)
 	{
 	}
 	
@@ -71,8 +71,8 @@ public:
 		COMPONENT_ID componentID;
 	};
 
-	KBEEntityLogTable():
-	KBETable()
+	KBEEntityLogTable(EntityTables* pEntityTables) :
+	KBETable(pEntityTables)
 	{
 		tableName("kbe_entitylog");
 	}
@@ -95,8 +95,8 @@ protected:
 class KBEAccountTable : public KBETable
 {
 public:
-	KBEAccountTable():
-	KBETable(),
+	KBEAccountTable(EntityTables* pEntityTables) :
+	KBETable(pEntityTables),
 	accountDefMemoryStream_()
 	{
 		tableName("kbe_accountinfos");
@@ -138,8 +138,8 @@ public:
 		V_TYPE_BIND_MAIL = 3
 	};
 
-	KBEEmailVerificationTable():
-	KBETable()
+	KBEEmailVerificationTable(EntityTables* pEntityTables) :
+	KBETable(pEntityTables)
 	{
 		tableName("kbe_email_verification");
 	}

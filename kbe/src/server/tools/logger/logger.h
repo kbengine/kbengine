@@ -90,7 +90,7 @@ public:
 	virtual bool canShutdown();
 
 	uint32 bufferedLogsSize(){
-		return buffered_logs_.size();
+		return (uint32)buffered_logs_.size();
 	}
 
 	/** ÍøÂç½Ó¿Ú

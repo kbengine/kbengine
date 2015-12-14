@@ -109,9 +109,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									ENTITY_ID,						entityID)
 		
 	// baseapp上entity下线。
-	DBMGR_MESSAGE_DECLARE_ARGS2(onEntityOffline,					NETWORK_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS3(onEntityOffline,					NETWORK_VARIABLE_MESSAGE,
 									DBID,							dbid,
-									uint16,							sid)
+									uint16,							sid,
+									uint16,							dbInterfaceIndex)
 
 	// 请求擦除客户端请求任务。
 	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,						NETWORK_VARIABLE_MESSAGE,
@@ -136,7 +137,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					NETWORK_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS6(queryEntity,						NETWORK_VARIABLE_MESSAGE, 
+	DBMGR_MESSAGE_DECLARE_ARGS7(queryEntity,						NETWORK_VARIABLE_MESSAGE, 
+									uint16,							dbInterfaceIndex,
 									COMPONENT_ID,					componentID,
 									int8,							queryMode,
 									DBID,							dbid, 

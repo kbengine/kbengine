@@ -492,7 +492,7 @@ protected:
 class EntityTableRedis : public EntityTable
 {
 public:
-	EntityTableRedis();
+	EntityTableRedis(EntityTables* pEntityTables);
 	virtual ~EntityTableRedis();
 	
 	/**

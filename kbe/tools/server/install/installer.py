@@ -816,7 +816,7 @@ def modifyKBEConfig():
 	state = 0
 
 	f = None
-	
+
 	try:
 		f = open(kbengine_defs, encoding='UTF-8')
 	except:
@@ -1131,8 +1131,8 @@ def get_sources_infos():
 	ziplist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.zip""").findall(html)
 	tgzlist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.gz""").findall(html)
 
-	src_master_zip_url = ziplist[0].replace("=\"", "https://github.com")
-	src_zip_url = ziplist[1].replace("=\"", "https://github.com")
+	src_master_zip_url = """https://github.com/kbengine/kbengine/archive/master.zip"""
+	src_zip_url = ziplist[0].replace("=\"", "https://github.com")
 	src_tgz_url = tgzlist[0].replace("=\"", "https://github.com")
 
 	# title

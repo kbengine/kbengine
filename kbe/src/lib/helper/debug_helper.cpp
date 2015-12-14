@@ -557,7 +557,7 @@ void DebugHelper::print_msg(const std::string& s)
 		LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(KBELOG_PRINT, s.c_str(), s.size());
+	onMessage(KBELOG_PRINT, s.c_str(), (uint32)s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -570,13 +570,11 @@ void DebugHelper::error_msg(const std::string& s)
 	LOG4CXX_ERROR(g_logger, s);
 #endif
 
-	onMessage(KBELOG_ERROR, s.c_str(), s.size());
+	onMessage(KBELOG_ERROR, s.c_str(), (uint32)s.size());
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
 	printf("[ERROR]: %s", s.c_str());
 	set_normalcolor();
-#endif
 }
 
 //-------------------------------------------------------------------------------------
@@ -590,7 +588,7 @@ void DebugHelper::info_msg(const std::string& s)
 		LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(KBELOG_INFO, s.c_str(), s.size());
+	onMessage(KBELOG_INFO, s.c_str(), (uint32)s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -629,17 +627,15 @@ void DebugHelper::script_info_msg(const std::string& s)
 #endif
 
 
-	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), s.size());
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	set_errorcolor();
+	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), (uint32)s.size());
 
 	// 如果是用户手动设置的也输出为错误信息
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
+	{
+		set_errorcolor();
 		printf("[S_ERROR]: %s", s.c_str());
-
-	set_normalcolor();
-#endif
+		set_normalcolor();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -655,13 +651,11 @@ void DebugHelper::script_error_msg(const std::string& s)
 		LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
-	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), s.size());
+	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), (uint32)s.size());
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
 	printf("[S_ERROR]: %s", s.c_str());
 	set_normalcolor();
-#endif
 }
 
 //-------------------------------------------------------------------------------------
@@ -687,7 +681,7 @@ void DebugHelper::debug_msg(const std::string& s)
 		LOG4CXX_DEBUG(g_logger, s);
 #endif
 
-	onMessage(KBELOG_DEBUG, s.c_str(), s.size());
+	onMessage(KBELOG_DEBUG, s.c_str(), (uint32)s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -701,7 +695,7 @@ void DebugHelper::warning_msg(const std::string& s)
 		LOG4CXX_WARN(g_logger, s);
 #endif
 
-	onMessage(KBELOG_WARNING, s.c_str(), s.size());
+	onMessage(KBELOG_WARNING, s.c_str(), (uint32)s.size());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_warningcolor();
@@ -729,7 +723,7 @@ void DebugHelper::critical_msg(const std::string& s)
 	set_normalcolor();
 #endif
 
-	onMessage(KBELOG_CRITICAL, buf, strlen(buf));
+	onMessage(KBELOG_CRITICAL, buf, (uint32)strlen(buf));
 	backtrace_msg();
 }
 
@@ -834,8 +828,10 @@ void DebugHelper::backtrace_msg()
 void DebugHelper::closeLogger()
 {
 	// close logger for fork + execv
+#ifndef NO_USE_LOG4CXX
 	g_logger = (const int)NULL;
 	log4cxx::LogManager::shutdown();
+#endif
 }
 
 

@@ -34,7 +34,7 @@ INLINE int Bundle::packetsSize() const
 	if(pCurrPacket_ && !pCurrPacket_->empty())
 		++i;
 
-	return i;
+	return (int)i;
 }
 
 INLINE MessageLength Bundle::currMsgLength() const 

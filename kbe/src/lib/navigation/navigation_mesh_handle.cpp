@@ -113,7 +113,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 		dtVcopy(epos1, endNearestPt);
 				
 		if (polys[npolys-1] != endRef)
-			navmeshQuery->closestPointOnPoly(polys[npolys-1], endNearestPt, epos1);
+			navmeshQuery->closestPointOnPoly(polys[npolys-1], endNearestPt, epos1, 0);
 				
 		navmeshQuery->findStraightPath(startNearestPt, endNearestPt, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
 

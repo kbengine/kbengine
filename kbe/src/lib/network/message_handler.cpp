@@ -190,6 +190,26 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		{
 			msgHandler->msgLen = args->dataSize();
 
+			if (msgHandler->pArgs)
+			{ 
+				std::vector<std::string>::iterator args_iter = msgHandler->pArgs->strArgsTypes.begin();
+				for (; args_iter != msgHandler->pArgs->strArgsTypes.end(); ++args_iter)
+				{
+					if ((*args_iter) == "std::string")
+					{
+						DebugHelper::getSingleton().set_warningcolor();
+
+						printf("%s::%s::dataSize: "	
+							"Not NETWORK_FIXED_MESSAGE, "	
+							"has changed to NETWORK_VARIABLE_MESSAGE!\n", COMPONENT_NAME_EX(g_componentType), ihName.c_str());
+
+						DebugHelper::getSingleton().set_normalcolor();
+						msgHandler->msgLen = NETWORK_VARIABLE_MESSAGE;
+						break;
+					}
+				}
+			}
+
 			if(msgHandler->type() == NETWORK_MESSAGE_TYPE_ENTITY)
 			{
 				msgHandler->msgLen += sizeof(ENTITY_ID);
@@ -253,8 +273,6 @@ std::string MessageHandlers::getDigestStr()
 		XML_FOR_END(rootNode);
 
 		md5.append((void*)&isize, sizeof(int32));
-
-		
 
 		std::vector<MessageHandlers*>& msgHandlers = messageHandlers();
 		isize += msgHandlers.size();

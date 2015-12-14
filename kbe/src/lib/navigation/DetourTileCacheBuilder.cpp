@@ -17,11 +17,11 @@
 //
 
 #include "DetourCommon.h"
+#include "DetourMath.h"
 #include "DetourStatus.h"
 #include "DetourAssert.h"
 #include "DetourTileCacheBuilder.h"
 #include <string.h>
-#include <math.h>
 
 
 template<class T> class dtFixedArray
@@ -1068,6 +1068,7 @@ static bool buildMeshAdjacency(dtTileCacheAlloc* alloc,
 }
 
 
+// Last time I checked the if version got compiled using cmov, which was a lot faster than module (with idiv).
 inline int prev(int i, int n) { return i-1 >= 0 ? i-1 : n-1; }
 inline int next(int i, int n) { return i+1 < n ? i+1 : 0; }
 
@@ -1968,12 +1969,12 @@ dtStatus dtMarkCylinderArea(dtTileCacheLayer& layer, const float* orig, const fl
 	const float px = (pos[0]-orig[0])*ics;
 	const float pz = (pos[2]-orig[2])*ics;
 	
-	int minx = (int)floorf((bmin[0]-orig[0])*ics);
-	int miny = (int)floorf((bmin[1]-orig[1])*ich);
-	int minz = (int)floorf((bmin[2]-orig[2])*ics);
-	int maxx = (int)floorf((bmax[0]-orig[0])*ics);
-	int maxy = (int)floorf((bmax[1]-orig[1])*ich);
-	int maxz = (int)floorf((bmax[2]-orig[2])*ics);
+	int minx = (int)dtMathFloorf((bmin[0]-orig[0])*ics);
+	int miny = (int)dtMathFloorf((bmin[1]-orig[1])*ich);
+	int minz = (int)dtMathFloorf((bmin[2]-orig[2])*ics);
+	int maxx = (int)dtMathFloorf((bmax[0]-orig[0])*ics);
+	int maxy = (int)dtMathFloorf((bmax[1]-orig[1])*ich);
+	int maxz = (int)dtMathFloorf((bmax[2]-orig[2])*ics);
 
 	if (maxx < 0) return DT_SUCCESS;
 	if (minx >= w) return DT_SUCCESS;
@@ -2116,6 +2117,7 @@ dtStatus dtDecompressTileCacheLayer(dtTileCacheAlloc* alloc, dtTileCacheCompress
 
 bool dtTileCacheHeaderSwapEndian(unsigned char* data, const int dataSize)
 {
+	dtIgnoreUnused(dataSize);
 	dtTileCacheLayerHeader* header = (dtTileCacheLayerHeader*)data;
 	
 	int swappedMagic = DT_TILECACHE_MAGIC;

@@ -174,7 +174,7 @@ bool PythonApp::installPyModules()
 	}
 	else
 	{
-		ERROR_MSG("PythonApp::installPyModules: entryScriptFileName is NULL!\n");
+		ERROR_MSG("PythonApp::installPyModules: Unsupported script!\n");
 	}
 
 	// 注册创建entity的方法到py
@@ -592,8 +592,8 @@ void PythonApp::reloadScript(bool fullReload)
 	// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	// 所有脚本都加载完毕
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onInit"), 
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+										const_cast<char*>("onInit"),
 										const_cast<char*>("i"), 
 										1);
 

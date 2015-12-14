@@ -57,7 +57,7 @@ struct MYSQL_TABLE_FIELD
 class DBInterfaceMysql : public DBInterface
 {
 public:
-	DBInterfaceMysql(std::string characterSet, std::string collation);
+	DBInterfaceMysql(const char* name, std::string characterSet, std::string collation);
 	virtual ~DBInterfaceMysql();
 
 	static bool initInterface(DBInterface* pdbi);
@@ -93,7 +93,7 @@ public:
 	*/
 	virtual bool checkErrors();
 
-	virtual bool query(const char* strCommand, uint32 size, bool showExecInfo = true, MemoryStream * result = NULL);
+	virtual bool query(const char* strCommand, uint32 size, bool printlog = true, MemoryStream * result = NULL);
 
 	bool write_query_result(MemoryStream * result);
 
@@ -158,7 +158,7 @@ public:
 	/**
 		创建一个entity存储表
 	*/
-	virtual EntityTable* createEntityTable();
+	virtual EntityTable* createEntityTable(EntityTables* pEntityTables);
 
 	/** 
 		从数据库删除entity表

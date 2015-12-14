@@ -34,7 +34,8 @@ namespace KBEngine {
 
 
 //-------------------------------------------------------------------------------------
-EntityTableRedis::EntityTableRedis()
+EntityTableRedis::EntityTableRedis(EntityTables* pEntityTables):
+EntityTable(pEntityTables)
 {
 }
 

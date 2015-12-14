@@ -150,6 +150,7 @@
     <ClInclude Include="DetourCommon.h" />
     <ClInclude Include="DetourCrowd.h" />
     <ClInclude Include="DetourLocalBoundary.h" />
+    <ClInclude Include="DetourMath.h" />
     <ClInclude Include="DetourNavMesh.h" />
     <ClInclude Include="DetourNavMeshBuilder.h" />
     <ClInclude Include="DetourNavMeshQuery.h" />

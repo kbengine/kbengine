@@ -133,7 +133,7 @@ bool ServerApp::loadConfig()
 }
 
 //-------------------------------------------------------------------------------------		
-bool ServerApp::installSingnals()
+bool ServerApp::installSignals()
 {
 	g_kbeSignalHandlers.attachApp(this);
 	g_kbeSignalHandlers.addSignal(SIGINT, this);
@@ -148,7 +148,7 @@ bool ServerApp::initialize()
 	if(!initThreadPool())
 		return false;
 
-	if(!installSingnals())
+	if(!installSignals())
 		return false;
 	
 	if(!loadConfig())

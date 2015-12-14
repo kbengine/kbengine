@@ -928,7 +928,7 @@ void Entity::backupCellData()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(void* data, void* extra)
+void Entity::writeToDB(void* data, void* extra1, void* extra2)
 {
 	CALLBACK_ID* pCallbackID = static_cast<CALLBACK_ID*>(data);
 	CALLBACK_ID callbackID = 0;
@@ -937,9 +937,29 @@ void Entity::writeToDB(void* data, void* extra)
 		callbackID = *pCallbackID;
 
 	int8 shouldAutoLoad = -1;
-	if(extra)
-		shouldAutoLoad = *static_cast<int8*>(extra);
+	if (extra1)
+		shouldAutoLoad = *static_cast<int8*>(extra1);
 
+	int dbInterfaceIndex = -1;
+
+	if (extra2)
+	{
+		if (strlen(static_cast<char*>(extra2)) > 0)
+		{
+			int fdbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(static_cast<char*>(extra2));
+			if (fdbInterfaceIndex >= 0)
+			{
+				dbInterfaceIndex = fdbInterfaceIndex;
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Entity::writeToDB: not found dbInterface({})!\n",
+					static_cast<char*>(extra2)));
+
+				return;
+			}
+		}
+	}
 	onWriteToDB();
 	backupCellData();
 
@@ -948,6 +968,7 @@ void Entity::writeToDB(void* data, void* extra)
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
 	(*pBundle) << shouldAutoLoad;
+	(*pBundle) << dbInterfaceIndex;
 
 	if(this->baseMailbox())
 	{

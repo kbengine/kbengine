@@ -57,9 +57,10 @@ thread::TPTask::TPTaskState DBTaskBase::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskSyncTable::DBTaskSyncTable(KBEShared_ptr<EntityTable> pEntityTable):
+DBTaskSyncTable::DBTaskSyncTable(EntityTables* pEntityTables, KBEShared_ptr<EntityTable> pEntityTable) :
 pEntityTable_(pEntityTable),
-success_(false)
+success_(false),
+pEntityTables_(pEntityTables)
 {
 }
 
@@ -78,7 +79,7 @@ bool DBTaskSyncTable::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskSyncTable::presentMainThread()
 {
-	EntityTables::getSingleton().onTableSyncSuccessfully(pEntityTable_, success_);
+	pEntityTables_->onTableSyncSuccessfully(pEntityTable_, success_);
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 

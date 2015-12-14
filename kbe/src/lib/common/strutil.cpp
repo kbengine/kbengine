@@ -61,7 +61,7 @@ namespace strutil {
 		if(src == NULL)
 			return 0;  
 
-		int iLen = strlen((char *)src);  
+		int iLen = (int)strlen((char *)src);
 		if (iLen <= 0 || iLen%2 != 0 || dst == NULL || dstsize < iLen/2)  
 		{  
 			return 0;  
@@ -174,7 +174,7 @@ namespace strutil {
 
 	char* wchar2char(const wchar_t* ts, size_t* outlen)
 	{
-		int len = (wcslen(ts) + 1) * sizeof(wchar_t);
+		int len = (int)((wcslen(ts) + 1) * sizeof(wchar_t));
 		char* ccattr =(char *)malloc(len);
 		memset(ccattr, 0, len);
 
@@ -193,7 +193,7 @@ namespace strutil {
 
 	void wchar2char(const wchar_t* ts, MemoryStream* pOutStream)
 	{
-		int len = (wcslen(ts) + 1) * sizeof(wchar_t);
+		int len = (int)((wcslen(ts) + 1) * sizeof(wchar_t));
 		pOutStream->data_resize(pOutStream->wpos() + len);
 		size_t slen = wcstombs((char*)&pOutStream->data()[pOutStream->wpos()], ts, len);
 		
@@ -206,7 +206,7 @@ namespace strutil {
 
 	wchar_t* char2wchar(const char* cs, size_t* outlen)
 	{
-		int len = (strlen(cs) + 1) * sizeof(wchar_t);
+		int len = (int)((strlen(cs) + 1) * sizeof(wchar_t));
 		wchar_t* ccattr =(wchar_t *)malloc(len);
 		memset(ccattr, 0, len);
 

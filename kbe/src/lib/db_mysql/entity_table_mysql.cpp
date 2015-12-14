@@ -123,7 +123,8 @@ void sync_autoload_item_index(DBInterface* pdbi, const char* tableName, const ch
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableMysql::EntityTableMysql()
+EntityTableMysql::EntityTableMysql(EntityTables* pEntityTables):
+EntityTable(pEntityTables)
 {
 }
 
@@ -1089,7 +1090,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 		return false;
 
 	// 创建子表
-	EntityTableMysql* pTable = new EntityTableMysql();
+	EntityTableMysql* pTable = new EntityTableMysql(this->pParentTable()->pEntityTables());
 
 	std::string tname = this->pParentTable()->tableName();
 	std::vector<std::string> qname;
@@ -1150,7 +1151,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	pTable->addItem(pArrayTableItem);
 	pChildTable_ = pTable;
 
-	EntityTables::getSingleton().addTable(pTable);
+	pTable->pEntityTables()->addTable(pTable);
 	return true;
 }
 
