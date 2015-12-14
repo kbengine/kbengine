@@ -197,18 +197,13 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 				{
 					if ((*args_iter) == "std::string")
 					{
-						#if KBE_PLATFORM == PLATFORM_WIN32
-							DebugHelper::getSingleton().set_warningcolor();
-						#endif
+						DebugHelper::getSingleton().set_warningcolor();
 
 						printf("%s::%s::dataSize: "	
 							"Not NETWORK_FIXED_MESSAGE, "	
 							"has changed to NETWORK_VARIABLE_MESSAGE!\n", COMPONENT_NAME_EX(g_componentType), ihName.c_str());
 
-						#if KBE_PLATFORM == PLATFORM_WIN32
-							DebugHelper::getSingleton().set_normalcolor();
-						#endif
-
+						DebugHelper::getSingleton().set_normalcolor();
 						msgHandler->msgLen = NETWORK_VARIABLE_MESSAGE;
 						break;
 					}

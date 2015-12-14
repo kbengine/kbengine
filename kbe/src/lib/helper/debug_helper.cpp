@@ -572,11 +572,9 @@ void DebugHelper::error_msg(const std::string& s)
 
 	onMessage(KBELOG_ERROR, s.c_str(), (uint32)s.size());
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
 	printf("[ERROR]: %s", s.c_str());
 	set_normalcolor();
-#endif
 }
 
 //-------------------------------------------------------------------------------------
@@ -631,15 +629,13 @@ void DebugHelper::script_info_msg(const std::string& s)
 
 	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), (uint32)s.size());
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	set_errorcolor();
-
 	// 如果是用户手动设置的也输出为错误信息
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
+	{
+		set_errorcolor();
 		printf("[S_ERROR]: %s", s.c_str());
-
-	set_normalcolor();
-#endif
+		set_normalcolor();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -657,11 +653,9 @@ void DebugHelper::script_error_msg(const std::string& s)
 
 	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), (uint32)s.size());
 
-#if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
 	printf("[S_ERROR]: %s", s.c_str());
 	set_normalcolor();
-#endif
 }
 
 //-------------------------------------------------------------------------------------
