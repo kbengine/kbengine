@@ -108,6 +108,10 @@ bool MessageHandlers::initializeWatcher()
 	{
 		char buf[MAX_BUF];
 		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
+
+		// 防止有超过buf缓冲区长度的消息出现
+		KBE_ASSERT(iter->second->name.size() + strlen("network/messages//id") < MAX_BUF);
+
 		WATCH_OBJECT(buf, iter->second->msgID);
 
 		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/len", iter->second->name.c_str());
